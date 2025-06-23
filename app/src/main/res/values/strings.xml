@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">soap</string>
+    <string name="start">Home</string>
+
 </resources>
