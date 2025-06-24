@@ -1,7 +1,5 @@
 package com.example.soap.Utilities
 
-import java.time.LocalDateTime
-
 data class RoomInfo(
     val origin: String,
     val destination: String,
