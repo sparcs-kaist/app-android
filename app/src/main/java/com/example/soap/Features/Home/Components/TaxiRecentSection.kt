@@ -31,13 +31,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.Utilities.RoomInfo
+import com.example.soap.Utilities.RoomInfo.Companion.mockList
 
 @Composable
 fun TaxiRecentSection(roomList: List<RoomInfo>) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -63,7 +66,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Go to Trending Board",
+                    contentDescription = "Go to Taxi Board",
                     modifier = Modifier.size(16.dp),
                     tint = Color.DarkGray
                 )
@@ -103,7 +106,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                                     Text(
                                         text = room.origin,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Medium
                                     )
                                 }
 
@@ -119,7 +122,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                                     Text(
                                         text = room.destination,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Medium
                                     )
                                 }
                             }
@@ -163,4 +166,10 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
             }
         }
     }
+}
+
+@Composable
+@Preview
+private fun Preview(){
+    TaxiRecentSection(mockList)
 }
