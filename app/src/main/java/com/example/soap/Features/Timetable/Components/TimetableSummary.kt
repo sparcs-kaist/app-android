@@ -1,7 +1,6 @@
 package com.example.soap.Features.Timetable.Components
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,39 +23,36 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun TimetableSummary() {
-    Box(modifier = Modifier.padding(16.dp)) {
-        Card(
-            colors = CardDefaults.cardColors(Color.White),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.fillMaxWidth()
+
+    Card(
+        colors = CardDefaults.cardColors(Color.White),
+        shape = RoundedCornerShape(20.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    SmallSummary("BR", 0)
-                    SmallSummary("BE", 0)
-                }
-                Column {
-                    SmallSummary("MR", 3)
-                    SmallSummary("ME", 9)
-                }
-                Column {
-                    SmallSummary("HSE", 0)
-                    SmallSummary("ETC", 3)
-                }
-
-                BigSummary("Credit", "15")
-                BigSummary("AU", "0")
-                BigSummary("Grade", "A")
-                BigSummary("Load", "A-")
-                BigSummary("Speech", "A")
-
+            Column {
+                SmallSummary("BR", 0)
+                SmallSummary("BE", 0)
             }
+            Column {
+                SmallSummary("MR", 3)
+                SmallSummary("ME", 9)
+            }
+            Column {
+                SmallSummary("HSE", 0)
+                SmallSummary("ETC", 3)
+            }
+            BigSummary("Credit", "15")
+            BigSummary("AU", "0")
+            BigSummary("Grade", "A")
+            BigSummary("Load", "A-")
+            BigSummary("Speech", "A")
         }
     }
 }
