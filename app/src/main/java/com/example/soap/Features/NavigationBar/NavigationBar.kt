@@ -1,4 +1,4 @@
-package com.example.soap
+package com.example.soap.Features.NavigationBar
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -26,14 +27,24 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Features.Home.HomeView
+import com.example.soap.Features.NavigationBar.Components.HomeButton
+import com.example.soap.Features.NavigationBar.Components.NotificationButton
+import com.example.soap.Features.NavigationBar.Components.SearchButton
+import com.example.soap.Features.NavigationBar.Components.SettingButton
+import com.example.soap.Features.NavigationBar.Components.TaxiButton
+import com.example.soap.Features.NavigationBar.Components.TimeTableButton
+import com.example.soap.R
 
 enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
-    Start(title = R.string.start)
+    Start(title = R.string.start),
+    TimeTable(title = R.string.timetable),
+    Taxi(title = R.string.taxi)
 }
 
 @Composable
-fun SoapApp(navController: NavHostController = rememberNavController()){
+fun NavigationBar(navController: NavHostController = rememberNavController()){
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -49,7 +60,6 @@ fun SoapApp(navController: NavHostController = rememberNavController()){
         bottomBar = {
             AppDownBar(
                     navController = navController,
-                    modifier = Modifier,
                     currentScreen = currentScreen
                 )
         }
@@ -60,12 +70,13 @@ fun SoapApp(navController: NavHostController = rememberNavController()){
             startDestination = Channel.Start.name,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(route = Channel.Start.name) { ListView(navController) }
+            composable(route = Channel.Start.name) { HomeView(navController) }
+            composable(route = Channel.TimeTable.name) { HomeView(navController) }
+            composable(route = Channel.Taxi.name) { HomeView(navController) }
         }
     }
 
 }
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,12 +95,12 @@ fun AppBar(
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(Modifier.weight(1f))
-                NotificationButton()
-                Spacer(modifier = Modifier.padding(16.dp))
-                MenuButton()
-                Spacer(modifier = Modifier.padding(8.dp))
 
+                Spacer(Modifier.weight(1f))
+
+                NotificationButton()
+
+                SettingButton()
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -98,23 +109,42 @@ fun AppBar(
     )
 }
 
-
 @Composable
 fun AppDownBar(
     navController: NavController,
-    modifier: Modifier = Modifier,
     currentScreen: Channel
 ) {
     BottomAppBar(
-        containerColor = MaterialTheme.colorScheme.surfaceDim,
-        modifier = modifier
+        containerColor = Color.White
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
+            HomeButton(currentScreen == Channel.Start)
 
+            TimeTableButton(currentScreen == Channel.TimeTable)
+
+            TaxiButton(currentScreen == Channel.Taxi)
+
+            SearchButton()
         }
 
     }
+}
+
+
+@Preview
+@Composable
+fun AppBarPreview(){
+    AppBar(Channel.Start)
+}
+
+@Preview
+@Composable
+fun AppDownBarPreview(){
+    AppDownBar(
+        navController = rememberNavController(),
+        currentScreen = Channel.Start
+    )
 }
