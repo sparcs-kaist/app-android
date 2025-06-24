@@ -15,8 +15,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,12 +30,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.Home.HomeView
-import com.example.soap.Features.NavigationBar.Components.HomeButton
+import com.example.soap.Features.NavigationBar.Components.NavigationButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SearchButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
-import com.example.soap.Features.NavigationBar.Components.TaxiButton
-import com.example.soap.Features.NavigationBar.Components.TimeTableButton
+import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
 
 enum class Channel(@StringRes val title: Int) {
@@ -71,7 +72,7 @@ fun NavigationBar(navController: NavHostController = rememberNavController()){
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(route = Channel.Start.name) { HomeView(navController) }
-            composable(route = Channel.TimeTable.name) { HomeView(navController) }
+            composable(route = Channel.TimeTable.name) { TimetableView(navController) }
             composable(route = Channel.Taxi.name) { HomeView(navController) }
         }
     }
@@ -88,7 +89,8 @@ fun AppBar(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp, end = 12.dp)
+                    .padding(top = 4.dp, end = 12.dp),
+                verticalAlignment = Alignment.Bottom
             ) {
                 Text(
                     text = stringResource(currentScreen.title),
@@ -121,11 +123,26 @@ fun AppDownBar(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            HomeButton(currentScreen == Channel.Start)
+            NavigationButton(
+                isSelected = currentScreen == Channel.Start,
+                title = "Home",
+                icon = painterResource(R.drawable.baseline_home),
+                onClick = { navController.navigate(Channel.Start.name) }
+            )
 
-            TimeTableButton(currentScreen == Channel.TimeTable)
+            NavigationButton(
+                isSelected = currentScreen == Channel.TimeTable,
+                title = "Timetable",
+                icon = painterResource(R.drawable.timetable),
+                onClick = { navController.navigate(Channel.TimeTable.name) }
+            )
 
-            TaxiButton(currentScreen == Channel.Taxi)
+            NavigationButton(
+                isSelected = currentScreen == Channel.Taxi,
+                title = "Taxi",
+                icon = painterResource(R.drawable.taxi),
+                onClick = { navController.navigate(Channel.Taxi.name) }
+            )
 
             SearchButton()
         }
@@ -136,13 +153,13 @@ fun AppDownBar(
 
 @Preview
 @Composable
-fun AppBarPreview(){
+private fun AppBarPreview(){
     AppBar(Channel.Start)
 }
 
 @Preview
 @Composable
-fun AppDownBarPreview(){
+private fun AppDownBarPreview(){
     AppDownBar(
         navController = rememberNavController(),
         currentScreen = Channel.Start
