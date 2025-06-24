@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">soap</string>
     <string name="start">Home</string>
-    <string name="timetable">TimeTable</string>
+    <string name="timetable">Timetable</string>
     <string name="taxi">Taxi</string>
 
 </resources>
