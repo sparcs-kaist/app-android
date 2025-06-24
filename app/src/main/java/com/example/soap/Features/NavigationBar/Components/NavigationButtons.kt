@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
@@ -73,73 +72,33 @@ fun SettingButton() {
 }
 
 @Composable
-fun HomeButton(isSelected: Boolean){
-    val selectedColor = if (isSelected) Color(0xFF6157CD) else Color.DarkGray
+fun NavigationButton(
+    isSelected: Boolean,
+    title : String,
+    icon : Painter,
+    onClick : () -> Unit
+){
+    val selectedColor = if (isSelected) Color(0xFF6157CD) else Color.Gray
 
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable {  }
+        modifier = Modifier.clickable (onClick = onClick )
     ){
         Icon(
-            imageVector = Icons.Default.Home,
+            painter = icon,
             contentDescription = null,
             modifier = Modifier.size(28.dp),
             tint = selectedColor
         )
         Text(
-            text = "Home",
+            text = title,
             style = MaterialTheme.typography.bodySmall,
             color = selectedColor
         )
     }
 }
 
-@Composable
-fun TimeTableButton(isSelected: Boolean){
-    val selectedColor = if (isSelected) Color(0xFF6157CD) else Color.DarkGray
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable {  }
-    ){
-        Icon(
-            painter = painterResource(R.drawable.timetable),
-            contentDescription = null,
-            modifier = Modifier
-                .size(28.dp),
-            tint = selectedColor
-        )
-        Text(
-            text = "TimeTable",
-            style = MaterialTheme.typography.bodySmall,
-            color = selectedColor
-        )
-    }
-}
-
-@Composable
-fun TaxiButton(isSelected: Boolean){
-    val selectedColor = if (isSelected) Color(0xFF6157CD) else Color.DarkGray
-
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable {  }
-    ){
-        Icon(
-            painter = painterResource(R.drawable.taxi),
-            contentDescription = null,
-            modifier = Modifier
-                .size(28.dp),
-            tint = selectedColor
-        )
-        Text(
-            text = "Taxi",
-            style = MaterialTheme.typography.bodySmall,
-            color = selectedColor
-        )
-    }
-}
 
 @Composable
 fun SearchButton(){
@@ -153,12 +112,12 @@ fun SearchButton(){
             contentDescription = null,
             modifier = Modifier
                 .size(28.dp),
-            tint = Color.DarkGray
+            tint = Color.Gray
         )
         Text(
             text = "Search",
             style = MaterialTheme.typography.bodySmall,
-            color = Color.DarkGray
+            color = Color.Gray
         )
     }
 }
