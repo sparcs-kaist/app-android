@@ -40,6 +40,6 @@ fun HomeView(navController: NavController){
 
 @Preview
 @Composable
-fun Preview(){
+private fun Preview(){
     HomeView(rememberNavController())
 }
