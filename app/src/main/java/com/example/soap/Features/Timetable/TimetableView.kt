@@ -21,7 +21,7 @@ fun TimetableView(navController: NavController) {
             .fillMaxSize()
             .background(Color(0xFFF2F2F6))
     ) {
-        Column(modifier = Modifier.padding(vertical = 8.dp)){
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)){
             CompactTimetableSelector()
 
             TimetableSummary()

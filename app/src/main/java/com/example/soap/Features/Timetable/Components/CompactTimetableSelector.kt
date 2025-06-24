@@ -22,7 +22,8 @@ import com.example.soap.R
 @Composable
 fun CompactTimetableSelector() {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
