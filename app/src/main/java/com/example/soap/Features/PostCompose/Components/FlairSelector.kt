@@ -1,17 +1,18 @@
 package com.example.soap.Features.PostCompose.Components
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -45,6 +46,12 @@ fun FlairSelector(
     var selectedFlair by remember { mutableStateOf("No flair") }
     var expanded by remember { mutableStateOf(false) }
 
+    var previousFlair by remember { mutableStateOf("No flair") }
+
+    if (previousFlair != selectedFlair) {
+        previousFlair = selectedFlair
+    }
+
     Card(
         colors = CardDefaults.cardColors(Color(0xFFF2F2F6)),
         shape = RoundedCornerShape(20.dp)
@@ -56,25 +63,7 @@ fun FlairSelector(
                 .padding(vertical = 4.dp, horizontal = 8.dp)
                 .clickable { expanded = !expanded }
         ) {
-            AnimatedContent(
-                targetState = selectedFlair,
-                transitionSpec = {
-                    if (targetState > initialState) {
-                        (slideInVertically { height -> height } + fadeIn()).togetherWith(
-                            slideOutVertically { height -> -height } + fadeOut())
-                    } else {
-                        (slideInVertically { height -> -height } + fadeIn()).togetherWith(
-                            slideOutVertically { height -> height } + fadeOut())
-                    } using SizeTransform(clip = false)
-                },
-                label ="selectedFlairTextAnimation"
-            ) { targetFlair ->
-                Text(
-                    text = targetFlair,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+            AnimatedAlphabetText(previousFlair, selectedFlair)
 
             Spacer(Modifier.padding(4.dp))
 
@@ -84,32 +73,69 @@ fun FlairSelector(
             )
         }
 
-    }
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = {expanded = false}
-    ){
-        postListViewModel.flairList.forEach{ flair ->
-            Box(
-                Modifier
-                    .padding(8.dp)
-                    .clickable {
-                        selectedFlair = flair
-                        expanded = false
-                    }
-            ) {
-                Text(
-                    text = flair,
-                    style = MaterialTheme.typography.titleSmall
-                )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {expanded = false},
+            modifier = Modifier.background(Color(0xFFF2F2F6))
+        ){
+            postListViewModel.flairList.forEachIndexed{ index, flair ->
+                Box(
+                    Modifier
+                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .clickable {
+                            selectedFlair = flair
+                            expanded = false
+                        }
+                ) {
+                    Text(
+                        text = flair,
+                        style = MaterialTheme.typography.titleSmall
+                    )
 
+                }
+                if (index != postListViewModel.flairList.lastIndex) {
+                    HorizontalDivider(thickness = 1.dp)
+                }
             }
-            HorizontalDivider(thickness = 1.dp)
 
         }
-
     }
 }
+
+@Composable
+fun AnimatedAlphabetText(from: String, to: String) {
+    val maxLength = maxOf(from.length, to.length)
+
+    Row {
+        for (i in 0 until maxLength) {
+            val toChar = to.getOrNull(i) ?: ' '
+
+            AnimatedContent(
+                targetState = toChar,
+                transitionSpec = {
+                    val slideIn = slideInVertically { it }
+                    val fadeIn = fadeIn(initialAlpha = 0.3f)
+
+                    val slideOut = slideOutVertically { -it }
+                    val fadeOut = fadeOut()
+
+                    (slideIn + fadeIn).togetherWith((slideOut + fadeOut))
+                },
+                label = "charTransition"
+            ) { char ->
+                Text(
+                    text = char.toString(),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+
+
 
 @Composable
 @Preview
