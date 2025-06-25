@@ -1,7 +1,9 @@
 package com.example.soap.Features.NavigationBar
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -116,37 +118,44 @@ fun AppDownBar(
     navController: NavController,
     currentScreen: Channel
 ) {
-    BottomAppBar(
-        containerColor = Color.White
+
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = 2.dp)
+            .background(Color.Gray)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
+        BottomAppBar(
+            containerColor = Color.White
         ) {
-            NavigationButton(
-                isSelected = currentScreen == Channel.Start,
-                title = "Home",
-                icon = painterResource(R.drawable.baseline_home),
-                onClick = { navController.navigate(Channel.Start.name) }
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                NavigationButton(
+                    isSelected = currentScreen == Channel.Start,
+                    title = "Home",
+                    icon = painterResource(R.drawable.baseline_home),
+                    onClick = { navController.navigate(Channel.Start.name) }
+                )
 
-            NavigationButton(
-                isSelected = currentScreen == Channel.TimeTable,
-                title = "Timetable",
-                icon = painterResource(R.drawable.timetable),
-                onClick = { navController.navigate(Channel.TimeTable.name) }
-            )
+                NavigationButton(
+                    isSelected = currentScreen == Channel.TimeTable,
+                    title = "Timetable",
+                    icon = painterResource(R.drawable.timetable),
+                    onClick = { navController.navigate(Channel.TimeTable.name) }
+                )
 
-            NavigationButton(
-                isSelected = currentScreen == Channel.Taxi,
-                title = "Taxi",
-                icon = painterResource(R.drawable.taxi),
-                onClick = { navController.navigate(Channel.Taxi.name) }
-            )
+                NavigationButton(
+                    isSelected = currentScreen == Channel.Taxi,
+                    title = "Taxi",
+                    icon = painterResource(R.drawable.taxi),
+                    onClick = { navController.navigate(Channel.Taxi.name) }
+                )
 
-            SearchButton()
+                SearchButton()
+            }
         }
-
     }
 }
 

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -18,6 +19,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 
@@ -81,21 +83,25 @@ fun NavigationButton(
     val selectedColor = if (isSelected) Color(0xFF6157CD) else Color.Gray
 
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable (onClick = onClick )
-    ){
-        Icon(
-            painter = icon,
-            contentDescription = null,
-            modifier = Modifier.size(28.dp),
-            tint = selectedColor
-        )
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodySmall,
-            color = selectedColor
-        )
+    Box(Modifier.clip(RoundedCornerShape(16.dp))) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .clickable(onClick = onClick)
+                .padding(horizontal = 4.dp)
+        ) {
+            Icon(
+                painter = icon,
+                contentDescription = null,
+                modifier = Modifier.size(28.dp),
+                tint = selectedColor
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodySmall,
+                color = selectedColor
+            )
+        }
     }
 }
 
@@ -103,21 +109,36 @@ fun NavigationButton(
 @Composable
 fun SearchButton(){
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable {  }
-    ){
-        Icon(
-            painter = painterResource(R.drawable.search),
-            contentDescription = null,
+    Box(Modifier.clip(RoundedCornerShape(16.dp))) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
-                .size(28.dp),
-            tint = Color.Gray
-        )
-        Text(
-            text = "Search",
-            style = MaterialTheme.typography.bodySmall,
-            color = Color.Gray
-        )
+                .padding(horizontal = 4.dp)
+                .clickable { }
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.search),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(28.dp),
+                tint = Color.Gray
+            )
+            Text(
+                text = "Search",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
+        }
     }
+}
+
+@Composable
+@Preview
+private fun Preview(){
+    NavigationButton(
+        false,
+        "title",
+        painterResource(R.drawable.taxi),
+        {}
+    )
 }
