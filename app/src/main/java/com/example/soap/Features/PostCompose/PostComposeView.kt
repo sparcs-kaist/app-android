@@ -58,7 +58,7 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
     var isPolitical by remember { mutableStateOf(false) }
 
     val isDoneEnabled = title.isNotBlank() && description.isNotBlank()
-    var showBottomSheet by remember { mutableStateOf(false) }
+//    var showBottomSheet by remember { mutableStateOf(false) }
 
     Column(Modifier
         .background(Color.White)
