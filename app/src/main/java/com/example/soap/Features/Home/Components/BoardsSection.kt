@@ -56,7 +56,7 @@ fun BoardsSection() {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Go to Boards",
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(24.dp),
                     tint = Color.DarkGray
                 )
             }
@@ -64,7 +64,8 @@ fun BoardsSection() {
 
         Card(
             colors = CardDefaults.cardColors(Color.White),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.fillMaxWidth()
         ){
             Column(
                 modifier = Modifier
