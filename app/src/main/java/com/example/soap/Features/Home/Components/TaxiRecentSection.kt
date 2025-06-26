@@ -67,7 +67,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Go to Taxi Board",
-                    modifier = Modifier.size(16.dp),
+                    modifier = Modifier.size(24.dp),
                     tint = Color.DarkGray
                 )
             }

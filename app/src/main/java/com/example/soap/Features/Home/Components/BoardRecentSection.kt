@@ -56,8 +56,8 @@ fun BoardRecentSection(title : String) {
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Go to Trending Board",
-                    modifier = Modifier.size(16.dp),
+                    contentDescription = "Go to $title Board",
+                    modifier = Modifier.size(24.dp),
                     tint = Color.DarkGray
                 )
             }
@@ -65,7 +65,8 @@ fun BoardRecentSection(title : String) {
 
         Card(
             colors = CardDefaults.cardColors(Color.White),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(20.dp),
+            modifier = Modifier.fillMaxWidth()
         ){
             Column(
                 modifier = Modifier
