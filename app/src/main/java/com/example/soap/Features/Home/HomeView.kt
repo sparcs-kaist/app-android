@@ -5,9 +5,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -15,6 +15,7 @@ import com.example.soap.Features.Home.Components.BoardRecentSection
 import com.example.soap.Features.Home.Components.BoardsSection
 import com.example.soap.Features.Home.Components.TaxiRecentSection
 import com.example.soap.Utilities.RoomInfo.Companion.mockList
+import com.example.soap.ui.theme.SoapTheme
 
 @Composable
 fun HomeView(navController: NavController){
@@ -22,7 +23,7 @@ fun HomeView(navController: NavController){
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF2F2F6))
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
         BoardRecentSection(title = "Trending")
@@ -41,5 +42,5 @@ fun HomeView(navController: NavController){
 @Preview
 @Composable
 private fun Preview(){
-    HomeView(rememberNavController())
+    SoapTheme { HomeView(rememberNavController()) }
 }

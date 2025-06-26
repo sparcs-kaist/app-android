@@ -42,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -59,6 +58,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soap.Features.PostCompose.Components.FlairSelector
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
+import com.example.soap.ui.theme.SoapTheme
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -104,7 +104,7 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Box(
@@ -120,7 +120,7 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
                     text = "Done",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Normal,
-                    color = if (isDoneEnabled) Color(0xFF6157CD) else Color.Gray,
+                    color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .semantics { contentDescription = "Post Button" }
@@ -222,7 +222,7 @@ private fun TermsOfUseButton(){
         text = "terms of use",
         style = MaterialTheme.typography.bodySmall,
         textDecoration = TextDecoration.Underline,
-        color = Color.DarkGray
+        color = MaterialTheme.colorScheme.outline
     )
 }
 
@@ -241,7 +241,7 @@ fun CheckBoxText(
             Checkbox(
                 checked = isChecked,
                 onCheckedChange = onCheckedChange,
-                colors = CheckboxDefaults.colors(Color.DarkGray),
+                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.outline),
                 modifier = Modifier.padding(8.dp)
             )
             Text(
@@ -263,8 +263,8 @@ fun TitleTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.Black),
-        cursorBrush = SolidColor(Color(0xFF6157CD)),
+        textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = nextFocus
@@ -273,7 +273,7 @@ fun TitleTextField(
             if (value.isEmpty()) {
                 Text(
                     text = placeholderText,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -294,8 +294,8 @@ fun DescriptionTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = false,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.Black),
-        cursorBrush = SolidColor(Color(0xFF6157CD)),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Default),
         modifier = modifier,
         onTextLayout = onTextLayout,
@@ -303,7 +303,7 @@ fun DescriptionTextField(
             if (value.text.isEmpty()) {
                 Text(
                     text = placeholderText,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -324,5 +324,5 @@ fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
 @Composable
 @Preview
 private fun Preview(){
-    PostComposeView(viewModel())
+    SoapTheme { PostComposeView(viewModel()) }
 }

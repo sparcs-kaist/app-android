@@ -16,12 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
+import com.example.soap.ui.theme.SoapTheme
 
 @Composable
 fun NotificationButton(){
@@ -34,7 +34,7 @@ fun NotificationButton(){
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
                 .clickable { /* TODO: Menu */ },
             contentAlignment = Alignment.Center
         ) {
@@ -42,7 +42,7 @@ fun NotificationButton(){
                 painter = painterResource(R.drawable.notification),
                 contentDescription = "Menu",
                 modifier = Modifier.size(28.dp),
-                tint = Color.DarkGray
+                tint = MaterialTheme.colorScheme.outline
             )
         }
     }
@@ -59,7 +59,7 @@ fun SettingButton() {
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.surface)
                 .clickable { /* TODO: Menu */ },
             contentAlignment = Alignment.Center
         ) {
@@ -67,7 +67,7 @@ fun SettingButton() {
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "Setting",
                 modifier = Modifier.size(28.dp),
-                tint = Color.DarkGray
+                tint = MaterialTheme.colorScheme.outline
             )
         }
     }
@@ -80,7 +80,7 @@ fun NavigationButton(
     icon : Painter,
     onClick : () -> Unit
 ){
-    val selectedColor = if (isSelected) Color(0xFF6157CD) else Color.Gray
+    val selectedColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline
 
 
     Box(Modifier.clip(RoundedCornerShape(16.dp))) {
@@ -121,12 +121,12 @@ fun SearchButton(){
                 contentDescription = null,
                 modifier = Modifier
                     .size(28.dp),
-                tint = Color.Gray
+                tint = MaterialTheme.colorScheme.outline
             )
             Text(
                 text = "Search",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.outline
             )
         }
     }
@@ -135,10 +135,14 @@ fun SearchButton(){
 @Composable
 @Preview
 private fun Preview(){
-    NavigationButton(
-        false,
-        "title",
-        painterResource(R.drawable.taxi),
-        {}
-    )
+    SoapTheme {
+        NotificationButton()
+        
+        NavigationButton(
+            false,
+            "title",
+            painterResource(R.drawable.taxi),
+            {}
+        )
+    }
 }

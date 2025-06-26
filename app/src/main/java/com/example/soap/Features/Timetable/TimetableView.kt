@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -16,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -26,6 +26,7 @@ import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
+import com.example.soap.ui.theme.SoapTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +40,7 @@ fun TimetableView(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF2F2F6))
+            .background(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)){
             CompactTimetableSelector()
@@ -58,7 +59,7 @@ fun TimetableView(navController: NavController) {
                     onDismissRequest = { showBottomSheet = false },
                     modifier = Modifier.fillMaxHeight(),
                     sheetState = sheetState,
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface
                 ) { PostComposeView(viewModel()) }
             }
 
@@ -70,5 +71,5 @@ fun TimetableView(navController: NavController) {
 @Composable
 @Preview
 private fun Preview(){
-    TimetableView(rememberNavController())
+    SoapTheme { TimetableView(rememberNavController()) }
 }

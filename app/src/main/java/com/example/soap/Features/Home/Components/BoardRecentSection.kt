@@ -22,11 +22,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.ui.theme.SoapTheme
 
 
 @Composable
@@ -50,7 +50,7 @@ fun BoardRecentSection(title : String) {
                     .padding(start = 8.dp)
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable { /* TODO: Board List */ },
                 contentAlignment = Alignment.Center
             ) {
@@ -58,13 +58,12 @@ fun BoardRecentSection(title : String) {
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Go to $title Board",
                     modifier = Modifier.size(24.dp),
-                    tint = Color.DarkGray
+                    tint = MaterialTheme.colorScheme.outline
                 )
             }
         }
-
         Card(
-            colors = CardDefaults.cardColors(Color.White),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier.fillMaxWidth()
         ){
@@ -96,5 +95,7 @@ fun BoardRecentSection(title : String) {
 @Composable
 @Preview
 private fun Preview(){
-    BoardRecentSection("title")
+    SoapTheme {
+        BoardRecentSection("title")
+    }
 }

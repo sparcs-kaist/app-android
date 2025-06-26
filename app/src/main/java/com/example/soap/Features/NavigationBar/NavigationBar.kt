@@ -19,7 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,6 +37,7 @@ import com.example.soap.Features.NavigationBar.Components.SearchButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
+import com.example.soap.ui.theme.SoapTheme
 
 enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
@@ -108,7 +108,7 @@ fun AppBar(
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = Color(0xFFF2F2F6)
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
@@ -123,10 +123,10 @@ fun AppDownBar(
         Modifier
             .fillMaxWidth()
             .padding(top = 2.dp)
-            .background(Color.Gray)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         BottomAppBar(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -163,14 +163,16 @@ fun AppDownBar(
 @Preview
 @Composable
 private fun AppBarPreview(){
-    AppBar(Channel.Start)
+   SoapTheme { AppBar(Channel.Start) }
 }
 
 @Preview
 @Composable
 private fun AppDownBarPreview(){
-    AppDownBar(
-        navController = rememberNavController(),
-        currentScreen = Channel.Start
-    )
+    SoapTheme {
+        AppDownBar(
+            navController = rememberNavController(),
+            currentScreen = Channel.Start
+        )
+    }
 }
