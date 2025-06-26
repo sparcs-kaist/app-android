@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.Utilities.RoomInfo
 import com.example.soap.Utilities.RoomInfo.Companion.mockList
+import com.example.soap.ui.theme.SoapTheme
 
 @Composable
 fun TaxiRecentSection(roomList: List<RoomInfo>) {
@@ -60,7 +61,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                     .padding(start = 8.dp)
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable { /* TODO: Board List */ },
                 contentAlignment = Alignment.Center
             ) {
@@ -68,7 +69,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Go to Taxi Board",
                     modifier = Modifier.size(24.dp),
-                    tint = Color.DarkGray
+                    tint = MaterialTheme.colorScheme.outline
                 )
             }
         }
@@ -80,7 +81,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
         ) {
             items(roomList) { room ->
                 Card(
-                    colors = CardDefaults.cardColors(Color.White),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Column(
@@ -158,7 +159,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                         Text(
                             text = "${room.departureTime}\tLorem ipsum",
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.Gray,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
                         )
                     }
@@ -171,5 +172,5 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
 @Composable
 @Preview
 private fun Preview(){
-    TaxiRecentSection(mockList)
+    SoapTheme { TaxiRecentSection(mockList) }
 }

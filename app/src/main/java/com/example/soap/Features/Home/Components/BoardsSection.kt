@@ -22,11 +22,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.ui.theme.SoapTheme
 
 @Composable
 fun BoardsSection() {
@@ -49,7 +49,7 @@ fun BoardsSection() {
                     .padding(start = 8.dp)
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(Color.White)
+                    .background(MaterialTheme.colorScheme.surface)
                     .clickable { /* TODO: Board List */ },
                 contentAlignment = Alignment.Center
             ) {
@@ -57,13 +57,13 @@ fun BoardsSection() {
                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                     contentDescription = "Go to Boards",
                     modifier = Modifier.size(24.dp),
-                    tint = Color.DarkGray
+                    tint = MaterialTheme.colorScheme.outline
                 )
             }
         }
 
         Card(
-            colors = CardDefaults.cardColors(Color.White),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier.fillMaxWidth()
         ){
@@ -78,7 +78,7 @@ fun BoardsSection() {
                             text = "Board",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
-                            color = Color.Black,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(end = 12.dp)
                         )
                         Text(
@@ -98,5 +98,5 @@ fun BoardsSection() {
 @Composable
 @Preview
 private fun Preview(){
-    BoardsSection()
+    SoapTheme { BoardsSection() }
 }

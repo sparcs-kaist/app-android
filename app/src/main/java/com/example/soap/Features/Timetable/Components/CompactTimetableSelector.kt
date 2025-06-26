@@ -12,12 +12,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
+import com.example.soap.ui.theme.SoapTheme
 
 @Composable
 fun CompactTimetableSelector() {
@@ -35,7 +35,7 @@ fun CompactTimetableSelector() {
             Icon(
                 painter = painterResource(R.drawable.arrow_back_ios),
                 contentDescription = "Select Previous Semester",
-                tint = Color.Gray
+                tint = MaterialTheme.colorScheme.surfaceVariant
             )
         }
 
@@ -54,7 +54,7 @@ fun CompactTimetableSelector() {
             Icon(
                 painter = painterResource(R.drawable.arrow_forward_ios),
                 contentDescription = "Select Next Semester",
-                tint = Color.Black
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
 
@@ -72,7 +72,7 @@ fun CompactTimetableSelector() {
             Icon(
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "Select Next Semester",
-                tint = Color.Black
+                tint = MaterialTheme.colorScheme.onSurface
             )
         }
     }
@@ -81,5 +81,5 @@ fun CompactTimetableSelector() {
 @Composable
 @Preview
 private fun Preview(){
-    CompactTimetableSelector()
+    SoapTheme { CompactTimetableSelector() }
 }
