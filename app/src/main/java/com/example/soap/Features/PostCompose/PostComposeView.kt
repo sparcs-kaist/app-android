@@ -1,39 +1,57 @@
 package com.example.soap.Features.PostCompose
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,95 +59,136 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soap.Features.PostCompose.Components.FlairSelector
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PostComposeView(postListViewModel: PostListViewModel) {
+    val coroutineScope = rememberCoroutineScope()
 
-//    @Environment(PostListViewModel.self) private var viewModel
-//  @Environment(\.dismiss) private var dismiss
-    val titleFocusRequester = remember { FocusRequester() }
-    val descriptionFocusRequester = remember { FocusRequester() } //title to description
+    val descriptionFocusRequester = remember { FocusRequester() }
+    val descriptionBringIntoViewRequester = remember { BringIntoViewRequester() }
 
     var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf(TextFieldValue("")) }
 
     var writeAsAnonymous by remember { mutableStateOf(true) }
     var isNSFW by remember { mutableStateOf(false) }
     var isPolitical by remember { mutableStateOf(false) }
+    val isDoneEnabled = title.isNotBlank() && description.toString().isNotBlank()
 
-    val isDoneEnabled = title.isNotBlank() && description.isNotBlank()
-//    var showBottomSheet by remember { mutableStateOf(false) }
+    val internalScrollState = rememberScrollState()
+    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val cursorLine by remember {
+        derivedStateOf { textLayoutResult?.getLineForOffset(description.selection.start) }
+    }
+    val keyboardPaddingPx = with(LocalDensity.current) { 250.dp.toPx() }
 
-    Column(Modifier
-        .background(Color.White)
-        .fillMaxSize()
-        .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = "Write",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
-            Text(
-                text = "Done",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Normal,
-                color = if (isDoneEnabled) Color(0xFF6157CD) else Color.Gray,
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .clickable {
-                        if (isDoneEnabled) {
-                            //Todo : Post, Dismiss Button
-                        }
-                    }
-            )
+    LaunchedEffect(cursorLine) {
+        val layout = textLayoutResult ?: return@LaunchedEffect
+        val line = cursorLine ?: return@LaunchedEffect
+
+        val lineTopPx = layout.getLineTop(line)
+        val scrollOffset = maxOf(lineTopPx - keyboardPaddingPx, 0f)
+
+        coroutineScope.launch {
+            internalScrollState.animateScrollTo(scrollOffset.toInt())
         }
-        FlairSelector(postListViewModel)
+    }
 
-        Spacer(Modifier.padding(8.dp))
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Write",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+                Text(
+                    text = "Done",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Normal,
+                    color = if (isDoneEnabled) Color(0xFF6157CD) else Color.Gray,
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .semantics { contentDescription = "Post Button" }
+                        .clickable {
+                            if (isDoneEnabled) {
+                                //Todo: Dismiss
+                            }
+                        }
+                )
+            }
 
-        TextField(
-            value = title,
-            onValueChange = {title = it},
-            placeholderText = "Please enter the title",
-            singleLine = true,
-            textStyle = MaterialTheme.typography.titleLarge,
-            nextFocus = {
-                descriptionFocusRequester.requestFocus()
-            },
-            focusRequester = titleFocusRequester
-        )
+            FlairSelector(postListViewModel)
 
-        HorizontalDivider()
+            Spacer(Modifier.padding(8.dp))
 
-        Spacer(Modifier.padding(4.dp))
+            TitleTextField(
+                value = title,
+                onValueChange = { title = it},
+                placeholderText = "Please enter the title",
+                nextFocus = { descriptionFocusRequester.requestFocus() }
+            )
 
-        TextField(
-            value = description,
-            onValueChange = {description = it},
-            placeholderText = "What's happening?",
-            singleLine = false,
-            textStyle = MaterialTheme.typography.bodyMedium,
-            nextFocus = {},
-            focusRequester = descriptionFocusRequester
-        )
+            HorizontalDivider()
 
-        Box(Modifier.align(Alignment.End)){ TermsOfUseButton() }
+            Spacer(Modifier.padding(4.dp))
 
-        Spacer(Modifier.weight(1f))
+            Column(
+                modifier = Modifier
+                    .bringIntoViewRequester(descriptionBringIntoViewRequester)
+                    .verticalScroll(internalScrollState)
+                    .focusRequester(descriptionFocusRequester)
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .noRippleClickable { descriptionFocusRequester.requestFocus() }
+            ) {
+                DescriptionTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    placeholderText = "What's happening",
+                    modifier = Modifier,
+                    onTextLayout = { textLayoutResult = it },
+                    )
+                Spacer(Modifier.padding(4.dp))
+
+                Box(Modifier.align(Alignment.End)) {
+                    TermsOfUseButton()
+                }
+            }
+
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.background(Color.White)
-        ){
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.End)
+        ) {
+
             Icon(
                 painter = painterResource(R.drawable.add_photo_alternate),
                 contentDescription = "Add photo",
-                modifier = Modifier.clickable {  }
+                modifier = Modifier.clickable { }
+            )
+
+            Spacer(Modifier.padding(horizontal = 4.dp))
+
+            Icon(
+                painter = painterResource(R.drawable.attach_file),
+                contentDescription = "Add file",
+                modifier = Modifier.clickable { }
             )
 
             Spacer(Modifier.weight(1f))
@@ -149,68 +208,13 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
             CheckBoxText(
                 text = "Political",
                 isChecked = isPolitical,
-                onCheckedChange = { isPolitical = !isPolitical}
+                onCheckedChange = { isPolitical = !isPolitical }
             )
         }
     }
-
-}
-
-@Composable
-fun CheckBoxText(
-    text: String, 
-    isChecked: Boolean,
-    onCheckedChange:((Boolean) -> Unit)?
-){
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ){
-        Checkbox(
-            checked = isChecked,
-            onCheckedChange = onCheckedChange,
-            colors = CheckboxDefaults.colors(Color.DarkGray)
-        )
-
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium
-        )
     }
 }
 
-@Composable
-fun TextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholderText: String,
-    singleLine: Boolean,
-    textStyle: TextStyle,
-    nextFocus: (KeyboardActionScope.() -> Unit)?,
-    focusRequester: FocusRequester
-){
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = singleLine,
-        textStyle = textStyle.copy(color = Color.Black),
-        cursorBrush = SolidColor(Color(0xFF6157CD)),
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-        keyboardActions = KeyboardActions(
-            onNext = nextFocus
-        ),
-        modifier = Modifier.focusRequester(focusRequester),
-        decorationBox = { innerTextField ->
-            if (value.isEmpty()) {
-                Text(
-                    text = placeholderText,
-                    color = Color.Gray,
-                    style = textStyle
-                )
-            }
-            innerTextField()
-        }
-    )
-}
 
 @Composable
 private fun TermsOfUseButton(){
@@ -220,6 +224,101 @@ private fun TermsOfUseButton(){
         textDecoration = TextDecoration.Underline,
         color = Color.DarkGray
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CheckBoxText(
+    text: String, 
+    isChecked: Boolean,
+    onCheckedChange:((Boolean) -> Unit)?
+){
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ){
+        CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+
+            Checkbox(
+                checked = isChecked,
+                onCheckedChange = onCheckedChange,
+                colors = CheckboxDefaults.colors(Color.DarkGray),
+                modifier = Modifier.padding(8.dp)
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+    }
+}
+
+@Composable
+fun TitleTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholderText: String,
+    nextFocus: (KeyboardActionScope.() -> Unit)?
+){
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = true,
+        textStyle = MaterialTheme.typography.titleLarge.copy(color = Color.Black),
+        cursorBrush = SolidColor(Color(0xFF6157CD)),
+        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+        keyboardActions = KeyboardActions(
+            onNext = nextFocus
+        ),
+        decorationBox = { innerTextField ->
+            if (value.isEmpty()) {
+                Text(
+                    text = placeholderText,
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+            innerTextField()
+        }
+    )
+}
+
+@Composable
+fun DescriptionTextField(
+    value: TextFieldValue,
+    onValueChange: (TextFieldValue) -> Unit,
+    placeholderText: String,
+    modifier: Modifier,
+    onTextLayout: (TextLayoutResult) -> Unit
+){
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        singleLine = false,
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = Color.Black),
+        cursorBrush = SolidColor(Color(0xFF6157CD)),
+        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Default),
+        modifier = modifier,
+        onTextLayout = onTextLayout,
+        decorationBox = { innerTextField ->
+            if (value.text.isEmpty()) {
+                Text(
+                    text = placeholderText,
+                    color = Color.Gray,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+            innerTextField()
+        }
+    )
+}
+
+fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
+    clickable(indication = null,
+        interactionSource = remember {
+            MutableInteractionSource()
+        }) {
+        onClick()
+    }
 }
 
 @Composable
