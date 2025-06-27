@@ -21,20 +21,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
-import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BoardNavigationBar(
-    postListViewModel : PostListViewModel = viewModel(),
-    navController : NavController
-){
+fun BoardNavigationBar(navController : NavController){
 
     TopAppBar(
         title = {
@@ -88,5 +83,5 @@ fun selectedColor(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme{ BoardNavigationBar(viewModel(), rememberNavController()) }
+    SoapTheme{ BoardNavigationBar(rememberNavController()) }
 }
