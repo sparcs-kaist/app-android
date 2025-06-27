@@ -14,6 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.Home.Components.BoardRecentSection
 import com.example.soap.Features.Home.Components.BoardsSection
 import com.example.soap.Features.Home.Components.TaxiRecentSection
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Utilities.RoomInfo.Companion.mockList
 import com.example.soap.ui.theme.SoapTheme
 
@@ -26,15 +27,22 @@ fun HomeView(navController: NavController){
             .background(MaterialTheme.colorScheme.background)
             .verticalScroll(scrollState)
     ) {
-        BoardRecentSection(title = "Trending")
+        BoardRecentSection(
+            title = "Trending",
+            clickAction = { navController.navigate(Channel.Trending.name) }
+        )
 
         TaxiRecentSection(mockList)
 
         BoardsSection()
 
-        BoardRecentSection(title = "General")
+        BoardRecentSection(
+            title = "General",
+            clickAction = {})
 
-        BoardRecentSection(title = "Notice")
+        BoardRecentSection(
+            title = "Notice",
+            clickAction = {})
 
     }
 }

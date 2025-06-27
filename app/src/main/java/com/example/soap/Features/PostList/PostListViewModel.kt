@@ -8,7 +8,6 @@ class PostListViewModel : ViewModel(){
     var postList: List<Post> = Post.mocklist()
 
     var flairList: List<String> = listOf(
-        "No flair",
         "SPPANGS",
         "Meal",
         "Money",

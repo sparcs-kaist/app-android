@@ -1,6 +1,5 @@
 package com.example.soap.Features.PostCompose
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -61,7 +60,6 @@ import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PostComposeView(postListViewModel: PostListViewModel) {
     val coroutineScope = rememberCoroutineScope()

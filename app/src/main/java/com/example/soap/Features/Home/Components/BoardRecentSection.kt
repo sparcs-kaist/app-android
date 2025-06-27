@@ -30,7 +30,10 @@ import com.example.soap.ui.theme.SoapTheme
 
 
 @Composable
-fun BoardRecentSection(title : String) {
+fun BoardRecentSection(
+    title : String,
+    clickAction : () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -51,7 +54,7 @@ fun BoardRecentSection(title : String) {
                     .size(28.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surface)
-                    .clickable { /* TODO: Board List */ },
+                    .clickable { clickAction() },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -83,7 +86,7 @@ fun BoardRecentSection(title : String) {
                         Text(
                             text = "Lorem ipsum\t13 min ago",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -96,6 +99,6 @@ fun BoardRecentSection(title : String) {
 @Preview
 private fun Preview(){
     SoapTheme {
-        BoardRecentSection("title")
+        BoardRecentSection("title", clickAction = {})
     }
 }

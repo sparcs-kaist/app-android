@@ -25,12 +25,11 @@ fun Date.timeAgoDisplay(): String {
         days--
     }
 
-
     if (years > 0) return "$year/$month/$day"
     if (days >= 7) return "$month/$day"
     if (days > 0) return "$days day${if (days > 1) "s" else ""} ago"
     if (hours > 0) return "$hours hour${if (hours > 1) "s" else ""} ago"
-    if (minutes > 0) return "${minutes}min ago "
+    if (minutes > 0) return "${minutes} min ago "
 
     return "just now"
 }

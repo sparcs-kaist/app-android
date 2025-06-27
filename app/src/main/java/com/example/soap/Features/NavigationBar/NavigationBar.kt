@@ -1,6 +1,13 @@
 package com.example.soap.Features.NavigationBar
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,14 +18,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -31,10 +38,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.Home.HomeView
+import com.example.soap.Features.NavigationBar.Components.BoardNavigationBar
 import com.example.soap.Features.NavigationBar.Components.NavigationButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
-import com.example.soap.Features.NavigationBar.Components.SearchButton
+import com.example.soap.Features.NavigationBar.Components.SearchBottomButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
+import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
@@ -43,7 +52,8 @@ enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
     Start(title = R.string.start),
     TimeTable(title = R.string.timetable),
-    Taxi(title = R.string.taxi)
+    Taxi(title = R.string.taxi),
+    Trending(title = R.string.trending)
 }
 
 @Composable
@@ -56,8 +66,16 @@ fun NavigationBar(navController: NavHostController = rememberNavController()){
     }?: Channel.Start
 
     Scaffold(
+
+        modifier = Modifier.background(Color.Transparent),
+        containerColor = Color.Transparent,
+        contentColor = Color.Unspecified,
+
         topBar = {
-            AppBar(currentScreen = currentScreen)
+            AppBar(
+                navController = navController,
+                currentScreen = currentScreen
+            )
         },
 
         bottomBar = {
@@ -76,6 +94,7 @@ fun NavigationBar(navController: NavHostController = rememberNavController()){
             composable(route = Channel.Start.name) { HomeView(navController) }
             composable(route = Channel.TimeTable.name) { TimetableView(navController) }
             composable(route = Channel.Taxi.name) { HomeView(navController) }
+            composable(route = Channel.Trending.name){ PostListView()  }
         }
     }
 
@@ -84,34 +103,42 @@ fun NavigationBar(navController: NavHostController = rememberNavController()){
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBar(
+    navController: NavController,
     currentScreen: Channel
 ) {
-    TopAppBar(
-        title = {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp, end = 12.dp),
-                verticalAlignment = Alignment.Bottom
-            ) {
+    if(currentScreen.name != Channel.Trending.name) {
+        //Basic Home Navigation Bar
+        MediumTopAppBar(
+            title = {
                 Text(
                     text = stringResource(currentScreen.title),
                     style = MaterialTheme.typography.displaySmall,
                     fontWeight = FontWeight.Bold
                 )
+            },
+            navigationIcon = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp, end = 12.dp)
+                ) {
+                    Spacer(Modifier.weight(1f))
 
-                Spacer(Modifier.weight(1f))
+                    NotificationButton()
 
-                NotificationButton()
-
-                SettingButton()
-            }
-        },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
+                    SettingButton()
+                }
+            },
+            colors = TopAppBarDefaults.mediumTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.background
+            )
         )
-    )
+    }else{
+        //Board Navigation Bar
+        BoardNavigationBar(navController = navController)
+    }
 }
+
 
 @Composable
 fun AppDownBar(
@@ -119,41 +146,60 @@ fun AppDownBar(
     currentScreen: Channel
 ) {
 
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .padding(top = 2.dp)
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+
+    AnimatedVisibility(
+        visible = currentScreen.name != Channel.Trending.name,
+        enter = fadeIn() + slideInVertically(
+            animationSpec = spring(
+                stiffness = Spring.StiffnessLow,
+                dampingRatio = Spring.DampingRatioLowBouncy
+            ),
+            initialOffsetY = { it }
+        ),
+        exit = fadeOut() + slideOutVertically(
+            animationSpec = spring(
+                stiffness = Spring.StiffnessLow,
+                dampingRatio = Spring.DampingRatioLowBouncy
+            ),
+            targetOffsetY = { it }
+        )
     ) {
-        BottomAppBar(
-            containerColor = MaterialTheme.colorScheme.surface
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(top = 2.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.surface
             ) {
-                NavigationButton(
-                    isSelected = currentScreen == Channel.Start,
-                    title = "Home",
-                    icon = painterResource(R.drawable.baseline_home),
-                    onClick = { navController.navigate(Channel.Start.name) }
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    NavigationButton(
+                        isSelected = currentScreen == Channel.Start,
+                        title = "Home",
+                        icon = painterResource(R.drawable.baseline_home),
+                        onClick = { navController.navigate(Channel.Start.name) }
+                    )
 
-                NavigationButton(
-                    isSelected = currentScreen == Channel.TimeTable,
-                    title = "Timetable",
-                    icon = painterResource(R.drawable.timetable),
-                    onClick = { navController.navigate(Channel.TimeTable.name) }
-                )
+                    NavigationButton(
+                        isSelected = currentScreen == Channel.TimeTable,
+                        title = "Timetable",
+                        icon = painterResource(R.drawable.timetable),
+                        onClick = { navController.navigate(Channel.TimeTable.name) }
+                    )
 
-                NavigationButton(
-                    isSelected = currentScreen == Channel.Taxi,
-                    title = "Taxi",
-                    icon = painterResource(R.drawable.taxi),
-                    onClick = { navController.navigate(Channel.Taxi.name) }
-                )
+                    NavigationButton(
+                        isSelected = currentScreen == Channel.Taxi,
+                        title = "Taxi",
+                        icon = painterResource(R.drawable.taxi),
+                        onClick = { navController.navigate(Channel.Taxi.name) }
+                    )
 
-                SearchButton()
+                    SearchBottomButton()
+                }
             }
         }
     }
@@ -162,8 +208,20 @@ fun AppDownBar(
 
 @Preview
 @Composable
+private fun Preview(){
+    SoapTheme {
+        NavigationBar()
+    }
+}
+
+
+@Preview
+@Composable
 private fun AppBarPreview(){
-   SoapTheme { AppBar(Channel.Start) }
+   SoapTheme { AppBar(
+       navController = rememberNavController(),
+       currentScreen = Channel.Start
+   ) }
 }
 
 @Preview

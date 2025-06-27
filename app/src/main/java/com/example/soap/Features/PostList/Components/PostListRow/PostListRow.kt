@@ -27,8 +27,12 @@ import com.example.soap.ui.theme.SoapTheme
 @Composable
 fun PostListRow(post: Post){
 
-    Row(Modifier.fillMaxWidth()) {
-        Column() {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        Column(Modifier.align(Alignment.CenterVertically)){
             Text(
                 text = post.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -39,11 +43,13 @@ fun PostListRow(post: Post){
             Text(
                 text = post.description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+
+            Spacer(Modifier.padding(2.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
 
@@ -53,20 +59,21 @@ fun PostListRow(post: Post){
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .background(MaterialTheme.colorScheme.background)
-                            .padding(4.dp)
+                            .padding(horizontal = 4.dp)
                     ) {
                         PostListRowVoteLabel(post.voteCount)
 
                         PostListRowCommentLabel(post.commentCount)
                     }
+
+                    Spacer(Modifier.padding(4.dp))
                 }
 
-                Spacer(Modifier.padding(4.dp))
 
                 Text(
                     text = post.author,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.padding(4.dp))
@@ -74,7 +81,7 @@ fun PostListRow(post: Post){
                 Text(
                     text = post.createdAt.timeAgoDisplay(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
 
                 )
 
@@ -101,7 +108,7 @@ fun PostListRow(post: Post){
 private fun Preview(){
     SoapTheme {
         PostListRow(
-            Post.mocklist()[0]
+            Post.mocklist()[5]
         )
     }
 }

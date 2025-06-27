@@ -78,7 +78,26 @@ fun FlairSelector(
             onDismissRequest = {expanded = false},
             modifier = Modifier.background(Color(0xFFF2F2F6))
         ){
+            Box(
+                Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+                    .clickable {
+                        selectedFlair = "No flair"
+                        expanded = false
+                    }
+            ) {
+                Text(
+                    text = "No flair",
+                    style = MaterialTheme.typography.titleSmall
+                )
+
+            }
+
+            HorizontalDivider(thickness = 1.dp)
+
             postListViewModel.flairList.forEachIndexed{ index, flair ->
+
                 Box(
                     Modifier
                         .padding(8.dp)
