@@ -1,6 +1,8 @@
 package com.example.soap.Models
 
 import java.net.URL
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.util.Date
 import java.util.UUID
 
@@ -16,41 +18,51 @@ data class Post(
 ) {
     companion object {
         fun mocklist(): List<Post> {
+
             return listOf(
                 Post(
-                    title = "제목",
-                    description = "얌얌",
+                    title = "some title",
+                    description = "verrrry loooonnngggg description",
                     voteCount = 120,
                     commentCount = 15,
-                    author = "넙죽이",
+                    author = "ayayayayaya",
                     createdAt = Date(),
-                    thumbnailURL = null
+                    thumbnailURL = URL("https://d2phebdq64jyfk.cloudfront.net/media/article/8efac7c4150a4d67affcd29e509e9e78.png")
                 ),
                 Post(
-                    title = "개발자가 될테야",
-                    description = "ㄱㄴㄷㄹ",
-                    voteCount = 250,
+                    title = "some title",
+                    description = "verrrry loooonnngggg asdfojapsdofpoweufpoqiewfpoqiuwepfoiquwepfoiquwepfoiqwuepfoiqwuepfoiquwepfoiquwepofiquwepofiuqpwoeifuqpwoeifuqpwoeifu",
+                    voteCount = -250,
                     commentCount = 30,
-                    author = "밥",
-                    createdAt = Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24),
+                    author = "goose",
+                    createdAt = Date.from(Instant.now().minus(3, ChronoUnit.DAYS)),
                     thumbnailURL = null
                 ),
                 Post(
-                    title = "아기 거위",
-                    description = "귀여움",
+                    title = "mooooooooooooore tiiiiiiiiiitlellllllllllllllllllllllllllllllllll",
+                    description = "verrrry loooonnngggg description",
                     voteCount = 90,
                     commentCount = 8,
-                    author = "거위",
-                    createdAt = Date(),
+                    author = "nupzuki",
+                    createdAt = Date.from(Instant.now().minus(7, ChronoUnit.DAYS)),
                     thumbnailURL = null
                 ),
                 Post(
-                    title = "집갈래",
-                    description = "집좋아",
+                    title = "some title",
+                    description = "less description",
                     voteCount = 180,
                     commentCount = 22,
-                    author = "너어업주기",
-                    createdAt = Date(),
+                    author = "Anonymous",
+                    createdAt = Date.from(Instant.now().minus(100, ChronoUnit.DAYS)),
+                    thumbnailURL = null
+                ),
+                Post(
+                    title = "some title",
+                    description = "less description",
+                    voteCount = 180,
+                    commentCount = 22,
+                    author = "Anonymous",
+                    createdAt = Date.from(Instant.now().minus(366, ChronoUnit.DAYS)),
                     thumbnailURL = null
                 )
             )
