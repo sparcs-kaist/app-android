@@ -3,6 +3,7 @@ package com.example.soap.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val theme_light_primary = Color(0xFF6157CD)
+val theme_light_primaryContainer = Color(0xFFe2e1e6)
 val theme_light_background = Color(0xFFF2F2F6)
 val theme_light_onBackground = Color.Black
 val theme_light_surface = Color.White

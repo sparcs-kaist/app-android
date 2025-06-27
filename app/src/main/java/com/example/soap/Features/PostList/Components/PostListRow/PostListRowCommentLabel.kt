@@ -2,6 +2,7 @@ package com.example.soap.Features.PostList.Components.PostListRow
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,8 @@ fun PostListRowCommentLabel(commentCount: Int){
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.outline),
                 modifier = Modifier.size(15.dp)
             )
+
+            Spacer(Modifier.padding(2.dp))
 
             Text(
                 text = "$commentCount",

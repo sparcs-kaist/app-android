@@ -105,9 +105,34 @@ fun NavigationButton(
     }
 }
 
+@Composable
+fun SearchTopButton() {
+    Box(
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .shadow(8.dp, CircleShape)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surface)
+                .clickable { /* TODO: Menu */ },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.search),
+                contentDescription = "Search",
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
+
 
 @Composable
-fun SearchButton(){
+fun SearchBottomButton(){
 
     Box(Modifier.clip(RoundedCornerShape(16.dp))) {
         Column(

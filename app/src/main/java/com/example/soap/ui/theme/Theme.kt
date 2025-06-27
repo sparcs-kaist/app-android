@@ -24,6 +24,7 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = theme_light_primary,
+    primaryContainer = theme_light_primaryContainer,
     background = theme_light_background,
     onBackground = theme_light_onBackground,
     surface = theme_light_surface,

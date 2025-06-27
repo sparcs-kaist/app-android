@@ -3,5 +3,6 @@
     <string name="start">Home</string>
     <string name="timetable">Timetable</string>
     <string name="taxi">Taxi</string>
+    <string name="trending">General</string>
 
 </resources>
