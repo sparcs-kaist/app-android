@@ -1,31 +1,27 @@
 package com.example.soap.Features.NavigationBar
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -38,7 +34,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.Home.HomeView
-import com.example.soap.Features.NavigationBar.Components.BoardNavigationBar
+import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
+import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
+import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransition
+import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.example.soap.Features.NavigationBar.Components.NavigationButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SearchBottomButton
@@ -57,87 +56,84 @@ enum class Channel(@StringRes val title: Int) {
 }
 
 @Composable
-fun NavigationBar(navController: NavHostController = rememberNavController()){
+fun NavigationBar(navController: NavHostController = rememberNavController()) {
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val currentScreen = Channel.entries.find { screen ->
         currentRoute?.startsWith(screen.name) == true
-    }?: Channel.Start
+    } ?: Channel.Start
 
-    Scaffold(
-
-        modifier = Modifier.background(Color.Transparent),
-        containerColor = Color.Transparent,
-        contentColor = Color.Unspecified,
-
-        topBar = {
-            AppBar(
-                navController = navController,
-                currentScreen = currentScreen
-            )
-        },
-
-        bottomBar = {
-            AppDownBar(
-                    navController = navController,
-                    currentScreen = currentScreen
-                )
-        }
-    ) { innerPadding ->
-
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
         NavHost(
             navController = navController,
             startDestination = Channel.Start.name,
-            modifier = Modifier.padding(innerPadding)
+            enterTransition = { fadeIn(animationSpec = tween(500)) },
+            exitTransition = { fadeOut(animationSpec = tween(500)) }
         ) {
-            composable(route = Channel.Start.name) { HomeView(navController) }
-            composable(route = Channel.TimeTable.name) { TimetableView(navController) }
-            composable(route = Channel.Taxi.name) { HomeView(navController) }
-            composable(route = Channel.Trending.name){ PostListView()  }
+            composable(
+                route = Channel.Start.name,
+            ) { HomeView(navController) }
+
+            composable(
+                route = Channel.TimeTable.name,
+            ) { TimetableView(navController) }
+
+            composable(
+                route = Channel.Taxi.name,
+            ) { HomeView(navController) }
+
+            composable(
+                route = Channel.Trending.name,
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ) { PostListView(navController = navController) }
         }
     }
-
 }
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBar(
     navController: NavController,
-    currentScreen: Channel
+    currentScreen: Channel,
+    scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    if(currentScreen.name != Channel.Trending.name) {
         //Basic Home Navigation Bar
-        MediumTopAppBar(
-            title = {
-                Text(
-                    text = stringResource(currentScreen.title),
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            navigationIcon = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp, end = 12.dp)
-                ) {
-                    Spacer(Modifier.weight(1f))
-
-                    NotificationButton()
-
-                    SettingButton()
-                }
-            },
-            colors = TopAppBarDefaults.mediumTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
+    MediumTopAppBar(
+        title = {
+            Text(
+                text = stringResource(currentScreen.title),
+                style = MaterialTheme.typography.displaySmall,
+                fontWeight = FontWeight.Bold
             )
-        )
-    }else{
-        //Board Navigation Bar
-        BoardNavigationBar(navController = navController)
-    }
+        },
+        navigationIcon = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, end = 12.dp)
+            ) {
+                Spacer(Modifier.weight(1f))
+
+                NotificationButton()
+
+                SettingButton()
+            }
+        },
+        colors = TopAppBarDefaults.mediumTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.background
+        ),
+        scrollBehavior = scrollBehavior
+    )
 }
+
 
 
 @Composable
@@ -146,24 +142,6 @@ fun AppDownBar(
     currentScreen: Channel
 ) {
 
-
-    AnimatedVisibility(
-        visible = currentScreen.name != Channel.Trending.name,
-        enter = fadeIn() + slideInVertically(
-            animationSpec = spring(
-                stiffness = Spring.StiffnessLow,
-                dampingRatio = Spring.DampingRatioLowBouncy
-            ),
-            initialOffsetY = { it }
-        ),
-        exit = fadeOut() + slideOutVertically(
-            animationSpec = spring(
-                stiffness = Spring.StiffnessLow,
-                dampingRatio = Spring.DampingRatioLowBouncy
-            ),
-            targetOffsetY = { it }
-        )
-    ) {
         Box(
             Modifier
                 .fillMaxWidth()
@@ -203,7 +181,7 @@ fun AppDownBar(
             }
         }
     }
-}
+
 
 
 @Preview
@@ -215,6 +193,7 @@ private fun Preview(){
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 private fun AppBarPreview(){

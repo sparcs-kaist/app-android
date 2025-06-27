@@ -9,6 +9,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -22,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Features.NavigationBar.AppBar
+import com.example.soap.Features.NavigationBar.AppDownBar
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
@@ -37,34 +41,50 @@ fun TimetableView(navController: NavController) {
         skipPartiallyExpanded = true,
     )
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)){
-            CompactTimetableSelector()
+    Scaffold(
+        topBar = {
+            AppBar(
+                navController = navController,
+                currentScreen = Channel.TimeTable
+            )
+        },
 
-            TimetableGrid()
-
-            TimetableSummary()
-
-            Button(
-                onClick = { showBottomSheet = true }
-            ) {
-                Text("임시 게시물 작성 버튼")
-            }
-            if(showBottomSheet){
-                ModalBottomSheet(
-                    onDismissRequest = { showBottomSheet = false },
-                    modifier = Modifier.fillMaxHeight(),
-                    sheetState = sheetState,
-                    containerColor = MaterialTheme.colorScheme.surface
-                ) { PostComposeView(viewModel()) }
-            }
-
+        bottomBar = {
+            AppDownBar(
+                navController = navController,
+                currentScreen = Channel.TimeTable
+            )
         }
+    ){innerPadding ->
 
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
+        ) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                CompactTimetableSelector()
+
+                TimetableGrid()
+
+                TimetableSummary()
+
+                Button(
+                    onClick = { showBottomSheet = true }
+                ) {
+                    Text("임시 게시물 작성 버튼")
+                }
+                if (showBottomSheet) {
+                    ModalBottomSheet(
+                        onDismissRequest = { showBottomSheet = false },
+                        modifier = Modifier.fillMaxHeight(),
+                        sheetState = sheetState,
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ) { PostComposeView(viewModel()) }
+                }
+            }
+        }
     }
 }
 

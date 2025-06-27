@@ -24,7 +24,7 @@ import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -224,7 +224,6 @@ private fun TermsOfUseButton(){
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckBoxText(
     text: String, 
@@ -234,7 +233,7 @@ fun CheckBoxText(
     Row(
         verticalAlignment = Alignment.CenterVertically
     ){
-        CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 4.dp) {
 
             Checkbox(
                 checked = isChecked,
