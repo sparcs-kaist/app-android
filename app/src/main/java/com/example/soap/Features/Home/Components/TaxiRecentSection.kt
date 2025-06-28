@@ -34,8 +34,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.Utilities.RoomInfo
-import com.example.soap.Utilities.RoomInfo.Companion.mockList
+import com.example.soap.Utilities.Mocks.RoomInfo
+import com.example.soap.Utilities.Mocks.RoomInfo.Companion.mockList
 import com.example.soap.ui.theme.SoapTheme
 
 @Composable
