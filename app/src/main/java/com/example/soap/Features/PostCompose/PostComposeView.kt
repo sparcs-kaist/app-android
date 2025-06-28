@@ -2,7 +2,6 @@ package com.example.soap.Features.PostCompose
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,15 +18,11 @@ import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -37,7 +32,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.composed
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
@@ -53,9 +47,11 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.soap.Features.PostCompose.Components.CheckBoxText
 import com.example.soap.Features.PostCompose.Components.FlairSelector
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
+import com.example.soap.Utilities.Extensions.noRippleClickable
 import com.example.soap.ui.theme.SoapTheme
 import kotlinx.coroutines.launch
 
@@ -223,30 +219,6 @@ private fun TermsOfUseButton(){
     )
 }
 
-@Composable
-fun CheckBoxText(
-    text: String, 
-    isChecked: Boolean,
-    onCheckedChange:((Boolean) -> Unit)?
-){
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ){
-        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 4.dp) {
-
-            Checkbox(
-                checked = isChecked,
-                onCheckedChange = onCheckedChange,
-                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.outline),
-                modifier = Modifier.padding(8.dp)
-            )
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}
 
 @Composable
 fun TitleTextField(
@@ -306,15 +278,6 @@ fun DescriptionTextField(
             innerTextField()
         }
     )
-}
-
-fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier = composed {
-    clickable(indication = null,
-        interactionSource = remember {
-            MutableInteractionSource()
-        }) {
-        onClick()
-    }
 }
 
 @Composable
