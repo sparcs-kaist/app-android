@@ -7,15 +7,10 @@ enum class SemesterType(val title : String): Comparable<SemesterType> {
     WINTER("Winter");
 
     companion object {
-        private val order = listOf(SPRING, SUMMER, AUTUMN, WINTER)
-        fun semesterIsLessThan(lhs: SemesterType, rhs: SemesterType): Boolean {
-            val lhsIndex = order.indexOf(lhs)
-            val rhsIndex = order.indexOf(rhs)
+        private val customOrder: List<SemesterType> = listOf(SPRING, SUMMER, AUTUMN, WINTER)
 
-            if (lhsIndex == -1 || rhsIndex == -1) {
-                throw IllegalArgumentException("Unknown SemesterType in comparison")
-            }
-            return lhsIndex < rhsIndex
+        val customComparator: Comparator<SemesterType> = Comparator { s1, s2 ->
+            customOrder.indexOf(s1).compareTo(customOrder.indexOf(s2))
         }
     }
 
