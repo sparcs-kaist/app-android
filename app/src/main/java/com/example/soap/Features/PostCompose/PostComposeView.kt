@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
@@ -68,7 +69,7 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
     var writeAsAnonymous by remember { mutableStateOf(true) }
     var isNSFW by remember { mutableStateOf(false) }
     var isPolitical by remember { mutableStateOf(false) }
-    val isDoneEnabled = title.isNotBlank() && description.toString().isNotBlank()
+    val isDoneEnabled = title.isNotBlank() && description.text.isNotBlank()
 
     val internalScrollState = rememberScrollState()
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -173,7 +174,9 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
             Icon(
                 painter = painterResource(R.drawable.add_photo_alternate),
                 contentDescription = "Add photo",
-                modifier = Modifier.clickable { }
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable { }
             )
 
             Spacer(Modifier.padding(horizontal = 4.dp))
@@ -181,7 +184,9 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
             Icon(
                 painter = painterResource(R.drawable.attach_file),
                 contentDescription = "Add file",
-                modifier = Modifier.clickable { }
+                modifier = Modifier
+                    .size(30.dp)
+                    .clickable { }
             )
 
             Spacer(Modifier.weight(1f))
