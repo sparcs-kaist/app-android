@@ -1,4 +1,8 @@
-package com.example.soap.Utilities
+package com.example.soap.Utilities.Mocks
+
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.Date
 
 data class RoomInfo(
     val origin: String,
@@ -6,8 +10,7 @@ data class RoomInfo(
     val name: String,
     val occupancy: Int,
     val capacity: Int,
-    val departureTime: String
-    //val departureTime: LocalDateTime
+    val departureTime: Date
 ) {
     companion object {
         val mock: RoomInfo
@@ -17,7 +20,7 @@ data class RoomInfo(
                 name = "name1",
                 occupancy = 2,
                 capacity = 4,
-                departureTime = "now"
+                departureTime = Date.from(Instant.now().plus(1, ChronoUnit.MINUTES))
             )
 
         val mockList: List<RoomInfo>
@@ -28,7 +31,7 @@ data class RoomInfo(
                     name = "거위",
                     occupancy = 1,
                     capacity = 3,
-                    departureTime = "Today at 10:37PM"
+                    departureTime = Date.from(Instant.now().plus(1, ChronoUnit.MINUTES))
                 ),
                 RoomInfo(
                     origin = "Saejong Dormitory",
@@ -36,7 +39,7 @@ data class RoomInfo(
                     name = "넙죽이",
                     occupancy = 3,
                     capacity = 4,
-                    departureTime = "Tomorrow at 10:40PM"
+                    departureTime = Date.from(Instant.now().plus(1, ChronoUnit.DAYS))
                 )
             )
     }
