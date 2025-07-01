@@ -2,31 +2,22 @@ package com.example.soap.Features.Timetable
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
-import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
@@ -36,18 +27,17 @@ import com.example.soap.ui.theme.SoapTheme
 @Composable
 fun TimetableView(navController: NavController) {
 
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-    )
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         topBar = {
             AppBar(
-                navController = navController,
-                currentScreen = Channel.TimeTable
+                currentScreen = Channel.TimeTable,
+                scrollBehavior = scrollBehavior
             )
         },
+
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
 
         bottomBar = {
             AppDownBar(
@@ -70,19 +60,6 @@ fun TimetableView(navController: NavController) {
 
                 TimetableSummary()
 
-                Button(
-                    onClick = { showBottomSheet = true }
-                ) {
-                    Text("임시 게시물 작성 버튼")
-                }
-                if (showBottomSheet) {
-                    ModalBottomSheet(
-                        onDismissRequest = { showBottomSheet = false },
-                        modifier = Modifier.fillMaxHeight(),
-                        sheetState = sheetState,
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ) { PostComposeView(viewModel()) }
-                }
             }
         }
     }

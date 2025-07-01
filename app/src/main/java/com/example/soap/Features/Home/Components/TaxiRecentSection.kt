@@ -2,7 +2,6 @@ package com.example.soap.Features.Home.Components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -45,11 +44,11 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(vertical = 8.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
         ) {
             Text(
                 text = "Taxi",
@@ -76,17 +75,19 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
 
         LazyRow(
             contentPadding = PaddingValues(end = 20.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             items(roomList) { room ->
+
+                Spacer(Modifier.padding(horizontal = 8.dp))
+
                 Card(
                     colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(20.dp)
                 ) {
                     Column(
                         modifier = Modifier
-                            .width(screenWidth - 80.dp)
+                            .width(screenWidth - 60.dp)
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,

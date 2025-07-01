@@ -27,20 +27,18 @@ import com.example.soap.ui.theme.SoapTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeView(
-    navController: NavController,){
+fun HomeView(navController: NavController){
     val scrollState = rememberScrollState()
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
 
     Scaffold(
         topBar = {
             AppBar(
-                navController = navController,
                 currentScreen = Channel.Start,
                 scrollBehavior = scrollBehavior
             )},
 
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection), // ✅ Scaffold에 붙이기!!
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
 
         bottomBar = {
             AppDownBar(

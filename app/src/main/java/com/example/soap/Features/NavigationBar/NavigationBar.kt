@@ -4,23 +4,24 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,14 +34,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
-import com.example.soap.Features.NavigationBar.Components.NavigationButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
-import com.example.soap.Features.NavigationBar.Components.SearchBottomButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.Timetable.TimetableView
@@ -52,11 +52,12 @@ enum class Channel(@StringRes val title: Int) {
     Start(title = R.string.start),
     TimeTable(title = R.string.timetable),
     Taxi(title = R.string.taxi),
-    Trending(title = R.string.trending)
+    Trending(title = R.string.trending),
+    Boards(title = R.string.board)
 }
 
 @Composable
-fun NavigationBar(navController: NavHostController = rememberNavController()) {
+fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -76,6 +77,10 @@ fun NavigationBar(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Channel.Start.name,
             ) { HomeView(navController) }
+
+            composable(
+                route = Channel.Boards.name,
+            ) { BoardListView(navController) }
 
             composable(
                 route = Channel.TimeTable.name,
@@ -100,11 +105,13 @@ fun NavigationBar(navController: NavHostController = rememberNavController()) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppBar(
-    navController: NavController,
     currentScreen: Channel,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-        //Basic Home Navigation Bar
+    //Basic Home Navigation Bar
+    val collapsedFraction = scrollBehavior?.state?.collapsedFraction ?: 0f
+    val alphaValue = collapsedFraction
+
     MediumTopAppBar(
         title = {
             Text(
@@ -119,6 +126,16 @@ fun AppBar(
                     .fillMaxWidth()
                     .padding(top = 4.dp, end = 12.dp)
             ) {
+                Spacer(Modifier.weight(2f))
+
+                Text(
+                    text = stringResource(currentScreen.title),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = (MaterialTheme.colorScheme.onBackground).copy(alpha = alphaValue),
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(alignment = Alignment.CenterVertically)
+                )
+
                 Spacer(Modifier.weight(1f))
 
                 NotificationButton()
@@ -141,46 +158,47 @@ fun AppDownBar(
     navController: NavController,
     currentScreen: Channel
 ) {
+    val items = listOf(
+        Triple(Channel.Start, Channel.Start.name, R.drawable.baseline_home),
+        Triple(Channel.Boards, Channel.Boards.name, R.drawable.baseline_topic),
+        Triple(Channel.TimeTable, Channel.TimeTable.name, R.drawable.timetable),
+        Triple(Channel.Taxi, Channel.Taxi.name, R.drawable.taxi),
+        Triple(null, "Search", R.drawable.search)
+    )
 
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .padding(top = 2.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            BottomAppBar(
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    NavigationButton(
-                        isSelected = currentScreen == Channel.Start,
-                        title = "Home",
-                        icon = painterResource(R.drawable.baseline_home),
-                        onClick = { navController.navigate(Channel.Start.name) }
-                    )
-
-                    NavigationButton(
-                        isSelected = currentScreen == Channel.TimeTable,
-                        title = "Timetable",
-                        icon = painterResource(R.drawable.timetable),
-                        onClick = { navController.navigate(Channel.TimeTable.name) }
-                    )
-
-                    NavigationButton(
-                        isSelected = currentScreen == Channel.Taxi,
-                        title = "Taxi",
-                        icon = painterResource(R.drawable.taxi),
-                        onClick = { navController.navigate(Channel.Taxi.name) }
-                    )
-
-                    SearchBottomButton()
-                }
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surface
+    ) {
+        items.forEach { (channel, label, iconRes) ->
+            if (channel != null) {
+                NavigationBarItem(
+                    selected = currentScreen == channel,
+                    onClick = { navController.navigate(channel.name) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = label
+                        )
+                    },
+                    label = { Text(label) }
+                )
+            } else {
+                NavigationBarItem(
+                    selected = false,
+                    onClick = {},
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = label
+                        )
+                    },
+                    label = { Text(label) }
+                )
             }
         }
     }
+
+}
 
 
 
@@ -188,7 +206,7 @@ fun AppDownBar(
 @Composable
 private fun Preview(){
     SoapTheme {
-        NavigationBar()
+        MainTabBar()
     }
 }
 
@@ -198,7 +216,6 @@ private fun Preview(){
 @Composable
 private fun AppBarPreview(){
    SoapTheme { AppBar(
-       navController = rememberNavController(),
        currentScreen = Channel.Start
    ) }
 }
