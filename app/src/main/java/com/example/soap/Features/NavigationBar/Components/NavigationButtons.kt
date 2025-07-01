@@ -70,6 +70,32 @@ fun SettingButton() {
 }
 
 @Composable
+fun TimetableAddButton() {
+    Box(
+        modifier = Modifier
+            .padding(start = 8.dp)
+            .shadow(8.dp, CircleShape)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surface)
+                .clickable { /* TODO: Add */ },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.round_add),
+                contentDescription = "Setting",
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
+
+
+@Composable
 fun SearchTopButton() {
     Box(
         modifier = Modifier
