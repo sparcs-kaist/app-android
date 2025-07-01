@@ -4,5 +4,6 @@
     <string name="timetable">Timetable</string>
     <string name="taxi">Taxi</string>
     <string name="trending">General</string>
+    <string name="board">Boards</string>
 
 </resources>
