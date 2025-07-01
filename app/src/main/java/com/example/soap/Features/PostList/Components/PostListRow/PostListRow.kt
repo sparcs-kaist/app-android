@@ -1,6 +1,5 @@
 package com.example.soap.Features.PostList.Components.PostListRow
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -55,12 +54,7 @@ fun PostListRow(post: Post){
 
                 if (post.voteCount != 0 || post.commentCount > 0) {
 
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(MaterialTheme.colorScheme.background)
-                            .padding(horizontal = 4.dp)
-                    ) {
+                    Row(modifier = Modifier.padding(horizontal = 4.dp)) {
                         PostListRowVoteLabel(post.voteCount)
 
                         PostListRowCommentLabel(post.commentCount)

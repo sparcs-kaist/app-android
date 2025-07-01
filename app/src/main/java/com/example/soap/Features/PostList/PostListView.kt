@@ -153,7 +153,7 @@ fun PostListView(
             ) {
                 items(filteredPosts, key = { it.id }) { post ->
                     PostListRow(post)
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.background)
                 }
             }
         }

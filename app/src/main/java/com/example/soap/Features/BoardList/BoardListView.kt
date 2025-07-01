@@ -60,50 +60,50 @@ fun BoardListView(navController: NavController) {
             BoardList(
                 title = "Notice",
                 icon = painterResource(R.drawable.round_notifications_active),
-                sections = listOf{
-                    BoardListSectionItem(text = "Portal Notice", onClick = {})
-                    BoardListSectionItem(text = "Staff Notice", onClick = {})
-                    BoardListSectionItem(text = "Facility Notice", onClick = {})
-                    BoardListSectionItem(text = "External Company Advertisement", onClick = {})
-                }
+                sections = listOf(
+                    { BoardListSectionItem(text = "Portal Notice", onClick = {}) },
+                    { BoardListSectionItem(text = "Staff Notice", onClick = {}) },
+                    { BoardListSectionItem(text = "Facility Notice", onClick = {}) },
+                    { BoardListSectionItem(text = "External Company Advertisement", onClick = {}) }
+                )
             )
 
             BoardList(
                 title = "Talk",
                 icon = painterResource(R.drawable.round_chat),
-                sections = listOf{
-                    BoardListSectionItem(text = "General", onClick = {})
-                }
+                sections = listOf(
+                    { BoardListSectionItem(text = "General", onClick = {}) }
+                )
             )
 
             BoardList(
                 title = "Organisations and Clubs",
                 icon = painterResource(R.drawable.group),
-                sections = listOf{
-                    BoardListSectionItem(text = "Students Group", onClick = {})
-                    BoardListSectionItem(text = "Club", onClick = {})
-                }
+                sections = listOf(
+                    { BoardListSectionItem(text = "Students Group", onClick = {}) },
+                    { BoardListSectionItem(text = "Club", onClick = {}) }
+                )
             )
 
             BoardList(
                 title = "Trade",
                 icon = painterResource(R.drawable.baseline_local_offer),
-                sections = listOf{
-                    BoardListSectionItem(text = "Wanted", onClick = {})
-                    BoardListSectionItem(text = "Market", onClick = {})
-                    BoardListSectionItem(text = "Real Estate", onClick = {})
-                }
+                sections = listOf(
+                    { BoardListSectionItem(text = "Wanted", onClick = {}) },
+                    { BoardListSectionItem(text = "Market", onClick = {}) },
+                    { BoardListSectionItem(text = "Real Estate", onClick = {}) }
+                )
             )
 
             BoardList(
                 title = "Communication",
                 icon = painterResource(R.drawable.baseline_drafts),
-                sections = listOf{
-                    BoardListSectionItem(text = "Facility Feedback", onClick = {})
-                    BoardListSectionItem(text = "Ara Feedback", onClick = {})
-                    BoardListSectionItem(text = "Messages to the School", onClick = {})
-                    BoardListSectionItem(text = "KAIST News", onClick = {})
-                }
+                sections = listOf(
+                    { BoardListSectionItem(text = "Facility Feedback", onClick = {}) },
+                    { BoardListSectionItem(text = "Ara Feedback", onClick = {}) },
+                    { BoardListSectionItem(text = "Messages to the School", onClick = {}) },
+                    { BoardListSectionItem(text = "KAIST News", onClick = {}) }
+                )
             )
         }
     }
