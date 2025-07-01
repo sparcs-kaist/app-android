@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -145,7 +146,7 @@ fun AppBar(
                         NotificationButton()
                         SettingButton()
                     }
-                    Channel.Boards -> {}
+                    Channel.Boards -> { Spacer(Modifier.weight(2f))}
                     Channel.TimeTable -> { TimetableAddButton() }
                     else -> {}
                 }
@@ -168,7 +169,7 @@ fun AppDownBar(
     currentScreen: Channel
 ) {
     val items = listOf(
-        Triple(Channel.Start, Channel.Start.name, R.drawable.baseline_home),
+        Triple(Channel.Start, Channel.Start.name, R.drawable.round_home),
         Triple(Channel.Boards, Channel.Boards.name, R.drawable.baseline_topic),
         Triple(Channel.TimeTable, Channel.TimeTable.name, R.drawable.timetable),
         Triple(Channel.Taxi, Channel.Taxi.name, R.drawable.taxi),
@@ -189,7 +190,8 @@ fun AppDownBar(
                             contentDescription = label
                         )
                     },
-                    label = { Text(label) }
+                    label = { Text(label) },
+                    colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
                 )
             } else {
                 NavigationBarItem(
@@ -201,7 +203,8 @@ fun AppDownBar(
                             contentDescription = label
                         )
                     },
-                    label = { Text(label) }
+                    label = { Text(label) },
+                    colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
                 )
             }
         }

@@ -100,7 +100,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.navigation),
+                                        painter = painterResource(R.drawable.round_near_me),
                                         contentDescription = null,
                                         modifier = Modifier.padding(horizontal = 4.dp)
                                     )
