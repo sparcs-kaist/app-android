@@ -42,6 +42,7 @@ import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransit
 import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
+import com.example.soap.Features.NavigationBar.Components.TimetableAddButton
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
@@ -136,11 +137,19 @@ fun AppBar(
                     modifier = Modifier.align(alignment = Alignment.CenterVertically)
                 )
 
-                Spacer(Modifier.weight(1f))
 
-                NotificationButton()
 
-                SettingButton()
+                when (currentScreen) {
+                    Channel.Start -> {
+                        Spacer(Modifier.weight(1f))
+                        NotificationButton()
+                        SettingButton()
+                    }
+                    Channel.Boards -> {}
+                    Channel.TimeTable -> { TimetableAddButton() }
+                    else -> {}
+                }
+
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
