@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.soap.Features.NavigationBar.NavigationBar
+import com.example.soap.Features.NavigationBar.MainTabBar
 import com.example.soap.ui.theme.SoapTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             SoapTheme {
-                NavigationBar()
+                MainTabBar()
             }
         }
     }
