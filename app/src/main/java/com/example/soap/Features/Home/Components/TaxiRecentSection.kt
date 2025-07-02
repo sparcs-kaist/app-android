@@ -32,9 +32,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Models.RoomInfo
 import com.example.soap.R
-import com.example.soap.Utilities.Mocks.RoomInfo
-import com.example.soap.Utilities.Mocks.RoomInfo.Companion.mockList
+import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 
 @Composable
@@ -173,5 +173,5 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiRecentSection(mockList) }
+    SoapTheme { TaxiRecentSection(RoomInfo.mockList()) }
 }
