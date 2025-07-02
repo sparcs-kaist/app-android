@@ -22,7 +22,8 @@ import com.example.soap.Features.Home.Components.TaxiRecentSection
 import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
-import com.example.soap.Utilities.Mocks.RoomInfo.Companion.mockList
+import com.example.soap.Models.RoomInfo
+import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,7 +59,7 @@ fun HomeView(navController: NavController){
                 title = "Trending",
                 clickAction = { navController.navigate(Channel.Trending.name) }
             )
-            TaxiRecentSection(mockList)
+            TaxiRecentSection(RoomInfo.mockList())
 
             BoardsSection()
 
