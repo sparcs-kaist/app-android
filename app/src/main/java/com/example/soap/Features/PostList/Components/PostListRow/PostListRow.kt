@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.example.soap.Models.Post
 import com.example.soap.Utilities.Extensions.timeAgoDisplay
+import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 
 @Composable
@@ -102,7 +103,7 @@ fun PostListRow(post: Post){
 private fun Preview(){
     SoapTheme {
         PostListRow(
-            Post.mocklist()[5]
+            Post.mockList()[5]
         )
     }
 }
