@@ -1,10 +1,10 @@
 package com.example.soap.Models.Types
 
-enum class SemesterType(val title : String): Comparable<SemesterType> {
-    SPRING("Spring"),
-    SUMMER("Summer"),
-    AUTUMN("Autumn"),
-    WINTER("Winter");
+enum class SemesterType(val title : String, val shortCode: String): Comparable<SemesterType> {
+    SPRING("Spring", "S"),
+    SUMMER("Summer", "U"),
+    AUTUMN("Autumn", "F"),
+    WINTER("Winter", "W");
 
     companion object {
         private val customOrder: List<SemesterType> = listOf(SPRING, SUMMER, AUTUMN, WINTER)

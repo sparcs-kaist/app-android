@@ -2,6 +2,7 @@ package com.example.soap.Models.TimeTable
 
 import androidx.compose.ui.graphics.Color
 import com.example.soap.Models.Types.LectureType
+import com.example.soap.Models.Types.SemesterType
 import com.example.soap.Utilities.Helpers.LocalizedString
 import kotlin.math.roundToInt
 
@@ -11,6 +12,8 @@ data class Lecture(
     val course: Int,
     val code: String,
     val section: String?,
+    val year: Int,
+    val semester: SemesterType,
     val title: LocalizedString,
     val department: LocalizedString,
     val isEnglish: Boolean,
