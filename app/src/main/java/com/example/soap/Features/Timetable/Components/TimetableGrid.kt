@@ -1,94 +1,242 @@
 package com.example.soap.Features.Timetable.Components
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Features.Timetable.TimetableViewModel
+import com.example.soap.Models.TimeTable.Lecture
+import com.example.soap.Models.TimeTable.Timetable
+import com.example.soap.Models.TimeTable.duration
+import com.example.soap.Models.TimeTable.getLectures
+import com.example.soap.Models.TimeTable.maxMinutes
+import com.example.soap.Models.TimeTable.minMinutes
+import com.example.soap.Models.TimeTable.visibleDays
 import com.example.soap.Models.Types.DayType
+import com.example.soap.Utilities.Helpers.TimetableConstructor
+import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 
+@Composable
+fun TimetableGrid(
+    viewModel: TimetableViewModel,
+    selectedLecture: ((Lecture) -> Unit)? = null
+) {
+    val minMinutes = viewModel.selectedTimetable?.minMinutes ?: 540
+//    val maxMinutes = viewModel.selectedTimetable?.maxMinutes ?: 1080 //6:00PM
+    val maxMinutes = viewModel.selectedTimetable?.maxMinutes ?: 1440 //12:00AM
+    val visibleDays = viewModel.selectedTimetable?.visibleDays
+        ?: listOf(DayType.MON, DayType.TUE, DayType.WED, DayType.THU, DayType.FRI)
+    val scrollState = rememberScrollState()
+    val density = LocalDensity.current
+
+    BoxWithConstraints {
+        val heightPx = with(density) { (maxHeight * 0.2f).toPx() }
+        val widthPx = with(density) { maxWidth.toPx() }
+        val size = Size(widthPx, heightPx)
+
+        Card(
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+            modifier = Modifier.height(440.dp)
+        ) {
+            Column(Modifier.verticalScroll(scrollState)){
+
+                Row {
+                    TimesRowHeader(minMinutes, maxMinutes)
+
+                    Column(modifier = Modifier.weight(1f)) {
+
+                        DaysColumnHeader(visibleDays)
+
+                        Row {
+                            visibleDays.forEach { day ->
+                                Box(modifier = Modifier.weight(1f)) {
+                                    Spacer(modifier = Modifier.height(14.dp))
+                                    GridHorizontalLines(
+                                        minMinutes = minMinutes,
+                                        maxMinutes = maxMinutes,
+                                        timetableViewModel = viewModel
+                                    )
+
+                                    viewModel.selectedTimetable?.getLectures(day)?.forEach { item ->
+                                        val cellHeight = TimetableConstructor.getCellHeight(
+                                            item,
+                                            size,
+                                            viewModel.selectedTimetable!!.duration
+                                        )
+                                        val offsetPx = TimetableConstructor.getCellOffset(
+                                            item,
+                                            size,
+                                            viewModel.selectedTimetable!!.minMinutes,
+                                            viewModel.selectedTimetable!!.duration
+                                        )
+
+                                        val heightDp = cellHeight.dp
+                                        val offsetDp = offsetPx.dp
+
+                                        TimetableGridCell(
+                                            lecture = item.lecture,
+                                            modifier = Modifier
+                                                .offset(y = offsetDp)
+                                                .height(heightDp)
+                                                .fillMaxWidth()
+                                                .clickable { selectedLecture?.invoke(item.lecture) }
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(Modifier.width(TimetableConstructor.hoursWidth / 2))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 @Composable
-fun TimetableGrid(){
-    val scrollState = rememberScrollState()
+fun GridHorizontalLines(
+    timetableViewModel: TimetableViewModel,
+    minMinutes: Int,
+    maxMinutes: Int
+) {
+    val minHour = (timetableViewModel.selectedTimetable?.minMinutes ?: minMinutes) / 60
+    val maxHour = (timetableViewModel.selectedTimetable?.maxMinutes ?: maxMinutes) / 60
 
-    Box(Modifier.padding(vertical = 16.dp)) {
-        Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier
+    val totalLines = maxHour - minHour + 1
+
+    val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val dashEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
+
+    val lineHeight = 28.dp
+    val lineMargin = 2.dp
+
+    Column{
+
+    repeat(totalLines) { index ->
+            //일반 선
+            Canvas(modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-        ) {
-            Column(
-                Modifier
-                    .fillMaxSize()
-                //           .verticalScroll(scrollState)
-            ) {
-                DaysColumnHeader()
-                TimesRowHeader()
+                .height(lineHeight)) {
+                drawLine(
+                    color = lineColor,
+                    start = Offset(lineMargin.toPx(), 0f),
+                    end = Offset(size.width - lineMargin.toPx(), 0f),
+                    strokeWidth = 1f
+                )
             }
 
+            //실선
+            if (index < totalLines - 1) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(lineHeight)
+                ) {
+                    drawLine(
+                        color = lineColor,
+                        start = Offset(lineMargin.toPx(), 0f),
+                        end = Offset(size.width - lineMargin.toPx(), 0f),
+                        strokeWidth = 1f,
+                        pathEffect = dashEffect
+                    )
+                }
+            }
         }
     }
 }
 
-@Composable
-fun DaysColumnHeader(){
-    val defaultVisibleDays : List<DayType> = listOf(DayType.MON, DayType.TUE, DayType.WED, DayType.THU, DayType.FRI)
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ){
-        defaultVisibleDays.forEach { day ->
-            Text(
-                text = day.toString(),
-                style = MaterialTheme.typography.bodySmall
-            )
+@Composable
+fun DaysColumnHeader(days: List<DayType>) {
+    Row(modifier = Modifier
+        .fillMaxWidth()) {
+        days.forEach { day ->
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(TimetableConstructor.daysHeight)
+            ) {
+                Text(
+                    text = day.stringValue,
+                    style = MaterialTheme.typography.labelSmall,
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
         }
+        Spacer(Modifier.width(TimetableConstructor.hoursWidth/2))
+
     }
 }
-
 @Composable
-fun TimesRowHeader(){
-    val defaultMinMinutes = 540 //9:00AM
-    val defaultMaxMinutes = 1080 //6:00PM
+fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
+    val minHour = minMinutes / 60
+    val maxHour = maxMinutes / 60
 
-    val minHour = defaultMinMinutes / 60
-    val maxHour = defaultMaxMinutes / 60
+    val fixedCellHeight = 56.dp
+
 
     Column(
-//        modifier = Modifier.fillMaxHeight(),
-//        verticalArrangement = Arrangement.SpaceEvenly
+        modifier = Modifier.width(TimetableConstructor.hoursWidth),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        (minHour..maxHour).forEach { time ->
-            Text(
-                text = time.toString(),
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(Modifier.weight(1f))
+        Spacer(Modifier.height(4.dp))
+
+        repeat(maxHour - minHour +1) { index ->
+            Box(
+                modifier = Modifier
+                    .height(fixedCellHeight)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = (minHour + index).toString(),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
         }
     }
 }
 
-@Composable
+
 @Preview
-private fun Preview(){
-    SoapTheme { TimetableGrid() }
+@Composable
+private fun Preview() {
+    val mockTimetable = Timetable.mockList()
+    val mockViewModel = remember {
+        TimetableViewModel().apply {
+            selectedTimetable = mockTimetable[1]
+        }
+    }
+
+    SoapTheme {
+        TimetableGrid(viewModel = mockViewModel, selectedLecture = {})
+    }
 }

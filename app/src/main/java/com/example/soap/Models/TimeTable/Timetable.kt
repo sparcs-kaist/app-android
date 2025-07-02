@@ -13,7 +13,8 @@ data class Timetable(
 
     companion object {
         val defaultMinMinutes = 540 //9:00AM
-        val defaultMaxMinutes = 1080 // 6:00 PM
+//        val defaultMaxMinutes = 1080 // 6:00 PM
+        val defaultMaxMinutes = 1440 // 24:00 AM
 
 
         val letters: List<String> = listOf(

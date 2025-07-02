@@ -8,7 +8,7 @@ import com.example.soap.Models.Types.SemesterType
 import com.example.soap.Utilities.Extensions.toDate
 
 
-fun Timetable.mock(): Timetable {
+fun Timetable.Companion.mock(): Timetable {
     return Timetable(
             id= 0,
             lectures= Lecture.mockList(),
@@ -30,7 +30,7 @@ fun Timetable.mock(): Timetable {
 }
 
 
-fun Timetable.mockList(): List<Timetable>{
+fun Timetable.Companion.mockList(): List<Timetable>{
     return listOf(
         Timetable(
             id= 0,
