@@ -1,20 +1,12 @@
 package com.example.soap.Utilities.Mocks
 
+import com.example.soap.Models.RoomInfo
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.Date
 
-data class RoomInfo(
-    val origin: String,
-    val destination: String,
-    val name: String,
-    val occupancy: Int,
-    val capacity: Int,
-    val departureTime: Date
-) {
-    companion object {
-        val mock: RoomInfo
-            get() = RoomInfo(
+fun RoomInfo.Companion.mock(): RoomInfo{
+        return RoomInfo(
                 origin = "대전",
                 destination = "서산",
                 name = "name1",
@@ -22,25 +14,26 @@ data class RoomInfo(
                 capacity = 4,
                 departureTime = Date.from(Instant.now().plus(1, ChronoUnit.MINUTES))
             )
+}
+fun RoomInfo.Companion.mockList(): List<RoomInfo> {
 
-        val mockList: List<RoomInfo>
-            get() = listOf(
-                RoomInfo(
-                    origin = "KAIST Main Campus",
-                    destination = "Seodaejeon Station",
-                    name = "거위",
-                    occupancy = 1,
-                    capacity = 3,
-                    departureTime = Date.from(Instant.now().plus(1, ChronoUnit.MINUTES))
-                ),
-                RoomInfo(
-                    origin = "Saejong Dormitory",
-                    destination = "Daejeon Terminal Complex",
-                    name = "넙죽이",
-                    occupancy = 3,
-                    capacity = 4,
-                    departureTime = Date.from(Instant.now().plus(1, ChronoUnit.DAYS))
-                )
-            )
-    }
+    return listOf(
+        RoomInfo(
+            origin = "KAIST Main Campus",
+            destination = "Seodaejeon Station",
+            name = "거위",
+            occupancy = 1,
+            capacity = 3,
+            departureTime = Date.from(Instant.now().plus(1, ChronoUnit.MINUTES))
+        ),
+        RoomInfo(
+            origin = "Saejong Dormitory",
+            destination = "Daejeon Terminal Complex",
+            name = "넙죽이",
+            occupancy = 3,
+            capacity = 4,
+            departureTime = Date.from(Instant.now().plus(1, ChronoUnit.DAYS))
+        )
+    )
+
 }

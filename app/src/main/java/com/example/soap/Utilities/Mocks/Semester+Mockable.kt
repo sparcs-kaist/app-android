@@ -1,0 +1,87 @@
+package com.example.soap.Utilities.Mocks
+
+import com.example.soap.Models.TimeTable.Semester
+import com.example.soap.Models.TimeTable.SemesterEventDate
+import com.example.soap.Models.Types.SemesterType
+import com.example.soap.Utilities.Extensions.toDate
+
+
+
+fun Semester.mock(): Semester {
+    return Semester(
+        year = 2025,
+        semesterType = SemesterType.SPRING,
+        beginDate = "2025-02-23T15:00:00.000Z".toDate()!!,
+        endDate = "2025-06-13T14:59:00.000Z".toDate()!!,
+        eventDate = SemesterEventDate(
+            registrationPeriodStartDate = "2025-01-06T03:30:00.000Z".toDate(),
+            registrationPeriodEndDate = "2025-01-10T14:59:00.000Z".toDate(),
+            addDropPeriodEndDate = "2025-03-04T14:59:00.000Z".toDate(),
+            dropDeadlineDate = "2025-04-11T14:59:00.000Z".toDate(),
+            evaluationDeadlineDate = "2025-06-06T14:59:00.000Z".toDate(),
+            gradePostingDate = "2025-06-19T01:00:00.000Z".toDate()
+        )
+    )
+}
+
+fun Semester.mockList(): List<Semester>{
+    return listOf(
+        Semester(
+            year= 2025,
+            semesterType= SemesterType.AUTUMN,
+            beginDate= "2022-08-28T15:00:00.000Z".toDate()!!,
+            endDate= "2022-12-16T14:59:00.000Z".toDate()!!,
+            eventDate= SemesterEventDate(
+                registrationPeriodStartDate= "2022-08-08T03:30:00.000Z".toDate(),
+                registrationPeriodEndDate= "2022-08-12T14:59:00.000Z".toDate(),
+                addDropPeriodEndDate= "2022-09-05T14:59:00.000Z".toDate(),
+                dropDeadlineDate= "2022-10-14T14:59:00.000Z".toDate(),
+                evaluationDeadlineDate= "2022-12-09T14:59:00.000Z".toDate(),
+                gradePostingDate= "2022-12-23T01:00:00.000Z".toDate()
+            )
+        ),
+        Semester(
+            year= 2023,
+            semesterType= SemesterType.SPRING,
+            beginDate= "2023-02-26T15:00:00.000Z".toDate()!!,
+            endDate= "2023-06-16T14:59:00.000Z".toDate()!!,
+            eventDate= SemesterEventDate(
+                registrationPeriodStartDate= "2023-01-02T03:30:00.000Z".toDate(),
+                registrationPeriodEndDate= "2023-01-06T14:59:00.000Z".toDate(),
+                addDropPeriodEndDate= "2023-03-06T14:59:00.000Z".toDate(),
+                dropDeadlineDate= "2023-04-14T14:59:00.000Z".toDate(),
+                evaluationDeadlineDate= "2023-06-09T14:59:00.000Z".toDate(),
+                gradePostingDate= "2023-06-23T01:00:00.000Z".toDate()
+            )
+        ),
+        Semester(
+            year= 2023,
+            semesterType= SemesterType.AUTUMN,
+            beginDate= "2023-08-28T15:00:00.000Z".toDate()!!,
+            endDate= "2023-12-15T14:59:00.000Z".toDate()!!,
+            eventDate= SemesterEventDate(
+                registrationPeriodStartDate= "2023-08-07T03:30:00.000Z".toDate(),
+                registrationPeriodEndDate= "2023-08-11T14:59:00.000Z".toDate(),
+                addDropPeriodEndDate=  "2023-09-04T14:59:00.000Z".toDate(),
+                dropDeadlineDate= "2023-10-13T14:59:00.000Z".toDate(),
+                evaluationDeadlineDate=  "2023-12-08T14:59:00.000Z".toDate(),
+                gradePostingDate= "2023-12-21T01:00:00.000Z".toDate()
+            )
+        ),
+        Semester(
+            year= 2024,
+            semesterType= SemesterType.SPRING,
+            beginDate= "2024-02-25T15:00:00.000Z".toDate()!!,
+            endDate= "2024-06-14T14:59:00.000Z".toDate()!!,
+            eventDate= SemesterEventDate(
+                registrationPeriodStartDate= "2024-01-08T03:30:00.000Z".toDate(),
+                registrationPeriodEndDate= "2024-01-12T14:59:00.000Z".toDate(),
+                addDropPeriodEndDate= "2024-03-04T14:59:00.000Z".toDate(),
+                dropDeadlineDate= "2024-04-12T14:59:00.000Z".toDate(),
+                evaluationDeadlineDate= "2024-06-07T14:59:00.000Z".toDate(),
+                gradePostingDate=  "2024-06-20T01:00:00.000Z".toDate()
+            )
+        )
+    )
+}
+
