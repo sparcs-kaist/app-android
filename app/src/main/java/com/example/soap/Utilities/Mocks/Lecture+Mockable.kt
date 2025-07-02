@@ -6,6 +6,7 @@ import com.example.soap.Models.TimeTable.Lecture
 import com.example.soap.Models.TimeTable.Professor
 import com.example.soap.Models.Types.DayType
 import com.example.soap.Models.Types.LectureType
+import com.example.soap.Models.Types.SemesterType
 import com.example.soap.Utilities.Helpers.LocalizedString
 
 fun Lecture.Companion.mock(): Lecture {
@@ -14,6 +15,8 @@ fun Lecture.Companion.mock(): Lecture {
         course = 3423,
         code = "CE.20091",
         section = null,
+        year = 2024,
+        semester = SemesterType.AUTUMN,
         title = LocalizedString(
             mapOf(
                 "ko" to "지리공간 분석 개론",
@@ -114,6 +117,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             course = 774,
             code = "CS.20002",
             section = null,
+            year = 2024,
+            semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "문제해결기법", "en" to "Problem Solving")),
             department = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
             isEnglish = false,
@@ -159,6 +164,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             course = 745,
             code = "CS.20004",
             section = "A",
+            year = 2024,
+            semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "이산구조", "en" to "Discrete Mathematics")),
             department = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
             isEnglish = true,
@@ -211,6 +218,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             course = 746,
             code = "CS.20006",
             section = null,
+            year = 2024,
+            semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "데이타구조", "en" to "Data Structure")),
             department = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
             isEnglish = true,
@@ -263,6 +272,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             course = 765,
             code = "CS.20300",
             section = null,
+            year = 2024,
+            semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "시스템프로그래밍", "en" to "System Programming")),
             department = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
             isEnglish = true,
@@ -315,6 +326,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             course = 3423,
             code = "CE.20091",
             section = null,
+            year = 2024,
+            semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "지리공간 분석 개론", "en" to "Introduction to Geospatial Analysis")),
             department = LocalizedString(mapOf("ko" to "건설및환경공학과", "en" to "Civil and Environmental Engineering")),
             isEnglish = true,
