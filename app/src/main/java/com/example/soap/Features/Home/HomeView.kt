@@ -13,6 +13,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -23,6 +24,7 @@ import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Models.RoomInfo
+import com.example.soap.R
 import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 
@@ -30,7 +32,7 @@ import com.example.soap.ui.theme.SoapTheme
 @Composable
 fun HomeView(navController: NavController){
     val scrollState = rememberScrollState()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -56,19 +58,19 @@ fun HomeView(navController: NavController){
                 .padding(innerPadding)
         ) {
             BoardRecentSection(
-                title = "Trending",
-                clickAction = { navController.navigate(Channel.Trending.name) }
+                title = stringResource(R.string.trending_board),
+                clickAction = { navController.navigate(Channel.GeneralBoard.name) }
             )
             TaxiRecentSection(RoomInfo.mockList())
 
             BoardsSection()
 
             BoardRecentSection(
-                title = "General",
+                title = stringResource(R.string.general_board),
                 clickAction = {})
 
             BoardRecentSection(
-                title = "Notice",
+                title = stringResource(R.string.notice_board),
                 clickAction = {}
             )
         }

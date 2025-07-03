@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -31,7 +32,7 @@ import com.example.soap.ui.theme.SoapTheme
 fun BoardListView(navController: NavController) {
 
     val scrollState = rememberScrollState()
-    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         topBar = {
@@ -58,51 +59,51 @@ fun BoardListView(navController: NavController) {
                 .padding(innerPadding)
         ) {
             BoardList(
-                title = "Notice",
+                title = stringResource(R.string.notice_board),
                 icon = painterResource(R.drawable.round_notifications_active),
                 sections = listOf(
-                    { BoardListSectionItem(text = "Portal Notice", onClick = {}) },
-                    { BoardListSectionItem(text = "Staff Notice", onClick = {}) },
-                    { BoardListSectionItem(text = "Facility Notice", onClick = {}) },
-                    { BoardListSectionItem(text = "External Company Advertisement", onClick = {}) }
+                    { BoardListSectionItem(text = stringResource(R.string.portal_notice), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.staff_notice), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.facility_notice), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.external_company_advertisement), onClick = {}) }
                 )
             )
 
             BoardList(
-                title = "Talk",
+                title = stringResource(R.string.talk_board),
                 icon = painterResource(R.drawable.round_chat),
                 sections = listOf(
-                    { BoardListSectionItem(text = "General", onClick = {}) }
+                    { BoardListSectionItem(text = stringResource(R.string.talk_board), onClick = {}) }
                 )
             )
 
             BoardList(
-                title = "Organisations and Clubs",
+                title = stringResource(R.string.organizations_and_clubs),
                 icon = painterResource(R.drawable.group),
                 sections = listOf(
-                    { BoardListSectionItem(text = "Students Group", onClick = {}) },
-                    { BoardListSectionItem(text = "Club", onClick = {}) }
+                    { BoardListSectionItem(text = stringResource(R.string.students_group), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.club), onClick = {}) }
                 )
             )
 
             BoardList(
-                title = "Trade",
+                title = stringResource(R.string.trade),
                 icon = painterResource(R.drawable.baseline_local_offer),
                 sections = listOf(
-                    { BoardListSectionItem(text = "Wanted", onClick = {}) },
-                    { BoardListSectionItem(text = "Market", onClick = {}) },
-                    { BoardListSectionItem(text = "Real Estate", onClick = {}) }
+                    { BoardListSectionItem(text = stringResource(R.string.wanted), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.market), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.real_estate), onClick = {}) }
                 )
             )
 
             BoardList(
-                title = "Communication",
+                title = stringResource(R.string.communication),
                 icon = painterResource(R.drawable.baseline_drafts),
                 sections = listOf(
-                    { BoardListSectionItem(text = "Facility Feedback", onClick = {}) },
-                    { BoardListSectionItem(text = "Ara Feedback", onClick = {}) },
-                    { BoardListSectionItem(text = "Messages to the School", onClick = {}) },
-                    { BoardListSectionItem(text = "KAIST News", onClick = {}) }
+                    { BoardListSectionItem(text = stringResource(R.string.facility_feedback), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.ara_feedback), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.messages_to_the_school), onClick = {}) },
+                    { BoardListSectionItem(text = stringResource(R.string.kaist_news), onClick = {}) }
                 )
             )
         }

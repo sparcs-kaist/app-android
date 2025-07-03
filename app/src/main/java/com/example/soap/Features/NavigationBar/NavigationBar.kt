@@ -54,8 +54,8 @@ enum class Channel(@StringRes val title: Int) {
     Start(title = R.string.start),
     TimeTable(title = R.string.timetable),
     Taxi(title = R.string.taxi),
-    Trending(title = R.string.trending),
-    Boards(title = R.string.board)
+    GeneralBoard(title = R.string.general_board),
+    Boards(title = R.string.boards)
 }
 
 @Composable
@@ -93,7 +93,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) { HomeView(navController) }
 
             composable(
-                route = Channel.Trending.name,
+                route = Channel.GeneralBoard.name,
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
@@ -169,11 +169,11 @@ fun AppDownBar(
     currentScreen: Channel
 ) {
     val items = listOf(
-        Triple(Channel.Start, Channel.Start.name, R.drawable.round_home),
-        Triple(Channel.Boards, Channel.Boards.name, R.drawable.baseline_topic),
-        Triple(Channel.TimeTable, Channel.TimeTable.name, R.drawable.timetable),
-        Triple(Channel.Taxi, Channel.Taxi.name, R.drawable.taxi),
-        Triple(null, "Search", R.drawable.search)
+        Triple(Channel.Start, stringResource(Channel.Start.title), R.drawable.round_home),
+        Triple(Channel.Boards, stringResource(Channel.Boards.title), R.drawable.baseline_topic),
+        Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), R.drawable.timetable),
+        Triple(Channel.Taxi, stringResource(Channel.Taxi.title), R.drawable.taxi),
+        Triple(null, stringResource(R.string.search), R.drawable.search)
     )
 
     NavigationBar(

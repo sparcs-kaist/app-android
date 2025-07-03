@@ -31,12 +31,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
+import com.example.soap.ui.theme.SoapTheme
 
 
 @Composable
@@ -63,7 +65,11 @@ fun FlairSelector(
                 .padding(vertical = 4.dp, horizontal = 8.dp)
                 .clickable { expanded = !expanded }
         ) {
-            AnimatedAlphabetText(previousFlair, selectedFlair)
+
+            AnimatedAlphabetText(
+                from = getLocalizedFlair(previousFlair),
+                to = getLocalizedFlair(selectedFlair)
+            )
 
             Spacer(Modifier.padding(4.dp))
 
@@ -88,8 +94,9 @@ fun FlairSelector(
                     }
             ) {
                 Text(
-                    text = "No flair",
-                    style = MaterialTheme.typography.titleSmall
+                    text = getLocalizedFlair("No flair"),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
             }
@@ -108,7 +115,7 @@ fun FlairSelector(
                         }
                 ) {
                     Text(
-                        text = flair,
+                        text = getLocalizedFlair(flair),
                         style = MaterialTheme.typography.titleSmall
                     )
 
@@ -123,12 +130,31 @@ fun FlairSelector(
 }
 
 @Composable
+fun getLocalizedFlair(flair: String): String {
+    val flairMap = mapOf(
+        "No flair" to R.string.no_flair,
+        "All" to R.string.all,
+        "SPPANGS" to R.string.sppangs,
+        "Meal" to R.string.meal,
+        "Money" to R.string.money,
+        "Gaming" to R.string.gaming,
+        "Dating" to R.string.dating,
+        "Lost & Found" to R.string.lost_and_found
+    )
+
+    val resId = flairMap[flair] ?: return flair
+    return stringResource(id = resId)
+}
+
+
+@Composable
 fun AnimatedAlphabetText(from: String, to: String) {
     val maxLength = maxOf(from.length, to.length)
 
     Row {
         for (i in 0 until maxLength) {
             val toChar = to.getOrNull(i) ?: ' '
+            val color = if (to == getLocalizedFlair("No flair")) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onBackground
 
             AnimatedContent(
                 targetState = toChar,
@@ -146,7 +172,8 @@ fun AnimatedAlphabetText(from: String, to: String) {
                 Text(
                     text = char.toString(),
                     style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    color = color
                 )
             }
         }
@@ -159,5 +186,5 @@ fun AnimatedAlphabetText(from: String, to: String) {
 @Composable
 @Preview
 private fun Preview(){
-    FlairSelector(viewModel())
+    SoapTheme{ FlairSelector(viewModel()) }
 }

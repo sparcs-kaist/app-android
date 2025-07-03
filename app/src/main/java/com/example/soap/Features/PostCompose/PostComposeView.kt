@@ -38,6 +38,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextLayoutResult
@@ -105,13 +106,13 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Write",
+                    text = stringResource(R.string.write),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.align(Alignment.Center)
                 )
                 Text(
-                    text = "Done",
+                    text = stringResource(R.string.submit),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Normal,
                     color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -133,9 +134,11 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
             TitleTextField(
                 value = title,
                 onValueChange = { title = it},
-                placeholderText = "Please enter the title",
+                placeholderText = stringResource(R.string.enter_the_title),
                 nextFocus = { descriptionFocusRequester.requestFocus() }
             )
+
+            Spacer(Modifier.padding(2.dp))
 
             HorizontalDivider()
 
@@ -153,7 +156,7 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
                 DescriptionTextField(
                     value = description,
                     onValueChange = { description = it },
-                    placeholderText = "What's happening",
+                    placeholderText = stringResource(R.string.enter_the_description),
                     modifier = Modifier,
                     onTextLayout = { textLayoutResult = it },
                     )
@@ -192,19 +195,19 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
             Spacer(Modifier.weight(1f))
 
             CheckBoxText(
-                text = "Anonymous",
+                text = stringResource(R.string.anonymous),
                 isChecked = writeAsAnonymous,
                 onCheckedChange = { writeAsAnonymous = !writeAsAnonymous }
             )
 
             CheckBoxText(
-                text = "NSFW",
+                text = stringResource(R.string.nsfw),
                 isChecked = isNSFW,
                 onCheckedChange = { isNSFW = !isNSFW }
             )
 
             CheckBoxText(
-                text = "Political",
+                text = stringResource(R.string.political),
                 isChecked = isPolitical,
                 onCheckedChange = { isPolitical = !isPolitical }
             )
@@ -217,7 +220,7 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
 @Composable
 private fun TermsOfUseButton(){
     Text(
-        text = "terms of use",
+        text = stringResource(R.string.terms_of_use),
         style = MaterialTheme.typography.bodySmall,
         textDecoration = TextDecoration.Underline,
         color = MaterialTheme.colorScheme.outline

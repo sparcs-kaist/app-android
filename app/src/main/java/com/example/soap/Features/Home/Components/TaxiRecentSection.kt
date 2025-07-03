@@ -15,8 +15,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -29,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -51,9 +50,9 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp)
         ) {
             Text(
-                text = "Taxi",
+                text = stringResource(R.string.taxi),
                 fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.titleLarge
             )
             Box(
                 modifier = Modifier
@@ -65,9 +64,9 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    painter = painterResource(R.drawable.arrow_forward_ios),
                     contentDescription = "Go to Taxi Board",
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(15.dp),
                     tint = MaterialTheme.colorScheme.outline
                 )
             }

@@ -41,7 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -49,7 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Components.BoardNavigationBar
-import com.example.soap.Features.NavigationBar.Components.selectedColor
+import com.example.soap.Features.PostCompose.Components.getLocalizedFlair
 import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.Components.PostListRow.PostListRow
 import com.example.soap.R
@@ -66,6 +68,7 @@ fun PostListView(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showDialogView by remember { mutableStateOf(false) }
     var sheetVisible by remember { mutableStateOf(false) }
+    var selectedFlair by remember { mutableStateOf("All") }
 
     val openSheet = {
         scope.launch {
@@ -105,17 +108,17 @@ fun PostListView(
                 contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
                 item {
-                    val isSelected = true
+                    val isSelected = (selectedFlair == "All")
                     val (bg, fg) = selectedColor(isSelected)
 
                     Card(
                         modifier = Modifier
-                            .padding(end = 4.dp)
-                            .clickable { },
+                            .padding(end = 8.dp)
+                            .clickable { selectedFlair = "All" },
                         colors = CardDefaults.cardColors(bg)
                     ) {
                         Text(
-                            text = "All",
+                            text = getLocalizedFlair("All"),
                             style = MaterialTheme.typography.bodyLarge,
                             color = fg,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -124,17 +127,17 @@ fun PostListView(
                 }
 
                 items(postListViewModel.flairList) { flair ->
-                    val isSelected = false
+                    val isSelected = (selectedFlair == flair)
                     val (bg, fg) = selectedColor(isSelected)
 
                     Card(
                         modifier = Modifier
-                            .padding(end = 4.dp)
-                            .clickable { },
+                            .padding(end = 8.dp)
+                            .clickable { selectedFlair = flair },
                         colors = CardDefaults.cardColors(bg)
                     ) {
                         Text(
-                            text = flair,
+                            text = getLocalizedFlair(flair),
                             style = MaterialTheme.typography.bodyLarge,
                             color = fg,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -153,7 +156,7 @@ fun PostListView(
             ) {
                 items(filteredPosts, key = { it.id }) { post ->
                     PostListRow(post)
-                    HorizontalDivider(color = MaterialTheme.colorScheme.background)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                 }
             }
         }
@@ -195,14 +198,14 @@ private fun ComposeButton(onClick: () -> Unit){
     Button(
         onClick = onClick,
         shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.background),
+        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
         elevation = ButtonDefaults.buttonElevation(4.dp),
         contentPadding = PaddingValues(horizontal = 5.dp, vertical = 15.dp)
     ) {
         Icon(
             painter = painterResource(R.drawable.outline_edit),
             contentDescription = "Write Button",
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -220,19 +223,32 @@ fun ConfirmationDialog(
             modifier = Modifier.padding(8.dp)
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
-                Text("Are you sure you want to discard this post?", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.discard_this_post), style = MaterialTheme.typography.bodyMedium)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onConfirmationButtonRequest) { Text("OK") }
+                    TextButton(onClick = onConfirmationButtonRequest) { Text(stringResource(R.string.ok)) }
                     Spacer(modifier = Modifier.width(8.dp))
-                    TextButton(onClick = onDismissButtonRequest) { Text("Cancel") }
+                    TextButton(onClick = onDismissButtonRequest) { Text(stringResource(R.string.save_in_drafts)) }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = onDismissButtonRequest) { Text(stringResource(R.string.cancel)) }
                 }
             }
         }
     }
 
+}
+
+
+@Composable
+fun selectedColor(
+    isSelected : Boolean
+): Pair<Color, Color> {
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primaryContainer
+    val textColor =  if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.onBackground
+
+    return Pair(backgroundColor, textColor)
 }
 
 @Composable

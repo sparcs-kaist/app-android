@@ -50,7 +50,7 @@ fun BoardList(
             Text(
                 text = title,
                 fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.headlineSmall
+                style = MaterialTheme.typography.titleLarge
             )
         }
         Card(
@@ -69,7 +69,7 @@ fun BoardList(
                     if (index < sections.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.background
+                            color = MaterialTheme.colorScheme.outlineVariant
                         )
                     }
                 }

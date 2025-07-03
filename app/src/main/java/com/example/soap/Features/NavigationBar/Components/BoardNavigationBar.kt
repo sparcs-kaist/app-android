@@ -16,8 +16,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,17 +50,17 @@ fun BoardNavigationBar(navController : NavController){
                             contentDescription = null
                         )
                         Text(
-                            text = "Home",
+                            text = stringResource(R.string.start),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
                     Text(
-                        text = "General",
+                        text = stringResource(R.string.trending_board),
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.align(Alignment.Center)
                     )
-                    Box(Modifier.align(Alignment.CenterEnd)) { SearchTopButton() }
+                    Box(Modifier.align(Alignment.CenterEnd)) { SearchTopButtonWithoutCircle() }
                 }
             }
         },
@@ -70,15 +70,6 @@ fun BoardNavigationBar(navController : NavController){
     )
 }
 
-@Composable
-fun selectedColor(
-    isSelected : Boolean
-): Pair<Color, Color> {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primaryContainer
-    val textColor =  if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.onBackground
-
-    return Pair(backgroundColor, textColor)
-}
 
 @Composable
 @Preview

@@ -86,7 +86,7 @@ fun TimetableAddButton() {
         ) {
             Icon(
                 painter = painterResource(R.drawable.round_add),
-                contentDescription = "Setting",
+                contentDescription = "Add Timetable",
                 modifier = Modifier.size(28.dp),
                 tint = MaterialTheme.colorScheme.outline
             )
@@ -107,6 +107,28 @@ fun SearchTopButton() {
                 .size(40.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surface)
+                .clickable { /* TODO: Menu */ },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.search),
+                contentDescription = "Search",
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.colorScheme.outline
+            )
+        }
+    }
+}
+
+@Composable
+fun SearchTopButtonWithoutCircle() {
+    Box(
+        modifier = Modifier
+            .padding(start = 8.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
                 .clickable { /* TODO: Menu */ },
             contentAlignment = Alignment.Center
         ) {
