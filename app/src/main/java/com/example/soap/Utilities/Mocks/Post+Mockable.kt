@@ -18,11 +18,11 @@ fun Post.Companion.mockList(): List<Post>{
             thumbnailURL = URL("https://d2phebdq64jyfk.cloudfront.net/media/article/8efac7c4150a4d67affcd29e509e9e78.png")
         ),
         Post(
-            title = "some title",
-            description = "verrrry loooonnngggg asdfojapsdofpoweufpoqiewfpoqiuwepfoiquwepfoiquwepfoiqwuepfoiqwuepfoiquwepfoiquwepofiquwepofiuqpwoeifuqpwoeifuqpwoeifu",
+            title = "제목",
+            description = "설명설명설명",
             voteCount = -2,
             commentCount = 30,
-            author = "goose",
+            author = "거위",
             createdAt = Date.from(Instant.now().minus(1, ChronoUnit.MINUTES)),
             thumbnailURL = null
         ),
