@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -170,46 +173,54 @@ fun AppDownBar(
 ) {
     val items = listOf(
         Triple(Channel.Start, stringResource(Channel.Start.title), R.drawable.round_home),
-        Triple(Channel.Boards, stringResource(Channel.Boards.title), R.drawable.baseline_topic),
+        Triple(Channel.Boards, stringResource(Channel.Boards.title), R.drawable.round_format_list_bulleted),
         Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), R.drawable.timetable),
         Triple(Channel.Taxi, stringResource(Channel.Taxi.title), R.drawable.taxi),
         Triple(null, stringResource(R.string.search), R.drawable.search)
     )
-
-    NavigationBar(
-        containerColor = MaterialTheme.colorScheme.surface
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(Color.Transparent)
+            .shadow(
+                elevation = 8.dp
+            )
     ) {
-        items.forEach { (channel, label, iconRes) ->
-            if (channel != null) {
-                NavigationBarItem(
-                    selected = currentScreen == channel,
-                    onClick = { navController.navigate(channel.name) },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = iconRes),
-                            contentDescription = label
-                        )
-                    },
-                    label = { Text(label) },
-                    colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
-                )
-            } else {
-                NavigationBarItem(
-                    selected = false,
-                    onClick = {},
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = iconRes),
-                            contentDescription = label
-                        )
-                    },
-                    label = { Text(label) },
-                    colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
-                )
+        NavigationBar(
+            containerColor = MaterialTheme.colorScheme.surface
+        ) {
+            items.forEach { (channel, label, iconRes) ->
+                if (channel != null) {
+                    NavigationBarItem(
+                        selected = currentScreen == channel,
+                        onClick = { navController.navigate(channel.name) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = iconRes),
+                                contentDescription = label
+                            )
+                        },
+                        label = { Text(label) },
+                        colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
+                    )
+                }else{
+                    NavigationBarItem(
+                        selected = false,
+                        onClick = {},
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = iconRes),
+                                contentDescription = label
+                            )
+                        },
+                        label = { Text(label) },
+                        colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
+                    )
+                }
             }
+
         }
     }
-
 }
 
 

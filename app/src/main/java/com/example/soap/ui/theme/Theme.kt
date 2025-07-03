@@ -28,11 +28,13 @@ private val LightColorScheme = lightColorScheme(
     background = theme_light_background,
     onBackground = theme_light_onBackground,
     surface = theme_light_surface,
+    surfaceContainer = theme_light_surfaceContainer,
     onSurface = theme_light_onSurface,
     onSurfaceVariant = theme_light_onSurfaceVariant,
     outlineVariant = theme_light_outlineVariant,
     outline = theme_light_outline
 )
+
 
 @Composable
 fun SoapTheme(
