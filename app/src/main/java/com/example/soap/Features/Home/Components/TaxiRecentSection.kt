@@ -82,7 +82,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
 
                 Card(
                     colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
                         modifier = Modifier
@@ -110,6 +110,8 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
+
+                                Spacer(Modifier.padding(2.dp))
 
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically

@@ -65,7 +65,7 @@ fun BoardsSection() {
 
         Card(
             colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ){
             Column(

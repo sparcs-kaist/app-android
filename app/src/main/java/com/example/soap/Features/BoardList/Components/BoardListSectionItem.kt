@@ -23,7 +23,7 @@ fun BoardListSectionItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 4.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ){
