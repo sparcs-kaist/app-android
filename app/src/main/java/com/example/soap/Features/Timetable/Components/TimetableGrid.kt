@@ -140,7 +140,7 @@ fun GridHorizontalLines(
     Column{
 
     repeat(totalLines) { index ->
-            //일반 선
+            //실선
             Canvas(modifier = Modifier
                 .fillMaxWidth()
                 .height(lineHeight)) {
@@ -152,7 +152,7 @@ fun GridHorizontalLines(
                 )
             }
 
-            //실선
+            //점선
             if (index < totalLines - 1) {
                 Canvas(
                     modifier = Modifier

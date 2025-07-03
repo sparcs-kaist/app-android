@@ -1,9 +1,65 @@
 <resources>
-    <string name="app_name">soap</string>
+    <string name="app_name" translatable="false">soap</string>
+
+
     <string name="start">Home</string>
+    <string name="trending_board">Trending</string>
+    <string name="notice_board">Notice</string>
     <string name="timetable">Timetable</string>
     <string name="taxi">Taxi</string>
-    <string name="trending">General</string>
-    <string name="board">Boards</string>
+    <string name="general_board">General</string>
+    <string name="boards">Boards</string>
+    <string name="portal_notice">Portal Notice</string>
+    <string name="staff_notice">Staff Notice</string>
+    <string name="facility_notice">Facility Notice</string>
+    <string name="external_company_advertisement">External Company Advertisement</string>
+    <string name="students_group">Students Group</string>
+    <string name="talk_board">Talk</string>
+    <string name="organizations_and_clubs">Organizations and Clubs</string>
+    <string name="club">Club</string>
+    <string name="trade">Trade</string>
+    <string name="wanted">Wanted</string>
+    <string name="market">Market</string>
+    <string name="real_estate">Real Estate</string>
+    <string name="communication">Communication</string>
+    <string name="facility_feedback">Facility Feedback</string>
+    <string name="ara_feedback">Ara Feedback</string>
+    <string name="messages_to_the_school">Messages to the School</string>
+    <string name="kaist_news">KAIST News</string>
+    <string name="search">Search</string>
+    <string name="to_bookmark">To Bookmark</string>
+    <string name="share">Share</string>
+    <string name="write">Write</string>
+    <string name="submit">Done</string>
+    <string name="terms_of_use">terms of use</string>
+    <string name="anonymous">Anonymous</string>
+    <string name="nsfw">NSFW</string>
+    <string name="political">Political</string>
+    <string name="enter_the_title">Please enter the title</string>
+    <string name="enter_the_description">What\'s happening</string>
+    <string name="no_flair">No flair</string>
+    <string name="sppangs">SPPANGS</string>
+    <string name="meal">Meal</string>
+    <string name="money">Money</string>
+    <string name="gaming">Gaming</string>
+    <string name="dating">Dating</string>
+    <string name="lost_and_found">Lost &amp; Found</string>
+    <string name="discard_this_post">Are you sure you want to discard this post?</string>
+    <string name="save_in_drafts">Save in drafts</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="all">All</string>
+    <string name="my_table">My Table</string>
+    <string name="br">BR</string>
+    <string name="be">BE</string>
+    <string name="mr">MR</string>
+    <string name="me">ME</string>
+    <string name="hse">HSE</string>
+    <string name="etc">ETC</string>
+    <string name="credit">Credit</string>
+    <string name="au" translatable="false">AU</string>
+    <string name="grade">Grade</string>
+    <string name="load">Load</string>
+    <string name="speech">Speech</string>
 
 </resources>
