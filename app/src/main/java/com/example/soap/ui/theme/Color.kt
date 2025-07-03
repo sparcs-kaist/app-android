@@ -10,7 +10,7 @@ val theme_light_surface = Color.White
 val theme_light_onSurface = Color.Black
 val theme_light_onSurfaceVariant = Color.Gray
 val theme_light_outline = Color.DarkGray
-val theme_light_outlineVariant = Color.LightGray
+val theme_light_outlineVariant = Color(0xFFF8F8F8)
 
 val theme_dark_primary = Color(0xFFC5C0FF)
 val theme_dark_background = Color(0xFF262525)

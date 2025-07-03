@@ -55,7 +55,7 @@ fun FlairSelector(
     }
 
     Card(
-        colors = CardDefaults.cardColors(Color(0xFFF2F2F6)),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.outlineVariant),
         shape = RoundedCornerShape(20.dp)
     ) {
         Row(

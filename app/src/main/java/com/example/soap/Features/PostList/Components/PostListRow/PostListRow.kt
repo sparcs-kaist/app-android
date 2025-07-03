@@ -1,5 +1,6 @@
 package com.example.soap.Features.PostList.Components.PostListRow
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -40,6 +41,8 @@ fun PostListRow(post: Post){
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+            Spacer(Modifier.padding(1.dp))
+
             Text(
                 text = post.description,
                 style = MaterialTheme.typography.bodySmall,
@@ -55,7 +58,10 @@ fun PostListRow(post: Post){
 
                 if (post.voteCount != 0 || post.commentCount > 0) {
 
-                    Row(modifier = Modifier.padding(horizontal = 4.dp)) {
+                    Row(modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.outlineVariant)
+                        .padding(horizontal = 2.dp)) {
                         PostListRowVoteLabel(post.voteCount)
 
                         PostListRowCommentLabel(post.commentCount)
