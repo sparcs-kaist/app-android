@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -27,7 +30,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,8 +61,12 @@ fun PostView(navController: NavController) {
         topBar = {
             PostNavigationBar(navController= navController)
         },
-        bottomBar = {}
-
+        bottomBar = {
+            ReplyTextField(
+                value = comment,
+                onValueChange = {comment = it}
+            )
+        }
     ) { innerPadding ->
 
         Column(
@@ -72,7 +83,10 @@ fun PostView(navController: NavController) {
             Footer()
 
             Comments("test")
+
+
         }
+
     }
 }
 
@@ -196,8 +210,71 @@ private fun Footer(){
 }
 
 @Composable
+private fun ReplyTextField(
+    value: String,
+    onValueChange: (String) -> Unit
+
+){
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .background(Color.Transparent)
+            .navigationBarsPadding()
+            .shadow(
+                elevation = 8.dp
+            )
+    ) {
+        Row(
+            modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.soapColors.surface)
+            .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ){
+            Box(Modifier
+                .clip(RoundedCornerShape(8.dp))
+                .background(MaterialTheme.soapColors.grayf8)
+                .weight(1f)
+                .padding(4.dp),
+
+            ){
+                BasicTextField(
+                    value = value,
+                    onValueChange = onValueChange,
+                    textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.soapColors.onSurface),
+                    cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
+                    decorationBox = { innerTextField ->
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.CenterStart // <- 여기도 중요
+                        ) {
+                            if (value.isEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.reply_as_anonymous),
+                                    color = MaterialTheme.soapColors.grayBB,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                            innerTextField()
+                        }
+                    }
+                )
+            }
+
+            Spacer(Modifier.padding(4.dp))
+
+            Icon(
+                painter = painterResource(R.drawable.paperplane),
+                contentDescription = "Send Button",
+                tint = MaterialTheme.soapColors.primary
+            )
+
+        }
+    }
+}
+
+@Composable
 @Preview
 private fun Preview(){
     SoapTheme { PostView(rememberNavController()) }
-
 }

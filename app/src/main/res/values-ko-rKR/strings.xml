@@ -59,4 +59,5 @@
     <string name="load">널널</string>
     <string name="speech">강의</string>
     <string name="report">신고</string>
+    <string name="reply_as_anonymous">댓글을 입력해주세요.</string>
 </resources>
