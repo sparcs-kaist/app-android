@@ -157,7 +157,7 @@ fun PostListView(
             ) {
                 items(filteredPosts, key = { it.id }) { post ->
                     PostListRow(post, navController)
-                    HorizontalDivider(color = MaterialTheme.soapColors.grayBB)
+                    HorizontalDivider(color = MaterialTheme.soapColors.gray0Border)
                 }
             }
         }

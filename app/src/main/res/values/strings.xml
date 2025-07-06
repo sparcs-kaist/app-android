@@ -63,5 +63,6 @@
     <string name="speech">Speech</string>
     <string name="postview" translatable="false">PostListRow</string>
     <string name="report">Report</string>
+    <string name="reply_as_anonymous">reply as anonymous</string>
 
 </resources>
