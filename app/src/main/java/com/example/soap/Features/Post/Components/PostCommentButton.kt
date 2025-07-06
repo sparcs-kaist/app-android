@@ -15,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun PostCommentButton(){
@@ -25,7 +26,7 @@ fun PostCommentButton(){
         Icon(
             painter = painterResource(R.drawable.chat_bubble_outline),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline,
+            tint = MaterialTheme.soapColors.gray64Button,
             modifier = Modifier.size(15.dp)
         )
 
@@ -34,7 +35,7 @@ fun PostCommentButton(){
         Text(
             text = "23",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.outline
+            color = MaterialTheme.soapColors.gray64Button
         )
     }
 }

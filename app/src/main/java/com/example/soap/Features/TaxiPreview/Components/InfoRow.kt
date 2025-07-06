@@ -17,13 +17,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun InfoRow(
     label: String,
     value: String,
-    labelColor: Color = Color(0xFF9D9C9E),
-    valueColor: Color = MaterialTheme.colorScheme.onBackground,
+    labelColor: Color = MaterialTheme.soapColors.grayBB,
+    valueColor: Color = MaterialTheme.soapColors.onSurface,
     trailingIcon: Int? = null
 ) {
     Row(verticalAlignment = Alignment.CenterVertically){
@@ -47,7 +48,7 @@ fun InfoRow(
                 Image(
                     painter = painterResource(trailingIcon),
                     contentDescription = null,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
+                    colorFilter = ColorFilter.tint(MaterialTheme.soapColors.darkGray),
                     modifier = Modifier.size(15.dp)
                 )
             }

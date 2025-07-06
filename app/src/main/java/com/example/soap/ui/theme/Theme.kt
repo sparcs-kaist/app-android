@@ -8,32 +8,60 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = theme_dark_primary,
-    background = theme_dark_background,
-    onBackground = theme_dark_onBackground,
-    surface = theme_dark_surface,
-    onSurface = theme_dark_onSurface,
-    onSurfaceVariant = theme_dark_onSurfaceVariant,
-    outlineVariant = theme_dark_outlineVariant,
-    outline = theme_dark_outline
-
+//이름은 light theme 기준
+data class SoapCustomColors(
+    val primary: Color,
+    val primaryContainer: Color,
+    val background: Color,
+    val surface: Color,
+    val onSurface: Color,
+    val gray0Border: Color,
+    val gray64Button: Color,
+    val darkGray: Color,
+    val grayBB: Color,
+    val grayf8: Color
 )
 
-private val LightColorScheme = lightColorScheme(
+val LocalSoapCustomColors = staticCompositionLocalOf {
+    lightColors
+}
+
+val lightColors = SoapCustomColors(
     primary = theme_light_primary,
     primaryContainer = theme_light_primaryContainer,
     background = theme_light_background,
-    onBackground = theme_light_onBackground,
     surface = theme_light_surface,
-    surfaceContainer = theme_light_surfaceContainer,
     onSurface = theme_light_onSurface,
-    onSurfaceVariant = theme_light_onSurfaceVariant,
-    outlineVariant = theme_light_outlineVariant,
-    outline = theme_light_outline
+    gray0Border = theme_light_lightGray0,
+    gray64Button = theme_light_gray64,
+    grayBB = theme_light_grayBB,
+    grayf8 = theme_light_grayf8,
+    darkGray = Color.DarkGray
 )
+
+//수정 필요
+val darkColors = SoapCustomColors(
+    primary = theme_dark_primary,
+    primaryContainer = theme_light_primaryContainer,
+    background = theme_dark_background,
+    surface = theme_dark_surface,
+    onSurface = theme_dark_onSurface,
+    gray0Border = Color(0xFF444444),
+    gray64Button = Color(0xFF888888),
+    grayBB = Color.Gray,
+    grayf8 = Color.Gray,
+    darkGray = Color.LightGray
+)
+
+
+private val DarkColorScheme = darkColorScheme()
+
+private val LightColorScheme = lightColorScheme()
 
 
 @Composable
@@ -52,9 +80,18 @@ fun SoapTheme(
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    val customColors = if (darkTheme) darkColors else lightColors
+
+
+    CompositionLocalProvider(LocalSoapCustomColors provides customColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }
+
+val MaterialTheme.soapColors: SoapCustomColors
+    @Composable
+    get() = LocalSoapCustomColors.current

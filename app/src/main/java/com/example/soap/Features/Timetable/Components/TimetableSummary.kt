@@ -20,6 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 //Todo : 로딩창
 
@@ -27,7 +28,7 @@ import com.example.soap.ui.theme.SoapTheme
 fun TimetableSummary() {
 
     Card(
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {

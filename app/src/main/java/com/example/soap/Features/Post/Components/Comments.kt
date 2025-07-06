@@ -22,13 +22,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun Comments(
    // image: Painter, AsyncImage처리
     comment: String
 ){
-    Column{
+    Column(Modifier.padding(horizontal = 16.dp)){
         Row(verticalAlignment = Alignment.CenterVertically) {
 
             Image(//프로필
@@ -43,7 +44,7 @@ fun Comments(
 
             Text(
                 text = "Anonymous",
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Medium
             )
 
@@ -52,7 +53,7 @@ fun Comments(
             Text(
                 text = "22 May 17:44",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.outline
+                color = MaterialTheme.soapColors.grayBB
             )
 
             Spacer(Modifier.weight(1f))
@@ -60,13 +61,13 @@ fun Comments(
             Icon(
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "more",
-                tint = MaterialTheme.colorScheme.outline
+                tint = MaterialTheme.soapColors.grayBB
             )
         }
 
         Text(
             text = comment,
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier
                 .padding(start = 22.dp)
                 .padding(vertical = 4.dp)
@@ -76,7 +77,7 @@ fun Comments(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(MaterialTheme.soapColors.background)
                     .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

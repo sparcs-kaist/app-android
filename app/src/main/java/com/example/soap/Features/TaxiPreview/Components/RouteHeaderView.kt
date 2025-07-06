@@ -14,6 +14,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun RouteHeaderView(
@@ -30,7 +31,7 @@ fun RouteHeaderView(
             painter = painterResource(R.drawable.arrow_forward_ios),
             contentDescription = null,
             modifier = Modifier.size(15.dp),
-            tint = MaterialTheme.colorScheme.outline
+            tint = MaterialTheme.soapColors.darkGray
         )
         Text(
             text = destination,

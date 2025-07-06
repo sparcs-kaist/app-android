@@ -40,6 +40,7 @@ import com.example.soap.Models.Types.DayType
 import com.example.soap.Utilities.Helpers.TimetableConstructor
 import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun TimetableGrid(
@@ -61,7 +62,7 @@ fun TimetableGrid(
 
         Card(
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
             modifier = Modifier.height(440.dp)
         ) {
             Column(Modifier.verticalScroll(scrollState)){
@@ -131,7 +132,7 @@ fun GridHorizontalLines(
 
     val totalLines = maxHour - minHour + 1
 
-    val lineColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val lineColor = MaterialTheme.soapColors.grayBB
     val dashEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
 
     val lineHeight = 28.dp
@@ -187,7 +188,7 @@ fun DaysColumnHeader(days: List<DayType>) {
                     text = day.stringValue,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.soapColors.onSurface
                 )
             }
         }

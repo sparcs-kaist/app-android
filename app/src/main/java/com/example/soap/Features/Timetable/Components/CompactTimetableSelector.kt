@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.Utilities.Extensions.noRippleClickable
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun CompactTimetableSelector() {
@@ -36,7 +37,7 @@ fun CompactTimetableSelector() {
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(25.dp))
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.soapColors.surface)
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -44,7 +45,7 @@ fun CompactTimetableSelector() {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = "Select Previous Semester",
-                    tint = MaterialTheme.colorScheme.surfaceVariant,
+                    tint = MaterialTheme.soapColors.grayBB,
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
                         .noRippleClickable {  }
@@ -60,7 +61,7 @@ fun CompactTimetableSelector() {
                 Icon(
                     painter = painterResource(R.drawable.arrow_forward_ios),
                     contentDescription = "Select Next Semester",
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = MaterialTheme.soapColors.onSurface,
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
                         .noRippleClickable {  }
@@ -74,7 +75,7 @@ fun CompactTimetableSelector() {
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(25.dp))
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.soapColors.surface)
                     .padding(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -88,7 +89,7 @@ fun CompactTimetableSelector() {
                 Icon(
                     painter = painterResource(R.drawable.more_horiz),
                     contentDescription = "Select Next Semester",
-                    tint = MaterialTheme.colorScheme.onSurface,
+                    tint = MaterialTheme.soapColors.onSurface,
                     modifier = Modifier
                         .padding(horizontal = 4.dp)
                         .noRippleClickable {  }

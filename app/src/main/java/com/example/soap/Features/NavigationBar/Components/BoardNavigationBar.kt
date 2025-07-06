@@ -26,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,7 +34,7 @@ fun BoardNavigationBar(navController : NavController){
 
     TopAppBar(
         title = {
-            Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+            Column(Modifier.background(MaterialTheme.soapColors.background)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -65,7 +66,7 @@ fun BoardNavigationBar(navController : NavController){
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.soapColors.background
         )
     )
 }

@@ -47,18 +47,21 @@ import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransiti
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.NavigationBar.Components.TimetableAddButton
+import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
     Start(title = R.string.start),
     TimeTable(title = R.string.timetable),
     Taxi(title = R.string.taxi),
-    GeneralBoard(title = R.string.general_board),
-    Boards(title = R.string.boards)
+    TrendingBoard(title = R.string.general_board),
+    Boards(title = R.string.boards),
+    PostView(title = R.string.postview) //임시
 }
 
 @Composable
@@ -96,12 +99,16 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) { HomeView(navController) }
 
             composable(
-                route = Channel.GeneralBoard.name,
+                route = Channel.TrendingBoard.name,
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) { PostListView(navController = navController) }
+
+            composable(
+                route = Channel.PostView.name,
+            ) { PostView(navController) }
         }
     }
 }
@@ -136,7 +143,7 @@ fun AppBar(
                 Text(
                     text = stringResource(currentScreen.title),
                     style = MaterialTheme.typography.titleLarge,
-                    color = (MaterialTheme.colorScheme.onBackground).copy(alpha = alphaValue),
+                    color = (MaterialTheme.soapColors.onSurface).copy(alpha = alphaValue),
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.align(alignment = Alignment.CenterVertically)
                 )
@@ -157,8 +164,8 @@ fun AppBar(
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.soapColors.background,
+            scrolledContainerColor = MaterialTheme.soapColors.background
         ),
         scrollBehavior = scrollBehavior
     )
@@ -187,7 +194,7 @@ fun AppDownBar(
             )
     ) {
         NavigationBar(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.soapColors.surface
         ) {
             items.forEach { (channel, label, iconRes) ->
                 if (channel != null) {
@@ -201,7 +208,7 @@ fun AppDownBar(
                             )
                         },
                         label = { Text(label) },
-                        colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
+                        colors = NavigationBarItemDefaults.colors(MaterialTheme.soapColors.primary)
                     )
                 }else{
                     NavigationBarItem(
@@ -214,7 +221,7 @@ fun AppDownBar(
                             )
                         },
                         label = { Text(label) },
-                        colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
+                        colors = NavigationBarItemDefaults.colors(MaterialTheme.soapColors.primary)
                     )
                 }
             }
