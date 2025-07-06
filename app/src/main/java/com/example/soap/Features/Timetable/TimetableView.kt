@@ -22,6 +22,7 @@ import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,7 +46,7 @@ fun TimetableView(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.soapColors.background)
                 .padding(innerPadding)
         ) {
             Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {

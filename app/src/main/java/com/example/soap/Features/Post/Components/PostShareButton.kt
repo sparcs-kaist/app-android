@@ -20,14 +20,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 
 @Composable
 fun PostShareButton(){
     Card(
         shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(2.dp, MaterialTheme.colorScheme.background),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background
+        border = BorderStroke(1.dp, MaterialTheme.soapColors.gray0Border),
+        colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface
         )
     ){
         Row(
@@ -37,7 +38,7 @@ fun PostShareButton(){
             Icon(
                 painter = painterResource(R.drawable.share),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline,
+                tint = MaterialTheme.soapColors.gray64Button,
                 modifier = Modifier.size(20.dp)
             )
 
@@ -45,8 +46,8 @@ fun PostShareButton(){
 
             Text(
                 text = stringResource(R.string.share),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.outline
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.soapColors.gray64Button
             )
         }
     }

@@ -55,6 +55,7 @@ import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
 import com.example.soap.Utilities.Extensions.noRippleClickable
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch
 
 @Composable
@@ -99,7 +100,7 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.soapColors.surface)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Box(
@@ -115,7 +116,7 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
                     text = stringResource(R.string.submit),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Normal,
-                    color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (isDoneEnabled) MaterialTheme.soapColors.primary else MaterialTheme.soapColors.grayBB,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .semantics { contentDescription = "Post Button" }
@@ -223,7 +224,7 @@ private fun TermsOfUseButton(){
         text = stringResource(R.string.terms_of_use),
         style = MaterialTheme.typography.bodySmall,
         textDecoration = TextDecoration.Underline,
-        color = MaterialTheme.colorScheme.outline
+        color = MaterialTheme.soapColors.grayBB
     )
 }
 
@@ -239,8 +240,8 @@ fun TitleTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.soapColors.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = nextFocus
@@ -249,7 +250,7 @@ fun TitleTextField(
             if (value.isEmpty()) {
                 Text(
                     text = placeholderText,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.soapColors.grayBB,
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -270,8 +271,8 @@ fun DescriptionTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = false,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.soapColors.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Default),
         modifier = modifier,
         onTextLayout = onTextLayout,
@@ -279,7 +280,7 @@ fun DescriptionTextField(
             if (value.text.isEmpty()) {
                 Text(
                     text = placeholderText,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.soapColors.grayBB,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }

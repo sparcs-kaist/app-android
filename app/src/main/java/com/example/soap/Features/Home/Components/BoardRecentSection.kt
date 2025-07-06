@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 
 @Composable
@@ -53,7 +54,7 @@ fun BoardRecentSection(
                     .padding(start = 8.dp)
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.soapColors.surface)
                     .clickable { clickAction() },
                 contentAlignment = Alignment.Center
             ) {
@@ -61,12 +62,12 @@ fun BoardRecentSection(
                     painter = painterResource(R.drawable.arrow_forward_ios),
                     contentDescription = "Go to $title Board",
                     modifier = Modifier.size(15.dp),
-                    tint = MaterialTheme.colorScheme.outline
+                    tint = MaterialTheme.soapColors.darkGray
                 )
             }
         }
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ){
@@ -86,7 +87,7 @@ fun BoardRecentSection(
                         Text(
                             text = "Lorem ipsum\t13 min ago",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.soapColors.grayBB
                         )
                     }
                 }

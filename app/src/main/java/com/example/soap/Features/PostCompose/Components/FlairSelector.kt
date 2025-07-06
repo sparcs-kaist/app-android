@@ -29,7 +29,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 
 @Composable
@@ -55,7 +55,7 @@ fun FlairSelector(
     }
 
     Card(
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.outlineVariant),
+        colors = CardDefaults.cardColors(MaterialTheme.soapColors.grayf8),
         shape = RoundedCornerShape(20.dp)
     ) {
         Row(
@@ -82,7 +82,7 @@ fun FlairSelector(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = {expanded = false},
-            modifier = Modifier.background(Color(0xFFF2F2F6))
+            modifier = Modifier.background(MaterialTheme.soapColors.background)
         ){
             Box(
                 Modifier
@@ -96,7 +96,7 @@ fun FlairSelector(
                 Text(
                     text = getLocalizedFlair("No flair"),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.soapColors.grayBB
                 )
 
             }
@@ -154,7 +154,7 @@ fun AnimatedAlphabetText(from: String, to: String) {
     Row {
         for (i in 0 until maxLength) {
             val toChar = to.getOrNull(i) ?: ' '
-            val color = if (to == getLocalizedFlair("No flair")) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onBackground
+            val color = if (to == getLocalizedFlair("No flair")) MaterialTheme.soapColors.grayBB else MaterialTheme.soapColors.onSurface
 
             AnimatedContent(
                 targetState = toChar,

@@ -27,6 +27,7 @@ import com.example.soap.Models.RoomInfo
 import com.example.soap.R
 import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,13 +54,13 @@ fun HomeView(navController: NavController){
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.soapColors.background)
                 .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {
             BoardRecentSection(
                 title = stringResource(R.string.trending_board),
-                clickAction = { navController.navigate(Channel.GeneralBoard.name) }
+                clickAction = { navController.navigate(Channel.TrendingBoard.name) }
             )
             TaxiRecentSection(RoomInfo.mockList())
 

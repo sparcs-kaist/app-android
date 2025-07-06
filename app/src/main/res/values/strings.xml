@@ -61,5 +61,7 @@
     <string name="grade">Grade</string>
     <string name="load">Load</string>
     <string name="speech">Speech</string>
+    <string name="postview" translatable="false">PostListRow</string>
+    <string name="report">Report</string>
 
 </resources>

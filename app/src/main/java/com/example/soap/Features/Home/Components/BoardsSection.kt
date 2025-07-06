@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun BoardsSection() {
@@ -50,7 +51,7 @@ fun BoardsSection() {
                     .padding(start = 8.dp)
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.soapColors.surface)
                     .clickable { /* TODO: Board List */ },
                 contentAlignment = Alignment.Center
             ) {
@@ -58,13 +59,13 @@ fun BoardsSection() {
                     painter = painterResource(R.drawable.arrow_forward_ios),
                     contentDescription = "Go to Boards",
                     modifier = Modifier.size(15.dp),
-                    tint = MaterialTheme.colorScheme.outline
+                    tint = MaterialTheme.soapColors.darkGray
                 )
             }
         }
 
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ){
@@ -79,7 +80,7 @@ fun BoardsSection() {
                             text = "Board",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface,
+                            color = MaterialTheme.soapColors.onSurface,
                             modifier = Modifier.padding(end = 12.dp)
                         )
                         Text(

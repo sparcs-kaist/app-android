@@ -18,29 +18,30 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun PostVoteButton(){
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.background)
+            .background(MaterialTheme.soapColors.gray0Border)
             .padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(R.drawable.icon_arrowdown),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline,
+            tint = MaterialTheme.soapColors.gray64Button,
             modifier = Modifier.size(15.dp)
         )
 
         Spacer(Modifier.padding(2.dp))
 
         Text(
-            text = "13",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.outline
+            text = "+13",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.soapColors.gray64Button
         )
 
         Spacer(Modifier.padding(2.dp))
@@ -48,7 +49,7 @@ fun PostVoteButton(){
         Icon(
             painter = painterResource(R.drawable.icon_arrowup),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.outline,
+            tint = MaterialTheme.soapColors.gray64Button,
             modifier = Modifier.size(15.dp)
         )
     }

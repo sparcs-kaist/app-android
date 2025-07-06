@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -19,13 +20,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun PostBookmarkButton(){
     Card(
         shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(2.dp, MaterialTheme.colorScheme.background),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background
+        border = BorderStroke(1.dp, MaterialTheme.soapColors.gray0Border),
+        colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface
         )
     ){
         Row(
@@ -35,15 +37,16 @@ fun PostBookmarkButton(){
             Icon(
                 painter = painterResource(R.drawable.bookmark_border),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.outline
+                tint = MaterialTheme.soapColors.gray64Button,
+                modifier = Modifier.size(20.dp)
             )
 
             Spacer(Modifier.padding(2.dp))
 
             Text(
                 text = stringResource(R.string.to_bookmark),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.outline
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.soapColors.gray64Button
             )
         }
     }

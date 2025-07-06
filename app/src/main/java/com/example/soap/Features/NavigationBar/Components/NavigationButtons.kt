@@ -18,6 +18,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun NotificationButton(){
@@ -30,7 +31,7 @@ fun NotificationButton(){
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.soapColors.surface)
                 .clickable { /* TODO: Menu */ },
             contentAlignment = Alignment.Center
         ) {
@@ -38,7 +39,7 @@ fun NotificationButton(){
                 painter = painterResource(R.drawable.notification),
                 contentDescription = "Menu",
                 modifier = Modifier.size(28.dp),
-                tint = MaterialTheme.colorScheme.outline
+                tint = MaterialTheme.soapColors.darkGray
             )
         }
     }
@@ -55,7 +56,7 @@ fun SettingButton() {
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.soapColors.surface)
                 .clickable { /* TODO: Menu */ },
             contentAlignment = Alignment.Center
         ) {
@@ -63,7 +64,7 @@ fun SettingButton() {
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "Setting",
                 modifier = Modifier.size(28.dp),
-                tint = MaterialTheme.colorScheme.outline
+                tint = MaterialTheme.soapColors.darkGray
             )
         }
     }
@@ -80,7 +81,7 @@ fun TimetableAddButton() {
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.soapColors.surface)
                 .clickable { /* TODO: Add */ },
             contentAlignment = Alignment.Center
         ) {
@@ -88,57 +89,28 @@ fun TimetableAddButton() {
                 painter = painterResource(R.drawable.round_add),
                 contentDescription = "Add Timetable",
                 modifier = Modifier.size(28.dp),
-                tint = MaterialTheme.colorScheme.outline
+                tint = MaterialTheme.soapColors.darkGray
             )
         }
     }
 }
 
-
-@Composable
-fun SearchTopButton() {
-    Box(
-        modifier = Modifier
-            .padding(start = 8.dp)
-            .shadow(8.dp, CircleShape)
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surface)
-                .clickable { /* TODO: Menu */ },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.search),
-                contentDescription = "Search",
-                modifier = Modifier.size(28.dp),
-                tint = MaterialTheme.colorScheme.outline
-            )
-        }
-    }
-}
 
 @Composable
 fun SearchTopButtonWithoutCircle() {
     Box(
         modifier = Modifier
-            .padding(start = 8.dp)
+            .size(40.dp)
+            .clickable { /* TODO: Menu */ },
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clickable { /* TODO: Menu */ },
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.search),
-                contentDescription = "Search",
-                modifier = Modifier.size(28.dp),
-                tint = MaterialTheme.colorScheme.outline
-            )
-        }
+        Icon(
+            painter = painterResource(R.drawable.search),
+            contentDescription = "Search",
+            modifier = Modifier.size(28.dp),
+            tint = MaterialTheme.soapColors.darkGray
+        )
+
     }
 }
 

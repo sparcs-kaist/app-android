@@ -25,6 +25,7 @@ import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +55,7 @@ fun BoardListView(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.soapColors.background)
                 .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {

@@ -14,6 +14,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun TaxiInfoSection(
@@ -42,7 +43,7 @@ fun TaxiInfoSection(
                         Icon(
                             painter = painterResource(item.systemImage),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.soapColors.grayBB
                         )
                     }
                 }

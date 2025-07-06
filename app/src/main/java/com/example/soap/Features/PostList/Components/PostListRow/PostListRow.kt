@@ -1,6 +1,7 @@
 package com.example.soap.Features.PostList.Components.PostListRow
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,19 +20,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Models.Post
 import com.example.soap.Utilities.Extensions.timeAgoDisplay
 import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
-fun PostListRow(post: Post){
-
+fun PostListRow(
+    post: Post,
+    navController: NavController){
     Row(
         Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
+            .clickable {navController.navigate(Channel.PostView.name)}
     ) {
         Column(Modifier.align(Alignment.CenterVertically)){
             Text(
@@ -46,8 +53,7 @@ fun PostListRow(post: Post){
             Text(
                 text = post.description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.soapColors.grayBB,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -60,7 +66,7 @@ fun PostListRow(post: Post){
 
                     Row(modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.outlineVariant)
+                        .background(MaterialTheme.soapColors.grayf8)
                         .padding(horizontal = 2.dp)) {
                         PostListRowVoteLabel(post.voteCount)
 
@@ -74,7 +80,7 @@ fun PostListRow(post: Post){
                 Text(
                     text = post.author,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.soapColors.grayBB
                 )
 
                 Spacer(Modifier.padding(4.dp))
@@ -82,7 +88,7 @@ fun PostListRow(post: Post){
                 Text(
                     text = post.createdAt.timeAgoDisplay(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.soapColors.grayBB
 
                 )
 
@@ -109,7 +115,8 @@ fun PostListRow(post: Post){
 private fun Preview(){
     SoapTheme {
         PostListRow(
-            Post.mockList()[5]
+            Post.mockList()[5],
+            rememberNavController()
         )
     }
 }

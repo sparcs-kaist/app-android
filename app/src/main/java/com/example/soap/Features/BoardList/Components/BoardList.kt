@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun BoardList(
@@ -42,7 +43,7 @@ fun BoardList(
             Icon(
                 painter = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground
+                tint = MaterialTheme.soapColors.onSurface
             )
 
             Spacer(Modifier.padding(4.dp))
@@ -54,7 +55,7 @@ fun BoardList(
             )
         }
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ){
@@ -69,7 +70,7 @@ fun BoardList(
                     if (index < sections.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.fillMaxWidth(),
-                            color = MaterialTheme.colorScheme.outlineVariant
+                            color = MaterialTheme.soapColors.gray0Border
                         )
                     }
                 }

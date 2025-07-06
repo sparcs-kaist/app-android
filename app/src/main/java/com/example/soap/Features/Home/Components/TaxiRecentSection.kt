@@ -35,6 +35,7 @@ import com.example.soap.Models.RoomInfo
 import com.example.soap.R
 import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun TaxiRecentSection(roomList: List<RoomInfo>) {
@@ -59,7 +60,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                     .padding(start = 8.dp)
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.soapColors.surface)
                     .clickable { /* TODO: Board List */ },
                 contentAlignment = Alignment.Center
             ) {
@@ -67,7 +68,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                     painter = painterResource(R.drawable.arrow_forward_ios),
                     contentDescription = "Go to Taxi Board",
                     modifier = Modifier.size(15.dp),
-                    tint = MaterialTheme.colorScheme.outline
+                    tint = MaterialTheme.soapColors.darkGray
                 )
             }
         }
@@ -81,7 +82,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                 Spacer(Modifier.padding(horizontal = 8.dp))
 
                 Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(
@@ -161,7 +162,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                         Text(
                             text = "${room.departureTime}\tLorem ipsum",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.soapColors.grayBB,
                             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
                         )
                     }

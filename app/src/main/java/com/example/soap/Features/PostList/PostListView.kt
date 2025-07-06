@@ -56,6 +56,7 @@ import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.Components.PostListRow.PostListRow
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -97,7 +98,7 @@ fun PostListView(
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.soapColors.background)
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
@@ -151,12 +152,12 @@ fun PostListView(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.surface)
+                    .background(MaterialTheme.soapColors.surface)
                     .padding(horizontal = 16.dp)
             ) {
                 items(filteredPosts, key = { it.id }) { post ->
-                    PostListRow(post)
-                    HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    PostListRow(post, navController)
+                    HorizontalDivider(color = MaterialTheme.soapColors.grayBB)
                 }
             }
         }
@@ -169,7 +170,7 @@ fun PostListView(
             },
             sheetState = sheetState,
             modifier = Modifier.fillMaxHeight(),
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.soapColors.surface
         ) {
             PostComposeView(viewModel())
         }
@@ -198,14 +199,14 @@ private fun ComposeButton(onClick: () -> Unit){
     Button(
         onClick = onClick,
         shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
+        colors = ButtonDefaults.buttonColors(MaterialTheme.soapColors.primary),
         elevation = ButtonDefaults.buttonElevation(4.dp),
         contentPadding = PaddingValues(horizontal = 5.dp, vertical = 15.dp)
     ) {
         Icon(
             painter = painterResource(R.drawable.outline_edit),
             contentDescription = "Write Button",
-            tint = MaterialTheme.colorScheme.surface
+            tint = MaterialTheme.soapColors.surface
         )
     }
 }
@@ -245,8 +246,8 @@ fun ConfirmationDialog(
 fun selectedColor(
     isSelected : Boolean
 ): Pair<Color, Color> {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.primaryContainer
-    val textColor =  if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.onBackground
+    val backgroundColor = if (isSelected) MaterialTheme.soapColors.onSurface else MaterialTheme.soapColors.primaryContainer
+    val textColor =  if (isSelected) MaterialTheme.soapColors.primaryContainer else MaterialTheme.colorScheme.onSurface
 
     return Pair(backgroundColor, textColor)
 }

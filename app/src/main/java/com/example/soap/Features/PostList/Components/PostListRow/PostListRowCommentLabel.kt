@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
 
 
 @Composable
@@ -27,14 +28,14 @@ fun PostListRowCommentLabel(commentCount: Int){
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.outlineVariant)
+                .background(MaterialTheme.soapColors.grayf8)
                 .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
                 painter = painterResource(R.drawable.chat_bubble_outline),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.outline),
+                colorFilter = ColorFilter.tint(MaterialTheme.soapColors.darkGray),
                 modifier = Modifier.size(15.dp)
             )
 
@@ -43,7 +44,7 @@ fun PostListRowCommentLabel(commentCount: Int){
             Text(
                 text = "$commentCount",
                 maxLines = 1,
-                color = MaterialTheme.colorScheme.outline,
+                color = MaterialTheme.soapColors.darkGray,
                 style = MaterialTheme.typography.bodySmall
             )
         }
