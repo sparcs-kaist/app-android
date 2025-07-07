@@ -9,10 +9,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.AppBar
@@ -21,12 +21,20 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
+import com.example.soap.Models.TimeTable.Timetable
+import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimetableView(navController: NavController) {
+    val mockTimetable = Timetable.mockList()
+    val mockViewModel = remember {
+        TimetableViewModel().apply {
+            selectedTimetable = mockTimetable[1]
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -54,7 +62,7 @@ fun TimetableView(navController: NavController) {
 
                 Spacer(Modifier.padding(8.dp))
 
-                TimetableGrid(viewModel(),{})
+                TimetableGrid(viewModel = mockViewModel,{})
 
                 Spacer(Modifier.padding(8.dp))
 

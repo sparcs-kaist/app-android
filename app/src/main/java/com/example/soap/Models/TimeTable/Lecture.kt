@@ -4,8 +4,22 @@ import androidx.compose.ui.graphics.Color
 import com.example.soap.Models.Types.LectureType
 import com.example.soap.Models.Types.SemesterType
 import com.example.soap.Utilities.Helpers.LocalizedString
+import com.example.soap.Utilities.Helpers.TimetableColorPalette
 import kotlin.math.roundToInt
 
+// Background color for TimetableGridCell
+val Lecture.backgroundColor: Color
+    get() {
+        val palette = TimetableColorPalette.palettes[0]
+        val index = course % palette.colors.size
+        return palette.colors[index]
+    }
+
+// Text colour for TimetableGridCell
+val Lecture.textColor: Color
+    get(){
+        return  TimetableColorPalette.palettes[0].textColor
+    }
 
 data class Lecture(
     val id: Int,
@@ -29,13 +43,7 @@ data class Lecture(
     val typeDetail: LocalizedString,
     val professors: List<Professor>,
     val classTimes: List<ClassTime>,
-    val examTimes: List<ExamTime>,
-
-    // Background color for TimetableGridCell
-    val backgroundColor: Color = Color.Gray,
-
-    // Text colour for TimetableGridCell
-    var textColor: Color = Color.Gray
+    val examTimes: List<ExamTime>
 ){
     companion object{}
 }

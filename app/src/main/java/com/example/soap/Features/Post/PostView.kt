@@ -202,7 +202,7 @@ private fun Footer(){
     )
 
     Text(
-        text = "2개의 댓글",
+        text = "1개의 댓글",
         style = MaterialTheme.typography.bodyLarge,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)

@@ -10,12 +10,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Models.TimeTable.Lecture
+import com.example.soap.Models.TimeTable.backgroundColor
+import com.example.soap.Models.TimeTable.textColor
 import com.example.soap.Utilities.Extensions.LocalizedText
 import com.example.soap.Utilities.Mocks.mockList
-import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun TimetableGridCell(
@@ -25,24 +27,26 @@ fun TimetableGridCell(
     Box(
         modifier = modifier
             .fillMaxSize()
+            .padding(horizontal = 2.dp)
             .background(lecture.backgroundColor, shape = RoundedCornerShape(4.dp))
     ) {
         Column(
             modifier = Modifier
-                .padding(8.dp)
+                .padding(6.dp)
                 .fillMaxSize(),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.Top
         ) {
             LocalizedText(
                 text = lecture.title,
-                color = MaterialTheme.soapColors.surface,
+                color = lecture.textColor,
                 style = MaterialTheme.typography.bodyMedium,
-                maxLines = 3
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2
             )
             LocalizedText(
                 text = lecture.classTimes[0].classroomNameShort,
-                color = MaterialTheme.soapColors.surface,
+                color = lecture.textColor,
                 style = MaterialTheme.typography.bodySmall
             )
         }
