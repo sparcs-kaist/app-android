@@ -87,7 +87,7 @@ fun BoardsSection() {
                             text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
                             style = MaterialTheme.typography.bodyLarge,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = TextOverflow.Ellipsis
                         )
 
                     }

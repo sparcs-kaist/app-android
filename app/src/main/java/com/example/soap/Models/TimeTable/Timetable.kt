@@ -50,13 +50,20 @@ data class Timetable(
             .flatMap { it.classTimes }
             .map { it.begin }
             .minOrNull()
-            ?.let { (it / 60) * 60 } ?: Timetable.defaultMinMinutes
+            ?.let {
+                if (it % 60 == 0) it
+                else (it / 60) * 60
+            } ?: Timetable.defaultMinMinutes
 
     // Return the maximum end minutes.
     val Timetable.maxMinutes: Int
         get() = lectures
-            .flatMap { it.classTimes }.maxOfOrNull { it.end }
-            ?.let { ((it / 60) + 1) * 60 } ?: Timetable.defaultMaxMinutes
+            .flatMap { it.classTimes }
+            .maxOfOrNull { it.end }
+            ?.let {
+                if (it % 60 == 0) it
+                else (it / 60 + 1) * 60
+            } ?: Timetable.defaultMaxMinutes
 
     // Return the maximum duration of the total timetable.
     val Timetable.duration: Int

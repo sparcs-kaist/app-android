@@ -22,7 +22,6 @@ class TimetableViewModel : ViewModel() {
             try {
                 timetables = Timetable.mockList()
                 semesters = timetables.map { it.semester }.toSet().sorted()
-
                 selectedTimetable = timetables.firstOrNull()
                 selectedSemester = selectedTimetable?.semester
                 isLoading = false

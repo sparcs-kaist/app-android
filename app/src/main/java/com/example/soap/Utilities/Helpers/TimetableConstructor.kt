@@ -34,15 +34,15 @@ object TimetableConstructor {
 //
 //    }-
     fun getCellHeight(item: LectureItem, size: Size, duration: Int): Float {
-        val pixelsPerMinute = 28f / 30f
+        val pixelsPerMinute = daysHeight.value / 30f
         val classDuration = item.lecture.classTimes[item.index].duration
-        return pixelsPerMinute * classDuration - 2f
+        return pixelsPerMinute * classDuration - 4f
     }
 
     fun getCellOffset(item: LectureItem, size: Size, start: Int, duration: Int): Float {
         val beginMinute = item.lecture.classTimes[item.index].begin
-        val pixelsPerMinute = 28f / 30f
-        return pixelsPerMinute * (beginMinute - start) - 2f
+        val pixelsPerMinute = daysHeight.value / 30f
+        return pixelsPerMinute * (beginMinute - start)
     }
 
 

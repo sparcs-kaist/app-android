@@ -63,7 +63,7 @@ fun TimetableGrid(
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
-            modifier = Modifier.height(440.dp)
+            modifier = Modifier.height(448.dp)
         ) {
             Column(Modifier.verticalScroll(scrollState)){
 
@@ -135,7 +135,8 @@ fun GridHorizontalLines(
     val lineColor = MaterialTheme.soapColors.grayBB
     val dashEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
 
-    val lineHeight = 28.dp
+
+    val lineHeight = TimetableConstructor.daysHeight
     val lineMargin = 2.dp
 
     Column{
@@ -201,14 +202,14 @@ fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
     val minHour = minMinutes / 60
     val maxHour = maxMinutes / 60
 
-    val fixedCellHeight = 56.dp
+    //2h
+    val fixedCellHeight = (TimetableConstructor.daysHeight*2)
 
 
     Column(
         modifier = Modifier.width(TimetableConstructor.hoursWidth),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(4.dp))
 
         repeat(maxHour - minHour +1) { index ->
             Box(
