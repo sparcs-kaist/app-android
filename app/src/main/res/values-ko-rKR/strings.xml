@@ -60,4 +60,21 @@
     <string name="speech">강의</string>
     <string name="report">신고</string>
     <string name="reply_as_anonymous">댓글을 입력해주세요.</string>
+    <string name="search_by_course">과목명, 교수님 성함 등을 검색해 보세요.</string>
+    <string name="language">언어</string>
+    <string name="competition">경쟁률</string>
+    <string name="write_a_review">리뷰 작성하기</string>
+    <string name="summarise">요약</string>
+    <string name="translate">번역</string>
+    <string name="reviews">과목 후기</string>
+    <string name="information">과목 정보</string>
+    <string name="code">코드</string>
+    <string name="type">구분</string>
+    <string name="department">학과</string>
+    <string name="professor">교수</string>
+    <string name="classroom">장소</string>
+    <string name="capacity">정원</string>
+    <string name="exams">시험</string>
+    <string name="view_dictionary">과목 사전</string>
+    <string name="view_syllabus">실라버스</string>
 </resources>

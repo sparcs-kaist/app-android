@@ -246,7 +246,7 @@ private fun ReplyTextField(
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart // <- 여기도 중요
+                            contentAlignment = Alignment.CenterStart
                         ) {
                             if (value.isEmpty()) {
                                 Text(

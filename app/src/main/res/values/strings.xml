@@ -64,5 +64,24 @@
     <string name="postview" translatable="false">PostListRow</string>
     <string name="report">Report</string>
     <string name="reply_as_anonymous">reply as anonymous</string>
+    <string name="search_by_course">Search by course title, instructor, etc.</string>
+    <string name="language">Language</string>
+    <string name="competition">Competition</string>
+    <string name="write_a_review">Write a Review</string>
+    <string name="summarise">Summarise</string>
+    <string name="translate">Translate</string>
+    <string name="unknown" translatable="false">Unknown</string>
+    <string name="reviews">Reviews</string>
+    <string name="information">Information</string>
+    <string name="code">Code</string>
+    <string name="type">Type</string>
+    <string name="department">Department</string>
+    <string name="professor">Professor</string>
+    <string name="classroom">Classroom</string>
+    <string name="capacity">Capacity</string>
+    <string name="exams">Exams</string>
+    <string name="view_dictionary">View Dictionary</string>
+    <string name="view_syllabus">View Syllabus</string>
+    <string name="lecturedetail" translatable="false">LectureDetail</string>
 
 </resources>

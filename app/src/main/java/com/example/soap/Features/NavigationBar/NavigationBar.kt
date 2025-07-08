@@ -40,6 +40,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
+import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransition
@@ -50,7 +51,9 @@ import com.example.soap.Features.NavigationBar.Components.TimetableAddButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.Timetable.TimetableView
+import com.example.soap.Models.TimeTable.Lecture
 import com.example.soap.R
+import com.example.soap.Utilities.Mocks.mock
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 
@@ -61,7 +64,8 @@ enum class Channel(@StringRes val title: Int) {
     Taxi(title = R.string.taxi),
     TrendingBoard(title = R.string.general_board),
     Boards(title = R.string.boards),
-    PostView(title = R.string.postview) //임시
+    PostView(title = R.string.postview), //임시
+    LectureDetail(title= R.string.lecturedetail)//임시
 }
 
 @Composable
@@ -108,7 +112,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Channel.PostView.name,
-            ) { PostView(navController) }
+            ) { PostView(navController = navController) }
+
+            composable(
+                route = Channel.LectureDetail.name,
+            ) { LectureDetailView(lecture = Lecture.mock(), navController = navController) }
         }
     }
 }
