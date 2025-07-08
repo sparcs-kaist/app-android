@@ -62,7 +62,7 @@ fun TimetableView(navController: NavController) {
 
                 Spacer(Modifier.padding(8.dp))
 
-                TimetableGrid(viewModel = mockViewModel,{})
+                TimetableGrid(viewModel = mockViewModel,{navController.navigate(Channel.LectureDetail.name)})
 
                 Spacer(Modifier.padding(8.dp))
 
