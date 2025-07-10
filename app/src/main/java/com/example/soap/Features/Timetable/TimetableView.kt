@@ -19,6 +19,7 @@ import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
+import com.example.soap.Features.Timetable.Components.TimetableBottomSheet
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
 import com.example.soap.Models.TimeTable.Timetable
@@ -67,6 +68,8 @@ fun TimetableView(navController: NavController) {
                 Spacer(Modifier.padding(8.dp))
 
                 TimetableSummary()
+
+                TimetableBottomSheet()
 
             }
         }
