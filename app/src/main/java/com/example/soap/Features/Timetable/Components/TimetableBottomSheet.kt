@@ -53,15 +53,15 @@ fun TimetableBottomSheet() {
     var searchCourse by remember { mutableStateOf("") }
 
     val anchors = listOf(
-        screenHeight * 0.9f,
-        screenHeight * 0.5f,
-        screenHeight * 0.1f
+        (screenHeight) * 0.9f,
+        (screenHeight) * 0.5f,
+        (screenHeight) * 0.1f
     )
 
     val offsetY = remember { mutableStateOf(anchors[0]) }
     val scope = rememberCoroutineScope()
 
-    Box(Modifier.fillMaxSize()) {
+    Box{
 
         Box(
             modifier = Modifier

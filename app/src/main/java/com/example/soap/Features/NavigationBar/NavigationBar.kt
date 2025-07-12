@@ -116,7 +116,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Channel.LectureDetail.name,
-            ) { LectureDetailView(lecture = Lecture.mock(), navController = navController) }
+            ) { LectureDetailView(lecture = Lecture.mock()) }
         }
     }
 }

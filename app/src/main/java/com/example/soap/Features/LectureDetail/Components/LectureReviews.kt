@@ -93,6 +93,7 @@ fun LectureReviews(lecture: Lecture){
 
         Column {
             ReviewCard(lecture = lecture)
+            ReviewCard(lecture = lecture)
         }
     }
 }
