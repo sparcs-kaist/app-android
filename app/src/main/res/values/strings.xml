@@ -83,5 +83,7 @@
     <string name="view_dictionary">View Dictionary</string>
     <string name="view_syllabus">View Syllabus</string>
     <string name="lecturedetail" translatable="false">LectureDetail</string>
+    <string name="timetable_add">Add Timetable</string>
+    <string name="timetable_delete">Delete Timetable</string>
 
 </resources>
