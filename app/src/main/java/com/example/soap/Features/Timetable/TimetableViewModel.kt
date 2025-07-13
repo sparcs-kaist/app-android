@@ -1,5 +1,8 @@
 package com.example.soap.Features.Timetable
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Models.TimeTable.Lecture
@@ -10,12 +13,12 @@ import kotlinx.coroutines.launch
 
 class TimetableViewModel : ViewModel() {
     var isLoading: Boolean = true
-    var timetables: List<Timetable> = emptyList()
-    var selectedTimetable: Timetable? = null
-    var semesters: List<Semester> = emptyList()
-    var selectedSemester: Semester? = null
-    var selectedLecture: Lecture? = null
-    var timetablesForSelectedSemester: List<Timetable> = emptyList()
+    var timetables by mutableStateOf<List<Timetable>>(emptyList())
+    var selectedTimetable by mutableStateOf<Timetable?>(null)
+    var semesters by mutableStateOf<List<Semester>>(emptyList())
+    var selectedSemester by mutableStateOf<Semester?>(null)
+    var selectedLecture by mutableStateOf<Lecture?>(null)
+    var timetablesForSelectedSemester by mutableStateOf<List<Timetable>>(emptyList())
 
     fun fetchData() {
         viewModelScope.launch {
@@ -36,6 +39,7 @@ class TimetableViewModel : ViewModel() {
             val currentIndex = semesters.indexOf(currentSemester)
             if (currentIndex > 0) {
                 selectedSemester = semesters[currentIndex - 1]
+                updateTimetablesForSelectedSemester()
             }
         }
     }
@@ -45,6 +49,7 @@ class TimetableViewModel : ViewModel() {
             val currentIndex = semesters.indexOf(currentSemester)
             if (currentIndex < semesters.size - 1) {
                 selectedSemester = semesters[currentIndex + 1]
+                updateTimetablesForSelectedSemester()
             }
         }
     }

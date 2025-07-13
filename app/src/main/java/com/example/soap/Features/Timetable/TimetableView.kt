@@ -11,12 +11,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -34,8 +36,6 @@ import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
 import com.example.soap.Models.TimeTable.Lecture
-import com.example.soap.Models.TimeTable.Timetable
-import com.example.soap.Utilities.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch
@@ -43,10 +43,13 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimetableView(navController: NavController) {
-    val mockTimetable = Timetable.mockList()
     val mockViewModel = remember {
-        TimetableViewModel().apply {
-            selectedTimetable = mockTimetable[1]
+        TimetableViewModel()
+    }
+
+    LaunchedEffect(Unit) {
+        if (mockViewModel.timetables.isEmpty()) {
+            mockViewModel.fetchData()
         }
     }
 
@@ -54,72 +57,87 @@ fun TimetableView(navController: NavController) {
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
 
-    Scaffold(
-        topBar = {
-            AppBar(
-                currentScreen = Channel.TimeTable
-            )
-        },
-
-        bottomBar = {
-            AppDownBar(
-                navController = navController,
-                currentScreen = Channel.TimeTable
-            )
-        }
-    ) { innerPadding ->
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.soapColors.background)
-                .padding(innerPadding)
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-                CompactTimetableSelector()
-
-                Spacer(Modifier.padding(8.dp))
-
-                TimetableGrid(viewModel = mockViewModel,
-                    selectedLecture = { lecture ->
-                        selectedLecture.value = lecture
-                        scope.launch { sheetState.show() }
-                    }
+    if (mockViewModel.selectedTimetable != null) {
+        Scaffold(
+            topBar = {
+                AppBar(
+                    currentScreen = Channel.TimeTable
                 )
-
-                Spacer(Modifier.padding(8.dp))
-
-                TimetableSummary()
-            }
-        }
-    }
-
-    selectedLecture.value?.let { lecture ->
-        ModalBottomSheet(
-            onDismissRequest = {
-                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                    if (!sheetState.isVisible) selectedLecture.value = null
-                }
             },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.soapColors.surface,
-            modifier = Modifier.fillMaxHeight(),
-            dragHandle = {
-                Box(Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)){
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .width(30.dp)
-                            .height(4.dp)
-                            .background(MaterialTheme.soapColors.darkGray, RoundedCornerShape(2.dp))
+
+            bottomBar = {
+                AppDownBar(
+                    navController = navController,
+                    currentScreen = Channel.TimeTable
+                )
+            }
+        ) { innerPadding ->
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.soapColors.background)
+                    .padding(innerPadding)
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+
+
+                    CompactTimetableSelector(
+                        timetableViewModel = mockViewModel,
+                        selectedTimetable = mockViewModel.selectedTimetable!!
                     )
+
+                    Spacer(Modifier.padding(8.dp))
+
+                    TimetableGrid(
+                        viewModel = mockViewModel,
+                        selectedLecture = { lecture ->
+                            selectedLecture.value = lecture
+                            scope.launch { sheetState.show() }
+                        }
+                    )
+
+                    Spacer(Modifier.padding(8.dp))
+
+                    TimetableSummary()
                 }
             }
-        ) {
-            Box(Modifier.fillMaxSize()){ LectureDetailView(lecture = lecture) }
         }
+
+        selectedLecture.value?.let { lecture ->
+            ModalBottomSheet(
+                onDismissRequest = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) selectedLecture.value = null
+                    }
+                },
+                sheetState = sheetState,
+                containerColor = MaterialTheme.soapColors.surface,
+                modifier = Modifier.fillMaxHeight(),
+                dragHandle = {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .width(30.dp)
+                                .height(4.dp)
+                                .background(
+                                    MaterialTheme.soapColors.darkGray,
+                                    RoundedCornerShape(2.dp)
+                                )
+                        )
+                    }
+                }
+            ) {
+                Box(Modifier.fillMaxSize()) { LectureDetailView(lecture = lecture) }
+            }
+        }
+    }else{
+        CircularProgressIndicator()
     }
 }
 

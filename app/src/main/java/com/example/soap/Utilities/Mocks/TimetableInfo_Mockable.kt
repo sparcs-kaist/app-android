@@ -87,7 +87,7 @@ fun Timetable.Companion.mockList(): List<Timetable>{
                 )
             ),
         Timetable(
-            id= 0,
+            id= 3,
             lectures= Lecture.mockList(),
             semester= Semester(
                 year= 2025,
