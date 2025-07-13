@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +40,7 @@ import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
+import kotlinx.coroutines.delay
 
 
 @Composable
@@ -150,11 +152,26 @@ fun getLocalizedFlair(flair: String): String {
 @Composable
 fun AnimatedAlphabetText(from: String, to: String) {
     val maxLength = maxOf(from.length, to.length)
+    var displayed by remember { mutableStateOf(from.padEnd(maxLength)) }
+    var previous by remember { mutableStateOf(from.padEnd(maxLength)) }
+
+    LaunchedEffect(to) {
+        val toChars = to.padEnd(maxLength)
+        val temp = previous.padEnd(maxLength).toCharArray()
+
+        for (i in 0 until maxLength) {
+            temp[i] = toChars[i]
+            displayed = temp.concatToString()
+            delay(30L)
+        }
+
+        previous = toChars
+    }
 
     Row {
         for (i in 0 until maxLength) {
-            val toChar = to.getOrNull(i) ?: ' '
-            val color = if (to == getLocalizedFlair("No flair")) MaterialTheme.soapColors.grayBB else MaterialTheme.soapColors.onSurface
+            val toChar = displayed.getOrNull(i) ?: ' '
+            val color = if (displayed == getLocalizedFlair("No flair")) MaterialTheme.soapColors.grayBB else MaterialTheme.soapColors.onSurface
 
             AnimatedContent(
                 targetState = toChar,
