@@ -141,7 +141,8 @@ fun ReviewCard(lecture: Lecture) {
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(MaterialTheme.soapColors.gray0Border)
+                        modifier = Modifier.background(MaterialTheme.soapColors.surface),
+                        shape = RoundedCornerShape(16.dp)
                     ) {
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.translate)) },
