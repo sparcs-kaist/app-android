@@ -12,6 +12,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -106,6 +110,8 @@ fun SemesterSelector(
 
 @Composable
 fun TableSelector(){
+    var expanded by remember { mutableStateOf(false) }
+
     Box(Modifier.shadow(4.dp, RoundedCornerShape(25.dp))){
         Row(
             modifier = Modifier
@@ -127,7 +133,12 @@ fun TableSelector(){
                 tint = MaterialTheme.soapColors.onSurface,
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
-                    .clickable {  }
+                    .clickable { expanded = true }
+            )
+
+            TimetableDropDownMenu(
+                expanded = expanded,
+                onDismiss = { expanded = false }
             )
         }
     }
