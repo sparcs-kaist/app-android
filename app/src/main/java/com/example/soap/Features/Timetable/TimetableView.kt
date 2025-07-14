@@ -35,7 +35,7 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
-import com.example.soap.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch

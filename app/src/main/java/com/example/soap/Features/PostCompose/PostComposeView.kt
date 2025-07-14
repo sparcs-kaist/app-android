@@ -53,7 +53,7 @@ import com.example.soap.Features.PostCompose.Components.CheckBoxText
 import com.example.soap.Features.PostCompose.Components.FlairSelector
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
-import com.example.soap.Utilities.Extensions.noRippleClickable
+import com.example.soap.Shared.Extensions.noRippleClickable
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch

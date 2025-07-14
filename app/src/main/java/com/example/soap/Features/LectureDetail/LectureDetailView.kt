@@ -17,8 +17,8 @@ import androidx.compose.ui.unit.dp
 import com.example.soap.Features.LectureDetail.Components.LectureInformation
 import com.example.soap.Features.LectureDetail.Components.LectureReviews
 import com.example.soap.Features.LectureDetail.Components.LectureSummary
-import com.example.soap.Models.TimeTable.Lecture
-import com.example.soap.Utilities.Mocks.mock
+import com.example.soap.Domain.Models.TimeTable.Lecture
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 

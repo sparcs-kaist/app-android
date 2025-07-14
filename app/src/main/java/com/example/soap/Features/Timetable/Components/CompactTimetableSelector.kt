@@ -28,9 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soap.Features.NavigationBar.Animation.AnimatedText
 import com.example.soap.Features.Timetable.TimetableViewModel
-import com.example.soap.Models.TimeTable.Timetable
+import com.example.soap.Domain.Models.TimeTable.Timetable
 import com.example.soap.R
-import com.example.soap.Utilities.Mocks.mock
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 

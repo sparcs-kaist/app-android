@@ -51,9 +51,9 @@ import com.example.soap.Features.NavigationBar.Components.TimetableAddButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.Timetable.TimetableView
-import com.example.soap.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.R
-import com.example.soap.Utilities.Mocks.mock
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 

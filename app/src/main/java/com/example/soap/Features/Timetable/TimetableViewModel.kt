@@ -5,10 +5,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.soap.Models.TimeTable.Lecture
-import com.example.soap.Models.TimeTable.Semester
-import com.example.soap.Models.TimeTable.Timetable
-import com.example.soap.Utilities.Mocks.mockList
+import com.example.soap.Domain.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.TimeTable.Semester
+import com.example.soap.Domain.Models.TimeTable.Timetable
+import com.example.soap.Shared.Mocks.mockList
 import kotlinx.coroutines.launch
 
 class TimetableViewModel : ViewModel() {

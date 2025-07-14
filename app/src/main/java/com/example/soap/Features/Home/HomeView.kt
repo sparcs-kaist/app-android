@@ -17,15 +17,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Features.Home.Components.BoardRecentSection
 import com.example.soap.Features.Home.Components.BoardsSection
 import com.example.soap.Features.Home.Components.TaxiRecentSection
 import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
-import com.example.soap.Models.RoomInfo
 import com.example.soap.R
-import com.example.soap.Utilities.Mocks.mockList
+import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 
@@ -62,7 +62,7 @@ fun HomeView(navController: NavController){
                 title = stringResource(R.string.trending_board),
                 clickAction = { navController.navigate(Channel.TrendingBoard.name) }
             )
-            TaxiRecentSection(RoomInfo.mockList())
+            TaxiRecentSection(TaxiRoom.mockList())
 
             BoardsSection()
 

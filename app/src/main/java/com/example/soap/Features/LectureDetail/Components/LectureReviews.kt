@@ -32,12 +32,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.Models.TimeTable.Lecture
-import com.example.soap.Models.TimeTable.gradeLetter
-import com.example.soap.Models.TimeTable.loadLetter
-import com.example.soap.Models.TimeTable.speechLetter
+import com.example.soap.Domain.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.TimeTable.gradeLetter
+import com.example.soap.Domain.Models.TimeTable.loadLetter
+import com.example.soap.Domain.Models.TimeTable.speechLetter
 import com.example.soap.R
-import com.example.soap.Utilities.Mocks.mock
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 
