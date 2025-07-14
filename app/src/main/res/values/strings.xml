@@ -85,5 +85,6 @@
     <string name="lecturedetail" translatable="false">LectureDetail</string>
     <string name="timetable_add">Add Timetable</string>
     <string name="timetable_delete">Delete Timetable</string>
+    <string name="taxi_room_creation">New Room</string>
 
 </resources>
