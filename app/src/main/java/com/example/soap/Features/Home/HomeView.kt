@@ -40,7 +40,7 @@ fun HomeView(navController: NavController){
             AppBar(
                 currentScreen = Channel.Start,
                 scrollBehavior = scrollBehavior
-            )},
+            ) },
 
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
 
