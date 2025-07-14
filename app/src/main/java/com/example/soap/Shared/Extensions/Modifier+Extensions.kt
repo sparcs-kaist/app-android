@@ -1,4 +1,4 @@
-package com.example.soap.Utilities.Extensions
+package com.example.soap.Shared.Extensions
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource

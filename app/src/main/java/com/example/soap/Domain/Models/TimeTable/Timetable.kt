@@ -1,7 +1,7 @@
-package com.example.soap.Models.TimeTable
+package com.example.soap.Domain.Models.TimeTable
 
-import com.example.soap.Models.Types.DayType
-import com.example.soap.Models.Types.LectureType
+import com.example.soap.Domain.Enums.DayType
+import com.example.soap.Domain.Enums.LectureType
 
 
 data class Timetable(
@@ -13,9 +13,7 @@ data class Timetable(
 
     companion object {
         val defaultMinMinutes = 540 //9:00AM
-//        val defaultMaxMinutes = 1080 // 6:00 PM
-        val defaultMaxMinutes = 1440 // 24:00 AM
-
+        val defaultMaxMinutes = 1080 // 6:00 PM
 
         val letters: List<String> = listOf(
             "?", "F", "F", "F", "D-", "D", "D+", "C-", "C", "C+",

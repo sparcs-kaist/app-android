@@ -1,4 +1,4 @@
-package com.example.soap.Models.Types
+package com.example.soap.Domain.Enums
 
 enum class LectureType{
     BR, //Basic Required 기초 필수

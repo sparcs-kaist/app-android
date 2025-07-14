@@ -1,4 +1,4 @@
-package com.example.soap.Utilities.Helpers
+package com.example.soap.Domain.Helpers
 
 import androidx.compose.ui.graphics.Color
 import java.util.UUID

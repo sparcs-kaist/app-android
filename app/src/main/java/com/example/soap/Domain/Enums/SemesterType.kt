@@ -1,4 +1,4 @@
-package com.example.soap.Models.Types
+package com.example.soap.Domain.Enums
 
 enum class SemesterType(val title : String, val shortCode: String): Comparable<SemesterType> {
     SPRING("Spring", "S"),

@@ -1,6 +1,6 @@
-package com.example.soap.Models.TimeTable
+package com.example.soap.Domain.Models.TimeTable
 
-import com.example.soap.Utilities.Helpers.LocalizedString
+import com.example.soap.Domain.Helpers.LocalizedString
 
 data class Professor(
     val id: Int,

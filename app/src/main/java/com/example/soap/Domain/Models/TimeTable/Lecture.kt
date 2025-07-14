@@ -1,10 +1,10 @@
-package com.example.soap.Models.TimeTable
+package com.example.soap.Domain.Models.TimeTable
 
 import androidx.compose.ui.graphics.Color
-import com.example.soap.Models.Types.LectureType
-import com.example.soap.Models.Types.SemesterType
-import com.example.soap.Utilities.Helpers.LocalizedString
-import com.example.soap.Utilities.Helpers.TimetableColorPalette
+import com.example.soap.Domain.Enums.LectureType
+import com.example.soap.Domain.Enums.SemesterType
+import com.example.soap.Domain.Helpers.LocalizedString
+import com.example.soap.Domain.Helpers.TimetableColorPalette
 import kotlin.math.roundToInt
 
 // Background color for TimetableGridCell
