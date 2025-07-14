@@ -18,12 +18,12 @@ import com.example.soap.ui.theme.soapColors
 
 @Composable
 fun RouteHeaderView(
-    origin: String,
+    source: String,
     destination: String
 ) {
     Row(verticalAlignment = Alignment.CenterVertically){
         Text(
-            text = origin,
+            text = source,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold
         )
@@ -44,5 +44,5 @@ fun RouteHeaderView(
 @Composable
 @Preview
 private fun Preview() {
-    SoapTheme { RouteHeaderView(origin = "Seoul", destination = "Busan") }
+    SoapTheme { RouteHeaderView(source = "Seoul", destination = "Busan") }
 }

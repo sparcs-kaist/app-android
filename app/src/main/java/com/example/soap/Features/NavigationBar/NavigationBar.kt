@@ -38,6 +38,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
@@ -47,11 +48,12 @@ import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransit
 import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
+import com.example.soap.Features.NavigationBar.Components.TaxiAddButton
 import com.example.soap.Features.NavigationBar.Components.TimetableAddButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostList.PostListView
+import com.example.soap.Features.TaxiList.TaxiListView
 import com.example.soap.Features.Timetable.TimetableView
-import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.SoapTheme
@@ -65,7 +67,8 @@ enum class Channel(@StringRes val title: Int) {
     TrendingBoard(title = R.string.general_board),
     Boards(title = R.string.boards),
     PostView(title = R.string.postview), //임시
-    LectureDetail(title= R.string.lecturedetail)//임시
+    LectureDetail(title= R.string.lecturedetail),//임시
+    TaxiRoomCreation(title = R.string.taxi_room_creation)
 }
 
 @Composable
@@ -100,7 +103,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Channel.Taxi.name,
-            ) { HomeView(navController) }
+            ) { TaxiListView(navController) }
 
             composable(
                 route = Channel.TrendingBoard.name,
@@ -117,6 +120,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Channel.LectureDetail.name,
             ) { LectureDetailView(lecture = Lecture.mock()) }
+
         }
     }
 }
@@ -166,6 +170,7 @@ fun AppBar(
                     }
                     Channel.Boards -> { Spacer(Modifier.weight(2f))}
                     Channel.TimeTable -> { TimetableAddButton() }
+                    Channel.Taxi -> { TaxiAddButton() }
                     else -> {}
                 }
 
