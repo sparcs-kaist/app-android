@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
@@ -96,7 +97,7 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
                                 .fillMaxWidth()
                                 .padding(8.dp)
                         ) {
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -109,7 +110,9 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
                                     LocalizedText(
                                         text = room.source.title,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
 
@@ -127,12 +130,13 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
                                     LocalizedText(
                                         text = room.destination.title,
                                         style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.Medium
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                             }
 
-                            Spacer(modifier = Modifier.weight(1f))
 
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
