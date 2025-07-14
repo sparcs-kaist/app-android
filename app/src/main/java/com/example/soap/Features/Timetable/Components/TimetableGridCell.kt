@@ -13,11 +13,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.Models.TimeTable.Lecture
-import com.example.soap.Models.TimeTable.backgroundColor
-import com.example.soap.Models.TimeTable.textColor
-import com.example.soap.Utilities.Extensions.LocalizedText
-import com.example.soap.Utilities.Mocks.mockList
+import com.example.soap.Domain.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.TimeTable.backgroundColor
+import com.example.soap.Domain.Models.TimeTable.textColor
+import com.example.soap.Shared.Extensions.LocalizedText
+import com.example.soap.Shared.Mocks.mockList
 
 @Composable
 fun TimetableGridCell(

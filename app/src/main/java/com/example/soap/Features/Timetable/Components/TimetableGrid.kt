@@ -29,16 +29,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Features.Timetable.TimetableViewModel
-import com.example.soap.Models.TimeTable.Lecture
-import com.example.soap.Models.TimeTable.Timetable
-import com.example.soap.Models.TimeTable.duration
-import com.example.soap.Models.TimeTable.getLectures
-import com.example.soap.Models.TimeTable.maxMinutes
-import com.example.soap.Models.TimeTable.minMinutes
-import com.example.soap.Models.TimeTable.visibleDays
-import com.example.soap.Models.Types.DayType
-import com.example.soap.Utilities.Helpers.TimetableConstructor
-import com.example.soap.Utilities.Mocks.mockList
+import com.example.soap.Domain.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.TimeTable.Timetable
+import com.example.soap.Domain.Models.TimeTable.duration
+import com.example.soap.Domain.Models.TimeTable.getLectures
+import com.example.soap.Domain.Models.TimeTable.maxMinutes
+import com.example.soap.Domain.Models.TimeTable.minMinutes
+import com.example.soap.Domain.Models.TimeTable.visibleDays
+import com.example.soap.Domain.Enums.DayType
+import com.example.soap.Domain.Helpers.TimetableConstructor
+import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 
@@ -47,9 +47,8 @@ fun TimetableGrid(
     viewModel: TimetableViewModel,
     selectedLecture: ((Lecture) -> Unit)? = null
 ) {
-    val minMinutes = viewModel.selectedTimetable?.minMinutes ?: 540
-//    val maxMinutes = viewModel.selectedTimetable?.maxMinutes ?: 1080 //6:00PM
-    val maxMinutes = viewModel.selectedTimetable?.maxMinutes ?: 1440 //12:00AM
+    val minMinutes = viewModel.selectedTimetable?.minMinutes ?: 540 //9:00AM
+    val maxMinutes = viewModel.selectedTimetable?.maxMinutes ?: 1080 //6:00PM
     val visibleDays = viewModel.selectedTimetable?.visibleDays
         ?: listOf(DayType.MON, DayType.TUE, DayType.WED, DayType.THU, DayType.FRI)
     val scrollState = rememberScrollState()

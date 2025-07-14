@@ -31,14 +31,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.Models.RoomInfo
+import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.R
-import com.example.soap.Utilities.Mocks.mockList
+import com.example.soap.Shared.Extensions.LocalizedText
+import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 
 @Composable
-fun TaxiRecentSection(roomList: List<RoomInfo>) {
+fun TaxiRecentSection(roomList: List<TaxiRoom>) {
     val screenWidth = LocalConfiguration.current.screenWidthDp.dp
 
     Column(
@@ -105,8 +106,8 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                                         modifier = Modifier.padding(horizontal = 4.dp)
                                     )
 
-                                    Text(
-                                        text = room.origin,
+                                    LocalizedText(
+                                        text = room.source.title,
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -123,8 +124,8 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                                         modifier = Modifier.padding(horizontal = 4.dp)
                                     )
 
-                                    Text(
-                                        text = room.destination,
+                                    LocalizedText(
+                                        text = room.destination.title,
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -144,7 +145,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                                     .align(Alignment.Top)
                             ) {
                                 Text(
-                                    text = "${room.occupancy}/${room.capacity}",
+                                    text = "${room.participants.size}/${room.capacity}",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = Color(0xFF4CAF50)
                                 )
@@ -160,7 +161,7 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
                         }
 
                         Text(
-                            text = "${room.departureTime}\tLorem ipsum",
+                            text = "${room.departAt}\tLorem ipsum",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.soapColors.grayBB,
                             modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
@@ -175,5 +176,5 @@ fun TaxiRecentSection(roomList: List<RoomInfo>) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiRecentSection(RoomInfo.mockList()) }
+    SoapTheme { TaxiRecentSection(TaxiRoom.mockList()) }
 }
