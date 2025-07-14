@@ -1,10 +1,10 @@
-package com.example.soap.Utilities.Helpers
+package com.example.soap.Domain.Helpers
 
 
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.soap.Models.TimeTable.LectureItem
+import com.example.soap.Domain.Models.TimeTable.LectureItem
 
 object TimetableConstructor {
     // The width of the column representing the time at the leftmost of the timetable

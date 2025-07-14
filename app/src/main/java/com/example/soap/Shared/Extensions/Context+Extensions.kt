@@ -1,4 +1,4 @@
-package com.example.soap.Utilities.Extensions
+package com.example.soap.Shared.Extensions
 
 import android.content.Context
 

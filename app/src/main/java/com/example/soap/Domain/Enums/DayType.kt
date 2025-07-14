@@ -1,4 +1,4 @@
-package com.example.soap.Models.Types
+package com.example.soap.Domain.Enums
 
 enum class DayType(val value: Int, val stringValue: String) : Comparable<DayType> {
     SUN(0, "Sun"),

@@ -1,6 +1,6 @@
-package com.example.soap.Models.TimeTable
+package com.example.soap.Domain.Models.TimeTable
 
-import com.example.soap.Models.Types.SemesterType
+import com.example.soap.Domain.Enums.SemesterType
 import java.util.Date
 
 data class Semester(
@@ -37,6 +37,8 @@ data class Semester(
         result = 31 * result + semesterType.hashCode()
         return result
     }
+
+    companion object{}
 }
 
 

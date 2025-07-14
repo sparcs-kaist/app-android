@@ -1,4 +1,4 @@
-package com.example.soap.Utilities.Extensions
+package com.example.soap.Shared.Extensions
 
 import java.text.SimpleDateFormat
 import java.util.Calendar

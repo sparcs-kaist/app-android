@@ -1,6 +1,6 @@
-package com.example.soap.Utilities.Mocks
+package com.example.soap.Shared.Mocks
 
-import com.example.soap.Models.Post
+import com.example.soap.Domain.Models.Post.Post
 import java.net.URL
 import java.time.Instant
 import java.time.temporal.ChronoUnit

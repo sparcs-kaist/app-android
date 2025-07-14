@@ -1,13 +1,12 @@
-package com.example.soap.Utilities.Mocks
+package com.example.soap.Shared.Mocks
 
-import com.example.soap.Models.TimeTable.Semester
-import com.example.soap.Models.TimeTable.SemesterEventDate
-import com.example.soap.Models.Types.SemesterType
-import com.example.soap.Utilities.Extensions.toDate
+import com.example.soap.Domain.Enums.SemesterType
+import com.example.soap.Domain.Models.TimeTable.Semester
+import com.example.soap.Domain.Models.TimeTable.SemesterEventDate
+import com.example.soap.Shared.Extensions.toDate
 
 
-
-fun Semester.mock(): Semester {
+fun Semester.Companion.mock(): Semester {
     return Semester(
         year = 2025,
         semesterType = SemesterType.SPRING,
@@ -24,7 +23,7 @@ fun Semester.mock(): Semester {
     )
 }
 
-fun Semester.mockList(): List<Semester>{
+fun Semester.Companion.mockList(): List<Semester>{
     return listOf(
         Semester(
             year= 2025,

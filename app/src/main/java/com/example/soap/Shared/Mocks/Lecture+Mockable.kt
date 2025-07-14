@@ -1,13 +1,13 @@
-package com.example.soap.Utilities.Mocks
+package com.example.soap.Shared.Mocks
 
-import com.example.soap.Models.TimeTable.ClassTime
-import com.example.soap.Models.TimeTable.ExamTime
-import com.example.soap.Models.TimeTable.Lecture
-import com.example.soap.Models.TimeTable.Professor
-import com.example.soap.Models.Types.DayType
-import com.example.soap.Models.Types.LectureType
-import com.example.soap.Models.Types.SemesterType
-import com.example.soap.Utilities.Helpers.LocalizedString
+import com.example.soap.Domain.Models.TimeTable.ClassTime
+import com.example.soap.Domain.Models.TimeTable.ExamTime
+import com.example.soap.Domain.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.TimeTable.Professor
+import com.example.soap.Domain.Enums.DayType
+import com.example.soap.Domain.Enums.LectureType
+import com.example.soap.Domain.Enums.SemesterType
+import com.example.soap.Domain.Helpers.LocalizedString
 
 fun Lecture.Companion.mock(): Lecture {
     return Lecture(

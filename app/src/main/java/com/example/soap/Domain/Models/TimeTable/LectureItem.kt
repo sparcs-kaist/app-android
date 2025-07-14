@@ -1,4 +1,4 @@
-package com.example.soap.Models.TimeTable
+package com.example.soap.Domain.Models.TimeTable
 
 import java.util.UUID
 
