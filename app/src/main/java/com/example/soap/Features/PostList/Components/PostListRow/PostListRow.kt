@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Domain.Models.Post.Post
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Shared.Extensions.timeAgoDisplay
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
@@ -89,7 +89,6 @@ fun PostListRow(
                     text = post.createdAt.timeAgoDisplay(),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.soapColors.grayBB
-
                 )
 
             }

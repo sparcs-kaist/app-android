@@ -24,7 +24,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soap.Domain.Models.Taxi.TaxiLocation
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
@@ -150,7 +149,7 @@ fun TaxiAddButton() {
             },
             sheetState = sheetState,
             modifier = Modifier.fillMaxHeight(),
-            containerColor = MaterialTheme.soapColors.surface
+            containerColor = MaterialTheme.soapColors.background
         ) {
             TaxiRoomCreationView(
                 viewModel = viewModel,
