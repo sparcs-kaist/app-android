@@ -95,10 +95,14 @@ fun TaxiListView(navController: NavController) {
 
                 Spacer(Modifier.padding(8.dp))
 
+                val today = LocalDate.now()
+                val week = (0..6).map { today.plusDays(it.toLong()) }
+                var selectedDate by remember { mutableStateOf(today) }
+
                 WeekDaySelector(
-                    selectedDate = LocalDate.now(),
-                    week = (0..6).map { LocalDate.now().plusDays(it.toLong()) },
-                    onSelect = {}
+                    selectedDate = selectedDate,
+                    week = week,
+                    onSelect = { selectedDate = it }
                 )
             }
         }
