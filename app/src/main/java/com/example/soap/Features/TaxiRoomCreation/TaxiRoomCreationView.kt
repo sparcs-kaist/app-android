@@ -4,29 +4,26 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,7 +50,6 @@ import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiRoomCreationView(
     viewModel: TaxiListViewModel,
@@ -62,147 +58,111 @@ fun TaxiRoomCreationView(
     var title by remember { mutableStateOf("") }
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
-    val coroutineScope = rememberCoroutineScope()
-    val isEnabled = isValid(viewModel, title)
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Box(
-                        Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ){ Text("New Room") }
-                        },
-                navigationIcon = {
-                    Box(Modifier
-                        .padding(start = 8.dp)
-                        .shadow(8.dp, CircleShape)
-                    ){
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(40.dp)
-                                .background(MaterialTheme.soapColors.surface)
-                                .clickable { onDismiss() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Cancel",
-                                modifier = Modifier.size(28.dp),
-                                tint = MaterialTheme.soapColors.darkGray
-                            )
-                        }
-                    }
-                },
-                actions = {
-                    Box(Modifier
-                        .padding(start = 8.dp)
-                        .shadow(8.dp, CircleShape)
-                    ){
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(40.dp)
-                                .background(if (isEnabled) MaterialTheme.soapColors.primary else MaterialTheme.soapColors.grayBB)
-                                .clickable {
-                                    if (isEnabled) {
-                                        coroutineScope.launch {
-                                            try {
-//                                    viewModel.createRoom(title)
-//                                    viewModel.fetchData()
-                                                onDismiss()
-                                            } catch (e: Exception) {
-                                                errorMessage = e.localizedMessage ?: "Unknown error"
-                                                showErrorDialog = true
-                                            }
-                                        }
-                                    }
-                                },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.arrow_upward),
-                                contentDescription = "Send",
-                                modifier = Modifier.size(28.dp),
-                                tint = MaterialTheme.soapColors.surface                          )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.soapColors.background)
-            )
-        },
-        containerColor = MaterialTheme.soapColors.background
+    val isEnabled = remember(title, viewModel.source, viewModel.destination, viewModel.roomDepartureTime) {
+        isValid(viewModel, title)
+    }
 
-    ) { padding ->
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .imePadding()
+    ) {
         Column(
             modifier = Modifier
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .fillMaxSize()
+                .background(MaterialTheme.soapColors.background)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Card(
-                colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
-                shape = RoundedCornerShape(16.dp)
-            ){
-                TaxiDestinationPicker(
-                    source = viewModel.source,
-                    onSourceChange = { viewModel.source = it },
-                    destination = viewModel.destination,
-                    onDestinationChange = { viewModel.destination = it },
-                    locations = viewModel.locations
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DismissButton(onClick = onDismiss)
+
+                Spacer(Modifier.weight(1f))
+
+                Text(
+                    text = "New Room",
+                    style = MaterialTheme.typography.titleLarge
                 )
-            }
 
-            Spacer(Modifier.padding(16.dp))
+                Spacer(Modifier.weight(1f))
 
-            Card(
-                colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
-                shape = RoundedCornerShape(16.dp)
-            ){
-                BasicTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    textStyle = MaterialTheme.typography.bodyLarge,
-                    cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    decorationBox = { innerTextField ->
-                        if (title.isEmpty()) {
-                            Text(
-                                text = "Title",
-                                color = MaterialTheme.soapColors.grayBB,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                        innerTextField()
+                SendButton(
+                    isEnabled = isEnabled,
+                    onClick = onDismiss,
+                    onError = {
+                        errorMessage = it
+                        showErrorDialog = true
                     }
                 )
             }
 
             Spacer(Modifier.padding(16.dp))
 
-            Card(
-                colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
-                shape = RoundedCornerShape(16.dp)
-            ){
-                Column((Modifier.padding(16.dp))){
-                    TaxiDepartureTimePicker(
-                        departureTime = viewModel.roomDepartureTime,
-                        onDepartureTimeChange = { viewModel.roomDepartureTime = it }
-                    )
-
-                    HorizontalDivider(Modifier.padding(16.dp))
-
-                    TaxiCapacityPicker(
-                        capacity = viewModel.roomCapacity,
-                        onCapacityChange = { viewModel.roomCapacity = it }
+            Column() {
+                Card(
+                    colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    TaxiDestinationPicker(
+                        source = viewModel.source,
+                        onSourceChange = { viewModel.source = it },
+                        destination = viewModel.destination,
+                        onDestinationChange = { viewModel.destination = it },
+                        locations = viewModel.locations
                     )
                 }
-            }
 
+                Spacer(Modifier.padding(16.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    BasicTextField(
+                        value = title,
+                        onValueChange = { title = it },
+                        textStyle = MaterialTheme.typography.bodyLarge,
+                        cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        decorationBox = { innerTextField ->
+                            if (title.isEmpty()) {
+                                Text(
+                                    text = "Title",
+                                    color = MaterialTheme.soapColors.grayBB,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                            innerTextField()
+                        }
+                    )
+                }
+
+                Spacer(Modifier.padding(16.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        TaxiDepartureTimePicker(
+                            departureTime = viewModel.roomDepartureTime,
+                            onDepartureTimeChange = { viewModel.roomDepartureTime = it }
+                        )
+
+                        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+                        TaxiCapacityPicker(
+                            capacity = viewModel.roomCapacity,
+                            onCapacityChange = { viewModel.roomCapacity = it }
+                        )
+                    }
+                }
+            }
         }
 
         if (showErrorDialog) {
@@ -230,10 +190,71 @@ private fun isValid(viewModel: TaxiListViewModel, title: String): Boolean {
             viewModel.roomDepartureTime > Date()
 }
 
+@Composable
+private fun DismissButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier.shadow(8.dp, CircleShape)
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .size(40.dp)
+                .background(MaterialTheme.soapColors.surface)
+                .clickable { onClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                Icons.Default.Close,
+                contentDescription = "Cancel",
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.soapColors.darkGray
+            )
+        }
+    }
+}
 
 @Composable
+private fun SendButton(
+    isEnabled: Boolean,
+    onClick: () -> Unit,
+    onError: (String) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+
+    Box(
+        modifier = Modifier.shadow(8.dp, CircleShape)
+    ) {
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .size(40.dp)
+                .background(if (isEnabled) MaterialTheme.soapColors.primary else MaterialTheme.soapColors.grayBB)
+                .clickable(enabled = isEnabled) {
+                    coroutineScope.launch {
+                        try {
+                            // viewModel.createRoom(title)
+                            // viewModel.fetchData()
+                            onClick()
+                        } catch (e: Exception) {
+                            onError(e.localizedMessage ?: "Unknown error")
+                        }
+                    }
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.arrow_upward),
+                contentDescription = "Send",
+                modifier = Modifier.size(28.dp),
+                tint = MaterialTheme.soapColors.surface
+            )
+        }
+    }
+}
+
 @Preview
-private fun Preview(){
+@Composable
+private fun Preview() {
     val viewModel = TaxiListViewModel().apply {
         source = TaxiLocation.mockList()[0]
         destination = TaxiLocation.mockList()[1]
