@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -22,6 +21,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,18 +39,18 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.PostCompose.Components.CheckBoxText
 import com.example.soap.Features.PostCompose.Components.FlairSelector
+import com.example.soap.Features.PostCompose.Components.PostComposeNavigationBar
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.noRippleClickable
@@ -59,7 +59,11 @@ import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch
 
 @Composable
-fun PostComposeView(postListViewModel: PostListViewModel) {
+fun PostComposeView(
+    postListViewModel: PostListViewModel,
+    navController: NavController
+) {
+
     val coroutineScope = rememberCoroutineScope()
 
     val descriptionFocusRequester = remember { FocusRequester() }
@@ -71,7 +75,9 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
     var writeAsAnonymous by remember { mutableStateOf(true) }
     var isNSFW by remember { mutableStateOf(false) }
     var isPolitical by remember { mutableStateOf(false) }
+
     val isDoneEnabled = title.isNotBlank() && description.text.isNotBlank()
+    val isBackDisEnabled = title.isNotBlank() || description.text.isNotBlank()
 
     val internalScrollState = rememberScrollState()
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -92,131 +98,112 @@ fun PostComposeView(postListViewModel: PostListViewModel) {
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .imePadding()
-    ) {
-        Column(
+    Scaffold(
+        topBar = {
+            PostComposeNavigationBar(navController, isDoneEnabled, isBackDisEnabled)
+        }
+    ) { innerPadding ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.soapColors.surface)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(innerPadding)
         ) {
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = stringResource(R.string.write),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-                Text(
-                    text = stringResource(R.string.submit),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Normal,
-                    color = if (isDoneEnabled) MaterialTheme.soapColors.primary else MaterialTheme.soapColors.grayBB,
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .semantics { contentDescription = "Post Button" }
-                        .clickable {
-                            if (isDoneEnabled) {
-                                //Todo: Dismiss
-                            }
-                        }
-                )
-            }
-
-            FlairSelector(postListViewModel)
-
-            Spacer(Modifier.padding(8.dp))
-
-            TitleTextField(
-                value = title,
-                onValueChange = { title = it},
-                placeholderText = stringResource(R.string.enter_the_title),
-                nextFocus = { descriptionFocusRequester.requestFocus() }
-            )
-
-            Spacer(Modifier.padding(2.dp))
-
-            HorizontalDivider()
-
-            Spacer(Modifier.padding(4.dp))
-
             Column(
                 modifier = Modifier
-                    .bringIntoViewRequester(descriptionBringIntoViewRequester)
-                    .verticalScroll(internalScrollState)
-                    .focusRequester(descriptionFocusRequester)
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .noRippleClickable { descriptionFocusRequester.requestFocus() }
+                    .fillMaxSize()
+                    .background(MaterialTheme.soapColors.surface)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                DescriptionTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    placeholderText = stringResource(R.string.enter_the_description),
-                    modifier = Modifier,
-                    onTextLayout = { textLayoutResult = it },
-                    )
+
+                FlairSelector(postListViewModel)
+
+                Spacer(Modifier.padding(8.dp))
+
+                TitleTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    placeholderText = stringResource(R.string.enter_the_title),
+                    nextFocus = { descriptionFocusRequester.requestFocus() }
+                )
+
+                Spacer(Modifier.padding(2.dp))
+
+                HorizontalDivider()
+
                 Spacer(Modifier.padding(4.dp))
 
-                Box(Modifier.align(Alignment.End)) {
-                    TermsOfUseButton()
+                Column(
+                    modifier = Modifier
+                        .bringIntoViewRequester(descriptionBringIntoViewRequester)
+                        .verticalScroll(internalScrollState)
+                        .focusRequester(descriptionFocusRequester)
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .noRippleClickable { descriptionFocusRequester.requestFocus() }
+                ) {
+                    DescriptionTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        placeholderText = stringResource(R.string.enter_the_description),
+                        modifier = Modifier,
+                        onTextLayout = { textLayoutResult = it },
+                    )
+                    Spacer(Modifier.padding(4.dp))
+
+                    Box(Modifier.align(Alignment.End)) {
+                        TermsOfUseButton()
+                    }
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.End)
+                ) {
+
+                    Icon(
+                        painter = painterResource(R.drawable.add_photo_alternate),
+                        contentDescription = "Add photo",
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clickable { }
+                    )
+
+                    Spacer(Modifier.padding(horizontal = 4.dp))
+
+                    Icon(
+                        painter = painterResource(R.drawable.attach_file),
+                        contentDescription = "Add file",
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clickable { }
+                    )
+
+                    Spacer(Modifier.weight(1f))
+
+                    CheckBoxText(
+                        text = stringResource(R.string.anonymous),
+                        isChecked = writeAsAnonymous,
+                        onCheckedChange = { writeAsAnonymous = !writeAsAnonymous }
+                    )
+
+                    CheckBoxText(
+                        text = stringResource(R.string.nsfw),
+                        isChecked = isNSFW,
+                        onCheckedChange = { isNSFW = !isNSFW }
+                    )
+
+                    CheckBoxText(
+                        text = stringResource(R.string.political),
+                        isChecked = isPolitical,
+                        onCheckedChange = { isPolitical = !isPolitical }
+                    )
                 }
             }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.End)
-        ) {
-
-            Icon(
-                painter = painterResource(R.drawable.add_photo_alternate),
-                contentDescription = "Add photo",
-                modifier = Modifier
-                    .size(30.dp)
-                    .clickable { }
-            )
-
-            Spacer(Modifier.padding(horizontal = 4.dp))
-
-            Icon(
-                painter = painterResource(R.drawable.attach_file),
-                contentDescription = "Add file",
-                modifier = Modifier
-                    .size(30.dp)
-                    .clickable { }
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            CheckBoxText(
-                text = stringResource(R.string.anonymous),
-                isChecked = writeAsAnonymous,
-                onCheckedChange = { writeAsAnonymous = !writeAsAnonymous }
-            )
-
-            CheckBoxText(
-                text = stringResource(R.string.nsfw),
-                isChecked = isNSFW,
-                onCheckedChange = { isNSFW = !isNSFW }
-            )
-
-            CheckBoxText(
-                text = stringResource(R.string.political),
-                isChecked = isPolitical,
-                onCheckedChange = { isPolitical = !isPolitical }
-            )
         }
     }
-    }
 }
-
 
 @Composable
 private fun TermsOfUseButton(){
@@ -289,8 +276,9 @@ fun DescriptionTextField(
     )
 }
 
+
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { PostComposeView(viewModel()) }
+    SoapTheme { PostComposeView(viewModel(), rememberNavController()) }
 }

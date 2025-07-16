@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -88,8 +87,6 @@ fun LectureInformation(lecture: Lecture){
             )
         }
 
-        HorizontalDivider()
-
         Row(
             modifier = Modifier
                 .padding(vertical = 8.dp)
@@ -110,8 +107,6 @@ fun LectureInformation(lecture: Lecture){
                 tint = MaterialTheme.soapColors.primary
             )
         }
-
-        HorizontalDivider()
     }
 }
 
@@ -138,8 +133,6 @@ fun LectureDetailRow(
                 fontWeight = FontWeight.SemiBold
             )
         }
-
-        HorizontalDivider()
     }
 }
 

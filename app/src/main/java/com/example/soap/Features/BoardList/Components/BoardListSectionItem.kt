@@ -24,14 +24,14 @@ fun BoardListSectionItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ){
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.soapColors.onSurface
+            color = MaterialTheme.soapColors.onSurface,
+            modifier = Modifier.padding(vertical = 8.dp)
         )
 
         Spacer(Modifier.weight(1f))

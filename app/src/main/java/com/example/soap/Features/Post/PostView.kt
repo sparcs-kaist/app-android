@@ -40,7 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Features.NavigationBar.Components.PostNavigationBar
+import com.example.soap.Features.Post.Components.PostNavigationBar
 import com.example.soap.Features.Post.Components.Comments
 import com.example.soap.Features.Post.Components.PostBookmarkButton
 import com.example.soap.Features.Post.Components.PostReportButton

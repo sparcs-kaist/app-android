@@ -70,7 +70,6 @@ fun LectureReviews(lecture: Lecture){
 
             Button(
                 onClick = {},
-                modifier = Modifier,
                 colors = ButtonDefaults.buttonColors(MaterialTheme.soapColors.background)
             ) {
                 Icon(
