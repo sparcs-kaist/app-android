@@ -2,6 +2,7 @@ package com.example.soap.Features.TaxiRoomCreation.Components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -44,37 +45,39 @@ fun TaxiCapacityPicker(
 
         Spacer(Modifier.weight(1f))
 
-        Row(Modifier.clickable { expanded = true }){
-            Text(
-                text = capacity.let { "$it people" },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.soapColors.grayBB
-            )
+        Box{
+            Row(Modifier.clickable { expanded = true }) {
+                Text(
+                    text = capacity.let { "$it people" },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.soapColors.grayBB
+                )
 
-            Spacer(Modifier.padding(2.dp))
+                Spacer(Modifier.padding(2.dp))
 
-            Icon(
-                painter = painterResource(R.drawable.round_swap_vert),
-                contentDescription = "Expand dropdown",
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.soapColors.grayBB
-            )
-        }
-    }
+                Icon(
+                    painter = painterResource(R.drawable.round_swap_vert),
+                    contentDescription = "Expand dropdown",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.soapColors.grayBB
+                )
+            }
 
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false },
-        modifier = Modifier.background(MaterialTheme.soapColors.surface)
-    ) {
-        (1..4).forEach { count ->
-            DropdownMenuItem(
-                text = { Text("$count people") },
-                onClick = {
-                    onCapacityChange(count)
-                    expanded = false
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.soapColors.surface)
+            ) {
+                (1..4).forEach { count ->
+                    DropdownMenuItem(
+                        text = { Text("$count people") },
+                        onClick = {
+                            onCapacityChange(count)
+                            expanded = false
+                        }
+                    )
                 }
-            )
+            }
         }
     }
 }

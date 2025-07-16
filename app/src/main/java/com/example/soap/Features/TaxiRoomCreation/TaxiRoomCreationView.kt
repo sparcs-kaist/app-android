@@ -255,7 +255,8 @@ private fun SendButton(
 @Preview
 @Composable
 private fun Preview() {
-    val viewModel = TaxiListViewModel().apply {
+
+    val viewModel = remember { TaxiListViewModel() }.apply {
         source = TaxiLocation.mockList()[0]
         destination = TaxiLocation.mockList()[1]
         roomDepartureTime = Date(System.currentTimeMillis() + 3600_000)

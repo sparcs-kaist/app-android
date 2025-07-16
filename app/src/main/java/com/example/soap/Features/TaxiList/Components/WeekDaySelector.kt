@@ -19,9 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,21 +31,26 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Features.TaxiList.TaxiListViewModel
+import com.example.soap.Shared.Extensions.toDate
+import com.example.soap.Shared.Extensions.toLocalDate
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 import java.time.DayOfWeek
-import java.time.LocalDate
+import java.util.Date
 
 @Composable
 fun WeekDaySelector(
-    selectedDate: LocalDate,
-    week: List<LocalDate>,
-    onSelect: (LocalDate) -> Unit
+    selectedDate: Date,
+    week: List<Date>,
+    onSelect: (Date) -> Unit
 ) {
     val density = LocalDensity.current
     val itemBounds = remember { mutableStateListOf<Pair<Int, Int>>() }
 
-    val selectedIndex = week.indexOf(selectedDate).coerceAtLeast(0)
+    val selectedLocalDate = selectedDate.toLocalDate()
+    val localWeek = week.map { it.toLocalDate() }
+    val selectedIndex = localWeek.indexOf(selectedLocalDate).coerceAtLeast(0)
     val selectedBounds = itemBounds.getOrNull(selectedIndex)
 
     val animatedOffsetX by animateDpAsState(
@@ -94,11 +97,11 @@ fun WeekDaySelector(
                     .height(60.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                week.forEachIndexed { index, day ->
-                    val isSelected = day == selectedDate
-                    val dayOfWeek = day.dayOfWeek
+                week.forEachIndexed { index, date ->
+                    val day = date.toLocalDate()
+                    val isSelected = (day == selectedDate.toLocalDate())
 
-                    val textColor = when (dayOfWeek) {
+                    val textColor = when (day.dayOfWeek) {
                         DayOfWeek.SUNDAY -> Color.Red
                         DayOfWeek.SATURDAY -> Color.Blue
                         else -> MaterialTheme.soapColors.onSurface
@@ -118,7 +121,9 @@ fun WeekDaySelector(
                                     itemBounds[index] = x to width
                                 }
                             }
-                            .clickable { onSelect(day) },
+                            .clickable {
+                                onSelect(day.toDate())
+                            },
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -144,14 +149,11 @@ fun WeekDaySelector(
 @Composable
 private fun WeekDaySelectorPreview() {
     SoapTheme {
-        val today = LocalDate.now()
-        val week = (0..6).map { today.plusDays(it.toLong()) }
-        var selectedDate by remember { mutableStateOf(today) }
-
+        val viewModel = remember { TaxiListViewModel() }
         WeekDaySelector(
-            selectedDate = selectedDate,
-            week = week,
-            onSelect = { selectedDate = it }
+            selectedDate = viewModel.selectedDate,
+            week = viewModel.week,
+            onSelect = { viewModel.selectedDate = it }
         )
     }
 }

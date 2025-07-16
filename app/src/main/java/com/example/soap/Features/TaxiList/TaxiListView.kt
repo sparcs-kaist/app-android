@@ -36,11 +36,13 @@ import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
-import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaxiListView(navController: NavController) {
+fun TaxiListView(
+    navController: NavController,
+    taxiListViewModel: TaxiListViewModel
+) {
 
     var showCreationSheet by remember { mutableStateOf(false) }
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
@@ -95,14 +97,10 @@ fun TaxiListView(navController: NavController) {
 
                 Spacer(Modifier.padding(8.dp))
 
-                val today = LocalDate.now()
-                val week = (0..6).map { today.plusDays(it.toLong()) }
-                var selectedDate by remember { mutableStateOf(today) }
-
                 WeekDaySelector(
-                    selectedDate = selectedDate,
-                    week = week,
-                    onSelect = { selectedDate = it }
+                    selectedDate = taxiListViewModel.selectedDate,
+                    week = taxiListViewModel.week,
+                    onSelect = { taxiListViewModel.selectedDate = it }
                 )
             }
         }
@@ -112,5 +110,6 @@ fun TaxiListView(navController: NavController) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiListView(rememberNavController()) }
+    val viewModel = remember { TaxiListViewModel() }
+    SoapTheme { TaxiListView(rememberNavController(), viewModel) }
 }
