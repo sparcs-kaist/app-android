@@ -111,9 +111,7 @@ fun TaxiDepartureTimePicker(
             }
         }
 
-        if (showDatePicker) {
-
-        }
+        if (showDatePicker) { }
 
         if (showTimePicker) {
             CircularTimePicker(
@@ -144,8 +142,8 @@ fun CircularTimePicker(
     val displayMinutes = listOf("") + minutes.map { it.toString().padStart(2, '0') } + listOf("")
 
     val itemHeight = 30.dp
-    val hourState = rememberLazyListState(initialFirstVisibleItemIndex = hour + 2)
-    val minuteState = rememberLazyListState(initialFirstVisibleItemIndex = minutes.indexOfFirst { it >= minute } + 2)
+    val hourState = rememberLazyListState(initialFirstVisibleItemIndex = hour)
+    val minuteState = rememberLazyListState(initialFirstVisibleItemIndex = minutes.indexOfFirst { it >= minute })
 
     LaunchedEffect(hourState.firstVisibleItemIndex, minuteState.firstVisibleItemIndex) {
         val selectedHour = (hourState.firstVisibleItemIndex).coerceIn(0, hours.lastIndex)
@@ -216,7 +214,7 @@ fun PickerWheel(
                             .alpha(alpha)
                             .clickable {
                                 coroutineScope.launch {
-                                    listState.animateScrollToItem(index)
+                                    listState.animateScrollToItem(index-1)
                                 }
                             },
                         color = MaterialTheme.colorScheme.onSurface,
