@@ -79,7 +79,6 @@ fun TimetableView(navController: NavController) {
             ) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
 
-
                     CompactTimetableSelector(
                         timetableViewModel = mockViewModel,
                         selectedTimetable = mockViewModel.selectedTimetable!!
@@ -90,8 +89,7 @@ fun TimetableView(navController: NavController) {
                     TimetableGrid(
                         viewModel = mockViewModel,
                         selectedLecture = { lecture ->
-                            selectedLecture.value = lecture
-                            scope.launch { sheetState.show() }
+                            navController.navigate("${Channel.LectureDetail.name}/${lecture.id}")
                         }
                     )
 
@@ -101,6 +99,7 @@ fun TimetableView(navController: NavController) {
                 }
             }
         }
+
 
         selectedLecture.value?.let { lecture ->
             ModalBottomSheet(
@@ -131,10 +130,10 @@ fun TimetableView(navController: NavController) {
                     }
                 }
             ) {
-                Box(Modifier.fillMaxSize()) { LectureDetailView(lecture = lecture) }
+                Box(Modifier.fillMaxSize()) { LectureDetailView(lectureId = lecture.id, navController = navController) }
             }
         }
-    }else{
+    } else {
         CircularProgressIndicator()
     }
 }

@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiRoomCreation.Components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -9,16 +10,22 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,15 +39,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.example.soap.Domain.Enums.DayType
+import com.example.soap.Shared.Extensions.toLocalDate
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.time.Instant
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
@@ -58,11 +72,16 @@ fun TaxiDepartureTimePicker(
         calendar.time = departureTime
     }
 
+    val initialDate = remember(departureTime) { departureTime.toLocalDate() }
+    var selectedDate by remember { mutableStateOf(initialDate) }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
     val dateFormatter = remember { SimpleDateFormat("MM/dd", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
+
+    val dateText = remember { mutableStateOf(dateFormatter.format(calendar.time)) }
+    val timeText = remember { mutableStateOf(timeFormatter.format(calendar.apply { set(Calendar.MINUTE, (get(Calendar.MINUTE) / 10) * 10); set(Calendar.SECOND, 0) }.time)) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -84,7 +103,7 @@ fun TaxiDepartureTimePicker(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        dateFormatter.format(calendar.time),
+                        dateText.value,
                         color = if (showDatePicker) MaterialTheme.soapColors.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -102,16 +121,22 @@ fun TaxiDepartureTimePicker(
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        timeFormatter.format(
-                            calendar.apply { set(Calendar.MINUTE, (get(Calendar.MINUTE) / 10) * 10); set(Calendar.SECOND, 0) }.time
-                        ),
+                        timeText.value,
                         color = if (showTimePicker) MaterialTheme.soapColors.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
         }
 
-        if (showDatePicker) { }
+        if (showDatePicker) {
+            CustomDatePicker(
+                selectedDate = selectedDate,
+                onDateSelected = {
+                    selectedDate = it
+                    dateText.value = DateTimeFormatter.ofPattern("MM/dd").format(it)
+                }
+            )
+        }
 
         if (showTimePicker) {
             CircularTimePicker(
@@ -121,13 +146,12 @@ fun TaxiDepartureTimePicker(
                 calendar.set(Calendar.HOUR_OF_DAY, hour)
                 calendar.set(Calendar.MINUTE, minute)
                 calendar.set(Calendar.SECOND, 0)
+                timeText.value = timeFormatter.format(calendar.time)
                 onDepartureTimeChange(calendar.time)
             }
         }
     }
 }
-
-
 
 @Composable
 fun CircularTimePicker(
@@ -214,7 +238,7 @@ fun PickerWheel(
                             .alpha(alpha)
                             .clickable {
                                 coroutineScope.launch {
-                                    listState.animateScrollToItem(index-1)
+                                    listState.animateScrollToItem(index - 1)
                                 }
                             },
                         color = MaterialTheme.colorScheme.onSurface,
@@ -242,6 +266,125 @@ fun PickerWheel(
                 text = text,
                 modifier = Modifier.align(Alignment.Center)
             )
+        }
+    }
+}
+
+
+@Composable
+fun CustomDatePicker(
+    selectedDate: LocalDate,
+    onDateSelected: (LocalDate) -> Unit
+) {
+    val today = LocalDate.now()
+    val startDate = today.with(DayOfWeek.SUNDAY).minusWeeks(1)
+    val endDate = today.plusWeeks(2).with(DayOfWeek.SATURDAY)
+    val days = (0L..ChronoUnit.DAYS.between(startDate, endDate)).map { startDate.plusDays(it) }
+
+    Column(
+        modifier = Modifier
+            .background(MaterialTheme.soapColors.surface)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .animateContentSize()
+    ) {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Filled.DateRange,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(end = 8.dp)
+                        .size(15.dp),
+                    tint =MaterialTheme.soapColors.grayBB
+                )
+                Text(
+                    "날짜 : ${selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+
+        Spacer(Modifier.padding(8.dp))
+
+        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            DayType.entries.forEach { dayType ->
+                Text(
+                    text = dayType.stringValue,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = when (dayType) {
+                        DayType.SUN -> Color.Red
+                        DayType.SAT -> Color.Blue
+                        else -> MaterialTheme.soapColors.onSurface
+                    },
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        Spacer(Modifier.padding(8.dp))
+
+        days.chunked(7).forEach { week ->
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                week.forEach { day ->
+                    val isDisabled = day < today || day > today.plusDays(14)
+                    val isSelected = day == selectedDate
+                    val dayType = DayType.fromValue(day.dayOfWeek.value % 7)
+
+                    val bgColor = when {
+                        isSelected -> MaterialTheme.soapColors.primary
+                        isDisabled -> MaterialTheme.soapColors.grayBB
+                        else -> MaterialTheme.soapColors.grayf8
+                    }
+
+                    val textColor = when {
+                        isDisabled -> MaterialTheme.soapColors.darkGray
+                        isSelected -> MaterialTheme.soapColors.surface
+                        dayType == DayType.SUN -> Color.Red
+                        dayType == DayType.SAT -> Color.Blue
+                        else -> MaterialTheme.soapColors.onSurface
+                    }
+
+                    val dot = day == today
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(bgColor)
+                            .clickable(enabled = !isDisabled) { onDateSelected(day) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = day.dayOfMonth.toString(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = textColor,
+                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+                            )
+                            if (dot) {
+                                Spacer(modifier = Modifier.padding(2.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(4.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.soapColors.primary.copy(0.5f))
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.height(6.dp))
         }
     }
 }
