@@ -28,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
@@ -35,7 +36,6 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
-import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 import kotlinx.coroutines.launch
@@ -43,9 +43,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimetableView(navController: NavController) {
-    val mockViewModel = remember {
-        TimetableViewModel()
-    }
+    val mockViewModel = remember { TimetableViewModel() }
 
     LaunchedEffect(Unit) {
         if (mockViewModel.timetables.isEmpty()) {
