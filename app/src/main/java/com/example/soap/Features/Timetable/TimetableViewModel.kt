@@ -17,7 +17,6 @@ class TimetableViewModel : ViewModel() {
     var selectedTimetable by mutableStateOf<Timetable?>(null)
     var semesters by mutableStateOf<List<Semester>>(emptyList())
     var selectedSemester by mutableStateOf<Semester?>(null)
-    var selectedLecture by mutableStateOf<Lecture?>(null)
     var timetablesForSelectedSemester by mutableStateOf<List<Timetable>>(emptyList())
 
     fun fetchData() {
@@ -54,7 +53,7 @@ class TimetableViewModel : ViewModel() {
         }
     }
 
-    // Private Functions
+    // MARK: - Private Functions
     private fun updateTimetablesForSelectedSemester() {
         selectedSemester?.let {
             timetablesForSelectedSemester = timetables.filter { it.semester == selectedSemester }
