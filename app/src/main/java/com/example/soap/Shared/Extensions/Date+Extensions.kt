@@ -1,6 +1,8 @@
 package com.example.soap.Shared.Extensions
 
 import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -47,6 +49,12 @@ val Date?.TimeString: String?
     val formatter = SimpleDateFormat("h:mm a", Locale.US)
     return this?.let { formatter.format(it) }
 }
+
+fun Date.toLocalDate(): LocalDate =
+    toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+
+fun LocalDate.toDate(): Date =
+    Date.from(atStartOfDay(ZoneId.systemDefault()).toInstant())
 
 //relativeTimeString
 //formattedTime
