@@ -80,6 +80,19 @@ fun SearchButton() {
     }
 }
 
+@Composable
+fun DismissButton(onClick: () -> Unit) {
+    IconButton(
+        onClick = { onClick() },
+        colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.arrow_back_ios),
+            contentDescription = "Cancel",
+            tint = MaterialTheme.soapColors.darkGray
+        )
+    }
+}
 
 @Composable
 @Preview

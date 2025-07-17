@@ -38,6 +38,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Taxi.TaxiLocation
+import com.example.soap.Domain.Repositories.TaxiRoomRepository
+import com.example.soap.Domain.Repositories.TaxiRoomService
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
