@@ -1,11 +1,11 @@
 package com.example.soap.Shared.Extensions
 
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
-import java.util.Locale
 
 fun Date.timeAgoDisplay(): String {
     val nowCalendar = Calendar.getInstance()
@@ -38,16 +38,13 @@ fun Date.timeAgoDisplay(): String {
     return "just now"
 }
 
-val Date?.DateString: String?
-    get(){
-        val formatter = SimpleDateFormat("MMM d, EEEE", Locale.US)
-        return this?.let { formatter.format(it) }
-    }
+fun Date.toISO8601(): String {
+    val instant = this.toInstant()
+    val formatter = DateTimeFormatter
+        .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+        .withZone(ZoneOffset.UTC)
 
-val Date?.TimeString: String?
-    get(){
-    val formatter = SimpleDateFormat("h:mm a", Locale.US)
-    return this?.let { formatter.format(it) }
+    return formatter.format(instant)
 }
 
 fun Date.toLocalDate(): LocalDate =

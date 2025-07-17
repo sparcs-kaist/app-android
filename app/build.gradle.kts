@@ -53,6 +53,11 @@ dependencies {
     implementation(libs.google.maps.compose)
     implementation(libs.google.play.services.maps)
     implementation(libs.google.play.services.location)
+    implementation(libs.retrofit)
+    implementation(libs.gson)
+    implementation(libs.hilt.android)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.compiler)
     implementation(libs.coil.compose)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -61,5 +66,6 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-
+    implementation(libs.androidx.navigation.compose.v253)
+    implementation(libs.androidx.hilt.navigation.compose)
 }
