@@ -53,6 +53,21 @@ fun Date.toLocalDate(): LocalDate =
 fun LocalDate.toDate(): Date =
     Date.from(atStartOfDay(ZoneId.systemDefault()).toInstant())
 
+fun Date.ceilToNextTenMinutes(): Date {
+    val cal = Calendar.getInstance().apply { time = this@ceilToNextTenMinutes }
+    val minute = cal.get(Calendar.MINUTE)
+    cal.set(Calendar.MINUTE, ((minute + 9) / 10) * 10)
+    cal.set(Calendar.SECOND, 0)
+    cal.set(Calendar.MILLISECOND, 0)
+    return cal.time
+}
+
+fun Calendar.isDateInSameDay(date1: Date, date2: Date): Boolean {
+    val localDate1 = date1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    val localDate2 = date2.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+    return localDate1 == localDate2
+}
+
 //relativeTimeString
 //formattedTime
 //weekdayNameIfWithinAWeek
