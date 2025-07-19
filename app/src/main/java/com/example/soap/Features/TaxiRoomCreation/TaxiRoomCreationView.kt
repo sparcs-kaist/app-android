@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Taxi.TaxiLocation
+import com.example.soap.Domain.Repositories.FakeTaxiRoomRepository
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiCapacityPicker
@@ -163,13 +164,13 @@ private fun isValid(viewModel: TaxiListViewModel, title: String): Boolean {
 @Preview
 @Composable
 private fun Preview() {
+    val fakeRepository = remember { FakeTaxiRoomRepository() }
 
-    val viewModel = remember { TaxiListViewModel() }.apply {
+    val viewModel = remember { TaxiListViewModel(fakeRepository) }.apply {
         source = TaxiLocation.mockList()[0]
         destination = TaxiLocation.mockList()[1]
         roomDepartureTime = Date(System.currentTimeMillis() + 3600_000)
         roomCapacity = 3
-        locations = TaxiLocation.mockList()
     }
 
     SoapTheme {

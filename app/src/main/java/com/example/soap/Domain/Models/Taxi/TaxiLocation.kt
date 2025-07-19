@@ -5,7 +5,7 @@ import com.example.soap.Domain.Helpers.LocalizedString
 data class TaxiLocation(
     val id: String,
     val title: LocalizedString,
-    val priority: Double,
+    val priority: Double?,
     val latitude: Double,
     val longitude: Double
 ){

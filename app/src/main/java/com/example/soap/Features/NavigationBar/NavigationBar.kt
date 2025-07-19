@@ -21,7 +21,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -30,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -38,8 +38,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Taxi.TaxiLocation
-import com.example.soap.Domain.Repositories.TaxiRoomRepository
-import com.example.soap.Domain.Repositories.TaxiRoomService
+import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
@@ -53,15 +52,15 @@ import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.PostListView
-import com.example.soap.Features.TaxiList.TaxiListView
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mockList
+import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
+import com.example.soap.features.taxi.TaxiListView
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
-import java.util.Date
 
 enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
@@ -86,14 +85,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     } ?: Channel.Start
 
 
-    val mockViewModel = remember { TaxiListViewModel() }.apply {
-        source = TaxiLocation.mockList()[0]
-        destination = TaxiLocation.mockList()[1]
-        roomDepartureTime = Date(System.currentTimeMillis() + 3600_000)
-        roomCapacity = 3
-        locations = TaxiLocation.mockList()
-    }//임시
-
+    val taxiListViewModel: TaxiListViewModel = hiltViewModel()
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -116,9 +108,19 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = Channel.TimeTable.name,
             ) { TimetableView(navController) }
 
+
+
             composable(
                 route = Channel.Taxi.name,
-            ) { TaxiListView(navController, viewModel())}
+            ) {
+                val mockViewModel = MockTaxiListViewModel(
+                    initialState = TaxiListViewModel.ViewState.Loaded(
+                        rooms = TaxiRoom.mockList(),
+                        locations = TaxiLocation.mockList()
+                    )
+                )
+                TaxiListView(mockViewModel, navController = navController)}
+
 
             composable(
                 route = Channel.TaxiRoomCreation.name,
@@ -126,7 +128,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) { TaxiRoomCreationView(navController, mockViewModel) }
+            ) { TaxiRoomCreationView(navController, taxiListViewModel) }
 
             composable(
                 route = Channel.TrendingBoard.name,
