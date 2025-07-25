@@ -331,7 +331,7 @@ fun CustomDatePicker(
         days.chunked(7).forEach { week ->
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 week.forEach { day ->
-                    val isDisabled = day < today || day > today.plusDays(14)
+                    val isDisabled = day < today || day > today.plusDays(13)
                     val isSelected = day == selectedDate
                     val dayType = DayType.fromValue(day.dayOfWeek.value % 7)
 
