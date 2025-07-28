@@ -70,8 +70,65 @@ fun Calendar.isDateInSameDay(date1: Date, date2: Date): Boolean {
     return localDate1 == localDate2
 }
 
-//relativeTimeString
-//weekdayNameIfWithinAWeek
+fun Date.relativeTimeString(): String {
+    val time = localizedTime(this)
+
+    return when {
+        isDateInToday(this) -> "Today at $time"
+        isDateInTomorrow(this) -> "Tomorrow at $time"
+        else -> weekdayNameIfWithinAWeek(this)?.let { "$it at $time" }
+            ?: SimpleDateFormat("MMM d 'at' h:mm a", Locale.getDefault()).format(date)
+    }
+}
+
+fun isDateInToday(date: Date): Boolean {
+    val today = Calendar.getInstance()
+    val target = Calendar.getInstance().apply { time = date }
+    return today.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+            today.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)
+}
+
+fun isDateInTomorrow(date: Date): Boolean {
+    val tomorrow = Calendar.getInstance().apply { add(Calendar.DATE, 1) }
+    val target = Calendar.getInstance().apply { time = date }
+    return tomorrow.get(Calendar.YEAR) == target.get(Calendar.YEAR) &&
+            tomorrow.get(Calendar.DAY_OF_YEAR) == target.get(Calendar.DAY_OF_YEAR)
+}
+
+fun localizedTime(date: Date): String {
+    val formatter = SimpleDateFormat.getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
+    return formatter.format(date)
+}
+
+fun weekdayNameIfWithinAWeek(date: Date): String? {
+    val calendar = Calendar.getInstance()
+    val now = calendar.time
+
+    val startOfToday = calendar.apply {
+        time = now
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    val targetStart = calendar.apply {
+        time = date
+        set(Calendar.HOUR_OF_DAY, 0)
+        set(Calendar.MINUTE, 0)
+        set(Calendar.SECOND, 0)
+        set(Calendar.MILLISECOND, 0)
+    }.timeInMillis
+
+    val daysDiff = ((targetStart - startOfToday) / (1000 * 60 * 60 * 24)).toInt()
+
+    return if (daysDiff in 1..6) {
+        val formatter = SimpleDateFormat("EEEE", Locale.getDefault())
+        formatter.format(date)
+    } else {
+        null
+    }
+}
 
 fun Date.formattedString(): String{
     val formatter = SimpleDateFormat("MMMM d, EEE, h:mm a", Locale.getDefault())
@@ -89,9 +146,6 @@ fun Date.formattedDate(): String {
 }
 
 fun Date.weekdaySymbol(): String{
-    val calendar = Calendar.getInstance().apply {
-        time = this@weekdaySymbol
-    }
     val weekdaySymbols = SimpleDateFormat("EEEE", Locale.getDefault())
     return weekdaySymbols.format(this)
 }

@@ -38,7 +38,7 @@ fun TaxiRoom.Companion.mockList(): List<TaxiRoom>{
             title = "Mock Room ${index + 1}",
             source = locations[index % locations.size],
             destination = locations[(index + 3) % locations.size],
-            departAt = Date.from(Instant.now().plus(1, ChronoUnit.DAYS)),
+            departAt = Date.from(Instant.now().plus(index.toLong(), ChronoUnit.DAYS)),
             participants = participants,
             madeAt = Date(),
             capacity = 4,

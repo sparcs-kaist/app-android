@@ -36,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
+import com.example.soap.Shared.Extensions.formattedString
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
@@ -138,7 +139,7 @@ fun TaxiPreviewView(
             Text("From: ${room.source.title.localized()}")
             Text("To: ${room.destination.title.localized()}")
             Spacer(Modifier.padding(8.dp))
-            Text("Depart at: ${room.departAt}")
+            Text("Depart at: ${room.departAt.formattedString()}")
 
             Spacer(Modifier.padding(16.dp))
 
