@@ -158,6 +158,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     LectureDetailView(lectureId = it, navController = navController)
                 }
             }
+
         }
     }
 }

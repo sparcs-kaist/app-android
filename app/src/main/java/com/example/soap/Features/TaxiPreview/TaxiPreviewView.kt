@@ -1,133 +1,202 @@
 package com.example.soap.Features.TaxiPreview
 
-//
-//@Composable
-//fun TaxiPreviewView(
-//    room: TaxiRoom,
-//    viewModel: ViewModel,
-//    onDismiss: () -> Unit = {}
-//) {
-//    val context = LocalContext.current
-//    val scope = rememberCoroutineScope()
-//
-//    var cameraPositionState = rememberCameraPositionState {
-//        position = CameraPosition.fromLatLngZoom(room.source.toLatLng(), 13f)
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Models.Taxi.TaxiRoom
+import com.example.soap.Shared.Mocks.mock
+import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.soapColors
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
+import com.google.maps.android.compose.Polyline
+import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.launch
+
+
+@Composable
+fun TaxiPreviewView(
+    room: TaxiRoom,
+    viewModel: TaxiPreviewViewModel = hiltViewModel(),
+    navController: NavController,
+    onDismiss: () -> Unit
+) {
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    var cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(room.source.latitude, room.source.longitude), 13f)
+    }
+
+    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    var pathPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        try {
+            pathPoints = viewModel.calculateRoutePoints(
+                LatLng(room.source.latitude, room.source.longitude),
+                LatLng(room.destination.latitude, room.destination.longitude)
+            )
+        } catch (e: Exception) {
+            errorMessage = e.localizedMessage ?: "Unknown error"
+            showError = true
+        }
+    }
+
+    if (showError) {
+        AlertDialog(
+            onDismissRequest = { showError = false },
+            confirmButton = {
+                TextButton(onClick = { showError = false }) {
+                    Text("Okay")
+                }
+            },
+            title = { Text("Error") },
+            text = { Text(errorMessage) }
+        )
+    }
+
+    BackHandler {
+        onDismiss()
+        navController.popBackStack()
+    }
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.soapColors.surface)
+    ) {
+        GoogleMap(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+            cameraPositionState = cameraPositionState
+        ) {
+            Marker(
+                state = MarkerState(position = LatLng(room.source.latitude, room.source.longitude)),
+                title = room.source.title.localized(),
+                snippet = "Source"
+            )
+            Marker(
+                state = MarkerState(position = LatLng(room.source.latitude, room.source.longitude)),
+                title = room.destination.title.localized(),
+                snippet = "Destination"
+            )
+            if (pathPoints.isNotEmpty()) {
+                Polyline(points = pathPoints, color = Color.Blue)
+            }
+        }
+
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = room.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.weight(1f)
+                )
+                Text("${room.participants.size}/${room.capacity} joined")
+            }
+
+            Spacer(Modifier.padding(8.dp))
+            Text("From: ${room.source.title.localized()}")
+            Text("To: ${room.destination.title.localized()}")
+            Spacer(Modifier.padding(8.dp))
+            Text("Depart at: ${room.departAt}")
+
+            Spacer(Modifier.padding(16.dp))
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IconButton(onClick = {}) {
+                    Icon(Icons.Default.Share, contentDescription = "Share")
+                }
+
+                Button(
+                    onClick = {
+                        scope.launch {
+                            try {
+                                viewModel.joinRoom(
+                                    id = room.id
+                                )
+                            } catch (e: Exception) {
+                                errorMessage = e.message ?: "Unknown error"
+                                showError = true
+                            }
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = room.participants.size < room.capacity &&
+                            !viewModel.isJoined(room.participants)
+                ) {
+                    Text(
+                        when {
+                            viewModel.isJoined(room.participants) -> "Joined"
+                            room.participants.size >= room.capacity -> "This room is full"
+                            else -> "Join"
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@Preview
+@Composable
+private fun Preview() {
+    SoapTheme {
+        TaxiPreviewView(room = TaxiRoom.mock(), navController = rememberNavController(), onDismiss = {})
+    }
+
+//    val seoul = LatLng(37.566535, 126.97796919)
+//    val cameraPositionState = rememberCameraPositionState {
+//        position = CameraPosition.fromLatLngZoom(seoul, 10f)
 //    }
-//
-//    var showError by remember { mutableStateOf(false) }
-//    var errorMessage by remember { mutableStateOf("") }
-//    var pathPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
-//
-//    LaunchedEffect(Unit) {
-//        try {
-//            pathPoints = viewModel.calculateRoutePoints(
-//                room.source.toLatLng(),
-//                room.destination.toLatLng()
-//            )
-//        } catch (e: Exception) {
-//            errorMessage = e.localizedMessage ?: "Unknown error"
-//            showError = true
-//        }
-//    }
-//
-//    if (showError) {
-//        AlertDialog(
-//            onDismissRequest = { showError = false },
-//            confirmButton = {
-//                TextButton(onClick = { showError = false }) {
-//                    Text("Okay")
-//                }
-//            },
-//            title = { Text("Error") },
-//            text = { Text(errorMessage) }
+//    GoogleMap(
+//        modifier = Modifier.fillMaxSize(),
+//        cameraPositionState = cameraPositionState
+//    ) {
+//        Marker(
+//            state = MarkerState(position = seoul),
+//            title = "Seoul",
+//            snippet = "Marker in Seoul"
 //        )
 //    }
-//
-//    Column(modifier = Modifier.fillMaxSize()) {
-//        GoogleMap(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(200.dp),
-//            cameraPositionState = cameraPositionState
-//        ) {
-//            Marker(
-//                state = MarkerState(position = room.source.toLatLng()),
-//                title = room.source.title.localized(),
-//                snippet = "Source"
-//            )
-//            Marker(
-//                state = MarkerState(position = room.destination.toLatLng()),
-//                title = room.destination.title.localized(),
-//                snippet = "Destination"
-//            )
-//            if (pathPoints.isNotEmpty()) {
-//                Polyline(points = pathPoints, color = Color.Blue)
-//            }
-//        }
-//
-//        Column(modifier = Modifier.padding(16.dp)) {
-//            Row(verticalAlignment = Alignment.CenterVertically) {
-//                Text(
-//                    text = room.title,
-//                    style = MaterialTheme.typography.titleSmall,
-//                    modifier = Modifier.weight(1f)
-//                )
-//                Text("${room.participants.size}/${room.capacity} joined")
-//            }
-//
-//            Spacer(Modifier.height(8.dp))
-//            Text("From: ${room.source.title.localized()}")
-//            Text("To: ${room.destination.title.localized()}")
-//            Spacer(Modifier.height(8.dp))
-//            Text("Depart at: ${room.departAt.formattedString()}")
-//
-//            Spacer(Modifier.height(16.dp))
-//
-//            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-//                IconButton(onClick = { /* share */ }) {
-//                    Icon(Icons.Default.Share, contentDescription = "Share")
-//                }
-//
-//                Button(
-//                    onClick = {
-//                        scope.launch {
-//                            try {
-//                                viewModel.joinRoom(
-//                                    id = room.id,
-//                                    onSuccess = onDismiss,
-//                                    onError = {
-//                                        errorMessage = it.message ?: "Unknown error"
-//                                        showError = true
-//                                    }
-//                                )
-//                            } catch (e: Exception) {
-//                                errorMessage = e.message ?: "Unknown error"
-//                                showError = true
-//                            }
-//                        }
-//                    },
-//                    modifier = Modifier.weight(1f),
-//                    enabled = room.participants.size < room.capacity &&
-//                            !viewModel.isJoined(room.participants)
-//                ) {
-//                    Text(
-//                        when {
-//                            viewModel.isJoined(room.participants) -> "Joined"
-//                            room.participants.size >= room.capacity -> "This room is full"
-//                            else -> "Join"
-//                        }
-//                    )
-//                }
-//            }
-//        }
-//    }
-//}
-//
-//
-//@Preview
-//@Composable
-//private fun Preview() {
-//    SoapTheme {
-//        TaxiPreviewView(room = TaxiRoom.mockList[0])
-//    }
-//}
+}

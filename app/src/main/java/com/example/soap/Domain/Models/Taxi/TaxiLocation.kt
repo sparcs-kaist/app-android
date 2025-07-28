@@ -8,6 +8,6 @@ data class TaxiLocation(
     val priority: Double?,
     val latitude: Double,
     val longitude: Double
-){
+) {
     companion object{}
 }

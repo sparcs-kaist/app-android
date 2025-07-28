@@ -29,6 +29,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,14 +49,17 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiList.Components.WeekDaySelector
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
+import com.example.soap.Features.TaxiPreview.TaxiPreviewView
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.isDateInSameDay
+import com.example.soap.Shared.Extensions.weekdaySymbol
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 
@@ -69,6 +73,7 @@ fun TaxiListView(
     var showRoomCreation by remember { mutableStateOf(false) }
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val scrollState = rememberScrollState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -142,7 +147,7 @@ fun TaxiListView(
                         week = viewModel.week,
                         source = viewModel.source,
                         destination = viewModel.destination,
-                        onRoomSelected = {}
+                        onRoomSelected = { selectedRoom = it }
                     )
                 }
 
@@ -172,13 +177,16 @@ fun TaxiListView(
     }
 
     selectedRoom?.let { room ->
-//        TaxiRoomPreview(
-//            room = room,
-//            onDismiss = {
-//                selectedRoom = null
-//                viewModel.fetchData()
-//            }
-//        )
+        TaxiPreviewView(
+            room = room,
+            navController = navController,
+            onDismiss = {
+                selectedRoom = null
+                coroutineScope.launch {
+                    viewModel.fetchData()
+                }
+            }
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -236,7 +244,7 @@ fun LoadedView(
                             verticalAlignment = Alignment.Bottom
                         ) {
                             Text(
-                                text = day.toString(),
+                                text = day.weekdaySymbol(),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold
                             )
