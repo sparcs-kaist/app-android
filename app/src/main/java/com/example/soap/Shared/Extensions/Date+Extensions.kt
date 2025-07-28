@@ -1,11 +1,13 @@
 package com.example.soap.Shared.Extensions
 
+import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
 
 fun Date.timeAgoDisplay(): String {
     val nowCalendar = Calendar.getInstance()
@@ -69,5 +71,27 @@ fun Calendar.isDateInSameDay(date1: Date, date2: Date): Boolean {
 }
 
 //relativeTimeString
-//formattedTime
 //weekdayNameIfWithinAWeek
+
+fun Date.formattedString(): String{
+    val formatter = SimpleDateFormat("MMMM d, EEE, h:mm a", Locale.getDefault())
+    return formatter.format(this)
+}
+
+fun Date.formattedTime(): String{
+    val formatter = SimpleDateFormat("h:mm a", Locale.getDefault())
+    return formatter.format(this)
+}
+
+fun Date.formattedDate(): String {
+    val formatter = SimpleDateFormat("MMMM d, EEE", Locale.getDefault())
+    return formatter.format(this)
+}
+
+fun Date.weekdaySymbol(): String{
+    val calendar = Calendar.getInstance().apply {
+        time = this@weekdaySymbol
+    }
+    val weekdaySymbols = SimpleDateFormat("EEEE", Locale.getDefault())
+    return weekdaySymbols.format(this)
+}
