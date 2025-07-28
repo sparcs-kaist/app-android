@@ -24,7 +24,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.R
-import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Extensions.relativeTimeString
+import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
@@ -74,7 +75,7 @@ fun TaxiRoomCell(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(room.departAt.toString(), style = MaterialTheme.typography.bodySmall)
+                Text(room.departAt.relativeTimeString(), style = MaterialTheme.typography.bodySmall)
                 Text("•", style = MaterialTheme.typography.bodySmall)
                 Text(room.title, style = MaterialTheme.typography.bodySmall)
             }
@@ -104,5 +105,5 @@ fun IconText(icon: Painter, text: String) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiRoomCell(room = TaxiRoom.mock(), {}) }
+    SoapTheme { TaxiRoomCell(room = TaxiRoom.mockList()[0], {}) }
 }
