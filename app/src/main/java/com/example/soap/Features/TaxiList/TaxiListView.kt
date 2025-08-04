@@ -1,4 +1,4 @@
-package com.example.soap.features.taxi
+package com.example.soap.Features.TaxiList
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

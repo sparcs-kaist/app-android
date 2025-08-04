@@ -56,6 +56,7 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.time.temporal.TemporalAdjusters
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -277,7 +278,11 @@ fun CustomDatePicker(
     onDateSelected: (LocalDate) -> Unit
 ) {
     val today = LocalDate.now()
-    val startDate = today.with(DayOfWeek.SUNDAY).minusWeeks(1)
+    val startDate = if (today.dayOfWeek == DayOfWeek.SUNDAY) {
+        today
+    } else {
+        today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+    }
     val endDate = today.plusWeeks(2).with(DayOfWeek.SATURDAY)
     val days = (0L..ChronoUnit.DAYS.between(startDate, endDate)).map { startDate.plusDays(it) }
 
