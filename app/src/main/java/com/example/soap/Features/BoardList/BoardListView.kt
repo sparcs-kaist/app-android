@@ -50,7 +50,7 @@ fun BoardListView(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.soapColors.background)
+                .background(MaterialTheme.soapColors.surface)
                 .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {

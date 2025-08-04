@@ -25,17 +25,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Domain.Models.Taxi.TaxiLocation
-import com.example.soap.Domain.Repositories.FakeTaxiRoomRepository
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiList.TaxiListViewModel
+import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiCapacityPicker
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiDepartureTimePicker
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
-import com.example.soap.Shared.Mocks.mockList
+import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 import java.util.Date
@@ -43,7 +43,7 @@ import java.util.Date
 @Composable
 fun TaxiRoomCreationView(
     navController: NavController,
-    viewModel: TaxiListViewModel
+    viewModel: TaxiListViewModelProtocol = hiltViewModel()
 ) {
     var title by remember { mutableStateOf("") }
     var showErrorDialog by remember { mutableStateOf(false) }
@@ -147,7 +147,7 @@ fun TaxiRoomCreationView(
 }
 
 
-private fun isValid(viewModel: TaxiListViewModel, title: String): Boolean {
+private fun isValid(viewModel: TaxiListViewModelProtocol, title: String): Boolean {
     val source = viewModel.source
     val destination = viewModel.destination
     return source != null &&
@@ -164,19 +164,12 @@ private fun isValid(viewModel: TaxiListViewModel, title: String): Boolean {
 @Preview
 @Composable
 private fun Preview() {
-    val fakeRepository = remember { FakeTaxiRoomRepository() }
-
-    val viewModel = remember { TaxiListViewModel(fakeRepository) }.apply {
-        source = TaxiLocation.mockList()[0]
-        destination = TaxiLocation.mockList()[1]
-        roomDepartureTime = Date(System.currentTimeMillis() + 3600_000)
-        roomCapacity = 3
-    }
+    val mockViewModel = remember { MockTaxiListViewModel(initialState = TaxiListViewModel.ViewState.Loading) }
 
     SoapTheme {
         TaxiRoomCreationView(
             rememberNavController(),
-            viewModel = viewModel
+            viewModel = mockViewModel
         )
     }
 }

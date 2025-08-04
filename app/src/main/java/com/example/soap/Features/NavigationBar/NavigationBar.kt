@@ -29,7 +29,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -52,13 +51,13 @@ import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.PostListView
+import com.example.soap.Features.TaxiList.TaxiListView
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
-import com.example.soap.features.taxi.TaxiListView
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 
@@ -84,8 +83,12 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         currentRoute?.startsWith(screen.name) == true
     } ?: Channel.Start
 
-
-    val taxiListViewModel: TaxiListViewModel = hiltViewModel()
+    val mockViewModel = MockTaxiListViewModel(
+        initialState = TaxiListViewModel.ViewState.Loaded(
+            rooms = TaxiRoom.mockList(),
+            locations = TaxiLocation.mockList()
+        )
+    )
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -101,26 +104,18 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) { HomeView(navController) }
 
             composable(
-                route = Channel.Boards.name,
+                route = Channel.Boards.name
             ) { BoardListView(navController) }
 
             composable(
-                route = Channel.TimeTable.name,
+                route = Channel.TimeTable.name
             ) { TimetableView(navController) }
 
-
-
             composable(
-                route = Channel.Taxi.name,
+                route = Channel.Taxi.name
             ) {
-                val mockViewModel = MockTaxiListViewModel(
-                    initialState = TaxiListViewModel.ViewState.Loaded(
-                        rooms = TaxiRoom.mockList(),
-                        locations = TaxiLocation.mockList()
-                    )
-                )
-                TaxiListView(mockViewModel, navController = navController)}
-
+                TaxiListView(mockViewModel, navController = navController)
+            }
 
             composable(
                 route = Channel.TaxiRoomCreation.name,
@@ -128,22 +123,24 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) { TaxiRoomCreationView(navController, taxiListViewModel) }
+            ) {
+                TaxiRoomCreationView(navController, mockViewModel)
+            }
 
             composable(
-                route = Channel.TrendingBoard.name,
+                route = Channel.TrendingBoard.name
+            ) { PostListView(navController = navController) }
+
+            composable(
+                route = Channel.PostView.name
+            ) { PostView(navController = navController) }
+
+            composable(
+                route = Channel.PostCompose.name,
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) { PostListView(navController = navController) }
-
-            composable(
-                route = Channel.PostView.name,
-            ) { PostView(navController = navController) }
-
-            composable(
-                route = Channel.PostCompose.name
             ) { PostComposeView(postListViewModel = viewModel(), navController = navController) }
 
             composable(
