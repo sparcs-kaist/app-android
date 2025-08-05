@@ -2,6 +2,7 @@ package com.example.soap.Features.TaxiList
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -19,10 +21,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,8 +53,6 @@ import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiList.Components.WeekDaySelector
-import com.example.soap.Features.TaxiList.TaxiListViewModel
-import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiPreview.TaxiPreviewView
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import com.example.soap.R
@@ -63,6 +67,7 @@ import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiListView(
     viewModel: TaxiListViewModelProtocol = hiltViewModel(),
@@ -70,17 +75,19 @@ fun TaxiListView(
 ) {
     val uiState by viewModel.state.collectAsState()
     var selectedDate by remember { mutableStateOf(viewModel.selectedDate) }
-    var showRoomCreation by remember { mutableStateOf(false) }
+    var showRoomCreation by remember { mutableStateOf(true) }
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState()
 
     Scaffold(
         topBar = {
             AppBar(
                 currentScreen = Channel.Taxi,
                 scrollOffset = scrollState.value,
-                navController = navController
+                navController = navController,
+                isButtonEnabled = showRoomCreation
             )
         },
 
@@ -165,28 +172,41 @@ fun TaxiListView(
         }
     }
 
-
-    if (showRoomCreation) {
-//        TaxiRoomCreation(
-//            onDismiss = { showRoomCreation = false },
-//            onCreated = {
-//                showRoomCreation = false
-//                viewModel.fetchData()
-//            }
-//        )
-    }
-
     selectedRoom?.let { room ->
-        TaxiPreviewView(
-            room = room,
-            navController = navController,
-            onDismiss = {
+        ModalBottomSheet(
+            onDismissRequest = {
                 selectedRoom = null
                 coroutineScope.launch {
                     viewModel.fetchData()
                 }
-            }
-        )
+            },
+            sheetState = sheetState,
+            dragHandle = {
+                Column{
+                    Box(
+                        modifier = Modifier
+                            .width(30.dp)
+                            .padding(top = 4.dp)
+                            .height(4.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.soapColors.grayBB)
+                    )
+                }
+            },
+            containerColor = MaterialTheme.soapColors.surface
+        ) {
+            TaxiPreviewView(
+                room = room,
+                onDismiss = {
+                    coroutineScope.launch {
+                        sheetState.hide()
+                        selectedRoom = null
+                        viewModel.fetchData()
+                    }
+                }
+            )
+        }
     }
 
     LaunchedEffect(Unit) {
