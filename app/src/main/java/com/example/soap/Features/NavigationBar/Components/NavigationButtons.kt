@@ -64,6 +64,21 @@ fun AddButton(
     }
 }
 
+@Composable
+fun ChatButton(){
+    IconButton(
+        onClick = {},
+        colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.chat_bubble_outline),
+            contentDescription = "chat",
+            tint = MaterialTheme.soapColors.darkGray,
+            modifier = Modifier.size(30.dp)
+        )
+
+    }
+}
 
 @Composable
 fun SearchButton() {
