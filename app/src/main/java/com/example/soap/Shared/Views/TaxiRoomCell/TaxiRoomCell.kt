@@ -17,13 +17,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
-import com.example.soap.R
+import com.example.soap.Features.TaxiPreview.Components.RouteHeaderView
 import com.example.soap.Shared.Extensions.relativeTimeString
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
@@ -55,13 +54,9 @@ fun TaxiRoomCell(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    IconText(
-                        icon = painterResource(R.drawable.round_near_me),
-                        text = room.source.title.localized()
-                    )
-                    IconText(
-                        icon = painterResource(R.drawable.arrival_point),
-                        text = room.destination.title.localized()
+                    RouteHeaderView(
+                        source = room.source.title.localized(),
+                        destination = room.destination.title.localized()
                     )
                 }
 
