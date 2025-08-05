@@ -154,12 +154,13 @@ fun TaxiListView(
                         week = viewModel.week,
                         source = viewModel.source,
                         destination = viewModel.destination,
-                        onRoomSelected = { selectedRoom = it }
+                        onRoomSelected = { selectedRoom = it },
+                        viewModel = viewModel
                     )
                 }
 
                 is TaxiListViewModel.ViewState.Empty -> {
-                    EmptyResultView(locations = viewModel.locations)
+                    EmptyView(locations = viewModel.locations)
                 }
 
                 is TaxiListViewModel.ViewState.Error -> {
@@ -237,7 +238,8 @@ fun LoadedView(
     week: List<Date>,
     source: TaxiLocation?,
     destination: TaxiLocation?,
-    onRoomSelected: (TaxiRoom) -> Unit
+    onRoomSelected: (TaxiRoom) -> Unit,
+    viewModel: TaxiListViewModelProtocol
 ) {
     val calendar = Calendar.getInstance()
     val filteredRooms = rooms.filter { room ->
@@ -246,9 +248,27 @@ fun LoadedView(
         matchesSource && matchesDestination
     }
 
+    val description: String = when {
+        viewModel.source != null && viewModel.destination != null -> {
+            "No rooms found from ${viewModel.source?.title} to ${viewModel.destination?.title}. \nBe the first one to create one!"
+        }
+        viewModel.source != null -> {
+            "No rooms found from ${viewModel.source?.title} to any destination. \nBe the first one to create one!"
+        }
+        viewModel.destination != null -> {
+            "No rooms found heading to ${viewModel.destination?.title}. \nBe the first one to create one!"
+        }
+        else -> {
+            "No rooms found for this week. \nBe the first one to create one!"
+        }
+    }
+
     Column {
         if (filteredRooms.isEmpty()) {
-            EmptyResultView(locations)
+            EmptyResultView(
+                viewModel = viewModel,
+                description = description
+            )
         } else {
             week.forEach { day ->
                 val roomsForDay = filteredRooms.filter { room ->
@@ -329,7 +349,7 @@ private fun ErrorView(errorMessage: String, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun EmptyResultView(locations: List<TaxiLocation>) {
+private fun EmptyView(locations: List<TaxiLocation>) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -372,6 +392,66 @@ private fun EmptyResultView(locations: List<TaxiLocation>) {
     }
 }
 
+@Composable
+fun EmptyResultView(
+    viewModel: TaxiListViewModelProtocol,
+    description: String
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.taxi),
+            contentDescription = "No Rides This Week",
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "No Rides This Week",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column {
+            Button(
+                onClick = {},
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Create a New Room")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    viewModel.source = null
+                    viewModel.destination = null
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Clear Selection")
+            }
+        }
+    }
+}
 
 
 @Composable
@@ -388,6 +468,19 @@ private fun TaxiListScreenLoadedPreview() {
             TaxiListViewModel.ViewState.Loaded(
                 rooms = TaxiRoom.mockList(),
                 locations = TaxiLocation.mockList()
+            )
+        )
+    }
+}
+
+@Composable
+@Preview
+private fun TaxiListScreenLoadedEmptyResultPreview() {
+    SoapTheme{
+        MockTaxiListScreen(
+            TaxiListViewModel.ViewState.Loaded(
+                rooms = listOf(),
+                locations = listOf()
             )
         )
     }
