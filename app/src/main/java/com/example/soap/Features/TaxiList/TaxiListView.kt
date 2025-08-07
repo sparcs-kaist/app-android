@@ -74,7 +74,7 @@ fun TaxiListView(
     navController: NavController
 ) {
     val uiState by viewModel.state.collectAsState()
-    var selectedDate by remember { mutableStateOf(viewModel.selectedDate) }
+    var selectedDate: Date? by remember { mutableStateOf(viewModel.selectedDate) }
     var showRoomCreation by remember { mutableStateOf(true) }
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val scrollState = rememberScrollState()
@@ -133,8 +133,12 @@ fun TaxiListView(
                     week = viewModel.week,
                     selectedDate = selectedDate,
                     onSelect = { newDate ->
-                        selectedDate = newDate
-                        viewModel.selectedDate = newDate
+                        selectedDate =  if (selectedDate == newDate) {
+                            null
+                        } else {
+                            newDate
+                        }
+                        viewModel.selectedDate = selectedDate
                     }
                 )
 
@@ -152,6 +156,7 @@ fun TaxiListView(
                         rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
                         locations = (uiState as TaxiListViewModel.ViewState.Loaded).locations,
                         week = viewModel.week,
+                        selectedDate = selectedDate,
                         source = viewModel.source,
                         destination = viewModel.destination,
                         onRoomSelected = { selectedRoom = it },
@@ -236,6 +241,7 @@ fun LoadedView(
     rooms: List<TaxiRoom>,
     locations: List<TaxiLocation>,
     week: List<Date>,
+    selectedDate: Date?,
     source: TaxiLocation?,
     destination: TaxiLocation?,
     onRoomSelected: (TaxiRoom) -> Unit,
@@ -263,6 +269,8 @@ fun LoadedView(
         }
     }
 
+    val targetDates = selectedDate?.let { listOf(it) } ?: week
+
     Column {
         if (filteredRooms.isEmpty()) {
             EmptyResultView(
@@ -270,7 +278,7 @@ fun LoadedView(
                 description = description
             )
         } else {
-            week.forEach { day ->
+            targetDates.forEach { day ->
                 val roomsForDay = filteredRooms.filter { room ->
                     calendar.isDateInSameDay(room.departAt, day)
                 }
