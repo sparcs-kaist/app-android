@@ -49,7 +49,7 @@ class TaxiListViewModel @Inject constructor(
     //MARK: - View Properties
     var source: TaxiLocation? by mutableStateOf(null)
     var destination: TaxiLocation? by mutableStateOf(null)
-    var selectedDate: Date by mutableStateOf(Date())
+    var selectedDate: Date? by mutableStateOf(null)
 
     // Room Creation
     var roomDepartureTime: Date by mutableStateOf(Date().ceilToNextTenMinutes())

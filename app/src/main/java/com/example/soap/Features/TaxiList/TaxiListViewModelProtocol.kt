@@ -14,7 +14,7 @@ interface TaxiListViewModelProtocol {
 
     var source: TaxiLocation?
     var destination: TaxiLocation?
-    var selectedDate: Date
+    var selectedDate: Date?
 
 
     var roomDepartureTime: Date
