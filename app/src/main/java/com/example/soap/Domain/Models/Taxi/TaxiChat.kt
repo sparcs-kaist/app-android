@@ -13,7 +13,7 @@ data class TaxiChat(
     val content: String,
     val time: Date,
     val isValid: Boolean,
-    val inOutNames: List<String>
+    val inOutNames: List<String>?
 ) {
     enum class ChatType(val type: String) {
         // User sent type
