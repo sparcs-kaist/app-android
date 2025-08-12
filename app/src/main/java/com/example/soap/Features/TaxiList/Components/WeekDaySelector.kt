@@ -42,14 +42,14 @@ import java.util.Date
 
 @Composable
 fun WeekDaySelector(
-    selectedDate: Date,
+    selectedDate: Date?,
     week: List<Date>,
     onSelect: (Date) -> Unit
 ) {
     val density = LocalDensity.current
     val itemBounds = remember { mutableStateListOf<Pair<Int, Int>>() }
 
-    val selectedLocalDate = selectedDate.toLocalDate()
+    val selectedLocalDate = selectedDate?.toLocalDate()
     val localWeek = week.map { it.toLocalDate() }
     val selectedIndex = localWeek.indexOf(selectedLocalDate).coerceAtLeast(0)
     val selectedBounds = itemBounds.getOrNull(selectedIndex)
@@ -87,7 +87,7 @@ fun WeekDaySelector(
                         .fillMaxHeight()
                         .padding(4.dp)
                         .clip(RoundedCornerShape(28.dp))
-                        .background(MaterialTheme.soapColors.onSurface)
+                        .background(if(selectedDate != null) MaterialTheme.soapColors.onSurface else MaterialTheme.soapColors.surface)
                 )
             }
 
@@ -100,7 +100,7 @@ fun WeekDaySelector(
             ) {
                 week.forEachIndexed { index, date ->
                     val day = date.toLocalDate()
-                    val isSelected = (day == selectedDate.toLocalDate())
+                    val isSelected = (day == selectedDate?.toLocalDate())
 
                     val textColor = when (day.dayOfWeek) {
                         DayOfWeek.SUNDAY -> Color.Red

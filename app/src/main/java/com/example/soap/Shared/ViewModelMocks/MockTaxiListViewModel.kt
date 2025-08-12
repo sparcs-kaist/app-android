@@ -26,7 +26,7 @@ class MockTaxiListViewModel(initialState: TaxiListViewModel.ViewState) : TaxiLis
 
     override var source: TaxiLocation? = null
     override var destination: TaxiLocation? = null
-    override var selectedDate: Date = Date()
+    override var selectedDate: Date? = null
 
     override var roomDepartureTime: Date = Date().ceilToNextTenMinutes()
     override var roomCapacity: Int = 4
