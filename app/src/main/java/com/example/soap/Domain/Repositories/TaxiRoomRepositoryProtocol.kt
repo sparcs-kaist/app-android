@@ -10,4 +10,8 @@ interface TaxiRoomRepositoryProtocol {
     suspend fun fetchLocations(): List<TaxiLocation>
     suspend fun createRoom(with: TaxiCreateRoom): TaxiRoom
     suspend fun joinRoom(id: String): TaxiRoom
+    suspend fun leaveRoom(id: String): TaxiRoom
+    suspend fun getRoom(id: String): TaxiRoom
+    suspend fun commitSettlement(id: String): TaxiRoom
+    suspend fun commitPayment(id: String): TaxiRoom
 }

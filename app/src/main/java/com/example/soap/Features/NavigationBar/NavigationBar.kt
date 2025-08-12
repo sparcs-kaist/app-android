@@ -46,6 +46,7 @@ import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.example.soap.Features.NavigationBar.Components.AddButton
+import com.example.soap.Features.NavigationBar.Components.ChatButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
@@ -166,7 +167,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 fun AppBar(
     currentScreen: Channel,
     scrollOffset: Int = 0,
-    navController: NavController = rememberNavController()
+    navController: NavController = rememberNavController(),
+    isButtonEnabled: Boolean = true
 ) {
     val elevationDp by animateDpAsState(
         if (scrollOffset > 0) 4.dp else 0.dp,
@@ -196,10 +198,13 @@ fun AppBar(
                     )
                 }
                 Channel.Taxi -> {
-                    AddButton(
-                        contentDescription = "Create Taxi Room",
-                        onClick = { navController.navigate(Channel.TaxiRoomCreation.name) }
-                    )
+                    if(isButtonEnabled) {
+                        AddButton(
+                            contentDescription = "Create Taxi Room",
+                            onClick = { navController.navigate(Channel.TaxiRoomCreation.name) }
+                        )
+                    }
+                    ChatButton()
                 }
                 else -> {}
             }
