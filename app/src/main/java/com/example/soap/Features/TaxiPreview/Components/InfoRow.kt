@@ -1,9 +1,9 @@
 package com.example.soap.Features.TaxiPreview.Components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,21 +27,23 @@ fun InfoRow(
     valueColor: Color = MaterialTheme.soapColors.onSurface,
     trailingIcon: Int? = null
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically){
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween){
         Text(
             text = label,
             color = labelColor,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodyLarge
         )
 
-        Spacer(Modifier.padding(4.dp))
+        Spacer(Modifier.weight(1f))
 
         Row(verticalAlignment = Alignment.CenterVertically){
 
             Text(
                 text = value,
                 color = valueColor,
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodyLarge
             )
 
             trailingIcon?.let { iconName ->

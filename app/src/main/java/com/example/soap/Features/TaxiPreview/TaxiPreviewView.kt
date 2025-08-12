@@ -1,6 +1,5 @@
 package com.example.soap.Features.TaxiPreview
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -29,15 +28,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
+import com.example.soap.Features.TaxiPreview.Components.InfoRow
+import com.example.soap.Features.TaxiPreview.Components.RouteHeaderView
 import com.example.soap.Shared.Extensions.formattedString
-import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Mocks.mockList
+import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import com.example.soap.ui.theme.SoapTheme
 import com.example.soap.ui.theme.soapColors
 import com.google.android.gms.maps.model.CameraPosition
@@ -54,14 +53,11 @@ import kotlinx.coroutines.launch
 fun TaxiPreviewView(
     room: TaxiRoom,
     viewModel: TaxiPreviewViewModel = hiltViewModel(),
-    navController: NavController,
-    onDismiss: () -> Unit
+    onDismiss: ()-> Unit
 ) {
-
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    var cameraPositionState = rememberCameraPositionState {
+    val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(room.source.latitude, room.source.longitude), 13f)
     }
 
@@ -94,11 +90,6 @@ fun TaxiPreviewView(
         )
     }
 
-    BackHandler {
-        onDismiss()
-        navController.popBackStack()
-    }
-
     Column(
         Modifier
             .fillMaxSize()
@@ -126,22 +117,30 @@ fun TaxiPreviewView(
         }
 
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+
+            Row(verticalAlignment = Alignment.CenterVertically){
+
                 Text(
                     text = room.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    modifier = Modifier.weight(1f)
+                    color = MaterialTheme.soapColors.grayBB
                 )
-                Text("${room.participants.size}/${room.capacity} joined")
+
+                Spacer(Modifier.weight(1f))
+
+                TaxiParticipantsIndicator(
+                    participants = room.participants.size,
+                    capacity = room.capacity
+                )
             }
 
-            Spacer(Modifier.padding(8.dp))
-            Text("From: ${room.source.title.localized()}")
-            Text("To: ${room.destination.title.localized()}")
-            Spacer(Modifier.padding(8.dp))
-            Text("Depart at: ${room.departAt.formattedString()}")
+            RouteHeaderView(
+                source = room.source.title.localized(),
+                destination = room.destination.title.localized()
+            )
 
-            Spacer(Modifier.padding(16.dp))
+            Spacer(Modifier.padding(8.dp))
+
+            InfoRow(label = "Depart at", value = room.departAt.formattedString())
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 IconButton(onClick = {}) {
@@ -155,6 +154,7 @@ fun TaxiPreviewView(
                                 viewModel.joinRoom(
                                     id = room.id
                                 )
+                                onDismiss()
                             } catch (e: Exception) {
                                 errorMessage = e.message ?: "Unknown error"
                                 showError = true
@@ -178,26 +178,10 @@ fun TaxiPreviewView(
     }
 }
 
-
 @Preview
 @Composable
 private fun Preview() {
     SoapTheme {
-        TaxiPreviewView(room = TaxiRoom.mock(), navController = rememberNavController(), onDismiss = {})
+        TaxiPreviewView(room = TaxiRoom.mockList()[1], onDismiss = {})
     }
-
-//    val seoul = LatLng(37.566535, 126.97796919)
-//    val cameraPositionState = rememberCameraPositionState {
-//        position = CameraPosition.fromLatLngZoom(seoul, 10f)
-//    }
-//    GoogleMap(
-//        modifier = Modifier.fillMaxSize(),
-//        cameraPositionState = cameraPositionState
-//    ) {
-//        Marker(
-//            state = MarkerState(position = seoul),
-//            title = "Seoul",
-//            snippet = "Marker in Seoul"
-//        )
-//    }
 }

@@ -1,8 +1,9 @@
 package com.example.soap.Networking
 
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Repositories.TaxiRoomRepository
 import com.example.soap.Domain.Repositories.TaxiRoomRepositoryProtocol
-import com.example.soap.Domain.Repositories.TaxiRoomService
+import com.example.soap.Networking.RetrofitAPI.TaxiRoomService
 import com.google.gson.Gson
 import dagger.Binds
 import dagger.Module
@@ -21,7 +22,7 @@ object NetworkModule {
     @Singleton
     fun taxiBackEndURL(gson: Gson): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://taxi.sparcs.org/api/")
+            .baseUrl(Constants.taxiBackendURL)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
