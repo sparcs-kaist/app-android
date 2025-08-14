@@ -4,11 +4,11 @@ import java.net.URL
 
 object Constants {
     // MARK: Authorization
-    val authorizationURL: URL = URL("http://10.251.1.14:3000/api/auth/sparcsapp/login/")
+    val authorizationURL: URL = URL("https://taxi.dev.sparcs.org/api/auth/sparcsapp/login/")
 
     // MARK: Taxi
-    val taxiBackendURL: URL = URL("http://10.251.1.14:3000/api/")
-    val taxiSocketURL: URL = URL("http://10.251.1.14:3000/")
+    val taxiBackendURL: URL = URL("https://taxi.dev.sparcs.org/api/")
+    val taxiSocketURL: URL = URL("https://taxi.dev.sparcs.org/")
     val taxiChatImageURL: URL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/chat-img/")
 
     // MARK: Ara
