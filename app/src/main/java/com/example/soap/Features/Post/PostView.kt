@@ -49,8 +49,10 @@ import com.example.soap.Features.Post.Components.PostReportButton
 import com.example.soap.Features.Post.Components.PostShareButton
 import com.example.soap.Features.Post.Components.PostVoteBigButton
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.grayF8
+import com.example.soap.ui.theme.lightGray0
 
 @Composable
 fun PostView(navController: NavController) {
@@ -74,7 +76,7 @@ fun PostView(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.soapColors.surface)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(scrollState)
                 .padding(innerPadding)) {
 
@@ -107,7 +109,7 @@ private fun Header(){
             Text(
                 text= "22 May 2025 16:22",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.soapColors.grayBB
+                color = MaterialTheme.colorScheme.grayBB
             )
 
             Spacer(Modifier.padding(4.dp))
@@ -115,7 +117,7 @@ private fun Header(){
             Text(
                 text = "485 views",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.soapColors.grayBB
+                color = MaterialTheme.colorScheme.grayBB
             )
         }
 
@@ -145,7 +147,7 @@ private fun Header(){
             )
         }
         HorizontalDivider(
-            color = MaterialTheme.soapColors.gray0Border,
+            color = MaterialTheme.colorScheme.lightGray0,
             modifier = Modifier.padding(vertical = 8.dp)
         )
     }
@@ -210,7 +212,7 @@ private fun Footer(){
         }
     }
     HorizontalDivider(
-        color = MaterialTheme.soapColors.gray0Border,
+        color = MaterialTheme.colorScheme.lightGray0,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
@@ -241,13 +243,13 @@ private fun ReplyTextField(
         Row(
             modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.soapColors.surface)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ){
             Box(Modifier
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.soapColors.grayf8)
+                .background(MaterialTheme.colorScheme.grayF8)
                 .weight(1f)
                 .padding(4.dp),
 
@@ -255,8 +257,8 @@ private fun ReplyTextField(
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
-                    textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.soapColors.onSurface),
-                    cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
+                    textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier.fillMaxWidth(),
@@ -265,7 +267,7 @@ private fun ReplyTextField(
                             if (value.isEmpty()) {
                                 Text(
                                     text = stringResource(R.string.reply_as_anonymous),
-                                    color = MaterialTheme.soapColors.grayBB,
+                                    color = MaterialTheme.colorScheme.grayBB,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
@@ -280,7 +282,7 @@ private fun ReplyTextField(
             Icon(
                 painter = painterResource(R.drawable.paperplane),
                 contentDescription = "Send Button",
-                tint = MaterialTheme.soapColors.primary
+                tint = MaterialTheme.colorScheme.primary
             )
 
         }
@@ -290,5 +292,5 @@ private fun ReplyTextField(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { PostView(rememberNavController()) }
+    Theme { PostView(rememberNavController()) }
 }

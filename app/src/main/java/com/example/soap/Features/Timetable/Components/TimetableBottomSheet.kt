@@ -39,8 +39,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.grayF8
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -69,7 +71,7 @@ fun TimetableBottomSheet() {
                 .fillMaxWidth()
                 .height((screenHeight - offsetY.value).dp)
                 .background(
-                    MaterialTheme.soapColors.surface,
+                    MaterialTheme.colorScheme.surface,
                     RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                 )
                 .draggable(
@@ -100,7 +102,7 @@ fun TimetableBottomSheet() {
                             .align(Alignment.Center)
                             .width(40.dp)
                             .height(4.dp)
-                            .background(MaterialTheme.soapColors.darkGray, RoundedCornerShape(2.dp))
+                            .background(MaterialTheme.colorScheme.darkGray, RoundedCornerShape(2.dp))
                     )
                 }
 
@@ -128,7 +130,7 @@ private fun SearchCourses(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.soapColors.grayf8),
+                .background(MaterialTheme.colorScheme.grayF8),
             verticalAlignment = Alignment.CenterVertically
         ) {
 
@@ -137,7 +139,7 @@ private fun SearchCourses(
             Icon(
                 painter = painterResource(R.drawable.search),
                 contentDescription = "Send Button",
-                tint = MaterialTheme.soapColors.grayBB
+                tint = MaterialTheme.colorScheme.grayBB
             )
 
             Spacer(Modifier.padding(4.dp))
@@ -151,8 +153,8 @@ private fun SearchCourses(
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
-                    textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.soapColors.onSurface),
-                    cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
+                    textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier.fillMaxWidth(),
@@ -161,7 +163,7 @@ private fun SearchCourses(
                             if (value.isEmpty()) {
                                 Text(
                                     text = stringResource(R.string.search_by_course),
-                                    color = MaterialTheme.soapColors.grayBB,
+                                    color = MaterialTheme.colorScheme.grayBB,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
@@ -177,7 +179,7 @@ private fun SearchCourses(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         Column(Modifier.fillMaxSize()) { TimetableBottomSheet() }
     }
 }

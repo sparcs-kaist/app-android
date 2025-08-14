@@ -59,8 +59,7 @@ import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
@@ -210,8 +209,8 @@ fun AppBar(
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.soapColors.background,
-            scrolledContainerColor = MaterialTheme.soapColors.background
+            containerColor = MaterialTheme.colorScheme.background,
+            scrolledContainerColor = MaterialTheme.colorScheme.background
         ),
         modifier = Modifier.shadow(elevationDp)
     )
@@ -240,7 +239,7 @@ fun AppDownBar(
             )
     ) {
         NavigationBar(
-            containerColor = MaterialTheme.soapColors.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             items.forEach { (channel, label, iconRes) ->
                 if (channel != null) {
@@ -254,7 +253,7 @@ fun AppDownBar(
                             )
                         },
                         label = { Text(label) },
-                        colors = NavigationBarItemDefaults.colors(MaterialTheme.soapColors.primary)
+                        colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
                     )
                 }else{
                     NavigationBarItem(
@@ -267,7 +266,7 @@ fun AppDownBar(
                             )
                         },
                         label = { Text(label) },
-                        colors = NavigationBarItemDefaults.colors(MaterialTheme.soapColors.primary)
+                        colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
                     )
                 }
             }
@@ -281,7 +280,7 @@ fun AppDownBar(
 @Preview
 @Composable
 private fun Preview(){
-    SoapTheme {
+    Theme {
         MainTabBar()
     }
 }
@@ -290,7 +289,7 @@ private fun Preview(){
 @Preview
 @Composable
 private fun AppBarPreview(){
-   SoapTheme { AppBar(
+   Theme { AppBar(
        currentScreen = Channel.Start
    ) }
 }
@@ -298,7 +297,7 @@ private fun AppBarPreview(){
 @Preview
 @Composable
 private fun AppDownBarPreview(){
-    SoapTheme {
+    Theme {
         AppDownBar(
             navController = rememberNavController(),
             currentScreen = Channel.Start

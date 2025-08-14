@@ -17,7 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.Theme
 
 @Composable
 fun TaxiParticipantsIndicator(
@@ -55,5 +55,5 @@ fun TaxiParticipantsIndicator(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiParticipantsIndicator(2, 3) }
+    Theme { TaxiParticipantsIndicator(2, 3) }
 }

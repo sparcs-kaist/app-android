@@ -33,8 +33,9 @@ import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.LocalizedText
 import com.example.soap.Shared.Mocks.mockList
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun TaxiRecentSection(roomList: List<TaxiRoom>) {
@@ -63,7 +64,7 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
                 painter = painterResource(R.drawable.arrow_forward_ios),
                 contentDescription = "Go to Taxi Board",
                 modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.soapColors.darkGray
+                tint = MaterialTheme.colorScheme.darkGray
             )
         }
     }
@@ -77,7 +78,7 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
             Spacer(Modifier.padding(horizontal = 8.dp))
 
             Card(
-                colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(
@@ -160,7 +161,7 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
                     Text(
                         text = "${room.departAt}\tLorem ipsum",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.soapColors.grayBB,
+                        color = MaterialTheme.colorScheme.grayBB,
                         modifier = Modifier.padding(start = 16.dp, bottom = 8.dp)
                     )
                 }
@@ -173,5 +174,5 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiRecentSection(TaxiRoom.mockList()) }
+    Theme { TaxiRecentSection(TaxiRoom.mockList()) }
 }

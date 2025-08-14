@@ -29,8 +29,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +69,7 @@ fun PostComposeNavigationBar(
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = "Back",
-                    tint = MaterialTheme.soapColors.darkGray
+                    tint = MaterialTheme.colorScheme.darkGray
                 )
             }
         },
@@ -81,7 +82,7 @@ fun PostComposeNavigationBar(
         },
         actions = { DoneButton(isDoneEnabled) },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.soapColors.surface
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
@@ -103,7 +104,7 @@ private fun DoneButton(
             text = stringResource(R.string.submit),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Normal,
-            color = if (isDoneEnabled) MaterialTheme.soapColors.primary else MaterialTheme.soapColors.grayBB
+            color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
         )
     }
 }
@@ -142,6 +143,5 @@ fun ConfirmationDialog(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme{ PostComposeNavigationBar(rememberNavController(), false, true) }
-//    ConfirmationDialog({},{},{})
+    Theme{ PostComposeNavigationBar(rememberNavController(), false, true) }
 }

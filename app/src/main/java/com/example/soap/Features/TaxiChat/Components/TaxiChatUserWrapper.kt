@@ -23,8 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 import java.net.URL
 import java.util.Date
 
@@ -120,7 +119,7 @@ fun BotProfileImage() {
     Box(
         modifier = Modifier
             .size(36.dp)
-            .background(MaterialTheme.soapColors.primary.copy(alpha = 0.1f), CircleShape),
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Text("🤖", style = MaterialTheme.typography.bodyMedium)
@@ -132,7 +131,7 @@ fun UnknownProfileImage() {
     Box(
         modifier = Modifier
             .size(36.dp)
-            .background(MaterialTheme.soapColors.primary.copy(alpha = 0.1f), CircleShape),
+            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
         contentAlignment = Alignment.Center
     ) {
         Text("👻", style = MaterialTheme.typography.bodyMedium)
@@ -142,7 +141,7 @@ fun UnknownProfileImage() {
 @Preview
 @Composable
 private fun Preview() {
-    SoapTheme {
+    Theme {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(start = 16.dp, end = 8.dp)

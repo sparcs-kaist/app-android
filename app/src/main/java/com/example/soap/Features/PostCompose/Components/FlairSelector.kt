@@ -38,8 +38,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.grayF8
 import kotlinx.coroutines.delay
 
 
@@ -57,7 +58,7 @@ fun FlairSelector(
     }
 
     Card(
-        colors = CardDefaults.cardColors(MaterialTheme.soapColors.grayf8),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.grayF8),
         shape = RoundedCornerShape(20.dp)
     ) {
         Row(
@@ -84,7 +85,7 @@ fun FlairSelector(
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = {expanded = false},
-            modifier = Modifier.background(MaterialTheme.soapColors.background)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
         ){
             Box(
                 Modifier
@@ -98,7 +99,7 @@ fun FlairSelector(
                 Text(
                     text = getLocalizedFlair("No flair"),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.soapColors.grayBB
+                    color = MaterialTheme.colorScheme.grayBB
                 )
 
             }
@@ -171,7 +172,7 @@ fun AnimatedAlphabetText(from: String, to: String) {
     Row {
         for (i in 0 until maxLength) {
             val toChar = displayed.getOrNull(i) ?: ' '
-            val color = if (displayed == getLocalizedFlair("No flair")) MaterialTheme.soapColors.grayBB else MaterialTheme.soapColors.onSurface
+            val color = if (displayed == getLocalizedFlair("No flair")) MaterialTheme.colorScheme.grayBB else MaterialTheme.colorScheme.onSurface
 
             AnimatedContent(
                 targetState = toChar,
@@ -203,5 +204,5 @@ fun AnimatedAlphabetText(from: String, to: String) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme{ FlairSelector(viewModel()) }
+    Theme{ FlairSelector(viewModel()) }
 }

@@ -38,8 +38,8 @@ import com.example.soap.Domain.Models.TimeTable.loadLetter
 import com.example.soap.Domain.Models.TimeTable.speechLetter
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun LectureReviews(lecture: Lecture){
@@ -70,12 +70,12 @@ fun LectureReviews(lecture: Lecture){
 
             Button(
                 onClick = {},
-                colors = ButtonDefaults.buttonColors(MaterialTheme.soapColors.background)
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.background)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.rounded_rate_review),
                     contentDescription = null,
-                    tint = MaterialTheme.soapColors.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
 
                 Spacer(Modifier.padding(4.dp))
@@ -83,7 +83,7 @@ fun LectureReviews(lecture: Lecture){
                 Text(
                     text = stringResource(R.string.write_a_review),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.soapColors.onSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -109,7 +109,7 @@ fun ReviewCard(lecture: Lecture) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.soapColors.surface, shape = RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp))
                 .padding(8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -126,7 +126,7 @@ fun ReviewCard(lecture: Lecture) {
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
-                    color = MaterialTheme.soapColors.grayBB
+                    color = MaterialTheme.colorScheme.grayBB
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -140,7 +140,7 @@ fun ReviewCard(lecture: Lecture) {
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(MaterialTheme.soapColors.surface),
+                        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
                         shape = RoundedCornerShape(16.dp)
                     ) {
                         DropdownMenuItem(
@@ -210,13 +210,13 @@ fun ReviewMetric(title: String, value: String) {
     ) {
         Text(
             text = title.uppercase(),
-            color = MaterialTheme.soapColors.grayBB
+            color = MaterialTheme.colorScheme.grayBB
         )
         Spacer(modifier = Modifier.padding(4.dp))
 
         Text(
             text = value,
-            color = MaterialTheme.soapColors.onSurface,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Medium
         )
     }
@@ -226,5 +226,5 @@ fun ReviewMetric(title: String, value: String) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { LectureReviews(lecture = Lecture.mock()) }
+    Theme { LectureReviews(lecture = Lecture.mock()) }
 }
