@@ -27,8 +27,9 @@ import com.example.soap.Domain.Models.Post.Post
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Shared.Extensions.timeAgoDisplay
 import com.example.soap.Shared.Mocks.mockList
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.grayF8
 
 @Composable
 fun PostListRow(
@@ -53,7 +54,7 @@ fun PostListRow(
             Text(
                 text = post.description,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.soapColors.grayBB,
+                color = MaterialTheme.colorScheme.grayBB,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
@@ -66,7 +67,7 @@ fun PostListRow(
 
                     Row(modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.soapColors.grayf8)
+                        .background(MaterialTheme.colorScheme.grayF8)
                         .padding(horizontal = 2.dp)) {
                         PostListRowVoteLabel(post.voteCount)
 
@@ -80,7 +81,7 @@ fun PostListRow(
                 Text(
                     text = post.author,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.soapColors.grayBB
+                    color = MaterialTheme.colorScheme.grayBB
                 )
 
                 Spacer(Modifier.padding(4.dp))
@@ -88,7 +89,7 @@ fun PostListRow(
                 Text(
                     text = post.createdAt.timeAgoDisplay(),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.soapColors.grayBB
+                    color = MaterialTheme.colorScheme.grayBB
                 )
 
             }
@@ -112,7 +113,7 @@ fun PostListRow(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         PostListRow(
             Post.mockList()[5],
             rememberNavController()

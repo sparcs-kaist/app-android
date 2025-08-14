@@ -24,8 +24,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun TaxiCapacityPicker(
@@ -50,7 +50,7 @@ fun TaxiCapacityPicker(
                 Text(
                     text = capacity.let { "$it people" },
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.soapColors.grayBB
+                    color = MaterialTheme.colorScheme.grayBB
                 )
 
                 Spacer(Modifier.padding(2.dp))
@@ -59,14 +59,14 @@ fun TaxiCapacityPicker(
                     painter = painterResource(R.drawable.round_swap_vert),
                     contentDescription = "Expand dropdown",
                     modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.soapColors.grayBB
+                    tint = MaterialTheme.colorScheme.grayBB
                 )
             }
 
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.soapColors.surface)
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
             ) {
                 (1..4).forEach { count ->
                     DropdownMenuItem(
@@ -84,5 +84,5 @@ fun TaxiCapacityPicker(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiCapacityPicker(4, {}) }
+    Theme { TaxiCapacityPicker(4, {}) }
 }

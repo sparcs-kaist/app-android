@@ -54,8 +54,8 @@ import com.example.soap.Features.PostCompose.Components.PostComposeNavigationBar
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.noRippleClickable
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 
 @Composable
@@ -111,7 +111,7 @@ fun PostComposeView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.soapColors.surface)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
 
@@ -211,7 +211,7 @@ private fun TermsOfUseButton(){
         text = stringResource(R.string.terms_of_use),
         style = MaterialTheme.typography.bodySmall,
         textDecoration = TextDecoration.Underline,
-        color = MaterialTheme.soapColors.grayBB
+        color = MaterialTheme.colorScheme.grayBB
     )
 }
 
@@ -227,8 +227,8 @@ fun TitleTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.soapColors.onSurface),
-        cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
+        textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
         keyboardActions = KeyboardActions(
             onNext = nextFocus
@@ -237,7 +237,7 @@ fun TitleTextField(
             if (value.isEmpty()) {
                 Text(
                     text = placeholderText,
-                    color = MaterialTheme.soapColors.grayBB,
+                    color = MaterialTheme.colorScheme.grayBB,
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -258,8 +258,8 @@ fun DescriptionTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = false,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.soapColors.onSurface),
-        cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
+        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Default),
         modifier = modifier,
         onTextLayout = onTextLayout,
@@ -267,7 +267,7 @@ fun DescriptionTextField(
             if (value.text.isEmpty()) {
                 Text(
                     text = placeholderText,
-                    color = MaterialTheme.soapColors.grayBB,
+                    color = MaterialTheme.colorScheme.grayBB,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -280,5 +280,5 @@ fun DescriptionTextField(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { PostComposeView(viewModel(), rememberNavController()) }
+    Theme { PostComposeView(viewModel(), rememberNavController()) }
 }

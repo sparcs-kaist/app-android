@@ -19,8 +19,7 @@ import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 
 @Composable
@@ -75,7 +74,7 @@ fun LectureInformation(lecture: Lecture){
             Text(
                 text = stringResource(R.string.view_dictionary),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.soapColors.primary
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(Modifier.weight(1f))
@@ -83,7 +82,7 @@ fun LectureInformation(lecture: Lecture){
             Icon(
                 painter = painterResource(R.drawable.rounded_book_2),
                 contentDescription = null,
-                tint = MaterialTheme.soapColors.primary
+                tint = MaterialTheme.colorScheme.primary
             )
         }
 
@@ -96,7 +95,7 @@ fun LectureInformation(lecture: Lecture){
             Text(
                 text = stringResource(R.string.view_syllabus),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.soapColors.primary
+                color = MaterialTheme.colorScheme.primary
             )
 
             Spacer(Modifier.weight(1f))
@@ -104,7 +103,7 @@ fun LectureInformation(lecture: Lecture){
             Icon(
                 painter = painterResource(R.drawable.outline_find_in_page),
                 contentDescription = null,
-                tint = MaterialTheme.soapColors.primary
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -139,5 +138,5 @@ fun LectureDetailRow(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { LectureInformation(lecture = Lecture.mock()) }
+    Theme { LectureInformation(lecture = Lecture.mock()) }
 }

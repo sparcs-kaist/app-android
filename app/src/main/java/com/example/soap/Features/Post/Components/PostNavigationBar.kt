@@ -20,8 +20,8 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,12 +36,12 @@ fun PostNavigationBar(navController : NavController) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = null,
-                    tint = MaterialTheme.soapColors.darkGray
+                    tint = MaterialTheme.colorScheme.darkGray
                 )
                 Text(
                     text = stringResource(R.string.trending_board),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.soapColors.darkGray
+                    color = MaterialTheme.colorScheme.darkGray
                 )
             }
         },
@@ -55,7 +55,7 @@ fun PostNavigationBar(navController : NavController) {
 
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.soapColors.background
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
@@ -63,5 +63,5 @@ fun PostNavigationBar(navController : NavController) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme{ PostNavigationBar(rememberNavController()) }
+    Theme{ PostNavigationBar(rememberNavController()) }
 }

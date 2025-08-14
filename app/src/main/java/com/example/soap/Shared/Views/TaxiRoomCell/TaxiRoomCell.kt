@@ -26,8 +26,7 @@ import com.example.soap.Features.TaxiPreview.Components.RouteHeaderView
 import com.example.soap.Shared.Extensions.relativeTimeString
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 @Composable
 fun TaxiRoomCell(
@@ -40,7 +39,7 @@ fun TaxiRoomCell(
             .clickable { onClick() }
             .padding(vertical = 2.dp),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.soapColors.surface)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -84,7 +83,7 @@ fun IconText(icon: Painter, text: String) {
         Icon(
             painter = icon,
             contentDescription = null,
-            tint = MaterialTheme.soapColors.onSurface
+            tint = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.padding(4.dp))
         Text(
@@ -100,5 +99,5 @@ fun IconText(icon: Painter, text: String) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiRoomCell(room = TaxiRoom.mockList()[0], {}) }
+    Theme { TaxiRoomCell(room = TaxiRoom.mockList()[0], {}) }
 }

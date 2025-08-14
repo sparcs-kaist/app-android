@@ -20,8 +20,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +35,7 @@ fun LectureDetailNavigationBar(
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = "Back",
-                    tint = MaterialTheme.soapColors.darkGray
+                    tint = MaterialTheme.colorScheme.darkGray
                 )
             }
         },
@@ -56,12 +56,12 @@ fun LectureDetailNavigationBar(
                 Icon(
                     painter = painterResource(R.drawable.outline_delete),
                     contentDescription = "Delete",
-                    tint = MaterialTheme.soapColors.darkGray
+                    tint = MaterialTheme.colorScheme.darkGray
                 )
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.soapColors.background
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
@@ -71,5 +71,5 @@ fun LectureDetailNavigationBar(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme{ LectureDetailNavigationBar(rememberNavController(), "title") }
+    Theme{ LectureDetailNavigationBar(rememberNavController(), "title") }
 }

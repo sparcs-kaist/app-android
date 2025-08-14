@@ -20,8 +20,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.NavigationBar.Components.SearchButton
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,12 +35,12 @@ fun BoardNavigationBar(navController: NavController) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = null,
-                    tint = MaterialTheme.soapColors.darkGray
+                    tint = MaterialTheme.colorScheme.darkGray
                 )
                 Text(
                     text = stringResource(R.string.start),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.soapColors.darkGray
+                    color = MaterialTheme.colorScheme.darkGray
                 )
             }
         },
@@ -55,7 +55,7 @@ fun BoardNavigationBar(navController: NavController) {
             SearchButton()
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.soapColors.background
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
@@ -65,5 +65,5 @@ fun BoardNavigationBar(navController: NavController) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme{ BoardNavigationBar(rememberNavController()) }
+    Theme{ BoardNavigationBar(rememberNavController()) }
 }
