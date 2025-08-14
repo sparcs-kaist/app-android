@@ -22,8 +22,7 @@ import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +49,7 @@ fun BoardListView(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.soapColors.surface)
+                .background(MaterialTheme.colorScheme.surface)
                 .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {
@@ -110,5 +109,5 @@ fun BoardListView(navController: NavController) {
 @Composable
 @Preview
 private fun Preview() {
-    SoapTheme{ BoardListView(navController = rememberNavController()) }
+    Theme{ BoardListView(navController = rememberNavController()) }
 }

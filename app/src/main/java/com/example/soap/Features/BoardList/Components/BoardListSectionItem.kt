@@ -16,8 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 
 @Composable
@@ -34,7 +33,7 @@ fun BoardListSectionItem(
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.soapColors.onSurface,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(vertical = 8.dp)
         )
 
@@ -52,5 +51,5 @@ fun BoardListSectionItem(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { BoardListSectionItem(text = "text", onClick = {}) }
+    Theme { BoardListSectionItem(text = "text", onClick = {}) }
 }

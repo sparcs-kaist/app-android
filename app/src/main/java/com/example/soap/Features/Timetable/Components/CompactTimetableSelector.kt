@@ -26,13 +26,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.soap.Domain.Models.TimeTable.Timetable
 import com.example.soap.Features.NavigationBar.Animation.AnimatedText
 import com.example.soap.Features.Timetable.TimetableViewModel
-import com.example.soap.Domain.Models.TimeTable.Timetable
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun CompactTimetableSelector(
@@ -67,7 +67,7 @@ fun SemesterSelector(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(25.dp))
-                .background(MaterialTheme.soapColors.surface)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -75,7 +75,7 @@ fun SemesterSelector(
                 painter = painterResource(R.drawable.arrow_back_ios),
                 contentDescription = "Select Previous Semester",
                 tint = if (isEnabledPreviousButton) MaterialTheme.colorScheme.onSurface
-                else MaterialTheme.soapColors.grayBB,
+                else MaterialTheme.colorScheme.grayBB,
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
                     .then(
@@ -95,7 +95,7 @@ fun SemesterSelector(
                 painter = painterResource(R.drawable.arrow_forward_ios),
                 contentDescription = "Select Next Semester",
                 tint = if (isEnabledNextButton) MaterialTheme.colorScheme.onSurface
-                else MaterialTheme.soapColors.grayBB,
+                else MaterialTheme.colorScheme.grayBB,
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
                     .then(
@@ -116,7 +116,7 @@ fun TableSelector(){
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(25.dp))
-                .background(MaterialTheme.soapColors.surface)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -130,7 +130,7 @@ fun TableSelector(){
             Icon(
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "Menu",
-                tint = MaterialTheme.soapColors.onSurface,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .padding(horizontal = 4.dp)
                     .clickable { expanded = true }
@@ -147,7 +147,7 @@ fun TableSelector(){
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         CompactTimetableSelector(
             timetableViewModel = viewModel(),
             selectedTimetable = Timetable.mock()

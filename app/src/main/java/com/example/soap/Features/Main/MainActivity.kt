@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.example.soap.Features.NavigationBar.MainTabBar
-import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.Theme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -14,7 +14,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            SoapTheme {
+            Theme {
                 MainTabBar()
             }
         }

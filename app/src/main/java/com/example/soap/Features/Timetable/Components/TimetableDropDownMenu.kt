@@ -37,8 +37,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.lightGray0
 
 @Composable
 fun TimetableDropDownMenu(
@@ -48,7 +48,7 @@ fun TimetableDropDownMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
-        modifier = Modifier.background(MaterialTheme.soapColors.surface),
+        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
@@ -85,7 +85,7 @@ private fun TopDropDownItems(){
     }
 
     HorizontalDivider(
-        color = MaterialTheme.soapColors.gray0Border,
+        color = MaterialTheme.colorScheme.lightGray0,
         modifier = Modifier.padding(4.dp)
     )
 }
@@ -123,7 +123,7 @@ private fun MiddleDropDownItems(){
     }
 
     HorizontalDivider(
-        color = MaterialTheme.soapColors.gray0Border,
+        color = MaterialTheme.colorScheme.lightGray0,
         modifier = Modifier.padding(4.dp)
     )
 }
@@ -164,7 +164,7 @@ private fun BottomDropDownItems(){
     )
 
     HorizontalDivider(
-        color = MaterialTheme.soapColors.gray0Border,
+        color = MaterialTheme.colorScheme.lightGray0,
         modifier = Modifier.padding(4.dp)
     )
 
@@ -183,7 +183,7 @@ private fun BottomDropDownItems(){
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         Box(Modifier.fillMaxSize()){
             Button(
                 onClick = {}

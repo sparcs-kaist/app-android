@@ -23,8 +23,7 @@ import com.example.soap.Features.LectureDetail.Components.LectureInformation
 import com.example.soap.Features.LectureDetail.Components.LectureReviews
 import com.example.soap.Features.LectureDetail.Components.LectureSummary
 import com.example.soap.Shared.Mocks.mock
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +46,7 @@ fun LectureDetailView(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.soapColors.surface)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
         ) {
             LazyColumn(
@@ -75,5 +74,5 @@ fun LectureDetailView(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { LectureDetailView(lectureId = Lecture.mock().id, rememberNavController()) }
+    Theme { LectureDetailView(lectureId = Lecture.mock().id, rememberNavController()) }
 }

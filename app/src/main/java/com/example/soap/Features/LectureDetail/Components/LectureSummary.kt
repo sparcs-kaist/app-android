@@ -16,8 +16,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun LectureSummary(lecture: Lecture){
@@ -69,13 +70,13 @@ fun LectureSummaryRow(
             text = title.uppercase(),
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Medium,
-            color = MaterialTheme.soapColors.grayBB
+            color = MaterialTheme.colorScheme.grayBB
         )
         Text(
             text = description,
             style = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.soapColors.darkGray
+            color = MaterialTheme.colorScheme.darkGray
         )
     }
 }
@@ -84,5 +85,5 @@ fun LectureSummaryRow(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { LectureSummary(lecture = Lecture.mock()) }
+    Theme { LectureSummary(lecture = Lecture.mock()) }
 }
