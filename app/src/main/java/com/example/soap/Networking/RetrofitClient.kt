@@ -10,7 +10,7 @@ import com.example.soap.Domain.Services.AuthenticationServiceProtocol
 import com.example.soap.Domain.Usecases.AuthUseCase
 import com.example.soap.Domain.Usecases.AuthUseCaseProtocol
 import com.example.soap.Networking.RetrofitAPI.AuthApi
-import com.example.soap.Networking.RetrofitAPI.TaxiRoomService
+import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import com.google.gson.Gson
 import dagger.Binds
 import dagger.Module
@@ -67,8 +67,8 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun TaxiRoomService(@Named("TaxiBackend") retrofit: Retrofit): TaxiRoomService {
-        return retrofit.create(TaxiRoomService::class.java)
+    fun TaxiRoomService(@Named("TaxiBackend") retrofit: Retrofit): TaxiRoomApi {
+        return retrofit.create(TaxiRoomApi::class.java)
     }
 
     @Provides

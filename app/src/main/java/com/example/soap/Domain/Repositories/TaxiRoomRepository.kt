@@ -5,7 +5,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiLocation
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Networking.RequestDTO.TaxiCreateRoomRequestDTO
 import com.example.soap.Networking.ResponseDTO.ApiErrorResponse
-import com.example.soap.Networking.RetrofitAPI.TaxiRoomService
+import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.google.gson.Gson
@@ -38,104 +38,101 @@ class FakeTaxiRoomRepository : TaxiRoomRepositoryProtocol {
 
 
 class TaxiRoomRepository @Inject constructor(
-    private val taxiRoomService: TaxiRoomService,
+    private val taxiRoomApi: TaxiRoomApi,
     private val gson: Gson = Gson()
 ) : TaxiRoomRepositoryProtocol {
 
     override suspend fun fetchRooms(): List<TaxiRoom> {
         return try {
-            taxiRoomService.fetchRooms()
+            taxiRoomApi.fetchRooms()
                 .map { it.toModel() }
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+            handleApiError(gson, e)
         }
     }
 
     override suspend fun fetchMyRooms(): Pair<List<TaxiRoom>, List<TaxiRoom>> {
         return try {
-            val response = taxiRoomService.fetchMyRooms()
+            val response = taxiRoomApi.fetchMyRooms()
             val onGoing = response.onGoing.map { it.toModel() }
             val done = response.done.map { it.toModel() }
             Pair(onGoing, done)
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+            handleApiError(gson, e)
         }
     }
 
     override suspend fun fetchLocations(): List<TaxiLocation> {
         return try {
-            taxiRoomService.fetchLocations()
+            taxiRoomApi.fetchLocations()
                 .locations
                 .map { it.toModel() }
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+            handleApiError(gson, e)
         }
     }
 
     override suspend fun createRoom(with: TaxiCreateRoom): TaxiRoom {
         return try {
             val requestDTO = TaxiCreateRoomRequestDTO.fromModel(with)
-            taxiRoomService.createRoom(requestDTO).toModel()
+            taxiRoomApi.createRoom(requestDTO).toModel()
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+            handleApiError(gson, e)
         }
     }
 
     override suspend fun joinRoom(id: String): TaxiRoom {
         return try {
-            taxiRoomService.joinRoom(mapOf("roomId" to id)).toModel()
+            taxiRoomApi.joinRoom(mapOf("roomId" to id)).toModel()
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+            handleApiError(gson, e)
         }
     }
 
     override suspend fun leaveRoom(id: String): TaxiRoom {
         return try {
-            taxiRoomService.leaveRoom(mapOf("roomId" to id)).toModel()
+            taxiRoomApi.leaveRoom(mapOf("roomId" to id)).toModel()
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+            handleApiError(gson, e)
         }
     }
 
     override suspend fun getRoom(id: String): TaxiRoom {
         return try {
-            taxiRoomService.getRoom(id).toModel()
+            taxiRoomApi.getRoom(id).toModel()
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+             handleApiError(gson, e)
         }
     }
 
     override suspend fun commitSettlement(id: String): TaxiRoom {
         return try {
-            taxiRoomService.commitSettlement(mapOf("roomId" to id)).toModel()
+            taxiRoomApi.commitSettlement(mapOf("roomId" to id)).toModel()
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+            handleApiError(gson, e)
         }
     }
 
     override suspend fun commitPayment(id: String): TaxiRoom {
         return try {
-            taxiRoomService.commitPayment(mapOf("roomId" to id)).toModel()
+            taxiRoomApi.commitPayment(mapOf("roomId" to id)).toModel()
         } catch (e: Exception) {
-            throw handleApiError(gson, e)
+            handleApiError(gson, e)
         }
     }
 
-    fun <T> handleApiError(gson: Gson, exception: Exception): T {
-        return try {
-            if (exception is HttpException) {
-                val errorBody = exception.response()?.errorBody()?.string()
-                if (errorBody != null) {
-                    val parsedError = gson.fromJson(errorBody, ApiErrorResponse::class.java)
-                    throw parsedError.toDomainError()
-                } else {
-                    throw exception
-                }
+    private fun handleApiError(gson: Gson, exception: Exception): Nothing {
+        if (exception is HttpException) {
+            val errorBody = exception.response()?.errorBody()?.string()
+            if (errorBody != null) {
+                val parsedError = gson.fromJson(errorBody, ApiErrorResponse::class.java)
+                throw parsedError.toDomainError()
             } else {
                 throw exception
             }
-        } catch (e: Exception) {
-            throw e
+        } else {
+            throw exception
         }
     }
+
 }
