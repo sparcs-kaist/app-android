@@ -14,7 +14,10 @@ import com.example.soap.Networking.ResponseDTO.Auth.TokenResponseDTO
 import com.example.soap.Networking.RetrofitAPI.AuthApi
 import com.example.soap.Shared.Extensions.base64UrlEncodedString
 import com.example.soap.Shared.Extensions.sha256
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
@@ -42,7 +45,7 @@ class AuthenticationService @Inject constructor(
 
 
     override suspend fun authenticate(activity: Activity): SignInResponseDTO =
-        kotlinx.coroutines.suspendCancellableCoroutine { continuation ->
+        suspendCancellableCoroutine { continuation ->
 
             val codeVerifier = generateCodeVerifier()
             val codeChallenge = generateCodeChallenge(codeVerifier)
@@ -64,7 +67,7 @@ class AuthenticationService @Inject constructor(
                             val container = activity.findViewById<FrameLayout>(android.R.id.content)
                             container.removeView(webView)
 
-                            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                            CoroutineScope(Dispatchers.IO).launch {
                                 try {
                                     val tokenResponse = exchangeCodeForTokens(session, codeVerifier)
                                     continuation.resume(tokenResponse)
@@ -110,8 +113,8 @@ class AuthenticationService @Inject constructor(
             tokenStorage.save(response.accessToken, response.refreshToken)
             response
         } catch (e: Exception) {
+            Log.e("AuthService", "Failed to refresh access token", e)
             throw AuthenticationServiceError.TokenRefreshFailed(e)
         }
     }
-
 }
