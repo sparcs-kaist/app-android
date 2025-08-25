@@ -1,4 +1,4 @@
-package com.example.soap.Networking.ResponseDTO.Timetable
+package com.example.soap.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
 import java.util.Date
