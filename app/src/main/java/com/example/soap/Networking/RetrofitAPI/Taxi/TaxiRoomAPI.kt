@@ -1,4 +1,4 @@
-package com.example.soap.Networking.RetrofitAPI
+package com.example.soap.Networking.RetrofitAPI.Taxi
 
 import com.example.soap.Networking.RequestDTO.TaxiCreateRoomRequestDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiLocationResponseDTO
@@ -9,7 +9,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 
-interface TaxiRoomService {
+interface TaxiRoomApi {
 
     @GET("rooms/search")
     suspend fun fetchRooms(): List<TaxiRoomDTO>
