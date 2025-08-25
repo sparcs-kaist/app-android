@@ -3,9 +3,12 @@ package com.example.soap.Domain.Helpers
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import javax.inject.Inject
 
 
-object UserStorage : UserStorageProtocol {
+class UserStorage @Inject constructor(
+
+): UserStorageProtocol {
     private var taxiUser: TaxiUser? = null
     private val mutex = Mutex()
 

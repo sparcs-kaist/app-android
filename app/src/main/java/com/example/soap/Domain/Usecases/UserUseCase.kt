@@ -7,8 +7,11 @@ import com.example.soap.Domain.Repositories.TaxiUserRepositoryProtocol
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class UserUseCase(
+@Singleton
+class UserUseCase @Inject constructor(
     private val taxiUserRepository: TaxiUserRepositoryProtocol,
     private val userStorage: UserStorageProtocol
 ) : UserUseCaseProtocol {
