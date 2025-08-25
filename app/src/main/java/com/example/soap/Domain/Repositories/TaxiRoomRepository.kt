@@ -12,6 +12,18 @@ import com.google.gson.Gson
 import retrofit2.HttpException
 import javax.inject.Inject
 
+interface TaxiRoomRepositoryProtocol {
+    suspend fun fetchRooms(): List<TaxiRoom>
+    suspend fun fetchMyRooms(): Pair<List<TaxiRoom>, List<TaxiRoom>>
+    suspend fun fetchLocations(): List<TaxiLocation>
+    suspend fun createRoom(with: TaxiCreateRoom): TaxiRoom
+    suspend fun joinRoom(id: String): TaxiRoom
+    suspend fun leaveRoom(id: String): TaxiRoom
+    suspend fun getRoom(id: String): TaxiRoom
+    suspend fun commitSettlement(id: String): TaxiRoom
+    suspend fun commitPayment(id: String): TaxiRoom
+}
+
 class FakeTaxiRoomRepository : TaxiRoomRepositoryProtocol {
     override suspend fun fetchRooms(): List<TaxiRoom> = listOf(TaxiRoom.mock())
     override suspend fun fetchMyRooms(): Pair<List<TaxiRoom>, List<TaxiRoom>> = Pair(emptyList(), emptyList())
