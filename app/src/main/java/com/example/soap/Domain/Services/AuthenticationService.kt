@@ -59,27 +59,32 @@ class AuthenticationService @Inject constructor(
 
             webView.webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                    url?.let {
-                        val uri = Uri.parse(it)
-                        val session = uri.getQueryParameter("session")
-                        if (!session.isNullOrEmpty()) {
+                    if (url == null) return false
 
-                            val container = activity.findViewById<FrameLayout>(android.R.id.content)
-                            container.removeView(webView)
+                    val uri = Uri.parse(url)
+                    val session = uri.getQueryParameter("session")
 
-                            CoroutineScope(Dispatchers.IO).launch {
-                                try {
-                                    val tokenResponse = exchangeCodeForTokens(session, codeVerifier)
-                                    continuation.resume(tokenResponse)
-                                } catch (e: Exception) {
-                                    Log.e("AuthWebView", "Token exchange failed", e)
-                                    continuation.resumeWithException(
-                                        AuthenticationServiceError.TokenExchangeFailed(e)
-                                    )
-                                }
+                    if (!session.isNullOrEmpty()) {
+                        val container = activity.findViewById<FrameLayout>(android.R.id.content)
+                        container.removeView(webView)
+
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                val tokenResponse = exchangeCodeForTokens(session, codeVerifier)
+                                continuation.resume(tokenResponse)
+                            } catch (e: Exception) {
+                                Log.e("AuthWebView", "Token exchange failed", e)
+                                continuation.resumeWithException(
+                                    AuthenticationServiceError.TokenExchangeFailed(e)
+                                )
                             }
-                            return true
                         }
+                        return true
+                    }
+
+                    if (uri.host == "sparcsapp") {
+                        continuation.resumeWithException(AuthenticationServiceError.InvalidCallbackURL)
+                        return true
                     }
                     return false
                 }
@@ -88,8 +93,10 @@ class AuthenticationService @Inject constructor(
             val container = activity.findViewById<FrameLayout>(android.R.id.content)
             container.addView(webView)
             webView.loadUrl("$authURL?codeChallenge=$codeChallenge", headers)
+
             continuation.invokeOnCancellation {
                 container.removeView(webView)
+                continuation.resumeWithException(AuthenticationServiceError.UserCancelled)
             }
         }
 
@@ -101,7 +108,6 @@ class AuthenticationService @Inject constructor(
             body = mapOf("codeVerifier" to encodedVerifier)
         )
         tokenStorage.save(response.accessToken, response.refreshToken)
-        Log.d("AuthWebView", "TokenResponse received: $response")
         return response
     }
 
