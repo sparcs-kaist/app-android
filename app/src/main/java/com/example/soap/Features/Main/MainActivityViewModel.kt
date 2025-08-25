@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Usecases.AuthUseCaseProtocol
+import com.example.soap.Domain.Usecases.UserUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,7 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val authUseCase: AuthUseCaseProtocol,
-//    private val userUseCase: UserUseCaseProtocol
+    private val userUseCase: UserUseCaseProtocol
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(true)
@@ -35,7 +36,7 @@ class MainViewModel @Inject constructor(
             _isLoading.value = true
             try {
                 authUseCase.refreshAccessTokenIfNeeded()
-//                userUseCase.fetchUsers()
+                userUseCase.fetchUsers()
             } catch (e: Exception) {
                 Log.e("MainViewModel", "Token refresh failed", e)
             }

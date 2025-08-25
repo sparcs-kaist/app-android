@@ -3,6 +3,7 @@ package com.example.soap.Domain.Repositories
 import com.example.soap.Domain.Models.Taxi.TaxiReport
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiUserApi
+import javax.inject.Inject
 
 interface TaxiUserRepositoryProtocol {
     suspend fun fetchUser(): TaxiUser
@@ -14,7 +15,7 @@ enum class TaxiUserErrorCode(val code: Int) {
     EDIT_BANK_ACCOUNT_FAILED(2001)
 }
 
-class TaxiUserRepository(
+class TaxiUserRepository @Inject constructor(
     private val taxiUserApi: TaxiUserApi
 ) : TaxiUserRepositoryProtocol {
 
