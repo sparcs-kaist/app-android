@@ -6,7 +6,6 @@ import com.example.soap.Domain.Enums.AuthUseCaseError
 import com.example.soap.Domain.Helpers.TokenStorageProtocol
 import com.example.soap.Domain.Services.AuthenticationService
 import com.example.soap.Domain.Services.AuthenticationServiceProtocol
-import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -18,9 +17,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import javax.inject.Singleton
 
 
-@ActivityRetainedScoped
+@Singleton
 class AuthUseCase @Inject constructor(
     val authenticationService: AuthenticationServiceProtocol,
     val tokenStorage: TokenStorageProtocol,
