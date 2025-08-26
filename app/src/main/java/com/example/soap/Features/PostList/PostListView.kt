@@ -39,12 +39,12 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
-import com.example.soap.Features.PostList.Components.PostListRow.BoardNavigationBar
 import com.example.soap.Features.PostCompose.Components.getLocalizedFlair
+import com.example.soap.Features.PostList.Components.PostListRow.BoardNavigationBar
 import com.example.soap.Features.PostList.Components.PostListRow.PostListRow
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.lightGray0
 
 @Composable
 fun PostListView(
@@ -69,7 +69,7 @@ fun PostListView(
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .background(MaterialTheme.soapColors.background)
+                .background(MaterialTheme.colorScheme.background)
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
@@ -123,12 +123,12 @@ fun PostListView(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.soapColors.surface)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = 16.dp)
             ) {
                 items(filteredPosts, key = { it.id }) { post ->
                     PostListRow(post, navController)
-                    HorizontalDivider(color = MaterialTheme.soapColors.gray0Border)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
                 }
             }
         }
@@ -141,14 +141,14 @@ private fun ComposeButton(onClick: () -> Unit){
     Button(
         onClick = onClick,
         shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(MaterialTheme.soapColors.primary),
+        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
         elevation = ButtonDefaults.buttonElevation(4.dp),
         contentPadding = PaddingValues(horizontal = 5.dp, vertical = 15.dp)
     ) {
         Icon(
             painter = painterResource(R.drawable.outline_edit),
             contentDescription = "Write Button",
-            tint = MaterialTheme.soapColors.surface
+            tint = MaterialTheme.colorScheme.surface
         )
     }
 }
@@ -159,8 +159,8 @@ private fun ComposeButton(onClick: () -> Unit){
 fun selectedColor(
     isSelected : Boolean
 ): Pair<Color, Color> {
-    val backgroundColor = if (isSelected) MaterialTheme.soapColors.onSurface else MaterialTheme.soapColors.primaryContainer
-    val textColor =  if (isSelected) MaterialTheme.soapColors.primaryContainer else MaterialTheme.colorScheme.onSurface
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceContainer
+    val textColor =  if (isSelected) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.onSurface
 
     return Pair(backgroundColor, textColor)
 }
@@ -168,6 +168,6 @@ fun selectedColor(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { PostListView(viewModel(), rememberNavController()) }
+    Theme { PostListView(viewModel(), rememberNavController()) }
 
 }

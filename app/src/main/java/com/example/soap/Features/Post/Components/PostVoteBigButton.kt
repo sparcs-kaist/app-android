@@ -17,22 +17,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.gray64
+import com.example.soap.ui.theme.lightGray0
 
 @Composable
 fun PostVoteBigButton(modifier: Modifier){
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.soapColors.gray0Border)
+            .background(MaterialTheme.colorScheme.lightGray0)
             .padding(vertical = 4.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             painter = painterResource(R.drawable.icon_arrowdown),
             contentDescription = null,
-            tint = MaterialTheme.soapColors.gray64Button,
+            tint = MaterialTheme.colorScheme.gray64,
             modifier = Modifier.size(25.dp)
         )
 
@@ -41,7 +42,7 @@ fun PostVoteBigButton(modifier: Modifier){
         Text(
             text = "+13",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.soapColors.gray64Button
+            color = MaterialTheme.colorScheme.gray64
         )
 
         Spacer(Modifier.padding(4.dp))
@@ -49,7 +50,7 @@ fun PostVoteBigButton(modifier: Modifier){
         Icon(
             painter = painterResource(R.drawable.icon_arrowup),
             contentDescription = null,
-            tint = MaterialTheme.soapColors.gray64Button,
+            tint = MaterialTheme.colorScheme.gray64,
             modifier = Modifier.size(25.dp)
         )
     }
@@ -58,5 +59,5 @@ fun PostVoteBigButton(modifier: Modifier){
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { PostVoteBigButton(Modifier) }
+    Theme { PostVoteBigButton(Modifier) }
 }

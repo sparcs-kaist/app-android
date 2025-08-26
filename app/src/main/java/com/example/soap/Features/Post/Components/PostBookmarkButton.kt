@@ -19,15 +19,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.gray64
+import com.example.soap.ui.theme.lightGray0
 
 @Composable
 fun PostBookmarkButton(){
     Card(
         shape = RoundedCornerShape(8.dp),
-        border = BorderStroke(1.dp, MaterialTheme.soapColors.gray0Border),
-        colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.lightGray0),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface
         )
     ){
         Row(
@@ -37,7 +38,7 @@ fun PostBookmarkButton(){
             Icon(
                 painter = painterResource(R.drawable.bookmark_border),
                 contentDescription = null,
-                tint = MaterialTheme.soapColors.gray64Button,
+                tint = MaterialTheme.colorScheme.gray64,
                 modifier = Modifier.size(20.dp)
             )
 
@@ -46,7 +47,7 @@ fun PostBookmarkButton(){
             Text(
                 text = stringResource(R.string.to_bookmark),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.soapColors.gray64Button
+                color = MaterialTheme.colorScheme.gray64
             )
         }
     }
@@ -55,5 +56,5 @@ fun PostBookmarkButton(){
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { PostBookmarkButton() }
+    Theme { PostBookmarkButton() }
 }

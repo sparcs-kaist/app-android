@@ -37,8 +37,8 @@ import com.example.soap.Features.TaxiPreview.Components.RouteHeaderView
 import com.example.soap.Shared.Extensions.formattedString
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
@@ -93,7 +93,7 @@ fun TaxiPreviewView(
     Column(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.soapColors.surface)
+            .background(MaterialTheme.colorScheme.surface)
     ) {
         GoogleMap(
             modifier = Modifier
@@ -122,7 +122,7 @@ fun TaxiPreviewView(
 
                 Text(
                     text = room.title,
-                    color = MaterialTheme.soapColors.grayBB
+                    color = MaterialTheme.colorScheme.grayBB
                 )
 
                 Spacer(Modifier.weight(1f))
@@ -181,7 +181,7 @@ fun TaxiPreviewView(
 @Preview
 @Composable
 private fun Preview() {
-    SoapTheme {
+    Theme {
         TaxiPreviewView(room = TaxiRoom.mockList()[1], onDismiss = {})
     }
 }

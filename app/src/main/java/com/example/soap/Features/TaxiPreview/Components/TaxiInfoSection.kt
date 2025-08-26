@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.Theme
 
 @Composable
 fun TaxiInfoSection(
@@ -38,7 +38,7 @@ fun TaxiInfoSection(
 @Composable
 @Preview
 private fun Preview() {
-    SoapTheme {
+    Theme {
         TaxiInfoSection(
             listOf(
                 TaxiInfoItem.plain(label = "Test Label 1", value = "Test Value 1"),

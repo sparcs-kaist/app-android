@@ -61,8 +61,8 @@ import com.example.soap.Shared.Extensions.weekdaySymbol
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
@@ -101,7 +101,7 @@ fun TaxiListView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.soapColors.background)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {
@@ -111,7 +111,7 @@ fun TaxiListView(
                     .fillMaxSize()
             ) {
                 Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     TaxiDestinationPicker(
@@ -196,11 +196,11 @@ fun TaxiListView(
                             .height(4.dp)
                             .align(Alignment.CenterHorizontally)
                             .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.soapColors.grayBB)
+                            .background(MaterialTheme.colorScheme.grayBB)
                     )
                 }
             },
-            containerColor = MaterialTheme.soapColors.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ) {
             TaxiPreviewView(
                 room = room,
@@ -465,13 +465,13 @@ fun EmptyResultView(
 @Composable
 @Preview
 private fun TaxiListScreenLoadingPreview() {
-    SoapTheme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Loading) }
+    Theme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Loading) }
 }
 
 @Composable
 @Preview
 private fun TaxiListScreenLoadedPreview() {
-    SoapTheme{
+    Theme{
         MockTaxiListScreen(
             TaxiListViewModel.ViewState.Loaded(
                 rooms = TaxiRoom.mockList(),
@@ -484,7 +484,7 @@ private fun TaxiListScreenLoadedPreview() {
 @Composable
 @Preview
 private fun TaxiListScreenLoadedEmptyResultPreview() {
-    SoapTheme{
+    Theme{
         MockTaxiListScreen(
             TaxiListViewModel.ViewState.Loaded(
                 rooms = listOf(),
@@ -497,13 +497,13 @@ private fun TaxiListScreenLoadedEmptyResultPreview() {
 @Composable
 @Preview
 private fun TaxiListScreenEmptyPreview() {
-    SoapTheme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Empty(TaxiLocation.mockList())) }
+    Theme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Empty(TaxiLocation.mockList())) }
 }
 
 @Composable
 @Preview
 private fun TaxiListScreenErrorPreview() {
-    SoapTheme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Error("Something went wrong")) }
+    Theme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Error("Something went wrong")) }
 }
 
 @Composable

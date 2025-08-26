@@ -21,8 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun Comments(
@@ -53,7 +53,7 @@ fun Comments(
             Text(
                 text = "22 May 17:44",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.soapColors.grayBB
+                color = MaterialTheme.colorScheme.grayBB
             )
 
             Spacer(Modifier.weight(1f))
@@ -61,7 +61,7 @@ fun Comments(
             Icon(
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "more",
-                tint = MaterialTheme.soapColors.grayBB
+                tint = MaterialTheme.colorScheme.grayBB
             )
         }
 
@@ -77,7 +77,7 @@ fun Comments(
             Row(
                 modifier = Modifier
                     .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.soapColors.background)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -99,5 +99,5 @@ fun Comments(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { Comments("댓글") }
+    Theme { Comments("댓글") }
 }

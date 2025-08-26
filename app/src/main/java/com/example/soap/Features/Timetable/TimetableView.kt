@@ -36,8 +36,8 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,7 +74,7 @@ fun TimetableView(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.soapColors.background)
+                    .background(MaterialTheme.colorScheme.background)
                     .padding(innerPadding)
             ) {
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
@@ -109,7 +109,7 @@ fun TimetableView(navController: NavController) {
                     }
                 },
                 sheetState = sheetState,
-                containerColor = MaterialTheme.soapColors.surface,
+                containerColor = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.fillMaxHeight(),
                 dragHandle = {
                     Box(
@@ -123,7 +123,7 @@ fun TimetableView(navController: NavController) {
                                 .width(30.dp)
                                 .height(4.dp)
                                 .background(
-                                    MaterialTheme.soapColors.darkGray,
+                                    MaterialTheme.colorScheme.darkGray,
                                     RoundedCornerShape(2.dp)
                                 )
                         )
@@ -141,5 +141,5 @@ fun TimetableView(navController: NavController) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TimetableView(rememberNavController()) }
+    Theme { TimetableView(rememberNavController()) }
 }
