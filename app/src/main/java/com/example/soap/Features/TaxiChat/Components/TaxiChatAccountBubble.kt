@@ -40,7 +40,7 @@ fun TaxiChatAccountBubble(
             .padding(12.dp)
     ) {
         Text(
-            text = "SETTLEMENT",
+            text = "settlement".uppercase(),
             style = MaterialTheme.typography.labelSmall.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
