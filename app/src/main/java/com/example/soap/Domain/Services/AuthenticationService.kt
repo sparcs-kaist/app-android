@@ -3,9 +3,7 @@ package com.example.soap.Domain.Services
 import android.app.Activity
 import android.net.Uri
 import android.util.Log
-import android.webkit.WebView
-import android.webkit.WebViewClient
-import android.widget.FrameLayout
+import androidx.browser.customtabs.CustomTabsIntent
 import com.example.soap.Domain.Enums.AuthenticationServiceError
 import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Helpers.TokenStorageProtocol
@@ -18,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
@@ -26,6 +25,20 @@ import javax.inject.Inject
 import javax.inject.Named
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+
+
+object AuthenticationCallbackHandler {
+    private var callback: ((Uri) -> Unit)? = null
+
+    fun setCallback(cb: (Uri) -> Unit) {
+        callback = cb
+    }
+
+    fun handleUri(uri: Uri) {
+        callback?.invoke(uri)
+        callback = null
+    }
+}
 
 class AuthenticationService @Inject constructor(
     @Named("Auth") private val authApi: AuthApi,
@@ -49,25 +62,15 @@ class AuthenticationService @Inject constructor(
 
             val codeVerifier = generateCodeVerifier()
             val codeChallenge = generateCodeChallenge(codeVerifier)
-            val webView = WebView(activity)
-            val authURL = Constants.authorizationURL
+            val authURL = Constants.authorizationURL + codeChallenge
 
-            val headers = mapOf(
-                "Origin" to "sparcsapp",
-                "Content-Type" to "application/json"
-            )
+            try {
+                val customTabsIntent = CustomTabsIntent.Builder().build()
+                customTabsIntent.launchUrl(activity, Uri.parse(authURL))
 
-            webView.webViewClient = object : WebViewClient() {
-                override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                    if (url == null) return false
-
-                    val uri = Uri.parse(url)
+                AuthenticationCallbackHandler.setCallback { uri ->
                     val session = uri.getQueryParameter("session")
-
                     if (!session.isNullOrEmpty()) {
-                        val container = activity.findViewById<FrameLayout>(android.R.id.content)
-                        container.removeView(webView)
-
                         CoroutineScope(Dispatchers.IO).launch {
                             try {
                                 val tokenResponse = exchangeCodeForTokens(session, codeVerifier)
@@ -79,29 +82,24 @@ class AuthenticationService @Inject constructor(
                                 )
                             }
                         }
-                        return true
-                    }
-
-                    if (uri.host == "sparcsapp") {
+                    } else {
                         continuation.resumeWithException(AuthenticationServiceError.InvalidCallbackURL)
-                        return true
                     }
-                    return false
                 }
-            }
 
-            val container = activity.findViewById<FrameLayout>(android.R.id.content)
-            container.addView(webView)
-            webView.loadUrl("$authURL?codeChallenge=$codeChallenge", headers)
-
-            continuation.invokeOnCancellation {
-                container.removeView(webView)
-                continuation.resumeWithException(AuthenticationServiceError.UserCancelled)
+                continuation.invokeOnCancellation {
+                    continuation.resumeWithException(AuthenticationServiceError.UserCancelled)
+                }
+            } catch (e: Exception) {
+                continuation.resumeWithException(AuthenticationServiceError.Unknown)
             }
         }
 
+
     private suspend fun exchangeCodeForTokens(sessionCode: String, codeVerifier: String): SignInResponseDTO {
-        val encodedSessionCode = URLEncoder.encode(sessionCode, "UTF-8")
+        val encodedSessionCode = withContext(Dispatchers.IO) {
+            URLEncoder.encode(sessionCode, "UTF-8")
+        }
         val encodedVerifier = codeVerifier.toByteArray(StandardCharsets.UTF_8).base64UrlEncodedString()
         val response = authApi.requestTokens(
             cookie = "connect.sid=$encodedSessionCode",

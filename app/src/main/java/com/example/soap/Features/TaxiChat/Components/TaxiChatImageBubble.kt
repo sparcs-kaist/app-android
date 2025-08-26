@@ -19,7 +19,6 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.example.soap.Domain.Helpers.Constants
-import java.net.URL
 import java.util.Date
 
 @Composable
@@ -28,7 +27,7 @@ fun TaxiChatImageBubble(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val imageUrl = URL(Constants.taxiChatImageURL, id)
+    val imageUrl = Constants.taxiChatImageURL + id
 
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
