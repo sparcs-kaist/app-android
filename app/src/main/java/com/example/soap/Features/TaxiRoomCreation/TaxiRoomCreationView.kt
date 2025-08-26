@@ -36,8 +36,8 @@ import com.example.soap.Features.TaxiRoomCreation.Components.TaxiDepartureTimePi
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
 import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import java.util.Date
 
 @Composable
@@ -64,12 +64,12 @@ fun TaxiRoomCreationView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.soapColors.background)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
                 Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     TaxiDestinationPicker(
@@ -84,14 +84,14 @@ fun TaxiRoomCreationView(
                 Spacer(Modifier.padding(16.dp))
 
                 Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     BasicTextField(
                         value = title,
                         onValueChange = { title = it },
                         textStyle = MaterialTheme.typography.bodyLarge,
-                        cursorBrush = SolidColor(MaterialTheme.soapColors.primary),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
@@ -99,7 +99,7 @@ fun TaxiRoomCreationView(
                             if (title.isEmpty()) {
                                 Text(
                                     text = "Title",
-                                    color = MaterialTheme.soapColors.grayBB,
+                                    color = MaterialTheme.colorScheme.grayBB,
                                     style = MaterialTheme.typography.bodyLarge
                                 )
                             }
@@ -111,7 +111,7 @@ fun TaxiRoomCreationView(
                 Spacer(Modifier.padding(16.dp))
 
                 Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Column(Modifier.padding(16.dp)) {
@@ -166,7 +166,7 @@ private fun isValid(viewModel: TaxiListViewModelProtocol, title: String): Boolea
 private fun Preview() {
     val mockViewModel = remember { MockTaxiListViewModel(initialState = TaxiListViewModel.ViewState.Loading) }
 
-    SoapTheme {
+    Theme {
         TaxiRoomCreationView(
             rememberNavController(),
             viewModel = mockViewModel

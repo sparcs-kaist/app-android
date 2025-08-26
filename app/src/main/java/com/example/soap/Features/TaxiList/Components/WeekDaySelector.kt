@@ -35,8 +35,8 @@ import com.example.soap.Domain.Repositories.FakeTaxiRoomRepository
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Shared.Extensions.toDate
 import com.example.soap.Shared.Extensions.toLocalDate
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.gray64
 import java.time.DayOfWeek
 import java.util.Date
 
@@ -69,14 +69,14 @@ fun WeekDaySelector(
             .shadow(
                 4.dp,
                 RoundedCornerShape(28.dp),
-                spotColor = MaterialTheme.soapColors.gray64Button
+                spotColor = MaterialTheme.colorScheme.gray64
             )
     ) {
         Box(
             modifier = Modifier
                 .padding(4.dp)
                 .clip(RoundedCornerShape(28.dp))
-                .background(MaterialTheme.soapColors.surface)
+                .background(MaterialTheme.colorScheme.surface)
                 .height(60.dp)
         ) {
             if (selectedBounds != null) {
@@ -87,7 +87,7 @@ fun WeekDaySelector(
                         .fillMaxHeight()
                         .padding(4.dp)
                         .clip(RoundedCornerShape(28.dp))
-                        .background(if(selectedDate != null) MaterialTheme.soapColors.onSurface else MaterialTheme.soapColors.surface)
+                        .background(if(selectedDate != null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surface)
                 )
             }
 
@@ -105,7 +105,7 @@ fun WeekDaySelector(
                     val textColor = when (day.dayOfWeek) {
                         DayOfWeek.SUNDAY -> Color.Red
                         DayOfWeek.SATURDAY -> Color.Blue
-                        else -> MaterialTheme.soapColors.onSurface
+                        else -> MaterialTheme.colorScheme.onSurface
                     }
 
                     Column(
@@ -131,13 +131,13 @@ fun WeekDaySelector(
                         Text(
                             text = day.dayOfMonth.toString(),
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = if (isSelected) MaterialTheme.soapColors.surface else MaterialTheme.soapColors.onSurface
+                            color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
                         )
 
                         Text(
                             text = day.dayOfWeek.name.take(3).uppercase(),
                             style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                            color = if (isSelected) MaterialTheme.soapColors.surface else textColor
+                            color = if (isSelected) MaterialTheme.colorScheme.surface else textColor
                         )
                     }
                 }
@@ -149,7 +149,7 @@ fun WeekDaySelector(
 @Preview
 @Composable
 private fun WeekDaySelectorPreview() {
-    SoapTheme {
+    Theme {
         val fakeRepository = remember { FakeTaxiRoomRepository() }
         val viewModel = remember { TaxiListViewModel(fakeRepository) }
 

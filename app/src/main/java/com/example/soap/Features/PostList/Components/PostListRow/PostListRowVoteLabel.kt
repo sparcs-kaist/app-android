@@ -21,8 +21,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayF8
 
 @Composable
 fun PostListRowVoteLabel(voteCount: Int){
@@ -31,7 +31,7 @@ fun PostListRowVoteLabel(voteCount: Int){
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.soapColors.grayf8)
+                .background(MaterialTheme.colorScheme.grayF8)
                 .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -57,7 +57,7 @@ fun PostListRowVoteLabel(voteCount: Int){
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.soapColors.grayf8)
+                .background(MaterialTheme.colorScheme.grayF8)
                 .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -83,7 +83,7 @@ fun PostListRowVoteLabel(voteCount: Int){
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         Column{
             PostListRowVoteLabel(20)
             PostListRowVoteLabel(-20)

@@ -2,70 +2,122 @@ package com.example.soap.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
-//이름은 light theme 기준
-data class SoapCustomColors(
-    val primary: Color,
-    val primaryContainer: Color,
-    val background: Color,
-    val surface: Color,
-    val onSurface: Color,
-    val gray0Border: Color,
-    val gray64Button: Color,
-    val darkGray: Color,
-    val grayBB: Color,
-    val grayf8: Color
-)
-
-val LocalSoapCustomColors = staticCompositionLocalOf {
-    lightColors
-}
-
-val lightColors = SoapCustomColors(
-    primary = theme_light_primary,
-    primaryContainer = theme_light_primaryContainer,
-    background = theme_light_background,
-    surface = theme_light_surface,
-    onSurface = theme_light_onSurface,
-    gray0Border = theme_light_lightGray0,
-    gray64Button = theme_light_gray64,
-    grayBB = theme_light_grayBB,
-    grayf8 = theme_light_grayf8,
-    darkGray = Color.DarkGray
-)
-
-//수정 필요
-val darkColors = SoapCustomColors(
+private val DarkColorScheme = darkColorScheme(
     primary = theme_dark_primary,
-    primaryContainer = theme_light_primaryContainer,
+    secondary = theme_dark_secondary,
+    tertiary = theme_dark_tertiary,
+    primaryContainer = theme_dark_primaryContainer,
+    onPrimaryContainer = theme_dark_onPrimaryContainer,
+    secondaryContainer = theme_dark_secondaryContainer,
+    onSecondaryContainer = theme_dark_onSecondaryContainer,
+    tertiaryContainer = theme_dark_tertiaryContainer,
+    onTertiaryContainer = theme_dark_onTertiaryContainer,
+    error = theme_dark_error,
+    errorContainer = theme_dark_errorContainer,
+    onError = theme_dark_onError,
+    onErrorContainer = theme_dark_onErrorContainer,
     background = theme_dark_background,
     surface = theme_dark_surface,
+    onPrimary = theme_dark_onPrimary,
+    onSecondary = theme_dark_onSecondary,
+    onTertiary = theme_dark_onTertiary,
+    onBackground = theme_dark_onBackground,
     onSurface = theme_dark_onSurface,
-    gray0Border = Color(0xFF444444),
-    gray64Button = Color(0xFF888888),
-    grayBB = Color.Gray,
-    grayf8 = Color.Gray,
-    darkGray = Color.LightGray
+    scrim = theme_dark_scrim,
+
+    surfaceVariant = theme_dark_surfaceVariant,
+    onSurfaceVariant = theme_dark_onSurfaceVariant,
+    outline = theme_dark_outline,
+    outlineVariant = theme_dark_outlineVariant,
+    inversePrimary = theme_dark_inversePrimary,
+    surfaceTint = theme_dark_surfaceTint,
+    inverseSurface = theme_dark_inverseSurface,
+    inverseOnSurface = theme_dark_inverseOnSurface,
+
+    surfaceBright = theme_dark_surfaceBright,
+    surfaceContainer = theme_dark_surfaceContainer,
+    surfaceContainerHigh = theme_dark_surfaceContainerHigh,
+    surfaceContainerHighest = theme_dark_surfaceContainerHighest,
+    surfaceContainerLow = theme_dark_surfaceContainerLow,
+    surfaceContainerLowest = theme_dark_surfaceContainerLowest,
+    surfaceDim = theme_dark_surfaceDim,
 )
 
+private val LightColorScheme = lightColorScheme(
+    primary = theme_light_primary,
+    secondary = theme_light_secondary,
+    tertiary = theme_light_tertiary,
+    primaryContainer = theme_light_primaryContainer,
+    onPrimaryContainer = theme_light_onPrimaryContainer,
+    secondaryContainer = theme_light_secondaryContainer,
+    onSecondaryContainer = theme_light_onSecondaryContainer,
+    tertiaryContainer = theme_light_tertiaryContainer,
+    onTertiaryContainer = theme_light_onTertiaryContainer,
+    error = theme_light_error,
+    errorContainer = theme_light_errorContainer,
+    onError = theme_light_onError,
+    onErrorContainer = theme_light_onErrorContainer,
+    background = theme_light_background,
+    surface = theme_light_surface,
+    onPrimary = theme_light_onPrimary,
+    onSecondary = theme_light_onSecondary,
+    onTertiary = theme_light_onTertiary,
+    onBackground = theme_light_onBackground,
+    onSurface = theme_light_onSurface,
+    scrim = theme_light_scrim,
 
-private val DarkColorScheme = darkColorScheme()
+    surfaceVariant = theme_light_surfaceVariant,
+    onSurfaceVariant = theme_light_onSurfaceVariant,
+    outline = theme_light_outline,
+    outlineVariant = theme_light_outlineVariant,
+    inversePrimary = theme_light_inversePrimary,
+    surfaceTint = theme_light_surfaceTint,
+    inverseSurface = theme_light_inverseSurface,
+    inverseOnSurface = theme_light_inverseOnSurface,
 
-private val LightColorScheme = lightColorScheme()
+    surfaceBright = theme_light_surfaceBright,
+    surfaceContainer = theme_light_surfaceContainer,
+    surfaceContainerHigh = theme_light_surfaceContainerHigh,
+    surfaceContainerHighest = theme_light_surfaceContainerHighest,
+    surfaceContainerLow = theme_light_surfaceContainerLow,
+    surfaceContainerLowest = theme_light_surfaceContainerLowest,
+    surfaceDim = theme_light_surfaceDim,
+)
+
+val ColorScheme.lightGray0: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) theme_dark_lightGray0 else theme_light_lightGray0
+
+val ColorScheme.gray64: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) theme_dark_gray64 else theme_light_gray64
+
+val ColorScheme.grayBB: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) theme_dark_grayBB else theme_light_grayBB
+
+val ColorScheme.grayF8: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) theme_dark_grayF8 else theme_light_grayF8
+
+val ColorScheme.darkGray: Color
+    @Composable
+    get() = if (isSystemInDarkTheme()) theme_dark_darkGray else theme_light_darkGray
+
 
 
 @Composable
-fun SoapTheme(
+fun Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
@@ -80,18 +132,9 @@ fun SoapTheme(
         else -> LightColorScheme
     }
 
-    val customColors = if (darkTheme) darkColors else lightColors
-
-
-    CompositionLocalProvider(LocalSoapCustomColors provides customColors) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = Typography,
-            content = content
-        )
-    }
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = Typography,
+        content = content
+    )
 }
-
-val MaterialTheme.soapColors: SoapCustomColors
-    @Composable
-    get() = LocalSoapCustomColors.current

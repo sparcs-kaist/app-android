@@ -12,8 +12,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
 
 @Composable
 fun NotificationButton(){
@@ -24,7 +24,7 @@ fun NotificationButton(){
         Icon(
             painter = painterResource(R.drawable.notification),
             contentDescription = "Menu",
-            tint = MaterialTheme.soapColors.darkGray,
+            tint = MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(30.dp)
         )
     }
@@ -39,7 +39,7 @@ fun SettingButton() {
         Icon(
             painter = painterResource(R.drawable.more_horiz),
             contentDescription = "Menu",
-            tint = MaterialTheme.soapColors.darkGray,
+            tint = MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(30.dp)
         )
     }
@@ -57,7 +57,7 @@ fun AddButton(
         Icon(
             painter = painterResource(R.drawable.round_add),
             contentDescription = contentDescription,
-            tint = MaterialTheme.soapColors.darkGray,
+            tint = MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(30.dp)
         )
 
@@ -73,7 +73,7 @@ fun ChatButton(){
         Icon(
             painter = painterResource(R.drawable.chat_bubble_outline),
             contentDescription = "chat",
-            tint = MaterialTheme.soapColors.darkGray,
+            tint = MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(30.dp)
         )
 
@@ -89,7 +89,7 @@ fun SearchButton() {
         Icon(
             painter = painterResource(R.drawable.search),
             contentDescription = "Search",
-            tint = MaterialTheme.soapColors.darkGray,
+            tint = MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(28.dp)
         )
     }
@@ -104,7 +104,7 @@ fun DismissButton(onClick: () -> Unit) {
         Icon(
             painter = painterResource(R.drawable.arrow_back_ios),
             contentDescription = "Cancel",
-            tint = MaterialTheme.soapColors.darkGray
+            tint = MaterialTheme.colorScheme.darkGray
         )
     }
 }
@@ -112,7 +112,7 @@ fun DismissButton(onClick: () -> Unit) {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         SearchButton()
     }
 }

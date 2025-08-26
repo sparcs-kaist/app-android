@@ -23,8 +23,7 @@ import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mockList
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 @Composable
 fun HomeView(navController: NavController){
@@ -48,7 +47,7 @@ fun HomeView(navController: NavController){
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.soapColors.background)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {
@@ -76,5 +75,5 @@ fun HomeView(navController: NavController){
 @Preview
 @Composable
 private fun Preview(){
-    SoapTheme { HomeView(rememberNavController()) }
+    Theme { HomeView(rememberNavController()) }
 }

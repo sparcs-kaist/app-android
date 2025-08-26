@@ -28,7 +28,8 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.Features.Timetable.TimetableViewModel
+import com.example.soap.Domain.Enums.DayType
+import com.example.soap.Domain.Helpers.TimetableConstructor
 import com.example.soap.Domain.Models.TimeTable.Lecture
 import com.example.soap.Domain.Models.TimeTable.Timetable
 import com.example.soap.Domain.Models.TimeTable.duration
@@ -36,11 +37,10 @@ import com.example.soap.Domain.Models.TimeTable.getLectures
 import com.example.soap.Domain.Models.TimeTable.maxMinutes
 import com.example.soap.Domain.Models.TimeTable.minMinutes
 import com.example.soap.Domain.Models.TimeTable.visibleDays
-import com.example.soap.Domain.Enums.DayType
-import com.example.soap.Domain.Helpers.TimetableConstructor
+import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.Shared.Mocks.mockList
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun TimetableGrid(
@@ -61,7 +61,7 @@ fun TimetableGrid(
 
         Card(
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             modifier = Modifier.height(448.dp)
         ) {
             Column(Modifier.verticalScroll(scrollState)){
@@ -131,7 +131,7 @@ fun GridHorizontalLines(
 
     val totalLines = maxHour - minHour + 1
 
-    val lineColor = MaterialTheme.soapColors.grayBB
+    val lineColor = MaterialTheme.colorScheme.grayBB
     val dashEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
 
 
@@ -188,7 +188,7 @@ fun DaysColumnHeader(days: List<DayType>) {
                     text = day.stringValue,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.soapColors.onSurface
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -237,7 +237,7 @@ private fun Preview() {
         }
     }
 
-    SoapTheme {
+    Theme {
         TimetableGrid(viewModel = mockViewModel, selectedLecture = {})
     }
 }

@@ -1,18 +1,16 @@
 package com.example.soap.Domain.Helpers
 
-import java.net.URL
-
 object Constants {
     // MARK: Authorization
-    val authorizationURL: URL = URL("http://10.251.1.14:3000/api/auth/sparcsapp/login/")
+    val authorizationURL = "https://taxi.dev.sparcs.org/api/auth/sparcsapp/login?codeChallenge="
 
     // MARK: Taxi
-    val taxiBackendURL: URL = URL("http://10.251.1.14:3000/api/")
-    val taxiSocketURL: URL = URL("http://10.251.1.14:3000/")
-    val taxiChatImageURL: URL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/chat-img/")
+    val taxiBackendURL = "https://taxi.dev.sparcs.org/api/"
+    val taxiSocketURL = "https://taxi.dev.sparcs.org/"
+    val taxiChatImageURL = "https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/chat-img/"
 
     // MARK: Ara
-    val araBackendURL: URL = URL("https://newara.dev.sparcs.org/api/")
+    val araBackendURL = "https://newara.dev.sparcs.org/api/"
 
     val taxiBankNameList: List<String> = listOf(
         "NH농협",

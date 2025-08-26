@@ -23,8 +23,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.grayBB
 
 
 @Composable
@@ -55,11 +56,11 @@ fun BoardRecentSection(
                 painter = painterResource(R.drawable.arrow_forward_ios),
                 contentDescription = "Go to $title Board",
                 modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.soapColors.darkGray
+                tint = MaterialTheme.colorScheme.darkGray
             )
         }
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ){
@@ -79,7 +80,7 @@ fun BoardRecentSection(
                         Text(
                             text = "Lorem ipsum\t13 min ago",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.soapColors.grayBB
+                            color = MaterialTheme.colorScheme.grayBB
                         )
                     }
                 }
@@ -91,7 +92,7 @@ fun BoardRecentSection(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         BoardRecentSection("title", clickAction = {})
     }
 }

@@ -19,8 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 //Todo : 로딩창
 
@@ -28,7 +27,7 @@ import com.example.soap.ui.theme.soapColors
 fun TimetableSummary() {
 
     Card(
-        colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -113,5 +112,5 @@ fun BigSummary(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TimetableSummary() }
+    Theme { TimetableSummary() }
 }

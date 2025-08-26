@@ -14,8 +14,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Features.NavigationBar.Components.DismissButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Shared.Mocks.mock
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +34,7 @@ fun TaxiChatViewNavigationBar(
         },
         actions = { SettingButton() },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.soapColors.background
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
@@ -43,6 +42,6 @@ fun TaxiChatViewNavigationBar(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiChatViewNavigationBar(TaxiRoom.mock()) }
+    Theme { TaxiChatViewNavigationBar(TaxiRoom.mock()) }
 }
 
