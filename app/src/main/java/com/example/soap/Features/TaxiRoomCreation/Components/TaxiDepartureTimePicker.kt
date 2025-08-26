@@ -47,8 +47,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Enums.DayType
 import com.example.soap.Shared.Extensions.toLocalDate
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.grayF8
+import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -96,7 +99,7 @@ fun TaxiDepartureTimePicker(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.soapColors.gray0Border)
+                        .background(MaterialTheme.colorScheme.lightGray0)
                         .clickable {
                             showDatePicker = !showDatePicker
                             showTimePicker = false
@@ -105,7 +108,7 @@ fun TaxiDepartureTimePicker(
                 ) {
                     Text(
                         dateText.value,
-                        color = if (showDatePicker) MaterialTheme.soapColors.primary else MaterialTheme.colorScheme.onSurface
+                        color = if (showDatePicker) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
 
@@ -114,7 +117,7 @@ fun TaxiDepartureTimePicker(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.soapColors.gray0Border)
+                        .background(MaterialTheme.colorScheme.lightGray0)
                         .clickable {
                             showTimePicker = !showTimePicker
                             showDatePicker = false
@@ -123,7 +126,7 @@ fun TaxiDepartureTimePicker(
                 ) {
                     Text(
                         timeText.value,
-                        color = if (showTimePicker) MaterialTheme.soapColors.primary else MaterialTheme.colorScheme.onSurface
+                        color = if (showTimePicker) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -254,7 +257,7 @@ fun PickerWheel(
                     .fillMaxWidth()
                     .height(itemHeight)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.soapColors.grayBB.copy(alpha = 0.3f))
+                    .background(MaterialTheme.colorScheme.grayBB.copy(alpha = 0.3f))
             )
         }
 
@@ -288,7 +291,7 @@ fun CustomDatePicker(
 
     Column(
         modifier = Modifier
-            .background(MaterialTheme.soapColors.surface)
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .animateContentSize()
     ) {
@@ -304,7 +307,7 @@ fun CustomDatePicker(
                     modifier = Modifier
                         .padding(end = 8.dp)
                         .size(15.dp),
-                    tint =MaterialTheme.soapColors.grayBB
+                    tint =MaterialTheme.colorScheme.grayBB
                 )
                 Text(
                     "날짜 : ${selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))}",
@@ -323,7 +326,7 @@ fun CustomDatePicker(
                     color = when (dayType) {
                         DayType.SUN -> Color.Red
                         DayType.SAT -> Color.Blue
-                        else -> MaterialTheme.soapColors.onSurface
+                        else -> MaterialTheme.colorScheme.onSurface
                     },
                     modifier = Modifier.weight(1f),
                     textAlign = TextAlign.Center
@@ -341,17 +344,17 @@ fun CustomDatePicker(
                     val dayType = DayType.fromValue(day.dayOfWeek.value % 7)
 
                     val bgColor = when {
-                        isSelected -> MaterialTheme.soapColors.primary
-                        isDisabled -> MaterialTheme.soapColors.grayBB
-                        else -> MaterialTheme.soapColors.grayf8
+                        isSelected -> MaterialTheme.colorScheme.primary
+                        isDisabled -> MaterialTheme.colorScheme.grayBB
+                        else -> MaterialTheme.colorScheme.grayF8
                     }
 
                     val textColor = when {
-                        isDisabled -> MaterialTheme.soapColors.darkGray
-                        isSelected -> MaterialTheme.soapColors.surface
+                        isDisabled -> MaterialTheme.colorScheme.darkGray
+                        isSelected -> MaterialTheme.colorScheme.surface
                         dayType == DayType.SUN -> Color.Red
                         dayType == DayType.SAT -> Color.Blue
-                        else -> MaterialTheme.soapColors.onSurface
+                        else -> MaterialTheme.colorScheme.onSurface
                     }
 
                     val dot = day == today
@@ -382,7 +385,7 @@ fun CustomDatePicker(
                                     modifier = Modifier
                                         .size(4.dp)
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.soapColors.primary.copy(0.5f))
+                                        .background(MaterialTheme.colorScheme.surfaceContainer)
                                 )
                             }
                         }
@@ -399,8 +402,8 @@ fun CustomDatePicker(
 @Composable
 @Preview
 private fun Preview() {
-    SoapTheme {
-        Box(Modifier.background(MaterialTheme.soapColors.surface)){
+    Theme {
+        Box(Modifier.background(MaterialTheme.colorScheme.surface)){
             var time by remember {
                 mutableStateOf(
                     Date.from(

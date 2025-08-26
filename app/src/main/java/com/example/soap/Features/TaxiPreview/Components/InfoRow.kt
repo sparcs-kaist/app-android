@@ -16,15 +16,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun InfoRow(
     label: String,
     value: String,
-    labelColor: Color = MaterialTheme.soapColors.grayBB,
-    valueColor: Color = MaterialTheme.soapColors.onSurface,
+    labelColor: Color = MaterialTheme.colorScheme.grayBB,
+    valueColor: Color = MaterialTheme.colorScheme.onSurface,
     trailingIcon: Int? = null
 ) {
     Row(
@@ -50,7 +51,7 @@ fun InfoRow(
                 Image(
                     painter = painterResource(trailingIcon),
                     contentDescription = null,
-                    colorFilter = ColorFilter.tint(MaterialTheme.soapColors.darkGray),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.darkGray),
                     modifier = Modifier.size(15.dp)
                 )
             }
@@ -62,5 +63,5 @@ fun InfoRow(
 @Composable
 @Preview
 private fun Preview() {
-    SoapTheme { InfoRow(label = "label", value = "value",  trailingIcon= R.drawable.arrow_forward_ios) }
+    Theme { InfoRow(label = "label", value = "value",  trailingIcon= R.drawable.arrow_forward_ios) }
 }

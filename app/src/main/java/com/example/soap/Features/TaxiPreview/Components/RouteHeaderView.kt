@@ -6,7 +6,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.soap.R
 import com.example.soap.Shared.Views.TaxiRoomCell.IconText
-import com.example.soap.ui.theme.SoapTheme
+import com.example.soap.ui.theme.Theme
 
 @Composable
 fun RouteHeaderView(
@@ -28,5 +28,5 @@ fun RouteHeaderView(
 @Composable
 @Preview
 private fun Preview() {
-    SoapTheme { RouteHeaderView(source = "Seoul", destination = "Busan") }
+    Theme { RouteHeaderView(source = "Seoul", destination = "Busan") }
 }

@@ -24,8 +24,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
 
 @Composable
 fun BoardsSection() {
@@ -52,13 +52,13 @@ fun BoardsSection() {
                 painter = painterResource(R.drawable.arrow_forward_ios),
                 contentDescription = "Go to Boards",
                 modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.soapColors.darkGray
+                tint = MaterialTheme.colorScheme.darkGray
             )
 
         }
 
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ){
@@ -73,7 +73,7 @@ fun BoardsSection() {
                             text = "Board",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.soapColors.onSurface,
+                            color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.padding(end = 12.dp)
                         )
                         Text(
@@ -92,5 +92,5 @@ fun BoardsSection() {
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { BoardsSection() }
+    Theme { BoardsSection() }
 }

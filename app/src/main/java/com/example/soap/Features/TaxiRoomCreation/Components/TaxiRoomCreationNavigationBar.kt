@@ -20,8 +20,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.soap.Features.NavigationBar.Components.DismissButton
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +54,7 @@ fun TaxiRoomCreationNavigationBar(
             )
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.soapColors.background
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }
@@ -85,7 +85,7 @@ private fun SendButton(
             text = stringResource(R.string.submit),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Normal,
-            color = if (isEnabled) MaterialTheme.soapColors.primary else MaterialTheme.soapColors.grayBB
+            color = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
         )
     }
 }
@@ -94,6 +94,6 @@ private fun SendButton(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme { TaxiRoomCreationNavigationBar({}, false) }
+    Theme { TaxiRoomCreationNavigationBar({}, false) }
 }
 

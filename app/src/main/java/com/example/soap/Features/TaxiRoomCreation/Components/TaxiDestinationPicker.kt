@@ -33,8 +33,8 @@ import com.example.soap.R
 import com.example.soap.Shared.Extensions.LocalizedText
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.lightGray0
 
 @Composable
 fun TaxiDestinationPicker(
@@ -74,7 +74,7 @@ fun TaxiDestinationPicker(
             modifier = Modifier
                 .padding(horizontal = 4.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.soapColors.gray0Border)
+                .background(MaterialTheme.colorScheme.lightGray0)
                 .graphicsLayer {
                     rotationX = if (isFlipped) 180f else 0f
                 }
@@ -89,7 +89,7 @@ fun TaxiDestinationPicker(
             Icon(
                 painter = painterResource(R.drawable.round_swap_calls),
                 contentDescription = "Swap",
-                tint = MaterialTheme.soapColors.primary
+                tint = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -116,9 +116,9 @@ fun LocationMenu(
         Text(
             text = (selection?.title ?: "Select location").toString(),
             color = if (selection != null)
-                MaterialTheme.soapColors.onSurface
+                MaterialTheme.colorScheme.onSurface
             else
-                MaterialTheme.soapColors.gray0Border
+                MaterialTheme.colorScheme.lightGray0
         )
 
         Icon(
@@ -130,7 +130,7 @@ fun LocationMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = { expanded = false },
-        modifier = Modifier.background(MaterialTheme.soapColors.surface),
+        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp)
     ) {
         DropdownMenuItem(
@@ -157,7 +157,7 @@ fun LocationMenu(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         TaxiDestinationPicker(
             source = TaxiLocation.mock(),
             onSourceChange = { },

@@ -21,8 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
 
 @Composable
 fun BoardList(
@@ -42,7 +41,7 @@ fun BoardList(
             Icon(
                 painter = icon,
                 contentDescription = null,
-                tint = MaterialTheme.soapColors.onSurface
+                tint = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(Modifier.padding(4.dp))
@@ -54,7 +53,7 @@ fun BoardList(
             )
         }
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.soapColors.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ){
@@ -75,5 +74,5 @@ fun BoardList(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme{ BoardList(title = "title", icon = painterResource(R.drawable.baseline_drafts), listOf{}) }
+    Theme{ BoardList(title = "title", icon = painterResource(R.drawable.baseline_drafts), listOf{}) }
 }

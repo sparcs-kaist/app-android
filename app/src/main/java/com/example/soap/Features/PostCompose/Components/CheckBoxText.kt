@@ -13,8 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.ui.theme.SoapTheme
-import com.example.soap.ui.theme.soapColors
+import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.darkGray
 
 
 @Composable
@@ -31,7 +31,7 @@ fun CheckBoxText(
             Checkbox(
                 checked = isChecked,
                 onCheckedChange = onCheckedChange,
-                colors = CheckboxDefaults.colors(MaterialTheme.soapColors.darkGray),
+                colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.darkGray),
                 modifier = Modifier.padding(8.dp)
             )
             Text(
@@ -45,7 +45,7 @@ fun CheckBoxText(
 @Composable
 @Preview
 private fun Preview(){
-    SoapTheme {
+    Theme {
         CheckBoxText(
             text = "Text",
             isChecked = false,
