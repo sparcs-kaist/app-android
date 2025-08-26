@@ -27,8 +27,7 @@ import androidx.compose.ui.unit.dp
 fun TaxiChatBubble(
     content: String,
     showTip: Boolean,
-    isMe: Boolean,
-    modifier: Modifier = Modifier
+    isMe: Boolean
 ) {
     var selectedUrl by remember { mutableStateOf<String?>(null) }
     val uriHandler = LocalUriHandler.current
@@ -70,8 +69,7 @@ fun TaxiChatBubble(
 
     Surface(
         shape = bubbleShape,
-        color = backgroundColor,
-        modifier = modifier
+        color = backgroundColor
     ) {
         Text(
             text = annotatedString,
