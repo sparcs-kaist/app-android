@@ -15,4 +15,6 @@ data class TaxiChatGroup(
     val time: Date,       // to display time
     val isMe: Boolean,    // if sender of chats is me
     val isGeneral: Boolean // if chat type is entrance/exit, no user wrapper shown
-)
+){
+    companion object {}
+}
