@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiChat
 
+import android.graphics.Bitmap
 import com.example.soap.Domain.Models.Taxi.TaxiChat
 import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
@@ -14,7 +15,7 @@ interface TaxiChatViewModelProtocol {
     val groupedChats: StateFlow<List<TaxiChatGroup>>
     val taxiUser: StateFlow<TaxiUser?>
     var fetchedDateSet: MutableSet<java.util.Date>
-    val room: TaxiRoom
+    val room: StateFlow<TaxiRoom>
     val isUploading: StateFlow<Boolean>
 
     // MARK: - Computed Properties
@@ -31,5 +32,5 @@ interface TaxiChatViewModelProtocol {
     suspend fun leaveRoom()
     suspend fun commitSettlement()
     suspend fun commitPayment()
-    suspend fun sendImage(image: android.graphics.Bitmap)
+    suspend fun sendImage(image: Bitmap)
 }
