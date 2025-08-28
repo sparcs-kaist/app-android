@@ -2,6 +2,7 @@ package com.example.soap.Features.TaxiChat.Components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -24,7 +25,7 @@ import java.util.Date
 @Composable
 fun TaxiChatImageBubble(
     id: String,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     val context = LocalContext.current
     val imageUrl = Constants.taxiChatImageURL + id
@@ -39,7 +40,7 @@ fun TaxiChatImageBubble(
     val imageState = painter.state
 
     Box(
-        modifier = modifier
+        modifier = Modifier
             .clip(RoundedCornerShape(24.dp))
     ) {
         if (imageState is AsyncImagePainter.State.Success) {
@@ -50,6 +51,9 @@ fun TaxiChatImageBubble(
                 modifier = Modifier
                     .heightIn(max = 360.dp)
                     .fillMaxWidth()
+                    .clickable {
+                        onClick()
+                    }
             )
         } else {
             Box(
@@ -76,6 +80,6 @@ private fun Preview() {
         isGeneral = false,
         isWithdrawn = false
     ) {
-        TaxiChatImageBubble(id = "688714fb95fce20ddc8f19da")
+        TaxiChatImageBubble(id = "688714fb95fce20ddc8f19da", {})
     }
 }
