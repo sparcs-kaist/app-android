@@ -6,15 +6,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.soap.Domain.Models.Taxi.TaxiChat
 
 @Composable
 fun TaxiChatGeneralMessage(
     authorName: String?,
-    type: ChatType
+    type: TaxiChat.ChatType
 ) {
     val displayName = authorName ?: "unknown"
     when (type) {
-        ChatType.Entrance -> {
+        TaxiChat.ChatType.ENTRANCE -> {
             Text(
                 text = "$displayName has joined",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -22,7 +23,7 @@ fun TaxiChatGeneralMessage(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-        ChatType.Exit -> {
+        TaxiChat.ChatType.EXIT -> {
             Text(
                 text = "$displayName has left",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -34,15 +35,11 @@ fun TaxiChatGeneralMessage(
     }
 }
 
-enum class ChatType {
-    Entrance, Exit, Other
-}
-
 @Preview
 @Composable
 private fun Preview() {
     Column {
-        TaxiChatGeneralMessage("testuser", ChatType.Entrance)
-        TaxiChatGeneralMessage("testuser", ChatType.Exit)
+        TaxiChatGeneralMessage("testuser", TaxiChat.ChatType.ENTRANCE)
+        TaxiChatGeneralMessage("testuser", TaxiChat.ChatType.EXIT)
     }
 }

@@ -2,8 +2,10 @@ package com.example.soap.Domain.Models.Taxi
 
 import java.net.URL
 import java.util.Date
+import java.util.UUID
 
 data class TaxiChat(
+    val id: UUID = UUID.randomUUID(),
     val roomID: String,
     val type: ChatType,
     val authorID: String?,
@@ -34,6 +36,7 @@ data class TaxiChat(
 
         UNKNOWN("unknown");
 
-        companion object {}
     }
+
+    companion object {}
 }
