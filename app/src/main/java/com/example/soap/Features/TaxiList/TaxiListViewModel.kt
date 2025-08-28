@@ -26,7 +26,7 @@ class TaxiListViewModel @Inject constructor(
 ) : ViewModel(),TaxiListViewModelProtocol {
 
     sealed class ViewState {
-        object Loading : ViewState()
+        data object Loading : ViewState()
         data class Loaded(val rooms: List<TaxiRoom>, val locations: List<TaxiLocation>) : ViewState()
         data class Empty(val locations: List<TaxiLocation>) : ViewState()
         data class Error(val message: String) : ViewState()
