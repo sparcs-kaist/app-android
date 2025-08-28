@@ -10,6 +10,7 @@ import com.example.soap.Features.TaxiChat.TaxiChatViewModelProtocol
 import com.example.soap.Shared.Mocks.mock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import java.util.Date
 
 class MockTaxiChatViewModel(
@@ -17,10 +18,14 @@ class MockTaxiChatViewModel(
     initialGroupedChats: List<TaxiChatGroup> = emptyList(),
     initialTaxiUser: TaxiUser? = null,
     initialUploading: Boolean = false,
-    override val room: TaxiRoom = TaxiRoom.mock()
+    initialRoom: TaxiRoom = TaxiRoom.mock()
 ) : TaxiChatViewModelProtocol {
 
     // MARK: - ViewModel Properties
+
+    private val _room = MutableStateFlow(initialRoom)
+    override val room: StateFlow<TaxiRoom> = _room.asStateFlow()
+
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<TaxiChatViewModel.ViewState> = _state
 
