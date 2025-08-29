@@ -122,8 +122,13 @@ fun TaxiChatView(
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        viewModel.setup()
-        viewModel.fetchInitialChats()
+        try {
+            viewModel.setup()
+            viewModel.fetchInitialChats()
+        } catch (e: Exception) {
+            errorMessage = e.message ?: "Failed to load chats"
+            showErrorAlert = true
+        }
     }
 
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
@@ -162,6 +167,9 @@ fun TaxiChatView(
                         try {
                             isUploading = true
                             viewModel.sendImage(image)
+                        } catch (e: Exception) {
+                            errorMessage = e.localizedMessage ?: "Unknown error"
+                            showErrorAlert = true
                         } finally {
                             isUploading = false
                             selectedImage = null
@@ -283,7 +291,6 @@ fun ContentView(
     val coroutineScope = rememberCoroutineScope()
     val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
     val listState = rememberLazyListState()
-
 
     LaunchedEffect(groupedChats.size) {
         if (groupedChats.isNotEmpty()) {
