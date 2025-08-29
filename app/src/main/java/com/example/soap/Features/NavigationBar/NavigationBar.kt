@@ -146,7 +146,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Channel.TaxiChatView.name
             ) {
-                TaxiChatView(taxiChatMockViewModel)
+                TaxiChatView(taxiChatMockViewModel, navController)
             }
 
             composable(
