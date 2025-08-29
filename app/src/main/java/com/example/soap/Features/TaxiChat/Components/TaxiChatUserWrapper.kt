@@ -98,7 +98,7 @@ fun TaxiChatUserWrapper(
 @Composable
 fun UserProfileImage(url: URL?) {
     if (url != null) {
-        val painter = rememberAsyncImagePainter(url)
+        val painter = rememberAsyncImagePainter(url.toString())
         Image(
             painter = painter,
             contentDescription = "Profile Image",
