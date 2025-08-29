@@ -132,7 +132,7 @@ class TaxiChatUseCase @Inject constructor(
         if (chats.isEmpty()) return emptyList()
 
         val result = mutableListOf<TaxiChatGroup>()
-        var currentGroup = mutableListOf<TaxiChat>()
+        val currentGroup = mutableListOf<TaxiChat>()
 
         fun flushGroup() {
             if (currentGroup.isNotEmpty()) {
