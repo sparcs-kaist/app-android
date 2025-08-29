@@ -73,6 +73,7 @@ fun TaxiChatBubble(
     ) {
         Text(
             text = annotatedString,
+            style = MaterialTheme.typography.bodyMedium,
             color = contentColor,
             modifier = Modifier
                 .padding(12.dp)
