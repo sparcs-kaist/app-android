@@ -10,15 +10,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Features.SafariViewWrapper.SafariViewWrapper
 
 @Composable
 fun TaxiChatBubble(
@@ -26,7 +29,7 @@ fun TaxiChatBubble(
     showTip: Boolean,
     isMe: Boolean
 ) {
-    val uriHandler = LocalUriHandler.current
+    var selectedUrl by remember { mutableStateOf<String?>(null) }
 
     val backgroundColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
     val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
@@ -77,13 +80,17 @@ fun TaxiChatBubble(
                     onClick = {
                         annotatedString.getStringAnnotations(tag = "URL", start = 0, end = annotatedString.length)
                             .firstOrNull()?.let { stringAnnotation ->
-                                uriHandler.openUri(stringAnnotation.item)
+                                selectedUrl = stringAnnotation.item
                             }
                     },
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 )
         )
+    }
+
+    selectedUrl?.let { url ->
+        SafariViewWrapper(url) { selectedUrl = null }
     }
 }
 
