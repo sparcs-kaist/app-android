@@ -1,7 +1,9 @@
 package com.example.soap.Features.Settings
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Spacer
@@ -46,31 +48,55 @@ fun SettingsView(
         ) {
             item {
                 Text("Miscellaneous", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(8.dp))
-                Button(
-                    onClick = {
-                        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                            data = Uri.parse("package:${context.packageName}")
-                        }
-                        context.startActivity(intent)
-                    },
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                ) {
-                    Icon(painter = painterResource(R.drawable.round_public), contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text("Change Language")
-                }
+                AppSettings(context)
             }
 
             item {
                 Text("Services", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(8.dp))
 
-                ServiceNavButton("Ara") { navController.navigate("ara_settings") }
-                ServiceNavButton("Taxi") { navController.navigate("taxi_settings") }
-                ServiceNavButton("OTL") { navController.navigate("otl_settings") }
+                ServiceNavButton("Ara") { /*navigate to Ara Setting*/ }
+                ServiceNavButton("Taxi") { /*navigate to Taxi Setting*/ }
+                ServiceNavButton("OTL") { /*navigate to OTL Setting*/ }
             }
         }
     }
 }
+
+@Composable
+fun AppSettings(context: Context){
+    Button(
+        onClick = {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                try {
+                    // Android 13 이상: 앱 언어 변경 화면
+                    val action = Settings::class.java.getField("ACTION_APP_LOCALE_SETTINGS").get(null) as String
+                    val intent = Intent(action).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    val intent = Intent(Settings.ACTION_LOCALE_SETTINGS).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                }
+            } else {
+                // Android 12 이하: 시스템 언어 변경 화면
+                val intent = Intent(Settings.ACTION_LOCALE_SETTINGS).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            }
+        },
+        modifier = Modifier.padding(horizontal = 8.dp)
+    ) {
+        Icon(painter = painterResource(R.drawable.round_public), contentDescription = null)
+        Spacer(Modifier.width(8.dp))
+        Text("Change Language")
+    }
+}
+
 
 @Composable
 fun ServiceNavButton(name: String, onClick: () -> Unit) {
