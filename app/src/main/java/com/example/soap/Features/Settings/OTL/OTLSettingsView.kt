@@ -18,6 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Features.Settings.SettingsViewModel
 import com.example.soap.Features.Settings.SettingsViewModelProtocol
 import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
 import com.example.soap.ui.theme.Theme
@@ -79,6 +80,6 @@ fun MajorPicker(
 @Preview
 private fun Preview() {
     Theme {
-        OTLSettingsView(MockSettingsViewModel())
+        OTLSettingsView(MockSettingsViewModel(SettingsViewModel.ViewState.Loaded))
     }
 }
