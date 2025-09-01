@@ -5,8 +5,9 @@ import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Features.Settings.SettingsViewModel
 import com.example.soap.Features.Settings.SettingsViewModelProtocol
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
-class MockSettingsViewModel : SettingsViewModelProtocol {
+class MockSettingsViewModel(initialState: SettingsViewModel.ViewState) : SettingsViewModelProtocol {
 
     // MARK: - Properties
     override var araAllowNSFWPosts = mutableStateOf(false)
@@ -23,7 +24,8 @@ class MockSettingsViewModel : SettingsViewModelProtocol {
 
     override val taxiUser = MutableStateFlow<TaxiUser?>(null)
 
-    override var taxiState: MutableStateFlow<SettingsViewModel.ViewState> = MutableStateFlow(SettingsViewModel.ViewState.Loaded)
+    private val _taxiState = MutableStateFlow(initialState)
+    override val taxiState: StateFlow<SettingsViewModel.ViewState> = _taxiState
 
     // MARK: - Functions
     override suspend fun fetchTaxiUser() {}

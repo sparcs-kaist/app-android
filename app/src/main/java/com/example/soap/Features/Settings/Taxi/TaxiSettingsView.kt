@@ -35,6 +35,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -44,6 +45,7 @@ import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Features.Settings.Components.RowElementView
 import com.example.soap.Features.Settings.SettingsViewModel
 import com.example.soap.Features.Settings.SettingsViewModelProtocol
+import com.example.soap.R
 import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
 import com.example.soap.ui.theme.Theme
 import kotlinx.coroutines.launch
@@ -80,6 +82,9 @@ fun TaxiSettingsView(
             },
             enabled = isValid(viewModel)
         ) {
+            Icon(
+                painter = painterResource(R.drawable.round_check),
+                contentDescription = null)
             Text("Done")
         }
     }
@@ -90,7 +95,7 @@ fun TaxiSettingsView(
 }
 
 @Composable
-fun LoadingView() {
+private fun LoadingView() {
     Column {
         RowElementView(title = "Nickname", content = "Unknown")
         RowElementView(title = "Bank Account", content = "Unknown")
@@ -98,7 +103,7 @@ fun LoadingView() {
 }
 
 @Composable
-fun LoadedView(viewModel: SettingsViewModelProtocol, navController: NavController, onOpenUrl: (String) -> Unit) {
+private fun LoadedView(viewModel: SettingsViewModelProtocol, navController: NavController, onOpenUrl: (String) -> Unit) {
     Column {
         Text("Profile", style = MaterialTheme.typography.titleMedium)
         RowElementView(title = "Nickname", content = viewModel.taxiUser.value?.nickname ?: "Unknown")
@@ -112,7 +117,7 @@ fun LoadedView(viewModel: SettingsViewModelProtocol, navController: NavControlle
         OutlinedTextField(
             value = viewModel.taxiBankNumber.value,
             onValueChange = { viewModel.taxiBankNumber.value = it },
-            label = { Text("Bank Number") },
+            label = { Text("Enter Bank Number") },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -122,7 +127,7 @@ fun LoadedView(viewModel: SettingsViewModelProtocol, navController: NavControlle
         NavigationLinkWithIcon({}, "Report Details", Icons.Default.Warning)
         NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Terms of Service", Icons.AutoMirrored.Filled.List)
         NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Privacy Policy", Icons.AutoMirrored.Filled.List)
-    }
+    }//Todo - ? ScrollableTextView("taxi_privacy_policy")?
 }
 
 @Composable
@@ -212,9 +217,7 @@ private fun BankPicker(
 @Preview
 @Composable
 private fun PreviewTaxiSettingsLoading() {
-    val viewModel = MockSettingsViewModel().apply {
-        taxiState.value = SettingsViewModel.ViewState.Loading
-    }
+    val viewModel = MockSettingsViewModel(SettingsViewModel.ViewState.Loading)
 
     Theme {
         TaxiSettingsView(viewModel = viewModel, navController = rememberNavController())
@@ -224,8 +227,7 @@ private fun PreviewTaxiSettingsLoading() {
 @Preview
 @Composable
 private fun PreviewTaxiSettingsLoaded() {
-    val viewModel = MockSettingsViewModel().apply {
-        taxiState.value = SettingsViewModel.ViewState.Loaded
+    val viewModel = MockSettingsViewModel(SettingsViewModel.ViewState.Loaded).apply {
         taxiUser.value =null //Todo-TaxiUser.mock
         taxiBankName.value = taxiUser.value?.account?.split(" ")?.firstOrNull()
         taxiBankNumber.value = taxiUser.value?.account?.split(" ")?.getOrNull(1) ?: ""

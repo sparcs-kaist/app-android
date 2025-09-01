@@ -2,14 +2,13 @@ package com.example.soap.Features.Settings
 
 import androidx.compose.runtime.MutableState
 import com.example.soap.Domain.Models.Taxi.TaxiUser
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 interface SettingsViewModelProtocol {
 
     // Taxi
     val taxiUser: StateFlow<TaxiUser?>
-    var taxiState: MutableStateFlow<SettingsViewModel.ViewState>
+    val taxiState: StateFlow<SettingsViewModel.ViewState>
     var taxiBankName: MutableState<String?>
     var taxiBankNumber: MutableState<String>
 

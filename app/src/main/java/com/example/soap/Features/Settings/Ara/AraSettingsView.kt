@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.Settings.Components.RowElementView
+import com.example.soap.Features.Settings.SettingsViewModel
 import com.example.soap.Features.Settings.SettingsViewModelProtocol
 import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
 import com.example.soap.ui.theme.Theme
@@ -89,6 +90,6 @@ fun AraSettingsView(
 @Composable
 private fun Preview(){
     Theme {
-        AraSettingsView(MockSettingsViewModel(), rememberNavController())
+        AraSettingsView(MockSettingsViewModel(SettingsViewModel.ViewState.Loaded), rememberNavController())
     }
 }
