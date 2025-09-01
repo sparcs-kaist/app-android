@@ -9,6 +9,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,17 +27,24 @@ import com.example.soap.ui.theme.Theme
 
 @Composable
 fun OTLSettingsView(viewModel: SettingsViewModelProtocol) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp)) {
 
-        Text("Major", style = MaterialTheme.typography.titleMedium)
+    Scaffold { innerPadding ->
 
-        MajorPicker(
-            selected = viewModel.otlMajor.value,
-            options = viewModel.otlMajorList,
-            onSelected = { viewModel.otlMajor.value = it }
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ) {
+
+            Text("Major", style = MaterialTheme.typography.titleMedium)
+
+            MajorPicker(
+                selected = viewModel.otlMajor.value,
+                options = viewModel.otlMajorList,
+                onSelected = { viewModel.otlMajor.value = it }
+            )
+        }
     }
 }
 
