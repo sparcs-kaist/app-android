@@ -51,7 +51,7 @@ fun TaxiReportListView(viewModel: TaxiReportListViewModelProtocol) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
