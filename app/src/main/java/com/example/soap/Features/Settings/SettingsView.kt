@@ -45,10 +45,11 @@ fun SettingsView(
         topBar = {
             TopAppBar(title = { Text("Settings") })
         }
-    ) { paddingValues ->
+    ) { innerPadding ->
         LazyColumn(
-            contentPadding = paddingValues,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = innerPadding,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(16.dp)
         ) {
             item {
                 Text("Miscellaneous", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(8.dp))
