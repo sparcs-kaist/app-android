@@ -33,7 +33,6 @@ class TaxiChatViewModel @Inject constructor(
 
     private val initialRoom: TaxiRoom = checkNotNull(savedStateHandle.get<TaxiRoom>("room"))
 
-
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val groupedChats: List<TaxiChatGroup>) : ViewState()
