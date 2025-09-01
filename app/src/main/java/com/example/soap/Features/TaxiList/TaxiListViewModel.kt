@@ -23,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TaxiListViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol
-) : ViewModel() {
+) : ViewModel(), TaxiListViewModelProtocol {
 
     sealed class ViewState {
         object Loading : ViewState()
@@ -34,30 +34,30 @@ class TaxiListViewModel @Inject constructor(
 
     // MARK: - ViewModel Properties
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
-    val state: StateFlow<ViewState> = _state.asStateFlow()
+    override val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    val week: List<Date> = (0 until 7).map {
+    override val week: List<Date> = (0 until 7).map {
         Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, it) }.time
     }
 
-    var rooms: List<TaxiRoom> = emptyList()
+    override var rooms: List<TaxiRoom> = emptyList()
         private set
 
-    var locations: List<TaxiLocation> = emptyList()
+    override var locations: List<TaxiLocation> = emptyList()
         private set
 
     //MARK: - View Properties
-    var source: TaxiLocation? by mutableStateOf(null)
-    var destination: TaxiLocation? by mutableStateOf(null)
-    var selectedDate: Date? by mutableStateOf(null)
+    override var source: TaxiLocation? by mutableStateOf(null)
+    override var destination: TaxiLocation? by mutableStateOf(null)
+    override var selectedDate: Date? by mutableStateOf(null)
 
     // Room Creation
-    var roomDepartureTime: Date by mutableStateOf(Date().ceilToNextTenMinutes())
-    var roomCapacity: Int by mutableStateOf(4)
+    override var roomDepartureTime: Date by mutableStateOf(Date().ceilToNextTenMinutes())
+    override var roomCapacity: Int by mutableStateOf(4)
 
 
     // MARK: - Functions
-    fun fetchData() {
+    override suspend fun fetchData() {
         viewModelScope.launch {
             _state.value = ViewState.Loading
             try {
@@ -79,8 +79,7 @@ class TaxiListViewModel @Inject constructor(
     }
 
 
-    //Safely capture values before any suspension
-    fun createRoom(title: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
+    override suspend fun createRoom(title: String) {
         viewModelScope.launch {
             try {
                 Log.d("TaxiListViewModel", "creating a room")
@@ -92,9 +91,10 @@ class TaxiListViewModel @Inject constructor(
                     capacity = roomCapacity
                 )
                 taxiRoomRepository.createRoom(request)
-                onSuccess()
+                _state.value = ViewState.Loaded(rooms, locations)
             } catch (e: Exception) {
-                onError(e)
+                Log.e("TaxiListViewModel", "Failed to create room: ${e.localizedMessage}")
+                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
             }
         }
     }
