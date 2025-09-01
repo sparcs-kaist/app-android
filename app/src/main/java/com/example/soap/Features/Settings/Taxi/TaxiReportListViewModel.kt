@@ -15,13 +15,6 @@ data class TaxiReports(
     val reporting: List<TaxiReport>
 )
 
-interface TaxiReportListViewModelProtocol {
-    val state: StateFlow<TaxiReportListViewModel.ViewState>
-    var reports: TaxiReports
-
-    suspend fun fetchReports()
-}
-
 @HiltViewModel
 class TaxiReportListViewModel @Inject constructor(
     private val taxiUserRepository: TaxiUserRepositoryProtocol
