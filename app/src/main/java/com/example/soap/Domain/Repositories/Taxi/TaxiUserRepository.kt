@@ -2,13 +2,14 @@ package com.example.soap.Domain.Repositories.Taxi
 
 import com.example.soap.Domain.Models.Taxi.TaxiReport
 import com.example.soap.Domain.Models.Taxi.TaxiUser
+import com.example.soap.Features.Settings.Taxi.TaxiReports
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiUserApi
 import javax.inject.Inject
 
 interface TaxiUserRepositoryProtocol {
     suspend fun fetchUser(): TaxiUser
     suspend fun editBankAccount(account: String)
-    suspend fun fetchReports(): Pair<List<TaxiReport>, List<TaxiReport>>
+    suspend fun fetchReports(): TaxiReports
 }
 
 enum class TaxiUserErrorCode(val code: Int) {
@@ -45,7 +46,7 @@ class TaxiUserRepository @Inject constructor(
         }
     }
 
-    override suspend fun fetchReports(): Pair<List<TaxiReport>, List<TaxiReport>> {
+    override suspend fun fetchReports(): TaxiReports{
         val response = taxiUserApi.fetchReports()
         if (!response.isSuccessful) {
             throw Exception("Failed to fetch reports: ${response.code()}")
@@ -55,7 +56,7 @@ class TaxiUserRepository @Inject constructor(
         val reported = dto.reported.map { it.toModel(TaxiReport.ReportType.REPORTED) }
         val reporting = dto.reporting.map { it.toModel(TaxiReport.ReportType.REPORTING) }
 
-        return Pair(reported, reporting)
+        return TaxiReports(reported, reporting)
     }
 }
 
