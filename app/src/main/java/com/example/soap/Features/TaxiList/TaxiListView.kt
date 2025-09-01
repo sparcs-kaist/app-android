@@ -245,7 +245,7 @@ private fun LoadingView() {
 }
 
 @Composable
-fun LoadedView(
+private fun LoadedView(
     rooms: List<TaxiRoom>,
     locations: List<TaxiLocation>,
     week: List<Date>,
@@ -422,7 +422,7 @@ private fun EmptyView(locations: List<TaxiLocation>, navController: NavControlle
 }
 
 @Composable
-fun EmptyResultView(
+private fun EmptyResultView(
     viewModel: TaxiListViewModelProtocol,
     description: String,
     navController: NavController
