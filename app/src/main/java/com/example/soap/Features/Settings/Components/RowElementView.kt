@@ -2,6 +2,7 @@ package com.example.soap.Features.Settings.Components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -29,6 +30,7 @@ fun RowElementView(
 
     ) {
         Text(text = title)
+        Spacer(Modifier.padding(horizontal = 16.dp))
         Text(
             text = content,
             color = MaterialTheme.colorScheme.onSurfaceVariant

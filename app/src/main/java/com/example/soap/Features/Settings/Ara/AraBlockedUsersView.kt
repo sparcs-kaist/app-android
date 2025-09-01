@@ -37,10 +37,11 @@ fun AraBlockedUsersView(initialBlockedUsers: List<String>){
                 title = { Text("Blocked Users") },
             )
         }
-    ) { padding ->
+    ) { innerPadding ->
         LazyColumn(
-            contentPadding = padding,
+            contentPadding = innerPadding,
             modifier = Modifier.fillMaxSize()
+                .padding(horizontal = 16.dp)
         ) {
             items(
                 items = blockedUsers,
