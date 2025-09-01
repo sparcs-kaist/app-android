@@ -8,6 +8,8 @@ import com.example.soap.Domain.Repositories.TaxiUserRepositoryProtocol
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -37,7 +39,9 @@ class SettingsViewModel @Inject constructor(
 
     // MARK: - Properties
     override val taxiUser = MutableStateFlow<TaxiUser?>(null)
-    override var taxiState: MutableStateFlow<ViewState> = MutableStateFlow(ViewState.Loading)
+
+    private val _taxiState = MutableStateFlow<ViewState>(ViewState.Loading)
+    override val taxiState: StateFlow<ViewState> = _taxiState.asStateFlow()
 
     // MARK: - Functions
     override suspend fun fetchTaxiUser() {
@@ -46,7 +50,7 @@ class SettingsViewModel @Inject constructor(
         taxiUser.value = user
         taxiBankName.value = user?.account?.split(" ")?.firstOrNull()
         taxiBankNumber.value = user?.account?.split(" ")?.lastOrNull() ?: ""
-        taxiState.value = ViewState.Loaded
+        _taxiState.value = ViewState.Loaded
     }
 
     override suspend fun taxiEditBankAccount(account: String) {
