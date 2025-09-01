@@ -1,5 +1,6 @@
 package com.example.soap.Features.Settings.Ara
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,60 +30,68 @@ fun AraSettingsView(
     viewModel: SettingsViewModelProtocol,
     navController: NavController
 ) {
-    LazyColumn {
-        item {
-            Text(
-                text = "Profile",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(16.dp)
-            )
-            RowElementView(
-                title = "Nickname",
-                content = "오열하는 운영체제 및 실험_2f94d"
-            )
-        }
+    Scaffold { innerPadding ->
 
-        item {
-            Text(
-                text = "Posts",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(16.dp)
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Allow NSFW")
-                Switch(
-                    checked = viewModel.araAllowNSFWPosts.value,
-                    onCheckedChange = { viewModel.araAllowNSFWPosts.value = it }
+        LazyColumn(
+            modifier = Modifier
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding)
+                .padding(horizontal = 16.dp)
+        ){
+            item {
+                Text(
+                    text = "Profile",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp)
+                )
+                RowElementView(
+                    title = "Nickname",
+                    content = "오열하는 운영체제 및 실험_2f94d"
                 )
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Allow Political")
-                Switch(
-                    checked = viewModel.araAllowPoliticalPosts.value,
-                    onCheckedChange = { viewModel.araAllowPoliticalPosts.value = it }
-                )
-            }
-        }
 
-        item {
-            Spacer(modifier = Modifier.height(16.dp))
-            RowElementView(
-                title = "Blocked Users",
-                content = "${viewModel.araBlockedUsers.value.size}",
-                modifier = Modifier.clickable {
-//                    navController.navigate(Channel.AraBlockedUsersView.name)
+            item {
+                Text(
+                    text = "Posts",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(16.dp)
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Allow NSFW")
+                    Switch(
+                        checked = viewModel.araAllowNSFWPosts.value,
+                        onCheckedChange = { viewModel.araAllowNSFWPosts.value = it }
+                    )
                 }
-            )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Allow Political")
+                    Switch(
+                        checked = viewModel.araAllowPoliticalPosts.value,
+                        onCheckedChange = { viewModel.araAllowPoliticalPosts.value = it }
+                    )
+                }
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+                RowElementView(
+                    title = "Blocked Users",
+                    content = "${viewModel.araBlockedUsers.value.size}",
+                    modifier = Modifier.clickable {
+//                    navController.navigate(Channel.AraBlockedUsersView.name)
+                    }
+                )
+            }
         }
     }
 }
