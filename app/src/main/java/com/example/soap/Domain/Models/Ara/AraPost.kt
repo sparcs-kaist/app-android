@@ -18,8 +18,8 @@ data class AraPost(
     val isPolitical: Boolean,
     val views: Int,
     var commentCount: Int,
-    var upvotes: Int,
-    var downvotes: Int,
+    var upVotes: Int,
+    var downVotes: Int,
     // for detailed
     val attachments: List<AraPostAttachment>?,
     val myCommentProfile: AraPostAuthor?,
@@ -41,4 +41,6 @@ data class AraPost(
         WAITING_FOR_ANSWER(1),
         ANSWERED(2)
     }
+
+    companion object{}
 }
