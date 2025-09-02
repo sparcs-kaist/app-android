@@ -76,6 +76,8 @@ fun TaxiListView(
     val uiState by viewModel.state.collectAsState()
     var selectedDate: Date? by remember { mutableStateOf(viewModel.selectedDate) }
     var showRoomCreation by remember { mutableStateOf(true) }
+    val locations by viewModel.locations.collectAsState()
+
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -117,7 +119,7 @@ fun TaxiListView(
                     TaxiDestinationPicker(
                         source = viewModel.source,
                         destination = viewModel.destination,
-                        locations = viewModel.locations,
+                        locations = locations,
                         onSourceChange = { newSource ->
                             viewModel.source = newSource
                         },
@@ -165,7 +167,7 @@ fun TaxiListView(
                 }
 
                 is TaxiListViewModel.ViewState.Empty -> {
-                    EmptyView(locations = viewModel.locations)
+                    EmptyView(locations = locations)
                 }
 
                 is TaxiListViewModel.ViewState.Error -> {
