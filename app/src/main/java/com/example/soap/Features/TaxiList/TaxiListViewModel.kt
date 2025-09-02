@@ -40,11 +40,11 @@ class TaxiListViewModel @Inject constructor(
         Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, it) }.time
     }
 
-    override var rooms: List<TaxiRoom> = emptyList()
-        private set
+    private val _locations = MutableStateFlow<List<TaxiLocation>>(emptyList())
+    override val locations: StateFlow<List<TaxiLocation>> get() = _locations
 
-    override var locations: List<TaxiLocation> = emptyList()
-        private set
+    private val _rooms = MutableStateFlow<List<TaxiRoom>>(emptyList())
+    override val rooms: StateFlow<List<TaxiRoom>> get() = _rooms
 
     //MARK: - View Properties
     override var source: TaxiLocation? by mutableStateOf(null)
@@ -64,13 +64,13 @@ class TaxiListViewModel @Inject constructor(
                 val roomsDeferred = taxiRoomRepository.fetchRooms()
                 val locationsDeferred = taxiRoomRepository.fetchLocations()
 
-                rooms = roomsDeferred
-                locations = locationsDeferred
+                _rooms.value = roomsDeferred
+                _locations.value = locationsDeferred
 
-                _state.value = if (rooms.isEmpty()) {
-                    ViewState.Empty(locations)
+                _state.value = if (_rooms.value.isEmpty()) {
+                    ViewState.Empty(_locations.value)
                 } else {
-                    ViewState.Loaded(rooms, locations)
+                    ViewState.Loaded(_rooms.value, _locations.value)
                 }
             } catch (e: Exception) {
                 _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")

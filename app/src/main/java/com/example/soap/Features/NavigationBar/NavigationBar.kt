@@ -21,6 +21,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -37,6 +38,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navigation
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
@@ -106,28 +108,42 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = Channel.TimeTable.name
             ) { TimetableView(navController) }
 
-            composable(
-                route = Channel.Taxi.name
-            ) {backStackEntry->
-                    val viewModelImpl: TaxiListViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: TaxiListViewModelProtocol = viewModelImpl
+            navigation(
+                startDestination = Channel.Taxi.name,
+                route = "TaxiGraph"
+            ) {
+                composable(Channel.Taxi.name) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("TaxiGraph")
+                    }
+                    val viewModel: TaxiListViewModelProtocol =
+                        hiltViewModel<TaxiListViewModel>(parentEntry)
 
-                    TaxiListView(viewModel, navController = navController)
-            }
+                    TaxiListView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
 
-            composable(
-                route = Channel.TaxiRoomCreation.name,
+                composable(
+                    route = Channel.TaxiRoomCreation.name,
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) {backStackEntry->
-                val viewModelImpl: TaxiListViewModel = hiltViewModel(backStackEntry)
-                val viewModel: TaxiListViewModelProtocol = viewModelImpl
+            ) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("TaxiGraph")
+                    }
+                    val viewModel: TaxiListViewModelProtocol =
+                        hiltViewModel<TaxiListViewModel>(parentEntry)
 
-                TaxiRoomCreationView(navController, viewModel)
+                    TaxiRoomCreationView(
+                        navController = navController,
+                        viewModel = viewModel
+                    )
+                }
             }
-
             composable(
                 route = Channel.TaxiChatView.name
             ) {backStackEntry->
@@ -210,7 +226,8 @@ fun AppBar(
                     if(isButtonEnabled) {
                         AddButton(
                             contentDescription = "Create Taxi Room",
-                            onClick = { navController.navigate(Channel.TaxiRoomCreation.name) }
+                            onClick = { navController.navigate(Channel.TaxiRoomCreation.name){
+                                launchSingleTop = true} }
                         )
                     }
                     ChatButton(onClick = {} )

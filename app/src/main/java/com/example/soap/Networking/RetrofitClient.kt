@@ -27,6 +27,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -49,13 +50,22 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("TaxiBackend")
-    fun taxiBackEndURL(gson: Gson): Retrofit {
+    fun taxiBackEndURL(
+        gson: Gson,
+        tokenStorage: TokenStorageProtocol
+    ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
+                val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val newRequest = original.newBuilder()
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
+                    .apply {
+                        accessToken?.let {
+                            header("Authorization", "Bearer $it")
+                        }
+                    }
                     .build()
                 chain.proceed(newRequest)
             }
