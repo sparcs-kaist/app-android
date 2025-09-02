@@ -143,7 +143,7 @@ fun TaxiPreviewView(
             InfoRow(label = "Depart at", value = room.departAt.formattedString())
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                IconButton(onClick = {}) {
+                IconButton(onClick = {/*Todo-share*/}) {
                     Icon(Icons.Default.Share, contentDescription = "Share")
                 }
 
