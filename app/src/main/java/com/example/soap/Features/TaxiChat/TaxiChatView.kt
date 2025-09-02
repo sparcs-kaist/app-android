@@ -145,12 +145,11 @@ fun TaxiChatView(
             TaxiChatViewNavigationBar(
                 room = room,
                 onDismiss = { navController.navigate(Channel.Taxi.name) },
-                onClick = { showCallTaxiAlert = true }
+                onClickCallTaxi = { showCallTaxiAlert = true }
             )
-                 },
+        },
 
         bottomBar = {
-
             InputBar(
                 text = text,
                 onTextChange = { text = it },
@@ -194,10 +193,8 @@ fun TaxiChatView(
             )
         }
     ) { innerPadding ->
-
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .padding(horizontal = 8.dp)
@@ -218,63 +215,61 @@ fun TaxiChatView(
                     modifier = Modifier.fillMaxSize()
                 )
             }
-
-
-            if (tappedImageId != null) {
-                FullscreenImageView(
-                    id = tappedImageId,
-                    onDismiss = { tappedImageId = null }
-                )
-            }
-
-            if (showCallTaxiAlert) {
-                AlertDialog(
-                    onDismissRequest = { showCallTaxiAlert = false },
-                    title = { Text("Call Taxi") },
-                    text = {
-                        Text(
-                            "Launch the taxi app with departure/destination set. " +
-                                    "Once everyone has gathered, press to call a taxi from ${room.source.title} → ${room.destination.title}."
-                        )
-                    },
-                    confirmButton = {
-                        Row {
-                            TextButton(onClick = {
-                                openKakaoT(
-                                    context,
-                                    viewModel
-                                )
-                            }) { Text("Open Kakao T") }
-                            TextButton(onClick = {
-                                openUber(
-                                    context,
-                                    viewModel
-                                )
-                            }) { Text("Open Uber") }
-                            TextButton(onClick = { showCallTaxiAlert = false }) { Text("Cancel") }
-                        }
-                    }
-                )
-            }
-
-            if (showErrorAlert) {
-                AlertDialog(
-                    onDismissRequest = { showErrorAlert = false },
-                    title = { Text("Error") },
-                    text = { Text(errorMessage) },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showErrorAlert = false
-                        }) { Text("Okay") }
-                    }
-                )
-            }
-
-            if (showPhotosPicker) {
-                launcher.launch("image/*")
-                showPhotosPicker = false
-            }
         }
+    }
+    if (tappedImageId != null) {
+        FullscreenImageView(
+            id = tappedImageId,
+            onDismiss = { tappedImageId = null }
+        )
+    }
+
+    if (showCallTaxiAlert) {
+        AlertDialog(
+            onDismissRequest = { showCallTaxiAlert = false },
+            title = { Text("Call Taxi") },
+            text = {
+                Text(
+                    "Launch the taxi app with departure/destination set. " +
+                            "Once everyone has gathered, press to call a taxi from ${room.source.title} → ${room.destination.title}."
+                )
+            },
+            confirmButton = {
+                Row {
+                    TextButton(onClick = {
+                        openKakaoT(
+                            context,
+                            viewModel
+                        )
+                    }) { Text("Open Kakao T") }
+                    TextButton(onClick = {
+                        openUber(
+                            context,
+                            viewModel
+                        )
+                    }) { Text("Open Uber") }
+                    TextButton(onClick = { showCallTaxiAlert = false }) { Text("Cancel") }
+                }
+            }
+        )
+    }
+
+    if (showErrorAlert) {
+        AlertDialog(
+            onDismissRequest = { showErrorAlert = false },
+            title = { Text("Error") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showErrorAlert = false
+                }) { Text("Okay") }
+            }
+        )
+    }
+
+    if (showPhotosPicker) {
+        launcher.launch("image/*")
+        showPhotosPicker = false
     }
 }
 
