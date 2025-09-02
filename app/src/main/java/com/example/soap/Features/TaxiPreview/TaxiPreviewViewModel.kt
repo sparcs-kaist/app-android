@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiPreview
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Taxi.TaxiParticipant
@@ -46,7 +47,7 @@ class TaxiPreviewViewModel @Inject constructor(
             try {
                 taxiRoomRepository.joinRoom(id)
             } catch (e: Exception) {
-
+                Log.e("TaxiPreviewViewModel", "Error joining room: ${e.message}")
             }
         }
     }
