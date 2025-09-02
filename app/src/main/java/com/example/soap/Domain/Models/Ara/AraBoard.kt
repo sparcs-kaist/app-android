@@ -8,8 +8,10 @@ data class AraBoard(
     val slug: String,
     val name: LocalizedString,
     val group: AraBoardGroup,
-    val topics: List<AraBoardTopic>?,
+    val topics: List<AraBoardTopic>,
     val isReadOnly: Boolean,
     val userReadable: Boolean?,
     val userWritable: Boolean?
-)
+){
+    companion object{}
+}
