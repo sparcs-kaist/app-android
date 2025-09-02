@@ -5,7 +5,6 @@ import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Shared.Extensions.ceilToNextTenMinutes
-import com.example.soap.Shared.Mocks.mockList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.util.Calendar
@@ -21,8 +20,12 @@ class MockTaxiListViewModel(initialState: TaxiListViewModel.ViewState) : TaxiLis
             add(Calendar.DAY_OF_YEAR, index)
         }.time
     }
-    override var rooms: List<TaxiRoom> = TaxiRoom.mockList()
-    override var locations: List<TaxiLocation> = TaxiLocation.mockList()
+
+    private val _locations = MutableStateFlow<List<TaxiLocation>>(emptyList())
+    override val locations: StateFlow<List<TaxiLocation>> get() = _locations
+
+    private val _rooms = MutableStateFlow<List<TaxiRoom>>(emptyList())
+    override val rooms: StateFlow<List<TaxiRoom>> get() = _rooms
 
     override var source: TaxiLocation? = null
     override var destination: TaxiLocation? = null

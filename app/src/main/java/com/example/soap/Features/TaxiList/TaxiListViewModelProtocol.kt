@@ -10,8 +10,8 @@ interface TaxiListViewModelProtocol {
     // MARK: - ViewModel Properties
     val state: StateFlow<TaxiListViewModel.ViewState>
     val week: List<Date>
-    val rooms: List<TaxiRoom>
-    val locations: List<TaxiLocation>
+    val rooms:StateFlow<List<TaxiRoom>>
+    val locations: StateFlow<List<TaxiLocation>>
 
     // MARK: - View Properties
     var source: TaxiLocation?

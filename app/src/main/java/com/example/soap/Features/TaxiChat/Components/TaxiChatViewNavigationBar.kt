@@ -56,7 +56,7 @@ private fun CallTaxiButton(onClick: () -> Unit) {
         colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
     ) {
         Icon(
-            painter = painterResource(R.drawable.taxi),
+            painter = painterResource(R.drawable.more_horiz),
             contentDescription = "Call Taxi",
             tint = MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(30.dp)

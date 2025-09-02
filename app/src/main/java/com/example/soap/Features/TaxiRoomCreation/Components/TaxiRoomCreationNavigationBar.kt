@@ -18,7 +18,9 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.soap.Features.NavigationBar.Components.DismissButton
+import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
@@ -28,8 +30,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun TaxiRoomCreationNavigationBar(
     onDismiss: () -> Unit,
-    isEnabled: Boolean
-) {
+    isEnabled: Boolean,
+    viewModel: TaxiListViewModelProtocol,
+    title: String
+    ) {
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
@@ -50,7 +54,9 @@ fun TaxiRoomCreationNavigationBar(
                 onError = {
                     errorMessage = it
                     showErrorDialog = true
-                }
+                },
+                viewModel = viewModel,
+                title = title
             )
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -63,15 +69,17 @@ fun TaxiRoomCreationNavigationBar(
 private fun SendButton(
     isEnabled: Boolean,
     onClick: () -> Unit,
-    onError: (String) -> Unit
+    onError: (String) -> Unit,
+    viewModel: TaxiListViewModelProtocol,
+    title: String
 ) {
     val coroutineScope = rememberCoroutineScope()
     TextButton(
         onClick = {
             coroutineScope.launch {
                 try {
-                    // viewModel.createRoom(title)
-                    // viewModel.fetchData()
+                     viewModel.createRoom(title)
+                     viewModel.fetchData()
                     onClick()
                 } catch (e: Exception) {
                     onError(e.localizedMessage ?: "Unknown error")
@@ -94,6 +102,6 @@ private fun SendButton(
 @Composable
 @Preview
 private fun Preview(){
-    Theme { TaxiRoomCreationNavigationBar({}, false) }
+    Theme { TaxiRoomCreationNavigationBar({}, false, viewModel(),"") }
 }
 

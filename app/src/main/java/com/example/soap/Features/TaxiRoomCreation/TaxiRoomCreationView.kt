@@ -17,6 +17,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,6 +50,7 @@ fun TaxiRoomCreationView(
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
 
+    val locations by viewModel.locations.collectAsState()
     val isEnabled = remember(title, viewModel.source, viewModel.destination, viewModel.roomDepartureTime) {
         isValid(viewModel, title)
     }
@@ -56,8 +58,17 @@ fun TaxiRoomCreationView(
     Scaffold(
         topBar = {
             TaxiRoomCreationNavigationBar(
-                onDismiss = { navController.navigate(Channel.Taxi.name) },
-                isEnabled = isEnabled
+                onDismiss = {
+                    title = ""
+                    viewModel.source = null
+                    viewModel.destination = null
+                    navController.navigate(Channel.Taxi.name){
+                        launchSingleTop = true
+                    }
+                            },
+                isEnabled = isEnabled,
+                viewModel = viewModel,
+                title = title
             )
         }
     ){ innerPadding ->
@@ -74,10 +85,14 @@ fun TaxiRoomCreationView(
                 ) {
                     TaxiDestinationPicker(
                         source = viewModel.source,
-                        onSourceChange = { viewModel.source = it },
                         destination = viewModel.destination,
-                        onDestinationChange = { viewModel.destination = it },
-                        locations = viewModel.locations
+                        locations = locations,
+                        onSourceChange = { newSource ->
+                            viewModel.source = newSource
+                        },
+                        onDestinationChange = { newDestination ->
+                            viewModel.destination = newDestination
+                        }
                     )
                 }
 
