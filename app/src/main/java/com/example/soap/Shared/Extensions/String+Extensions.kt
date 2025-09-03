@@ -1,5 +1,7 @@
 package com.example.soap.Shared.Extensions
 
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -20,3 +22,10 @@ fun String.toDate(): Date? {
         null
     }
 }
+
+val String.urlEscaped: String
+    get() = URLEncoder.encode(this, StandardCharsets.UTF_8.toString())
+
+fun String.toHTMLParagraphs(): String =
+    this.split("\n")
+        .joinToString(separator = "") { "<p>$it</p>" }
