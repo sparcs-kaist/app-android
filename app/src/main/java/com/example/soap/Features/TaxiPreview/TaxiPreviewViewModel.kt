@@ -1,10 +1,12 @@
 package com.example.soap.Features.TaxiPreview
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Taxi.TaxiParticipant
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Domain.Repositories.TaxiRoomRepository
+import com.example.soap.Domain.Usecases.UserUseCase
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,7 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TaxiPreviewViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepository,
-//    private val userUseCase: UserUseCase
+    private val userUseCase: UserUseCase
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -24,9 +26,9 @@ class TaxiPreviewViewModel @Inject constructor(
     val taxiUser: StateFlow<TaxiUser?> = _taxiUser
 
     // MARK: - Init
-//    init {
-//        fetchTaxiUser()
-//    }
+    init {
+        fetchTaxiUser()
+    }
 
     // MARK: - Logic
     fun isJoined(participants: List<TaxiParticipant>): Boolean {
@@ -45,15 +47,15 @@ class TaxiPreviewViewModel @Inject constructor(
             try {
                 taxiRoomRepository.joinRoom(id)
             } catch (e: Exception) {
-
+                Log.e("TaxiPreviewViewModel", "Error joining room: ${e.message}")
             }
         }
     }
 
+    private fun fetchTaxiUser() {
+        viewModelScope.launch {
+            _taxiUser.value = userUseCase.taxiUser
+        }
+    }
 
-//    private fun fetchTaxiUser() {
-//        viewModelScope.launch {
-//            _taxiUser.value = userUseCase.getTaxiUser()
-//        }
-//
 }

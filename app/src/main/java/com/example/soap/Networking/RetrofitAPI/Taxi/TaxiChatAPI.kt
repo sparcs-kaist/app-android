@@ -1,8 +1,8 @@
 package com.example.soap.Networking.RetrofitAPI.Taxi
 
 import com.example.soap.Networking.RequestDTO.TaxiChatRequestDTO
-import com.example.soap.Networking.ResponseDTO.Taxi.TaxiChatDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiChatPresignedURLDTO
+import com.example.soap.Networking.ResponseDTO.Taxi.TaxiChatResponseDTO
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -16,32 +16,32 @@ interface TaxiChatApi {
     @POST("chats")
     suspend fun fetchChats(
         @Body body: Map<String, String> // {"roomId": roomID}
-    ): Response<List<TaxiChatDTO>>
+    ): TaxiChatResponseDTO
 
     @POST("chats/load/before")
     suspend fun fetchChatsBefore(
         @Body body: Map<String, String> // {"roomId": roomID, "lastMsgDate": date}
-    ): Response<List<TaxiChatDTO>>
+    ): TaxiChatResponseDTO
 
     @POST("chats/load/after")
     suspend fun fetchChatsAfter(
         @Body body: Map<String, String> // {"roomId": roomID, "lastMsgDate": date}
-    ): Response<List<TaxiChatDTO>>
+    ): TaxiChatResponseDTO
 
     @POST("chats/send")
     suspend fun sendChat(
         @Body request: TaxiChatRequestDTO
-    ): Response<TaxiChatDTO>
+    ): TaxiChatResponseDTO
 
     @POST("chats/read")
     suspend fun readChat(
         @Body body: Map<String, String> // {"roomId": roomID}
-    ): Response<Unit>
+    ): TaxiChatResponseDTO
 
     @POST("chats/uploadChatImg/getPUrl")
     suspend fun getPresignedURL(
         @Body body: Map<String, String> // {"roomId": roomID, "type": "image/png"}
-    ): Response<TaxiChatPresignedURLDTO>
+    ): TaxiChatPresignedURLDTO
 
     @Multipart
     @POST
