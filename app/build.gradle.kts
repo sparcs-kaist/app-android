@@ -89,4 +89,6 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.security.crypto)
+    implementation(libs.socket.io.client)
+    implementation (libs.kotlinx.serialization.json)
 }

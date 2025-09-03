@@ -65,9 +65,9 @@ fun AddButton(
 }
 
 @Composable
-fun ChatButton(){
+fun ChatButton(onClick: () -> Unit){
     IconButton(
-        onClick = {},
+        onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
     ) {
         Icon(
