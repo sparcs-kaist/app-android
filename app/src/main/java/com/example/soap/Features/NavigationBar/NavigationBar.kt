@@ -21,6 +21,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -29,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -36,8 +38,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Domain.Models.Taxi.TaxiLocation
-import com.example.soap.Domain.Models.Taxi.TaxiRoom
+import androidx.navigation.navigation
+import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
+import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
@@ -52,13 +55,17 @@ import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.PostListView
+import com.example.soap.Features.TaxiChat.TaxiChatView
+import com.example.soap.Features.TaxiChat.TaxiChatViewModel
 import com.example.soap.Features.TaxiList.TaxiListView
 import com.example.soap.Features.TaxiList.TaxiListViewModel
+import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
-import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
+import com.example.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
 import com.example.soap.ui.theme.Theme
 
 enum class Channel(@StringRes val title: Int) {
@@ -71,7 +78,8 @@ enum class Channel(@StringRes val title: Int) {
     PostView(title = R.string.postview), //임시
     PostCompose(title = R.string.postcompose),
     LectureDetail(title= R.string.lecturedetail),//임시
-    TaxiRoomCreation(title = R.string.taxi_room_creation)
+    TaxiRoomCreation(title = R.string.taxi_room_creation),
+    TaxiChatView(title = R.string.taxichatview)
 }
 
 @Composable
@@ -82,13 +90,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     val currentScreen = Channel.entries.find { screen ->
         currentRoute?.startsWith(screen.name) == true
     } ?: Channel.Start
-
-    val mockViewModel = MockTaxiListViewModel(
-        initialState = TaxiListViewModel.ViewState.Loaded(
-            rooms = TaxiRoom.mockList(),
-            locations = TaxiLocation.mockList()
-        )
-    )
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -111,20 +112,58 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = Channel.TimeTable.name
             ) { TimetableView(navController) }
 
-            composable(
-                route = Channel.Taxi.name
+            navigation(
+                startDestination = Channel.Taxi.name,
+                route = "TaxiGraph"
             ) {
-                TaxiListView(mockViewModel, navController = navController)
-            }
+                composable(Channel.Taxi.name) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("TaxiGraph")
+                    }
+                    val viewModel: TaxiListViewModelProtocol =
+                        hiltViewModel<TaxiListViewModel>(parentEntry)
 
-            composable(
-                route = Channel.TaxiRoomCreation.name,
+                    TaxiListView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.TaxiRoomCreation.name,
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) {
-                TaxiRoomCreationView(navController, mockViewModel)
+            ) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("TaxiGraph")
+                    }
+                    val viewModel: TaxiListViewModelProtocol =
+                        hiltViewModel<TaxiListViewModel>(parentEntry)
+
+                    TaxiRoomCreationView(
+                        navController = navController,
+                        viewModel = viewModel
+                    )
+                }
+            }
+            composable(
+                route = Channel.TaxiChatView.name
+            ) {backStackEntry->
+//                val viewModelImpl: TaxiChatViewModel = hiltViewModel(backStackEntry)
+//                val viewModel: TaxiChatViewModelProtocol = viewModelImpl
+
+                val taxiChatMockViewModel = MockTaxiChatViewModel(
+                    initialState = TaxiChatViewModel.ViewState.Loaded(
+                        groupedChats = TaxiChatGroup.mockList(),
+                    ),
+                    initialGroupedChats = TaxiChatGroup.mockList(),
+                    initialTaxiUser = TaxiUser.mock(),
+                    initialUploading = false
+                )
+
+                TaxiChatView(taxiChatMockViewModel, navController)
             }
 
             composable(
@@ -200,10 +239,11 @@ fun AppBar(
                     if(isButtonEnabled) {
                         AddButton(
                             contentDescription = "Create Taxi Room",
-                            onClick = { navController.navigate(Channel.TaxiRoomCreation.name) }
+                            onClick = { navController.navigate(Channel.TaxiRoomCreation.name){
+                                launchSingleTop = true} }
                         )
                     }
-                    ChatButton()
+                    ChatButton(onClick = {navController.navigate(Channel.TaxiChatView.name)} )
                 }
                 else -> {}
             }
