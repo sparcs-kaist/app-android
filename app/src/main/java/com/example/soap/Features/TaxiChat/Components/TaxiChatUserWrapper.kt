@@ -89,7 +89,7 @@ fun TaxiChatUserWrapper(
 
             // spacer for other users
             if (!isMe) {
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(60.dp))
             }
         }
     }

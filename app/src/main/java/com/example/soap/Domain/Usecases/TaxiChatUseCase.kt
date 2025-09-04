@@ -35,6 +35,7 @@ class TaxiChatUseCase @Inject constructor(
 
     override fun setRoom(room: TaxiRoom) {
         this.room = room
+        bind()
     }
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -49,14 +50,10 @@ class TaxiChatUseCase @Inject constructor(
     private var isSocketConnected: Boolean = false
     private var hasInitialChatsBeenFetched: Boolean = false
 
-    init {
-        bind()
-    }
-
     override suspend fun fetchInitialChats() {
-        if (!::room.isInitialized) return
         if (hasInitialChatsBeenFetched) return
         hasInitialChatsBeenFetched = true
+        bind()
         try {
             taxiChatRepository.fetchChats(room.id)
         } catch (e: Exception) {
@@ -94,20 +91,21 @@ class TaxiChatUseCase @Inject constructor(
 
     private fun bind() {
         // is socket(TaxiChatService) connected
-        if (!::room.isInitialized) return
         scope.launch(Dispatchers.Default) {
             taxiChatService.isConnectedPublisher.collect { isConnected ->
                 isSocketConnected = isConnected
             }
         }
 
+
         // converts [TaxiChat] into [TaxiChatGroup]
         scope.launch(Dispatchers.Default) {
             taxiChatService.chatsPublisher.collect { chats ->
                 taxiChatRepository.readChats(room.id)
-
                 val user = userUseCase.taxiUser
                 val grouped = groupChats(chats, user?.oid ?: "")
+
+                Log.d("TaxiChatUseCase", "Socket connected: $chats")
 
                 _groupedChatsFlow.value = grouped
             }
@@ -116,6 +114,7 @@ class TaxiChatUseCase @Inject constructor(
         // handles room updates from chat_update event
         scope.launch(Dispatchers.Default) {
             taxiChatService.roomUpdatePublisher.collect { roomId ->
+
                 if (roomId != room.id) return@collect
                 try {
                     val updatedRoom = taxiRoomRepository.getRoom(roomId)
@@ -157,7 +156,7 @@ class TaxiChatUseCase @Inject constructor(
         val calendar = Calendar.getInstance()
 
         for (chat in chats) {
-            if (chat.type == TaxiChat.ChatType.ENTRANCE || chat.type == TaxiChat.ChatType.EXIT) {
+            if (chat.type == TaxiChat.ChatType.IN || chat.type == TaxiChat.ChatType.OUT) {
                 flushGroup()
                 result.add(
                     TaxiChatGroup(

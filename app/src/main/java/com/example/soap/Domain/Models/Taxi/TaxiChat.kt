@@ -26,8 +26,8 @@ data class TaxiChat(
         ACCOUNT("account"),        // account message
 
         // General type
-        ENTRANCE("in"),            // entrance message
-        EXIT("out"),               // exit message
+        IN("in"),            // entrance message
+        OUT("out"),               // exit message
 
         // Bot sent type
         SHARE("share"),
