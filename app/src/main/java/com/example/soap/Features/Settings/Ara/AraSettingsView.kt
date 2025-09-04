@@ -14,12 +14,15 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Settings.Components.RowElementView
+import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.Features.Settings.SettingsViewModel
 import com.example.soap.Features.Settings.SettingsViewModelProtocol
 import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
@@ -30,7 +33,14 @@ fun AraSettingsView(
     viewModel: SettingsViewModelProtocol,
     navController: NavController
 ) {
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            SettingsViewNavigationBar(
+                title = "Ara Settings",
+                onDismiss = { navController.navigate(Channel.Settings.name )}
+            )
+        }
+    ){ innerPadding ->
 
         LazyColumn(
             modifier = Modifier
@@ -72,7 +82,8 @@ fun AraSettingsView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Allow Political")
                     Switch(
@@ -88,7 +99,7 @@ fun AraSettingsView(
                     title = "Blocked Users",
                     content = "${viewModel.araBlockedUsers.value.size}",
                     modifier = Modifier.clickable {
-//                    navController.navigate(Channel.AraBlockedUsersView.name)
+                    navController.navigate(Channel.AraBlockedUsersSettings.name)
                     }
                 )
             }
