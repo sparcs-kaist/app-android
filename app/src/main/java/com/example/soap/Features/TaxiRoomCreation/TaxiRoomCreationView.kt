@@ -45,8 +45,6 @@ fun TaxiRoomCreationView(
     viewModel: TaxiListViewModelProtocol = hiltViewModel()
 ) {
     var title by remember { mutableStateOf("") }
-    var showErrorDialog by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
 
     val locations by viewModel.locations.collectAsState()
     val isEnabled = remember(title, viewModel.source, viewModel.destination, viewModel.roomDepartureTime) {
