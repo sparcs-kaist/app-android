@@ -92,7 +92,9 @@ import com.example.soap.Shared.Extensions.toLocalDate
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
+import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.ui.theme.Theme
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -101,7 +103,7 @@ fun TaxiChatView(
     viewModel: TaxiChatViewModelProtocol = hiltViewModel(),
     navController: NavController
 ) {
-    val room: TaxiRoom by viewModel.room.collectAsState()
+//    val room: TaxiRoom by viewModel.room.collectAsState()
     val state by viewModel.state.collectAsState()
     val groupedChats by viewModel.groupedChats.collectAsState(initial = emptyList())
     val taxiUser by viewModel.taxiUser.collectAsState()
@@ -121,6 +123,14 @@ fun TaxiChatView(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    val backStackEntry = navController.currentBackStackEntry!!
+    val room = viewModel.room.collectAsState().value
+
+    LaunchedEffect(Unit) {
+        val json = Gson().toJson(room)
+        backStackEntry.savedStateHandle["room_json"] = json
+    }
+
     LaunchedEffect(Unit) {
         try {
             viewModel.setup()
@@ -139,13 +149,16 @@ fun TaxiChatView(
         uri?.let { selectedImageUri = it }
     }
 
-
     Scaffold(
         topBar = {
             TaxiChatViewNavigationBar(
                 room = room,
-                onDismiss = { navController.navigate(Channel.Taxi.name) },
-                onClickCallTaxi = { showCallTaxiAlert = true }
+                onDismiss = { navController.navigate(Channel.TaxiChatListView.name) },
+                onClickCallTaxi = { showCallTaxiAlert = true },
+                onClickLeave = {
+                    coroutineScope.launch { viewModel.leaveRoom() }
+                },
+                isEnabled = viewModel.isLeaveRoomAvailable
             )
         },
 
@@ -202,6 +215,7 @@ fun TaxiChatView(
             when (state) {
                 is TaxiChatViewModel.ViewState.Loading -> LoadingView()
                 is TaxiChatViewModel.ViewState.Error -> ErrorView(
+                    icon = Icons.Default.Warning,
                     errorMessage = (state as TaxiChatViewModel.ViewState.Error).message,
                     onRetry = { coroutineScope.launch { viewModel.fetchInitialChats() } }
                 )
@@ -445,23 +459,6 @@ fun LoadingView() {
 }
 
 @Composable
-fun ErrorView(errorMessage: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(Icons.Default.Warning, contentDescription = "Error", tint = MaterialTheme.colorScheme.error)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(text = errorMessage)
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = onRetry) { Text("Try Again") }
-    }
-}
-
-
-
-@Composable
 fun InputBar(
     text: String,
     onTextChange: (String) -> Unit,
@@ -561,6 +558,7 @@ fun InputBar(
                     BasicTextField(
                         value = text,
                         onValueChange = onTextChange,
+                        maxLines = 6,
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                         decorationBox = { innerTextField ->
@@ -574,7 +572,7 @@ fun InputBar(
                                     Text(
                                         text = "Chat as ${taxiUser?.nickname ?: "unknown"}",
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                        style = MaterialTheme.typography.bodyLarge
+                                        style = MaterialTheme.typography.bodyMedium
                                     )
                                 }
                                 innerTextField()

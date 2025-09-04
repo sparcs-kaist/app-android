@@ -72,6 +72,7 @@ fun TaxiRoomCreationView(
             )
         }
     ){ innerPadding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -132,18 +133,19 @@ fun TaxiRoomCreationView(
                     Column(Modifier.padding(16.dp)) {
                         TaxiDepartureTimePicker(
                             departureTime = viewModel.roomDepartureTime,
-                            onDepartureTimeChange = { viewModel.roomDepartureTime = it }
+                            onDepartureTimeChange = { departureTime->
+                                viewModel.roomDepartureTime = departureTime }
                         )
 
                         HorizontalDivider(Modifier.padding(vertical = 16.dp))
 
                         TaxiCapacityPicker(
                             capacity = viewModel.roomCapacity,
-                            onCapacityChange = { viewModel.roomCapacity = it }
+                            onCapacityChange = { capacity->
+                                viewModel.roomCapacity = capacity }
                         )
                     }
                 }
-
         }
 
         if (showErrorDialog) {
