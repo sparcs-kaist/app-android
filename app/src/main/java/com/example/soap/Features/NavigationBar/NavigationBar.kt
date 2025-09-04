@@ -41,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.soap.Features.BoardList.BoardListView
+import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.BoardList.BoardListViewModel
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
@@ -76,6 +77,11 @@ import com.example.soap.Features.UserPostList.UserPostListView
 import com.example.soap.Features.UserPostList.UserPostListViewModel
 import com.example.soap.Features.UserPostList.UserPostListViewModelProtocol
 import com.example.soap.R
+import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Mocks.mockList
+import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
+import com.example.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
+import com.example.soap.Shared.ViewModelMocks.MockTaxiReportListViewModel
 import com.example.soap.ui.theme.Theme
 
 enum class Channel(@StringRes val title: Int) {
@@ -94,6 +100,15 @@ enum class Channel(@StringRes val title: Int) {
     AraChatView(title = R.string.ara_chat_view), //임시
     UserPostListView(title = R.string.user_post_list_view),
     SearchView(title = R.string.search)
+    TaxiChatView(title = R.string.taxichatview),
+    SignOut(title = R.string.sign_out),
+
+    Settings(title = R.string.settings),
+    TaxiSettings(title = R.string.taxi_settings),
+    TaxiReportSettings(title = R.string.taxi_report_settings),
+    AraSettings(title = R.string.ara_settings),
+    AraBlockedUsersSettings(title = R.string.ara_blocked_users_settings),
+    OTLSettings(title = R.string.otl_settings)
 }
 
 @Composable
@@ -104,7 +119,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     val currentScreen = Channel.entries.find { screen ->
         currentRoute?.startsWith(screen.name) == true
     } ?: Channel.Start
-
 
     Box(
         modifier = Modifier.fillMaxSize(),
