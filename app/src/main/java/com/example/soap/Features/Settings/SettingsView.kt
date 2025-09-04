@@ -15,57 +15,70 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Features.NavigationBar.Channel
+import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
-//    viewModel: SettingsViewModel = viewModel(),
+//    viewModel: SettingsViewModelProtocol = HiltViewModel(),
     navController: NavHostController
 ) {
     val context = LocalContext.current
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Settings") })
-        }
-    ) { innerPadding ->
+            SettingsViewNavigationBar (
+                title = "Settings",
+                onDismiss = { navController.navigate(Channel.Start.name )}
+            )
+    }){ innerPadding ->
         LazyColumn(
             contentPadding = innerPadding,
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(16.dp)
         ) {
             item {
-                Text("Miscellaneous", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(8.dp))
+                Text(
+                    text = "Miscellaneous",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(8.dp)
+                )
                 AppSettings(context)
             }
 
             item {
-                Text("Services", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(8.dp))
+                Text(
+                    text = "Services",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(8.dp)
+                )
 
-                ServiceNavButton("Ara") { /*navigate to Ara Setting*/ }
-                ServiceNavButton("Taxi") { /*navigate to Taxi Setting*/ }
-                ServiceNavButton("OTL") { /*navigate to OTL Setting*/ }
+                ServiceNavButton("Ara") { navController.navigate(Channel.AraSettings.name) }
+                ServiceNavButton("Taxi") { navController.navigate(Channel.TaxiSettings.name) }
+                ServiceNavButton("OTL") { navController.navigate(Channel.OTLSettings.name) }
             }
         }
     }
 }
+
 
 @Composable
 fun AppSettings(context: Context){
@@ -101,8 +114,6 @@ fun AppSettings(context: Context){
         Text("Change Language")
     }
 }
-
-
 
 @Composable
 fun ServiceNavButton(

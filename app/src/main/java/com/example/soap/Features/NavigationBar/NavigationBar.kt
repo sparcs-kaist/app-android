@@ -142,11 +142,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
                 composable(
                     route = Channel.TaxiRoomCreation.name,
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ) { backStackEntry ->
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("TaxiGraph")
                     }
@@ -290,6 +290,44 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) {
                // SearchView()
             }
+            composable(
+                route = Channel.SignOut.name
+            ) {
+                SignInView()
+                //TODO - viewmodel-reset token
+            }
+
+            /* Settings */
+            composable(
+                route = Channel.Settings.name
+            ) { SettingsView(navController = navController) }
+
+            val settingsMockViewModel = MockSettingsViewModel(
+                initialState = SettingsViewModel.ViewState.Loaded
+            )
+
+            val taxiReportSettingsMockViewModel = MockTaxiReportListViewModel(
+                initialState = TaxiReportListViewModel.ViewState.Loaded
+            )
+            composable(
+                route = Channel.TaxiSettings.name
+            ) { TaxiSettingsView(viewModel = settingsMockViewModel,navController = navController) }
+
+            composable(
+                route = Channel.TaxiReportSettings.name
+            ) { TaxiReportListView(viewModel = taxiReportSettingsMockViewModel,navController = navController) }
+
+            composable(
+                route = Channel.AraSettings.name
+            ) { AraSettingsView(viewModel = settingsMockViewModel, navController = navController) }
+
+            composable(
+                route = Channel.AraBlockedUsersSettings.name
+            ) { AraBlockedUsersView(initialBlockedUsers = settingsMockViewModel.araBlockedUsers.value, navController = navController) }
+
+            composable(
+                route = Channel.OTLSettings.name
+            ) { OTLSettingsView(viewModel = settingsMockViewModel, navController = navController) }
         }
     }
 }
@@ -322,7 +360,10 @@ fun AppBar(
             when (currentScreen) {
                 Channel.Start -> {
                     NotificationButton()
-                    SettingButton()
+                    HomeViewDropDownMenu(
+                        onClickSettings = { navController.navigate(Channel.Settings.name) },
+                        onClickSignOut = { navController.navigate(Channel.SignOut.name) }
+                    )
                 }
                 Channel.TimeTable -> {
                     AddButton(
