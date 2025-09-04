@@ -42,6 +42,7 @@ import androidx.navigation.navigation
 import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Features.BoardList.BoardListView
+import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
@@ -51,10 +52,18 @@ import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransiti
 import com.example.soap.Features.NavigationBar.Components.AddButton
 import com.example.soap.Features.NavigationBar.Components.ChatButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
-import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.PostListView
+import com.example.soap.Features.Settings.Ara.AraBlockedUsersView
+import com.example.soap.Features.Settings.Ara.AraSettingsView
+import com.example.soap.Features.Settings.OTL.OTLSettingsView
+import com.example.soap.Features.Settings.SettingsView
+import com.example.soap.Features.Settings.SettingsViewModel
+import com.example.soap.Features.Settings.Taxi.TaxiReportListView
+import com.example.soap.Features.Settings.Taxi.TaxiReportListViewModel
+import com.example.soap.Features.Settings.Taxi.TaxiSettingsView
+import com.example.soap.Features.SignIn.SignInView
 import com.example.soap.Features.TaxiChat.TaxiChatView
 import com.example.soap.Features.TaxiChat.TaxiChatViewModel
 import com.example.soap.Features.TaxiList.TaxiListView
@@ -65,7 +74,9 @@ import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
+import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
 import com.example.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
+import com.example.soap.Shared.ViewModelMocks.MockTaxiReportListViewModel
 import com.example.soap.ui.theme.Theme
 
 enum class Channel(@StringRes val title: Int) {
@@ -79,7 +90,15 @@ enum class Channel(@StringRes val title: Int) {
     PostCompose(title = R.string.postcompose),
     LectureDetail(title= R.string.lecturedetail),//임시
     TaxiRoomCreation(title = R.string.taxi_room_creation),
-    TaxiChatView(title = R.string.taxichatview)
+    TaxiChatView(title = R.string.taxichatview),
+    SignOut(title = R.string.sign_out),
+
+    Settings(title = R.string.settings),
+    TaxiSettings(title = R.string.taxi_settings),
+    TaxiReportSettings(title = R.string.taxi_report_settings),
+    AraSettings(title = R.string.ara_settings),
+    AraBlockedUsersSettings(title = R.string.ara_blocked_users_settings),
+    OTLSettings(title = R.string.otl_settings)
 }
 
 @Composable
@@ -131,11 +150,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
                 composable(
                     route = Channel.TaxiRoomCreation.name,
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ) { backStackEntry ->
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("TaxiGraph")
                     }
@@ -150,7 +169,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             }
             composable(
                 route = Channel.TaxiChatView.name
-            ) {backStackEntry->
+            ) { backStackEntry ->
 //                val viewModelImpl: TaxiChatViewModel = hiltViewModel(backStackEntry)
 //                val viewModel: TaxiChatViewModelProtocol = viewModelImpl
 
@@ -195,6 +214,44 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
             }
 
+            composable(
+                route = Channel.SignOut.name
+            ) {
+                SignInView()
+                //TODO - viewmodel-reset token
+            }
+
+            /* Settings */
+            composable(
+                route = Channel.Settings.name
+            ) { SettingsView(navController = navController) }
+
+            val settingsMockViewModel = MockSettingsViewModel(
+                initialState = SettingsViewModel.ViewState.Loaded
+            )
+
+            val taxiReportSettingsMockViewModel = MockTaxiReportListViewModel(
+                initialState = TaxiReportListViewModel.ViewState.Loaded
+            )
+            composable(
+                route = Channel.TaxiSettings.name
+            ) { TaxiSettingsView(viewModel = settingsMockViewModel,navController = navController) }
+
+            composable(
+                route = Channel.TaxiReportSettings.name
+            ) { TaxiReportListView(viewModel = taxiReportSettingsMockViewModel,navController = navController) }
+
+            composable(
+                route = Channel.AraSettings.name
+            ) { AraSettingsView(viewModel = settingsMockViewModel, navController = navController) }
+
+            composable(
+                route = Channel.AraBlockedUsersSettings.name
+            ) { AraBlockedUsersView(initialBlockedUsers = settingsMockViewModel.araBlockedUsers.value, navController = navController) }
+
+            composable(
+                route = Channel.OTLSettings.name
+            ) { OTLSettingsView(viewModel = settingsMockViewModel, navController = navController) }
         }
     }
 }
@@ -227,7 +284,10 @@ fun AppBar(
             when (currentScreen) {
                 Channel.Start -> {
                     NotificationButton()
-                    SettingButton()
+                    HomeViewDropDownMenu(
+                        onClickSettings = { navController.navigate(Channel.Settings.name) },
+                        onClickSignOut = { navController.navigate(Channel.SignOut.name) }
+                    )
                 }
                 Channel.TimeTable -> {
                     AddButton(

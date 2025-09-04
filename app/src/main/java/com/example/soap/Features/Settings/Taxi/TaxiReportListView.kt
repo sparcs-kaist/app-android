@@ -33,7 +33,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Taxi.TaxiReport
+import com.example.soap.Features.NavigationBar.Channel
+import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.Features.Settings.Components.TaxiReportDetailRow
 import com.example.soap.Shared.ViewModelMocks.MockTaxiReportListViewModel
 import com.example.soap.ui.theme.Theme
@@ -41,12 +45,21 @@ import java.util.Date
 import java.util.UUID
 
 @Composable
-fun TaxiReportListView(viewModel: TaxiReportListViewModelProtocol) {
+fun TaxiReportListView(
+    viewModel: TaxiReportListViewModelProtocol,
+    navController: NavController
+) {
     var taxiReportType by remember { mutableStateOf(TaxiReport.ReportType.REPORTED) }
     val state by viewModel.state.collectAsState()
 
-
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            SettingsViewNavigationBar(
+                title = "Taxi Reports",
+                onDismiss = { navController.navigate(Channel.TaxiSettings.name )}
+            )
+        }
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier
@@ -73,7 +86,12 @@ fun TaxiReportListView(viewModel: TaxiReportListViewModelProtocol) {
                 is TaxiReportListViewModel.ViewState.Loaded -> LoadedView(viewModel, taxiReportType)
                 is TaxiReportListViewModel.ViewState.Error -> {
                     val message = (viewModel.state.collectAsState().value as TaxiReportListViewModel.ViewState.Error).message
-                    ErrorView(Icons.Default.Warning, message, {/* Refresh */})
+                    ErrorView(
+                        Icons.Default.Warning,
+                        message,
+                        { //Todo- refresh
+                             }
+                    )
                 }
             }
         }
@@ -172,7 +190,7 @@ private fun ReportViewList(reports: List<TaxiReport>){
 @Preview
 @Composable
 private fun LoadingPreview() {
-    Theme { TaxiReportListView(MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Loading)) }
+    Theme { TaxiReportListView(MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Loading), rememberNavController()) }
 }
 
 @Preview
@@ -210,7 +228,7 @@ private fun LoadedPreview() {
             )
         )
     }
-    Theme { TaxiReportListView(viewModel) }
+    Theme { TaxiReportListView(viewModel, rememberNavController()) }
 
 }
 
@@ -218,5 +236,5 @@ private fun LoadedPreview() {
 @Composable
 private fun ErrorPreview() {
     val viewModel = MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Error("Network error"))
-    Theme { TaxiReportListView(viewModel) }
+    Theme { TaxiReportListView(viewModel, rememberNavController()) }
 }
