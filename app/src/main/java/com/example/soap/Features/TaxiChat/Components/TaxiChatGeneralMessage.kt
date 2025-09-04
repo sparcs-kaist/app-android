@@ -1,10 +1,13 @@
 package com.example.soap.Features.TaxiChat.Components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.soap.Domain.Models.Taxi.TaxiChat
 
@@ -15,20 +18,25 @@ fun TaxiChatGeneralMessage(
 ) {
     val displayName = authorName ?: "unknown"
     when (type) {
-        TaxiChat.ChatType.ENTRANCE -> {
+        TaxiChat.ChatType.IN -> {
             Text(
                 text = "$displayName has joined",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
+
         }
-        TaxiChat.ChatType.EXIT -> {
+        TaxiChat.ChatType.OUT -> {
             Text(
                 text = "$displayName has left",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
             )
         }
         else -> {}
@@ -39,7 +47,7 @@ fun TaxiChatGeneralMessage(
 @Composable
 private fun Preview() {
     Column {
-        TaxiChatGeneralMessage("testuser", TaxiChat.ChatType.ENTRANCE)
-        TaxiChatGeneralMessage("testuser", TaxiChat.ChatType.EXIT)
+        TaxiChatGeneralMessage("testuser", TaxiChat.ChatType.IN)
+        TaxiChatGeneralMessage("testuser", TaxiChat.ChatType.OUT)
     }
 }
