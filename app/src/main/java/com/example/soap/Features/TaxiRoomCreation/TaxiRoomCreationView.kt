@@ -8,14 +8,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -65,13 +63,14 @@ fun TaxiRoomCreationView(
                     navController.navigate(Channel.Taxi.name){
                         launchSingleTop = true
                     }
-                            },
+                },
                 isEnabled = isEnabled,
                 viewModel = viewModel,
                 title = title
             )
         }
     ){ innerPadding ->
+
 
         Column(
             modifier = Modifier
@@ -80,85 +79,72 @@ fun TaxiRoomCreationView(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-                Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    TaxiDestinationPicker(
-                        source = viewModel.source,
-                        destination = viewModel.destination,
-                        locations = locations,
-                        onSourceChange = { newSource ->
-                            viewModel.source = newSource
-                        },
-                        onDestinationChange = { newDestination ->
-                            viewModel.destination = newDestination
+            Card(
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                TaxiDestinationPicker(
+                    source = viewModel.source,
+                    destination = viewModel.destination,
+                    locations = locations,
+                    onSourceChange = { newSource ->
+                        viewModel.source = newSource
+                    },
+                    onDestinationChange = { newDestination ->
+                        viewModel.destination = newDestination
+                    }
+                )
+            }
+
+            Spacer(Modifier.padding(16.dp))
+
+            Card(
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                BasicTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    textStyle = MaterialTheme.typography.bodyLarge,
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    decorationBox = { innerTextField ->
+                        if (title.isEmpty()) {
+                            Text(
+                                text = "Title",
+                                color = MaterialTheme.colorScheme.grayBB,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                         }
+                        innerTextField()
+                    }
+                )
+            }
+
+            Spacer(Modifier.padding(16.dp))
+
+            Card(
+                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    TaxiDepartureTimePicker(
+                        departureTime = viewModel.roomDepartureTime,
+                        onDepartureTimeChange = { departureTime->
+                            viewModel.roomDepartureTime = departureTime }
+                    )
+
+                    HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+                    TaxiCapacityPicker(
+                        capacity = viewModel.roomCapacity,
+                        onCapacityChange = { capacity->
+                            viewModel.roomCapacity = capacity }
                     )
                 }
-
-                Spacer(Modifier.padding(16.dp))
-
-                Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    BasicTextField(
-                        value = title,
-                        onValueChange = { title = it },
-                        textStyle = MaterialTheme.typography.bodyLarge,
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        decorationBox = { innerTextField ->
-                            if (title.isEmpty()) {
-                                Text(
-                                    text = "Title",
-                                    color = MaterialTheme.colorScheme.grayBB,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                            innerTextField()
-                        }
-                    )
-                }
-
-                Spacer(Modifier.padding(16.dp))
-
-                Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    Column(Modifier.padding(16.dp)) {
-                        TaxiDepartureTimePicker(
-                            departureTime = viewModel.roomDepartureTime,
-                            onDepartureTimeChange = { departureTime->
-                                viewModel.roomDepartureTime = departureTime }
-                        )
-
-                        HorizontalDivider(Modifier.padding(vertical = 16.dp))
-
-                        TaxiCapacityPicker(
-                            capacity = viewModel.roomCapacity,
-                            onCapacityChange = { capacity->
-                                viewModel.roomCapacity = capacity }
-                        )
-                    }
-                }
-        }
-
-        if (showErrorDialog) {
-            AlertDialog(
-                onDismissRequest = { showErrorDialog = false },
-                title = { Text("Error") },
-                text = { Text(errorMessage) },
-                confirmButton = {
-                    TextButton(onClick = { showErrorDialog = false }) {
-                        Text("Okay")
-                    }
-                }
-            )
+            }
         }
     }
 }
