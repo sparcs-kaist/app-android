@@ -2,6 +2,7 @@ package com.example.soap.Shared.Extensions
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -54,6 +55,9 @@ fun Date.toLocalDate(): LocalDate =
 
 fun LocalDate.toDate(): Date =
     Date.from(atStartOfDay(ZoneId.systemDefault()).toInstant())
+
+fun LocalDateTime.toDate(): Date =
+    Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
 
 fun Date.ceilToNextTenMinutes(): Date {
     val cal = Calendar.getInstance().apply { time = this@ceilToNextTenMinutes }

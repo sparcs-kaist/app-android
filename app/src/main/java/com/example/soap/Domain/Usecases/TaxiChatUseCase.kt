@@ -9,6 +9,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Domain.Repositories.TaxiChatRepository
 import com.example.soap.Domain.Repositories.TaxiRoomRepository
 import com.example.soap.Domain.Services.TaxiChatService
+import com.example.soap.Shared.Extensions.toByteArray
 import com.example.soap.Shared.Extensions.toISO8601
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,17 +20,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
 import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
-
-fun Bitmap.toByteArray(format: Bitmap.CompressFormat = Bitmap.CompressFormat.PNG, quality: Int = 100): ByteArray {
-    val stream = ByteArrayOutputStream()
-    this.compress(format, quality, stream)
-    return stream.toByteArray()
-}
-
 
 class TaxiChatUseCase @Inject constructor(
     private val taxiChatService: TaxiChatService,
@@ -39,6 +32,11 @@ class TaxiChatUseCase @Inject constructor(
 ): TaxiChatUseCaseProtocol {
 
     private lateinit var room: TaxiRoom
+
+    override fun setRoom(room: TaxiRoom) {
+        this.room = room
+    }
+
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     // MARK: - Flows
@@ -56,6 +54,7 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     override suspend fun fetchInitialChats() {
+        if (!::room.isInitialized) return
         if (hasInitialChatsBeenFetched) return
         hasInitialChatsBeenFetched = true
         try {
@@ -95,6 +94,7 @@ class TaxiChatUseCase @Inject constructor(
 
     private fun bind() {
         // is socket(TaxiChatService) connected
+        if (!::room.isInitialized) return
         scope.launch(Dispatchers.Default) {
             taxiChatService.isConnectedPublisher.collect { isConnected ->
                 isSocketConnected = isConnected
