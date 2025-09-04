@@ -19,6 +19,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.example.soap.Features.NavigationBar.Channel
+import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.Features.Settings.SettingsViewModel
 import com.example.soap.Features.Settings.SettingsViewModelProtocol
 import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
@@ -26,9 +30,19 @@ import com.example.soap.ui.theme.Theme
 
 
 @Composable
-fun OTLSettingsView(viewModel: SettingsViewModelProtocol) {
+fun OTLSettingsView(
+    viewModel: SettingsViewModelProtocol,
+    navController: NavController
+) {
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+            SettingsViewNavigationBar(
+                title = "OTL Settings",
+                onDismiss = { navController.navigate(Channel.Settings.name )}
+            )
+        }
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier
@@ -88,6 +102,6 @@ fun MajorPicker(
 @Preview
 private fun Preview() {
     Theme {
-        OTLSettingsView(MockSettingsViewModel(SettingsViewModel.ViewState.Loaded))
+        OTLSettingsView(MockSettingsViewModel(SettingsViewModel.ViewState.Loaded), rememberNavController())
     }
 }

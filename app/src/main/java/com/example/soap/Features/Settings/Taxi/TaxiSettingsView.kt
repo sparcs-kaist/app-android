@@ -39,18 +39,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Helpers.Constants
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Settings.Components.RowElementView
+import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.Features.Settings.SettingsViewModel
 import com.example.soap.Features.Settings.SettingsViewModelProtocol
 import com.example.soap.R
 import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 
 @Composable
@@ -65,7 +69,13 @@ fun TaxiSettingsView(
         viewModel.fetchTaxiUser()
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        topBar = {
+        SettingsViewNavigationBar(
+            title = "Taxi Settings",
+            onDismiss = { navController.navigate(Channel.Settings.name )}
+        )
+    }){ innerPadding ->
 
         Column(
             modifier = Modifier
@@ -85,20 +95,22 @@ fun TaxiSettingsView(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    val bankName = viewModel.taxiBankName.value ?: return@Button
-                    coroutineScope.launch {
-                        viewModel.taxiEditBankAccount("${bankName} ${viewModel.taxiBankNumber.value}")
-                    }
-                },
-                enabled = isValid(viewModel)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.round_check),
-                    contentDescription = null
-                )
-                Text("Done")
+            Box(Modifier.align(Alignment.End)){
+                Button(
+                    onClick = {
+                        val bankName = viewModel.taxiBankName.value ?: return@Button
+                        coroutineScope.launch {
+                            viewModel.taxiEditBankAccount("${bankName} ${viewModel.taxiBankNumber.value}")
+                        }
+                    },
+                    enabled = isValid(viewModel)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.round_check),
+                        contentDescription = null
+                    )
+                    Text("Done")
+                }
             }
         }
 
@@ -130,14 +142,14 @@ private fun LoadedView(viewModel: SettingsViewModelProtocol, navController: NavC
         OutlinedTextField(
             value = viewModel.taxiBankNumber.value,
             onValueChange = { viewModel.taxiBankNumber.value = it },
-            label = { Text("Enter Bank Number") },
+            label = { Text("Enter Bank Number", color = MaterialTheme.colorScheme.grayBB) },
             modifier = Modifier.fillMaxWidth()
         )
 
         Spacer(modifier = Modifier.height(16.dp))
         Text("Service", style = MaterialTheme.typography.titleMedium)
 
-        NavigationLinkWithIcon({}, "Report Details", Icons.Default.Warning)
+        NavigationLinkWithIcon({ navController.navigate(Channel.TaxiReportSettings.name) }, "Report Details", Icons.Default.Warning)
         NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Terms of Service", Icons.AutoMirrored.Filled.List)
         NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Privacy Policy", Icons.AutoMirrored.Filled.List)
     }//Todo - ? ScrollableTextView("taxi_privacy_policy")?
@@ -217,6 +229,7 @@ private fun BankPicker(
         OutlinedTextField(
             value = selected ?: "Select Bank",
             onValueChange = {},
+            textStyle = TextStyle().copy(if(selected == null) MaterialTheme.colorScheme.grayBB else MaterialTheme.colorScheme.onSurface),
             readOnly = true,
             modifier = Modifier
                 .fillMaxWidth()
