@@ -2,6 +2,7 @@ package com.example.soap.Features.TaxiChat.Components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -24,42 +25,42 @@ import java.util.Date
 @Composable
 fun TaxiChatImageBubble(
     id: String,
-    modifier: Modifier = Modifier
+    onClick: () -> Unit
 ) {
     val context = LocalContext.current
     val imageUrl = Constants.taxiChatImageURL + id
-
     val painter = rememberAsyncImagePainter(
         model = ImageRequest.Builder(context)
             .data(imageUrl)
             .size(coil.size.Size.ORIGINAL)
+            .crossfade(true)
             .build()
     )
-
-    val imageState = painter.state
+    val state = painter.state
 
     Box(
-        modifier = modifier
+        modifier = Modifier
             .clip(RoundedCornerShape(24.dp))
     ) {
-        if (imageState is AsyncImagePainter.State.Success) {
-            Image(
-                painter = painter,
-                contentDescription = "Chat Image",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .heightIn(max = 360.dp)
-                    .fillMaxWidth()
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(width = 200.dp, height = 300.dp)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(24.dp)
-                    )
-            )
+        when (state) {
+            is AsyncImagePainter.State.Success -> {
+                Image(
+                    painter = painter,
+                    contentDescription = "Chat Image",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .heightIn(max = 360.dp)
+                        .fillMaxWidth()
+                        .clickable { onClick() }
+                )
+            }
+            else -> {
+                Box(
+                    modifier = Modifier
+                        .size(width = 200.dp, height = 300.dp)
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(24.dp))
+                )
+            }
         }
     }
 }
@@ -76,6 +77,6 @@ private fun Preview() {
         isGeneral = false,
         isWithdrawn = false
     ) {
-        TaxiChatImageBubble(id = "688714fb95fce20ddc8f19da")
+        TaxiChatImageBubble(id = "688714fb95fce20ddc8f19da", {})
     }
 }

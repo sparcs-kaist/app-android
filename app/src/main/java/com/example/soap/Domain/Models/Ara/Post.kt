@@ -1,4 +1,4 @@
-package com.example.soap.Domain.Models.Post
+package com.example.soap.Domain.Models.Ara
 
 import java.net.URL
 import java.util.Date

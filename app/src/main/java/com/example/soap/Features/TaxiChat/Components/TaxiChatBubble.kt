@@ -15,23 +15,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Features.SafariViewWrapper.SafariViewWrapper
 
 @Composable
 fun TaxiChatBubble(
     content: String,
     showTip: Boolean,
-    isMe: Boolean,
-    modifier: Modifier = Modifier
+    isMe: Boolean
 ) {
     var selectedUrl by remember { mutableStateOf<String?>(null) }
-    val uriHandler = LocalUriHandler.current
 
     val backgroundColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
     val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
@@ -70,11 +68,11 @@ fun TaxiChatBubble(
 
     Surface(
         shape = bubbleShape,
-        color = backgroundColor,
-        modifier = modifier
+        color = backgroundColor
     ) {
         Text(
             text = annotatedString,
+            style = MaterialTheme.typography.bodyMedium,
             color = contentColor,
             modifier = Modifier
                 .padding(12.dp)
@@ -82,13 +80,17 @@ fun TaxiChatBubble(
                     onClick = {
                         annotatedString.getStringAnnotations(tag = "URL", start = 0, end = annotatedString.length)
                             .firstOrNull()?.let { stringAnnotation ->
-                                uriHandler.openUri(stringAnnotation.item)
+                                selectedUrl = stringAnnotation.item
                             }
                     },
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }
                 )
         )
+    }
+
+    selectedUrl?.let { url ->
+        SafariViewWrapper(url) { selectedUrl = null }
     }
 }
 

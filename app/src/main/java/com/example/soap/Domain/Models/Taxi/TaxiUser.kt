@@ -16,4 +16,6 @@ data class TaxiUser(
     val joinedAt: Date,
     val profileImageURL: URL?,
     val account: String
-)
+){
+    companion object {}
+}
