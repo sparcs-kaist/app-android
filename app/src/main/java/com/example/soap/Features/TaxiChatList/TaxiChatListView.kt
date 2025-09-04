@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiChatList
 
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,11 +12,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -25,16 +26,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
+import com.example.soap.Features.NavigationBar.Channel
+import com.example.soap.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockTaxiChatListViewModel
+import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.example.soap.ui.theme.Theme
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaxiChatListView(viewModel: TaxiChatListViewModelProtocol = hiltViewModel()) {
-    var selectedRoom: TaxiRoom?
+fun TaxiChatListView(
+    viewModel: TaxiChatListViewModelProtocol = hiltViewModel(),
+    navController: NavController
+) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
@@ -43,9 +54,7 @@ fun TaxiChatListView(viewModel: TaxiChatListViewModelProtocol = hiltViewModel())
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Chats") }
-            )
+            TaxiChatListViewNavigationBar { navController.navigate(Channel.Taxi.name) }
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->
@@ -68,14 +77,24 @@ fun TaxiChatListView(viewModel: TaxiChatListViewModelProtocol = hiltViewModel())
                     onGoing = loaded.onGoing,
                     done = loaded.done,
                     onRoomClick = { room ->
-                        //TODO- 방으로 navigate(selectedRoom)
+                        val json = Uri.encode(Gson().toJson(room))
+                        navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
+
                     }
                 )
             }
 
             is TaxiChatListViewModel.ViewState.Error -> {
                 val error = state as TaxiChatListViewModel.ViewState.Error
-                ErrorView(errorMessage = error.message)
+                ErrorView(
+                    icon = Icons.Default.Warning,
+                    errorMessage = error.message,
+                    onRetry = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            viewModel.fetchData()
+                        }
+                    }
+                )
             }
         }
     }
@@ -186,17 +205,14 @@ fun LoadedView(
 }
 
 
-@Composable
-private fun ErrorView(errorMessage: String){
-//TODO - ERRORVIEW 통합하기
-    //refresh - fetchdata
-}
-
 @Preview
 @Composable
 private fun LoadingPreview(){
     Theme {
-        TaxiChatListView(MockTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Loading))
+        TaxiChatListView(
+            MockTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Loading),
+            rememberNavController()
+        )
     }
 }
 
@@ -204,7 +220,11 @@ private fun LoadingPreview(){
 @Composable
 private fun LoadedPreview(){
     Theme {
-        TaxiChatListView(MockTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Loaded(TaxiRoom.mockList().subList(1, 4), TaxiRoom.mockList().subList(5, 7))))
+        TaxiChatListView(
+            MockTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Loaded(TaxiRoom.mockList().subList(1, 4),
+                TaxiRoom.mockList().subList(5, 7))),
+            rememberNavController()
+        )
     }
 }
 
@@ -212,6 +232,9 @@ private fun LoadedPreview(){
 @Composable
 private fun ErrorPreview(){
     Theme {
-        TaxiChatListView(MockTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Error("Something went wrong")))
+        TaxiChatListView(
+            MockTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Error("Something went wrong")),
+            rememberNavController()
+        )
     }
 }

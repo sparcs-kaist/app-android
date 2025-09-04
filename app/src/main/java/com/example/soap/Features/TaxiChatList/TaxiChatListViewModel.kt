@@ -18,6 +18,7 @@ class TaxiChatListViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val userUseCase: UserUseCaseProtocol
 ): ViewModel(), TaxiChatListViewModelProtocol{
+
     sealed class ViewState{
         data object Loading : ViewState()
         data class Loaded(val onGoing: List<TaxiRoom>, val done: List<TaxiRoom>) : ViewState()

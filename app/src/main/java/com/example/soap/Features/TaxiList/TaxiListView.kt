@@ -60,6 +60,7 @@ import com.example.soap.Shared.Extensions.isDateInSameDay
 import com.example.soap.Shared.Extensions.weekdaySymbol
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
+import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
@@ -174,6 +175,7 @@ fun TaxiListView(
 
                 is TaxiListViewModel.ViewState.Error -> {
                     ErrorView(
+                        icon = Icons.Default.Warning,
                         errorMessage = (uiState as TaxiListViewModel.ViewState.Error).message,
                         onRetry = {
                             coroutineScope.launch {
@@ -325,50 +327,6 @@ fun LoadedView(
                     )
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ErrorView(errorMessage: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Warning,
-            contentDescription = "Error",
-            modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.error
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Error",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = errorMessage,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { onRetry() },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Try Again")
         }
     }
 }

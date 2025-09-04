@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiRoomCreation.Components
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Enums.DayType
+import com.example.soap.Shared.Extensions.toDate
 import com.example.soap.Shared.Extensions.toLocalDate
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.darkGray
@@ -57,6 +59,7 @@ import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
@@ -72,10 +75,6 @@ fun TaxiDepartureTimePicker(
 ) {
     val calendar = remember { Calendar.getInstance() }
 
-    LaunchedEffect(departureTime) {
-        calendar.time = departureTime
-    }
-
     val initialDate = remember(departureTime) { departureTime.toLocalDate() }
     var selectedDate by remember { mutableStateOf(initialDate) }
     var showDatePicker by remember { mutableStateOf(false) }
@@ -86,6 +85,12 @@ fun TaxiDepartureTimePicker(
 
     val dateText = remember { mutableStateOf(dateFormatter.format(calendar.time)) }
     val timeText = remember { mutableStateOf(timeFormatter.format(calendar.apply { set(Calendar.MINUTE, (get(Calendar.MINUTE) / 10) * 10); set(Calendar.SECOND, 0) }.time)) }
+
+    LaunchedEffect(departureTime) {
+        calendar.time = departureTime
+        dateText.value = dateFormatter.format(calendar.time)
+        timeText.value = timeFormatter.format(calendar.time)
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -137,7 +142,11 @@ fun TaxiDepartureTimePicker(
                 selectedDate = selectedDate,
                 onDateSelected = {
                     selectedDate = it
+                    calendar.set(Calendar.DATE, selectedDate.dayOfMonth)
+                    calendar.set(Calendar.MONTH, selectedDate.monthValue - 1)
                     dateText.value = DateTimeFormatter.ofPattern("MM/dd").format(it)
+                    onDepartureTimeChange(calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate())
+                    Log.d("Asdada", calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate().toString())
                 }
             )
         }
@@ -151,7 +160,7 @@ fun TaxiDepartureTimePicker(
                 calendar.set(Calendar.MINUTE, minute)
                 calendar.set(Calendar.SECOND, 0)
                 timeText.value = timeFormatter.format(calendar.time)
-                onDepartureTimeChange(calendar.time)
+                onDepartureTimeChange(calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate())
             }
         }
     }
