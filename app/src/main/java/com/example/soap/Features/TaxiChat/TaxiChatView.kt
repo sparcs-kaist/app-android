@@ -301,9 +301,10 @@ fun ContentView(
     val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
     val listState = rememberLazyListState()
 
-    LaunchedEffect(groupedChats.size) {
+    LaunchedEffect(groupedChats) {
+        Log.d("Chat", groupedChats.toString())
         if (groupedChats.isNotEmpty()) {
-            listState.scrollToItem(groupedChats.size - 1)
+            listState.scrollToItem(groupedChats.lastIndex)
         }
     }
 
@@ -354,10 +355,10 @@ fun ContentView(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .wrapContentWidth()
+                                .wrapContentWidth( if(group.isMe) Alignment.End else Alignment.Start)
                         ) {
                             when (chat.type) {
-                                TaxiChat.ChatType.ENTRANCE, TaxiChat.ChatType.EXIT ->
+                                TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
                                     TaxiChatGeneralMessage(authorName = chat.authorName, type = chat.type)
                                 TaxiChat.ChatType.TEXT ->
                                     TaxiChatBubble(content = chat.content, showTip = showTimeLabel, isMe = group.isMe)
@@ -432,7 +433,7 @@ fun LoadingView() {
                                 .wrapContentWidth()
                         ) {
                             when (chat.type) {
-                                TaxiChat.ChatType.ENTRANCE, TaxiChat.ChatType.EXIT ->
+                                TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
                                     TaxiChatGeneralMessage(authorName = chat.authorName, type = chat.type)
                                 TaxiChat.ChatType.TEXT ->
                                     TaxiChatBubble(content = chat.content, showTip = showTimeLabel, isMe = false)
