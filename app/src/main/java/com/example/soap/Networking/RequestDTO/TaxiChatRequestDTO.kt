@@ -11,7 +11,7 @@ data class TaxiChatRequestDTO(
     val type: String,
 
     @SerializedName("content")
-    val content: String
+    val content: String?
 ) {
     companion object {
         fun fromModel(model: TaxiChatRequest): TaxiChatRequestDTO {

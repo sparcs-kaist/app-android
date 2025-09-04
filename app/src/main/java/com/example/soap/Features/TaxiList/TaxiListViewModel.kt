@@ -23,10 +23,10 @@ import javax.inject.Inject
 @HiltViewModel
 class TaxiListViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol
-) : ViewModel() {
+) : ViewModel(),TaxiListViewModelProtocol {
 
     sealed class ViewState {
-        object Loading : ViewState()
+        data object Loading : ViewState()
         data class Loaded(val rooms: List<TaxiRoom>, val locations: List<TaxiLocation>) : ViewState()
         data class Empty(val locations: List<TaxiLocation>) : ViewState()
         data class Error(val message: String) : ViewState()
@@ -34,43 +34,43 @@ class TaxiListViewModel @Inject constructor(
 
     // MARK: - ViewModel Properties
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
-    val state: StateFlow<ViewState> = _state.asStateFlow()
+    override val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    val week: List<Date> = (0 until 7).map {
+    override val week: List<Date> = (0 until 7).map {
         Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, it) }.time
     }
 
-    var rooms: List<TaxiRoom> = emptyList()
-        private set
+    private val _locations = MutableStateFlow<List<TaxiLocation>>(emptyList())
+    override val locations: StateFlow<List<TaxiLocation>> get() = _locations
 
-    var locations: List<TaxiLocation> = emptyList()
-        private set
+    private val _rooms = MutableStateFlow<List<TaxiRoom>>(emptyList())
+    override val rooms: StateFlow<List<TaxiRoom>> get() = _rooms
 
     //MARK: - View Properties
-    var source: TaxiLocation? by mutableStateOf(null)
-    var destination: TaxiLocation? by mutableStateOf(null)
-    var selectedDate: Date? by mutableStateOf(null)
+    override var source: TaxiLocation? by mutableStateOf(null)
+    override var destination: TaxiLocation? by mutableStateOf(null)
+    override var selectedDate: Date? by mutableStateOf(null)
 
     // Room Creation
-    var roomDepartureTime: Date by mutableStateOf(Date().ceilToNextTenMinutes())
-    var roomCapacity: Int by mutableStateOf(4)
+    override var roomDepartureTime: Date by mutableStateOf(Date().ceilToNextTenMinutes())
+    override var roomCapacity: Int by mutableStateOf(4)
 
 
     // MARK: - Functions
-    fun fetchData() {
+    override suspend fun fetchData() {
         viewModelScope.launch {
             _state.value = ViewState.Loading
             try {
                 val roomsDeferred = taxiRoomRepository.fetchRooms()
                 val locationsDeferred = taxiRoomRepository.fetchLocations()
 
-                rooms = roomsDeferred
-                locations = locationsDeferred
+                _rooms.value = roomsDeferred
+                _locations.value = locationsDeferred
 
-                _state.value = if (rooms.isEmpty()) {
-                    ViewState.Empty(locations)
+                _state.value = if (_rooms.value.isEmpty()) {
+                    ViewState.Empty(_locations.value)
                 } else {
-                    ViewState.Loaded(rooms, locations)
+                    ViewState.Loaded(_rooms.value, _locations.value)
                 }
             } catch (e: Exception) {
                 _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
@@ -80,22 +80,19 @@ class TaxiListViewModel @Inject constructor(
 
 
     //Safely capture values before any suspension
-    fun createRoom(title: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
-        viewModelScope.launch {
-            try {
-                Log.d("TaxiListViewModel", "creating a room")
-                val request = TaxiCreateRoom(
-                    title = title,
-                    source = source ?: return@launch,
-                    destination = destination ?: return@launch,
-                    departureTime = roomDepartureTime,
-                    capacity = roomCapacity
-                )
-                taxiRoomRepository.createRoom(request)
-                onSuccess()
-            } catch (e: Exception) {
-                onError(e)
-            }
+    override suspend fun createRoom(title: String) {
+        try {
+            Log.d("TaxiListViewModel", "creating a room")
+            val request = TaxiCreateRoom(
+                title = title,
+                source = source ?: return,
+                destination = destination ?: return,
+                departureTime = roomDepartureTime,
+                capacity = roomCapacity
+            )
+            taxiRoomRepository.createRoom(request)
+        } catch (e: Exception) {
+            throw e
         }
     }
 }

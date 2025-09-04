@@ -13,9 +13,12 @@ import com.example.soap.Domain.Services.AuthenticationService
 import com.example.soap.Domain.Services.AuthenticationServiceProtocol
 import com.example.soap.Domain.Usecases.AuthUseCase
 import com.example.soap.Domain.Usecases.AuthUseCaseProtocol
+import com.example.soap.Domain.Usecases.TaxiChatUseCase
+import com.example.soap.Domain.Usecases.TaxiChatUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCase
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
 import com.example.soap.Networking.RetrofitAPI.AuthApi
+import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiUserApi
 import com.google.gson.Gson
@@ -24,6 +27,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -46,13 +50,22 @@ object NetworkModule {
     @Provides
     @Singleton
     @Named("TaxiBackend")
-    fun taxiBackEndURL(gson: Gson): Retrofit {
+    fun taxiBackEndURL(
+        gson: Gson,
+        tokenStorage: TokenStorageProtocol
+    ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
+                val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val newRequest = original.newBuilder()
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
+                    .apply {
+                        accessToken?.let {
+                            header("Authorization", "Bearer $it")
+                        }
+                    }
                     .build()
                 chain.proceed(newRequest)
             }
@@ -108,6 +121,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideTaxiChatApi(@Named("TaxiBackend") retrofit: Retrofit): TaxiChatApi {
+        return retrofit.create(TaxiChatApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideTaxiUserApi(@Named("TaxiBackend") retrofit: Retrofit): TaxiUserApi {
         return retrofit.create(TaxiUserApi::class.java)
     }
@@ -154,6 +173,10 @@ abstract class UseCaseModule {
     @Binds
     @Singleton
     abstract fun bindUserUseCase(impl: UserUseCase): UserUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTaxiChatUseCase(impl: TaxiChatUseCase): TaxiChatUseCaseProtocol
 
 }
 

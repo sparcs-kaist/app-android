@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -79,7 +80,8 @@ fun TaxiChatUserWrapper(
                 // chat bubbles
                 Column(
                     horizontalAlignment = if (isMe) Alignment.End else Alignment.Start,
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.width(intrinsicSize = IntrinsicSize.Max)
                 ) {
                     content()
                 }
@@ -87,7 +89,7 @@ fun TaxiChatUserWrapper(
 
             // spacer for other users
             if (!isMe) {
-                Spacer(modifier = Modifier.width(60.dp))
+                Spacer(modifier = Modifier.width(16.dp))
             }
         }
     }
@@ -96,7 +98,7 @@ fun TaxiChatUserWrapper(
 @Composable
 fun UserProfileImage(url: URL?) {
     if (url != null) {
-        val painter = rememberAsyncImagePainter(url)
+        val painter = rememberAsyncImagePainter(url.toString())
         Image(
             painter = painter,
             contentDescription = "Profile Image",
@@ -138,7 +140,7 @@ fun UnknownProfileImage() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
 private fun Preview() {
     Theme {
