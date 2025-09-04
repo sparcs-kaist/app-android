@@ -84,7 +84,7 @@ fun TaxiDepartureTimePicker(
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     val dateText = remember { mutableStateOf(dateFormatter.format(calendar.time)) }
-    val timeText = remember { mutableStateOf(timeFormatter.format(calendar.apply { set(Calendar.MINUTE, (get(Calendar.MINUTE) / 10) * 10); set(Calendar.SECOND, 0) }.time)) }
+    val timeText = remember { mutableStateOf(timeFormatter.format(calendar.apply { set(Calendar.MINUTE, (get(Calendar.MINUTE) / 10 + 1) * 10); set(Calendar.SECOND, 0) }.time)) }
 
     LaunchedEffect(departureTime) {
         calendar.time = departureTime
