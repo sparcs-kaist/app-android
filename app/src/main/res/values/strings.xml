@@ -88,6 +88,13 @@
     <string name="taxi_room_creation">New Room</string>
     <string name="postcompose" translatable="false">PostCompose</string>
     <string name="taxi_preview" translatable="false">TaxiPreview</string>
-    <string name="taxichatview">TaxiChatView</string>
+    <string name="taxichatview" translatable="false">TaxiChatView</string>
+    <string name="sign_out" translatable="false">SignOut</string>
+    <string name="settings" translatable="false">Settings</string>
+    <string name="taxi_settings" translatable="false">Taxi Settings</string>
+    <string name="ara_settings" translatable="false">Ara Settings</string>
+    <string name="otl_settings" translatable="false">OTL Settings</string>
+    <string name="ara_blocked_users_settings" translatable="false">Ara Blocked Users Settings</string>
+    <string name="taxi_report_settings" translatable="false">Taxi Report Settings</string>
 
 </resources>
