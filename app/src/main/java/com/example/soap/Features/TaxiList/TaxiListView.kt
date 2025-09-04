@@ -74,8 +74,11 @@ fun TaxiListView(
     navController: NavController
 ) {
     val uiState by viewModel.state.collectAsState()
-    var selectedDate: Date? by remember { mutableStateOf(viewModel.selectedDate) }
+    var selectedDate = viewModel.selectedDate
+
     var showRoomCreation by remember { mutableStateOf(true) }
+    val locations by viewModel.locations.collectAsState()
+
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -117,7 +120,7 @@ fun TaxiListView(
                     TaxiDestinationPicker(
                         source = viewModel.source,
                         destination = viewModel.destination,
-                        locations = viewModel.locations,
+                        locations = locations,
                         onSourceChange = { newSource ->
                             viewModel.source = newSource
                         },
@@ -160,18 +163,23 @@ fun TaxiListView(
                         source = viewModel.source,
                         destination = viewModel.destination,
                         onRoomSelected = { selectedRoom = it },
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        navController = navController
                     )
                 }
 
                 is TaxiListViewModel.ViewState.Empty -> {
-                    EmptyView(locations = viewModel.locations)
+                    EmptyView(locations = locations, navController = navController)
                 }
 
                 is TaxiListViewModel.ViewState.Error -> {
                     ErrorView(
                         errorMessage = (uiState as TaxiListViewModel.ViewState.Error).message,
-                        onRetry = {}
+                        onRetry = {
+                            coroutineScope.launch {
+                                viewModel.fetchData()
+                            }
+                        }
                     )
                 }
             }
@@ -245,7 +253,8 @@ fun LoadedView(
     source: TaxiLocation?,
     destination: TaxiLocation?,
     onRoomSelected: (TaxiRoom) -> Unit,
-    viewModel: TaxiListViewModelProtocol
+    viewModel: TaxiListViewModelProtocol,
+    navController: NavController
 ) {
     val calendar = Calendar.getInstance()
     val filteredRooms = rooms.filter { room ->
@@ -254,33 +263,35 @@ fun LoadedView(
         matchesSource && matchesDestination
     }
 
-    val description: String = when {
-        viewModel.source != null && viewModel.destination != null -> {
-            "No rooms found from ${viewModel.source?.title} to ${viewModel.destination?.title}. \nBe the first one to create one!"
-        }
-        viewModel.source != null -> {
-            "No rooms found from ${viewModel.source?.title} to any destination. \nBe the first one to create one!"
-        }
-        viewModel.destination != null -> {
-            "No rooms found heading to ${viewModel.destination?.title}. \nBe the first one to create one!"
-        }
-        else -> {
-            "No rooms found for this week. \nBe the first one to create one!"
-        }
-    }
-
     val targetDates = selectedDate?.let { listOf(it) } ?: week
 
     Column {
         if (filteredRooms.isEmpty()) {
+            val description = if (selectedDate != null)
+                "No rooms found on ${selectedDate.weekdaySymbol()}. Be the first one to create one!"
+            else
+                "No rooms found this week. Be the first one to create one!"
+
             EmptyResultView(
                 viewModel = viewModel,
-                description = description
+                description = description,
+                navController = navController
             )
         } else {
             targetDates.forEach { day ->
                 val roomsForDay = filteredRooms.filter { room ->
                     calendar.isDateInSameDay(room.departAt, day)
+                }
+
+                val description: String = when {
+                    viewModel.source != null && viewModel.destination != null ->
+                        "No rooms found from ${viewModel.source?.title} to ${viewModel.destination?.title} on ${day.weekdaySymbol()}. Be the first one to create one!"
+                    viewModel.source != null ->
+                        "No rooms found from ${viewModel.source?.title} to any destination on ${day.weekdaySymbol()}. Be the first one to create one!"
+                    viewModel.destination != null ->
+                        "No rooms found heading to ${viewModel.destination?.title} on ${day.weekdaySymbol()}. Be the first one to create one!"
+                    else ->
+                        "No rooms found on ${day.weekdaySymbol()}. Be the first one to create one!"
                 }
 
                 if (roomsForDay.isNotEmpty()) {
@@ -306,6 +317,12 @@ fun LoadedView(
                             )
                         }
                     }
+                }else if (selectedDate != null) {
+                    EmptyResultView(
+                        viewModel = viewModel,
+                        description = description,
+                        navController = navController
+                    )
                 }
             }
         }
@@ -357,7 +374,7 @@ private fun ErrorView(errorMessage: String, onRetry: () -> Unit) {
 }
 
 @Composable
-private fun EmptyView(locations: List<TaxiLocation>) {
+private fun EmptyView(locations: List<TaxiLocation>, navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -392,7 +409,11 @@ private fun EmptyView(locations: List<TaxiLocation>) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { /*Create */ },
+            onClick = {
+                navController.navigate(Channel.TaxiRoomCreation.name) {
+                    launchSingleTop = true
+                }
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Create a New Room")
@@ -403,7 +424,8 @@ private fun EmptyView(locations: List<TaxiLocation>) {
 @Composable
 fun EmptyResultView(
     viewModel: TaxiListViewModelProtocol,
-    description: String
+    description: String,
+    navController: NavController
 ) {
     Column(
         modifier = Modifier
@@ -440,7 +462,11 @@ fun EmptyResultView(
 
         Column {
             Button(
-                onClick = {},
+                onClick = {
+                    navController.navigate(Channel.TaxiRoomCreation.name){
+                        launchSingleTop = true
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Create a New Room")
@@ -452,6 +478,7 @@ fun EmptyResultView(
                 onClick = {
                     viewModel.source = null
                     viewModel.destination = null
+                    viewModel.selectedDate = null
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

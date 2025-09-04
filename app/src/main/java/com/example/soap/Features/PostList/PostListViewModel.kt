@@ -1,7 +1,7 @@
 package com.example.soap.Features.PostList
 
 import androidx.lifecycle.ViewModel
-import com.example.soap.Domain.Models.Post.Post
+import com.example.soap.Domain.Models.Ara.Post
 import com.example.soap.Shared.Mocks.mockList
 
 class PostListViewModel : ViewModel(){

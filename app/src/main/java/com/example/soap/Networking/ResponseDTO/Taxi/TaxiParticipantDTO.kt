@@ -22,6 +22,9 @@ data class TaxiParticipantDTO(
     @SerializedName("withdraw")
     val withdraw: Boolean,
 
+    @SerializedName("isSettlement")
+    val isSettlement: String?,
+
     @SerializedName("readAt")
     val readAt: String
 ) {
@@ -32,6 +35,7 @@ data class TaxiParticipantDTO(
             nickname = nickname,
             profileImageURL = URL(profileImageURL),
             withdraw = withdraw,
+            isSettlement = isSettlement?.let { TaxiParticipant.SettlementType.from(it) },
             readAt = readAt.toDate() ?: Date()
         )
     }
