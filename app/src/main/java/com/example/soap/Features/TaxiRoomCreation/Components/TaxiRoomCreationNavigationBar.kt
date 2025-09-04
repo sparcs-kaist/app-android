@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiRoomCreation.Components
 
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +64,21 @@ fun TaxiRoomCreationNavigationBar(
             containerColor = MaterialTheme.colorScheme.background
         )
     )
+
+
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Error") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("Okay")
+                }
+            }//TODO - 이름 에러의 경우 unknown으로 뜨는데, 추후 에러 작업 필요해보임.
+        )
+    }
 }
 
 @Composable
