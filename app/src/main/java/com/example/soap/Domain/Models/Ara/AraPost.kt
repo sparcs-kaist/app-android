@@ -32,7 +32,7 @@ data class AraPost(
     enum class AttachmentType(val type: String) {
         NONE("NONE"),
         IMAGE("IMAGE"),
-        NON_IMAGE("NON_IMAGE"),
+        FILE("NON_IMAGE"),
         BOTH("BOTH")
     }
 

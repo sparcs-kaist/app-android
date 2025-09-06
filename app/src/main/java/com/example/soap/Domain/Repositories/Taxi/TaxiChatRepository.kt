@@ -1,4 +1,4 @@
-package com.example.soap.Domain.Repositories
+package com.example.soap.Domain.Repositories.Taxi
 
 import com.example.soap.Domain.Models.Taxi.TaxiChatRequest
 import com.example.soap.Networking.RequestDTO.TaxiChatRequestDTO
