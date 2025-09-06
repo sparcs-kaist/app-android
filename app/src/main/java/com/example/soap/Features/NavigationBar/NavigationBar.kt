@@ -41,6 +41,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import com.example.soap.Domain.Models.Ara.AraBoard
+import com.example.soap.Domain.Models.Ara.AraPost
+import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
+import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
@@ -55,6 +59,7 @@ import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.PostListView
+import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatView
 import com.example.soap.Features.TaxiChat.TaxiChatViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatViewModelProtocol
@@ -67,6 +72,11 @@ import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
+import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Mocks.mockList
+import com.example.soap.Shared.ViewModelMocks.MockPostComposeViewModel
+import com.example.soap.Shared.ViewModelMocks.MockPostListViewModel
+import com.example.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
 import com.example.soap.ui.theme.Theme
 
 enum class Channel(@StringRes val title: Int) {
@@ -179,7 +189,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Channel.TrendingBoard.name
-            ) { PostListView(navController = navController) }
+            ) { PostListView(board = AraBoard.mock(), postListViewModel = MockPostListViewModel(initialState = PostListViewModel.ViewState.Loaded(posts = AraPost.mockList())), navController = navController) }
 
             composable(
                 route = Channel.PostView.name
@@ -191,7 +201,12 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) { PostComposeView(postListViewModel = viewModel(), navController = navController) }
+            ) {
+                PostComposeView(
+                    viewModel = MockPostComposeViewModel(),
+                    navController = navController
+                )
+            }
 
             composable(
                 route = "${Channel.LectureDetail.name}/{lectureId}",

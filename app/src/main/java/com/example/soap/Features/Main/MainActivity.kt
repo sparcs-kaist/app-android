@@ -10,7 +10,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.example.soap.Domain.Services.AuthenticationCallbackHandler
 import com.example.soap.Features.NavigationBar.MainTabBar
-import com.example.soap.Features.SignIn.SignInView
 import com.example.soap.ui.theme.Theme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -39,7 +38,8 @@ class MainActivity : ComponentActivity() {
                         MainTabBar()
                     }
                     else -> {
-                        SignInView()
+//                        SignInView()
+                        MainTabBar()
                     }
                 }
             }

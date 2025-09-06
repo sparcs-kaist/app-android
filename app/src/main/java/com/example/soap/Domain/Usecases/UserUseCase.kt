@@ -3,7 +3,7 @@ package com.example.soap.Domain.Usecases
 import android.util.Log
 import com.example.soap.Domain.Helpers.UserStorageProtocol
 import com.example.soap.Domain.Models.Taxi.TaxiUser
-import com.example.soap.Domain.Repositories.TaxiUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

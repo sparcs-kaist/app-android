@@ -247,7 +247,7 @@ private fun LoadingView() {
 }
 
 @Composable
-fun LoadedView(
+private fun LoadedView(
     rooms: List<TaxiRoom>,
     locations: List<TaxiLocation>,
     week: List<Date>,
