@@ -229,12 +229,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) {
-                PostComposeView(
-                    viewModel = MockPostComposeViewModel(),
-                    navController = navController
-                )
-            }
+            ) { PostComposeView(postListViewModel = viewModel(), navController = navController) }
 
             composable(
                 route = "${Channel.LectureDetail.name}/{lectureId}",
