@@ -21,7 +21,8 @@ import com.example.soap.ui.theme.darkGray
 fun CheckBoxText(
     text: String,
     isChecked: Boolean,
-    onCheckedChange:((Boolean) -> Unit)?
+    onCheckedChange:((Boolean) -> Unit)?,
+    enabled: Boolean
 ){
     Row(
         verticalAlignment = Alignment.CenterVertically
@@ -32,7 +33,8 @@ fun CheckBoxText(
                 checked = isChecked,
                 onCheckedChange = onCheckedChange,
                 colors = CheckboxDefaults.colors(MaterialTheme.colorScheme.darkGray),
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier.padding(8.dp),
+                enabled = enabled
             )
             Text(
                 text = text,
@@ -49,7 +51,8 @@ private fun Preview(){
         CheckBoxText(
             text = "Text",
             isChecked = false,
-            onCheckedChange = {}
+            onCheckedChange = {},
+            true
     )
     }
 }

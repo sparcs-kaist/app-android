@@ -10,7 +10,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiParticipant
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Domain.Models.Taxi.TaxiUser
-import com.example.soap.Domain.Repositories.TaxiRoomRepositoryProtocol
+import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import com.example.soap.Domain.Usecases.TaxiChatUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
