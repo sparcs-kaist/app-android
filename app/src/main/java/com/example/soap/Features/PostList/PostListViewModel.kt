@@ -1,20 +1,153 @@
 package com.example.soap.Features.PostList
 
 import androidx.lifecycle.ViewModel
-import com.example.soap.Domain.Models.Ara.Post
-import com.example.soap.Shared.Mocks.mockList
+import com.example.soap.Domain.Models.Ara.AraBoard
+import com.example.soap.Domain.Models.Ara.AraPost
+import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
+import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class PostListViewModel : ViewModel(){
+@HiltViewModel
+class PostListViewModel @Inject constructor(
+    private val araBoardRepository: AraBoardRepositoryProtocol
+) : ViewModel(), PostListViewModelProtocol {
 
-    var postList: List<Post> = Post.mockList()
+    override lateinit var board: AraBoard
 
-    var flairList: List<String> = listOf(
-        "SPPANGS",
-        "Meal",
-        "Money",
-        "Gaming",
-        "Dating",
-        "Lost & Found"
-    )
+    sealed class ViewState{
+        data object Loading : ViewState()
+        data class Loaded(val posts: List<AraPost>) : ViewState()
+        data class Error(val message: String) : ViewState()
+    }
 
+    private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
+    override var state: StateFlow<ViewState> = _state.asStateFlow()
+
+    override var posts: List<AraPost> = emptyList()
+
+    //Search Properties
+    var _searchKeyword: MutableStateFlow<String> = MutableStateFlow("")
+    override var searchKeyword: String =""
+        get() = _searchKeyword.value
+        set(value) {
+            _searchKeyword.value = value
+            field = value
+        }
+
+    //Infinite Scroll Properties
+    override var isLoadingMore: Boolean = false
+    override var hasMorePages: Boolean = true
+    var currentPage: Int = 1
+    var totalPages: Int = 0
+    var pageSize: Int = 30
+
+    private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    //Mark: - Initializer
+    init {
+        bind()
+        viewModelScope.launch {
+            fetchInitialPosts()
+        }
+    }
+
+    //Mark: - Functions
+    @OptIn(FlowPreview::class)
+    override fun bind() {
+        viewModelScope.launch {
+            _searchKeyword
+                .debounce(350)
+                .distinctUntilChanged()
+                .collectLatest {
+                    fetchInitialPosts()
+                }
+        }
+    }
+
+    override suspend fun fetchInitialPosts() {
+        try {
+            val page = araBoardRepository.fetchPosts(
+                type = AraBoardTarget.PostListType.Board(boardID = board.id),
+                page = 1,
+                pageSize = pageSize,
+                searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
+            )
+            totalPages = page.pages
+            currentPage = page.currentPage
+            posts = page.results
+            hasMorePages = currentPage < totalPages
+            _state.value = ViewState.Loaded(posts)
+        } catch (e: Exception) {
+            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
+        }
+    }
+
+    override suspend fun loadNextPage() {
+        if(!isLoadingMore && hasMorePages) return
+        isLoadingMore = true
+        try {
+            val nextPage = currentPage + 1
+            val page = araBoardRepository.fetchPosts(
+                type = AraBoardTarget.PostListType.Board(boardID = board.id),
+                page = nextPage,
+                pageSize = pageSize,
+                searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
+            )
+            currentPage = page.currentPage
+            posts = posts + page.results
+            hasMorePages = currentPage < totalPages
+            _state.value = ViewState.Loaded(posts)
+
+            isLoadingMore = false
+
+        }catch (e: Exception){
+            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
+            isLoadingMore = false
+        }
+    }
+
+    override fun refreshItem(postID: Int) {
+        viewModelScope.launch {
+            val updated = try {
+                araBoardRepository.fetchPost(postID = postID, origin = AraBoardTarget.PostOrigin.None)
+            } catch (e: Exception) {
+                null
+            } ?: return@launch
+
+            val idx = posts.indexOfFirst { it.id == updated.id }
+            if (idx != -1) {
+                val mutablePosts = posts.toMutableList()
+                val previousPost = mutablePosts[idx]
+                mutablePosts[idx] = previousPost.copy(
+                    upVotes = updated.upVotes,
+                    downVotes = updated.downVotes,
+                    commentCount = updated.commentCount
+                )
+                posts = mutablePosts
+                _state.value = ViewState.Loaded(posts)
+            }
+        }
+    }
+
+    override fun removePost(postID: Int) {
+        val idx = posts.indexOfFirst { it.id == postID }
+        if (idx != -1) {
+            val mutablePosts = posts.toMutableList()
+            mutablePosts.removeAt(idx)
+            posts = mutablePosts
+            _state.value = ViewState.Loaded(posts)
+        }
+    }
 }

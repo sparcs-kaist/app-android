@@ -223,7 +223,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
     return listOf(
                     AraPost(
                         id = 12328,
-                        isHidden = false,
+                        isHidden = true,
                         hiddenReason = listOf(),
                         overrideHidden = null,
                         topic = null,
@@ -260,7 +260,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                     ),
                     AraPost(
                         id = 12327,
-                        isHidden = false,
+                        isHidden = true,
                         hiddenReason = listOf(),
                         overrideHidden = null,
                         topic = null,
@@ -509,7 +509,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                             ),
                             isBlocked = false
                         ),
-                        attachmentType = AraPost.AttachmentType.IMAGE,
+                        attachmentType = AraPost.AttachmentType.FILE,
                         communicationArticleStatus = null,
                         createdAt = Date(),
                         isNSFW = false,
@@ -546,7 +546,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                             ),
                             isBlocked = false
                         ),
-                        attachmentType = AraPost.AttachmentType.NONE,
+                        attachmentType = AraPost.AttachmentType.BOTH,
                         communicationArticleStatus = null,
                         createdAt = Date(),
                         isNSFW = false,

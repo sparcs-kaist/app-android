@@ -19,9 +19,9 @@ fun AraBoard.Companion.mock(): AraBoard{
             ))
         ),
         topics = emptyList(),
-        isReadOnly = true,
+        isReadOnly = false,
         userReadable = true,
-        userWritable = false
+        userWritable = true
     )
 }
 

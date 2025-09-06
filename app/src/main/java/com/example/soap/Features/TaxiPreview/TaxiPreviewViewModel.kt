@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Taxi.TaxiParticipant
 import com.example.soap.Domain.Models.Taxi.TaxiUser
-import com.example.soap.Domain.Repositories.TaxiRoomRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
 import com.example.soap.Domain.Usecases.UserUseCase
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel

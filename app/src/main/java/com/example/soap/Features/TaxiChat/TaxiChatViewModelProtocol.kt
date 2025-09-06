@@ -6,6 +6,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import kotlinx.coroutines.flow.StateFlow
+import java.util.Date
 
 
 interface TaxiChatViewModelProtocol {
@@ -14,7 +15,7 @@ interface TaxiChatViewModelProtocol {
     val state: StateFlow<TaxiChatViewModel.ViewState>
     val groupedChats: StateFlow<List<TaxiChatGroup>>
     val taxiUser: StateFlow<TaxiUser?>
-    var fetchedDateSet: MutableSet<java.util.Date>
+    var fetchedDateSet: MutableSet<Date>
     val room: StateFlow<TaxiRoom>
     val isUploading: StateFlow<Boolean>
 
@@ -26,7 +27,7 @@ interface TaxiChatViewModelProtocol {
     // MARK: - Functions
     suspend fun setup()
 
-    suspend fun fetchChats(before: java.util.Date)
+    suspend fun fetchChats(before: Date)
     suspend fun fetchInitialChats()
     suspend fun sendChat(message: String, type: TaxiChat.ChatType)
     suspend fun leaveRoom()

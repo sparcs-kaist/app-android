@@ -31,7 +31,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.Domain.Repositories.FakeTaxiRoomRepository
+import com.example.soap.Domain.Repositories.Taxi.FakeTaxiRoomRepository
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Shared.Extensions.toDate
 import com.example.soap.Shared.Extensions.toLocalDate
