@@ -5,10 +5,12 @@ import com.example.soap.Domain.Helpers.TokenStorage
 import com.example.soap.Domain.Helpers.TokenStorageProtocol
 import com.example.soap.Domain.Helpers.UserStorage
 import com.example.soap.Domain.Helpers.UserStorageProtocol
-import com.example.soap.Domain.Repositories.TaxiRoomRepository
-import com.example.soap.Domain.Repositories.TaxiRoomRepositoryProtocol
-import com.example.soap.Domain.Repositories.TaxiUserRepository
-import com.example.soap.Domain.Repositories.TaxiUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.Ara.AraBoardRepository
+import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
+import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
+import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
 import com.example.soap.Domain.Services.AuthenticationService
 import com.example.soap.Domain.Services.AuthenticationServiceProtocol
 import com.example.soap.Domain.Usecases.AuthUseCase
@@ -17,6 +19,7 @@ import com.example.soap.Domain.Usecases.TaxiChatUseCase
 import com.example.soap.Domain.Usecases.TaxiChatUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCase
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
+import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.example.soap.Networking.RetrofitAPI.AuthApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
@@ -108,6 +111,41 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("AraBackend")
+    fun araBackEndURL(
+        gson: Gson,
+        tokenStorage: TokenStorageProtocol
+    ): Retrofit {
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val accessToken = runBlocking { tokenStorage.getAccessToken() }
+                val newRequest = original.newBuilder()
+                    .header("Origin", "sparcsapp")
+                    .header("Content-Type", "application/json")
+                    .apply {
+                        accessToken?.let {
+                            header("Authorization", "Bearer $it")
+                        }
+                    }
+                    .build()
+                chain.proceed(newRequest)
+            }
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(Constants.araBackendURL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+    }
+
+
+    @Provides
+    @Singleton
     fun provideTaxiRoomApi(@Named("TaxiBackend") retrofit: Retrofit): TaxiRoomApi {
         return retrofit.create(TaxiRoomApi::class.java)
     }
@@ -129,6 +167,12 @@ object NetworkModule {
     @Singleton
     fun provideTaxiUserApi(@Named("TaxiBackend") retrofit: Retrofit): TaxiUserApi {
         return retrofit.create(TaxiUserApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAraBoardApi(@Named("AraBackend") retrofit: Retrofit): AraBoardApi {
+        return retrofit.create(AraBoardApi::class.java)
     }
 }
 
@@ -160,6 +204,12 @@ abstract class RepositoryModule {
     abstract fun bindTaxiUserRepository(
         impl: TaxiUserRepository
     ): TaxiUserRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindAraBoardRepository(
+        impl: AraBoardRepository
+    ): AraBoardRepositoryProtocol
 }
 
 @Module

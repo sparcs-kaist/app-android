@@ -2,9 +2,11 @@ package com.example.soap.Features.PostCompose.Components
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,7 +40,9 @@ import com.example.soap.ui.theme.grayBB
 fun PostComposeNavigationBar(
     navController: NavController,
     isDoneEnabled: Boolean,
-    isBackDisEnabled: Boolean
+    isBackEnabled: Boolean,
+    onDoneClick: () -> Unit,
+    isUploading: Boolean
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
@@ -60,7 +64,7 @@ fun PostComposeNavigationBar(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    if(isBackDisEnabled){
+                    if(!isBackEnabled){
                         showDialog = true
                     } else {
                         navController.navigate(Channel.TrendingBoard.name)
@@ -80,7 +84,12 @@ fun PostComposeNavigationBar(
                 fontWeight = FontWeight.Bold
             )
         },
-        actions = { DoneButton(isDoneEnabled) },
+        actions = {
+            DoneButton(
+                isDoneEnabled = isDoneEnabled,
+                onDoneClick = onDoneClick,
+                isUploading = isUploading
+            ) },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
@@ -89,23 +98,29 @@ fun PostComposeNavigationBar(
 
 @Composable
 private fun DoneButton(
-    isDoneEnabled: Boolean
+    isDoneEnabled: Boolean,
+    onDoneClick: () -> Unit,
+    isUploading: Boolean
 ){
     TextButton(
         onClick = {
             if (isDoneEnabled) {
-                // TODO: Dismiss
+                onDoneClick()
             }
         },
         enabled = isDoneEnabled,
         modifier = Modifier.semantics { contentDescription = "Post Button" }
-    ) {
+    ){
+    if (isUploading) {
+        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+    } else {
         Text(
             text = stringResource(R.string.submit),
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Normal,
             color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
         )
+    }
     }
 }
 
@@ -143,5 +158,5 @@ fun ConfirmationDialog(
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ PostComposeNavigationBar(rememberNavController(), false, true) }
+    Theme{ PostComposeNavigationBar(rememberNavController(), false, true, {}, false) }
 }
