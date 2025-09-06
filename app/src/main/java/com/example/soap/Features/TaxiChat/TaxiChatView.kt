@@ -426,7 +426,7 @@ fun ContentView(
 }
 
 @Composable
-fun LoadingView() {
+private fun LoadingView() {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,

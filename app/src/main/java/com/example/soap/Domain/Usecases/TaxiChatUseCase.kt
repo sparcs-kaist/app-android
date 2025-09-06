@@ -6,8 +6,8 @@ import com.example.soap.Domain.Models.Taxi.TaxiChat
 import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiChatRequest
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
-import com.example.soap.Domain.Repositories.TaxiChatRepository
-import com.example.soap.Domain.Repositories.TaxiRoomRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiChatRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
 import com.example.soap.Domain.Services.TaxiChatService
 import com.example.soap.Shared.Extensions.toByteArray
 import com.example.soap.Shared.Extensions.toISO8601
