@@ -72,7 +72,7 @@ data class AraPostDTO(
     val isMine: Boolean?,
 
     @SerializedName("comments")
-    val comments: List<AraPostCommentDTO>?,
+    val comments: MutableList<AraPostCommentDTO>?,
 
     @SerializedName("content")
     val content: String?,
@@ -108,7 +108,7 @@ data class AraPostDTO(
         attachments = attachments?.map { it.toModel() },
         myCommentProfile = myCommentProfile?.toModel(),
         isMine = isMine,
-        comments = comments?.map { it.toModel() } ?: emptyList(),
+        comments = comments?.map { it.toModel() }?.toMutableList() ?: mutableListOf(),
         content = content,
         myVote = myVote,
         myScrap = myScrap
