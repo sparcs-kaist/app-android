@@ -54,7 +54,7 @@ fun AraPost.Companion.mock(): AraPost {
             isBlocked = null
         ),
         isMine = false,
-        comments = listOf(
+        comments = mutableListOf(
             AraPostComment(
                 id = 1542,
                 isHidden = false,
@@ -75,7 +75,7 @@ fun AraPost.Companion.mock(): AraPost {
                     ),
                     isBlocked = false
                 ),
-                comments = listOf(
+                comments = mutableListOf(
                     AraPostComment(
                         id = 1550,
                         isHidden = false,
@@ -96,7 +96,7 @@ fun AraPost.Companion.mock(): AraPost {
                             ),
                             isBlocked = false
                         ),
-                        comments = emptyList(),
+                        comments = mutableListOf(),
                         createdAt = Date(1699887315272),
                         upVotes = 0,
                         downVotes = 0,
@@ -130,7 +130,7 @@ fun AraPost.Companion.mock(): AraPost {
                     ),
                     isBlocked = false
                 ),
-                comments = emptyList(),
+                comments = mutableListOf(),
                 createdAt = Date(1699382798345),
                 upVotes = 0,
                 downVotes = 0,
@@ -157,7 +157,7 @@ fun AraPost.Companion.mock(): AraPost {
                     ),
                     isBlocked = false
                 ),
-                comments = emptyList(),
+                comments = mutableListOf(),
                 createdAt = Date(1699383299051),
                 upVotes = 0,
                 downVotes = 0,
@@ -184,7 +184,7 @@ fun AraPost.Companion.mock(): AraPost {
                     ),
                     isBlocked = false
                 ),
-                comments = emptyList(),
+                comments = mutableListOf(),
                 createdAt = Date(1699887998890),
                 upVotes = 0,
                 downVotes = 0,
@@ -253,7 +253,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -290,7 +290,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -327,7 +327,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -364,7 +364,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -401,7 +401,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -447,7 +447,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -484,7 +484,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -521,7 +521,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -558,7 +558,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -595,7 +595,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -632,7 +632,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -669,7 +669,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -715,7 +715,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -761,7 +761,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -807,7 +807,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
