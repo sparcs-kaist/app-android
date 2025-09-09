@@ -24,7 +24,7 @@ data class AraPost(
     val attachments: List<AraPostAttachment>?,
     val myCommentProfile: AraPostAuthor?,
     val isMine: Boolean?,
-    var comments: List<AraPostComment>,
+    var comments: MutableList<AraPostComment>,
     val content: String?,
     var myVote: Boolean?,
     var myScrap: Boolean?

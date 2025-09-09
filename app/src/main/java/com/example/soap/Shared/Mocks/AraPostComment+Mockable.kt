@@ -27,7 +27,7 @@ fun AraPostComment.Companion.mock(): AraPostComment{
             ),
             isBlocked = false
         ),
-        comments = listOf(
+        comments = mutableListOf(
             AraPostComment(
                 id = 1550,
                 isHidden = false,
@@ -48,7 +48,7 @@ fun AraPostComment.Companion.mock(): AraPostComment{
                     ),
                     isBlocked = false
                 ),
-                comments = listOf(),
+                comments = mutableListOf(),
                 createdAt = Date(1699887315272),
                 upVotes = 0,
                 downVotes = 0,
@@ -86,7 +86,7 @@ fun AraPostComment.Companion.mockList(): List<AraPostComment> {
                 ),
                 isBlocked = false
             ),
-            comments = listOf(
+            comments = mutableListOf(
                 AraPostComment(
                     id = 1550,
                     isHidden = false,
@@ -107,7 +107,7 @@ fun AraPostComment.Companion.mockList(): List<AraPostComment> {
                         ),
                         isBlocked = false
                     ),
-                    comments = listOf(),
+                    comments = mutableListOf(),
                     createdAt = Date(1699887315272), // timeIntervalSince1970 * 1000
                     upVotes = 0,
                     downVotes = 0,
@@ -141,7 +141,7 @@ fun AraPostComment.Companion.mockList(): List<AraPostComment> {
                 ),
                 isBlocked = false
             ),
-            comments = listOf(),
+            comments = mutableListOf(),
             createdAt = Date(1699382798345),
             upVotes = 0,
             downVotes = 0,
@@ -168,7 +168,7 @@ fun AraPostComment.Companion.mockList(): List<AraPostComment> {
                 ),
                 isBlocked = false
             ),
-            comments = listOf(),
+            comments = mutableListOf(),
             createdAt = Date(1699383299051),
             upVotes = 0,
             downVotes = 0,
@@ -195,7 +195,7 @@ fun AraPostComment.Companion.mockList(): List<AraPostComment> {
                 ),
                 isBlocked = false
             ),
-            comments = listOf(),
+            comments = mutableListOf(),
             createdAt = Date(1699887998890),
             upVotes = 0,
             downVotes = 0,
