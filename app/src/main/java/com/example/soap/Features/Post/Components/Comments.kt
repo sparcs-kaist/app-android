@@ -81,11 +81,11 @@ fun Comments(
                     .padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                PostVoteButton()
+//                PostVoteButton()
 
                 Spacer(Modifier.padding(4.dp))
 
-                PostCommentButton()
+                PostCommentButton(commentCount = 1, {})
             }
         }
     }
