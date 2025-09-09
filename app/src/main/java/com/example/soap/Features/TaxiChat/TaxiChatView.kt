@@ -103,7 +103,6 @@ fun TaxiChatView(
     viewModel: TaxiChatViewModelProtocol = hiltViewModel(),
     navController: NavController
 ) {
-//    val room: TaxiRoom by viewModel.room.collectAsState()
     val state by viewModel.state.collectAsState()
     val groupedChats by viewModel.groupedChats.collectAsState(initial = emptyList())
     val taxiUser by viewModel.taxiUser.collectAsState()
