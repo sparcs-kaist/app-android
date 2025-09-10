@@ -1,15 +1,13 @@
 package com.example.soap.Features.PostList
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -53,8 +51,6 @@ class PostListViewModel @Inject constructor(
     var totalPages: Int = 0
     var pageSize: Int = 30
 
-    private val viewModelScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
     //Mark: - Initializer
     init {
         bind()
@@ -77,44 +73,48 @@ class PostListViewModel @Inject constructor(
     }
 
     override suspend fun fetchInitialPosts() {
-        try {
-            val page = araBoardRepository.fetchPosts(
-                type = AraBoardTarget.PostListType.Board(boardID = board.id),
-                page = 1,
-                pageSize = pageSize,
-                searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
-            )
-            totalPages = page.pages
-            currentPage = page.currentPage
-            posts = page.results
-            hasMorePages = currentPage < totalPages
-            _state.value = ViewState.Loaded(posts)
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
+        viewModelScope.launch {
+            try {
+                val page = araBoardRepository.fetchPosts(
+                    type = AraBoardTarget.PostListType.Board(boardID = board.id),
+                    page = 1,
+                    pageSize = pageSize,
+                    searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
+                )
+                totalPages = page.pages
+                currentPage = page.currentPage
+                posts = page.results
+                hasMorePages = currentPage < totalPages
+                _state.value = ViewState.Loaded(posts)
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
+            }
         }
     }
 
     override suspend fun loadNextPage() {
-        if(!isLoadingMore && hasMorePages) return
+        if (!isLoadingMore && hasMorePages) return
         isLoadingMore = true
-        try {
-            val nextPage = currentPage + 1
-            val page = araBoardRepository.fetchPosts(
-                type = AraBoardTarget.PostListType.Board(boardID = board.id),
-                page = nextPage,
-                pageSize = pageSize,
-                searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
-            )
-            currentPage = page.currentPage
-            posts = posts + page.results
-            hasMorePages = currentPage < totalPages
-            _state.value = ViewState.Loaded(posts)
+        viewModelScope.launch {
+            try {
+                val nextPage = currentPage + 1
+                val page = araBoardRepository.fetchPosts(
+                    type = AraBoardTarget.PostListType.Board(boardID = board.id),
+                    page = nextPage,
+                    pageSize = pageSize,
+                    searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
+                )
+                currentPage = page.currentPage
+                posts = posts + page.results
+                hasMorePages = currentPage < totalPages
+                _state.value = ViewState.Loaded(posts)
 
-            isLoadingMore = false
+                isLoadingMore = false
 
-        }catch (e: Exception){
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
-            isLoadingMore = false
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
+                isLoadingMore = false
+            }
         }
     }
 

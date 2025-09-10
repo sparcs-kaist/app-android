@@ -3,9 +3,10 @@ package com.example.soap.Features.Post
 import com.example.soap.Domain.Enums.AraContentReportType
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostComment
+import kotlinx.coroutines.flow.StateFlow
 
 interface PostViewModelProtocol{
-    val post: AraPost
+    val post: StateFlow<AraPost>
     val isFoundationModelsAvailable: Boolean
 
     suspend fun fetchPost()

@@ -1,23 +1,29 @@
 package com.example.soap.Features.Post
 
+import HTMLView
 import PostCommentCell
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,16 +41,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostAuthor
 import com.example.soap.Domain.Models.Ara.AraPostComment
-import com.example.soap.Features.Post.Components.DynamicHeightWebView
 import com.example.soap.Features.Post.Components.PostBookmarkButton
 import com.example.soap.Features.Post.Components.PostCommentButton
+import com.example.soap.Features.Post.Components.PostNavigationBar
 import com.example.soap.Features.Post.Components.PostShareButton
 import com.example.soap.Features.Post.Components.PostVoteButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.formattedString
-import com.google.gson.Gson
+import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -76,46 +83,56 @@ fun PostView(
     var alertTitle by remember { mutableStateOf("") }
     var alertMessage by remember { mutableStateOf("") }
 
-    val backStackEntry = navController.currentBackStackEntry?: return
-    val post = viewModel.post
+    val backStackEntry = navController.currentBackStackEntry
+    val post = viewModel.post.collectAsState().value
+
+    val navBackStackEntry = remember { navController.currentBackStackEntry }
+    val postId = navBackStackEntry?.arguments?.getString("post_json")
 
     LaunchedEffect(Unit) {
-        val json = Gson().toJson(post)
-        backStackEntry.savedStateHandle["post_json"] = json
+        viewModel.fetchPost()
     }
 
-    Column {
-        Header(
-            viewModel = viewModel,
-            targetComment = targetComment,
-            scope = scope,
-            selectedAuthor = selectedAuthor
-        ) { selectedAuthor = it }
-
-        Content(
-            viewModel = viewModel,
-            summarisedContent = summarisedContent,
-            htmlHeight = htmlHeight,
-            onHtmlHeightChange = { htmlHeight = it },
-            onLinkTapped = { tappedURL = Uri.parse(it) }
-        )
-
-        Footer(viewModel, scope = scope) {
-            targetComment = null
-            isWritingComment = true
+    Scaffold(
+        topBar = {
+            PostNavigationBar(navController = navController)
         }
+    ){innerPadding ->
+        Column(Modifier.padding(innerPadding).padding(16.dp)) {
+            Header(
+                viewModel = viewModel,
+                targetComment = targetComment,
+                scope = scope,
+                post = post,
+                selectedAuthor = selectedAuthor
+            ) { selectedAuthor = it }
 
-        Comments(
-            viewModel = viewModel,
-            scope = scope,
-            commentOnEdit= commentOnEdit,
-            targetComment = targetComment,
-            comment = comment,
-            isWritingComment = isWritingComment
-        ) {
-            commentOnEdit = it.commentOnEdit
-            targetComment = it.targetComment
-            comment = it.comment
+            Content(
+                summarisedContent = summarisedContent,
+                htmlHeight = htmlHeight,
+                onHtmlHeightChange = { htmlHeight = it },
+                onLinkTapped = { tappedURL = Uri.parse(it) },
+                post = post
+            )
+
+            Footer(viewModel, scope = scope, post = post) {
+                targetComment = null
+                isWritingComment = true
+            }
+
+            Comments(
+                viewModel = viewModel,
+                scope = scope,
+                commentOnEdit = commentOnEdit,
+                targetComment = targetComment,
+                comment = comment,
+                isWritingComment = isWritingComment,
+                post = post
+            ) {
+                commentOnEdit = it.commentOnEdit
+                targetComment = it.targetComment
+                comment = it.comment
+            }
         }
     }
 
@@ -144,20 +161,38 @@ fun PostView(
 
 @Composable
 private fun Header(
-    viewModel: PostViewModelProtocol = hiltViewModel(),
+    viewModel: PostViewModelProtocol,
     scope: CoroutineScope,
+    post: AraPost,
     targetComment: AraPostComment?,
     selectedAuthor: AraPostAuthor?,
     onAuthorClick: (AraPostAuthor) -> Unit
 ) {
-    Column {
-        Text(title(viewModel))
-        Row {
-            Text(viewModel.post.createdAt.formattedString())
-            Text("${viewModel.post.views} views")
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = title(viewModel, post),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Row(horizontalArrangement  = Arrangement.spacedBy(4.dp)) {
+            Text(
+                text = post.createdAt.formattedString(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.grayBB
+            )
+            Text(
+                text = "${post.views} views",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.grayBB
+            )
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            val profileUrl = viewModel.post.author.profile.profilePictureURL
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            val profileUrl = post.author.profile.profilePictureURL
             if (profileUrl != null) {
                 AsyncImage(
                     model = profileUrl,
@@ -169,33 +204,32 @@ private fun Header(
             } else {
                 Box(Modifier
                     .size(28.dp)
-                    .background(Color.Gray, CircleShape))
+                    .background(MaterialTheme.colorScheme.grayBB, CircleShape))
             }
-            Text(viewModel.post.author.profile.nickname, fontWeight = FontWeight.Medium)
-            if (viewModel.post.author.username != "anonymous") {
-                Icon(painterResource(R.drawable.arrow_forward_ios), contentDescription = null)
-            }
-            Spacer(Modifier.weight(1f))
-            PostCommentButton(commentCount = viewModel.post.commentCount) { }
-            PostVoteButton(
-                myVote = viewModel.post.myVote,
-                votes = viewModel.post.upVotes - viewModel.post.downVotes,
-                onUpVote = { scope.launch{viewModel.upVote()} },
-                onDownVote = {  scope.launch{viewModel.downVote()} }
+            Text(
+                text = post.author.profile.nickname,
+                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.bodySmall
             )
-            PostBookmarkButton()
-            PostShareButton()
+            if (post.author.username != "anonymous") {
+                Icon(
+                    painter = painterResource(R.drawable.arrow_forward_ios),
+                    contentDescription = null,
+                    modifier = Modifier.size(15.dp)
+                )
+            }
         }
+        HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
     }
 }
 
 @Composable
 private fun Content(
-    viewModel: PostViewModelProtocol,
     summarisedContent: String?,
     htmlHeight: Dp,
     onHtmlHeightChange: (Dp) -> Unit,
-    onLinkTapped: (String) -> Unit
+    onLinkTapped: (String) -> Unit,
+    post: AraPost
 ) {
     Column {
         if (!summarisedContent.isNullOrEmpty()) {
@@ -203,28 +237,31 @@ private fun Content(
             Spacer(modifier = Modifier.height(8.dp))
         }
 
-        val postContent = viewModel.post.content
-        if (!postContent.isNullOrEmpty()) {
-            DynamicHeightWebView(
-                htmlString = postContent,
-                modifier = Modifier
-                    .height(htmlHeight)
-                    .fillMaxWidth(),
-                onHeightChanged = { pxHeight ->
-                    onHtmlHeightChange(pxHeight.toDp())
-                },
-                onLinkTapped = onLinkTapped
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
+        val postContent = post.content
+        HTMLView(htmlString = postContent.toString(), onContentHeightChanged = { height ->
+            Log.d("HTMLView", "Content height: $height px")
+        })
+//        if (!postContent.isNullOrEmpty()) {
+//            DynamicHeightWebView(
+//                htmlString = postContent,
+//                modifier = Modifier
+//                    .height(htmlHeight)
+//                    .fillMaxWidth(),
+//                onHeightChanged = { pxHeight ->
+//                    onHtmlHeightChange(pxHeight.toDp())
+//                },
+//                onLinkTapped = onLinkTapped
+//            )
+//        } else {
+//            Box(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(200.dp),
+//                contentAlignment = Alignment.Center
+//            ) {
+//                CircularProgressIndicator()
+//            }
+//        }
     }
 }
 
@@ -232,18 +269,19 @@ private fun Int.toDp(): Dp =  this@toDp.toDp()
 
 @Composable
 private fun Footer(
-    viewModel: PostViewModelProtocol = hiltViewModel(),
+    viewModel: PostViewModelProtocol,
     scope: CoroutineScope,
+    post: AraPost,
     onCommentClick: () -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         PostVoteButton(
-            myVote = viewModel.post.myVote,
-            votes = viewModel.post.upVotes - viewModel.post.downVotes,
+            myVote = post.myVote,
+            votes = post.upVotes - post.downVotes,
             onUpVote = { scope.launch{ viewModel.upVote() } },
             onDownVote = { scope.launch{ viewModel.downVote() } }
         )
-        PostCommentButton(commentCount = viewModel.post.commentCount) { onCommentClick() }
+        PostCommentButton(commentCount = post.commentCount) { onCommentClick() }
         Spacer(Modifier.weight(1f))
         PostBookmarkButton()
         PostShareButton()
@@ -252,16 +290,17 @@ private fun Footer(
 
 @Composable
 private fun Comments(
-    viewModel: PostViewModelProtocol = hiltViewModel(),
+    viewModel: PostViewModelProtocol,
     scope: CoroutineScope,
     commentOnEdit: AraPostComment?,
     targetComment: AraPostComment?,
     comment: String,
     isWritingComment: Boolean,
+    post: AraPost,
     onCommentChange: (CommentUpdate) -> Unit
 ) {
     Column {
-        viewModel.post.comments.forEach { commentItem ->
+        post.comments.forEach { commentItem ->
             PostCommentCell(
                 comment = commentItem,
                 isThreaded = false,
@@ -287,9 +326,9 @@ private fun Comments(
     }
 }
 
-private fun title(viewModel: PostViewModelProtocol): String {
-    val topicName = viewModel.post.topic?.name?.localized()
-    return (topicName?.let { "[$it] " } ?: "") + (viewModel.post.title ?: "Untitled")
+private fun title(viewModel: PostViewModelProtocol, post: AraPost): String {
+    val topicName = post.topic?.name?.localized()
+    return (topicName?.let { "[$it] " } ?: "") + (post.title ?: "Untitled")
 }
 
 private fun showAlert(title: String, message: String) {
@@ -302,8 +341,11 @@ data class CommentUpdate(
     val comment: String = ""
 )
 
+
 @Preview
 @Composable
 private fun PreviewPostView() {
-    PostView(MockPostViewModel(), navController = rememberNavController())
+    val vm = remember { MockPostViewModel() }
+    val navController = rememberNavController()
+    PostView(vm, navController = navController)
 }

@@ -2,6 +2,8 @@
 
 package com.example.soap.Features.PostList
 
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,11 +42,12 @@ import com.example.soap.Features.PostList.Components.PostListRow.BoardNavigation
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 @Composable
 fun PostListView(
-    board: AraBoard,
+    board: AraBoard, //게시판 성격 (공지, 자게, 등등)
     postListViewModel: PostListViewModelProtocol = hiltViewModel(),
     navController: NavController
 ) {
@@ -58,6 +61,7 @@ fun PostListView(
 
     LaunchedEffect(Unit) {
         if (!loadedInitialPost) {
+            postListViewModel.board = board
             postListViewModel.bind()
             postListViewModel.fetchInitialPosts()
             loadedInitialPost = true
@@ -80,23 +84,33 @@ fun PostListView(
         ) {
             when (val state = postListViewModel.state.collectAsState().value) {
                 is PostListViewModel.ViewState.Loading -> {
+                    Log.d("PostListView", "로딩중")
                     LoadingView()
                 }
                 is PostListViewModel.ViewState.Loaded -> {
+                    Log.d("PostListView", state.posts.toString())
                     PostList(
                         posts = state.posts,
                         onLoadMore = { coroutineScope.launch{ postListViewModel.loadNextPage() } },
                         onRefresh = { coroutineScope.launch{ postListViewModel.fetchInitialPosts() } },
+                        onPostClick = { post ->
+                            val json = Uri.encode(Gson().toJson(post))
+                            navController.navigate("postView?post_json=$json")
+                        },
                         navController = navController
                     )
                 }
                 is PostListViewModel.ViewState.Error -> {
                     // TODO - ErrorView
+                    Log.d("PostListView", "에러핑")
+
+                    Log.d("PostListView", (PostListViewModel.ViewState.Error("error")).message)
                 }
             }
 
             if (searchText.isNotEmpty() && postListViewModel.posts.isEmpty()) {
                // TODO - ErrorView
+                Log.d("PostListView", "비었핑")
             }
         }
     }
