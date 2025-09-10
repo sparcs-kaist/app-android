@@ -1,6 +1,7 @@
 package com.example.soap.Shared.Mocks
 
 import com.example.soap.Domain.Helpers.LocalizedString
+import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraBoardTopic
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostAuthor
@@ -9,6 +10,7 @@ import com.example.soap.Domain.Models.Ara.AraPostComment
 import java.net.URL
 import java.util.Date
 
+val board = AraBoard.mock()
 
 fun AraPost.Companion.mock(): AraPost {
     return AraPost(
@@ -17,7 +19,7 @@ fun AraPost.Companion.mock(): AraPost {
         hiddenReason = emptyList(),
         overrideHidden = null,
         topic = null,
-        board = null,
+        board = board,
         title = "[Ara for KAIST] 아라만 깔아도 커피쿠폰을 준다고?",
         author = AraPostAuthor(
             id = "984",
@@ -227,7 +229,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         hiddenReason = listOf(),
                         overrideHidden = null,
                         topic = null,
-                        board = null,
+                        board = board,
                         title = "성인 정치글 22",
                         author = AraPostAuthor(
                             id = "984",
