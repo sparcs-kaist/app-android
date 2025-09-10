@@ -41,6 +41,7 @@ fun PostList(
     posts: List<AraPost>?,
     onRefresh: (suspend () -> Unit),
     onLoadMore: (suspend () -> Unit),
+    onPostClick: (AraPost) -> Unit,
     navController: NavController
 ) {
     var isLoadingMore by remember { mutableStateOf(false) }
@@ -87,10 +88,8 @@ fun PostList(
                     items(posts) { post ->
                         PostListRow(
                             post = post,
-                            modifier = Modifier.clickable(enabled = !post.isHidden) {
-//                                navController.navigate("id")
-                                //ToDo - Navigate to PostView
-                            }
+                            modifier = Modifier
+                                .clickable(enabled = !post.isHidden) {onPostClick(post)}
                         )
                         HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
                     }
@@ -168,7 +167,7 @@ private fun LoadingView() {
 @Preview
 private fun LoadingPreview(){
     Theme {
-        PostList(posts = null, onRefresh = {}, onLoadMore = {}, rememberNavController())
+        PostList(posts = null, onRefresh = {}, onLoadMore = {}, onPostClick = {},rememberNavController())
     }
 }
 
@@ -176,7 +175,7 @@ private fun LoadingPreview(){
 @Preview
 private fun EmptyPreview(){
     Theme {
-        PostList(posts = emptyList(), onRefresh = {}, onLoadMore = {}, rememberNavController())
+        PostList(posts = emptyList(), onRefresh = {}, onLoadMore = {},onPostClick = {}, rememberNavController())
     }
 }
 
@@ -184,6 +183,6 @@ private fun EmptyPreview(){
 @Preview
 private fun LoadedPreview(){
     Theme {
-        PostList(posts = AraPost.mockList(), onRefresh = {}, onLoadMore = {}, rememberNavController())
+        PostList(posts = AraPost.mockList(), onRefresh = {}, onLoadMore = {}, onPostClick = {}, rememberNavController())
     }
 }

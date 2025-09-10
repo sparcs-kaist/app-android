@@ -42,7 +42,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.soap.Domain.Models.Ara.AraBoard
-import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Features.BoardList.BoardListView
@@ -57,9 +56,12 @@ import com.example.soap.Features.NavigationBar.Components.ChatButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
+import com.example.soap.Features.Post.PostViewModel
+import com.example.soap.Features.Post.PostViewModelProtocol
 import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.PostList.PostListViewModel
+import com.example.soap.Features.PostList.PostListViewModelProtocol
 import com.example.soap.Features.TaxiChat.TaxiChatView
 import com.example.soap.Features.TaxiChat.TaxiChatViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatViewModelProtocol
@@ -75,7 +77,6 @@ import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockPostComposeViewModel
-import com.example.soap.Shared.ViewModelMocks.MockPostListViewModel
 import com.example.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
 import com.example.soap.ui.theme.Theme
 
@@ -102,6 +103,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     val currentScreen = Channel.entries.find { screen ->
         currentRoute?.startsWith(screen.name) == true
     } ?: Channel.Start
+
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -187,14 +189,40 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 TaxiChatListView(viewModel, navController)
             }
 
-            composable(
-                route = Channel.TrendingBoard.name
-            ) { PostListView(board = AraBoard.mock(), postListViewModel = MockPostListViewModel(initialState = PostListViewModel.ViewState.Loaded(posts = AraPost.mockList())), navController = navController) }
+            navigation(
+                startDestination = Channel.TrendingBoard.name,
+                route = "AraGraph"
+            ) {
+                composable(
+                    route = Channel.TrendingBoard.name
+                ) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("AraGraph")
+                    }
+                    val viewModel: PostListViewModelProtocol =
+                        hiltViewModel<PostListViewModel>(parentEntry)
 
-            composable(
-                route = Channel.PostView.name
-            ) { PostView(navController = navController) }
+                    PostListView(
+                        board = AraBoard.mock(),
+                        postListViewModel = viewModel,
+                        navController = navController
+                    )
+                }
 
+                composable(
+                    route = Channel.PostView.name + "?post_json={post_json}",
+                    arguments = listOf(
+                        navArgument("post_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) { backStackEntry ->
+                    val viewModelImpl: PostViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: PostViewModelProtocol = viewModelImpl
+                    PostView(viewModel = viewModel, navController = navController)
+                }
+            }
             composable(
                 route = Channel.PostCompose.name,
                 enterTransition = trendingEnterTransition(),
