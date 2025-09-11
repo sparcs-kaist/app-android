@@ -6,6 +6,7 @@ import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
+import com.example.soap.Shared.Mocks.mock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,7 +23,7 @@ class PostListViewModel @Inject constructor(
     private val araBoardRepository: AraBoardRepositoryProtocol
 ) : ViewModel(), PostListViewModelProtocol {
 
-    override lateinit var board: AraBoard
+    override var board: AraBoard = AraBoard.mock()
 
     sealed class ViewState{
         data object Loading : ViewState()
