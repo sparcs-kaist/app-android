@@ -74,14 +74,20 @@ fun Calendar.isDateInSameDay(date1: Date, date2: Date): Boolean {
     return localDate1 == localDate2
 }
 
+
 fun Date.relativeTimeString(): String {
     val time = localizedTime(this)
 
     return when {
         isDateInToday(this) -> "Today at $time"
         isDateInTomorrow(this) -> "Tomorrow at $time"
-        else -> weekdayNameIfWithinAWeek(this)?.let { "$it at $time" }
-            ?: SimpleDateFormat("MMM d 'at' h:mm a", Locale.getDefault()).format(date)
+        else -> {
+            weekdayNameIfWithinAWeek(this)?.let { "$it at $time" } ?: run {
+                val formatter = DateTimeFormatter.ofPattern("MMM d 'at' h:mm a", Locale.getDefault())
+                val localDateTime = LocalDateTime.ofInstant(this.toInstant(), ZoneId.systemDefault())
+                formatter.format(localDateTime)
+            }
+        }
     }
 }
 

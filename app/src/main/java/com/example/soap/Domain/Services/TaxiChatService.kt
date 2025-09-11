@@ -1,6 +1,5 @@
 package com.example.soap.Domain.Services
 
-import android.util.Log
 import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Helpers.TokenStorageProtocol
 import com.example.soap.Domain.Models.Taxi.TaxiChat
@@ -23,6 +22,7 @@ import javax.inject.Inject
 class TaxiChatService @Inject constructor(
     private val tokenStorage: TokenStorageProtocol
 ) : TaxiChatServiceProtocol {
+    private val roomChats = mutableMapOf<String, MutableList<TaxiChat>>()
 
     private val _chatsFlow = MutableSharedFlow<List<TaxiChat>>(replay = 1)
     override val chatsPublisher = _chatsFlow.asSharedFlow()
@@ -63,16 +63,16 @@ class TaxiChatService @Inject constructor(
     }
 
     fun setRoom(roomId: String) {
-        if (currentRoomId == roomId) return
-
         currentRoomId?.let { prev ->
             socket.emit("leaveRoom", JSONObject().put("roomId", prev))
         }
 
         currentRoomId = roomId
+        val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
 
-        chats.clear()
-        CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
+        CoroutineScope(Dispatchers.Default).launch {
+            _chatsFlow.emit(chatsForRoom)
+        }
 
         socket.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
             socket.emit("request_chat_init", JSONObject().put("roomId", roomId))
@@ -84,18 +84,15 @@ class TaxiChatService @Inject constructor(
         socket.on(Socket.EVENT_CONNECT) {
             isConnected = true
             currentRoomId?.let { roomId ->
-                Log.d("Socket", "reconnect")
-
-                socket.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
-                    socket.emit("request_chat_init", JSONObject().put("roomId", roomId))
-                })
+                socket.emit("joinRoom", JSONObject().put("roomId", roomId))
+                socket.emit("request_chat_init", JSONObject().put("roomId", roomId))
             }
         }
 
         socket.on(Socket.EVENT_DISCONNECT) {
-            Log.d("Socket", "disconnected")
             isConnected = false
         }
+
         socket.on("chat_init") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
             val chatArrayRaw = firstArg.optJSONArray("chats") ?: return@on
@@ -105,12 +102,7 @@ class TaxiChatService @Inject constructor(
                     parseChatArray(listOf(json.toMap())).let { newChats.addAll(it) }
                 }
             }
-
-            chats.clear()
-            CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
-
-            chats.addAll(newChats)
-            CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
+            chats = newChats.toMutableList()
         }
 
         socket.on("chat_push_front") { args ->
@@ -125,13 +117,19 @@ class TaxiChatService @Inject constructor(
 
         socket.on("chat_push_back") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
+            val roomId = firstArg.optString("roomId") ?: return@on
             val chatArray = (firstArg.optJSONArray("chats") ?: JSONArray()).let { array ->
                 (0 until array.length()).mapNotNull { i -> array.optJSONObject(i)?.toMap() }
             }
             val newChats = parseChatArray(chatArray)
-            chats.addAll(newChats)
-            CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
+            val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
+            chatsForRoom.addAll(newChats)
+
+            if (roomId == currentRoomId) {
+                CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chatsForRoom) }
+            }
         }
+
 
         socket.on("chat_update") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
