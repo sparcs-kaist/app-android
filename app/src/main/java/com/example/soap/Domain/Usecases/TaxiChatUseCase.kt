@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -51,6 +50,8 @@ class TaxiChatUseCase @Inject constructor(
     override val roomUpdateFlow: Flow<TaxiRoom> = _roomUpdateFlow.asSharedFlow()
 
     private var isSocketConnected: Boolean = false
+
+    private val _accumulatedChats = mutableListOf<TaxiChat>()
 
     override suspend fun fetchInitialChats() {
         bind()
@@ -97,18 +98,23 @@ class TaxiChatUseCase @Inject constructor(
                 Log.d("TaxiChatUseCase", "Socket connected: $isConnected")
             }
             .launchIn(scope)
+
     // converts [TaxiChat] into [TaxiChatGroup]
         taxiChatService.chatsPublisher
-            .conflate()
-            .onEach { chats ->
+            .onEach { newChats ->
                 val user = userUseCase.taxiUser
-                val grouped = groupChats(chats, user?.oid ?: "")
 
-                _groupedChatsFlow.value = grouped
-                Log.d("TaxiChatUseCase", "Grouped chats updated: ${chats.size} chats")
+                val combined = (_accumulatedChats + newChats)
+                    .distinctBy { it.id }
+                _accumulatedChats.clear()
+                _accumulatedChats.addAll(combined)
+
+                _groupedChatsFlow.value = groupChats(_accumulatedChats.toList(), user?.oid ?: "")
             }
             .launchIn(scope)
-    // handles room updates from chat_update event
+
+
+        // handles room updates from chat_update event
         taxiChatService.roomUpdatePublisher
             .onEach { roomId ->
                 if (roomId != room.id) return@onEach
@@ -198,6 +204,7 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     override suspend fun switchRoom(newRoomId: String) {
+        _accumulatedChats.clear()
         taxiChatService.setRoom(newRoomId)
         fetchInitialChats()
     }

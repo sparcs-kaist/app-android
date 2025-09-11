@@ -305,12 +305,12 @@ fun ContentView(
     val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
     val listState = rememberLazyListState()
 
-    LaunchedEffect(groupedChats) {
-        if (groupedChats.isNotEmpty()) {
-            listState.scrollToItem(groupedChats.lastIndex)
+    LaunchedEffect(groupedChats.map { it.chats.lastOrNull()?.id }) {
+        val lastIndex = groupedChats.lastIndex
+        if (lastIndex >= 0) {
+            listState.animateScrollToItem(lastIndex)
         }
     }
-
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -331,7 +331,7 @@ fun ContentView(
             itemsIndexed(group.chats, key = { _, chat -> chat.id }) { _, chat ->
                 val showTimeLabel = group.lastChatID == chat.id
                 val otherParticipants =
-                    viewModel.room.value.participants.filter { it.id != taxiUser?.oid }
+                    viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
                 val readCount = otherParticipants.count { it.readAt <= chat.time }
 
                 TaxiChatUserWrapper(
