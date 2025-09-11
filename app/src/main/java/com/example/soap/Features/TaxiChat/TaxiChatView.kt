@@ -132,6 +132,7 @@ fun TaxiChatView(
 
     LaunchedEffect(Unit) {
         try {
+            viewModel.switchRoom(room)
             viewModel.setup()
             viewModel.fetchInitialChats()
         } catch (e: Exception) {

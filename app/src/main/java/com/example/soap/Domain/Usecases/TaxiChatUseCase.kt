@@ -35,6 +35,7 @@ class TaxiChatUseCase @Inject constructor(
 
     override fun setRoom(room: TaxiRoom) {
         this.room = room
+        taxiChatService.setRoom(room.id)
         bind()
     }
 
@@ -195,5 +196,10 @@ class TaxiChatUseCase @Inject constructor(
 
         flushGroup()
         return result
+    }
+
+    override suspend fun switchRoom(newRoomId: String) {
+        taxiChatService.setRoom(newRoomId)
+        fetchInitialChats()
     }
 }
