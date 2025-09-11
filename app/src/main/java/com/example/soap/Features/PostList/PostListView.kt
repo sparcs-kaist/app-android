@@ -103,8 +103,8 @@ fun PostListView(
                 is PostListViewModel.ViewState.Error -> {
                     // TODO - ErrorView
                     Log.d("PostListView", "에러핑")
-
-                    Log.d("PostListView", (PostListViewModel.ViewState.Error("error")).message)
+                    val error = (state as PostListViewModel.ViewState.Error).message
+                    Log.d("PostListView", error)
                 }
             }
 
