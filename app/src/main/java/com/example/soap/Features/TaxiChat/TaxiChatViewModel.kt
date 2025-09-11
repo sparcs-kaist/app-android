@@ -65,6 +65,7 @@ class TaxiChatViewModel @Inject constructor(
 
     private var isFetching = false
     private var isInitialFetching = false
+
     // MARK: - Setup
     override suspend fun setup() {
         fetchTaxiUser()
@@ -80,7 +81,6 @@ class TaxiChatViewModel @Inject constructor(
         _room.value = newRoom
         taxiChatUseCase.switchRoom(newRoom.id)
     }
-
 
     private fun fetchTaxiUser() {
         _taxiUser.value = userUseCase.taxiUser
@@ -172,6 +172,7 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Image upload
     override suspend fun sendImage(image: Bitmap) {
+
         _isUploading.value = true
         try {
             taxiChatUseCase.sendImage(image)

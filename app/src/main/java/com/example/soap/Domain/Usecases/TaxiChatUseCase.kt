@@ -19,6 +19,9 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.Calendar
 import java.util.Date
@@ -87,41 +90,42 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     private fun bind() {
-        // is socket(TaxiChatService) connected
-        scope.launch(Dispatchers.Default) {
-            taxiChatService.isConnectedPublisher.collect { isConnected ->
+    // is socket(TaxiChatService) connected
+        taxiChatService.isConnectedPublisher
+            .onEach { isConnected ->
                 isSocketConnected = isConnected
+                Log.d("TaxiChatUseCase", "Socket connected: $isConnected")
             }
-        }
-
-        // converts [TaxiChat] into [TaxiChatGroup]
-        scope.launch(Dispatchers.Default) {
-            taxiChatService.chatsPublisher.collect { chats ->
-                taxiChatRepository.readChats(room.id)
+            .launchIn(scope)
+    // converts [TaxiChat] into [TaxiChatGroup]
+        taxiChatService.chatsPublisher
+            .conflate()
+            .onEach { chats ->
                 val user = userUseCase.taxiUser
                 val grouped = groupChats(chats, user?.oid ?: "")
 
-                Log.d("TaxiChatUseCase", "Socket connected: $chats")
-
                 _groupedChatsFlow.value = grouped
+                Log.d("TaxiChatUseCase", "Grouped chats updated: ${chats.size} chats")
             }
-        }
+            .launchIn(scope)
+    // handles room updates from chat_update event
+        taxiChatService.roomUpdatePublisher
+            .onEach { roomId ->
+                if (roomId != room.id) return@onEach
 
-        // handles room updates from chat_update event
-        scope.launch(Dispatchers.Default) {
-            taxiChatService.roomUpdatePublisher.collect { roomId ->
-
-                if (roomId != room.id) return@collect
                 try {
                     val updatedRoom = taxiRoomRepository.getRoom(roomId)
                     room = updatedRoom
                     _roomUpdateFlow.emit(updatedRoom)
+
+                    Log.d("TaxiChatUseCase", "Room updated: $roomId")
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e("TaxiChatUseCase", "Failed to update room $roomId", e)
                 }
             }
-        }
+            .launchIn(scope)
     }
+
 
     private fun groupChats(chats: List<TaxiChat>, currentUserID: String): List<TaxiChatGroup> {
         if (chats.isEmpty()) return emptyList()
