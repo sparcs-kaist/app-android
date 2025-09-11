@@ -79,7 +79,6 @@ fun TaxiChatListView(
                     onRoomClick = { room ->
                         val json = Uri.encode(Gson().toJson(room))
                         navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
-
                     }
                 )
             }

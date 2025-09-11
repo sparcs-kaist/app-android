@@ -6,6 +6,7 @@ import com.example.soap.Domain.Helpers.TokenStorageProtocol
 import com.example.soap.Domain.Models.Taxi.TaxiChat
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiChatDTO
 import com.google.gson.Gson
+import io.socket.client.Ack
 import io.socket.client.IO
 import io.socket.client.Socket
 import kotlinx.coroutines.CoroutineScope
@@ -19,12 +20,10 @@ import org.json.JSONArray
 import org.json.JSONObject
 import javax.inject.Inject
 
-
-class TaxiChatService  @Inject constructor(
+class TaxiChatService @Inject constructor(
     private val tokenStorage: TokenStorageProtocol
 ) : TaxiChatServiceProtocol {
 
-    // MARK: - Publisher
     private val _chatsFlow = MutableSharedFlow<List<TaxiChat>>(replay = 1)
     override val chatsPublisher = _chatsFlow.asSharedFlow()
 
@@ -44,12 +43,10 @@ class TaxiChatService  @Inject constructor(
 
     private var isConnected: Boolean
         get() = _isConnectedFlow.value
-        set(value) {
-            _isConnectedFlow.value = value
-        }
+        set(value) { _isConnectedFlow.value = value }
 
-    // MARK: - Socket
     private val socket: Socket
+    private var currentRoomId: String? = null
 
     init {
         val opts = IO.Options().apply {
@@ -60,90 +57,104 @@ class TaxiChatService  @Inject constructor(
                 "Authorization" to listOf("Bearer ${tokenStorage.getAccessToken() ?: ""}")
             )
         }
-
         socket = IO.socket(Constants.taxiSocketURL, opts)
         setupSocketEvents()
         socket.connect()
     }
 
-    private fun setupSocketEvents() {
-        socket.on(Socket.EVENT_CONNECT) {
-            Log.d("TaxiChatService", "[TaxiChatService] >>> Connected")
-            isConnected = true
+    fun setRoom(roomId: String) {
+        if (currentRoomId == roomId) return
+
+        currentRoomId?.let { prev ->
+            socket.emit("leaveRoom", JSONObject().put("roomId", prev))
         }
 
+        currentRoomId = roomId
+
+        chats.clear()
+        CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
+
+        socket.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
+            socket.emit("request_chat_init", JSONObject().put("roomId", roomId))
+        })
+    }
+
+
+    private fun setupSocketEvents() {
+        socket.on(Socket.EVENT_CONNECT) {
+            isConnected = true
+            currentRoomId?.let { roomId ->
+                Log.d("Socket", "reconnect")
+
+                socket.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
+                    socket.emit("request_chat_init", JSONObject().put("roomId", roomId))
+                })
+            }
+        }
+
+        socket.on(Socket.EVENT_DISCONNECT) {
+            Log.d("Socket", "disconnected")
+            isConnected = false
+        }
         socket.on("chat_init") { args ->
-            Log.d("TaxiChatService", "[TaxiChatService] <<< chat_init")
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-
             val chatArrayRaw = firstArg.optJSONArray("chats") ?: return@on
-
-            val chatArray = mutableListOf<Map<String, Any?>>()
+            val newChats = mutableListOf<TaxiChat>()
             for (i in 0 until chatArrayRaw.length()) {
-                val obj = chatArrayRaw.optJSONObject(i) ?: continue
-                chatArray.add(obj.toMap())
+                chatArrayRaw.optJSONObject(i)?.let { json ->
+                    parseChatArray(listOf(json.toMap())).let { newChats.addAll(it) }
+                }
             }
 
-            val newChats = parseChatArray(chatArray)
             chats.clear()
-            chats.addAll(newChats)
+            CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
 
-            CoroutineScope(Dispatchers.Default).launch {
-                _chatsFlow.emit(chats)
-            }
+            chats.addAll(newChats)
+            CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
         }
 
         socket.on("chat_push_front") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-            val dataMap = firstArg.toMap()
-            val chatArray =
-                (dataMap["chats"] as? List<*>)?.mapNotNull { it as? JSONObject } ?: return@on
-            val newChats = parseChatArray(chatArray.map { it.toMap() })
+            val chatArray = (firstArg.optJSONArray("chats") ?: JSONArray()).let { array ->
+                (0 until array.length()).mapNotNull { i -> array.optJSONObject(i)?.toMap() }
+            }
+            val newChats = parseChatArray(chatArray)
             chats.addAll(0, newChats)
             CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
         }
 
         socket.on("chat_push_back") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-            val dataMap = firstArg.toMap()
-            val chatArray =
-                (dataMap["chats"] as? List<*>)?.mapNotNull { it as? JSONObject } ?: return@on
-            val newChats = parseChatArray(chatArray.map { it.toMap() })
+            val chatArray = (firstArg.optJSONArray("chats") ?: JSONArray()).let { array ->
+                (0 until array.length()).mapNotNull { i -> array.optJSONObject(i)?.toMap() }
+            }
+            val newChats = parseChatArray(chatArray)
             chats.addAll(newChats)
             CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
         }
 
         socket.on("chat_update") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-            val dataMap = firstArg.toMap()
-            val roomID = dataMap["roomId"] as? String ?: return@on
+            val roomID = firstArg.optString("roomId") ?: return@on
             CoroutineScope(Dispatchers.Default).launch { _roomUpdateFlow.emit(roomID) }
         }
     }
 
     private fun parseChatArray(chatList: List<Map<*, *>>): List<TaxiChat> {
-        return chatList.mapNotNull { chatMap ->
-            try {
-                val dto = Gson().fromJson(Gson().toJson(chatMap), TaxiChatDTO::class.java)
-                dto.toModel()
-            } catch (e: Exception) {
-                Log.e("TaxiChatService", "parseChatArray failed for element: $chatMap", e)
-                null
-            }
+        return chatList.mapNotNull {
+            try { Gson().fromJson(Gson().toJson(it), TaxiChatDTO::class.java).toModel() }
+            catch (e: Exception) { null }
         }
     }
 }
+
 fun JSONObject.toMap(): Map<String, Any?> {
     val map = mutableMapOf<String, Any?>()
     val keys = this.keys()
     while (keys.hasNext()) {
         val key = keys.next() as? String ?: continue
         val value = when (val v = this[key]) {
-            is JSONArray -> {
-                val list = mutableListOf<Any?>()
-                for (i in 0 until v.length()) list.add(v[i])
-                list
-            }
+            is JSONArray -> List(v.length()) { i -> v[i] }
             is JSONObject -> v.toMap()
             JSONObject.NULL -> null
             else -> v

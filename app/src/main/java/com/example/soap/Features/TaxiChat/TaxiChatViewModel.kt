@@ -39,10 +39,6 @@ class TaxiChatViewModel @Inject constructor(
         Gson().fromJson(Uri.decode(json), TaxiRoom::class.java)
     }
 
-    init {
-        taxiChatUseCase.setRoom(initialRoom)
-    }
-
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val groupedChats: List<TaxiChatGroup>) : ViewState()
@@ -74,6 +70,37 @@ class TaxiChatViewModel @Inject constructor(
         fetchTaxiUser()
         bind()
     }
+    init {
+        taxiChatUseCase.setRoom(initialRoom)
+        setupBindings()
+    }
+    private fun setupBindings() {
+        fetchTaxiUser()
+
+        viewModelScope.launch {
+            taxiChatUseCase.groupedChatsFlow
+                .flowOn(Dispatchers.Main)
+                .collect { chats ->
+                    _groupedChats.value = chats
+                    _state.value = ViewState.Loaded(chats)
+                }
+        }
+
+        viewModelScope.launch {
+            taxiChatUseCase.roomUpdateFlow
+                .flowOn(Dispatchers.Main)
+                .collect { updatedRoom ->
+                    _room.value = updatedRoom
+                }
+        }
+    }
+
+    override suspend fun switchRoom(newRoom: TaxiRoom) {
+        if (_room.value.id == newRoom.id) return
+        _room.value = newRoom
+        taxiChatUseCase.switchRoom(newRoom.id)
+    }
+
 
     private fun fetchTaxiUser() {
         _taxiUser.value = userUseCase.taxiUser
