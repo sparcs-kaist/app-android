@@ -64,35 +64,15 @@ class TaxiChatViewModel @Inject constructor(
     override val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
 
     private var isFetching = false
-
+    private var isInitialFetching = false
     // MARK: - Setup
     override suspend fun setup() {
         fetchTaxiUser()
         bind()
     }
+
     init {
         taxiChatUseCase.setRoom(initialRoom)
-        setupBindings()
-    }
-    private fun setupBindings() {
-        fetchTaxiUser()
-
-        viewModelScope.launch {
-            taxiChatUseCase.groupedChatsFlow
-                .flowOn(Dispatchers.Main)
-                .collect { chats ->
-                    _groupedChats.value = chats
-                    _state.value = ViewState.Loaded(chats)
-                }
-        }
-
-        viewModelScope.launch {
-            taxiChatUseCase.roomUpdateFlow
-                .flowOn(Dispatchers.Main)
-                .collect { updatedRoom ->
-                    _room.value = updatedRoom
-                }
-        }
     }
 
     override suspend fun switchRoom(newRoom: TaxiRoom) {
@@ -137,7 +117,9 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     override suspend fun fetchInitialChats() {
-        taxiChatUseCase.fetchInitialChats()
+        if (isInitialFetching) return
+        isInitialFetching = true
+        try { taxiChatUseCase.fetchInitialChats() } finally { isInitialFetching = false }
     }
 
     // MARK: - Chat send

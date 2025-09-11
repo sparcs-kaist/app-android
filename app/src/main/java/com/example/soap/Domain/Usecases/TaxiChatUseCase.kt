@@ -36,7 +36,6 @@ class TaxiChatUseCase @Inject constructor(
     override fun setRoom(room: TaxiRoom) {
         this.room = room
         taxiChatService.setRoom(room.id)
-        bind()
     }
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -49,11 +48,8 @@ class TaxiChatUseCase @Inject constructor(
     override val roomUpdateFlow: Flow<TaxiRoom> = _roomUpdateFlow.asSharedFlow()
 
     private var isSocketConnected: Boolean = false
-    private var hasInitialChatsBeenFetched: Boolean = false
 
     override suspend fun fetchInitialChats() {
-        if (hasInitialChatsBeenFetched) return
-        hasInitialChatsBeenFetched = true
         bind()
         try {
             taxiChatRepository.fetchChats(room.id)
@@ -97,7 +93,6 @@ class TaxiChatUseCase @Inject constructor(
                 isSocketConnected = isConnected
             }
         }
-
 
         // converts [TaxiChat] into [TaxiChatGroup]
         scope.launch(Dispatchers.Default) {
