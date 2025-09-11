@@ -125,13 +125,11 @@ fun TaxiChatView(
     val backStackEntry = navController.currentBackStackEntry!!
     val room = viewModel.room.collectAsState().value
 
-    LaunchedEffect(Unit) {
-        val json = Gson().toJson(room)
-        backStackEntry.savedStateHandle["room_json"] = json
-    }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(room.id) {
         try {
+            val json = Gson().toJson(room)
+            backStackEntry.savedStateHandle["room_json"] = json
             viewModel.switchRoom(room)
             viewModel.setup()
             viewModel.fetchInitialChats()
