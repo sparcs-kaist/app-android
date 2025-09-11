@@ -3,6 +3,7 @@ package com.example.soap.Features.TaxiChat
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -113,6 +114,7 @@ fun TaxiChatView(
     var showErrorAlert by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var selectedImage by remember { mutableStateOf<Bitmap?>(null) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var showPhotosPicker by remember { mutableStateOf(false) }
 
     val topChatID = remember { mutableStateOf<String?>(null) }
@@ -124,7 +126,6 @@ fun TaxiChatView(
 
     val backStackEntry = navController.currentBackStackEntry!!
     val room = viewModel.room.collectAsState().value
-
 
     LaunchedEffect(room.id) {
         try {
@@ -139,13 +140,18 @@ fun TaxiChatView(
         }
     }
 
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { selectedImageUri = it }
+        uri?.let {
+            selectedImageUri = it
+            val bitmap = context.contentResolver.openInputStream(it)?.use { stream ->
+                BitmapFactory.decodeStream(stream)
+            }
+            selectedImage = bitmap
+        }
     }
+
 
     Scaffold(
         topBar = {
@@ -300,7 +306,6 @@ fun ContentView(
     val listState = rememberLazyListState()
 
     LaunchedEffect(groupedChats) {
-        Log.d("Chat", groupedChats.toString())
         if (groupedChats.isNotEmpty()) {
             listState.scrollToItem(groupedChats.lastIndex)
         }
@@ -308,7 +313,7 @@ fun ContentView(
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
         state = listState
     ) {
         item {
@@ -322,27 +327,26 @@ fun ContentView(
             )
         }
 
-        itemsIndexed(groupedChats) { _, group ->
-            TaxiChatUserWrapper(
-                authorID = group.authorID,
-                authorName = group.authorName,
-                authorProfileImageURL = group.authorProfileURL,
-                date = group.time,
-                isMe = group.isMe,
-                isGeneral = group.isGeneral,
-                isWithdrawn = group.authorIsWithdrew ?: false
-            ) {
-                group.chats.forEach { chat ->
-                    val showTimeLabel = group.lastChatID == chat.id
-                    val otherParticipants =
-                        viewModel.room.value.participants.filter { it.id != taxiUser?.oid }
-                    val readCount = otherParticipants.count { it.readAt <= chat.time }
+        groupedChats.forEach { group ->
+            itemsIndexed(group.chats, key = { _, chat -> chat.id }) { _, chat ->
+                val showTimeLabel = group.lastChatID == chat.id
+                val otherParticipants =
+                    viewModel.room.value.participants.filter { it.id != taxiUser?.oid }
+                val readCount = otherParticipants.count { it.readAt <= chat.time }
 
+                TaxiChatUserWrapper(
+                    authorID = group.authorID,
+                    authorName = group.authorName,
+                    authorProfileImageURL = group.authorProfileURL,
+                    date = group.time,
+                    isMe = group.isMe,
+                    isGeneral = group.isGeneral,
+                    isWithdrawn = group.authorIsWithdrew ?: false
+                ) {
                     Row(
                         verticalAlignment = Alignment.Bottom,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        // time label for this sender
                         if (group.isMe && group.lastChatID != null) {
                             Column(horizontalAlignment = Alignment.End) {
                                 if (readCount > 0) Text("$readCount", style = MaterialTheme.typography.labelSmall)
@@ -353,7 +357,7 @@ fun ContentView(
                         Box(
                             modifier = Modifier
                                 .weight(1f)
-                                .wrapContentWidth( if(group.isMe) Alignment.End else Alignment.Start)
+                                .wrapContentWidth(if (group.isMe) Alignment.End else Alignment.Start)
                         ) {
                             when (chat.type) {
                                 TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
@@ -382,7 +386,6 @@ fun ContentView(
                             }
                         }
 
-                        // time label for other senders
                         if (!group.isMe && group.lastChatID != null) {
                             Column(horizontalAlignment = Alignment.Start) {
                                 if (readCount > 0) Text("$readCount", style = MaterialTheme.typography.labelSmall)
@@ -395,6 +398,7 @@ fun ContentView(
         }
     }
 }
+
 
 @Composable
 fun LoadingView() {
@@ -535,8 +539,8 @@ fun InputBar(
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp)
+                                .size(100.dp)
+                                .clip(RoundedCornerShape(16.dp))
                         )
                         IconButton(
                             onClick = onRemoveImage,

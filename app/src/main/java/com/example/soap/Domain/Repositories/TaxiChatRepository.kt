@@ -9,6 +9,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.Date
 import javax.inject.Inject
@@ -78,23 +80,29 @@ class TaxiChatRepository @Inject constructor(
 
     override suspend fun uploadImage(presignedURL: TaxiChatPresignedURLDTO, imageData: ByteArray) {
         withContext(Dispatchers.IO) {
-            val parts = mutableListOf<MultipartBody.Part>()
-
+            val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
             presignedURL.fields.forEach { (key, value) ->
-                val part = MultipartBody.Part.createFormData(key, value)
-                parts.add(part)
+                builder.addFormDataPart(key, value)
             }
-
-            val imagePart = MultipartBody.Part.createFormData(
+            builder.addFormDataPart(
                 "file",
                 "blob.png",
                 imageData.toRequestBody("image/png".toMediaTypeOrNull())
             )
-            parts.add(imagePart)
+            val requestBody = builder.build()
 
-            taxiChatApi.uploadImage(presignedURL.url, parts)
+            val request = Request.Builder()
+                .url(presignedURL.url)
+                .post(requestBody)
+                .build()
+
+            OkHttpClient().newCall(request).execute().use { response ->
+                if (!response.isSuccessful) throw Exception("S3 upload failed: ${response.code}")
+            }
         }
     }
+
+
 
     override suspend fun notifyImageUploadComplete(id: String) {
         val body = mapOf("id" to id)

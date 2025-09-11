@@ -10,6 +10,7 @@ import io.socket.client.IO
 import io.socket.client.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -48,6 +49,8 @@ class TaxiChatService @Inject constructor(
     private val socket: Socket
     private var currentRoomId: String? = null
 
+    private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+
     init {
         val opts = IO.Options().apply {
             forceNew = true
@@ -70,7 +73,7 @@ class TaxiChatService @Inject constructor(
         currentRoomId = roomId
         val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
 
-        CoroutineScope(Dispatchers.Default).launch {
+        serviceScope.launch {
             _chatsFlow.emit(chatsForRoom)
         }
 
@@ -112,7 +115,7 @@ class TaxiChatService @Inject constructor(
             }
             val newChats = parseChatArray(chatArray)
             chats.addAll(0, newChats)
-            CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chats) }
+            serviceScope.launch { _chatsFlow.emit(chats) }
         }
 
         socket.on("chat_push_back") { args ->
@@ -126,7 +129,7 @@ class TaxiChatService @Inject constructor(
             chatsForRoom.addAll(newChats)
 
             if (roomId == currentRoomId) {
-                CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(chatsForRoom) }
+                serviceScope.launch { _chatsFlow.emit(chatsForRoom) }
             }
         }
 
@@ -134,7 +137,7 @@ class TaxiChatService @Inject constructor(
         socket.on("chat_update") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
             val roomID = firstArg.optString("roomId") ?: return@on
-            CoroutineScope(Dispatchers.Default).launch { _roomUpdateFlow.emit(roomID) }
+            serviceScope.launch { _roomUpdateFlow.emit(roomID) }
         }
     }
 
