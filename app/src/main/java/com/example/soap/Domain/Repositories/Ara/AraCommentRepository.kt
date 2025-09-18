@@ -46,7 +46,7 @@ class FakeAraCommentRepository : AraCommentRepositoryProtocol {
 
 }
 
-    class AraCommentRepository @Inject constructor(
+class AraCommentRepository @Inject constructor(
     private val araCommentApi: AraCommentApi
 ) : AraCommentRepositoryProtocol {
 

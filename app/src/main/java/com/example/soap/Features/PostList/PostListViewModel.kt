@@ -54,7 +54,6 @@ class PostListViewModel @Inject constructor(
 
     //Mark: - Initializer
     init {
-        bind()
         viewModelScope.launch {
             fetchInitialPosts()
         }
@@ -80,7 +79,7 @@ class PostListViewModel @Inject constructor(
                     type = AraBoardTarget.PostListType.Board(boardID = board.id),
                     page = 1,
                     pageSize = pageSize,
-                    searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
+                    searchKeyword = searchKeyword.ifBlank { null }
                 )
                 totalPages = page.pages
                 currentPage = page.currentPage

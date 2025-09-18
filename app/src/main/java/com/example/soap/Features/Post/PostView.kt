@@ -1,21 +1,21 @@
 package com.example.soap.Features.Post
 
-import HTMLView
 import PostCommentCell
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,6 +44,8 @@ import coil.compose.AsyncImage
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostAuthor
 import com.example.soap.Domain.Models.Ara.AraPostComment
+import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
+import com.example.soap.Features.Post.Components.DynamicHeightWebView
 import com.example.soap.Features.Post.Components.PostBookmarkButton
 import com.example.soap.Features.Post.Components.PostCommentButton
 import com.example.soap.Features.Post.Components.PostNavigationBar
@@ -83,11 +85,7 @@ fun PostView(
     var alertTitle by remember { mutableStateOf("") }
     var alertMessage by remember { mutableStateOf("") }
 
-    val backStackEntry = navController.currentBackStackEntry
-    val post = viewModel.post.collectAsState().value
-
-    val navBackStackEntry = remember { navController.currentBackStackEntry }
-    val postId = navBackStackEntry?.arguments?.getString("post_json")
+    val post = viewModel.post.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
@@ -103,7 +101,7 @@ fun PostView(
                 viewModel = viewModel,
                 targetComment = targetComment,
                 scope = scope,
-                post = post,
+                post = post.value,
                 selectedAuthor = selectedAuthor
             ) { selectedAuthor = it }
 
@@ -112,10 +110,10 @@ fun PostView(
                 htmlHeight = htmlHeight,
                 onHtmlHeightChange = { htmlHeight = it },
                 onLinkTapped = { tappedURL = Uri.parse(it) },
-                post = post
+                post = post.value
             )
 
-            Footer(viewModel, scope = scope, post = post) {
+            Footer(viewModel, scope = scope, post = post.value) {
                 targetComment = null
                 isWritingComment = true
             }
@@ -127,7 +125,7 @@ fun PostView(
                 targetComment = targetComment,
                 comment = comment,
                 isWritingComment = isWritingComment,
-                post = post
+                post = post.value
             ) {
                 commentOnEdit = it.commentOnEdit
                 targetComment = it.targetComment
@@ -175,7 +173,10 @@ private fun Header(
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Bold
         )
-        Row(horizontalArrangement  = Arrangement.spacedBy(4.dp)) {
+        Row(
+            horizontalArrangement  = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text(
                 text = post.createdAt.formattedString(),
                 style = MaterialTheme.typography.bodySmall,
@@ -231,41 +232,38 @@ private fun Content(
     onLinkTapped: (String) -> Unit,
     post: AraPost
 ) {
-    Column {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(vertical = 8.dp)
+    ) {
         if (!summarisedContent.isNullOrEmpty()) {
 //            SummarisationView(text = summarisedContent)
             Spacer(modifier = Modifier.height(8.dp))
         }
-
         val postContent = post.content
-        HTMLView(htmlString = postContent.toString(), onContentHeightChanged = { height ->
-            Log.d("HTMLView", "Content height: $height px")
-        })
-//        if (!postContent.isNullOrEmpty()) {
-//            DynamicHeightWebView(
-//                htmlString = postContent,
-//                modifier = Modifier
-//                    .height(htmlHeight)
-//                    .fillMaxWidth(),
-//                onHeightChanged = { pxHeight ->
-//                    onHtmlHeightChange(pxHeight.toDp())
-//                },
-//                onLinkTapped = onLinkTapped
-//            )
-//        } else {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(200.dp),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                CircularProgressIndicator()
-//            }
-//        }
+        if (!postContent.isNullOrEmpty()) {
+            DynamicHeightWebView(
+                htmlString = postContent,
+                modifier = Modifier
+                    .height(htmlHeight)
+                    .fillMaxWidth(),
+                onHeightChanged = { pxHeight ->
+                    onHtmlHeightChange(pxHeight.dp)
+                },
+                onLinkTapped = onLinkTapped
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
     }
 }
-
-private fun Int.toDp(): Dp =  this@toDp.toDp()
 
 @Composable
 private fun Footer(
@@ -274,7 +272,10 @@ private fun Footer(
     post: AraPost,
     onCommentClick: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         PostVoteButton(
             myVote = post.myVote,
             votes = post.upVotes - post.downVotes,
@@ -299,27 +300,30 @@ private fun Comments(
     post: AraPost,
     onCommentChange: (CommentUpdate) -> Unit
 ) {
+    val repo: AraCommentRepositoryProtocol = hiltViewModel<PostViewModel>().araCommentRepository
+
     Column {
         post.comments.forEach { commentItem ->
             PostCommentCell(
                 comment = commentItem,
                 isThreaded = false,
                 onComment = { onCommentChange(CommentUpdate(targetComment = commentItem, commentOnEdit = null, comment = "")) },
-                onEdit = { onCommentChange(CommentUpdate(targetComment = null, commentOnEdit = commentItem, comment = commentItem.content ?: "")) },
-                onDelete = {
-                           },
-                onTranslate = {}
+                onEdit = {
+                    onCommentChange(CommentUpdate(targetComment = null, commentOnEdit = commentItem, comment = commentItem.content ?: "")) },
+                onDelete = { post.commentCount -= 1 },
+                onTranslate = {},
+                araCommentRepository = repo
             )
+            //Threads
             commentItem.comments.forEach { thread ->
                 PostCommentCell(
                     comment = thread,
                     isThreaded = true,
                     onComment = { onCommentChange(CommentUpdate(targetComment = thread, commentOnEdit = null, comment = "")) },
                     onEdit = { onCommentChange(CommentUpdate(targetComment = null, commentOnEdit = thread, comment = thread.content ?: "")) },
-                    onDelete = {
-
-                    },
-                    onTranslate = {}
+                    onDelete = { post.commentCount -= 1 },
+                    onTranslate = {},
+                    araCommentRepository = repo
                 )
             }
         }

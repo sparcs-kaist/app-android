@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -35,7 +32,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.soap.Domain.Enums.AraContentReportType
 import com.example.soap.Domain.Models.Ara.AraPostComment
@@ -46,6 +42,7 @@ import com.example.soap.Features.Post.Components.PostVoteButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.timeAgoDisplay
 import com.example.soap.Shared.Mocks.mock
+import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,7 +54,7 @@ fun PostCommentCell(
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     onTranslate: (String) -> Unit,
-    araCommentRepository: AraCommentRepositoryProtocol = hiltViewModel()
+    araCommentRepository: AraCommentRepositoryProtocol
 ) {
     val scope = rememberCoroutineScope()
     var showReportDialog by remember { mutableStateOf(false) }
@@ -74,7 +71,7 @@ fun PostCommentCell(
         }
 
         Column(modifier = Modifier.weight(1f)) {
-            HorizontalDivider()
+            HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0, modifier = Modifier.padding(vertical = 4.dp))
 
             PostCommentHeader(
                 comment = comment,
@@ -148,13 +145,15 @@ fun PostCommentHeader(
     Row(verticalAlignment = Alignment.CenterVertically) {
         ProfilePicture(url = comment.author.profile.profilePictureURL.toString())
 
+        Spacer(modifier = Modifier.padding(4.dp))
+
         Text(
             text = comment.author.profile.nickname,
             fontWeight = FontWeight.Medium,
             style = MaterialTheme.typography.bodyMedium
         )
 
-        Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.padding(4.dp))
 
         Text(
             text = comment.createdAt.timeAgoDisplay(),
@@ -189,7 +188,7 @@ fun PostCommentActionsMenu(
 
     Box {
         IconButton(onClick = { expanded = true }) {
-            Icon(Icons.Default.MoreVert, contentDescription = "More")
+            Icon(painterResource(R.drawable.more_horiz), contentDescription = "More")
         }
 
         DropdownMenu(expanded = expanded, onDismissRequest = {
@@ -285,7 +284,7 @@ fun PostCommentContent(comment: AraPostComment) {
     val isDeleted = comment.content == null
     Text(
         text = comment.content ?: "This comment has been deleted.",
-        style = MaterialTheme.typography.bodySmall,
+        style = MaterialTheme.typography.bodyMedium,
         color = if (isDeleted) MaterialTheme.colorScheme.onSurfaceVariant
         else MaterialTheme.colorScheme.onSurface
     )
@@ -306,6 +305,7 @@ fun PostCommentFooter(
 
         if (!isThreaded) {
             PostCommentButton(commentCount = comment.comments.size, onClick = onComment)
+            Spacer(modifier = Modifier.padding(4.dp))
         }
 
         if (!isDeleted) {

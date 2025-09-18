@@ -172,7 +172,11 @@ object NetworkModule {
                 val newRequest = original.newBuilder()
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
-                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
+                    .apply {
+                        accessToken?.let {
+                            header("Authorization", "Bearer $it")
+                        }
+                    }
                     .build()
                 chain.proceed(newRequest)
             }
