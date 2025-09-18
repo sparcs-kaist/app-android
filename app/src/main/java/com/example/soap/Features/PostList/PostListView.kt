@@ -62,8 +62,8 @@ fun PostListView(
     LaunchedEffect(Unit) {
         if (!loadedInitialPost) {
             postListViewModel.board = board
-            postListViewModel.bind()
             postListViewModel.fetchInitialPosts()
+            postListViewModel.bind()
             loadedInitialPost = true
         }
     }
@@ -102,7 +102,6 @@ fun PostListView(
                 }
                 is PostListViewModel.ViewState.Error -> {
                     // TODO - ErrorView
-                    Log.d("PostListView", "에러핑")
                     val error = (state as PostListViewModel.ViewState.Error).message
                     Log.d("PostListView", error)
                 }

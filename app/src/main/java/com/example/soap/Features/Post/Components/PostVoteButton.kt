@@ -80,7 +80,7 @@ fun PostVoteButton(
             painter = painterResource(downvoteImage),
             contentDescription = "DownVote",
             tint = if (myVote == false) downVoteColor else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(15.dp).clickable { onDownVote() }
+            modifier = Modifier.size(20.dp).clickable { onDownVote() }
         )
 
     }

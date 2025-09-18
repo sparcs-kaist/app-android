@@ -21,7 +21,7 @@ import javax.inject.Inject
 class PostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val araBoardRepository: AraBoardRepositoryProtocol,
-    private val araCommentRepository: AraCommentRepositoryProtocol,
+    val araCommentRepository: AraCommentRepositoryProtocol,
 //    private val foundationModelsUseCase: FoundationModelsUseCaseProtocol
 ) : ViewModel(), PostViewModelProtocol {
 
@@ -58,50 +58,50 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun upVote() {
-        val previousMyVote: Boolean? = _post.value.myVote
-        val previousUpVotes: Int = _post.value.upVotes
-
+        val current = _post.value
+        val previousMyVote = current.myVote
+        val previousUpVotes = current.upVotes
         try {
             if (previousMyVote == true) {
-                _post.value.myVote = null
-                _post.value.upVotes -= 1
-                araBoardRepository.cancelVote(postID = _post.value.id)
+                current.myVote = null
+                current.upVotes -= 1
+                araBoardRepository.cancelVote(current.id)
             } else {
-                if (previousMyVote == false) {
-                    _post.value.downVotes -= 1
-                }
-                _post.value.myVote = true
-                _post.value.upVotes += 1
-                araBoardRepository.upVotePost(postID = _post.value.id)
+                if (previousMyVote == false) current.downVotes -= 1
+                current.myVote = true
+                current.upVotes += 1
+                araBoardRepository.upVotePost(current.id)
             }
+            _post.value = current
         } catch (e: Exception) {
             Log.e("PostViewModel", "upvote error", e)
-            _post.value.upVotes = previousUpVotes
-            _post.value.myVote = previousMyVote
+            current.myVote = previousMyVote
+            current.upVotes = previousUpVotes
+            _post.value = current
         }
     }
 
     override suspend fun downVote() {
-        val previousMyVote: Boolean? = _post.value.myVote
-        val previousDownvotes: Int = _post.value.downVotes
-
+        val current = _post.value
+        val previousMyVote = current.myVote
+        val previousDownVotes = current.downVotes
         try {
             if (previousMyVote == false) {
-                _post.value.myVote = null
-                _post.value.downVotes -= 1
-                araBoardRepository.cancelVote(postID = _post.value.id)
+                current.myVote = null
+                current.downVotes -= 1
+                araBoardRepository.cancelVote(current.id)
             } else {
-                if (previousMyVote == true) {
-                    _post.value.upVotes -= 1
-                }
-                _post.value.myVote = false
-                _post.value.downVotes += 1
-                araBoardRepository.downVotePost(postID = _post.value.id)
+                if (previousMyVote == true) current.upVotes -= 1
+                current.myVote = false
+                current.downVotes += 1
+                araBoardRepository.downVotePost(current.id)
             }
+            _post.value = current
         } catch (e: Exception) {
             Log.e("PostViewModel", "downvote error", e)
-            _post.value.downVotes = previousDownvotes
-            _post.value.myVote = previousMyVote
+            current.myVote = previousMyVote
+            current.downVotes = previousDownVotes
+            _post.value = current
         }
     }
 
