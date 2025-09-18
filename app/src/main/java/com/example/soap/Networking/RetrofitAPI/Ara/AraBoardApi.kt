@@ -66,7 +66,7 @@ interface AraBoardApi {
         @Query("page_size") pageSize: Int,
         @Query("parent_board") parentBoard: Int? = null,
         @Query("created_by") createdBy: Int? = null,
-        @Query("main_search__contains") searchKeyword: String? = null
+        @Query("parent_topic") searchKeyword: String? = null
     ): AraPostPageDTO
 
     @GET("articles/{id}/")
