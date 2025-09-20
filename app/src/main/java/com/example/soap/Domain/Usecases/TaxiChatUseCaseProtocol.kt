@@ -11,8 +11,10 @@ interface TaxiChatUseCaseProtocol {
     val groupedChatsFlow: Flow<List<TaxiChatGroup>>
     val roomUpdateFlow: Flow<TaxiRoom>
 
+    fun setRoom(room: TaxiRoom)
     suspend fun fetchInitialChats()
     suspend fun fetchChats(before: Date)
     suspend fun sendChat(content: String?, type: TaxiChat.ChatType)
     suspend fun sendImage(content: Bitmap)
+    fun switchRoom(newRoomId: String)
 }

@@ -22,7 +22,9 @@ import com.example.soap.ui.theme.Theme
 fun TaxiChatViewNavigationBar(
     room: TaxiRoom,
     onDismiss: () -> Unit,
-    onClickCallTaxi: () -> Unit
+    onClickCallTaxi: () -> Unit,
+    onClickLeave: () -> Unit,
+    isEnabled: Boolean
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = { onDismiss() }) },
@@ -40,7 +42,9 @@ fun TaxiChatViewNavigationBar(
                 room = room,
                 onClickShare = { /* TODO: Share room */ },
                 onClickCallTaxi = { onClickCallTaxi() },
-                onClickReport = { /* TODO: Report room */ }
+                onClickReport = { /* TODO: Report room */ },
+                onClickLeave = { onClickLeave() },
+                isEnabled = isEnabled
             ) },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
@@ -54,6 +58,6 @@ fun TaxiChatViewNavigationBar(
 @Preview
 private fun Preview(){
     Theme {
-        Box(Modifier.fillMaxSize()){ TaxiChatViewNavigationBar(TaxiRoom.mock(), {}, {}) } }
+        Box(Modifier.fillMaxSize()){ TaxiChatViewNavigationBar(TaxiRoom.mock(), {}, {}, {}, true) } }
 }
 

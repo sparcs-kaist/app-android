@@ -22,7 +22,6 @@ interface TaxiListViewModelProtocol {
     var roomDepartureTime: Date
     var roomCapacity: Int
 
-
     suspend fun fetchData()
     suspend fun createRoom(title: String)
 

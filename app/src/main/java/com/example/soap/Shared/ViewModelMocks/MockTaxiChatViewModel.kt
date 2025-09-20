@@ -54,4 +54,6 @@ class MockTaxiChatViewModel(
     override suspend fun commitSettlement() {}
     override suspend fun commitPayment() {}
     override suspend fun sendImage(image: Bitmap) {}
+
+    override fun switchRoom(newRoom: TaxiRoom) {}
 }
