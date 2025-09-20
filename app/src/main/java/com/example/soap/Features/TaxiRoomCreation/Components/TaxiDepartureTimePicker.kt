@@ -1,6 +1,5 @@
 package com.example.soap.Features.TaxiRoomCreation.Components
 
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -146,7 +145,6 @@ fun TaxiDepartureTimePicker(
                     calendar.set(Calendar.MONTH, selectedDate.monthValue - 1)
                     dateText.value = DateTimeFormatter.ofPattern("MM/dd").format(it)
                     onDepartureTimeChange(calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate())
-                    Log.d("Asdada", calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate().toString())
                 }
             )
         }

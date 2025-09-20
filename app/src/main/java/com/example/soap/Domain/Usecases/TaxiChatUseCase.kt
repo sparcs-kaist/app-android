@@ -91,7 +91,6 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     private fun bind() {
-    // is socket(TaxiChatService) connected
         taxiChatService.isConnectedPublisher
             .onEach { isConnected ->
                 isSocketConnected = isConnected
@@ -99,22 +98,21 @@ class TaxiChatUseCase @Inject constructor(
             }
             .launchIn(scope)
 
-    // converts [TaxiChat] into [TaxiChatGroup]
         taxiChatService.chatsPublisher
             .onEach { newChats ->
                 val user = userUseCase.taxiUser
 
-                val combined = (_accumulatedChats + newChats)
-                    .distinctBy { it.id }
-                _accumulatedChats.clear()
-                _accumulatedChats.addAll(combined)
+                val filtered = newChats.filter { it.roomID == room.id }
+                if (filtered.isEmpty()) return@onEach
 
-                _groupedChatsFlow.value = groupChats(_accumulatedChats.toList(), user?.oid ?: "")
+                _accumulatedChats.clear()
+                _accumulatedChats.addAll(filtered.distinctBy { it.id })
+
+                _groupedChatsFlow.value =
+                    groupChats(_accumulatedChats.toList(), user?.oid ?: "")
             }
             .launchIn(scope)
 
-
-        // handles room updates from chat_update event
         taxiChatService.roomUpdatePublisher
             .onEach { roomId ->
                 if (roomId != room.id) return@onEach
@@ -131,7 +129,6 @@ class TaxiChatUseCase @Inject constructor(
             }
             .launchIn(scope)
     }
-
 
     private fun groupChats(chats: List<TaxiChat>, currentUserID: String): List<TaxiChatGroup> {
         if (chats.isEmpty()) return emptyList()
@@ -203,9 +200,11 @@ class TaxiChatUseCase @Inject constructor(
         return result
     }
 
-    override suspend fun switchRoom(newRoomId: String) {
+    override fun switchRoom(newRoomId: String) {
         _accumulatedChats.clear()
         taxiChatService.setRoom(newRoomId)
-        fetchInitialChats()
+        scope.launch {
+            fetchInitialChats()
+        }
     }
 }
