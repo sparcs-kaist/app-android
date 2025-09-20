@@ -76,7 +76,7 @@ fun TaxiRoomCreationNavigationBar(
                 TextButton(onClick = { showErrorDialog = false }) {
                     Text("Okay")
                 }
-            }//TODO - 이름 에러의 경우 unknown으로 뜨는데, 추후 에러 작업 필요해보임.
+            }//TODO - In case of a name error, it appears as 'unknown'; further error handling may be needed.
         )
     }
 }

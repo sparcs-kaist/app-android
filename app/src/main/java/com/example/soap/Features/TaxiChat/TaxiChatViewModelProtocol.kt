@@ -33,5 +33,5 @@ interface TaxiChatViewModelProtocol {
     suspend fun commitSettlement()
     suspend fun commitPayment()
     suspend fun sendImage(image: Bitmap)
-    suspend fun switchRoom(newRoom: TaxiRoom)
+    fun switchRoom(newRoom: TaxiRoom)
 }

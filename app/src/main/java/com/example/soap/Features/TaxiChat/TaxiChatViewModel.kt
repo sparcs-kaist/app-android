@@ -74,9 +74,14 @@ class TaxiChatViewModel @Inject constructor(
 
     init {
         taxiChatUseCase.setRoom(initialRoom)
+        bind()
+
+        viewModelScope.launch {
+        setup()
+            }
     }
 
-    override suspend fun switchRoom(newRoom: TaxiRoom) {
+    override fun switchRoom(newRoom: TaxiRoom) {
         if (_room.value.id == newRoom.id) return
         _room.value = newRoom
         taxiChatUseCase.switchRoom(newRoom.id)
