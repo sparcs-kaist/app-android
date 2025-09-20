@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -51,9 +52,12 @@ fun TaxiChatViewDropDownMenu(
     room: TaxiRoom,
     onClickShare: () -> Unit,
     onClickCallTaxi: () -> Unit,
-    onClickReport: () -> Unit
+    onClickReport: () -> Unit,
+    onClickLeave: () -> Unit,
+    isEnabled: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var showLeaveDialog by remember { mutableStateOf(false) }
 
     IconButton(onClick = { expanded = !expanded }) {
         Icon(
@@ -77,9 +81,44 @@ fun TaxiChatViewDropDownMenu(
                 onClickReport = { onClickReport() }
             )
             MiddleDropDownItems(room = room)
-            BottomDropDownItems(onClickLeave = { /* TODO: Leave room */ })
-
+            BottomDropDownItems(
+                onClickLeave = { showLeaveDialog = true },
+                isEnabled = isEnabled
+            )
         }
+    }
+
+    if (showLeaveDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showLeaveDialog = false },
+            title = { Text("Do you really want to leave the room?") },
+            text = { Text("You can rejoin after cancellation. \nHowever, if you are on board alone, the room will disappear.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                    showLeaveDialog = false
+                    onClickLeave()
+                },
+                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
+                ) {
+                    Text(
+                        text= "Yes",
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showLeaveDialog = false },
+                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
+                    ) {
+                    Text(
+                        text = "No",
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        )
     }
 }
 
@@ -90,7 +129,9 @@ private fun TopDropDownItems(
     onClickReport: () -> Unit,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconWithText(
@@ -193,7 +234,8 @@ private fun MiddleDropDownItems(room: TaxiRoom) {
 
 @Composable
 private fun BottomDropDownItems(
-    onClickLeave: () -> Unit
+    onClickLeave: () -> Unit,
+    isEnabled: Boolean
 ){
     DropdownMenuItem(
         text = {
@@ -202,6 +244,7 @@ private fun BottomDropDownItems(
                 color = MaterialTheme.colorScheme.gray64
             ) },
         onClick = { onClickLeave() },
+        enabled = isEnabled,
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.round_logout),
@@ -245,7 +288,7 @@ private fun Preview(){
             Button(
                 onClick = {}
             ) {
-                TaxiChatViewDropDownMenu(room = TaxiRoom.mock(), {}, {}, {})
+                TaxiChatViewDropDownMenu(room = TaxiRoom.mock(), {}, {}, {},{}, true)
             }
         }
     }

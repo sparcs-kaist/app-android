@@ -2,6 +2,7 @@ package com.example.soap.Shared.Extensions
 
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -55,6 +56,9 @@ fun Date.toLocalDate(): LocalDate =
 fun LocalDate.toDate(): Date =
     Date.from(atStartOfDay(ZoneId.systemDefault()).toInstant())
 
+fun LocalDateTime.toDate(): Date =
+    Date.from(this.atZone(ZoneId.systemDefault()).toInstant())
+
 fun Date.ceilToNextTenMinutes(): Date {
     val cal = Calendar.getInstance().apply { time = this@ceilToNextTenMinutes }
     val minute = cal.get(Calendar.MINUTE)
@@ -70,14 +74,20 @@ fun Calendar.isDateInSameDay(date1: Date, date2: Date): Boolean {
     return localDate1 == localDate2
 }
 
+
 fun Date.relativeTimeString(): String {
     val time = localizedTime(this)
 
     return when {
         isDateInToday(this) -> "Today at $time"
         isDateInTomorrow(this) -> "Tomorrow at $time"
-        else -> weekdayNameIfWithinAWeek(this)?.let { "$it at $time" }
-            ?: SimpleDateFormat("MMM d 'at' h:mm a", Locale.getDefault()).format(date)
+        else -> {
+            weekdayNameIfWithinAWeek(this)?.let { "$it at $time" } ?: run {
+                val formatter = DateTimeFormatter.ofPattern("MMM d 'at' h:mm a", Locale.getDefault())
+                val localDateTime = LocalDateTime.ofInstant(this.toInstant(), ZoneId.systemDefault())
+                formatter.format(localDateTime)
+            }
+        }
     }
 }
 

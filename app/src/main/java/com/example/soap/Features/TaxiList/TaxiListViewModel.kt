@@ -55,7 +55,6 @@ class TaxiListViewModel @Inject constructor(
     override var roomDepartureTime: Date by mutableStateOf(Date().ceilToNextTenMinutes())
     override var roomCapacity: Int by mutableStateOf(4)
 
-
     // MARK: - Functions
     override suspend fun fetchData() {
         viewModelScope.launch {

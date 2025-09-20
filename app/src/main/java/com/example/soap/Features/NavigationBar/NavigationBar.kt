@@ -34,13 +34,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
-import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
@@ -57,15 +57,16 @@ import com.example.soap.Features.PostCompose.PostComposeView
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.TaxiChat.TaxiChatView
 import com.example.soap.Features.TaxiChat.TaxiChatViewModel
+import com.example.soap.Features.TaxiChat.TaxiChatViewModelProtocol
+import com.example.soap.Features.TaxiChatList.TaxiChatListView
+import com.example.soap.Features.TaxiChatList.TaxiChatListViewModel
+import com.example.soap.Features.TaxiChatList.TaxiChatListViewModelProtocol
 import com.example.soap.Features.TaxiList.TaxiListView
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
-import com.example.soap.Shared.Mocks.mock
-import com.example.soap.Shared.Mocks.mockList
-import com.example.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
 import com.example.soap.ui.theme.Theme
 
 enum class Channel(@StringRes val title: Int) {
@@ -79,7 +80,8 @@ enum class Channel(@StringRes val title: Int) {
     PostCompose(title = R.string.postcompose),
     LectureDetail(title= R.string.lecturedetail),//임시
     TaxiRoomCreation(title = R.string.taxi_room_creation),
-    TaxiChatView(title = R.string.taxichatview)
+    TaxiChatView(title = R.string.taxichatview),
+    TaxiChatListView(title = R.string.taxichatlistview)
 }
 
 @Composable
@@ -148,22 +150,31 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     )
                 }
             }
+
             composable(
-                route = Channel.TaxiChatView.name
-            ) {backStackEntry->
-//                val viewModelImpl: TaxiChatViewModel = hiltViewModel(backStackEntry)
-//                val viewModel: TaxiChatViewModelProtocol = viewModelImpl
-
-                val taxiChatMockViewModel = MockTaxiChatViewModel(
-                    initialState = TaxiChatViewModel.ViewState.Loaded(
-                        groupedChats = TaxiChatGroup.mockList(),
-                    ),
-                    initialGroupedChats = TaxiChatGroup.mockList(),
-                    initialTaxiUser = TaxiUser.mock(),
-                    initialUploading = false
+                route = Channel.TaxiChatView.name + "?room_json={room_json}",
+                arguments = listOf(
+                    navArgument("room_json") {
+                        type = NavType.StringType
+                        nullable = false
+                    }
                 )
+            ) { backStackEntry ->
+                val viewModelImpl: TaxiChatViewModel = hiltViewModel(backStackEntry)
+                val viewModel: TaxiChatViewModelProtocol = viewModelImpl
+                TaxiChatView(
+                    viewModel,
+                    navController = navController
+                )
+            }
 
-                TaxiChatView(taxiChatMockViewModel, navController)
+            composable(
+                route = Channel.TaxiChatListView.name
+            ) {backStackEntry->
+                val viewModelImpl: TaxiChatListViewModel = hiltViewModel(backStackEntry)
+                val viewModel: TaxiChatListViewModelProtocol = viewModelImpl
+
+                TaxiChatListView(viewModel, navController)
             }
 
             composable(
@@ -243,7 +254,7 @@ fun AppBar(
                                 launchSingleTop = true} }
                         )
                     }
-                    ChatButton(onClick = {navController.navigate(Channel.TaxiChatView.name)} )
+                    ChatButton(onClick = {navController.navigate(Channel.TaxiChatListView.name)} )
                 }
                 else -> {}
             }
