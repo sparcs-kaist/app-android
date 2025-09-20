@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -132,7 +131,7 @@ fun TaxiChatView(
             val json = Gson().toJson(room)
             backStackEntry.savedStateHandle["room_json"] = json
             viewModel.switchRoom(room)
-            viewModel.setup()
+//            viewModel.setup()
             viewModel.fetchInitialChats()
         } catch (e: Exception) {
             errorMessage = e.message ?: "Failed to load chats"
@@ -326,71 +325,98 @@ fun ContentView(
                     }
             )
         }
+        val flattenedChats = groupedChats.flatMap { group ->
+            group.chats.map { chat -> chat to group }
+        }
+        items(flattenedChats, key = { (chat, _) -> chat.id }) { (chat, group) ->
+            val showTimeLabel = group.lastChatID == chat.id
+            val otherParticipants =
+                viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
+            val readCount = otherParticipants.count { it.readAt <= chat.time }
 
-        groupedChats.forEach { group ->
-            itemsIndexed(group.chats, key = { _, chat -> chat.id }) { _, chat ->
-                val showTimeLabel = group.lastChatID == chat.id
-                val otherParticipants =
-                    viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
-                val readCount = otherParticipants.count { it.readAt <= chat.time }
-
-                TaxiChatUserWrapper(
-                    authorID = group.authorID,
-                    authorName = group.authorName,
-                    authorProfileImageURL = group.authorProfileURL,
-                    date = group.time,
-                    isMe = group.isMe,
-                    isGeneral = group.isGeneral,
-                    isWithdrawn = group.authorIsWithdrew ?: false
+            TaxiChatUserWrapper(
+                authorID = group.authorID,
+                authorName = group.authorName,
+                authorProfileImageURL = group.authorProfileURL,
+                date = group.time,
+                isMe = group.isMe,
+                isGeneral = group.isGeneral,
+                isWithdrawn = group.authorIsWithdrew ?: false
+            ) {
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        if (group.isMe && group.lastChatID != null) {
-                            Column(horizontalAlignment = Alignment.End) {
-                                if (readCount > 0) Text("$readCount", style = MaterialTheme.typography.labelSmall)
-                                if (showTimeLabel) Text(group.time.formattedTime(), style = MaterialTheme.typography.labelSmall)
-                            }
+                    if (group.isMe && group.lastChatID != null) {
+                        Column(horizontalAlignment = Alignment.End) {
+                            if (readCount > 0) Text(
+                                "$readCount",
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                            if (showTimeLabel) Text(
+                                group.time.formattedTime(),
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
+                    }
 
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .wrapContentWidth(if (group.isMe) Alignment.End else Alignment.Start)
-                        ) {
-                            when (chat.type) {
-                                TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
-                                    TaxiChatGeneralMessage(authorName = chat.authorName, type = chat.type)
-                                TaxiChat.ChatType.TEXT ->
-                                    TaxiChatBubble(content = chat.content, showTip = showTimeLabel, isMe = group.isMe)
-                                TaxiChat.ChatType.S3IMG ->
-                                    TaxiChatImageBubble(id = chat.content) { onImageClick(chat.content) }
-                                TaxiChat.ChatType.DEPARTURE ->
-                                    TaxiDepartureBubble(room = viewModel.room.collectAsState().value)
-                                TaxiChat.ChatType.ARRIVAL -> TaxiArrivalBubble()
-                                TaxiChat.ChatType.SETTLEMENT -> TaxiChatSettlementBubble()
-                                TaxiChat.ChatType.PAYMENT -> TaxiChatPaymentBubble()
-                                TaxiChat.ChatType.ACCOUNT ->
-                                    TaxiChatAccountBubble(content = chat.content, isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable) {
-                                        coroutineScope.launch {
-                                            try {
-                                                viewModel.commitPayment()
-                                            } catch (e: Exception) {
-                                                Log.e("TaxiChatView", "Failed to commit payment", e)
-                                            }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .wrapContentWidth(if (group.isMe) Alignment.End else Alignment.Start)
+                    ) {
+                        when (chat.type) {
+                            TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
+                                TaxiChatGeneralMessage(
+                                    authorName = chat.authorName,
+                                    type = chat.type
+                                )
+
+                            TaxiChat.ChatType.TEXT ->
+                                TaxiChatBubble(
+                                    content = chat.content,
+                                    showTip = showTimeLabel,
+                                    isMe = group.isMe
+                                )
+
+                            TaxiChat.ChatType.S3IMG ->
+                                TaxiChatImageBubble(id = chat.content) { onImageClick(chat.content) }
+
+                            TaxiChat.ChatType.DEPARTURE ->
+                                TaxiDepartureBubble(room = viewModel.room.collectAsState().value)
+
+                            TaxiChat.ChatType.ARRIVAL -> TaxiArrivalBubble()
+                            TaxiChat.ChatType.SETTLEMENT -> TaxiChatSettlementBubble()
+                            TaxiChat.ChatType.PAYMENT -> TaxiChatPaymentBubble()
+                            TaxiChat.ChatType.ACCOUNT ->
+                                TaxiChatAccountBubble(
+                                    content = chat.content,
+                                    isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable
+                                ) {
+                                    coroutineScope.launch {
+                                        try {
+                                            viewModel.commitPayment()
+                                        } catch (e: Exception) {
+                                            Log.e("TaxiChatView", "Failed to commit payment", e)
                                         }
                                     }
-                                TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
-                                else -> Text(chat.type.name)
-                            }
-                        }
+                                }
 
-                        if (!group.isMe && group.lastChatID != null) {
-                            Column(horizontalAlignment = Alignment.Start) {
-                                if (readCount > 0) Text("$readCount", style = MaterialTheme.typography.labelSmall)
-                                if (showTimeLabel) Text(group.time.formattedTime(), style = MaterialTheme.typography.labelSmall)
-                            }
+                            TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
+                            else -> Text(chat.type.name)
+                        }
+                    }
+
+                    if (!group.isMe && group.lastChatID != null) {
+                        Column(horizontalAlignment = Alignment.Start) {
+                            if (readCount > 0) Text(
+                                "$readCount",
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                            if (showTimeLabel) Text(
+                                group.time.formattedTime(),
+                                style = MaterialTheme.typography.labelSmall
+                            )
                         }
                     }
                 }
@@ -398,7 +424,6 @@ fun ContentView(
         }
     }
 }
-
 
 @Composable
 fun LoadingView() {

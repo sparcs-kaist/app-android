@@ -16,5 +16,5 @@ interface TaxiChatUseCaseProtocol {
     suspend fun fetchChats(before: Date)
     suspend fun sendChat(content: String?, type: TaxiChat.ChatType)
     suspend fun sendImage(content: Bitmap)
-    suspend fun switchRoom(newRoomId: String)
+    fun switchRoom(newRoomId: String)
 }

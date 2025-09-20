@@ -82,7 +82,6 @@ class TaxiChatService @Inject constructor(
         })
     }
 
-
     private fun setupSocketEvents() {
         socket.on(Socket.EVENT_CONNECT) {
             isConnected = true
@@ -100,9 +99,10 @@ class TaxiChatService @Inject constructor(
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
             val chatArrayRaw = firstArg.optJSONArray("chats") ?: return@on
             val newChats = mutableListOf<TaxiChat>()
+
             for (i in 0 until chatArrayRaw.length()) {
                 chatArrayRaw.optJSONObject(i)?.let { json ->
-                    parseChatArray(listOf(json.toMap())).let { newChats.addAll(it) }
+                    parseChatObject(json.toMap())?.let { newChats.add(it) }
                 }
             }
             chats = newChats.toMutableList()
@@ -147,13 +147,18 @@ class TaxiChatService @Inject constructor(
             catch (e: Exception) { null }
         }
     }
+    private fun parseChatObject(chatMap: Map<*, *>): TaxiChat? {
+        return try {
+            Gson().fromJson(Gson().toJson(chatMap), TaxiChatDTO::class.java).toModel()
+        } catch (e: Exception) { null }
+    }
 }
 
 fun JSONObject.toMap(): Map<String, Any?> {
     val map = mutableMapOf<String, Any?>()
     val keys = this.keys()
     while (keys.hasNext()) {
-        val key = keys.next() as? String ?: continue
+        val key = keys.next() ?: continue
         val value = when (val v = this[key]) {
             is JSONArray -> List(v.length()) { i -> v[i] }
             is JSONObject -> v.toMap()
