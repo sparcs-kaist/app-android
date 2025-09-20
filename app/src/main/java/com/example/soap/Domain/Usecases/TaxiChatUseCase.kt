@@ -9,6 +9,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Domain.Repositories.TaxiChatRepository
 import com.example.soap.Domain.Repositories.TaxiRoomRepository
 import com.example.soap.Domain.Services.TaxiChatService
+import com.example.soap.Shared.Extensions.toByteArray
 import com.example.soap.Shared.Extensions.toISO8601
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,18 +19,12 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import java.io.ByteArrayOutputStream
 import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
-
-fun Bitmap.toByteArray(format: Bitmap.CompressFormat = Bitmap.CompressFormat.PNG, quality: Int = 100): ByteArray {
-    val stream = ByteArrayOutputStream()
-    this.compress(format, quality, stream)
-    return stream.toByteArray()
-}
-
 
 class TaxiChatUseCase @Inject constructor(
     private val taxiChatService: TaxiChatService,
@@ -39,6 +34,12 @@ class TaxiChatUseCase @Inject constructor(
 ): TaxiChatUseCaseProtocol {
 
     private lateinit var room: TaxiRoom
+
+    override fun setRoom(room: TaxiRoom) {
+        this.room = room
+        taxiChatService.setRoom(room.id)
+    }
+
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     // MARK: - Flows
@@ -49,15 +50,11 @@ class TaxiChatUseCase @Inject constructor(
     override val roomUpdateFlow: Flow<TaxiRoom> = _roomUpdateFlow.asSharedFlow()
 
     private var isSocketConnected: Boolean = false
-    private var hasInitialChatsBeenFetched: Boolean = false
 
-    init {
-        bind()
-    }
+    private val _accumulatedChats = mutableListOf<TaxiChat>()
 
     override suspend fun fetchInitialChats() {
-        if (hasInitialChatsBeenFetched) return
-        hasInitialChatsBeenFetched = true
+        bind()
         try {
             taxiChatRepository.fetchChats(room.id)
         } catch (e: Exception) {
@@ -94,38 +91,43 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     private fun bind() {
-        // is socket(TaxiChatService) connected
-        scope.launch(Dispatchers.Default) {
-            taxiChatService.isConnectedPublisher.collect { isConnected ->
+        taxiChatService.isConnectedPublisher
+            .onEach { isConnected ->
                 isSocketConnected = isConnected
+                Log.d("TaxiChatUseCase", "Socket connected: $isConnected")
             }
-        }
+            .launchIn(scope)
 
-        // converts [TaxiChat] into [TaxiChatGroup]
-        scope.launch(Dispatchers.Default) {
-            taxiChatService.chatsPublisher.collect { chats ->
-                taxiChatRepository.readChats(room.id)
-
+        taxiChatService.chatsPublisher
+            .onEach { newChats ->
                 val user = userUseCase.taxiUser
-                val grouped = groupChats(chats, user?.oid ?: "")
 
-                _groupedChatsFlow.value = grouped
+                val filtered = newChats.filter { it.roomID == room.id }
+                if (filtered.isEmpty()) return@onEach
+
+                _accumulatedChats.clear()
+                _accumulatedChats.addAll(filtered.distinctBy { it.id })
+
+                _groupedChatsFlow.value =
+                    groupChats(_accumulatedChats.toList(), user?.oid ?: "")
             }
-        }
+            .launchIn(scope)
 
-        // handles room updates from chat_update event
-        scope.launch(Dispatchers.Default) {
-            taxiChatService.roomUpdatePublisher.collect { roomId ->
-                if (roomId != room.id) return@collect
+        taxiChatService.roomUpdatePublisher
+            .onEach { roomId ->
+                if (roomId != room.id) return@onEach
+
                 try {
                     val updatedRoom = taxiRoomRepository.getRoom(roomId)
                     room = updatedRoom
                     _roomUpdateFlow.emit(updatedRoom)
+
+                    Log.d("TaxiChatUseCase", "Room updated: $roomId")
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e("TaxiChatUseCase", "Failed to update room $roomId", e)
                 }
             }
-        }
+            .launchIn(scope)
     }
 
     private fun groupChats(chats: List<TaxiChat>, currentUserID: String): List<TaxiChatGroup> {
@@ -157,7 +159,7 @@ class TaxiChatUseCase @Inject constructor(
         val calendar = Calendar.getInstance()
 
         for (chat in chats) {
-            if (chat.type == TaxiChat.ChatType.ENTRANCE || chat.type == TaxiChat.ChatType.EXIT) {
+            if (chat.type == TaxiChat.ChatType.IN || chat.type == TaxiChat.ChatType.OUT) {
                 flushGroup()
                 result.add(
                     TaxiChatGroup(
@@ -196,5 +198,13 @@ class TaxiChatUseCase @Inject constructor(
 
         flushGroup()
         return result
+    }
+
+    override fun switchRoom(newRoomId: String) {
+        _accumulatedChats.clear()
+        taxiChatService.setRoom(newRoomId)
+        scope.launch {
+            fetchInitialChats()
+        }
     }
 }

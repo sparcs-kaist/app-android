@@ -19,7 +19,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
         // Alice enters first
         TaxiChat(
             roomID = roomID,
-            type = TaxiChat.ChatType.ENTRANCE,
+            type = TaxiChat.ChatType.IN,
             authorID = "user1",
             authorName = "Alice",
             authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
@@ -45,7 +45,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
         // Bob enters
         TaxiChat(
             roomID = roomID,
-            type = TaxiChat.ChatType.ENTRANCE,
+            type = TaxiChat.ChatType.IN,
             authorID = "user2",
             authorName = "Bob",
             authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
@@ -97,7 +97,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
         // Charlie enters
         TaxiChat(
             roomID = roomID,
-            type = TaxiChat.ChatType.ENTRANCE,
+            type = TaxiChat.ChatType.IN,
             authorID = "user3",
             authorName = "Charlie",
             authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
@@ -137,7 +137,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
         // Someone leaves
         TaxiChat(
             roomID = roomID,
-            type = TaxiChat.ChatType.EXIT,
+            type = TaxiChat.ChatType.OUT,
             authorID = "user3",
             authorName = "Charlie",
             authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
@@ -275,7 +275,7 @@ fun TaxiChatGroup.Companion.mockList(): List<TaxiChatGroup>{
     var currentGroup = mutableListOf<TaxiChat>()
 
     for (chat in chats) {
-        if (chat.type == TaxiChat.ChatType.ENTRANCE || chat.type == TaxiChat.ChatType.EXIT) {
+        if (chat.type == TaxiChat.ChatType.IN || chat.type == TaxiChat.ChatType.OUT) {
             // Flush current group if any
             if (currentGroup.isNotEmpty()) {
                 val first = currentGroup.first()

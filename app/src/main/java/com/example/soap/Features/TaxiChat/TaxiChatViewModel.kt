@@ -1,6 +1,7 @@
 package com.example.soap.Features.TaxiChat
 
 import android.graphics.Bitmap
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Domain.Repositories.TaxiRoomRepositoryProtocol
 import com.example.soap.Domain.Usecases.TaxiChatUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,13 +27,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TaxiChatViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle,
+    savedStateHandle: SavedStateHandle,
     private val taxiChatUseCase: TaxiChatUseCaseProtocol,
     private val userUseCase: UserUseCaseProtocol,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol
 ) : ViewModel(), TaxiChatViewModelProtocol {
 
-    private val initialRoom: TaxiRoom = checkNotNull(savedStateHandle.get<TaxiRoom>("room"))
+    private val initialRoom: TaxiRoom by lazy {
+        val json = savedStateHandle.get<String>("room_json")
+            ?: throw IllegalStateException("room_json is null. TaxiChatViewModel requires a room_json to initialize.")
+        Gson().fromJson(Uri.decode(json), TaxiRoom::class.java)
+    }
 
     sealed class ViewState {
         data object Loading : ViewState()
@@ -58,11 +64,27 @@ class TaxiChatViewModel @Inject constructor(
     override val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
 
     private var isFetching = false
+    private var isInitialFetching = false
 
     // MARK: - Setup
     override suspend fun setup() {
         fetchTaxiUser()
         bind()
+    }
+
+    init {
+        taxiChatUseCase.setRoom(initialRoom)
+        bind()
+
+        viewModelScope.launch {
+        setup()
+            }
+    }
+
+    override fun switchRoom(newRoom: TaxiRoom) {
+        if (_room.value.id == newRoom.id) return
+        _room.value = newRoom
+        taxiChatUseCase.switchRoom(newRoom.id)
     }
 
     private fun fetchTaxiUser() {
@@ -100,7 +122,9 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     override suspend fun fetchInitialChats() {
-        taxiChatUseCase.fetchInitialChats()
+        if (isInitialFetching) return
+        isInitialFetching = true
+        try { taxiChatUseCase.fetchInitialChats() } finally { isInitialFetching = false }
     }
 
     // MARK: - Chat send
@@ -153,6 +177,7 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Image upload
     override suspend fun sendImage(image: Bitmap) {
+
         _isUploading.value = true
         try {
             taxiChatUseCase.sendImage(image)

@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiRoomCreation.Components
 
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -63,6 +64,21 @@ fun TaxiRoomCreationNavigationBar(
             containerColor = MaterialTheme.colorScheme.background
         )
     )
+
+
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Error") },
+            text = { Text(errorMessage) },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("Okay")
+                }
+            }//TODO - In case of a name error, it appears as 'unknown'; further error handling may be needed.
+        )
+    }
 }
 
 @Composable
