@@ -47,7 +47,7 @@ fun PostVoteButton(
         modifier = Modifier
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.surface)
-            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .padding(8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(

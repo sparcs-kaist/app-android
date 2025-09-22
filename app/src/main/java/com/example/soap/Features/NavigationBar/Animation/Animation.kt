@@ -2,10 +2,12 @@ package com.example.soap.Features.NavigationBar.Animation
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -72,6 +74,46 @@ fun trendingPopExitTransition(): (AnimatedContentTransitionScope<NavBackStackEnt
             targetOffsetX = { it }
         )
     }
+
+@Composable
+fun MoveToLeftFadeOut(
+    show: Boolean,
+    content: @Composable () -> Unit
+){
+    AnimatedVisibility(
+        visible = show,
+        enter = fadeIn(animationSpec = tween(200)) + slideInHorizontally(
+            initialOffsetX = { -40 },
+            animationSpec = tween(200)
+        ),
+        exit = fadeOut(animationSpec = tween(200)) + slideOutHorizontally(
+            targetOffsetX = { -40 },
+            animationSpec = tween(200)
+        )
+    ){
+        content()
+    }
+}
+
+@Composable
+fun MoveToLeftFadeIn(
+    show: Boolean,
+    content: @Composable () -> Unit
+){
+    AnimatedVisibility(
+        visible = show,
+        enter = fadeIn(animationSpec = tween(200)) + slideInHorizontally(
+            initialOffsetX = { +40 },
+            animationSpec = tween(200)
+        ),
+        exit = fadeOut(animationSpec = tween(200)) + slideOutHorizontally(
+            targetOffsetX = { +40 },
+            animationSpec = tween(200)
+        )
+    ){
+        content()
+    }
+}
 
 @Composable
 fun AnimatedText(
