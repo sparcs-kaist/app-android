@@ -42,7 +42,8 @@ fun PostListRow(
                     text = "[" + topic.name.localized()+ "]",
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(Modifier.width(4.dp))
@@ -80,7 +81,7 @@ fun PostListRow(
         }
 
 
-        Spacer(modifier = Modifier.height(1.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -91,8 +92,6 @@ fun PostListRow(
 
             if (voteCount != 0 || post.commentCount > 0) {
                 Row(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp, vertical = 2.dp),
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     PostListRowVoteLabel(voteCount)
