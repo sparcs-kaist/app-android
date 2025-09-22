@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -504,6 +505,7 @@ fun InputBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .imePadding()
             .padding(8.dp)
             .navigationBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
@@ -627,7 +629,7 @@ fun InputBar(
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 } else {
                     Icon(
