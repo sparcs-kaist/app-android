@@ -44,7 +44,7 @@ fun PostCommentButton(
         modifier = Modifier.clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier.padding(4.dp),
+            modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(

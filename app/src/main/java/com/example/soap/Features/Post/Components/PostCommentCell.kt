@@ -1,4 +1,9 @@
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -28,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -188,12 +194,14 @@ fun PostCommentActionsMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var reportExpanded by remember { mutableStateOf(false) }
+    var showReport by remember { mutableStateOf(false) }
 
     Box {
             Icon(
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "More",
-                modifier = Modifier.clickable { expanded = true }
+                modifier = Modifier.clickable { expanded = true },
+                tint = if(comment.isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
 
 
@@ -204,24 +212,46 @@ fun PostCommentActionsMenu(
             if (comment.isMine == false) {
                 DropdownMenuItem(
                     text = { Text("Report") },
-                    onClick = { reportExpanded = true },
+                    onClick = {
+                        reportExpanded = !reportExpanded
+                              showReport = !showReport
+                              },
                     leadingIcon = {
                         Icon(
                             painter = painterResource(R.drawable.outline_sms_failed),
                             contentDescription = null
                         )
+                    },
+                    trailingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.arrow_forward_ios),
+                            contentDescription = "show Report",
+                            modifier = Modifier.size(18.dp)
+                                .rotate(if (showReport) 270f else 0f)
+                        )
                     }
                 )
-                if (reportExpanded) {
-                    AraContentReportType.entries.forEach { type ->
-                        DropdownMenuItem(
-                            text = { Text(type.name.replace("_", " ").replaceFirstChar { it.uppercase() }) },
-                            onClick = {
-                                onReport(type)
-                                expanded = false
-                                reportExpanded = false
-                            }
-                        )
+
+                AnimatedVisibility(
+                    visible = showReport,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column {
+                        AraContentReportType.entries.forEach { type ->
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        type.name.replace("_", " ")
+                                            .replaceFirstChar { it.uppercase() })
+                                },
+                                onClick = {
+                                    onReport(type)
+                                    expanded = false
+                                    reportExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
             } else {

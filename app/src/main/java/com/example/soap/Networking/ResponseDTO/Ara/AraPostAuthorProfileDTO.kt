@@ -6,7 +6,7 @@ import java.net.URL
 
 data class AraPostAuthorProfileDTO(
     @SerializedName("user")
-    val id: String,
+    val id: Any,
 
     @SerializedName("picture")
     val profilePictureURL: String?,
@@ -20,9 +20,16 @@ data class AraPostAuthorProfileDTO(
     @SerializedName("is_school_admin")
     val isSchoolAdmin: Boolean?
 ) {
+    private val userId: String
+        get() = when (id) {
+            is Number -> id.toString()
+            is String -> id
+            else -> throw IllegalArgumentException("Unexpected type for user: $id")
+        }
+
     fun toModel(): AraPostAuthorProfile =
         AraPostAuthorProfile(
-            id = id,
+            id = userId,
             profilePictureURL = profilePictureURL?.let { try { URL(it) } catch (e: Exception) { null } },
             nickname = nickname,
             isOfficial = isOfficial,
