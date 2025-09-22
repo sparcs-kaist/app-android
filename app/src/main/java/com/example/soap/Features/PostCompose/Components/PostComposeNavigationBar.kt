@@ -1,12 +1,11 @@
 package com.example.soap.Features.PostCompose.Components
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,40 +39,39 @@ import com.example.soap.ui.theme.grayBB
 fun PostComposeNavigationBar(
     navController: NavController,
     isDoneEnabled: Boolean,
-    isBackEnabled: Boolean,
     onDoneClick: () -> Unit,
     isUploading: Boolean
 ) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    if (showDialog) {
-        ConfirmationDialog(
-            onDismissRequest = { showDialog = false },
-            onConfirmationButtonRequest = {
-                showDialog = false
-                navController.navigate(Channel.TrendingBoard.name)
-            },
-            onSaveDraftRequest = {
-                showDialog = false
-                //임시 저장
-            }
-        )
-    }
+    var expanded by remember { mutableStateOf(false) }
 
     CenterAlignedTopAppBar(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    if(!isBackEnabled){
-                        showDialog = true
-                    } else {
-                        navController.navigate(Channel.TrendingBoard.name)
-                    }
+                    expanded = true
                 }) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = "Back",
                     tint = MaterialTheme.colorScheme.darkGray
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "Discard Post",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        navController.navigate(Channel.TrendingBoard.name)
+                    }
                 )
             }
         },
@@ -89,7 +87,8 @@ fun PostComposeNavigationBar(
                 isDoneEnabled = isDoneEnabled,
                 onDoneClick = onDoneClick,
                 isUploading = isUploading
-            ) },
+            )
+        },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
@@ -125,38 +124,7 @@ private fun DoneButton(
 }
 
 @Composable
-fun ConfirmationDialog(
-    onDismissRequest: () -> Unit,
-    onConfirmationButtonRequest: () -> Unit,
-    onSaveDraftRequest: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(text = stringResource(R.string.discard_this_post)) },
-
-        confirmButton = {
-            TextButton(onClick = onConfirmationButtonRequest) {
-                Text(stringResource(R.string.ok))
-            }
-        },
-        dismissButton = {
-            Row {
-                TextButton(onClick = onDismissRequest) {
-                    Text(stringResource(R.string.cancel))
-                }
-                
-                Spacer(modifier = Modifier.width(8.dp))
-
-                TextButton(onClick = onSaveDraftRequest) {
-                    Text(stringResource(R.string.save_in_drafts))
-                }
-            }
-        }
-    )
-}
-
-@Composable
 @Preview
 private fun Preview(){
-    Theme{ PostComposeNavigationBar(rememberNavController(), false, true, {}, false) }
+    Theme{ PostComposeNavigationBar(rememberNavController(), false, {}, false) }
 }

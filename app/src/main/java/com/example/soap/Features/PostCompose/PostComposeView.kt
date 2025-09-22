@@ -2,7 +2,6 @@ package com.example.soap.Features.PostCompose
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,19 +9,27 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,21 +47,21 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Features.NavigationBar.Channel
-import com.example.soap.Features.PostCompose.Components.CheckBoxText
 import com.example.soap.Features.PostCompose.Components.PostComposeNavigationBar
+import com.example.soap.Features.PostCompose.Components.TopicSelector
 import com.example.soap.R
-import com.example.soap.Shared.Extensions.LocalizedText
 import com.example.soap.Shared.Extensions.noRippleClickable
 import com.example.soap.Shared.ViewModelMocks.MockPostComposeViewModel
 import com.example.soap.ui.theme.Theme
@@ -75,7 +82,6 @@ fun PostComposeView(
     var isUploading by remember { mutableStateOf(false) }
 
     val isDoneEnabled = viewModel.title.isNotBlank() && viewModel.content.isNotBlank() && !isUploading
-    val isBackEnabled =  viewModel.title.isBlank() &&  viewModel.content.isBlank()
 
     val context = LocalContext.current
 
@@ -111,7 +117,6 @@ fun PostComposeView(
             PostComposeNavigationBar(
                 navController = navController,
                 isDoneEnabled = isDoneEnabled,
-                isBackEnabled = !isBackEnabled,
                 onDoneClick = {
                     coroutineScope.launch {
                         isUploading = true
@@ -127,48 +132,35 @@ fun PostComposeView(
             )
         },
         bottomBar = {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding(),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                TextButton(
-                    onClick = { showPhotosPicker = true },
-                    enabled = !isUploading
-                ) {
-                    Text("Photo Library")
-                }
+                    .padding(end = 8.dp),
+                contentAlignment = Alignment.CenterEnd
+            ){
                 PostOptionsRow(
                     writeAsAnonymous = viewModel.writeAsAnonymous,
-                    onAnonymousChange = { viewModel.writeAsAnonymous = it },
+                    onAnonymousChange = { viewModel.writeAsAnonymous = !viewModel.writeAsAnonymous },
                     isNSFW = viewModel.isNSFW,
-                    onNSFWChange = { viewModel.isNSFW = it },
+                    onNSFWChange = { viewModel.isNSFW = !viewModel.isNSFW },
                     isPolitical = viewModel.isPolitical,
-                    onPoliticalChange = { viewModel.isPolitical = it },
-                    isUploading = isUploading
+                    onPoliticalChange = { viewModel.isPolitical = !viewModel.isPolitical },
+                    isUploading = isUploading,
+                    onPhotoButton = { showPhotosPicker = true }
                 )
             }
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .navigationBarsPadding()
                 .padding(innerPadding)
                 .padding(16.dp)
                 .fillMaxSize()
                 .verticalScroll(scrollState)
         ) {
-            TopicDropdown(
-                topics = viewModel.board.topics.map { it.name },
-                selectedTopic = viewModel.selectedTopic?.name,
-                onTopicSelected = { topicName ->
-                    coroutineScope.launch {
-                        val topic = viewModel.board.topics.firstOrNull { it.name == topicName }
-                        if (topic != null) viewModel.selectedTopic = topic
-                        else viewModel.selectedTopic = null
-                    }
-                },
-                enabled = !isUploading
+            TopicSelector(
+                viewModel = viewModel
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -241,9 +233,7 @@ fun PostComposeView(
                 Spacer(Modifier.padding(4.dp))
 
                 Box(Modifier.align(Alignment.End)) {
-                    TextButton(onClick = { /* TODO: Terms click */ }) {
-                        Text("terms of use", style = MaterialTheme.typography.bodySmall)
-                    }
+                    TermsOfUseButton()
                 }
             }
 
@@ -254,79 +244,87 @@ fun PostComposeView(
         showPhotosPicker = false
     }
 }
+
 @Composable
-fun TopicDropdown(
-    topics: List<LocalizedString>,
-    selectedTopic: LocalizedString?,
-    onTopicSelected: (LocalizedString?) -> Unit,
-    enabled: Boolean
+fun PostOptionsRow(
+    writeAsAnonymous: Boolean,
+    onAnonymousChange: () -> Unit,
+    isNSFW: Boolean,
+    onNSFWChange: () -> Unit,
+    isPolitical: Boolean,
+    onPoliticalChange: () -> Unit,
+    isUploading: Boolean,
+    onPhotoButton: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val noTopic = LocalizedString(mapOf("en" to "No topic", "ko" to "주제 없음"))
 
-    Box {
-        TextButton(onClick = { expanded = true }, enabled = enabled) {
-            LocalizedText(selectedTopic ?: noTopic)
-        }
-
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuItem(
-                text = { LocalizedText(noTopic) },
-                onClick = {
-                    onTopicSelected(null)
-                    expanded = false
-                }
-            )
-            topics.forEach { topic ->
-                DropdownMenuItem(
-                    text = { LocalizedText(topic) },
-                    onClick = {
-                        onTopicSelected(topic)
-                        expanded = false
-                    }
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .navigationBarsPadding()
+            .imePadding()
+            .padding(8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(4.dp)
+        ) {
+            IconButton(
+                onClick = onPhotoButton,
+                enabled = !isUploading
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.add_photo_alternate),
+                    contentDescription = "add Photo",
+                    modifier = Modifier.size(28.dp)
                 )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Box {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        painter = painterResource(R.drawable.more_horiz),
+                        contentDescription = "More Options",
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
+                ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.political)) },
+                        trailingIcon = { if (isPolitical) Icons.Default.Check },
+                        onClick = onPoliticalChange
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.nsfw)) },
+                        trailingIcon = { if (isNSFW) Icons.Default.Check },
+                        onClick = onNSFWChange
+                    )
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.anonymous)) },
+                        trailingIcon = { if (writeAsAnonymous) Icons.Default.Check },
+                        onClick = onAnonymousChange
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun PostOptionsRow(
-    writeAsAnonymous: Boolean,
-    onAnonymousChange: (Boolean) -> Unit,
-    isNSFW: Boolean,
-    onNSFWChange: (Boolean) -> Unit,
-    isPolitical: Boolean,
-    onPoliticalChange: (Boolean) -> Unit,
-    isUploading: Boolean
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        CheckBoxText(
-            text = stringResource(R.string.anonymous),
-            isChecked = writeAsAnonymous,
-            onCheckedChange = { if (!isUploading) onAnonymousChange(!writeAsAnonymous) },
-            enabled = !isUploading
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        CheckBoxText(
-            text = stringResource(R.string.nsfw),
-            isChecked = isNSFW,
-            onCheckedChange = { if (!isUploading) onNSFWChange(!isNSFW) },
-            enabled = !isUploading
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        CheckBoxText(
-            text = stringResource(R.string.political),
-            isChecked = isPolitical,
-            onCheckedChange = { if (!isUploading) onPoliticalChange(!isPolitical) },
-            enabled = !isUploading
+private fun TermsOfUseButton(){
+    TextButton(onClick = { /* TODO: Terms click */ }) {
+        Text(
+            text = "terms of use",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.grayBB,
+            textDecoration = TextDecoration.Underline
         )
     }
 }
