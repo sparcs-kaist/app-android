@@ -17,7 +17,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
-import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
@@ -48,11 +47,7 @@ fun PostNavigationBar(navController : NavController) {
         title = {},
 
         actions = {
-            Row {
-                NotificationButton()
-                SettingButton()
-            }
-
+            SettingButton()
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
