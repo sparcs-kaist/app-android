@@ -25,17 +25,19 @@ class PostViewModel @Inject constructor(
 //    private val foundationModelsUseCase: FoundationModelsUseCaseProtocol
 ) : ViewModel(), PostViewModelProtocol {
 
-    override val isFoundationModelsAvailable: Boolean
-        get() = false // TODO: foundationModelsUseCase.isAvailable
-
+    // MARK: - Initialiser
     private val initialPost: AraPost by lazy {
         val json = savedStateHandle.get<String>("post_json")
             ?: throw IllegalStateException("post_json is null. PostViewModel requires a post_json to initialize.")
         Gson().fromJson(json, AraPost::class.java)
     }
 
+    // MARK: - Properties
     private val _post = MutableStateFlow(initialPost)
     override val post : StateFlow<AraPost> = _post.asStateFlow()
+
+    override val isFoundationModelsAvailable: Boolean
+        get() = false // TODO: foundationModelsUseCase.isAvailable
 
     private fun insertThreadedComment(comments: MutableList<AraPostComment>, comment: AraPostComment): Boolean {
         val parentComment = comment.parentComment ?: return false
@@ -48,6 +50,7 @@ class PostViewModel @Inject constructor(
         return false
     }
 
+    // MARK: - Functions
     override suspend fun fetchPost() {
         try {
             val fetchedPost = araBoardRepository.fetchPost(origin = AraBoardTarget.PostOrigin.Board, postID = _post.value.id)
@@ -61,47 +64,69 @@ class PostViewModel @Inject constructor(
         val current = _post.value
         val previousMyVote = current.myVote
         val previousUpVotes = current.upVotes
+        val previousDownVotes = current.downVotes
+
+        val newPost = when (previousMyVote) {
+            // cancel upvote
+            true -> current.copy(myVote = null, upVotes = current.upVotes - 1)
+            // upvote
+            false -> current.copy(
+                myVote = true,
+                upVotes = current.upVotes + 1,
+                // remove downvote if there was
+                downVotes = current.downVotes - 1
+            )
+            null -> current.copy(myVote = true, upVotes = current.upVotes + 1)
+        }
+        _post.value = newPost
+
         try {
-            if (previousMyVote == true) {
-                current.myVote = null
-                current.upVotes -= 1
-                araBoardRepository.cancelVote(current.id)
-            } else {
-                if (previousMyVote == false) current.downVotes -= 1
-                current.myVote = true
-                current.upVotes += 1
-                araBoardRepository.upVotePost(current.id)
+            when (previousMyVote) {
+                true -> araBoardRepository.cancelVote(current.id)
+                else -> araBoardRepository.upVotePost(current.id)
             }
-            _post.value = current
         } catch (e: Exception) {
             Log.e("PostViewModel", "upvote error", e)
-            current.myVote = previousMyVote
-            current.upVotes = previousUpVotes
-            _post.value = current
+            _post.value = current.copy(
+                myVote = previousMyVote,
+                upVotes = previousUpVotes,
+                downVotes = previousDownVotes
+            )
         }
     }
 
     override suspend fun downVote() {
         val current = _post.value
         val previousMyVote = current.myVote
+        val previousUpVotes = current.upVotes
         val previousDownVotes = current.downVotes
+
+        val newPost = when (previousMyVote) {
+            // cancel downvote
+            false -> current.copy(myVote = null, downVotes = current.downVotes - 1)
+            // downvote
+            true -> current.copy(
+                myVote = false,
+                // remove upvote if there was
+                upVotes = current.upVotes - 1,
+                downVotes = current.downVotes + 1
+            )
+            null -> current.copy(myVote = false, downVotes = current.downVotes + 1)
+        }
+        _post.value = newPost
+
         try {
-            if (previousMyVote == false) {
-                current.myVote = null
-                current.downVotes -= 1
-                araBoardRepository.cancelVote(current.id)
-            } else {
-                if (previousMyVote == true) current.upVotes -= 1
-                current.myVote = false
-                current.downVotes += 1
-                araBoardRepository.downVotePost(current.id)
+            when (previousMyVote) {
+                false -> araBoardRepository.cancelVote(current.id)
+                else -> araBoardRepository.downVotePost(current.id)
             }
-            _post.value = current
         } catch (e: Exception) {
             Log.e("PostViewModel", "downvote error", e)
-            current.myVote = previousMyVote
-            current.downVotes = previousDownVotes
-            _post.value = current
+            _post.value = current.copy(
+                myVote = previousMyVote,
+                upVotes = previousUpVotes,
+                downVotes = previousDownVotes
+            )
         }
     }
 
@@ -117,6 +142,7 @@ class PostViewModel @Inject constructor(
         val comment = araCommentRepository.writeThreadedComment(commentID = commentID, content = content)
         comment.isMine = true
 
+        // insert threaded comments
         val comments = _post.value.comments.toMutableList()
         insertThreadedComment(comments, comment)
         _post.value.comments = comments
@@ -134,6 +160,8 @@ class PostViewModel @Inject constructor(
                 _post.value.comments[i].content = content
                 return _post.value.comments[i]
             }
+
+            // scan through threads
             for (j in _post.value.comments[i].comments.indices) {
                 if (_post.value.comments[i].comments[j].id == commentID) {
                     _post.value.comments[i].comments[j].content = content
