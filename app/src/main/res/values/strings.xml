@@ -90,5 +90,6 @@
     <string name="taxi_preview" translatable="false">TaxiPreview</string>
     <string name="taxichatview" translatable="false">TaxiChatView</string>
     <string name="taxichatlistview" translatable="false">TaxiChatListView</string>
+    <string name="ara_chat_view" translatable="false">AraChatView\'</string>
 
 </resources>
