@@ -60,7 +60,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -125,13 +124,11 @@ fun TaxiChatView(
 
     val backStackEntry = navController.currentBackStackEntry!!
     val room = viewModel.room.collectAsState().value
-
     LaunchedEffect(room.id) {
         try {
             val json = Gson().toJson(room)
             backStackEntry.savedStateHandle["room_json"] = json
             viewModel.switchRoom(room)
-//            viewModel.setup()
             viewModel.fetchInitialChats()
         } catch (e: Exception) {
             errorMessage = e.message ?: "Failed to load chats"
@@ -310,21 +307,22 @@ fun ContentView(
             listState.animateScrollToItem(lastIndex)
         }
     }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         state = listState
     ) {
-        item {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .onGloballyPositioned {
-                        loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
-                    }
-            )
-        }
+//        item {
+//            Spacer(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .height(1.dp)
+//                    .onGloballyPositioned {
+//                        loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
+//                    }
+//            )
+//        }
         val flattenedChats = groupedChats.flatMap { group ->
             group.chats.map { chat -> chat to group }
         }
