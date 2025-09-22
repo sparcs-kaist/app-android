@@ -224,7 +224,6 @@ private fun MiddleDropDownItems(room: TaxiRoom) {
                 }
             }
         }
-
     }
     HorizontalDivider(
         color = MaterialTheme.colorScheme.lightGray0,
