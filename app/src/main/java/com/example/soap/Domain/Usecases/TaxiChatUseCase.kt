@@ -203,8 +203,5 @@ class TaxiChatUseCase @Inject constructor(
     override fun switchRoom(newRoomId: String) {
         _accumulatedChats.clear()
         taxiChatService.setRoom(newRoomId)
-        scope.launch {
-            fetchInitialChats()
-        }
     }
 }
