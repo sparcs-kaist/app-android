@@ -35,6 +35,7 @@ import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockTaxiChatListViewModel
 import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
+import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import com.example.soap.ui.theme.Theme
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -103,7 +104,7 @@ fun TaxiChatListView(
 }
 
 @Composable
-private fun LoadingView(viewModel: TaxiChatListViewModelProtocol){
+private fun LoadingView(viewModel: TaxiChatListViewModelProtocol) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize()
@@ -121,12 +122,10 @@ private fun LoadingView(viewModel: TaxiChatListViewModelProtocol){
             }
         }
 
-        items(TaxiRoom.mockList().subList(1, 4)) { room ->
-            TaxiRoomCell(
-                room = room,
-                onClick = {},
-                taxiUser = viewModel.taxiUser
-            )
+        repeat(4) {
+            item {
+                TaxiRoomSkeletonCell()
+            }
         }
 
         item {
@@ -143,12 +142,10 @@ private fun LoadingView(viewModel: TaxiChatListViewModelProtocol){
             }
         }
 
-        items(TaxiRoom.mockList().subList(5,7)) { room ->
-            TaxiRoomCell(
-                room = room,
-                onClick = {},
-                taxiUser = viewModel.taxiUser
-            )
+        repeat(2) {
+            item {
+                TaxiRoomSkeletonCell()
+            }
         }
     }
 }
