@@ -4,11 +4,19 @@ package com.example.soap.Features.PostList
 
 import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -17,6 +25,7 @@ import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -29,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,8 +51,13 @@ import com.example.soap.Features.PostList.Components.PostList.PostList
 import com.example.soap.Features.PostList.Components.PostListRow.BoardNavigationBar
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -54,6 +69,7 @@ fun PostListView(
     var loadedInitialPost by remember { mutableStateOf(false) }
     val searchText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     LaunchedEffect(searchText) {
         postListViewModel.searchKeyword = searchText
@@ -61,10 +77,11 @@ fun PostListView(
 
     LaunchedEffect(Unit) {
         if (!loadedInitialPost) {
+            loadedInitialPost = true
             postListViewModel.board = board
             postListViewModel.fetchInitialPosts()
             postListViewModel.bind()
-            loadedInitialPost = true
+            loadedInitialPost = false
         }
     }
 
@@ -91,30 +108,105 @@ fun PostListView(
                     Log.d("PostListView", state.posts.toString())
                     PostList(
                         posts = state.posts,
-                        onLoadMore = { coroutineScope.launch{ postListViewModel.loadNextPage() } },
-                        onRefresh = { coroutineScope.launch{ postListViewModel.fetchInitialPosts() } },
+                        onLoadMore = {
+                            coroutineScope.launch{
+                            postListViewModel.loadNextPage()
+                        } },
+                        onRefresh = {
+                            isRefreshing = true
+                            coroutineScope.launch{
+                                postListViewModel.fetchInitialPosts()
+                                delay(500)
+                                isRefreshing = false
+                            }
+                                    },
                         onPostClick = { post ->
                             val json = Uri.encode(Gson().toJson(post))
                             navController.navigate("postView?post_json=$json")
                         },
-                        navController = navController
+                        isRefreshing = isRefreshing
                     )
                 }
                 is PostListViewModel.ViewState.Error -> {
-                    // TODO - ErrorView
-                    val error = (state as PostListViewModel.ViewState.Error).message
+                    val error = (state).message
                     Log.d("PostListView", error)
+                    ErrorView(
+                        icon = Icons.Default.Warning,
+                        errorMessage = error,
+                        onRetry = {
+                            coroutineScope.launch{
+                                if (!loadedInitialPost) {
+                                    postListViewModel.fetchInitialPosts()
+                                    postListViewModel.bind()
+                                    loadedInitialPost = true
+                                }
+                            }
+                        }
+                    )
                 }
             }
 
             if (searchText.isNotEmpty() && postListViewModel.posts.isEmpty()) {
-               // TODO - ErrorView
-                Log.d("PostListView", "비었핑")
+                EmptyView(
+                    searchText = searchText,
+                    onClear = {
+                        CoroutineScope(Dispatchers.IO).launch {
+                            postListViewModel.searchKeyword = ""
+                            postListViewModel.fetchInitialPosts()
+                        }
+                    }
+                )
             }
         }
     }
 }
 
+@Composable
+private fun EmptyView(
+    searchText: String,
+    onClear: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.round_error_outline),
+            contentDescription = "No result",
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.grayBB
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "No result",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "No results found for \"$searchText\"",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Button(
+            onClick = { onClear() },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Clear Search Text")
+        }
+    }
+}
 @Composable
 private fun LoadingView() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -139,7 +231,6 @@ private fun ComposeButton(onClick: () -> Unit){
         )
     }
 }
-
 
 
 @Composable

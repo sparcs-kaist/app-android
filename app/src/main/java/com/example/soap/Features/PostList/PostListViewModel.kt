@@ -93,7 +93,7 @@ class PostListViewModel @Inject constructor(
     }
 
     override suspend fun loadNextPage() {
-        if (!isLoadingMore && hasMorePages) return
+        if (isLoadingMore || !hasMorePages) return
         isLoadingMore = true
         viewModelScope.launch {
             try {
@@ -108,7 +108,6 @@ class PostListViewModel @Inject constructor(
                 posts = posts + page.results
                 hasMorePages = currentPage < totalPages
                 _state.value = ViewState.Loaded(posts)
-
                 isLoadingMore = false
 
             } catch (e: Exception) {

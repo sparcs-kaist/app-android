@@ -24,11 +24,7 @@ fun PostListRowVoteLabel(voteCount: Int){
     if(voteCount > 0){
         //up voted
 
-        Row(
-            modifier = Modifier
-                .padding(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painter = painterResource(R.drawable.icon_arrowup),
                 contentDescription = null,
@@ -48,11 +44,7 @@ fun PostListRowVoteLabel(voteCount: Int){
     }
     else if (voteCount < 0){
         //down voted
-        Row(
-            modifier = Modifier
-                .padding(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painter = painterResource(R.drawable.icon_arrowdown),
                 contentDescription = null,
