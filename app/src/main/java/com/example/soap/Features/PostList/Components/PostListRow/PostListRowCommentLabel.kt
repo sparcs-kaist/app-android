@@ -23,8 +23,6 @@ import com.example.soap.ui.theme.darkGray
 fun PostListRowCommentLabel(commentCount: Int){
     if(commentCount > 0) {
         Row(
-            modifier = Modifier
-                .padding(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
