@@ -21,16 +21,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Domain.Models.Taxi.TaxiParticipant
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
+import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Features.TaxiPreview.Components.RouteHeaderView
 import com.example.soap.Shared.Extensions.relativeTimeString
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
+import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiRoomStatusIndicator
 import com.example.soap.ui.theme.Theme
 
 @Composable
 fun TaxiRoomCell(
     room: TaxiRoom,
+    taxiUser: TaxiUser? = null,
     onClick: () -> Unit = {}
 ) {
     Card(
@@ -59,10 +64,18 @@ fun TaxiRoomCell(
                     )
                 }
 
-                TaxiParticipantsIndicator(
-                    participants = room.participants.size,
-                    capacity = room.capacity
-                )
+                if(room.isDeparted){
+                    TaxiRoomStatusIndicator(
+                        settlementType = room.participants.firstOrNull { it.id == taxiUser?.oid }?.isSettlement ?: TaxiParticipant.SettlementType.NotDeparted,
+                        settlementCount = room.settlementTotal ?: 0,
+                        participantsCount = room.participants.size
+                    )
+                }else {
+                    TaxiParticipantsIndicator(
+                        participants = room.participants.size,
+                        capacity = room.capacity
+                    )
+                }
             }
 
             Row(
@@ -99,5 +112,5 @@ fun IconText(icon: Painter, text: String) {
 @Composable
 @Preview
 private fun Preview(){
-    Theme { TaxiRoomCell(room = TaxiRoom.mockList()[0], {}) }
+    Theme { TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), {}) }
 }
