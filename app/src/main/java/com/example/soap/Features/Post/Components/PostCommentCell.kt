@@ -1,5 +1,6 @@
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,7 +15,6 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -103,7 +103,10 @@ fun PostCommentCell(
                 }
             )
 
-            PostCommentContent(comment = comment)
+            PostCommentContent(
+                isDeleted = isDeleted,
+                comment = comment
+            )
             PostCommentFooter(
                 comment = comment,
                 isThreaded = isThreaded,
@@ -187,9 +190,12 @@ fun PostCommentActionsMenu(
     var reportExpanded by remember { mutableStateOf(false) }
 
     Box {
-        IconButton(onClick = { expanded = true }) {
-            Icon(painterResource(R.drawable.more_horiz), contentDescription = "More")
-        }
+            Icon(
+                painter = painterResource(R.drawable.more_horiz),
+                contentDescription = "More",
+                modifier = Modifier.clickable { expanded = true }
+            )
+
 
         DropdownMenu(expanded = expanded, onDismissRequest = {
             expanded = false
@@ -280,11 +286,11 @@ fun ProfilePicture(url: String?) {
 }
 
 @Composable
-fun PostCommentContent(comment: AraPostComment) {
-    val isDeleted = comment.content == null
+fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
     Text(
         text = comment.content ?: "This comment has been deleted.",
         style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier.padding(vertical = 8.dp),
         color = if (isDeleted) MaterialTheme.colorScheme.onSurfaceVariant
         else MaterialTheme.colorScheme.onSurface
     )
@@ -299,6 +305,7 @@ fun PostCommentFooter(
     araCommentRepository: AraCommentRepositoryProtocol
 ) {
     val scope = rememberCoroutineScope()
+    var commentState by remember { mutableStateOf(comment) }
 
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.weight(1f))
@@ -310,54 +317,57 @@ fun PostCommentFooter(
 
         if (!isDeleted) {
             PostVoteButton(
-                myVote = comment.myVote,
-                votes = comment.upVotes - comment.downVotes,
+                myVote = commentState.myVote,
+                votes = commentState.upVotes - commentState.downVotes,
                 onUpVote = {
-                    scope.launch { handleVote(comment, true, araCommentRepository) }
+                    scope.launch {
+                        handleVote(commentState, true, araCommentRepository) { updated ->
+                            commentState = updated
+                        }
+                    }
                 },
                 onDownVote = {
-                    scope.launch { handleVote(comment, false, araCommentRepository) }
+                    scope.launch {
+                        handleVote(commentState, false, araCommentRepository) { updated ->
+                            commentState = updated
+                        }
+                    }
                 }
             )
         }
     }
 }
 
-suspend fun handleVote(comment: AraPostComment, isUpVote: Boolean, repo: AraCommentRepositoryProtocol) {
-    val prevVote = comment.myVote
-    val prevUp = comment.upVotes
-    val prevDown = comment.downVotes
+suspend fun handleVote(
+    comment: AraPostComment,
+    isUpVote: Boolean,
+    repo: AraCommentRepositoryProtocol,
+    update: (AraPostComment) -> Unit
+) {
+    val prev = comment.copy()
+
+    val updated = when {
+        isUpVote && comment.myVote == true -> comment.copy(myVote = null, upVotes = comment.upVotes - 1)
+        isUpVote && comment.myVote == false -> comment.copy(myVote = true, upVotes = comment.upVotes + 1, downVotes = comment.downVotes - 1)
+        isUpVote -> comment.copy(myVote = true, upVotes = comment.upVotes + 1)
+        !isUpVote && comment.myVote == false -> comment.copy(myVote = null, downVotes = comment.downVotes - 1)
+        !isUpVote && comment.myVote == true -> comment.copy(myVote = false, upVotes = comment.upVotes - 1, downVotes = comment.downVotes + 1)
+        else -> comment.copy(myVote = false, downVotes = comment.downVotes + 1)
+    }
+
+    update(updated)
 
     try {
         if (isUpVote) {
-            if (prevVote == true) {
-                comment.myVote = null
-                comment.upVotes--
-                repo.cancelVote(comment.id)
-            } else {
-                if (prevVote == false) comment.downVotes--
-                comment.myVote = true
-                comment.upVotes++
-                repo.upVoteComment(comment.id)
-            }
+            if (prev.myVote == true) repo.cancelVote(prev.id) else repo.upVoteComment(prev.id)
         } else {
-            if (prevVote == false) {
-                comment.myVote = null
-                comment.downVotes--
-                repo.cancelVote(comment.id)
-            } else {
-                if (prevVote == true) comment.upVotes--
-                comment.myVote = false
-                comment.downVotes++
-                repo.downVoteComment(comment.id)
-            }
+            if (prev.myVote == false) repo.cancelVote(prev.id) else repo.downVoteComment(prev.id)
         }
     } catch (e: Exception) {
-        comment.upVotes = prevUp
-        comment.downVotes = prevDown
-        comment.myVote = prevVote
+        update(prev)
     }
 }
+
 
 @Composable
 @Preview(showBackground = true)

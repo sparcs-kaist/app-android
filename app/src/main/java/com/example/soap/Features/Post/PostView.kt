@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -85,7 +86,7 @@ fun PostView(
     var alertTitle by remember { mutableStateOf("") }
     var alertMessage by remember { mutableStateOf("") }
 
-    val post = viewModel.post.collectAsState()
+    val post by viewModel.post.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
@@ -96,40 +97,47 @@ fun PostView(
             PostNavigationBar(navController = navController)
         }
     ){innerPadding ->
-        Column(Modifier.padding(innerPadding).padding(16.dp)) {
-            Header(
-                viewModel = viewModel,
-                targetComment = targetComment,
-                scope = scope,
-                post = post.value,
-                selectedAuthor = selectedAuthor
-            ) { selectedAuthor = it }
-
-            Content(
-                summarisedContent = summarisedContent,
-                htmlHeight = htmlHeight,
-                onHtmlHeightChange = { htmlHeight = it },
-                onLinkTapped = { tappedURL = Uri.parse(it) },
-                post = post.value
-            )
-
-            Footer(viewModel, scope = scope, post = post.value) {
-                targetComment = null
-                isWritingComment = true
+        LazyColumn (Modifier
+            .padding(innerPadding)
+            .padding(16.dp)) {
+            item{
+                Header(
+                    viewModel = viewModel,
+                    targetComment = targetComment,
+                    scope = scope,
+                    post = post,
+                    selectedAuthor = selectedAuthor
+                ) { selectedAuthor = it }
             }
-
-            Comments(
-                viewModel = viewModel,
-                scope = scope,
-                commentOnEdit = commentOnEdit,
-                targetComment = targetComment,
-                comment = comment,
-                isWritingComment = isWritingComment,
-                post = post.value
-            ) {
-                commentOnEdit = it.commentOnEdit
-                targetComment = it.targetComment
-                comment = it.comment
+            item {
+                Content(
+                    summarisedContent = summarisedContent,
+                    htmlHeight = htmlHeight,
+                    onHtmlHeightChange = { htmlHeight = it },
+                    onLinkTapped = { tappedURL = Uri.parse(it) },
+                    post = post
+                )
+            }
+            item {
+                Footer(viewModel, scope = scope, post = post) {
+                    targetComment = null
+                    isWritingComment = true
+                }
+            }
+            item {
+                Comments(
+                    viewModel = viewModel,
+                    scope = scope,
+                    commentOnEdit = commentOnEdit,
+                    targetComment = targetComment,
+                    comment = comment,
+                    isWritingComment = isWritingComment,
+                    post = post
+                ) {
+                    commentOnEdit = it.commentOnEdit
+                    targetComment = it.targetComment
+                    comment = it.comment
+                }
             }
         }
     }
