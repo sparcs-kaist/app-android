@@ -102,8 +102,6 @@ class TaxiChatRepository @Inject constructor(
         }
     }
 
-
-
     override suspend fun notifyImageUploadComplete(id: String) {
         val body = mapOf("id" to id)
         taxiChatApi.notifyImageUploadComplete(body)
