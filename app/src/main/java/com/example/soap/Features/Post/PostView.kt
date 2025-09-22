@@ -2,6 +2,7 @@ package com.example.soap.Features.Post
 
 import PostCommentCell
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -129,7 +130,35 @@ fun PostView(
                 commentOnEdit = commentOnEdit,
                 targetComment = targetComment,
                 isUploadingComment = isUploadingComment,
-                onUploadComment = { isUploadingComment = true },
+                onUploadComment = {
+                    scope.launch {
+                        isUploadingComment = true
+                        try {
+                            val uploadedComment: AraPostComment = when {
+                                commentOnEdit != null -> viewModel.editComment(commentID = commentOnEdit!!.id, content = comment)
+                                targetComment != null -> viewModel.writeThreadedComment(commentID = targetComment!!.id, content = comment)
+                                else -> viewModel.writeComment(content = comment)
+                            }
+
+                            targetComment = null
+                            commentOnEdit = null
+                            comment = ""
+                            isWritingComment = false
+
+                            uploadedComment.let { comment ->
+                                scope.launch {
+                                    LazyListState().scrollToItem(comment.id)
+                                }
+                            }
+
+                        } catch (e: Exception) {
+                            Log.e("PostView", "Failed to upload comment", e)
+                            // TODO: 에러 처리
+                        } finally {
+                            isUploadingComment = false
+                        }
+                    }
+                                  },
                 profilePicture = { ProfilePicture(post, true) },
                 placeholder = placeholder(viewModel, targetComment, commentOnEdit),
                 focusRequester = focusRequester
@@ -434,7 +463,7 @@ fun InputBar(
     commentOnEdit: AraPostComment?,
     targetComment: AraPostComment?,
     isUploadingComment: Boolean,
-    onUploadComment: suspend () -> Unit,
+    onUploadComment: () -> Unit,
     profilePicture: @Composable () -> Unit,
     placeholder: String,
     focusRequester: FocusRequester

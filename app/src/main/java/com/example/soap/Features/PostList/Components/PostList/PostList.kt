@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -28,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Features.PostList.Components.PostListRow.PostListRow
+import com.example.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.ui.theme.Theme
@@ -120,9 +120,12 @@ private fun LoadedView(
 @Composable
 private fun LoadingView() {
     LazyColumn {
-        items(AraPost.mockList()) { post ->
-            PostListRow(post = post)
-        }
+       repeat(4){
+           item{
+               PostListSkeletonRow()
+               HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
+           }
+       }
     }
 }
 
