@@ -136,14 +136,14 @@ fun PostListSkeletonRow() {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             Box(
                 modifier = Modifier
-                    .width(60.dp)
+                    .width((0..50).random().dp)
                     .height(16.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
             )
 
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.6f)
+                    .width((120..200).random().dp)
                     .height(16.dp)
                     .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
             )
@@ -166,7 +166,7 @@ fun PostListSkeletonRow() {
         ) {
             Box(
                 modifier = Modifier
-                    .width(40.dp)
+                    .width((30..50).random().dp)
                     .height(12.dp)
                     .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
             )

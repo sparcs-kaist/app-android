@@ -12,11 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
@@ -24,12 +22,17 @@ import com.example.soap.ui.theme.darkGray
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostNavigationBar(navController : NavController) {
+fun PostNavigationBar(
+    boardGroup: String,
+    navController : NavController
+) {
 
     TopAppBar(
         navigationIcon = {
             Row(
-                modifier = Modifier.clickable { navController.navigate(Channel.TrendingBoard.name) },
+                modifier = Modifier.clickable {
+                    navController.popBackStack()
+                                              },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -38,7 +41,7 @@ fun PostNavigationBar(navController : NavController) {
                     tint = MaterialTheme.colorScheme.darkGray
                 )
                 Text(
-                    text = stringResource(R.string.trending_board),
+                    text = boardGroup,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.darkGray
                 )
@@ -58,5 +61,5 @@ fun PostNavigationBar(navController : NavController) {
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ PostNavigationBar(rememberNavController()) }
+    Theme{ PostNavigationBar("Board", rememberNavController()) }
 }

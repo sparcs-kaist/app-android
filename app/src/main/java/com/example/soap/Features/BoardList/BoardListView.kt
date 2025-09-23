@@ -1,33 +1,57 @@
 package com.example.soap.Features.BoardList
 
+import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Models.Ara.AraBoard
+import com.example.soap.Domain.Models.Ara.AraBoardGroup
 import com.example.soap.Features.BoardList.Components.BoardList
 import com.example.soap.Features.BoardList.Components.BoardListSectionItem
 import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
+import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.ui.theme.Theme
-
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
 
 @Composable
-fun BoardListView(navController: NavController) {
-
+fun BoardListView(
+    viewModel: BoardListViewModel = hiltViewModel(),
+    navController: NavController
+) {
+    val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        scope.launch { viewModel.fetchBoards() }
+    }
 
     Scaffold(
         topBar = {
@@ -36,7 +60,7 @@ fun BoardListView(navController: NavController) {
                 scrollOffset = scrollState.value,
                 navController = navController
             )
-                 },
+        },
 
         bottomBar = {
             AppDownBar(
@@ -48,59 +72,81 @@ fun BoardListView(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(scrollState)
                 .padding(innerPadding)
         ) {
-            BoardList(
-                title = stringResource(R.string.notice_board),
-                icon = painterResource(R.drawable.round_notifications_active),
-                sections = listOf(
-                    { BoardListSectionItem(text = stringResource(R.string.portal_notice), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.staff_notice), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.facility_notice), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.external_company_advertisement), onClick = {}) }
-                )
-            )
+            when (state) {
+                is BoardListViewModel.ViewState.Loading -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
 
-            BoardList(
-                title = stringResource(R.string.talk_board),
-                icon = painterResource(R.drawable.round_chat),
-                sections = listOf(
-                    { BoardListSectionItem(text = stringResource(R.string.talk_board), onClick = {}) }
-                )
-            )
+                is BoardListViewModel.ViewState.Loaded -> {
+                    val loadedState = state as BoardListViewModel.ViewState.Loaded
 
-            BoardList(
-                title = stringResource(R.string.organizations_and_clubs),
-                icon = painterResource(R.drawable.group),
-                sections = listOf(
-                    { BoardListSectionItem(text = stringResource(R.string.students_group), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.club), onClick = {}) }
-                )
-            )
+                        LoadedView(
+                            boards = loadedState.boards,
+                            groups = loadedState.groups,
+                            onBoardClick = { board ->
+                                val json = Uri.encode(Gson().toJson(board))
+                                navController.navigate(Channel.BoardList.name + "?board_json=$json")
+                            }
+                        )
 
-            BoardList(
-                title = stringResource(R.string.trade),
-                icon = painterResource(R.drawable.baseline_local_offer),
-                sections = listOf(
-                    { BoardListSectionItem(text = stringResource(R.string.wanted), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.market), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.real_estate), onClick = {}) }
-                )
-            )
+                }
 
-            BoardList(
-                title = stringResource(R.string.communication),
-                icon = painterResource(R.drawable.baseline_drafts),
-                sections = listOf(
-                    { BoardListSectionItem(text = stringResource(R.string.facility_feedback), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.ara_feedback), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.messages_to_the_school), onClick = {}) },
-                    { BoardListSectionItem(text = stringResource(R.string.kaist_news), onClick = {}) }
-                )
-            )
-        }
+                is BoardListViewModel.ViewState.Error -> {
+                    val message = (state as BoardListViewModel.ViewState.Error).message
+
+                        ErrorView(
+                            icon = Icons.Default.Warning,
+                            errorMessage = message,
+                            onRetry = { scope.launch { viewModel.fetchBoards() } }
+                        )
+                    }
+                }
+            }
+
+    }
+}
+
+@Composable
+private fun LoadedView(
+    boards: List<AraBoard>,
+    groups: List<AraBoardGroup>,
+    onBoardClick: (AraBoard) -> Unit
+) {
+    groups.forEach { group ->
+        val boardsInGroup = boards.filter { it.group.id == group.id }
+        BoardList(
+            title = group.name.localized(),
+            icon = systemImage(group.slug),
+            sections = listOf({
+                boardsInGroup.forEach { board ->
+                    BoardListSectionItem(
+                        text = board.name.localized(),
+                        onClick = { onBoardClick(board) }
+                    )
+                }
+            })
+        )
+    }
+}
+
+@Composable
+fun systemImage(slug: String): Painter {
+    return when (slug) {
+        "notice" -> painterResource(R.drawable.round_notifications_active)
+        "talk" -> painterResource(R.drawable.round_chat)
+        "club" -> painterResource(R.drawable.group)
+        "trade" -> painterResource(R.drawable.baseline_local_offer)
+        "communication" -> painterResource(R.drawable.baseline_drafts)
+        else -> painterResource(R.drawable.round_format_list_bulleted)
     }
 }
 
@@ -108,5 +154,5 @@ fun BoardListView(navController: NavController) {
 @Composable
 @Preview
 private fun Preview() {
-    Theme{ BoardListView(navController = rememberNavController()) }
+    Theme{ BoardListView(viewModel = viewModel(),navController = rememberNavController()) }
 }
