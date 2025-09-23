@@ -31,10 +31,14 @@ class TaxiChatListViewModel @Inject constructor(
     //MARK: - viewModel Properties
     override var taxiUser: TaxiUser? = null
 
+    init {
+        fetchTaxiUser()
+    }
     //MARK: - Functions
     override suspend fun fetchData(){
         viewModelScope.launch {
             try {
+
                 val (onGoingRooms, doneRooms) = taxiRoomRepository.fetchMyRooms()
                 _state.value = ViewState.Loaded(
                     onGoing = onGoingRooms,
