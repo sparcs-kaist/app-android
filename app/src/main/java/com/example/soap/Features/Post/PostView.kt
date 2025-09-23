@@ -75,6 +75,7 @@ import com.example.soap.Features.Post.Components.PostShareButton
 import com.example.soap.Features.Post.Components.PostVoteButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.formattedString
+import com.example.soap.Shared.Mocks.board
 import com.example.soap.Shared.Views.ErrorView.UnavailableView
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
@@ -121,7 +122,10 @@ fun PostView(
 
     Scaffold(
         topBar = {
-            PostNavigationBar(navController = navController)
+            PostNavigationBar(
+                boardGroup = board.group.name.localized(),
+                navController = navController
+            )
         },
         bottomBar = {
             InputBar(

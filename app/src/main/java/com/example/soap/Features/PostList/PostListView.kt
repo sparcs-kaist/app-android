@@ -3,7 +3,6 @@
 package com.example.soap.Features.PostList
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,9 +18,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -36,7 +35,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,15 +43,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.PostList.Components.PostList.PostList
 import com.example.soap.Features.PostList.Components.PostListRow.BoardNavigationBar
+import com.example.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.example.soap.R
-import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.lightGray0
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -62,31 +60,40 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PostListView(
-    board: AraBoard, //게시판 성격 (공지, 자게, 등등)
-    postListViewModel: PostListViewModelProtocol = hiltViewModel(),
+    viewModel: PostListViewModelProtocol = hiltViewModel(),
     navController: NavController
 ) {
     var loadedInitialPost by remember { mutableStateOf(false) }
     val searchText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
+    val board = viewModel.board
 
+    val backStackEntry = navController.currentBackStackEntry!!
     LaunchedEffect(searchText) {
-        postListViewModel.searchKeyword = searchText
+        viewModel.searchKeyword = searchText
     }
 
     LaunchedEffect(Unit) {
+        val json = Gson().toJson(board)
+        backStackEntry.savedStateHandle["board_json"] = json
         if (!loadedInitialPost) {
             loadedInitialPost = true
-            postListViewModel.board = board
-            postListViewModel.fetchInitialPosts()
-            postListViewModel.bind()
+            viewModel.board = board
+            viewModel.fetchInitialPosts()
+            viewModel.bind()
             loadedInitialPost = false
         }
     }
 
     Scaffold(
-        topBar = { BoardNavigationBar(navController = navController) },
+        topBar = {
+            BoardNavigationBar(
+                title = board.name.localized(),
+            subTitle = board.group.name.localized(),
+            navController = navController
+        )
+                 },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             if (!board.isReadOnly && board.userWritable == true) {
@@ -99,23 +106,21 @@ fun PostListView(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            when (val state = postListViewModel.state.collectAsState().value) {
+            when (val state = viewModel.state.collectAsState().value) {
                 is PostListViewModel.ViewState.Loading -> {
-                    Log.d("PostListView", "로딩중")
                     LoadingView()
                 }
                 is PostListViewModel.ViewState.Loaded -> {
-                    Log.d("PostListView", state.posts.toString())
                     PostList(
                         posts = state.posts,
                         onLoadMore = {
                             coroutineScope.launch{
-                            postListViewModel.loadNextPage()
+                            viewModel.loadNextPage()
                         } },
                         onRefresh = {
                             isRefreshing = true
                             coroutineScope.launch{
-                                postListViewModel.fetchInitialPosts()
+                                viewModel.fetchInitialPosts()
                                 delay(500)
                                 isRefreshing = false
                             }
@@ -129,15 +134,14 @@ fun PostListView(
                 }
                 is PostListViewModel.ViewState.Error -> {
                     val error = (state).message
-                    Log.d("PostListView", error)
                     ErrorView(
                         icon = Icons.Default.Warning,
                         errorMessage = error,
                         onRetry = {
                             coroutineScope.launch{
                                 if (!loadedInitialPost) {
-                                    postListViewModel.fetchInitialPosts()
-                                    postListViewModel.bind()
+                                    viewModel.fetchInitialPosts()
+                                    viewModel.bind()
                                     loadedInitialPost = true
                                 }
                             }
@@ -146,13 +150,13 @@ fun PostListView(
                 }
             }
 
-            if (searchText.isNotEmpty() && postListViewModel.posts.isEmpty()) {
+            if (searchText.isNotEmpty() && viewModel.posts.isEmpty()) {
                 EmptyView(
                     searchText = searchText,
                     onClear = {
                         CoroutineScope(Dispatchers.IO).launch {
-                            postListViewModel.searchKeyword = ""
-                            postListViewModel.fetchInitialPosts()
+                            viewModel.searchKeyword = ""
+                            viewModel.fetchInitialPosts()
                         }
                     }
                 )
@@ -207,10 +211,14 @@ private fun EmptyView(
         }
     }
 }
+
 @Composable
 private fun LoadingView() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
+    Column {
+        repeat(15){
+            PostListSkeletonRow()
+            HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
+        }
     }
 }
 
@@ -232,20 +240,9 @@ private fun ComposeButton(onClick: () -> Unit){
     }
 }
 
-
-@Composable
-fun selectedColor(
-    isSelected : Boolean
-): Pair<Color, Color> {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.surfaceContainer
-    val textColor =  if (isSelected) MaterialTheme.colorScheme.surfaceContainer else MaterialTheme.colorScheme.onSurface
-
-    return Pair(backgroundColor, textColor)
-}
-
 @Composable
 @Preview
 private fun Preview(){
-    Theme { PostListView(board = AraBoard.mock(), viewModel(), rememberNavController()) }
+    Theme { PostListView(viewModel(), rememberNavController()) }
 
 }

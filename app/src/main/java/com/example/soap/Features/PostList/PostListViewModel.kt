@@ -1,12 +1,14 @@
 package com.example.soap.Features.PostList
 
+import android.net.Uri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
-import com.example.soap.Shared.Mocks.mock
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,10 +22,17 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PostListViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val araBoardRepository: AraBoardRepositoryProtocol
 ) : ViewModel(), PostListViewModelProtocol {
 
-    override var board: AraBoard = AraBoard.mock()
+    private val initialBoard: AraBoard by lazy {
+        val json = savedStateHandle.get<String>("board_json")
+            ?: throw IllegalStateException("board_json is null. PostListViewModel requires a board_json to initialize.")
+        Gson().fromJson(Uri.decode(json), AraBoard::class.java)
+    }
+
+    override var board: AraBoard = initialBoard
 
     sealed class ViewState{
         data object Loading : ViewState()
