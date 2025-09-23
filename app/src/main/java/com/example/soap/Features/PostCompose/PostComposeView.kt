@@ -58,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.PostCompose.Components.PostComposeNavigationBar
 import com.example.soap.Features.PostCompose.Components.TopicSelector
 import com.example.soap.R
@@ -124,7 +123,7 @@ fun PostComposeView(
                             viewModel.writePost()
                         } finally {
                             isUploading = false
-                            navController.navigate(Channel.BoardList.name)
+                            navController.popBackStack()
                         }
                     }
                               },
@@ -162,7 +161,6 @@ fun PostComposeView(
             TopicSelector(
                 viewModel = viewModel
             )
-
             Spacer(modifier = Modifier.height(16.dp))
 
             BasicTextField(
@@ -214,7 +212,7 @@ fun PostComposeView(
                         contentField = it
                         viewModel.content = it.text
                     },
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions.Default,
                     onTextLayout = { textLayoutResult = it },

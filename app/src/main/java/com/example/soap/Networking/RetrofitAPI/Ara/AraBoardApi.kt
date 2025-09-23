@@ -7,6 +7,7 @@ import com.example.soap.Networking.ResponseDTO.Ara.AraBoardDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraPostDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraPostPageDTO
 import okhttp3.MultipartBody
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -103,6 +104,6 @@ interface AraBoardApi {
     )
 
     @DELETE("articles/{id}/")
-    suspend fun delete(@Path("id") postID: Int)
+    suspend fun delete(@Path("id") postID: Int): Response<Unit>
 }
 

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -80,7 +81,6 @@ import com.example.soap.Shared.Views.ErrorView.UnavailableView
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -124,7 +124,16 @@ fun PostView(
         topBar = {
             PostNavigationBar(
                 boardGroup = board.group.name.localized(),
-                navController = navController
+                navController = navController,
+                onDelete = { showDeleteConfirmation = true },
+                onReport = { type ->
+                    scope.launch{ viewModel.report(type) }
+                           },
+                onTranslate = {
+                    showTranslationView = true
+                              //TODO-Translate
+                    },
+                isMine = post.isMine
             )
         },
         bottomBar = {
@@ -181,7 +190,6 @@ fun PostView(
                 isRefreshing = true
                 scope.launch {
                     viewModel.fetchPost()
-                    delay(500)
                 }
                 isRefreshing = false
             }
@@ -240,14 +248,35 @@ fun PostView(
     }
 
     if (showDeleteConfirmation) {
-        LaunchedEffect(showDeleteConfirmation) {
-            try {
-                viewModel.deletePost()
-            } catch (e: Exception) {
-                showAlert(title = "Error", message = "Failed to delete a post. Please try again later.")
-            }
-            showDeleteConfirmation = false
-        }
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmation = false },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        scope.launch {
+                            try {
+                                viewModel.deletePost()
+                                showDeleteConfirmation = false
+                                navController.popBackStack()
+                            } catch (e: Exception) {
+                                Log.e("PostView", "Failed to delete post", e)
+                                showAlert(title = "Error", message = "Failed to delete post")
+                            }
+                        }
+
+                    },
+                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
+                )
+                {
+                    Text(
+                        text = "Delete",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            title = { Text(text = "Delete Post", fontWeight = FontWeight.Bold) },
+            text = { Text("Are you sure you want to delete this post?") }
+        )
     }
 
     if (showAlert) {

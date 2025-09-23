@@ -15,6 +15,7 @@ import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraBoardTopic
 import com.example.soap.Domain.Models.Ara.AraCreatePost
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -32,8 +33,13 @@ class PostComposeViewModel @Inject constructor(
 ) : ViewModel(), PostComposeViewModelProtocol {
 
     // MARK: - Board
-    override val board: AraBoard = checkNotNull(savedStateHandle.get<AraBoard>("board"))
+    private val initialBoard: AraBoard by lazy {
+        val json = savedStateHandle.get<String>("board_json")
+            ?: throw IllegalStateException("board_json is null. PostListViewModel requires a board_json to initialize.")
+        Gson().fromJson(Uri.decode(json), AraBoard::class.java)
+    }
 
+    override var board: AraBoard = initialBoard
     // MARK: - Properties
     override var selectedTopic: AraBoardTopic? by mutableStateOf(null)
     override var title: String by mutableStateOf("")
