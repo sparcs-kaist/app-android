@@ -39,7 +39,7 @@ import com.example.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
-import com.example.soap.ui.theme.grayF8
+import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.delay
 
 @Composable
@@ -57,7 +57,7 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
 
     Box {
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.grayF8),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier
                 .clickable { expanded = !expanded }
@@ -81,7 +81,7 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
             Box(
                 Modifier
@@ -94,12 +94,15 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
             ) {
                 Text(
                     text = "No Topic",
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.grayBB
                 )
             }
 
-            HorizontalDivider(thickness = 1.dp)
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.lightGray0,
+                modifier = Modifier.padding(horizontal = 2.dp)
+            )
 
             viewModel.board.topics.forEachIndexed { index, topic ->
                 Box(
@@ -113,7 +116,7 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
                 ) {
                     Text(
                         text = topic.name.localized() ?: "No Topic",
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.titleMedium
                     )
                 }
 
@@ -164,7 +167,7 @@ fun AnimatedAlphabetText(from: String, to: String) {
             ) { char ->
                 Text(
                     text = char.toString(),
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = color
                 )

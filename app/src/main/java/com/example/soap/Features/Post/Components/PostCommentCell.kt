@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -177,11 +178,12 @@ fun PostCommentHeader(
 
         if (!isDeleted) {
             PostCommentActionsMenu(
-                comment = comment,
+                isMine = comment.isMine,
                 onEdit = onEdit,
                 onDelete = onDelete,
                 onReport = onReport,
-                onTranslate = onTranslate
+                onTranslate = onTranslate,
+                isComment = true
             )
         }
     }
@@ -189,35 +191,39 @@ fun PostCommentHeader(
 
 @Composable
 fun PostCommentActionsMenu(
-    comment: AraPostComment,
-    onEdit: () -> Unit,
+    isMine: Boolean?,
+    onEdit: () -> Unit? = {},
     onDelete: () -> Unit,
     onReport: (AraContentReportType) -> Unit,
-    onTranslate: () -> Unit
+    onTranslate: () -> Unit,
+    isComment: Boolean,
+    modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
     var reportExpanded by remember { mutableStateOf(false) }
-    var showReport by remember { mutableStateOf(false) }
 
     Box {
             Icon(
                 painter = painterResource(R.drawable.more_horiz),
                 contentDescription = "More",
-                modifier = Modifier.clickable { expanded = true },
-                tint = if(comment.isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                modifier = modifier
+                    .clickable { expanded = true },
+                tint = if(isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
 
-
-        DropdownMenu(expanded = expanded, onDismissRequest = {
+        DropdownMenu(
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(16.dp),
+            expanded = expanded,
+            onDismissRequest = {
             expanded = false
             reportExpanded = false
         }) {
-            if (comment.isMine == false) {
+            if (isMine == false) {
                 DropdownMenuItem(
                     text = { Text("Report") },
                     onClick = {
                         reportExpanded = !reportExpanded
-                              showReport = !showReport
                               },
                     leadingIcon = {
                         Icon(
@@ -230,13 +236,13 @@ fun PostCommentActionsMenu(
                             painter = painterResource(R.drawable.arrow_forward_ios),
                             contentDescription = "show Report",
                             modifier = Modifier.size(18.dp)
-                                .rotate(if (showReport) 270f else 0f)
+                                .rotate(if (reportExpanded) 270f else 0f)
                         )
                     }
                 )
 
                 AnimatedVisibility(
-                    visible = showReport,
+                    visible = reportExpanded,
                     enter = expandVertically() + fadeIn(),
                     exit = shrinkVertically() + fadeOut()
                 ) {
@@ -258,19 +264,21 @@ fun PostCommentActionsMenu(
                     }
                 }
             } else {
-                DropdownMenuItem(
-                    text = { Text("Edit") },
-                    onClick = { onEdit(); expanded = false },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_edit),
-                            contentDescription = null
-                        )
-                    }
-                )
+                if (isComment) {
+                    DropdownMenuItem(
+                        text = { Text("Edit") },
+                        onClick = { onEdit(); expanded = false },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.outline_edit),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    HorizontalDivider()
+                }
             }
 
-            HorizontalDivider()
 
             DropdownMenuItem(
                 text = { Text("Translate") },
@@ -283,10 +291,15 @@ fun PostCommentActionsMenu(
                 }
             )
 
-            if (comment.isMine == true) {
+            if (isMine == true) {
                 HorizontalDivider()
                 DropdownMenuItem(
-                    text = { Text("Delete") },
+                    text = {
+                        Text(
+                            text = "Delete",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                           },
                     onClick = { onDelete(); expanded = false },
                     leadingIcon = {
                         Icon(

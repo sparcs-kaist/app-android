@@ -21,6 +21,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.Response
 import javax.inject.Inject
 
 
@@ -41,7 +42,7 @@ interface AraBoardRepositoryProtocol {
     suspend fun downVotePost(postID: Int)
     suspend fun cancelVote(postID: Int)
     suspend fun reportPost(postID: Int, type: AraContentReportType)
-    suspend fun deletePost(postID: Int)
+    suspend fun deletePost(postID: Int): Response<Unit>
 }
 
 class AraBoardRepository @Inject constructor(
@@ -115,8 +116,9 @@ class AraBoardRepository @Inject constructor(
     override suspend fun reportPost(postID: Int, type: AraContentReportType) =
         api.report(mapOf("post_id" to postID, "type" to type.name))
 
-    override suspend fun deletePost(postID: Int) = api.delete(postID)
-
+    override suspend fun deletePost(postID: Int): Response<Unit> {
+        return api.delete(postID)
+    }
 
     suspend fun loadBitmap(uri: Uri): Bitmap? = withContext(Dispatchers.IO) {
         try {

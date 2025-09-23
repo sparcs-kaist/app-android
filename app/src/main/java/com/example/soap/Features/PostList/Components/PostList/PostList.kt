@@ -32,6 +32,7 @@ import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.lightGray0
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun PostList(
@@ -79,12 +80,16 @@ private fun LoadedView(
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .distinctUntilChanged()
             .collect { lastVisibleIndex ->
-                val threshold = (posts.size * 0.8).toInt()
-                if (lastVisibleIndex != null && lastVisibleIndex >= threshold && !isLoadingMore) {
+                val totalItems = listState.layoutInfo.totalItemsCount
+                if (!isLoadingMore && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
                     isLoadingMore = true
-                    onLoadMore()
-                    isLoadingMore = false
+                    try {
+                        onLoadMore()
+                    } finally {
+                        isLoadingMore = false
+                    }
                 }
             }
     }
@@ -93,7 +98,7 @@ private fun LoadedView(
         isRefreshing = isRefreshing,
         onRefresh = onRefresh
     ) {
-        LazyColumn(state = listState){
+        LazyColumn(state = listState) {
             itemsIndexed(posts) { index, post ->
                 PostListRow(
                     post = post,
@@ -119,12 +124,12 @@ private fun LoadedView(
 @Composable
 private fun LoadingView() {
     LazyColumn {
-       repeat(4){
-           item{
-               PostListSkeletonRow()
-               HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
-           }
-       }
+        repeat(4) {
+            item {
+                PostListSkeletonRow()
+                HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
+            }
+        }
     }
 }
 

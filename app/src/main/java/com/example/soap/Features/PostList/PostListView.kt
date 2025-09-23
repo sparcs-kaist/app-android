@@ -97,7 +97,12 @@ fun PostListView(
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             if (!board.isReadOnly && board.userWritable == true) {
-                ComposeButton(onClick = { navController.navigate(Channel.PostCompose.name) })
+                ComposeButton(
+                    onClick = {
+                        val json = Uri.encode(Gson().toJson(board))
+                        navController.navigate(Channel.PostCompose.name + "?board_json=$json")
+                    }
+                )
             }
         }
     ) { paddingValues ->
@@ -127,7 +132,7 @@ fun PostListView(
                                     },
                         onPostClick = { post ->
                             val json = Uri.encode(Gson().toJson(post))
-                            navController.navigate("postView?post_json=$json")
+                            navController.navigate(Channel.PostView.name + "?post_json=$json")
                         },
                         isRefreshing = isRefreshing
                     )

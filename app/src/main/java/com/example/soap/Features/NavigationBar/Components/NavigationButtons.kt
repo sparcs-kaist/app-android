@@ -31,9 +31,11 @@ fun NotificationButton(){
 }
 
 @Composable
-fun SettingButton() {
+fun SettingButton(
+    onClick: () -> Unit ={}
+) {
     IconButton(
-        onClick = {},
+        onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
     ) {
         Icon(

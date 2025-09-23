@@ -56,6 +56,8 @@ import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.Post.PostViewModel
 import com.example.soap.Features.Post.PostViewModelProtocol
 import com.example.soap.Features.PostCompose.PostComposeView
+import com.example.soap.Features.PostCompose.PostComposeViewModel
+import com.example.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.Features.PostList.PostListViewModelProtocol
@@ -71,7 +73,6 @@ import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
-import com.example.soap.Shared.ViewModelMocks.MockPostComposeViewModel
 import com.example.soap.ui.theme.Theme
 
 enum class Channel(@StringRes val title: Int) {
@@ -207,7 +208,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         viewModel = viewModel,
                         navController = navController
                     )
-
                 }
 
                 composable(
@@ -225,14 +225,22 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
             }
             composable(
-                route = Channel.PostCompose.name,
+                route = Channel.PostCompose.name+ "?board_json={board_json}",
+                arguments = listOf(
+                    navArgument("board_json") {
+                        type = NavType.StringType
+                        nullable = false
+                    }
+                ),
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) {
+            ) {backStackEntry ->
+                val viewModelImpl: PostComposeViewModel = hiltViewModel(backStackEntry)
+                val viewModel: PostComposeViewModelProtocol = viewModelImpl
                 PostComposeView(
-                    viewModel = MockPostComposeViewModel(),
+                    viewModel = viewModel,
                     navController = navController
                 )
             }
