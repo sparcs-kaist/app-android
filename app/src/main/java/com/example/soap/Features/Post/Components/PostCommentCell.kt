@@ -1,4 +1,5 @@
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -48,6 +49,7 @@ import com.example.soap.Features.Post.Components.PostVoteButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.timeAgoDisplay
 import com.example.soap.Shared.Mocks.mock
+import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.launch
 
@@ -65,7 +67,8 @@ fun PostCommentCell(
     val scope = rememberCoroutineScope()
     var showReportDialog by remember { mutableStateOf(false) }
     var showTranslateSheet by remember { mutableStateOf(false) }
-    val isDeleted = comment.content == null
+    var commentState by remember { mutableStateOf(comment) }
+    val isDeleted = commentState.content == null
 
     Row(modifier = Modifier.fillMaxWidth()) {
         if (isThreaded) {
@@ -80,29 +83,29 @@ fun PostCommentCell(
             HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0, modifier = Modifier.padding(vertical = 4.dp))
 
             PostCommentHeader(
-                comment = comment,
+                comment = commentState,
                 isDeleted = isDeleted,
                 onEdit = onEdit,
                 onDelete = {
                     scope.launch {
-                        val prev = comment.content
+                        val prev = commentState.content
                         try {
-                            comment.content = null
+                            commentState = commentState.copy(content = null)
                             onDelete()
-                            araCommentRepository.deleteComment(comment.id)
+                            araCommentRepository.deleteComment(commentState.id)
                         } catch (e: Exception) {
-                            comment.content = prev
+                            commentState.content = prev
                         }
                     }
                 },
                 onReport = { type ->
                     scope.launch {
-                        araCommentRepository.reportComment(comment.id, type)
+                        araCommentRepository.reportComment(commentState.id, type)
                         showReportDialog = true
                     }
                 },
                 onTranslate = {
-                    comment.content?.let { text ->
+                    commentState.content?.let { text ->
                         onTranslate(text)
                         showTranslateSheet = true
                     }
@@ -111,10 +114,10 @@ fun PostCommentCell(
 
             PostCommentContent(
                 isDeleted = isDeleted,
-                comment = comment
+                comment = commentState
             )
             PostCommentFooter(
-                comment = comment,
+                comment = commentState,
                 isThreaded = isThreaded,
                 isDeleted = isDeleted,
                 onComment = onComment,
@@ -135,7 +138,7 @@ fun PostCommentCell(
     if (showTranslateSheet) {
         ModalBottomSheet(onDismissRequest = { showTranslateSheet = false }) {
             Text(
-                text = comment.content ?: "",
+                text = commentState.content ?: "",
                 modifier = Modifier.padding(16.dp)
             )
         }
@@ -317,13 +320,15 @@ fun ProfilePicture(url: String?) {
 
 @Composable
 fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
-    Text(
-        text = comment.content ?: "This comment has been deleted.",
-        style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(vertical = 8.dp),
-        color = if (isDeleted) MaterialTheme.colorScheme.onSurfaceVariant
-        else MaterialTheme.colorScheme.onSurface
-    )
+    AnimatedContent(targetState = comment.content) { content ->
+        Text(
+            text = content ?: "This comment has been deleted.",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = if (isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f)
+            else MaterialTheme.colorScheme.onSurface
+        )
+    }
 }
 
 @Composable
@@ -374,6 +379,8 @@ suspend fun handleVote(
     repo: AraCommentRepositoryProtocol,
     update: (AraPostComment) -> Unit
 ) {
+    if (comment.isMine == true) return
+
     val prev = comment.copy()
 
     val updated = when {

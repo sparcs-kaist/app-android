@@ -33,7 +33,6 @@ import com.example.soap.Shared.Views.ErrorView.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.lightGray0
 
-
 @Composable
 fun PostList(
     posts: List<AraPost>?,
