@@ -36,7 +36,8 @@ fun PostListRow(
     post: AraPost,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth()
+    Column(modifier = modifier
+        .fillMaxWidth()
         .padding(vertical = 8.dp)) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -136,27 +137,22 @@ fun PostListSkeletonRow() {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
             Box(
                 modifier = Modifier
-                    .width((0..50).random().dp)
+                    .width(listOf(0.dp, 0.dp, 20.dp, 40.dp).random())
                     .height(16.dp)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
 
             Box(
                 modifier = Modifier
-                    .width((120..200).random().dp)
+                    .width((10..200).random().dp)
                     .height(16.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(2.dp))
-            )
-            Box(
-                modifier = Modifier
-                    .size(16.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(2.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
         }
 
@@ -166,22 +162,12 @@ fun PostListSkeletonRow() {
         ) {
             Box(
                 modifier = Modifier
-                    .width((30..50).random().dp)
-                    .height(12.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-            )
-            Box(
-                modifier = Modifier
-                    .width(40.dp)
-                    .height(12.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-            )
-
-            Box(
-                modifier = Modifier
                     .width(60.dp)
                     .height(12.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -190,14 +176,20 @@ fun PostListSkeletonRow() {
                 modifier = Modifier
                     .width(40.dp)
                     .height(12.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
 
             Box(
                 modifier = Modifier
                     .width(40.dp)
                     .height(12.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
         }
     }
@@ -223,4 +215,15 @@ private fun Preview(){
         }
     }
 }
+
+@Composable
+@Preview(showBackground = true)
+private fun PreviewSkeleton(){
+    Theme {
+        Column {
+            repeat(15){ PostListSkeletonRow() }
+        }
+    }
+}
+
 
