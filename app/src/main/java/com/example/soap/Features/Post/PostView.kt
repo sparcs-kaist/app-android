@@ -4,6 +4,7 @@ import PostCommentCell
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -63,11 +65,11 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.soap.Domain.Models.Ara.AraPost
-import com.example.soap.Domain.Models.Ara.AraPostAuthor
 import com.example.soap.Domain.Models.Ara.AraPostComment
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import com.example.soap.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import com.example.soap.Features.NavigationBar.Animation.MoveToLeftFadeOut
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Post.Components.DynamicHeightWebView
 import com.example.soap.Features.Post.Components.PostBookmarkButton
 import com.example.soap.Features.Post.Components.PostCommentButton
@@ -77,9 +79,10 @@ import com.example.soap.Features.Post.Components.PostVoteButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.formattedString
 import com.example.soap.Shared.Mocks.board
-import com.example.soap.Shared.Views.ErrorView.UnavailableView
+import com.example.soap.Shared.Views.ContentViews.UnavailableView
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -103,7 +106,6 @@ fun PostView(
     var commentOnEdit by remember { mutableStateOf<AraPostComment?>(null) }
     var isUploadingComment by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
-    var selectedAuthor by remember { mutableStateOf<AraPostAuthor?>(null) }
 
     var showTranslationView by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -202,12 +204,12 @@ fun PostView(
             ) {
                 item {
                     Header(
-                        viewModel = viewModel,
-                        targetComment = targetComment,
-                        scope = scope,
                         post = post,
-                        selectedAuthor = selectedAuthor
-                    ) { selectedAuthor = it }
+                        onAuthorClick = {
+                            val json = Uri.encode(Gson().toJson(post.author))
+                            navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
+                        }
+                    )
                 }
                 item {
                     Content(
@@ -293,12 +295,8 @@ fun PostView(
 
 @Composable
 private fun Header(
-    viewModel: PostViewModelProtocol,
-    scope: CoroutineScope,
     post: AraPost,
-    targetComment: AraPostComment?,
-    selectedAuthor: AraPostAuthor?,
-    onAuthorClick: (AraPostAuthor) -> Unit
+    onAuthorClick: () -> Unit
 ) {
 
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -325,7 +323,12 @@ private fun Header(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = if (post.author.username != stringResource(R.string.anonymous)) {
+                Modifier.clickable { onAuthorClick() }
+            } else {
+                Modifier
+            }
         ) {
             ProfilePicture(post, false)
             Text(
@@ -333,7 +336,7 @@ private fun Header(
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.bodySmall
             )
-            if (post.author.username != "anonymous") {
+            if (post.author.username != stringResource(R.string.anonymous)) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_forward_ios),
                     contentDescription = null,

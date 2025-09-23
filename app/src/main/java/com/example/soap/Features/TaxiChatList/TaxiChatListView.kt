@@ -33,7 +33,7 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockTaxiChatListViewModel
-import com.example.soap.Shared.Views.ErrorView.ErrorView
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import com.example.soap.ui.theme.Theme

@@ -48,7 +48,7 @@ import com.example.soap.Features.PostList.Components.PostList.PostList
 import com.example.soap.Features.PostList.Components.PostListRow.BoardNavigationBar
 import com.example.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.example.soap.R
-import com.example.soap.Shared.Views.ErrorView.ErrorView
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
@@ -105,10 +105,10 @@ fun PostListView(
                 )
             }
         }
-    ) { paddingValues ->
+    ) { innerPadding ->
         Box(
             modifier = Modifier
-                .padding(paddingValues)
+                .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             when (val state = viewModel.state.collectAsState().value) {

@@ -3,6 +3,8 @@ package com.example.soap.Features.Post.Components
 import PostCommentActionsMenu
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -64,6 +66,7 @@ fun PostNavigationBar(
                 isComment = false,
                 modifier = Modifier.size(28.dp)
             )
+            Spacer(Modifier.padding(4.dp))
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
