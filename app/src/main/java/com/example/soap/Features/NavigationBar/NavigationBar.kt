@@ -72,6 +72,9 @@ import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
+import com.example.soap.Features.UserPostList.UserPostListView
+import com.example.soap.Features.UserPostList.UserPostListViewModel
+import com.example.soap.Features.UserPostList.UserPostListViewModelProtocol
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 
@@ -82,13 +85,15 @@ enum class Channel(@StringRes val title: Int) {
     Taxi(title = R.string.taxi),
     BoardList(title = R.string.general_board),
     Boards(title = R.string.boards),
-    PostView(title = R.string.postview), //임시
+    PostView(title = R.string.postview),
     PostCompose(title = R.string.postcompose),
-    LectureDetail(title= R.string.lecturedetail),//임시
+    LectureDetail(title= R.string.lecturedetail),
     TaxiRoomCreation(title = R.string.taxi_room_creation),
     TaxiChatView(title = R.string.taxichatview),
     TaxiChatListView(title = R.string.taxichatlistview),
-    AraChatView(title = R.string.ara_chat_view) //임시
+    AraChatView(title = R.string.ara_chat_view), //임시
+    UserPostListView(title = R.string.user_post_list_view),
+    SearchView(title = R.string.search)
 }
 
 @Composable
@@ -244,6 +249,25 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     navController = navController
                 )
             }
+
+            composable(
+                route = Channel.UserPostListView.name+ "?author_json={author_json}",
+                arguments = listOf(
+                    navArgument("author_json") {
+                        type = NavType.StringType
+                        nullable = false
+                    }
+                ),
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ){backStackEntry ->
+                val viewModelImpl: UserPostListViewModel = hiltViewModel(backStackEntry)
+                val viewModel: UserPostListViewModelProtocol = viewModelImpl
+                UserPostListView(viewModel = viewModel, navController = navController)
+            }
+
             composable(
                 route = "${Channel.LectureDetail.name}/{lectureId}",
                 enterTransition = trendingEnterTransition(),
@@ -255,6 +279,16 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 lectureId?.let {
                     LectureDetailView(lectureId = it, navController = navController)
                 }
+            }
+
+            composable(
+                route = Channel.SearchView.name,
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ) {
+               // SearchView()
             }
         }
     }

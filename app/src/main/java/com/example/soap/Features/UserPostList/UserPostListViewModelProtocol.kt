@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface UserPostListViewModelProtocol {
     val state: StateFlow<UserPostListViewModel.ViewState>
-    val user: StateFlow<AraPostAuthor?>
+    val user: AraPostAuthor
     var posts: StateFlow<List<AraPost>>
     var searchKeyword: StateFlow<String>
 
