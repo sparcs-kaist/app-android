@@ -1,6 +1,5 @@
 package com.example.soap.Networking.RetrofitAPI.Ara
 
-import com.example.soap.Domain.Enums.AraContentReportType
 import com.example.soap.Networking.RequestDTO.AraPostRequestDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraAttachmentDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraBoardDTO
@@ -18,31 +17,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 sealed class AraBoardTarget{
-
-    data object FetchBoards : AraBoardTarget()
-
-    data class FetchPosts(
-        val type: PostListType,
-        val page: Int,
-        val pageSize: Int,
-        val searchKeyword: String? = null
-    ) : AraBoardTarget()
-
-    data class FetchPost(
-        val origin: PostOrigin?,
-        val postID: Int
-    ) : AraBoardTarget()
-
-    data class UploadImage(val imageData: ByteArray) : AraBoardTarget()
-
-    data class WritePost(val request: AraPostRequestDTO) : AraBoardTarget()
-
-    data class Upvote(val postID: Int) : AraBoardTarget()
-    data class DownVote(val postID: Int) : AraBoardTarget()
-    data class CancelVote(val postID: Int) : AraBoardTarget()
-    data class Report(val postID: Int, val type: AraContentReportType) : AraBoardTarget()
-    data class Delete(val postID: Int) : AraBoardTarget()
-
     sealed class PostListType {
         data class Board(val boardID: Int) : PostListType()
         data class User(val userID: Int) : PostListType()
