@@ -9,6 +9,8 @@ import com.example.soap.Domain.Repositories.Ara.AraBoardRepository
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepository
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
+import com.example.soap.Domain.Repositories.Ara.AraUserRepository
+import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepository
@@ -23,6 +25,7 @@ import com.example.soap.Domain.Usecases.UserUseCase
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraCommentApi
+import com.example.soap.Networking.RetrofitAPI.Ara.AraUserApi
 import com.example.soap.Networking.RetrofitAPI.AuthApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
@@ -223,6 +226,12 @@ object NetworkModule {
     fun provideAraCommentApi(@Named("AraBackend") retrofit: Retrofit): AraCommentApi {
         return retrofit.create(AraCommentApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideAraUserApi(@Named("AraBackend") retrofit: Retrofit): AraUserApi {
+        return retrofit.create(AraUserApi::class.java)
+    }
 }
 
 @Module
@@ -265,6 +274,12 @@ abstract class RepositoryModule {
     abstract fun bindAraCommentRepository(
         impl: AraCommentRepository
     ): AraCommentRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindAraUserRepository(
+        impl: AraUserRepository
+    ): AraUserRepositoryProtocol
 }
 
 @Module

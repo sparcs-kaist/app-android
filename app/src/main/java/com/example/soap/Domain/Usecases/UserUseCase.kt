@@ -2,7 +2,9 @@ package com.example.soap.Domain.Usecases
 
 import android.util.Log
 import com.example.soap.Domain.Helpers.UserStorageProtocol
+import com.example.soap.Domain.Models.Ara.AraUser
 import com.example.soap.Domain.Models.Taxi.TaxiUser
+import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -13,6 +15,7 @@ import javax.inject.Singleton
 @Singleton
 class UserUseCase @Inject constructor(
     private val taxiUserRepository: TaxiUserRepositoryProtocol,
+    private val araUserRepository: AraUserRepositoryProtocol,
     private val userStorage: UserStorageProtocol
 ) : UserUseCaseProtocol {
 
@@ -24,15 +27,43 @@ class UserUseCase @Inject constructor(
         }
     }
 
+    override val araUser: AraUser?
+        get() = runBlocking { userStorage.getAraUser() }
+
+//    override val feedUser: FeedUser?
+//        get() = runBlocking { userStorage.getFeedUser() }
+
     override val taxiUser: TaxiUser?
         get() = runBlocking { userStorage.getTaxiUser() }
 
     override suspend fun fetchUsers() {
         try {
             fetchTaxiUser()
+            fetchAraUser()
+//            fetchFeedUser()
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    override suspend fun fetchAraUser() {
+        Log.d("UserUseCase","Fetching Ara User")
+        val user = araUserRepository.fetchUser()
+        userStorage.setAraUser(user)
+        Log.d("UserUseCase", user.toString())
+    }
+
+    override suspend fun updateAraUser(params: Map<String, Any>) {
+        Log.d("UserUseCase","Updating Ara User Information: $params")
+
+        val araUser = araUser
+        if (araUser == null) {
+            Log.e("UserUseCase","Ara User Not Found")
+            return
+        }
+
+        araUserRepository.updateMe(id = araUser.id, params = params)
+        fetchAraUser()
     }
 
     override suspend fun fetchTaxiUser() {
@@ -41,4 +72,11 @@ class UserUseCase @Inject constructor(
         userStorage.setTaxiUser(user)
         Log.d("UserUseCase", user.toString())
     }
+
+//    override suspend fun fetchFeedUser() {
+//        Log.d("UserUseCase","Fetching Feed User")
+//        val user = feedUserRepository.fetchUser()
+//        userStorage.setFeedUser(user)
+//        Log.d("UserUseCase", user.toString())
+//    }
 }

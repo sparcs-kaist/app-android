@@ -41,7 +41,7 @@ interface AraBoardApi {
         @Query("page_size") pageSize: Int,
         @Query("parent_board") parentBoard: Int? = null,
         @Query("created_by") createdBy: Int? = null,
-        @Query("parent_topic") searchKeyword: String? = null
+        @Query("main_search__contains") searchKeyword: String? = null
     ): AraPostPageDTO
 
     @GET("articles/{id}/")
@@ -51,6 +51,12 @@ interface AraBoardApi {
         @Query("topic_id") topicId: String? = null,
         @Query("current") current: Int? = null
     ): AraPostDTO
+
+    @GET("scraps/")
+    suspend fun fetchBookmarks(
+        @Query("page") page: Int,
+        @Query("page_size") pageSize: Int
+    ): List<AraPostDTO>
 
     @Multipart
     @POST("attachments/")
