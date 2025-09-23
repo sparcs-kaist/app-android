@@ -29,7 +29,7 @@ import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Features.PostList.Components.PostListRow.PostListRow
 import com.example.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.example.soap.Shared.Mocks.mockList
-import com.example.soap.Shared.Views.ErrorView.ErrorView
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.flow.distinctUntilChanged

@@ -35,7 +35,7 @@ import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
-import com.example.soap.Shared.Views.ErrorView.ErrorView
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.google.gson.Gson
 import kotlinx.coroutines.launch

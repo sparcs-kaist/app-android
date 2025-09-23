@@ -92,7 +92,7 @@ import com.example.soap.Shared.Extensions.toLocalDate
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
-import com.example.soap.Shared.Views.ErrorView.ErrorView
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -486,7 +486,7 @@ private fun LoadingView() {
 }
 
 @Composable
-fun InputBar(
+private fun InputBar(
     text: String,
     onTextChange: (String) -> Unit,
     selectedImage: Bitmap?,
@@ -548,100 +548,100 @@ fun InputBar(
             }
         }
 
-            Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                if (selectedImage != null) {
-                    Box {
-                        Image(
-                            bitmap = selectedImage.asImageBitmap(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(16.dp))
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            if (selectedImage != null) {
+                Box {
+                    Image(
+                        bitmap = selectedImage.asImageBitmap(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                    )
+                    IconButton(
+                        onClick = onRemoveImage,
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .background(Color.Black.copy(alpha = 0.3f), shape = CircleShape)
+                            .size(24.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = "Remove Image",
+                            tint = Color.White
                         )
-                        IconButton(
-                            onClick = onRemoveImage,
+                    }
+                }
+            } else {
+                //Text input
+                BasicTextField(
+                    value = text,
+                    onValueChange = onTextChange,
+                    maxLines = 6,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    decorationBox = { innerTextField ->
+                        Box(
                             modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .background(Color.Black.copy(alpha = 0.3f), shape = CircleShape)
-                                .size(24.dp)
+                                .fillMaxWidth()
+                                .padding(4.dp),
+                            contentAlignment = Alignment.CenterStart
                         ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = "Remove Image",
-                                tint = Color.White
-                            )
-                        }
-                    }
-                } else {
-                    //Text input
-                    BasicTextField(
-                        value = text,
-                        onValueChange = onTextChange,
-                        maxLines = 6,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        decorationBox = { innerTextField ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(4.dp),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                if (text.isEmpty()) {
-                                    Text(
-                                        text = "Chat as ${taxiUser?.nickname ?: "unknown"}",
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                        style = MaterialTheme.typography.bodyMedium
-                                    )
-                                }
-                                innerTextField()
+                            if (text.isEmpty()) {
+                                Text(
+                                    text = "Chat as ${taxiUser?.nickname ?: "unknown"}",
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
                             }
+                            innerTextField()
                         }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Send button
-            Button(
-                onClick = {
-                    if (selectedImage != null) {
-                        onSendImage(selectedImage)
-                        onRemoveImage()
-                    } else if (text.isNotBlank()) {
-                        onSendText(text)
-                        onTextChange("")
                     }
-                },
-                enabled = text.isNotBlank() || selectedImage != null
-            ) {
-                if (isUploading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(R.drawable.paperplane),
-                        contentDescription = "Send",
-                        modifier = Modifier.size(20.dp),
-                        tint = if (text.isNotBlank() || selectedImage != null) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
-                    )
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Send button
+        Button(
+            onClick = {
+                if (selectedImage != null) {
+                    onSendImage(selectedImage)
+                    onRemoveImage()
+                } else if (text.isNotBlank()) {
+                    onSendText(text)
+                    onTextChange("")
                 }
+            },
+            enabled = text.isNotBlank() || selectedImage != null
+        ) {
+            if (isUploading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onPrimary
+                )
+            } else {
+                Icon(
+                    painter = painterResource(R.drawable.paperplane),
+                    contentDescription = "Send",
+                    modifier = Modifier.size(20.dp),
+                    tint = if (text.isNotBlank() || selectedImage != null) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
+}
 
 // MARK: - Functions
 fun loadMoreIfNeeded(

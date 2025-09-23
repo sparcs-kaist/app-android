@@ -1,12 +1,15 @@
 package com.example.soap.Features.UserPostList
 
+import android.net.Uri
 import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostAuthor
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserPostListViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val araBoardRepository: AraBoardRepositoryProtocol
 ) : ViewModel(), UserPostListViewModelProtocol {
 
@@ -30,12 +34,17 @@ class UserPostListViewModel @Inject constructor(
         data class Error(val message: String) : ViewState()
     }
 
+    private val initialAuthor: AraPostAuthor by lazy {
+        val json = savedStateHandle.get<String>("author_json")
+            ?: throw IllegalStateException("author_json is null. UserPostListViewModel requires a author_json to initialize.")
+        Gson().fromJson(Uri.decode(json), AraPostAuthor::class.java)
+    }
+
+    override var user: AraPostAuthor = initialAuthor
+
     // State
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
-
-    private val _user = MutableStateFlow<AraPostAuthor?>(null)
-    override val user: StateFlow<AraPostAuthor?> = _user.asStateFlow()
 
     private val _posts = MutableStateFlow<List<AraPost>>(emptyList())
     override var posts: StateFlow<List<AraPost>> = _posts.asStateFlow()
@@ -63,7 +72,7 @@ class UserPostListViewModel @Inject constructor(
     }
 
     override suspend fun fetchInitialPosts() {
-        val userID = _user.value?.id?.toIntOrNull() ?: return
+        val userID = user.id.toIntOrNull() ?: return
         viewModelScope.launch {
             _state.value = ViewState.Loading
             try {
@@ -85,7 +94,7 @@ class UserPostListViewModel @Inject constructor(
     }
 
     override suspend fun loadNextPage() {
-        val userID = _user.value?.id?.toIntOrNull() ?: return
+        val userID = user.id.toIntOrNull() ?: return
         if (_isLoadingMore.value || !hasMorePages) return
 
         _isLoadingMore.value = true
