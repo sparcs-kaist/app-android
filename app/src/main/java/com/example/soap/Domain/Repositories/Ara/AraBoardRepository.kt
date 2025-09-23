@@ -1,9 +1,6 @@
 package com.example.soap.Domain.Repositories.Ara
 
-import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
 import com.example.soap.Domain.Enums.AraContentReportType
 import com.example.soap.Domain.Models.Ara.AraAttachment
 import com.example.soap.Domain.Models.Ara.AraBoard
@@ -14,11 +11,8 @@ import com.example.soap.Networking.RequestDTO.AraPostRequestDTO
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.example.soap.Shared.Extensions.compressForUpload
-import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Response
@@ -46,8 +40,7 @@ interface AraBoardRepositoryProtocol {
 }
 
 class AraBoardRepository @Inject constructor(
-    private val api: AraBoardApi,
-    @ApplicationContext private val context: Context
+    private val api: AraBoardApi
 ) : AraBoardRepositoryProtocol {
 
     // MARK: - Caches
@@ -119,14 +112,4 @@ class AraBoardRepository @Inject constructor(
     override suspend fun deletePost(postID: Int): Response<Unit> {
         return api.delete(postID)
     }
-
-    suspend fun loadBitmap(uri: Uri): Bitmap? = withContext(Dispatchers.IO) {
-        try {
-            val stream = context.contentResolver.openInputStream(uri)
-            BitmapFactory.decodeStream(stream)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
 }
