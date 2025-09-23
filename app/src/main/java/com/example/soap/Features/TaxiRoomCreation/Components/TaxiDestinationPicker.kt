@@ -34,6 +34,7 @@ import com.example.soap.Shared.Extensions.LocalizedText
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
 
 @Composable
@@ -74,7 +75,7 @@ fun TaxiDestinationPicker(
             modifier = Modifier
                 .padding(horizontal = 4.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.lightGray0)
+                .background(MaterialTheme.colorScheme.grayBB)
                 .graphicsLayer {
                     rotationX = if (isFlipped) 180f else 0f
                 }

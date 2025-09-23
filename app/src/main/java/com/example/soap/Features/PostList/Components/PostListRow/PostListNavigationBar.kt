@@ -1,6 +1,7 @@
 package com.example.soap.Features.PostList.Components.PostListRow
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -17,19 +18,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.NavigationBar.Components.SearchButton
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BoardNavigationBar(navController: NavController) {
+fun BoardNavigationBar(
+    title: String,
+    subTitle: String,
+    navController: NavController
+) {
     CenterAlignedTopAppBar(
         navigationIcon = {
             Row(
-                modifier = Modifier.clickable { navController.navigate(Channel.Start.name) },
+                modifier = Modifier.clickable { navController.popBackStack() },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -45,11 +50,18 @@ fun BoardNavigationBar(navController: NavController) {
             }
         },
         title = {
-            Text(
-                text = stringResource(R.string.trending_board),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally){
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = subTitle,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.grayBB
+                )
+            }
         },
         actions = {
             SearchButton()
@@ -65,5 +77,5 @@ fun BoardNavigationBar(navController: NavController) {
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ BoardNavigationBar(rememberNavController()) }
+    Theme{ BoardNavigationBar("Title","notices", rememberNavController()) }
 }

@@ -124,7 +124,7 @@ fun PostComposeView(
                             viewModel.writePost()
                         } finally {
                             isUploading = false
-                            navController.navigate(Channel.TrendingBoard.name)
+                            navController.navigate(Channel.BoardList.name)
                         }
                     }
                               },

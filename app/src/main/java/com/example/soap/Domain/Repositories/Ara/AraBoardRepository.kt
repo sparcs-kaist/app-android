@@ -49,6 +49,7 @@ class AraBoardRepository @Inject constructor(
     @ApplicationContext private val context: Context
 ) : AraBoardRepositoryProtocol {
 
+    // MARK: - Caches
     private var cachedBoards: List<AraBoard>? = null
     private val mutex = Mutex()
 

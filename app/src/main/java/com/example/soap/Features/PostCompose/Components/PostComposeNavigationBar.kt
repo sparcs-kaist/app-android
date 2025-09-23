@@ -70,7 +70,7 @@ fun PostComposeNavigationBar(
                     },
                     onClick = {
                         expanded = false
-                        navController.navigate(Channel.TrendingBoard.name)
+                        navController.navigate(Channel.BoardList.name)
                     }
                 )
             }

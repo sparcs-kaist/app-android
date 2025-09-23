@@ -40,8 +40,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Features.BoardList.BoardListView
+import com.example.soap.Features.BoardList.BoardListViewModel
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
@@ -71,7 +71,6 @@ import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.R
-import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.ViewModelMocks.MockPostComposeViewModel
 import com.example.soap.ui.theme.Theme
 
@@ -80,14 +79,15 @@ enum class Channel(@StringRes val title: Int) {
     Start(title = R.string.start),
     TimeTable(title = R.string.timetable),
     Taxi(title = R.string.taxi),
-    TrendingBoard(title = R.string.general_board),
+    BoardList(title = R.string.general_board),
     Boards(title = R.string.boards),
     PostView(title = R.string.postview), //임시
     PostCompose(title = R.string.postcompose),
     LectureDetail(title= R.string.lecturedetail),//임시
     TaxiRoomCreation(title = R.string.taxi_room_creation),
     TaxiChatView(title = R.string.taxichatview),
-    TaxiChatListView(title = R.string.taxichatlistview)
+    TaxiChatListView(title = R.string.taxichatlistview),
+    AraChatView(title = R.string.ara_chat_view) //임시
 }
 
 @Composable
@@ -112,10 +112,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Channel.Start.name,
             ) { HomeView(navController) }
-
-            composable(
-                route = Channel.Boards.name
-            ) { BoardListView(navController) }
 
             composable(
                 route = Channel.TimeTable.name
@@ -185,23 +181,33 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             }
 
             navigation(
-                startDestination = Channel.TrendingBoard.name,
+                startDestination = Channel.Boards.name,
                 route = "AraGraph"
             ) {
                 composable(
-                    route = Channel.TrendingBoard.name
+                    route = Channel.Boards.name
                 ) { backStackEntry ->
-                    val parentEntry = remember(backStackEntry) {
-                        navController.getBackStackEntry("AraGraph")
-                    }
-                    val viewModel: PostListViewModelProtocol =
-                        hiltViewModel<PostListViewModel>(parentEntry)
+                    val viewModel: BoardListViewModel = hiltViewModel(backStackEntry)
+                    BoardListView(viewModel = viewModel, navController = navController)
+                }
 
+                composable(
+                    route = Channel.BoardList.name + "?board_json={board_json}",
+                    arguments = listOf(
+                        navArgument("board_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) { backStackEntry ->
+
+                    val viewModelImpl: PostListViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: PostListViewModelProtocol = viewModelImpl
                     PostListView(
-                        board = AraBoard.mock(),
-                        postListViewModel = viewModel,
+                        viewModel = viewModel,
                         navController = navController
                     )
+
                 }
 
                 composable(
@@ -242,7 +248,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     LectureDetailView(lectureId = it, navController = navController)
                 }
             }
-
         }
     }
 }
@@ -292,6 +297,9 @@ fun AppBar(
                         )
                     }
                     ChatButton(onClick = {navController.navigate(Channel.TaxiChatListView.name)} )
+                }
+                Channel.Boards -> {
+                    ChatButton(onClick = {navController.navigate(Channel.AraChatView.name)})
                 }
                 else -> {}
             }
