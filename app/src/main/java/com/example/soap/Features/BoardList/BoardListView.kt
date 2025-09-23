@@ -2,7 +2,7 @@ package com.example.soap.Features.BoardList
 
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -10,7 +10,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -18,11 +17,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
@@ -31,6 +30,7 @@ import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraBoardGroup
 import com.example.soap.Features.BoardList.Components.BoardList
 import com.example.soap.Features.BoardList.Components.BoardListSectionItem
+import com.example.soap.Features.BoardList.Components.BoardListSkeleton
 import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
@@ -78,17 +78,11 @@ fun BoardListView(
         ) {
             when (state) {
                 is BoardListViewModel.ViewState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+                    LoadingView()
                 }
 
                 is BoardListViewModel.ViewState.Loaded -> {
                     val loadedState = state as BoardListViewModel.ViewState.Loaded
-
                         LoadedView(
                             boards = loadedState.boards,
                             groups = loadedState.groups,
@@ -97,7 +91,6 @@ fun BoardListView(
                                 navController.navigate(Channel.BoardList.name + "?board_json=$json")
                             }
                         )
-
                 }
 
                 is BoardListViewModel.ViewState.Error -> {
@@ -111,7 +104,19 @@ fun BoardListView(
                     }
                 }
             }
+    }
+}
 
+@Composable
+private fun LoadingView(){
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ){
+        BoardListSkeleton(4)
+        BoardListSkeleton(1)
+        BoardListSkeleton(2)
+        BoardListSkeleton(3)
     }
 }
 

@@ -34,7 +34,7 @@ import com.example.soap.Shared.Extensions.LocalizedText
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.Theme
-import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.gray64
 import com.example.soap.ui.theme.lightGray0
 
 @Composable
@@ -75,7 +75,7 @@ fun TaxiDestinationPicker(
             modifier = Modifier
                 .padding(horizontal = 4.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.grayBB)
+                .background(MaterialTheme.colorScheme.lightGray0)
                 .graphicsLayer {
                     rotationX = if (isFlipped) 180f else 0f
                 }
@@ -119,7 +119,7 @@ fun LocationMenu(
             color = if (selection != null)
                 MaterialTheme.colorScheme.onSurface
             else
-                MaterialTheme.colorScheme.lightGray0
+                MaterialTheme.colorScheme.gray64
         )
 
         Icon(
@@ -156,7 +156,7 @@ fun LocationMenu(
 
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview(){
     Theme {
         TaxiDestinationPicker(
