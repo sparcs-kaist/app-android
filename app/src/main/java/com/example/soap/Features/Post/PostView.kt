@@ -17,10 +17,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -87,6 +89,7 @@ fun PostView(
     navController: NavController
 ) {
     val scope = rememberCoroutineScope()
+    val proxy = rememberLazyListState()
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -122,11 +125,14 @@ fun PostView(
         },
         bottomBar = {
             InputBar(
-                proxy = LazyListState(),
                 comment = comment,
                 onCommentChange = { comment = it },
                 isWritingComment = isWritingComment,
-                onWritingCommentChange = { isWritingComment = it },
+                onWritingCommentChange = {
+                    isWritingComment = it
+                    commentOnEdit = null
+                    comment = ""
+                                         },
                 commentOnEdit = commentOnEdit,
                 targetComment = targetComment,
                 isUploadingComment = isUploadingComment,
@@ -147,13 +153,13 @@ fun PostView(
 
                             uploadedComment.let { comment ->
                                 scope.launch {
-                                    LazyListState().scrollToItem(comment.id)
+                                    proxy.scrollToItem(comment.id)
                                 }
                             }
 
                         } catch (e: Exception) {
                             Log.e("PostView", "Failed to upload comment", e)
-                            // TODO: 에러 처리
+                            showAlert(title = "Error", message = "Failed to upload comment")
                         } finally {
                             isUploadingComment = false
                         }
@@ -179,7 +185,8 @@ fun PostView(
             LazyColumn(
                 Modifier
                     .padding(innerPadding)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                state = proxy
             ) {
                 item {
                     Header(
@@ -414,7 +421,9 @@ private fun Comments(
                             )
                         )
                     },
-                    onDelete = { post.commentCount -= 1 },
+                    onDelete = {
+                        post.commentCount -= 1
+                               },
                     onTranslate = {},
                     araCommentRepository = repo
                 )
@@ -455,7 +464,6 @@ private fun Comments(
 
 @Composable
 fun InputBar(
-    proxy: LazyListState,
     comment: String,
     onCommentChange: (String) -> Unit,
     isWritingComment: Boolean,
@@ -469,10 +477,9 @@ fun InputBar(
     focusRequester: FocusRequester
 ) {
     val scope = rememberCoroutineScope()
-    val commentState = remember { mutableStateOf(comment) }
     val isWritingState = remember { mutableStateOf(isWritingComment) }
 
-    val showProfile = (!isWritingState.value && commentState.value.isEmpty())
+    val showProfile = (!isWritingState.value && comment.isEmpty())
 
     Row(
         modifier = Modifier
@@ -492,18 +499,17 @@ fun InputBar(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Editing",
+                        text = "Editing...",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     TextButton(onClick = {
-                        commentState.value = ""
                         onCommentChange("")
                         onWritingCommentChange(false)
                     }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.round_swap_calls),
+                            imageVector = Icons.Default.Close,
                             contentDescription = "Cancel"
                         )
                     }
@@ -521,9 +527,8 @@ fun InputBar(
                         .padding(horizontal = 12.dp, vertical = 8.dp)
                 ) {
                     BasicTextField(
-                        value = commentState.value,
+                        value = comment,
                         onValueChange = {
-                            commentState.value = it
                             onCommentChange(it)
                         },
                         modifier = Modifier
@@ -538,7 +543,7 @@ fun InputBar(
                                     .padding(4.dp),
                                 contentAlignment = Alignment.CenterStart
                             ) {
-                                if (commentState.value.isEmpty()) {
+                                if (comment.isEmpty()) {
                                     Text(
                                         text = placeholder,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
@@ -556,7 +561,7 @@ fun InputBar(
         Spacer(modifier = Modifier.width(8.dp))
 
         // Send Button
-        if (commentState.value.isNotEmpty()) {
+        if (comment.isNotEmpty()) {
             MoveToLeftFadeIn(!showProfile){
                 Button(
                     onClick = {
@@ -564,7 +569,7 @@ fun InputBar(
                             onUploadComment()
                         }
                     },
-                    enabled = !isUploadingComment && commentState.value.isNotEmpty()
+                    enabled = !isUploadingComment && comment.isNotEmpty()
                 ) {
                     if (isUploadingComment) {
                         CircularProgressIndicator(

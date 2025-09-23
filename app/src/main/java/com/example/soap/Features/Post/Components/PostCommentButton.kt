@@ -59,8 +59,13 @@ fun PostCommentButton(
             AnimatedContent(
                 targetState = commentCount,
                 transitionSpec = {
-                    ((slideInVertically { -it } + fadeIn()).togetherWith(slideOutVertically { +it } + fadeOut()))
-                        .using(SizeTransform(clip = false))
+                    if (targetState > initialState) {
+                        (slideInVertically { -it } + fadeIn())
+                            .togetherWith(slideOutVertically { it } + fadeOut())
+                    } else {
+                        (slideInVertically { it } + fadeIn())
+                            .togetherWith(slideOutVertically { -it } + fadeOut())
+                    }.using(SizeTransform(clip = false))
                 },
                 label = "CommentCountTransition"
             ) { targetCount ->
@@ -71,7 +76,7 @@ fun PostCommentButton(
                 )
             }
         }
-    }
+        }
 }
 
 @Composable

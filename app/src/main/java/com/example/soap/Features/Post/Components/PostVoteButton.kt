@@ -54,7 +54,9 @@ fun PostVoteButton(
                 painter = painterResource(upvoteImage),
                 contentDescription = "UpVote",
                 tint = if (myVote == true) upVoteColor else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(20.dp).clickable { onUpVote() }
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable { onUpVote() }
             )
             AnimatedContent(
                 targetState = votes,
