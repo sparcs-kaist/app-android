@@ -1,6 +1,7 @@
 package com.example.soap.Features.PostList
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -120,7 +121,7 @@ class PostListViewModel @Inject constructor(
                 isLoadingMore = false
 
             } catch (e: Exception) {
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
+                Log.e("PostListViewModel", "Error loading next page: $e")
                 isLoadingMore = false
             }
         }
