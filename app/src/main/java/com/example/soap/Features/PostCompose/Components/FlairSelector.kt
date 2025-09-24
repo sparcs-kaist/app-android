@@ -10,14 +10,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +38,6 @@ import com.example.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
-import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.delay
 
 @Composable
@@ -83,46 +81,33 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
             onDismissRequest = { expanded = false },
             modifier = Modifier.background(MaterialTheme.colorScheme.surface)
         ) {
-            Box(
-                Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        viewModel.selectedTopic = null
-                        expanded = false
-                    }
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = "No Topic",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.grayBB
-                )
-            }
-
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.lightGray0,
-                modifier = Modifier.padding(horizontal = 2.dp)
+            DropdownMenuItem(
+                text = {
+                    Text(
+                        text = "No Topic",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.grayBB
+                    )
+                },
+                onClick = {
+                    viewModel.selectedTopic = null
+                    expanded = false
+                },
             )
 
-            viewModel.board.topics.forEachIndexed { index, topic ->
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            viewModel.selectedTopic = topic
-                            expanded = false
-                        }
-                        .padding(8.dp)
-                ) {
-                    Text(
-                        text = topic.name.localized() ?: "No Topic",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-
-                if (index != viewModel.board.topics.lastIndex) {
-                    HorizontalDivider(thickness = 1.dp)
-                }
+            viewModel.board.topics.forEach { topic ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = topic.name.localized(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    onClick = {
+                        viewModel.selectedTopic = topic
+                        expanded = false
+                    },
+                )
             }
         }
     }
