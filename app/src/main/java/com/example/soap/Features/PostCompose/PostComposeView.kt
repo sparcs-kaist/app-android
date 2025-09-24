@@ -1,4 +1,6 @@
 package com.example.soap.Features.PostCompose
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -102,12 +104,19 @@ fun PostComposeView(
     LaunchedEffect(viewModel.selectedItems) { viewModel.updateSelectedImages(context) }
 
     //Image
+    var selectedImage by remember { mutableStateOf<Bitmap?>(null) }
     var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { selectedImageUri = it }
+        uri?.let {
+            selectedImageUri = it
+            val bitmap = context.contentResolver.openInputStream(it)?.use { stream ->
+                BitmapFactory.decodeStream(stream)
+            }
+            selectedImage = bitmap
+        }
     }
     var showPhotosPicker by remember { mutableStateOf(false) }
 
