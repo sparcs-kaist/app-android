@@ -305,17 +305,38 @@ fun PostOptionsRow(
                 ) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.political)) },
-                        trailingIcon = { if (isPolitical) Icons.Default.Check },
+                        trailingIcon = {
+                            if (isPolitical) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Check Political"
+                                )
+                            }
+                        },
                         onClick = onPoliticalChange
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.nsfw)) },
-                        trailingIcon = { if (isNSFW) Icons.Default.Check },
+                        trailingIcon = {
+                            if (isNSFW) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Check NSFW"
+                                )
+                            }
+                        },
                         onClick = onNSFWChange
                     )
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.anonymous)) },
-                        trailingIcon = { if (writeAsAnonymous) Icons.Default.Check },
+                        trailingIcon = {
+                            if (writeAsAnonymous) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Check Anonymous"
+                                )
+                            }
+                        },
                         onClick = onAnonymousChange
                     )
                 }
