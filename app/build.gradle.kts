@@ -19,6 +19,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
+        manifestPlaceholders += mapOf("googleMapKey" to googleMapKey)
         applicationId = "com.example.soap"
         minSdk = 31
         targetSdk = 35
@@ -26,8 +27,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["googleMapKey"] = googleMapKey
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
+        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapKey\"")
     }
 
     buildTypes {
@@ -48,6 +49,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

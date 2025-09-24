@@ -3,7 +3,6 @@ package com.example.soap.Shared.Extensions
 import android.graphics.Bitmap
 import java.io.ByteArrayOutputStream
 
-
 fun Bitmap.compressForUpload(
     maxSizeMB: Double = 1.0,
     maxDimension: Int = 500

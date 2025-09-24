@@ -1,6 +1,9 @@
 package com.example.soap.Features.TaxiRoomCreation.Components
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -46,6 +49,10 @@ fun TaxiDestinationPicker(
     locations: List<TaxiLocation>
 ) {
     var isFlipped by remember { mutableStateOf(false) }
+    val rotationXState = animateFloatAsState(
+        targetValue = if (isFlipped) 180f else 0f,
+        animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
+    )
 
     Row(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -77,7 +84,8 @@ fun TaxiDestinationPicker(
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.lightGray0)
                 .graphicsLayer {
-                    rotationX = if (isFlipped) 180f else 0f
+                    rotationX = rotationXState.value
+                    cameraDistance = 12 * density
                 }
                 .animateContentSize()
                 .clickable {

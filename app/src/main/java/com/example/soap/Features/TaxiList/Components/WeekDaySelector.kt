@@ -140,7 +140,7 @@ fun WeekDaySelector(
                     ) {
                         Text(
                             text = day.dayOfMonth.toString(),
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
                             color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
                         )
 
