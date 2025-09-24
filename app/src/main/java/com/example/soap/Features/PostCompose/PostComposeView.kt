@@ -273,7 +273,7 @@ fun PostOptionsRow(
                 enabled = !isUploading
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.add_photo_alternate),
+                    painter = painterResource(R.drawable.outline_photo_library),
                     contentDescription = "add Photo",
                     modifier = Modifier.size(28.dp)
                 )
