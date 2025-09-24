@@ -105,8 +105,11 @@ class TaxiChatUseCase @Inject constructor(
                 val filtered = newChats.filter { it.roomID == room.id }
                 if (filtered.isEmpty()) return@onEach
 
+                val merged = (_accumulatedChats + filtered)
+                    .distinctBy { it.id }
+
                 _accumulatedChats.clear()
-                _accumulatedChats.addAll(filtered.distinctBy { it.id })
+                _accumulatedChats.addAll(merged)
 
                 _groupedChatsFlow.value =
                     groupChats(_accumulatedChats.toList(), user?.oid ?: "")
