@@ -72,13 +72,13 @@ fun TaxiRoomCell(
                     )
                 }
 
-                if(room.isDeparted){
+                if (room.isDeparted){
                     TaxiRoomStatusIndicator(
                         settlementType = room.participants.firstOrNull { it.id == taxiUser?.oid }?.isSettlement ?: TaxiParticipant.SettlementType.NotDeparted,
                         settlementCount = room.settlementTotal ?: 0,
                         participantsCount = room.participants.size
                     )
-                }else {
+                } else {
                     TaxiParticipantsIndicator(
                         participants = room.participants.size,
                         capacity = room.capacity
