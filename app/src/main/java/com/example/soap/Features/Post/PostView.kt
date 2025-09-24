@@ -149,7 +149,6 @@ fun PostView(
                     comment = ""
                                          },
                 commentOnEdit = commentOnEdit,
-                targetComment = targetComment,
                 isUploadingComment = isUploadingComment,
                 onUploadComment = {
                     scope.launch {
@@ -174,7 +173,9 @@ fun PostView(
 
                         } catch (e: Exception) {
                             Log.e("PostView", "Failed to upload comment", e)
-                            showAlert(title = "Error", message = "Failed to upload comment")
+                            showAlert = true
+                            alertTitle = "Error"
+                            alertMessage = "Failed to upload comment"
                         } finally {
                             isUploadingComment = false
                         }
@@ -230,12 +231,6 @@ fun PostView(
                 }
                 item {
                     Comments(
-                        viewModel = viewModel,
-                        scope = scope,
-                        commentOnEdit = commentOnEdit,
-                        targetComment = targetComment,
-                        comment = comment,
-                        isWritingComment = isWritingComment,
                         post = post
                     ) {
                         commentOnEdit = it.commentOnEdit
@@ -262,7 +257,9 @@ fun PostView(
                                 navController.popBackStack()
                             } catch (e: Exception) {
                                 Log.e("PostView", "Failed to delete post", e)
-                                showAlert(title = "Error", message = "Failed to delete post")
+                                showAlert = true
+                                alertTitle = "Error"
+                                alertMessage = "Failed to delete post"
                             }
                         }
 
@@ -415,12 +412,6 @@ private fun Footer(
 
 @Composable
 private fun Comments(
-    viewModel: PostViewModelProtocol,
-    scope: CoroutineScope,
-    commentOnEdit: AraPostComment?,
-    targetComment: AraPostComment?,
-    comment: String,
-    isWritingComment: Boolean,
     post: AraPost,
     onCommentChange: (CommentUpdate) -> Unit
 ) {
@@ -505,7 +496,6 @@ fun InputBar(
     isWritingComment: Boolean,
     onWritingCommentChange: (Boolean) -> Unit,
     commentOnEdit: AraPostComment?,
-    targetComment: AraPostComment?,
     isUploadingComment: Boolean,
     onUploadComment: () -> Unit,
     profilePicture: @Composable () -> Unit,
@@ -688,11 +678,6 @@ fun placeholder(
         commentOnEdit != null -> commentOnEdit.content.orEmpty()
         else -> "reply as ${viewModel.post.value.myCommentProfile?.profile?.nickname ?: "anonymous"}"
     }
-}
-
-
-private fun showAlert(title: String, message: String) {
-    // Compose에서 Alert 상태로 관리
 }
 
 data class CommentUpdate(
