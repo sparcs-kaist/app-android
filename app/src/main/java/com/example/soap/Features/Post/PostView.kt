@@ -400,8 +400,9 @@ private fun Footer(
         PostVoteButton(
             myVote = post.myVote,
             votes = post.upVotes - post.downVotes,
-            onUpVote = { scope.launch{ viewModel.upVote() } },
-            onDownVote = { scope.launch{ viewModel.downVote() } }
+            onUpVote = {
+                if (post.isMine == false) scope.launch{ viewModel.upVote() } },
+            onDownVote = { if (post.isMine == false) scope.launch{ viewModel.downVote() } }
         )
         PostCommentButton(commentCount = post.commentCount) { onCommentClick() }
         Spacer(Modifier.weight(1f))
