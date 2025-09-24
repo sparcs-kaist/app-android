@@ -62,13 +62,6 @@ class PostListViewModel @Inject constructor(
     var totalPages: Int = 0
     var pageSize: Int = 30
 
-    //Mark: - Initializer
-    init {
-        viewModelScope.launch {
-            fetchInitialPosts()
-        }
-    }
-
     //Mark: - Functions
     @OptIn(FlowPreview::class)
     override fun bind() {
