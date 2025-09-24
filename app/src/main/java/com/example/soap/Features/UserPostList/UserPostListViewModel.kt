@@ -27,7 +27,7 @@ class UserPostListViewModel @Inject constructor(
     private val araBoardRepository: AraBoardRepositoryProtocol
 ) : ViewModel(), UserPostListViewModelProtocol {
 
-    // ViewState
+    //Mark - ViewState
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val posts: List<AraPost>) : ViewState()
@@ -42,18 +42,18 @@ class UserPostListViewModel @Inject constructor(
 
     override var user: AraPostAuthor = initialAuthor
 
-    // State
+    //Mark - State
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
     private val _posts = MutableStateFlow<List<AraPost>>(emptyList())
     override var posts: StateFlow<List<AraPost>> = _posts.asStateFlow()
 
-    // Search
+    //Mark - Search
     private val _searchKeyword = MutableStateFlow("")
     override var searchKeyword: StateFlow<String> = _searchKeyword.asStateFlow()
 
-    // Paging
+    //Mark - Paging
     private val _isLoadingMore = MutableStateFlow(false)
     override val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
 
@@ -62,11 +62,7 @@ class UserPostListViewModel @Inject constructor(
     private var totalPages = 0
     private val pageSize = 30
 
-    init {
-        bind()
-    }
-
-    // Search Properties
+    //Mark - Search Properties
     fun setSearchKeyword(value: String) {
         _searchKeyword.value = value
     }
