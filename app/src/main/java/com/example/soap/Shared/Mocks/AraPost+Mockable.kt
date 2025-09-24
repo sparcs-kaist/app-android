@@ -511,7 +511,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                             ),
                             isBlocked = false
                         ),
-                        attachmentType = AraPost.AttachmentType.FILE,
+                        attachmentType = AraPost.AttachmentType.NON_IMAGE,
                         communicationArticleStatus = null,
                         createdAt = Date(),
                         isNSFW = false,
