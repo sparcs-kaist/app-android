@@ -118,12 +118,12 @@ fun PostListView(
                     PostList(
                         posts = state.posts,
                         onLoadMore = {
-                            coroutineScope.launch{
+                            coroutineScope.launch {
                             viewModel.loadNextPage()
                         } },
                         onRefresh = {
                             isRefreshing = true
-                            coroutineScope.launch{
+                            coroutineScope.launch {
                                 viewModel.fetchInitialPosts()
                                 delay(500)
                                 isRefreshing = false
@@ -142,7 +142,7 @@ fun PostListView(
                         icon = Icons.Default.Warning,
                         errorMessage = error,
                         onRetry = {
-                            coroutineScope.launch{
+                            coroutineScope.launch {
                                 if (!loadedInitialPost) {
                                     viewModel.fetchInitialPosts()
                                     viewModel.bind()
