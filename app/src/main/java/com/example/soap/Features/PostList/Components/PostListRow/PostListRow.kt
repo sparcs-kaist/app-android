@@ -74,11 +74,11 @@ fun PostListRow(
                 )
             }
 
-            if (post.attachmentType == AraPost.AttachmentType.FILE || post.attachmentType == AraPost.AttachmentType.BOTH) {
+            if (post.attachmentType == AraPost.AttachmentType.NON_IMAGE || post.attachmentType == AraPost.AttachmentType.BOTH) {
                 Icon(
                     painter = painterResource(R.drawable.attach_file),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.grayBB,
                     modifier = Modifier.size(16.dp)
                 )
             }
