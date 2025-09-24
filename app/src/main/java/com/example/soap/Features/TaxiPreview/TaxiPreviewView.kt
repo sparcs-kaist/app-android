@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiPreview
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,27 +28,31 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Features.TaxiPreview.Components.InfoRow
 import com.example.soap.Features.TaxiPreview.Components.RouteHeaderView
+import com.example.soap.R
 import com.example.soap.Shared.Extensions.formattedString
+import com.example.soap.Shared.Extensions.toBitmapDescriptor
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.gray64
 import com.example.soap.ui.theme.grayBB
-import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.Polyline
 import com.google.maps.android.compose.rememberCameraPositionState
 import kotlinx.coroutines.launch
-
 
 @Composable
 fun TaxiPreviewView(
@@ -56,11 +61,9 @@ fun TaxiPreviewView(
     onDismiss: ()-> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(LatLng(room.source.latitude, room.source.longitude), 13f)
-    }
-
+    val cameraPositionState = rememberCameraPositionState()
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var pathPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
@@ -68,10 +71,19 @@ fun TaxiPreviewView(
     LaunchedEffect(Unit) {
         try {
             pathPoints = viewModel.calculateRoutePoints(
-                LatLng(room.source.latitude, room.source.longitude),
-                LatLng(room.destination.latitude, room.destination.longitude)
+                source = LatLng(room.source.latitude, room.source.longitude),
+                destination = LatLng(room.destination.latitude, room.destination.longitude)
             )
-        } catch (e: Exception) {
+            if (pathPoints.isNotEmpty()) {
+                val bounds = LatLngBounds.builder().apply {
+                    include(LatLng(room.source.latitude, room.source.longitude))
+                    include(LatLng(room.destination.latitude, room.destination.longitude))
+                    pathPoints.forEach { include(it) }
+                }.build()
+                cameraPositionState.move(CameraUpdateFactory.newLatLngBounds(bounds, 100))
+            }
+        }catch (e: Exception) {
+            Log.e("TaxiPreviewView", "Error calculating route points: ${e.message}")
             errorMessage = e.localizedMessage ?: "Unknown error"
             showError = true
         }
@@ -99,20 +111,27 @@ fun TaxiPreviewView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(200.dp),
-            cameraPositionState = cameraPositionState
+            cameraPositionState = cameraPositionState,
+            uiSettings = MapUiSettings(
+                zoomControlsEnabled = false,
+                zoomGesturesEnabled = false,
+                scrollGesturesEnabled = false
+            )
         ) {
             Marker(
                 state = MarkerState(position = LatLng(room.source.latitude, room.source.longitude)),
                 title = room.source.title.localized(),
-                snippet = "Source"
+                snippet = "Source",
+                icon = context.toBitmapDescriptor(R.drawable.round_location_on, MaterialTheme.colorScheme.gray64)
             )
             Marker(
-                state = MarkerState(position = LatLng(room.source.latitude, room.source.longitude)),
+                state = MarkerState(position = LatLng(room.destination.latitude, room.destination.longitude)),
                 title = room.destination.title.localized(),
-                snippet = "Destination"
+                snippet = "Destination",
+                icon = context.toBitmapDescriptor(R.drawable.arrival_point, MaterialTheme.colorScheme.primary)
             )
             if (pathPoints.isNotEmpty()) {
-                Polyline(points = pathPoints, color = Color.Blue)
+                Polyline(points = pathPoints, color = MaterialTheme.colorScheme.primary)
             }
         }
 
