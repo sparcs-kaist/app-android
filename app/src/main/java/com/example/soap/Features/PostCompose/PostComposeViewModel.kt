@@ -91,4 +91,11 @@ class PostComposeViewModel @Inject constructor(
 
         araBoardRepository.writePost(request)
     }
+
+    override fun removeImage(index: Int) {
+        val mutable = selectedImages.toMutableList()
+        mutable.removeAt(index)
+        selectedImages = mutable.toList()
+        _selectedItems = _selectedItems.toMutableList().apply { removeAt(index) }
+    }
 }

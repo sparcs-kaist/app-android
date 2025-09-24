@@ -1,11 +1,13 @@
 package com.example.soap.Features.PostCompose
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +18,10 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -24,6 +29,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -44,9 +50,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
@@ -101,21 +111,12 @@ fun PostComposeView(
         coroutineScope.launch { scrollState.animateScrollTo(scrollOffset.toInt()) }
     }
 
-    LaunchedEffect(viewModel.selectedItems) { viewModel.updateSelectedImages(context) }
-
-    //Image
-    var selectedImage by remember { mutableStateOf<Bitmap?>(null) }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
-
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let {
-            selectedImageUri = it
-            val bitmap = context.contentResolver.openInputStream(it)?.use { stream ->
-                BitmapFactory.decodeStream(stream)
-            }
-            selectedImage = bitmap
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uri: List<Uri> ->
+        uri.let {
+            viewModel.selectedItems += it
+            coroutineScope.launch { viewModel.updateSelectedImages(context) }
         }
     }
     var showPhotosPicker by remember { mutableStateOf(false) }
@@ -239,6 +240,42 @@ fun PostComposeView(
 
                 Spacer(Modifier.padding(4.dp))
 
+                if(viewModel.selectedImages.isNotEmpty()){
+                    LazyRow(
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(viewModel.selectedImages) { index, bitmap ->
+                            Box {
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentScale = ContentScale.Crop,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                )
+
+                                IconButton(
+                                    onClick = { viewModel.removeImage(index) },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .background(
+                                            Color.Black.copy(alpha = 0.3f),
+                                            shape = CircleShape
+                                        )
+                                        .size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Remove Image",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
                 Box(Modifier.align(Alignment.End)) {
                     TermsOfUseButton()
                 }

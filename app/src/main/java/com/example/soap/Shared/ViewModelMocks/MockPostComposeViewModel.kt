@@ -33,4 +33,5 @@ class MockPostComposeViewModel : PostComposeViewModelProtocol {
 
     override suspend fun writePost() {}
     override suspend fun updateSelectedImages(context: Context) {}
+    override fun removeImage(index: Int) {}
 }
