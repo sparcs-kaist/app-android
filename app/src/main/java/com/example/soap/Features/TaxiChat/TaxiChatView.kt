@@ -522,11 +522,21 @@ private fun InputBar(
             ) {
                 DropdownMenuItem(
                     onClick = {
-                        onCommitPayment()
+                        onPickPhoto()
                         expanded = false
                     },
-                    enabled = isCommitPaymentAvailable,
-                    text = { Text("Send Payment") }
+                    text = {
+                        Text(
+                            text = "Photo Library",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_photo_library),
+                            contentDescription = null
+                        )
+                    }
                 )
 
                 DropdownMenuItem(
@@ -535,15 +545,38 @@ private fun InputBar(
                         expanded = false
                     },
                     enabled = isCommitSettlementAvailable,
-                    text = { Text("Request Settlement") }
+                    text = {
+                        Text(
+                            text = "Request Settlement",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_edit),
+                            contentDescription = null
+                        )
+                    }
                 )
 
                 DropdownMenuItem(
                     onClick = {
-                        onPickPhoto()
+                        onCommitPayment()
                         expanded = false
                     },
-                    text = { Text("Photo Library") }
+                    enabled = isCommitPaymentAvailable,
+                    text = {
+                        Text(
+                            text = "Send Payment",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.round_payment),
+                            contentDescription = null
+                        )
+                    }
                 )
             }
         }
