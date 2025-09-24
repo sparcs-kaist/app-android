@@ -20,5 +20,5 @@ interface PostComposeViewModelProtocol {
 
     suspend fun writePost()
     suspend fun updateSelectedImages(context: Context)
-
+    fun removeImage(index: Int)
 }
