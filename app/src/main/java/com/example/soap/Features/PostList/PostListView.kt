@@ -80,7 +80,6 @@ fun PostListView(
         if (!loadedInitialPost) {
             loadedInitialPost = true
             viewModel.board = board
-            viewModel.fetchInitialPosts()
             viewModel.bind()
             loadedInitialPost = false
         }
