@@ -33,25 +33,6 @@ class BoardListViewModel @Inject constructor(
     var groups: List<AraBoardGroup> = emptyList()
         private set
 
-    // MARK: - Initializer
-    init {
-        viewModelScope.launch {
-            try {
-                val fetchedBoards = araBoardRepository.fetchBoards()
-                if (fetchedBoards.isNotEmpty()) {
-                    val sortedBoards = fetchedBoards.sortedBy { it.id }
-                    val uniqueGroups = sortedBoards.map { it.group }.distinctBy { it.id }.sortedBy { it.id }
-
-                    boards = sortedBoards
-                    groups = uniqueGroups
-                    _state.value = ViewState.Loaded(sortedBoards, uniqueGroups)
-                }
-            } catch (e: Exception) {
-                _state.value = ViewState.Error("Failed to load boards.")
-            }
-        }
-    }
-
     fun fetchBoards() {
         viewModelScope.launch {
             try {
