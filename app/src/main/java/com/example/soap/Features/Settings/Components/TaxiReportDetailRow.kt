@@ -29,9 +29,9 @@ fun TaxiReportDetailRow(report: TaxiReport) {
             .padding(8.dp)
     ) {
         when (report.reason) {
-            TaxiReport.ReportReason.ETC -> RowElementView(title = "Reason", content = "Other reasons")
-            TaxiReport.ReportReason.NO_SHOW -> RowElementView(title = "Reason", content = "Not showing up")
-            TaxiReport.ReportReason.NO_SETTLEMENT -> RowElementView(title = "Reason", content = "No settlement")
+            TaxiReport.Reason.ETC -> RowElementView(title = "Reason", content = "Other reasons")
+            TaxiReport.Reason.NO_SHOW -> RowElementView(title = "Reason", content = "Not showing up")
+            TaxiReport.Reason.NO_SETTLEMENT -> RowElementView(title = "Reason", content = "No settlement")
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
@@ -44,7 +44,7 @@ fun TaxiReportDetailRow(report: TaxiReport) {
         RowElementView(title = "Date", content = report.reportedAt.formattedString())
         Spacer(modifier = Modifier.height(4.dp))
 
-        if (report.reason == TaxiReport.ReportReason.ETC) {
+        if (report.reason == TaxiReport.Reason.ETC) {
             RowElementView(title = "Other reasons", content = report.etcDetail)
         }
     }
@@ -64,7 +64,7 @@ private fun Preview() {
                     id = UUID.randomUUID().toString(),
                     nickname = "자신감 있는 유체역학_8c249",
                     reportType = TaxiReport.ReportType.REPORTING,
-                    reason = TaxiReport.ReportReason.ETC,
+                    reason = TaxiReport.Reason.ETC,
                     etcDetail = "Not showing up at the scheduled time",
                     reportedAt = Date()
                 )
@@ -75,7 +75,7 @@ private fun Preview() {
                     id = UUID.randomUUID().toString(),
                     nickname = "자신감 있는 유체역학_8c249",
                     reportType = TaxiReport.ReportType.REPORTED,
-                    reason = TaxiReport.ReportReason.NO_SHOW,
+                    reason = TaxiReport.Reason.NO_SHOW,
                     etcDetail = "Not showing up at the scheduled time",
                     reportedAt = Date()
                 )

@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun RowElementView(
@@ -33,7 +34,7 @@ fun RowElementView(
         Spacer(Modifier.padding(horizontal = 16.dp))
         Text(
             text = content,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.grayBB
         )
     }
 }
