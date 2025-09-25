@@ -35,21 +35,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Enums.TaxiReportType
 import com.example.soap.Domain.Models.Taxi.TaxiReport
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.Features.Settings.Components.TaxiReportDetailRow
+import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockTaxiReportListViewModel
 import com.example.soap.ui.theme.Theme
-import java.util.Date
-import java.util.UUID
 
 @Composable
 fun TaxiReportListView(
     viewModel: TaxiReportListViewModelProtocol,
     navController: NavController
 ) {
-    var taxiReportType by remember { mutableStateOf(TaxiReport.ReportType.REPORTED) }
+    var taxiReportType by remember { mutableStateOf(TaxiReportType.INCOMING) }
     val state by viewModel.state.collectAsState()
 
     Scaffold(
@@ -69,7 +70,7 @@ fun TaxiReportListView(
                 .padding(horizontal = 16.dp)
         ) {
             Row(modifier = Modifier.padding(bottom = 8.dp)) {
-                TaxiReport.ReportType.entries.forEach { type ->
+                TaxiReportType.entries.forEach { type ->
                     Button(
                         onClick = { taxiReportType = type },
                         modifier = Modifier.weight(1f),
@@ -146,16 +147,7 @@ private fun ErrorView(icon: ImageVector, message: String, onRetry: () -> Unit){
 private fun LoadingView() {
     Column {
         repeat(2) {
-            TaxiReportDetailRow(
-                TaxiReport(
-                    id = UUID.randomUUID().toString(),
-                    nickname = "자신감 있는 유체역학_8c249",
-                    reportType = TaxiReport.ReportType.REPORTED,
-                    reason = TaxiReport.ReportReason.ETC,
-                    etcDetail = "Not showing up at the scheduled time",
-                    reportedAt = Date()
-                )
-            )
+
         }
     }
 }
@@ -163,11 +155,11 @@ private fun LoadingView() {
 @Composable
 private fun LoadedView(
     viewModel: TaxiReportListViewModelProtocol,
-    taxiReportType: TaxiReport.ReportType
+    taxiReportType: TaxiReportType
 ) {
     val reports = when (taxiReportType) {
-        TaxiReport.ReportType.REPORTED -> viewModel.reports.reported
-        TaxiReport.ReportType.REPORTING -> viewModel.reports.reporting
+        TaxiReportType.INCOMING -> viewModel.reports.incoming
+        TaxiReportType.OUTGOING -> viewModel.reports.outgoing
     }
 
     ReportViewList(reports = reports)
@@ -198,34 +190,10 @@ private fun LoadingPreview() {
 private fun LoadedPreview() {
     val viewModel = MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Loaded).apply {
         reports = TaxiReports(
-            reported = listOf(
-                TaxiReport(
-                    id = UUID.randomUUID().toString(),
-                    nickname = "자신감 있는 유체역학_8c249",
-                    reportType = TaxiReport.ReportType.REPORTED,
-                    reason = TaxiReport.ReportReason.ETC,
-                    etcDetail = "Not showing up at the scheduled time",
-                    reportedAt = Date()
-                )
+            incoming = listOf(
+                TaxiReport.mock()
             ),
-            reporting = listOf(
-                TaxiReport(
-                    id = UUID.randomUUID().toString(),
-                    nickname = "자신감 있는 유체역학_8c249",
-                    reportType = TaxiReport.ReportType.REPORTED,
-                    reason = TaxiReport.ReportReason.ETC,
-                    etcDetail = "Not showing up at the scheduled time",
-                    reportedAt = Date()
-                ),
-                TaxiReport(
-                    id = UUID.randomUUID().toString(),
-                    nickname = "자신감 있는 유체역학_8c249",
-                    reportType = TaxiReport.ReportType.REPORTED,
-                    reason = TaxiReport.ReportReason.ETC,
-                    etcDetail = "Not showing up at the scheduled time",
-                    reportedAt = Date()
-                )
-            )
+            outgoing = TaxiReport.mockList()
         )
     }
     Theme { TaxiReportListView(viewModel, rememberNavController()) }

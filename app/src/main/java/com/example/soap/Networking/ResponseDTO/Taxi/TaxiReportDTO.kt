@@ -1,65 +1,70 @@
 package com.example.soap.Networking.ResponseDTO.Taxi
 
 import com.example.soap.Domain.Models.Taxi.TaxiReport
+import com.example.soap.Domain.Models.Taxi.TaxiReportedUser
 import com.example.soap.Shared.Extensions.toDate
 import com.google.gson.annotations.SerializedName
+import java.net.URL
+import java.util.Date
 
-data class TaxiReportDTO(
-    val reporting: List<TaxiReportDetail>,
-    val reported: List<TaxiReportDetail>
+data class TaxiReportedUserDTO(
+    @SerializedName("id")
+    val id: String,
+
+    @SerializedName("_id")
+    val oid: String,
+
+    @SerializedName("nickname")
+    val nickname: String,
+
+    @SerializedName("profileImageUrl")
+    val profileImageURL: String,
+
+    @SerializedName("withdraw")
+    val withdraw: Boolean
 ) {
-    data class ReportedID(
-
-        @SerializedName("nickname")
-        val nickname: String
-    )
-
-    data class TaxiReportDetail(
-        @SerializedName("_id")
-        val id: String,
-
-        @SerializedName("reportedId")
-        val reportedId: ReportedID,
-
-        @SerializedName("type")
-        val type: String,
-
-        @SerializedName("etcDetail")
-        val etcDetail: String,
-
-        @SerializedName("time")
-        val createdAt: String
-
-    ) {
-        fun toModel(reportType: TaxiReport.ReportType): TaxiReport {
-            val reason = try {
-                TaxiReport.ReportReason.from(type)
-                    ?: throw TaxiReportConversionException.InvalidReason
-            } catch (e: Exception) {
-                throw TaxiReportConversionException.InvalidReason
-            }
-
-            val reportedDate = createdAt.toDate()
-                ?: throw TaxiReportConversionException.InvalidDate
-
-            return TaxiReport(
-                id = id,
-                nickname = reportedId.nickname,
-                reportType = reportType,
-                reason = reason,
-                etcDetail = etcDetail,
-                reportedAt = reportedDate
-            )
-        }
+    fun toModel(): TaxiReportedUser {
+        return TaxiReportedUser(
+            id = id,
+            oid = oid,
+            nickname = nickname,
+            profileImageUrl = if (profileImageURL.isNotBlank()) URL(profileImageURL) else null,
+            withdraw = withdraw
+        )
     }
 }
 
-sealed class TaxiReportConversionException : Exception() {
-    data object InvalidReason : TaxiReportConversionException() {
-        private fun readResolve(): Any = InvalidReason
-    }
+data class TaxiReportDTO(
+    @SerializedName("_id")
+    val id: String,
 
-    data object InvalidDate : TaxiReportConversionException() {
-        private fun readResolve(): Any = InvalidDate
+    @SerializedName("creatorId")
+    val creatorID: String,
+
+    @SerializedName("reportedId")
+    val reportedUser: TaxiReportedUserDTO,
+
+    @SerializedName("type")
+    val reason: String,
+
+    @SerializedName("etcDetail")
+    val etcDetails: String,
+
+    @SerializedName("time")
+    val time: String,
+
+    @SerializedName("roomId")
+    val roomID: String
+) {
+    fun toModel(): TaxiReport {
+        return TaxiReport(
+            id = id,
+            creatorId = creatorID,
+            reportedUser = reportedUser.toModel(),
+            reason = TaxiReport.Reason.from(reason),
+            etcDetails = etcDetails,
+            time = time.toDate() ?: Date(),
+            roomId = roomID
+        )
     }
 }

@@ -1,14 +1,15 @@
 package com.example.soap.Features.Settings.OTL
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,15 +24,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
-import com.example.soap.Features.Settings.SettingsViewModel
-import com.example.soap.Features.Settings.SettingsViewModelProtocol
-import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
+import com.example.soap.Shared.ViewModelMocks.MockOTLSettingsViewModel
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 
 @Composable
 fun OTLSettingsView(
-    viewModel: SettingsViewModelProtocol,
+    viewModel: OTLSettingsViewModelProtocol,
     navController: NavController
 ) {
 
@@ -48,15 +48,12 @@ fun OTLSettingsView(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 32.dp)
         ) {
-
-            Text("Major", style = MaterialTheme.typography.titleMedium)
-
             MajorPicker(
-                selected = viewModel.otlMajor.value,
+                selected = viewModel.otlMajor,
                 options = viewModel.otlMajorList,
-                onSelected = { viewModel.otlMajor.value = it }
+                onSelected = { viewModel.otlMajor = it }
             )
         }
     }
@@ -70,16 +67,23 @@ fun MajorPicker(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = selected ?: "Select Major",
-            onValueChange = {},
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true },
-            label = { Text("Major") }
+    Row(modifier = Modifier.fillMaxWidth()) {
+
+        Text(
+            text = "Major",
+            style = MaterialTheme.typography.titleMedium
         )
+
+        Spacer(Modifier.weight(1f))
+
+        Text(
+            text = selected ?: "Select Major",
+            modifier = Modifier.clickable { expanded = true },
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.grayBB
+        )
+
+        Spacer(Modifier.width(8.dp))
 
         DropdownMenu(
             expanded = expanded,
@@ -101,7 +105,8 @@ fun MajorPicker(
 @Composable
 @Preview
 private fun Preview() {
+    val vm = remember { MockOTLSettingsViewModel() }
     Theme {
-        OTLSettingsView(MockSettingsViewModel(SettingsViewModel.ViewState.Loaded), rememberNavController())
+        OTLSettingsView(vm, rememberNavController())
     }
 }

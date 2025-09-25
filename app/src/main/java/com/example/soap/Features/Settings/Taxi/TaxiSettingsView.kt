@@ -1,5 +1,6 @@
 package com.example.soap.Features.Settings.Taxi
 
+import android.util.Log
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.background
@@ -43,30 +44,36 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Helpers.Constants
+import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Settings.Components.RowElementView
 import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
-import com.example.soap.Features.Settings.SettingsViewModel
-import com.example.soap.Features.Settings.SettingsViewModelProtocol
 import com.example.soap.R
-import com.example.soap.Shared.ViewModelMocks.MockSettingsViewModel
+import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.ViewModelMocks.MockTaxiSettingsViewModel
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 
 @Composable
 fun TaxiSettingsView(
-    viewModel: SettingsViewModelProtocol,
+    viewModel: TaxiSettingsViewModelProtocol = hiltViewModel(),
     navController: NavController
 ) {
     var safariURL by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
+    val state by viewModel.state.collectAsState()
+    var isValid by remember { mutableStateOf(false) }
+    var selectedBank by remember { mutableStateOf(viewModel.bankName ?: "") }
+    var bankNumber by remember { mutableStateOf(viewModel.bankNumber) }
 
     LaunchedEffect(Unit) {
-        viewModel.fetchTaxiUser()
+        viewModel.fetchUser()
     }
 
     Scaffold(
@@ -85,12 +92,17 @@ fun TaxiSettingsView(
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
-            when (viewModel.taxiState.collectAsState().value) {
-                SettingsViewModel.ViewState.Loading -> LoadingView()
-                SettingsViewModel.ViewState.Loaded -> LoadedView(
+            when (viewModel.state.collectAsState().value) {
+                TaxiSettingsViewModel.ViewState.Loading -> LoadingView()
+                TaxiSettingsViewModel.ViewState.Loaded -> LoadedView(
                     viewModel,
                     navController,
                     onOpenUrl = { safariURL = it })
+                is TaxiSettingsViewModel.ViewState.Error -> {
+                    val message = (state as TaxiSettingsViewModel.ViewState.Error).message
+                    Log.e("TaxiSettingsView", message)
+                }
+                    //TODO ErrorView
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -98,9 +110,9 @@ fun TaxiSettingsView(
             Box(Modifier.align(Alignment.End)){
                 Button(
                     onClick = {
-                        val bankName = viewModel.taxiBankName.value ?: return@Button
+                        val bankName = viewModel.bankName ?: return@Button
                         coroutineScope.launch {
-                            viewModel.taxiEditBankAccount("${bankName} ${viewModel.taxiBankNumber.value}")
+                            viewModel.editBankAccount("${bankName} ${viewModel.bankNumber}")
                         }
                     },
                     enabled = isValid(viewModel)
@@ -128,20 +140,20 @@ private fun LoadingView() {
 }
 
 @Composable
-private fun LoadedView(viewModel: SettingsViewModelProtocol, navController: NavController, onOpenUrl: (String) -> Unit) {
+private fun LoadedView(viewModel: TaxiSettingsViewModelProtocol, navController: NavController, onOpenUrl: (String) -> Unit) {
     Column {
         Text("Profile", style = MaterialTheme.typography.titleMedium)
-        RowElementView(title = "Nickname", content = viewModel.taxiUser.value?.nickname ?: "Unknown")
+        RowElementView(title = "Nickname", content = viewModel.user?.nickname ?: "Unknown")
 
         BankPicker(
-            selected = viewModel.taxiBankName.value,
+            selected = viewModel.bankName,
             options = Constants.taxiBankNameList,
-            onSelected = { viewModel.taxiBankName.value = it }
+            onSelected = { viewModel.bankName = it }
         )
 
         OutlinedTextField(
-            value = viewModel.taxiBankNumber.value,
-            onValueChange = { viewModel.taxiBankNumber.value = it },
+            value = viewModel.bankNumber,
+            onValueChange = { viewModel.bankNumber = it },
             label = { Text("Enter Bank Number", color = MaterialTheme.colorScheme.grayBB) },
             modifier = Modifier.fillMaxWidth()
         )
@@ -187,11 +199,11 @@ private fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Imag
     }
 }
 
-fun isValid(viewModel: SettingsViewModelProtocol): Boolean {
-    val bankName = viewModel.taxiBankName.value
+fun isValid(viewModel: TaxiSettingsViewModelProtocol): Boolean {
+    val bankName = viewModel.bankName
     return bankName != null &&
-            viewModel.taxiBankNumber.value.isNotEmpty() &&
-            (viewModel.taxiUser.value?.account != "$bankName ${viewModel.taxiBankNumber.value}")
+            viewModel.bankNumber.isNotEmpty() &&
+            (viewModel.user?.account != "$bankName ${viewModel.bankNumber}")
 }
 
 @Composable
@@ -258,7 +270,7 @@ private fun BankPicker(
 @Preview
 @Composable
 private fun PreviewTaxiSettingsLoading() {
-    val viewModel = MockSettingsViewModel(SettingsViewModel.ViewState.Loading)
+    val viewModel = MockTaxiSettingsViewModel(TaxiSettingsViewModel.ViewState.Loading)
 
     Theme {
         TaxiSettingsView(viewModel = viewModel, navController = rememberNavController())
@@ -268,10 +280,10 @@ private fun PreviewTaxiSettingsLoading() {
 @Preview
 @Composable
 private fun PreviewTaxiSettingsLoaded() {
-    val viewModel = MockSettingsViewModel(SettingsViewModel.ViewState.Loaded).apply {
-        taxiUser.value =null //Todo-TaxiUser.mock
-        taxiBankName.value = taxiUser.value?.account?.split(" ")?.firstOrNull()
-        taxiBankNumber.value = taxiUser.value?.account?.split(" ")?.getOrNull(1) ?: ""
+    val viewModel = MockTaxiSettingsViewModel(TaxiSettingsViewModel.ViewState.Loaded).apply {
+        user = TaxiUser.mock()
+        bankName = user?.account?.split(" ")?.firstOrNull()
+        bankNumber = user?.account?.split(" ")?.getOrNull(1) ?: ""
     }
 
     Theme {
