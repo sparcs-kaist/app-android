@@ -251,7 +251,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Channel.OTLSettings.name
-            ) { OTLSettingsView(viewModel = settingsMockViewModel, navController = navController) }
+            ) { OTLSettingsView(viewModel = viewModel(), navController = navController) }
         }
     }
 }
