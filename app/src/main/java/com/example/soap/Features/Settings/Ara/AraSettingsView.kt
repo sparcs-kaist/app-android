@@ -62,7 +62,7 @@ fun AraSettingsView(
 
             item {
                 Text(
-                    text = "Posts",
+                    text = "ContentPreferences",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(16.dp)
                 )
@@ -70,7 +70,8 @@ fun AraSettingsView(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Allow NSFW")
                     Switch(

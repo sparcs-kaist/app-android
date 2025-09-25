@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -22,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -71,9 +71,9 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
 
-                ServiceNavButton("Ara") { navController.navigate(Channel.AraSettings.name) }
-                ServiceNavButton("Taxi") { navController.navigate(Channel.TaxiSettings.name) }
-                ServiceNavButton("OTL") { navController.navigate(Channel.OTLSettings.name) }
+                ServiceNavButton("Ara", painterResource(R.drawable.baseline_electric_bolt)) { navController.navigate(Channel.AraSettings.name) }
+                ServiceNavButton("Taxi", painterResource(R.drawable.baseline_electric_bolt)) { navController.navigate(Channel.TaxiSettings.name) }
+                ServiceNavButton("OTL", painterResource(R.drawable.baseline_electric_bolt)) { navController.navigate(Channel.OTLSettings.name) }
             }
         }
     }
@@ -82,42 +82,58 @@ fun SettingsView(
 
 @Composable
 fun AppSettings(context: Context){
-    Button(
-        onClick = {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                try {
-                    // Android 13 이상: 앱 언어 변경 화면
-                    val action = Settings::class.java.getField("ACTION_APP_LOCALE_SETTINGS").get(null) as String
-                    val intent = Intent(action).apply {
-                        data = Uri.fromParts("package", context.packageName, null)
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                    context.startActivity(intent)
-                } catch (e: Exception) {
-                    val intent = Intent(Settings.ACTION_LOCALE_SETTINGS).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
-                    context.startActivity(intent)
+    val onClick = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                // Android 13 이상: 앱 언어 변경 화면
+                val action = Settings::class.java.getField("ACTION_APP_LOCALE_SETTINGS").get(null) as String
+                val intent = Intent(action).apply {
+                    data = Uri.fromParts("package", context.packageName, null)
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-            } else {
-                // Android 12 이하: 시스템 언어 변경 화면
+                context.startActivity(intent)
+            } catch (e: Exception) {
                 val intent = Intent(Settings.ACTION_LOCALE_SETTINGS).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(intent)
             }
-        },
-        modifier = Modifier.padding(horizontal = 8.dp)
-    ) {
-        Icon(painter = painterResource(R.drawable.round_public), contentDescription = null)
+        } else {
+            // Android 12 이하: 시스템 언어 변경 화면
+            val intent = Intent(Settings.ACTION_LOCALE_SETTINGS).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        }
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ){
+        Icon(
+            painter = painterResource(R.drawable.round_public),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+
         Spacer(Modifier.width(8.dp))
-        Text("Change Language")
+
+        Text(
+            text = "Change Language",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.primary
+        )
     }
 }
 
 @Composable
 fun ServiceNavButton(
     text: String,
+    painter: Painter,
     onClick: () -> Unit
 ){
     Row(
@@ -127,6 +143,13 @@ fun ServiceNavButton(
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ){
+        Icon(
+            painter = painter,
+            contentDescription = null,
+        )
+
+        Spacer(Modifier.width(8.dp))
+
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
