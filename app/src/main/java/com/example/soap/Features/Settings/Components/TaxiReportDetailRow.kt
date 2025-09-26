@@ -20,7 +20,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Enums.TaxiReportType
 import com.example.soap.Domain.Models.Taxi.TaxiReport
-import com.example.soap.Shared.Extensions.formattedTime
+import com.example.soap.Shared.Extensions.formattedString
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
@@ -50,7 +50,7 @@ fun TaxiReportDetailRow(
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        RowElementView(title = "Date", content = report.time.formattedTime())
+        RowElementView(title = "Date", content = report.time.formattedString())
         Spacer(modifier = Modifier.height(4.dp))
 
         if (report.reason == TaxiReport.Reason.ETC_REASON) {
