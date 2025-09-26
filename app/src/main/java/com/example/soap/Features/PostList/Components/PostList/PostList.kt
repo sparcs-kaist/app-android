@@ -40,6 +40,7 @@ fun PostList(
     onRefresh: ( () -> Unit),
     onLoadMore: ( () -> Unit),
     onPostClick: (AraPost) -> Unit,
+    onPostDisappear: (Int) -> Unit,
     isRefreshing: Boolean
 ) {
     if (posts != null && posts.isEmpty()) {
@@ -60,6 +61,7 @@ fun PostList(
                 onLoadMore = { onLoadMore() },
                 onPostClick = onPostClick,
                 onRefresh = onRefresh,
+                onPostDisappear = onPostDisappear,
                 isRefreshing = isRefreshing
             )
         }
@@ -73,6 +75,7 @@ private fun LoadedView(
     onLoadMore: ( () -> Unit),
     onPostClick: (AraPost) -> Unit,
     onRefresh: ( () -> Unit),
+    onPostDisappear: (Int) -> Unit,
     isRefreshing: Boolean
 ) {
     var isLoadingMore by remember { mutableStateOf(false) }
@@ -91,6 +94,15 @@ private fun LoadedView(
                         isLoadingMore = false
                     }
                 }
+            }
+    }
+
+    LaunchedEffect(listState, posts) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.map { it.key as? Int } }
+            .distinctUntilChanged()
+            .collect { visibleKeys ->
+                val disappearedIds = posts.map { it.id } - (visibleKeys.filterNotNull())
+                disappearedIds.forEach { onPostDisappear(it) }
             }
     }
 
@@ -138,7 +150,7 @@ private fun LoadingView() {
 @Preview
 private fun LoadingPreview(){
     Theme {
-        PostList(posts = null, onRefresh = {}, onLoadMore = {}, onPostClick = {}, false)
+        PostList(posts = null, onRefresh = {}, onLoadMore = {}, onPostClick = {}, onPostDisappear = {}, false)
     }
 }
 
@@ -146,7 +158,7 @@ private fun LoadingPreview(){
 @Preview
 private fun EmptyPreview(){
     Theme {
-        PostList(posts = emptyList(), onRefresh = {}, onLoadMore = {},onPostClick = {}, false)
+        PostList(posts = emptyList(), onRefresh = {}, onLoadMore = {},onPostClick = {}, onPostDisappear = {}, false)
     }
 }
 
@@ -154,6 +166,6 @@ private fun EmptyPreview(){
 @Preview
 private fun LoadedPreview(){
     Theme {
-        PostList(posts = AraPost.mockList(), onRefresh = {}, onLoadMore = {}, onPostClick = {}, isRefreshing= false)
+        PostList(posts = AraPost.mockList(), onRefresh = {}, onLoadMore = {}, onPostClick = {}, onPostDisappear = {}, isRefreshing= false)
     }
 }

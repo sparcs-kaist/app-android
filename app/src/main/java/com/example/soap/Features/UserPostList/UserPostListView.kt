@@ -33,7 +33,6 @@ fun UserPostListView(
     navController: NavController
 ) {
     val user = viewModel.user
-    val posts by viewModel.posts.collectAsState()
     val state by viewModel.state.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -76,6 +75,7 @@ fun UserPostListView(
                         onLoadMore = {
                             coroutineScope.launch { viewModel.loadNextPage() }
                         },
+                        onPostDisappear = { postID -> viewModel.refreshItem(postID)},
                         isRefreshing = false
                     )
                 }

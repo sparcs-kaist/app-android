@@ -1,6 +1,7 @@
 package com.example.soap.Features.Settings.Ara
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -139,7 +140,7 @@ class AraMyPostViewModel @Inject constructor(
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             try {
-                val updated = araBoardRepository.fetchPost( AraBoardTarget.PostOrigin.None ,postID) ?: return@launch
+                val updated = araBoardRepository.fetchPost( AraBoardTarget.PostOrigin.None ,postID)
                 val idx = _posts.value.indexOfFirst { it.id == updated.id }
                 if (idx != -1) {
                     val newPosts = _posts.value.toMutableList()
@@ -153,7 +154,7 @@ class AraMyPostViewModel @Inject constructor(
                     _state.value = ViewState.Loaded(_posts.value)
                 }
             } catch (_: Exception) {
-
+                Log.e("AraMyPostViewModel", "refreshItem failed")
             }
         }
     }
