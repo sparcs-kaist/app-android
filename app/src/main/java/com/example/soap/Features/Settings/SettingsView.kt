@@ -36,7 +36,6 @@ import com.example.soap.ui.theme.Theme
 
 @Composable
 fun SettingsView(
-//    viewModel: SettingsViewModelProtocol = HiltViewModel(),
     navController: NavHostController
 ) {
     val context = LocalContext.current

@@ -25,7 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class AraMyPostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val userUseCase: UserUseCase,
+    userUseCase: UserUseCase,
     private val araBoardRepository: AraBoardRepositoryProtocol
 ) : ViewModel(), AraMyPostViewModelProtocol {
 
@@ -153,6 +153,7 @@ class AraMyPostViewModel @Inject constructor(
                     _state.value = ViewState.Loaded(_posts.value)
                 }
             } catch (_: Exception) {
+
             }
         }
     }
