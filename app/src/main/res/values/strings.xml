@@ -9,30 +9,15 @@
     <string name="taxi">Taxi</string>
     <string name="general_board">General</string>
     <string name="boards">Boards</string>
-    <string name="portal_notice">Portal Notice</string>
-    <string name="staff_notice">Staff Notice</string>
-    <string name="facility_notice">Facility Notice</string>
-    <string name="external_company_advertisement">External Company Advertisement</string>
-    <string name="students_group">Students Group</string>
     <string name="talk_board">Talk</string>
-    <string name="organizations_and_clubs">Organizations and Clubs</string>
     <string name="club">Club</string>
-    <string name="trade">Trade</string>
-    <string name="wanted">Wanted</string>
-    <string name="market">Market</string>
-    <string name="real_estate">Real Estate</string>
-    <string name="communication">Communication</string>
-    <string name="facility_feedback">Facility Feedback</string>
-    <string name="ara_feedback">Ara Feedback</string>
-    <string name="messages_to_the_school">Messages to the School</string>
-    <string name="kaist_news">KAIST News</string>
     <string name="search">Search</string>
     <string name="to_bookmark">To Bookmark</string>
     <string name="share">Share</string>
     <string name="write">Write</string>
     <string name="submit">Done</string>
     <string name="terms_of_use">terms of use</string>
-    <string name="anonymous">Anonymous</string>
+    <string name="anonymous">anonymous</string>
     <string name="nsfw">NSFW</string>
     <string name="political">Political</string>
     <string name="enter_the_title">Please enter the title</string>
@@ -90,5 +75,7 @@
     <string name="taxi_preview" translatable="false">TaxiPreview</string>
     <string name="taxichatview" translatable="false">TaxiChatView</string>
     <string name="taxichatlistview" translatable="false">TaxiChatListView</string>
+    <string name="ara_chat_view" translatable="false">AraChatView</string>
+    <string name="user_post_list_view" translatable="false">UserPostListView</string>
 
 </resources>

@@ -30,7 +30,7 @@ val theme_light_onErrorContainer = Color(0xFF93000A)
 // Background & Surface
 val theme_light_background = Color(0xFFFFFFFF)
 val theme_light_onBackground = Color(0xFF1C1B1E)
-val theme_light_surface = Color(0xFFFCF8FF)
+val theme_light_surface = Color(0xFFFBF9FD)
 val theme_light_onSurface = Color(0xFF1B1B24)
 
 // Surface variant

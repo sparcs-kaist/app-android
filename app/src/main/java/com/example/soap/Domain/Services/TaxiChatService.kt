@@ -4,6 +4,7 @@ import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Helpers.TokenStorageProtocol
 import com.example.soap.Domain.Models.Taxi.TaxiChat
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiChatDTO
+import com.example.soap.Shared.Extensions.toMap
 import com.google.gson.Gson
 import io.socket.client.Ack
 import io.socket.client.IO
@@ -133,7 +134,6 @@ class TaxiChatService @Inject constructor(
             }
         }
 
-
         socket.on("chat_update") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
             val roomID = firstArg.optString("roomId") ?: return@on
@@ -152,20 +152,4 @@ class TaxiChatService @Inject constructor(
             Gson().fromJson(Gson().toJson(chatMap), TaxiChatDTO::class.java).toModel()
         } catch (e: Exception) { null }
     }
-}
-
-fun JSONObject.toMap(): Map<String, Any?> {
-    val map = mutableMapOf<String, Any?>()
-    val keys = this.keys()
-    while (keys.hasNext()) {
-        val key = keys.next() ?: continue
-        val value = when (val v = this[key]) {
-            is JSONArray -> List(v.length()) { i -> v[i] }
-            is JSONObject -> v.toMap()
-            JSONObject.NULL -> null
-            else -> v
-        }
-        map[key] = value
-    }
-    return map
 }

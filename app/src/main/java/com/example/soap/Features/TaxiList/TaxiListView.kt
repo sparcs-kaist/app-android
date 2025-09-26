@@ -60,7 +60,7 @@ import com.example.soap.Shared.Extensions.isDateInSameDay
 import com.example.soap.Shared.Extensions.weekdaySymbol
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
-import com.example.soap.Shared.Views.ErrorView.ErrorView
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
@@ -247,7 +247,7 @@ private fun LoadingView() {
 }
 
 @Composable
-fun LoadedView(
+private fun LoadedView(
     rooms: List<TaxiRoom>,
     locations: List<TaxiLocation>,
     week: List<Date>,
