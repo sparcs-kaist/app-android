@@ -1,0 +1,47 @@
+package com.example.soap.Domain.Repositories.Feed
+
+import com.example.soap.Domain.Enums.FeedVoteType
+import com.example.soap.Domain.Models.Feed.FeedComment
+import com.example.soap.Domain.Models.Feed.FeedCreateComment
+import com.example.soap.Networking.RequestDTO.Feed.FeedCommentRequestDTO
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedCommentApi
+
+interface FeedCommentRepositoryProtocol {
+    suspend fun fetchComments(postId: String): List<FeedComment>
+    suspend fun writeComment(postId: String, request: FeedCreateComment): FeedComment
+    suspend fun writeReply(commentId: String, request: FeedCreateComment): FeedComment
+    suspend fun deleteComment(commentId: String)
+    suspend fun vote(commentId: String, type: FeedVoteType)
+    suspend fun deleteVote(commentId: String)
+}
+
+class FeedCommentRepository(
+    private val api: FeedCommentApi
+) : FeedCommentRepositoryProtocol {
+
+    override suspend fun fetchComments(postId: String): List<FeedComment> {
+        return api.fetchComments(postId).map { it.toModel() }
+    }
+
+    override suspend fun writeComment(postId: String, request: FeedCreateComment): FeedComment {
+        val dto = FeedCommentRequestDTO.fromModel(request)
+        return api.writeComment(postId, dto).toModel()
+    }
+
+    override suspend fun writeReply(commentId: String, request: FeedCreateComment): FeedComment {
+        val dto = FeedCommentRequestDTO.fromModel(request)
+        return api.writeReply(commentId, dto).toModel()
+    }
+
+    override suspend fun deleteComment(commentId: String) {
+        api.deleteComment(commentId)
+    }
+
+    override suspend fun vote(commentId: String, type: FeedVoteType) {
+        api.vote(commentId, mapOf("vote" to type.name))
+    }
+
+    override suspend fun deleteVote(commentId: String) {
+        api.deleteVote(commentId)
+    }
+}
