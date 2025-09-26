@@ -25,10 +25,9 @@ fun RowElementView(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp),
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
-
     ) {
         Text(text = title)
         Spacer(Modifier.padding(horizontal = 16.dp))
