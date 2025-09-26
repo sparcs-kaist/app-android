@@ -133,6 +133,7 @@ fun PostListView(
                             val json = Uri.encode(Gson().toJson(post))
                             navController.navigate(Channel.PostView.name + "?post_json=$json")
                         },
+                        onPostDisappear = { postID -> viewModel.refreshItem(postID)},
                         isRefreshing = isRefreshing
                     )
                 }

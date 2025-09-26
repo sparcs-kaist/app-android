@@ -68,7 +68,8 @@ fun AraMyPostView(
         topBar = {
             SettingsViewNavigationBar(
                 title = if (type == AraMyPostViewModel.PostType.ALL) "My Posts" else "Bookmarked",
-                onDismiss = { navController.popBackStack() }
+                onDismiss = { navController.popBackStack() },
+                isSearchEnabled = true
             )
         }
     ) { innerPadding ->
@@ -87,8 +88,8 @@ fun AraMyPostView(
                         searchKeyword = searchKeyword,
                         onRefresh = { coroutineScope.launch { viewModel.fetchInitialPosts() } },
                         onLoadMore = { coroutineScope.launch { viewModel.loadNextPage() } },
+                        onPostDisappear = { postID -> viewModel.refreshItem(postID) },
                         navController = navController
-                    //    onPostDisappear = { postId -> viewModel.refreshItem(postId) }
                     )
                 }
 
@@ -98,8 +99,8 @@ fun AraMyPostView(
                         posts = posts,
                         onRefresh = { coroutineScope.launch { viewModel.fetchInitialPosts() } },
                         onLoadMore = { coroutineScope.launch { viewModel.loadNextPage() } },
+                        onPostDisappear = { postID -> viewModel.refreshItem(postID) },
                         navController = navController
-                        //onPostDisappear = { postId -> viewModel.refreshItem(postId) }
                     )
                 }
             }
@@ -114,8 +115,8 @@ private fun MyPostView(
     searchKeyword: String,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
+    onPostDisappear: (Int) -> Unit,
     navController: NavController
-  //  onPostDisappear: (Int) -> Unit
 ) {
     if (searchKeyword.isNotEmpty() && posts.isEmpty()) {
         Text("No results for \"$searchKeyword\"")
@@ -126,6 +127,7 @@ private fun MyPostView(
                 posts = posts,
                 onRefresh = onRefresh,
                 onLoadMore = onLoadMore,
+                onPostDisappear = onPostDisappear,
                 navController = navController
             )
             is AraMyPostViewModel.ViewState.Error -> Text("Error: ${state.message}")
@@ -139,8 +141,8 @@ private fun BookmarkPostView(
     posts: List<AraPost>,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
-    navController: NavController
-   // onPostDisappear: (Int) -> Unit
+    navController: NavController,
+    onPostDisappear: (Int) -> Unit
 ) {
     when (state) {
         is AraMyPostViewModel.ViewState.Loading -> LoadingView()
@@ -148,6 +150,7 @@ private fun BookmarkPostView(
             posts = posts,
             onRefresh = onRefresh,
             onLoadMore = onLoadMore,
+            onPostDisappear = onPostDisappear,
             navController = navController
         )
         is AraMyPostViewModel.ViewState.Error -> ErrorView(
@@ -173,6 +176,7 @@ private fun LoadedView(
     posts: List<AraPost>,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
+    onPostDisappear: (Int) -> Unit,
     navController: NavController
 ) {
     PostList(
@@ -183,6 +187,7 @@ private fun LoadedView(
             val json = Uri.encode(Gson().toJson(post))
             navController.navigate(Channel.PostView.name + "?post_json=$json")
         },
+        onPostDisappear = onPostDisappear,
         isRefreshing = false
     )
 }
