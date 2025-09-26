@@ -82,7 +82,6 @@ fun AraSettingsView(
                 is AraSettingsViewModel.ViewState.Loading -> LoadingView()
                 is AraSettingsViewModel.ViewState.Loaded -> LoadedView(
                     viewModel,
-                    showNicknameDialog,
                     navController
                 ) { showNicknameDialog = true }
 
@@ -127,7 +126,6 @@ private fun LoadingView() {
 @Composable
 private fun LoadedView(
     viewModel: AraSettingsViewModelProtocol,
-    showDialog: Boolean,
     navController: NavController,
     onNicknameClick: () -> Unit
 ) {

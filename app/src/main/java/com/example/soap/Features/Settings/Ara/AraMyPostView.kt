@@ -118,7 +118,7 @@ private fun MyPostView(
   //  onPostDisappear: (Int) -> Unit
 ) {
     if (searchKeyword.isNotEmpty() && posts.isEmpty()) {
-        Text("No results for \"$searchKeyword\"") // ContentUnavailableView.search 대체
+        Text("No results for \"$searchKeyword\"")
     } else {
         when (state) {
             is AraMyPostViewModel.ViewState.Loading -> LoadingView()
