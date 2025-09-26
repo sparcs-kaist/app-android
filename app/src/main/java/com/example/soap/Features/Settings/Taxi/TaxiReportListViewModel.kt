@@ -3,7 +3,7 @@ package com.example.soap.Features.Settings.Taxi
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.soap.Domain.Models.Taxi.TaxiReport
-import com.example.soap.Domain.Repositories.TaxiReportRepositoryProtocol
+import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

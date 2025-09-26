@@ -10,7 +10,6 @@ interface OTLSettingsViewModelProtocol {
 }
 
 class OTLSettingsViewModel : ViewModel(), OTLSettingsViewModelProtocol {
-
     // MARK: - Properties
     private val _otlMajor = MutableStateFlow("School of Computer Science")
     override var otlMajor: String

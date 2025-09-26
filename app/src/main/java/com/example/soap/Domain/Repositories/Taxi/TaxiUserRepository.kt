@@ -14,11 +14,11 @@ enum class TaxiUserErrorCode(val code: Int) {
 }
 
 class TaxiUserRepository @Inject constructor(
-    private val taxiUserApi: TaxiUserApi
+    private val api: TaxiUserApi
 ) : TaxiUserRepositoryProtocol {
 
     override suspend fun fetchUser(): TaxiUser {
-        val response = taxiUserApi.fetchUserInfo()
+        val response = api.fetchUserInfo()
         if (!response.isSuccessful) {
             throw Exception("Failed to fetch user: ${response.code()}")
         }
@@ -27,16 +27,14 @@ class TaxiUserRepository @Inject constructor(
     }
 
     override suspend fun editBankAccount(account: String) {
-        val response = taxiUserApi.editBankAccount(account)
+        val response = api.editBankAccount(account)
         if (!response.isSuccessful) {
             throw Exception(
                 "Failed to edit bank account",
                 Throwable().apply {
                     initCause(
-                        TaxiUserError(
-                            TaxiUserErrorCode.EDIT_BANK_ACCOUNT_FAILED.code,
-                            "Failed to edit bank account"
-                        )
+                        TaxiUserError( TaxiUserErrorCode.EDIT_BANK_ACCOUNT_FAILED.code,
+                            "Failed to edit bank account")
                     )
                 }
             )

@@ -1,12 +1,16 @@
 package com.example.soap.Features.Settings.Components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -14,41 +18,86 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Domain.Enums.TaxiReportType
 import com.example.soap.Domain.Models.Taxi.TaxiReport
-import com.example.soap.Shared.Extensions.formattedString
+import com.example.soap.Shared.Extensions.formattedTime
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
-import java.util.Date
-import java.util.UUID
+import com.example.soap.ui.theme.grayBB
 
 @Composable
-fun TaxiReportDetailRow(report: TaxiReport) {
+fun TaxiReportDetailRow(
+    report: TaxiReport,
+    reportType: TaxiReportType
+) {
     Column(
-        modifier = Modifier.padding(vertical = 4.dp, horizontal = 16.dp)
+        modifier = Modifier
+            .padding(vertical = 4.dp, horizontal = 16.dp)
             .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
             .fillMaxWidth()
             .padding(8.dp)
     ) {
         when (report.reason) {
-            TaxiReport.Reason.ETC -> RowElementView(title = "Reason", content = "Other reasons")
+            TaxiReport.Reason.ETC_REASON -> RowElementView(title = "Reason", content = "Other reasons")
             TaxiReport.Reason.NO_SHOW -> RowElementView(title = "Reason", content = "Not showing up")
             TaxiReport.Reason.NO_SETTLEMENT -> RowElementView(title = "Reason", content = "No settlement")
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
-        if (report.nickname != null && report.reportType == TaxiReport.ReportType.REPORTING) {
-            RowElementView(title = "Nickname", content = report.nickname)
+        if (reportType == TaxiReportType.OUTGOING) {
+            RowElementView(title = "Nickname", content = report.reportedUser.nickname)
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        RowElementView(title = "Date", content = report.reportedAt.formattedString())
+        RowElementView(title = "Date", content = report.time.formattedTime())
         Spacer(modifier = Modifier.height(4.dp))
 
-        if (report.reason == TaxiReport.Reason.ETC) {
-            RowElementView(title = "Other reasons", content = report.etcDetail)
+        if (report.reason == TaxiReport.Reason.ETC_REASON) {
+            RowElementView(title = "Other reasons", content = report.etcDetails)
         }
     }
 }
+
+@Composable
+fun TaxiReportDetailSkeletonRow() {
+    val row = @Composable{
+        Row{
+            Box(
+                modifier = Modifier
+                    .width((80..120).random().dp)
+                    .padding(8.dp)
+                    .height(16.dp)
+                    .background(
+                        MaterialTheme.colorScheme.grayBB.copy(0.5f),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+            Spacer(Modifier.weight(1f))
+            Box(
+                modifier = Modifier
+                    .width((140..200).random().dp)
+                    .padding(8.dp)
+                    .height(16.dp)
+                    .background(
+                        MaterialTheme.colorScheme.grayBB.copy(0.5f),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+        }
+    }
+    Column(
+        modifier = Modifier
+            .padding(vertical = 4.dp, horizontal = 16.dp)
+            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
+            .fillMaxWidth()
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        repeat((2..3).random()){ row() }
+    }
+}
+
 
 @Composable
 @Preview
@@ -60,26 +109,16 @@ private fun Preview() {
                 .background(MaterialTheme.colorScheme.background)
         ) {
             TaxiReportDetailRow(
-                report = TaxiReport(
-                    id = UUID.randomUUID().toString(),
-                    nickname = "자신감 있는 유체역학_8c249",
-                    reportType = TaxiReport.ReportType.REPORTING,
-                    reason = TaxiReport.Reason.ETC,
-                    etcDetail = "Not showing up at the scheduled time",
-                    reportedAt = Date()
-                )
+                report = TaxiReport.mock(),
+                reportType = TaxiReportType.INCOMING
             )
             Spacer(modifier = Modifier.height(16.dp))
             TaxiReportDetailRow(
-                report = TaxiReport(
-                    id = UUID.randomUUID().toString(),
-                    nickname = "자신감 있는 유체역학_8c249",
-                    reportType = TaxiReport.ReportType.REPORTED,
-                    reason = TaxiReport.Reason.NO_SHOW,
-                    etcDetail = "Not showing up at the scheduled time",
-                    reportedAt = Date()
-                )
+                report = TaxiReport.mock(),
+                reportType = TaxiReportType.OUTGOING
             )
+            Spacer(modifier = Modifier.height(16.dp))
+            TaxiReportDetailSkeletonRow()
         }
     }
 }

@@ -82,10 +82,7 @@ class AraBoardRepository @Inject constructor(
     }
 
     override suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage {
-        val response = api.fetchPosts(
-            page = page,
-            pageSize = pageSize,
-        )
+        val response = api.fetchBookmarks(page = page, pageSize = pageSize)
         return response.toModel()
     }
 
