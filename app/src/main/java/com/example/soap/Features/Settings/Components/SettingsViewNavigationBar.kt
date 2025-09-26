@@ -9,12 +9,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import com.example.soap.Features.NavigationBar.Components.DismissButton
+import com.example.soap.Features.NavigationBar.Components.SearchButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsViewNavigationBar(
     title: String,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    isSearchEnabled: Boolean?= false
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = { onDismiss() }) },
@@ -29,6 +31,7 @@ fun SettingsViewNavigationBar(
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
-        )
+        ),
+        actions = { if(isSearchEnabled == true) SearchButton() }
     )
 }
