@@ -1,0 +1,17 @@
+package com.example.soap.Features.FeedPost
+
+import android.graphics.Bitmap
+import com.example.soap.Domain.Models.Feed.FeedComment
+import kotlinx.coroutines.flow.StateFlow
+
+interface FeedPostViewModelProtocol {
+    val state: StateFlow<FeedPostViewModel.ViewState>
+    var comments: List<FeedComment>
+    var text: String
+    var image: Bitmap?
+    var isAnonymous: Boolean
+
+    suspend fun fetchComments(postId: String)
+    suspend fun writeComment(postId: String): FeedComment
+    suspend fun writeReply(commentId: String): FeedComment
+}
