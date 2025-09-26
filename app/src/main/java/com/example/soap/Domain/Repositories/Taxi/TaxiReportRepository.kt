@@ -1,16 +1,17 @@
-package com.example.soap.Domain.Repositories
+package com.example.soap.Domain.Repositories.Taxi
 
 import com.example.soap.Domain.Models.Taxi.TaxiCreateReport
 import com.example.soap.Features.Settings.Taxi.TaxiReports
 import com.example.soap.Networking.RequestDTO.TaxiCreateReportRequestDTO
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiReportApi
+import javax.inject.Inject
 
 interface TaxiReportRepositoryProtocol {
     suspend fun fetchMyReports(): TaxiReports
     suspend fun createReport(report: TaxiCreateReport)
 }
 
-class TaxiReportRepository(
+class TaxiReportRepository @Inject constructor(
     private val api: TaxiReportApi
 ) : TaxiReportRepositoryProtocol {
 
