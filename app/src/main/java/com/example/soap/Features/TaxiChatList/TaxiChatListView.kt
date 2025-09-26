@@ -33,8 +33,9 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockTaxiChatListViewModel
-import com.example.soap.Shared.Views.ErrorView.ErrorView
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
+import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import com.example.soap.ui.theme.Theme
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -68,12 +69,13 @@ fun TaxiChatListView(
         ) {
         when (state) {
             is TaxiChatListViewModel.ViewState.Loading -> {
-                LoadingView()
+                LoadingView(viewModel = viewModel)
             }
 
             is TaxiChatListViewModel.ViewState.Loaded -> {
                 val loaded = state as TaxiChatListViewModel.ViewState.Loaded
                 LoadedView(
+                    viewModel = viewModel,
                     onGoing = loaded.onGoing,
                     done = loaded.done,
                     onRoomClick = { room ->
@@ -102,7 +104,7 @@ fun TaxiChatListView(
 }
 
 @Composable
-private fun LoadingView(){
+private fun LoadingView(viewModel: TaxiChatListViewModelProtocol) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize()
@@ -120,11 +122,10 @@ private fun LoadingView(){
             }
         }
 
-        items(TaxiRoom.mockList().subList(1, 4)) { room ->
-            TaxiRoomCell(
-                room = room,
-                onClick = {}
-            )
+        repeat(4) {
+            item {
+                TaxiRoomSkeletonCell()
+            }
         }
 
         item {
@@ -141,17 +142,17 @@ private fun LoadingView(){
             }
         }
 
-        items(TaxiRoom.mockList().subList(5,7)) { room ->
-            TaxiRoomCell(
-                room = room,
-                onClick = {}
-            )
+        repeat(2) {
+            item {
+                TaxiRoomSkeletonCell()
+            }
         }
     }
 }
 
 @Composable
 fun LoadedView(
+    viewModel: TaxiChatListViewModelProtocol,
     onGoing: List<TaxiRoom>,
     done: List<TaxiRoom>,
     onRoomClick: (TaxiRoom) -> Unit
@@ -176,7 +177,8 @@ fun LoadedView(
         items(onGoing) { room ->
             TaxiRoomCell(
                 room = room,
-                onClick = { onRoomClick(room) }
+                onClick = { onRoomClick(room) },
+                taxiUser = viewModel.taxiUser
             )
         }
 
@@ -197,7 +199,8 @@ fun LoadedView(
         items(done) { room ->
             TaxiRoomCell(
                 room = room,
-                onClick = { onRoomClick(room) }
+                onClick = { onRoomClick(room) },
+                taxiUser = viewModel.taxiUser
             )
         }
     }

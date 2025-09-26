@@ -1,6 +1,7 @@
 package com.example.soap.Shared.Mocks
 
 import com.example.soap.Domain.Helpers.LocalizedString
+import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraBoardTopic
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostAuthor
@@ -9,6 +10,7 @@ import com.example.soap.Domain.Models.Ara.AraPostComment
 import java.net.URL
 import java.util.Date
 
+val board = AraBoard.mock()
 
 fun AraPost.Companion.mock(): AraPost {
     return AraPost(
@@ -17,7 +19,7 @@ fun AraPost.Companion.mock(): AraPost {
         hiddenReason = emptyList(),
         overrideHidden = null,
         topic = null,
-        board = null,
+        board = board,
         title = "[Ara for KAIST] 아라만 깔아도 커피쿠폰을 준다고?",
         author = AraPostAuthor(
             id = "984",
@@ -54,7 +56,7 @@ fun AraPost.Companion.mock(): AraPost {
             isBlocked = null
         ),
         isMine = false,
-        comments = listOf(
+        comments = mutableListOf(
             AraPostComment(
                 id = 1542,
                 isHidden = false,
@@ -75,7 +77,7 @@ fun AraPost.Companion.mock(): AraPost {
                     ),
                     isBlocked = false
                 ),
-                comments = listOf(
+                comments = mutableListOf(
                     AraPostComment(
                         id = 1550,
                         isHidden = false,
@@ -96,7 +98,7 @@ fun AraPost.Companion.mock(): AraPost {
                             ),
                             isBlocked = false
                         ),
-                        comments = emptyList(),
+                        comments = mutableListOf(),
                         createdAt = Date(1699887315272),
                         upVotes = 0,
                         downVotes = 0,
@@ -130,7 +132,7 @@ fun AraPost.Companion.mock(): AraPost {
                     ),
                     isBlocked = false
                 ),
-                comments = emptyList(),
+                comments = mutableListOf(),
                 createdAt = Date(1699382798345),
                 upVotes = 0,
                 downVotes = 0,
@@ -157,7 +159,7 @@ fun AraPost.Companion.mock(): AraPost {
                     ),
                     isBlocked = false
                 ),
-                comments = emptyList(),
+                comments = mutableListOf(),
                 createdAt = Date(1699383299051),
                 upVotes = 0,
                 downVotes = 0,
@@ -184,7 +186,7 @@ fun AraPost.Companion.mock(): AraPost {
                     ),
                     isBlocked = false
                 ),
-                comments = emptyList(),
+                comments = mutableListOf(),
                 createdAt = Date(1699887998890),
                 upVotes = 0,
                 downVotes = 0,
@@ -223,11 +225,11 @@ fun AraPost.Companion.mockList(): List<AraPost> {
     return listOf(
                     AraPost(
                         id = 12328,
-                        isHidden = false,
+                        isHidden = true,
                         hiddenReason = listOf(),
                         overrideHidden = null,
                         topic = null,
-                        board = null,
+                        board = board,
                         title = "성인 정치글 22",
                         author = AraPostAuthor(
                             id = "984",
@@ -253,14 +255,14 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
                     ),
                     AraPost(
                         id = 12327,
-                        isHidden = false,
+                        isHidden = true,
                         hiddenReason = listOf(),
                         overrideHidden = null,
                         topic = null,
@@ -290,7 +292,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -327,7 +329,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -364,7 +366,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -401,7 +403,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -447,7 +449,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -484,7 +486,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -509,7 +511,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                             ),
                             isBlocked = false
                         ),
-                        attachmentType = AraPost.AttachmentType.IMAGE,
+                        attachmentType = AraPost.AttachmentType.NON_IMAGE,
                         communicationArticleStatus = null,
                         createdAt = Date(),
                         isNSFW = false,
@@ -521,7 +523,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -546,7 +548,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                             ),
                             isBlocked = false
                         ),
-                        attachmentType = AraPost.AttachmentType.NONE,
+                        attachmentType = AraPost.AttachmentType.BOTH,
                         communicationArticleStatus = null,
                         createdAt = Date(),
                         isNSFW = false,
@@ -558,7 +560,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -595,7 +597,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -632,7 +634,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -669,7 +671,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -715,7 +717,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -761,7 +763,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null
@@ -807,7 +809,7 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         attachments = null,
                         myCommentProfile = null,
                         isMine = null,
-                        comments = listOf(),
+                        comments = mutableListOf(),
                         content = null,
                         myVote = null,
                         myScrap = null

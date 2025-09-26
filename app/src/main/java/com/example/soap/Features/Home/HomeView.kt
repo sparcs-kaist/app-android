@@ -53,7 +53,7 @@ fun HomeView(navController: NavController){
         ) {
             BoardRecentSection(
                 title = stringResource(R.string.trending_board),
-                clickAction = { navController.navigate(Channel.TrendingBoard.name) }
+                clickAction = { navController.navigate(Channel.BoardList.name) }
             )
             TaxiRecentSection(TaxiRoom.mockList())
 

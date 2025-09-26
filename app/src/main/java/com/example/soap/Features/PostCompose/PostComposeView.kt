@@ -1,28 +1,45 @@
 package com.example.soap.Features.PostCompose
-
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActionScope
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -33,9 +50,14 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -45,159 +67,314 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Features.PostCompose.Components.CheckBoxText
-import com.example.soap.Features.PostCompose.Components.FlairSelector
 import com.example.soap.Features.PostCompose.Components.PostComposeNavigationBar
-import com.example.soap.Features.PostList.PostListViewModel
+import com.example.soap.Features.PostCompose.Components.TopicSelector
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.noRippleClickable
+import com.example.soap.Shared.ViewModelMocks.MockPostComposeViewModel
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 
 @Composable
 fun PostComposeView(
-    postListViewModel: PostListViewModel,
+    viewModel: PostComposeViewModelProtocol = hiltViewModel(),
     navController: NavController
 ) {
-
+    val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
 
-    val descriptionFocusRequester = remember { FocusRequester() }
-    val descriptionBringIntoViewRequester = remember { BringIntoViewRequester() }
+    val titleFocusRequester = remember { FocusRequester() }
+    val contentFocusRequester = remember { FocusRequester() }
 
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf(TextFieldValue("")) }
+    var isUploading by remember { mutableStateOf(false) }
 
-    var writeAsAnonymous by remember { mutableStateOf(true) }
-    var isNSFW by remember { mutableStateOf(false) }
-    var isPolitical by remember { mutableStateOf(false) }
+    val isDoneEnabled = viewModel.title.isNotBlank() && viewModel.content.isNotBlank() && !isUploading
 
-    val isDoneEnabled = title.isNotBlank() && description.text.isNotBlank()
-    val isBackDisEnabled = title.isNotBlank() || description.text.isNotBlank()
+    val context = LocalContext.current
 
-    val internalScrollState = rememberScrollState()
+    //KeyBoard
+    var titleField by remember { mutableStateOf(TextFieldValue(viewModel.title)) }
+    var contentField by remember { mutableStateOf(TextFieldValue(viewModel.content)) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val cursorLine by remember {
-        derivedStateOf { textLayoutResult?.getLineForOffset(description.selection.start) }
-    }
+    val cursorLine by remember { derivedStateOf { textLayoutResult?.getLineForOffset(contentField.selection.start) } }
     val keyboardPaddingPx = with(LocalDensity.current) { 250.dp.toPx() }
 
     LaunchedEffect(cursorLine) {
         val layout = textLayoutResult ?: return@LaunchedEffect
         val line = cursorLine ?: return@LaunchedEffect
-
         val lineTopPx = layout.getLineTop(line)
         val scrollOffset = maxOf(lineTopPx - keyboardPaddingPx, 0f)
+        coroutineScope.launch { scrollState.animateScrollTo(scrollOffset.toInt()) }
+    }
 
-        coroutineScope.launch {
-            internalScrollState.animateScrollTo(scrollOffset.toInt())
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uri: List<Uri> ->
+        uri.let {
+            viewModel.selectedItems += it
+            coroutineScope.launch { viewModel.updateSelectedImages(context) }
         }
     }
+    var showPhotosPicker by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
-            PostComposeNavigationBar(navController, isDoneEnabled, isBackDisEnabled)
+            PostComposeNavigationBar(
+                navController = navController,
+                isDoneEnabled = isDoneEnabled,
+                onDoneClick = {
+                    coroutineScope.launch {
+                        isUploading = true
+                        try {
+                            viewModel.writePost()
+                        } finally {
+                            isUploading = false
+                            navController.popBackStack()
+                        }
+                    }
+                              },
+                isUploading = isUploading
+            )
+        },
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(end = 8.dp),
+                contentAlignment = Alignment.CenterEnd
+            ){
+                PostOptionsRow(
+                    writeAsAnonymous = viewModel.writeAsAnonymous,
+                    onAnonymousChange = { viewModel.writeAsAnonymous = !viewModel.writeAsAnonymous },
+                    isNSFW = viewModel.isNSFW,
+                    onNSFWChange = { viewModel.isNSFW = !viewModel.isNSFW },
+                    isPolitical = viewModel.isPolitical,
+                    onPoliticalChange = { viewModel.isPolitical = !viewModel.isPolitical },
+                    isUploading = isUploading,
+                    onPhotoButton = { showPhotosPicker = true }
+                )
+            }
         }
     ) { innerPadding ->
-        Box(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
+                .navigationBarsPadding()
                 .padding(innerPadding)
+                .padding(16.dp)
+                .fillMaxSize()
+                .verticalScroll(scrollState)
         ) {
+            TopicSelector(
+                viewModel = viewModel
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            BasicTextField(
+                value = titleField,
+                onValueChange = {
+                    titleField = it
+                    viewModel.title = it.text
+                                },
+                singleLine = true,
+                textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = { contentFocusRequester.requestFocus() }
+                ),
+                decorationBox = { inner ->
+                    if (viewModel.title.isEmpty())
+                        Text(
+                            text = stringResource(R.string.enter_the_title),
+                            color = MaterialTheme.colorScheme.grayBB,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    inner()
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(titleFocusRequester)
+            )
+
+            Spacer(Modifier.padding(2.dp))
+
+            HorizontalDivider()
+
+            Spacer(Modifier.padding(4.dp))
+
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
+                    .focusRequester(contentFocusRequester)
+                    .noRippleClickable { contentFocusRequester.requestFocus() }
             ) {
-
-                FlairSelector(postListViewModel)
-
-                Spacer(Modifier.padding(8.dp))
-
-                TitleTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    placeholderText = stringResource(R.string.enter_the_title),
-                    nextFocus = { descriptionFocusRequester.requestFocus() }
+                BasicTextField(
+                    value = contentField,
+                    onValueChange = {
+                        contentField = it
+                        viewModel.content = it.text
+                    },
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    keyboardOptions = KeyboardOptions.Default,
+                    onTextLayout = { textLayoutResult = it },
+                    decorationBox = { inner ->
+                        if (contentField.text.isEmpty())
+                            Text(
+                                text = stringResource(R.string.enter_the_description),
+                                color = MaterialTheme.colorScheme.grayBB,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        inner()
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
-
-                Spacer(Modifier.padding(2.dp))
-
-                HorizontalDivider()
 
                 Spacer(Modifier.padding(4.dp))
 
-                Column(
-                    modifier = Modifier
-                        .bringIntoViewRequester(descriptionBringIntoViewRequester)
-                        .verticalScroll(internalScrollState)
-                        .focusRequester(descriptionFocusRequester)
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .noRippleClickable { descriptionFocusRequester.requestFocus() }
-                ) {
-                    DescriptionTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        placeholderText = stringResource(R.string.enter_the_description),
-                        modifier = Modifier,
-                        onTextLayout = { textLayoutResult = it },
-                    )
-                    Spacer(Modifier.padding(4.dp))
+                if(viewModel.selectedImages.isNotEmpty()){
+                    LazyRow(
+                        contentPadding = PaddingValues(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(viewModel.selectedImages) { index, bitmap ->
+                            Box {
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentScale = ContentScale.Crop,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(RoundedCornerShape(8.dp))
+                                )
 
-                    Box(Modifier.align(Alignment.End)) {
-                        TermsOfUseButton()
+                                IconButton(
+                                    onClick = { viewModel.removeImage(index) },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .background(
+                                            Color.Black.copy(alpha = 0.3f),
+                                            shape = CircleShape
+                                        )
+                                        .size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = "Remove Image",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
+                Box(Modifier.align(Alignment.End)) {
+                    TermsOfUseButton()
+                }
+            }
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .align(Alignment.End)
+        }
+    }
+    if (showPhotosPicker) {
+        launcher.launch("image/*")
+        showPhotosPicker = false
+    }
+}
+
+@Composable
+fun PostOptionsRow(
+    writeAsAnonymous: Boolean,
+    onAnonymousChange: () -> Unit,
+    isNSFW: Boolean,
+    onNSFWChange: () -> Unit,
+    isPolitical: Boolean,
+    onPoliticalChange: () -> Unit,
+    isUploading: Boolean,
+    onPhotoButton: () -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Surface(
+        shape = RoundedCornerShape(50),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .navigationBarsPadding()
+            .imePadding()
+            .padding(8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(4.dp)
+        ) {
+            IconButton(
+                onClick = onPhotoButton,
+                enabled = !isUploading
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.outline_photo_library),
+                    contentDescription = "add Photo",
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Box {
+                IconButton(onClick = { expanded = true }) {
+                    Icon(
+                        painter = painterResource(R.drawable.more_horiz),
+                        contentDescription = "More Options",
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false }
                 ) {
-
-                    Icon(
-                        painter = painterResource(R.drawable.add_photo_alternate),
-                        contentDescription = "Add photo",
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clickable { }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.political)) },
+                        trailingIcon = {
+                            if (isPolitical) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Check Political"
+                                )
+                            }
+                        },
+                        onClick = onPoliticalChange
                     )
-
-                    Spacer(Modifier.padding(horizontal = 4.dp))
-
-                    Icon(
-                        painter = painterResource(R.drawable.attach_file),
-                        contentDescription = "Add file",
-                        modifier = Modifier
-                            .size(30.dp)
-                            .clickable { }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.nsfw)) },
+                        trailingIcon = {
+                            if (isNSFW) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Check NSFW"
+                                )
+                            }
+                        },
+                        onClick = onNSFWChange
                     )
-
-                    Spacer(Modifier.weight(1f))
-
-                    CheckBoxText(
-                        text = stringResource(R.string.anonymous),
-                        isChecked = writeAsAnonymous,
-                        onCheckedChange = { writeAsAnonymous = !writeAsAnonymous }
-                    )
-
-                    CheckBoxText(
-                        text = stringResource(R.string.nsfw),
-                        isChecked = isNSFW,
-                        onCheckedChange = { isNSFW = !isNSFW }
-                    )
-
-                    CheckBoxText(
-                        text = stringResource(R.string.political),
-                        isChecked = isPolitical,
-                        onCheckedChange = { isPolitical = !isPolitical }
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.anonymous)) },
+                        trailingIcon = {
+                            if (writeAsAnonymous) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Check Anonymous"
+                                )
+                            }
+                        },
+                        onClick = onAnonymousChange
                     )
                 }
             }
@@ -207,78 +384,19 @@ fun PostComposeView(
 
 @Composable
 private fun TermsOfUseButton(){
-    Text(
-        text = stringResource(R.string.terms_of_use),
-        style = MaterialTheme.typography.bodySmall,
-        textDecoration = TextDecoration.Underline,
-        color = MaterialTheme.colorScheme.grayBB
-    )
-}
-
-
-@Composable
-fun TitleTextField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholderText: String,
-    nextFocus: (KeyboardActionScope.() -> Unit)?
-){
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = true,
-        textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
-        keyboardActions = KeyboardActions(
-            onNext = nextFocus
-        ),
-        decorationBox = { innerTextField ->
-            if (value.isEmpty()) {
-                Text(
-                    text = placeholderText,
-                    color = MaterialTheme.colorScheme.grayBB,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            }
-            innerTextField()
-        }
-    )
-}
-
-@Composable
-fun DescriptionTextField(
-    value: TextFieldValue,
-    onValueChange: (TextFieldValue) -> Unit,
-    placeholderText: String,
-    modifier: Modifier,
-    onTextLayout: (TextLayoutResult) -> Unit
-){
-    BasicTextField(
-        value = value,
-        onValueChange = onValueChange,
-        singleLine = false,
-        textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Default),
-        modifier = modifier,
-        onTextLayout = onTextLayout,
-        decorationBox = { innerTextField ->
-            if (value.text.isEmpty()) {
-                Text(
-                    text = placeholderText,
-                    color = MaterialTheme.colorScheme.grayBB,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            innerTextField()
-        }
-    )
+    TextButton(onClick = { /* TODO: Terms click */ }) {
+        Text(
+            text = "terms of use",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.grayBB,
+            textDecoration = TextDecoration.Underline
+        )
+    }
 }
 
 
 @Composable
 @Preview
-private fun Preview(){
-    Theme { PostComposeView(viewModel(), rememberNavController()) }
+fun PostComposeViewPreview() {
+    Theme { PostComposeView( MockPostComposeViewModel(), rememberNavController()) }
 }

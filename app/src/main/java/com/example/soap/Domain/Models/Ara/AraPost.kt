@@ -24,7 +24,7 @@ data class AraPost(
     val attachments: List<AraPostAttachment>?,
     val myCommentProfile: AraPostAuthor?,
     val isMine: Boolean?,
-    var comments: List<AraPostComment>,
+    var comments: MutableList<AraPostComment>,
     val content: String?,
     var myVote: Boolean?,
     var myScrap: Boolean?
@@ -32,7 +32,7 @@ data class AraPost(
     enum class AttachmentType(val type: String) {
         NONE("NONE"),
         IMAGE("IMAGE"),
-        NON_IMAGE("NON_IMAGE"),
+        NON_IMAGE("FILE"),
         BOTH("BOTH")
     }
 

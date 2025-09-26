@@ -1,10 +1,11 @@
 package com.example.soap.Features.PostCompose.Components
 
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,7 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.darkGray
@@ -38,38 +38,40 @@ import com.example.soap.ui.theme.grayBB
 fun PostComposeNavigationBar(
     navController: NavController,
     isDoneEnabled: Boolean,
-    isBackDisEnabled: Boolean
+    onDoneClick: () -> Unit,
+    isUploading: Boolean
 ) {
-    var showDialog by remember { mutableStateOf(false) }
-
-    if (showDialog) {
-        ConfirmationDialog(
-            onDismissRequest = { showDialog = false },
-            onConfirmationButtonRequest = {
-                showDialog = false
-                navController.navigate(Channel.TrendingBoard.name)
-            },
-            onSaveDraftRequest = {
-                showDialog = false
-                //임시 저장
-            }
-        )
-    }
+    var expanded by remember { mutableStateOf(false) }
 
     CenterAlignedTopAppBar(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    if(isBackDisEnabled){
-                        showDialog = true
-                    } else {
-                        navController.navigate(Channel.TrendingBoard.name)
-                    }
+                    expanded = true
                 }) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = "Back",
                     tint = MaterialTheme.colorScheme.darkGray
+                )
+            }
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(16.dp),
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = "Discard Post",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        navController.popBackStack()
+                    }
                 )
             }
         },
@@ -80,7 +82,13 @@ fun PostComposeNavigationBar(
                 fontWeight = FontWeight.Bold
             )
         },
-        actions = { DoneButton(isDoneEnabled) },
+        actions = {
+            DoneButton(
+                isDoneEnabled = isDoneEnabled,
+                onDoneClick = onDoneClick,
+                isUploading = isUploading
+            )
+        },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
@@ -89,17 +97,22 @@ fun PostComposeNavigationBar(
 
 @Composable
 private fun DoneButton(
-    isDoneEnabled: Boolean
+    isDoneEnabled: Boolean,
+    onDoneClick: () -> Unit,
+    isUploading: Boolean
 ){
     TextButton(
         onClick = {
             if (isDoneEnabled) {
-                // TODO: Dismiss
+                onDoneClick()
             }
         },
         enabled = isDoneEnabled,
         modifier = Modifier.semantics { contentDescription = "Post Button" }
-    ) {
+    ){
+    if (isUploading) {
+        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+    } else {
         Text(
             text = stringResource(R.string.submit),
             style = MaterialTheme.typography.titleLarge,
@@ -107,41 +120,11 @@ private fun DoneButton(
             color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
         )
     }
-}
-
-@Composable
-fun ConfirmationDialog(
-    onDismissRequest: () -> Unit,
-    onConfirmationButtonRequest: () -> Unit,
-    onSaveDraftRequest: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismissRequest,
-        title = { Text(text = stringResource(R.string.discard_this_post)) },
-
-        confirmButton = {
-            TextButton(onClick = onConfirmationButtonRequest) {
-                Text(stringResource(R.string.ok))
-            }
-        },
-        dismissButton = {
-            Row {
-                TextButton(onClick = onDismissRequest) {
-                    Text(stringResource(R.string.cancel))
-                }
-                
-                Spacer(modifier = Modifier.width(8.dp))
-
-                TextButton(onClick = onSaveDraftRequest) {
-                    Text(stringResource(R.string.save_in_drafts))
-                }
-            }
-        }
-    )
+    }
 }
 
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ PostComposeNavigationBar(rememberNavController(), false, true) }
+    Theme{ PostComposeNavigationBar(rememberNavController(), false, {}, false) }
 }
