@@ -41,5 +41,4 @@ class TaxiReportListViewModel @Inject constructor(
             Log.e("TaxiReportListViewModel", "Failed to fetch reports: ${e.localizedMessage}")
         }
     }
-
 }
