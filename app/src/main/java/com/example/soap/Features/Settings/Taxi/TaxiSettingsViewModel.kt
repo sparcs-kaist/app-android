@@ -1,26 +1,18 @@
 package com.example.soap.Features.Settings.Taxi
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Taxi.TaxiUser
-import com.example.soap.Domain.Repositories.TaxiUserRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepository
 import com.example.soap.Domain.Usecases.UserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-
-interface TaxiSettingsViewModelProtocol {
-    var bankName: String?
-    var bankNumber: String
-    val user: TaxiUser?
-    val state: StateFlow<TaxiSettingsViewModel.ViewState>
-
-    suspend fun fetchUser()
-    suspend fun editBankAccount(account: String)
-}
 
 @HiltViewModel
 class TaxiSettingsViewModel @Inject constructor(
@@ -34,8 +26,8 @@ class TaxiSettingsViewModel @Inject constructor(
         data class Error(val message: String) : ViewState()
     }
 
-    override var bankName: String? = null
-    override var bankNumber: String = ""
+    override var bankName by mutableStateOf<String?>(null)
+    override var bankNumber by mutableStateOf("")
     override var user: TaxiUser? = null
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -44,7 +36,7 @@ class TaxiSettingsViewModel @Inject constructor(
     override suspend fun fetchUser() {
         _state.value = ViewState.Loading
         viewModelScope.launch {
-            val fetchedUser = userUseCase.getTaxiUser()
+            val fetchedUser = userUseCase.taxiUser
             if (fetchedUser == null) {
                 _state.value = ViewState.Error("Taxi User Information Not Found.")
                 return@launch
@@ -64,6 +56,7 @@ class TaxiSettingsViewModel @Inject constructor(
                 userUseCase.fetchTaxiUser()
             } catch (e: Exception) {
                 Log.e("TaxiSettingsViewModel", "Failed to edit bank account", e)
+                _state.value = ViewState.Error("Failed to edit bank account")
             }
         }
     }

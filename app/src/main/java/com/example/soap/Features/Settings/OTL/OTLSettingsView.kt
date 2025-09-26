@@ -9,21 +9,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
+import com.example.soap.R
 import com.example.soap.Shared.ViewModelMocks.MockOTLSettingsViewModel
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
@@ -31,15 +36,16 @@ import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun OTLSettingsView(
-    viewModel: OTLSettingsViewModelProtocol,
+    viewModel: OTLSettingsViewModelProtocol = hiltViewModel(),
     navController: NavController
 ) {
+    val otlMajor by (viewModel as OTLSettingsViewModel).otlMajorFlow.collectAsState()
 
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
                 title = "OTL Settings",
-                onDismiss = { navController.navigate(Channel.Settings.name )}
+                onDismiss = { navController.navigate(Channel.Settings.name) }
             )
         }
     ) { innerPadding ->
@@ -51,7 +57,7 @@ fun OTLSettingsView(
                 .padding(horizontal = 32.dp)
         ) {
             MajorPicker(
-                selected = viewModel.otlMajor,
+                selected = otlMajor,
                 options = viewModel.otlMajorList,
                 onSelected = { viewModel.otlMajor = it }
             )
@@ -68,7 +74,6 @@ fun MajorPicker(
     var expanded by remember { mutableStateOf(false) }
 
     Row(modifier = Modifier.fillMaxWidth()) {
-
         Text(
             text = "Major",
             style = MaterialTheme.typography.titleMedium
@@ -80,10 +85,16 @@ fun MajorPicker(
             text = selected ?: "Select Major",
             modifier = Modifier.clickable { expanded = true },
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.grayBB
+            color = if (selected == null) MaterialTheme.colorScheme.grayBB
+            else MaterialTheme.colorScheme.grayBB
         )
 
         Spacer(Modifier.width(8.dp))
+
+        Icon(
+            painter = painterResource(R.drawable.baseline_arrow_drop_down),
+            contentDescription = null
+        )
 
         DropdownMenu(
             expanded = expanded,

@@ -1,12 +1,11 @@
 package com.example.soap.Shared.ViewModelMocks
 
-import androidx.lifecycle.ViewModel
 import com.example.soap.Features.Settings.OTL.OTLSettingsViewModelProtocol
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 
-class MockOTLSettingsViewModel : ViewModel(), OTLSettingsViewModelProtocol {
+class MockOTLSettingsViewModel : OTLSettingsViewModelProtocol {
 
     // MARK: - Properties
     private val _otlMajor = MutableStateFlow("School of Computer Science")

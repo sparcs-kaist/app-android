@@ -56,7 +56,7 @@ interface AraBoardApi {
     suspend fun fetchBookmarks(
         @Query("page") page: Int,
         @Query("page_size") pageSize: Int
-    ): List<AraPostDTO>
+    ): AraPostPageDTO
 
     @Multipart
     @POST("attachments/")

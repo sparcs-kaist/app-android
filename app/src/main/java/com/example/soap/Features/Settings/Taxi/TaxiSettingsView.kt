@@ -5,6 +5,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,9 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -38,9 +36,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -66,11 +63,7 @@ fun TaxiSettingsView(
 ) {
     var safariURL by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
-    val scope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
-    var isValid by remember { mutableStateOf(false) }
-    var selectedBank by remember { mutableStateOf(viewModel.bankName ?: "") }
-    var bankNumber by remember { mutableStateOf(viewModel.bankNumber) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
@@ -112,8 +105,9 @@ fun TaxiSettingsView(
                     onClick = {
                         val bankName = viewModel.bankName ?: return@Button
                         coroutineScope.launch {
-                            viewModel.editBankAccount("${bankName} ${viewModel.bankNumber}")
+                            viewModel.editBankAccount("$bankName ${viewModel.bankNumber}")
                         }
+                        navController.popBackStack()
                     },
                     enabled = isValid(viewModel)
                 ) {
@@ -133,7 +127,7 @@ fun TaxiSettingsView(
 }
 @Composable
 private fun LoadingView() {
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         RowElementView(title = "Nickname", content = "Unknown")
         RowElementView(title = "Bank Account", content = "Unknown")
     }
@@ -142,33 +136,43 @@ private fun LoadingView() {
 @Composable
 private fun LoadedView(viewModel: TaxiSettingsViewModelProtocol, navController: NavController, onOpenUrl: (String) -> Unit) {
     Column {
-        Text("Profile", style = MaterialTheme.typography.titleMedium)
-        RowElementView(title = "Nickname", content = viewModel.user?.nickname ?: "Unknown")
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)){
+            Text("Profile", style = MaterialTheme.typography.titleMedium)
 
-        BankPicker(
-            selected = viewModel.bankName,
-            options = Constants.taxiBankNameList,
-            onSelected = { viewModel.bankName = it }
-        )
+            RowElementView(title = "Nickname", content = viewModel.user?.nickname ?: "Unknown")
 
-        OutlinedTextField(
-            value = viewModel.bankNumber,
-            onValueChange = { viewModel.bankNumber = it },
-            label = { Text("Enter Bank Number", color = MaterialTheme.colorScheme.grayBB) },
-            modifier = Modifier.fillMaxWidth()
-        )
+            BankPicker(
+                selected = viewModel.bankName,
+                options = Constants.taxiBankNameList,
+                onSelected = { viewModel.bankName = it }
+            )
+
+            OutlinedTextField(
+                value = viewModel.bankNumber,
+                onValueChange = { viewModel.bankNumber = it },
+                label = { Text("Enter Bank Number", color = MaterialTheme.colorScheme.grayBB) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = viewModel.bankNumber,
+                onValueChange = { viewModel.bankNumber = it },
+                label = { Text("Enter Phone Number", color = MaterialTheme.colorScheme.grayBB) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
         Text("Service", style = MaterialTheme.typography.titleMedium)
 
-        NavigationLinkWithIcon({ navController.navigate(Channel.TaxiReportSettings.name) }, "Report Details", Icons.Default.Warning)
-        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Terms of Service", Icons.AutoMirrored.Filled.List)
-        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Privacy Policy", Icons.AutoMirrored.Filled.List)
+        NavigationLinkWithIcon({ navController.navigate(Channel.TaxiReportSettings.name) }, "Report Details", painterResource(R.drawable.outline_sms_failed))
+        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Terms of Service", painterResource(R.drawable.round_format_list_bulleted))
+        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Privacy Policy", painterResource(R.drawable.round_format_list_bulleted))
     }//Todo - ? ScrollableTextView("taxi_privacy_policy")?
 }
 
 @Composable
-private fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: ImageVector) {
+fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,43 +232,52 @@ private fun WebViewDialog(url: String, onDismiss: () -> Unit) {
         }
     )
 }//Todo - SafariViewer
-
 @Composable
-private fun BankPicker(
+fun BankPicker(
     selected: String?,
     options: List<String>,
     onSelected: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box {
-        OutlinedTextField(
-            value = selected ?: "Select Bank",
-            onValueChange = {},
-            textStyle = TextStyle().copy(if(selected == null) MaterialTheme.colorScheme.grayBB else MaterialTheme.colorScheme.onSurface),
-            readOnly = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = true },
-            label = { Text("Bank Name") }
-        )
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option) },
-                    onClick = {
-                        onSelected(option)
-                        expanded = false
-                    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .clickable { expanded = !expanded },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text("Bank Name")
+        Spacer(Modifier.weight(1f))
+        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+            Row{
+                Text(
+                    text = selected ?: "Select Bank",
+                    color = if (selected == null)
+                        MaterialTheme.colorScheme.grayBB
+                    else
+                        MaterialTheme.colorScheme.onSurface
                 )
+                Icon(painterResource(R.drawable.baseline_arrow_drop_down), contentDescription = null)
+            }
+
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false }
+            ) {
+                options.forEach { option ->
+                    DropdownMenuItem(
+                        text = { Text(option) },
+                        onClick = {
+                            onSelected(option)
+                            expanded = false
+                        }
+                    )
+                }
             }
         }
     }
 }
-
 
 
 @Preview
