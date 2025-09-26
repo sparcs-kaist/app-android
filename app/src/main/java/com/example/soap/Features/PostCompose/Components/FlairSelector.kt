@@ -1,5 +1,4 @@
 package com.example.soap.Features.PostCompose.Components
-
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,17 +7,16 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -31,124 +29,89 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.soap.Features.PostList.PostListViewModel
+import com.example.soap.Domain.Helpers.LocalizedString
+import com.example.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
-import com.example.soap.ui.theme.grayF8
 import kotlinx.coroutines.delay
 
-
 @Composable
-fun FlairSelector(
-    postListViewModel: PostListViewModel,
-){
-    var selectedFlair by remember { mutableStateOf("No flair") }
+fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
     var expanded by remember { mutableStateOf(false) }
+    var previousTopic by remember { mutableStateOf<LocalizedString?>(null) }
+    val selectedTopic = viewModel.selectedTopic
 
-    var previousFlair by remember { mutableStateOf("No flair") }
-
-    if (previousFlair != selectedFlair) {
-        previousFlair = selectedFlair
+    if (previousTopic != selectedTopic?.name) {
+        previousTopic = selectedTopic?.name
     }
 
-    Card(
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.grayF8),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
+    val displayText = selectedTopic?.name?.localized() ?: "No Topic"
+    val previousText = previousTopic?.localized() ?: "No Topic"
+
+    Box {
+        Card(
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+            shape = RoundedCornerShape(20.dp),
             modifier = Modifier
-                .padding(vertical = 4.dp, horizontal = 8.dp)
                 .clickable { expanded = !expanded }
         ) {
-
-            AnimatedAlphabetText(
-                from = getLocalizedFlair(previousFlair),
-                to = getLocalizedFlair(selectedFlair)
-            )
-
-            Spacer(Modifier.padding(4.dp))
-
-            Icon(
-                painter = painterResource(R.drawable.baseline_arrow_drop_down),
-                contentDescription = "Change Flair",
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
+                AnimatedAlphabetText(
+                    from = previousText,
+                    to = displayText
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    painter = painterResource(R.drawable.baseline_arrow_drop_down),
+                    contentDescription = "Change Topic"
+                )
+            }
         }
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = {expanded = false},
-            modifier = Modifier.background(MaterialTheme.colorScheme.background)
-        ){
-            Box(
-                Modifier
-                    .padding(8.dp)
-                    .fillMaxWidth()
-                    .clickable {
-                        selectedFlair = "No flair"
-                        expanded = false
-                    }
-            ) {
-                Text(
-                    text = getLocalizedFlair("No flair"),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.grayBB
-                )
-
-            }
-
-            HorizontalDivider(thickness = 1.dp)
-
-            postListViewModel.flairList.forEachIndexed{ index, flair ->
-
-                Box(
-                    Modifier
-                        .padding(8.dp)
-                        .fillMaxWidth()
-                        .clickable {
-                            selectedFlair = flair
-                            expanded = false
-                        }
-                ) {
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+        ) {
+            DropdownMenuItem(
+                text = {
                     Text(
-                        text = getLocalizedFlair(flair),
-                        style = MaterialTheme.typography.titleSmall
+                        text = "No Topic",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.grayBB
                     )
+                },
+                onClick = {
+                    viewModel.selectedTopic = null
+                    expanded = false
+                },
+            )
 
-                }
-                if (index != postListViewModel.flairList.lastIndex) {
-                    HorizontalDivider(thickness = 1.dp)
-                }
+            viewModel.board.topics.forEach { topic ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = topic.name.localized(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    onClick = {
+                        viewModel.selectedTopic = topic
+                        expanded = false
+                    },
+                )
             }
-
         }
     }
 }
-
-@Composable
-fun getLocalizedFlair(flair: String): String {
-    val flairMap = mapOf(
-        "No flair" to R.string.no_flair,
-        "All" to R.string.all,
-        "SPPANGS" to R.string.sppangs,
-        "Meal" to R.string.meal,
-        "Money" to R.string.money,
-        "Gaming" to R.string.gaming,
-        "Dating" to R.string.dating,
-        "Lost & Found" to R.string.lost_and_found
-    )
-
-    val resId = flairMap[flair] ?: return flair
-    return stringResource(id = resId)
-}
-
 
 @Composable
 fun AnimatedAlphabetText(from: String, to: String) {
@@ -172,24 +135,24 @@ fun AnimatedAlphabetText(from: String, to: String) {
     Row {
         for (i in 0 until maxLength) {
             val toChar = displayed.getOrNull(i) ?: ' '
-            val color = if (displayed == getLocalizedFlair("No flair")) MaterialTheme.colorScheme.grayBB else MaterialTheme.colorScheme.onSurface
+            val color =
+                if (displayed == "No Topic") MaterialTheme.colorScheme.grayBB
+                else MaterialTheme.colorScheme.onSurface
 
             AnimatedContent(
                 targetState = toChar,
                 transitionSpec = {
                     val slideIn = slideInVertically { it }
                     val fadeIn = fadeIn(initialAlpha = 0.3f)
-
                     val slideOut = slideOutVertically { -it }
                     val fadeOut = fadeOut()
-
-                    (slideIn + fadeIn).togetherWith((slideOut + fadeOut))
+                    (slideIn + fadeIn).togetherWith(slideOut + fadeOut)
                 },
                 label = "charTransition"
             ) { char ->
                 Text(
                     text = char.toString(),
-                    style = MaterialTheme.typography.titleSmall,
+                    style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = color
                 )
@@ -199,10 +162,8 @@ fun AnimatedAlphabetText(from: String, to: String) {
 }
 
 
-
-
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ FlairSelector(viewModel()) }
+    Theme{ TopicSelector(viewModel()) }
 }

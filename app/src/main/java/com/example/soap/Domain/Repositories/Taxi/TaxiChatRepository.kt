@@ -1,4 +1,4 @@
-package com.example.soap.Domain.Repositories
+package com.example.soap.Domain.Repositories.Taxi
 
 import com.example.soap.Domain.Models.Taxi.TaxiChatRequest
 import com.example.soap.Networking.RequestDTO.TaxiChatRequestDTO
@@ -101,8 +101,6 @@ class TaxiChatRepository @Inject constructor(
             }
         }
     }
-
-
 
     override suspend fun notifyImageUploadComplete(id: String) {
         val body = mapOf("id" to id)

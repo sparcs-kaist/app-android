@@ -6,23 +6,7 @@ import com.example.soap.Domain.Models.Ara.AraBoardGroup
 import com.example.soap.Domain.Models.Ara.AraBoardTopic
 
 fun AraBoard.Companion.mock(): AraBoard{
-    return AraBoard(
-        id = 1,
-        slug = "portal-notice",
-        name = LocalizedString(mapOf("ko" to "포탈공지", "en" to "Portal Notice")),
-        group = AraBoardGroup(
-            id = 1,
-            slug = "notice",
-            name = LocalizedString(mapOf(
-                "ko" to "공지",
-                "en" to "Notices"
-            ))
-        ),
-        topics = emptyList(),
-        isReadOnly = true,
-        userReadable = true,
-        userWritable = false
-    )
+    return AraBoard.mockList()[5]
 }
 
 fun AraBoard.Companion.mockList(): List<AraBoard> {

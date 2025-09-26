@@ -1,4 +1,4 @@
-package com.example.soap.Shared.Views.ErrorView
+package com.example.soap.Shared.Views.ContentViews
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -17,7 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.ui.theme.Theme
 
 
 @Composable
@@ -61,5 +65,17 @@ fun ErrorView(icon: ImageVector,  errorMessage: String, onRetry: () -> Unit) {
         ) {
             Text("Try Again")
         }
+    }
+}
+
+@Composable
+@Preview
+private fun Preview(){
+    Theme{
+        ErrorView(
+            icon = Icons.Default.Warning,
+            errorMessage = "error.message",
+            onRetry = {}
+        )
     }
 }

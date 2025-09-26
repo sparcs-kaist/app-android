@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -42,6 +41,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.soap.Features.BoardList.BoardListView
+import com.example.soap.Features.BoardList.BoardListViewModel
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
@@ -53,8 +53,14 @@ import com.example.soap.Features.NavigationBar.Components.ChatButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
+import com.example.soap.Features.Post.PostViewModel
+import com.example.soap.Features.Post.PostViewModelProtocol
 import com.example.soap.Features.PostCompose.PostComposeView
+import com.example.soap.Features.PostCompose.PostComposeViewModel
+import com.example.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.example.soap.Features.PostList.PostListView
+import com.example.soap.Features.PostList.PostListViewModel
+import com.example.soap.Features.PostList.PostListViewModelProtocol
 import com.example.soap.Features.TaxiChat.TaxiChatView
 import com.example.soap.Features.TaxiChat.TaxiChatViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatViewModelProtocol
@@ -66,6 +72,9 @@ import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
+import com.example.soap.Features.UserPostList.UserPostListView
+import com.example.soap.Features.UserPostList.UserPostListViewModel
+import com.example.soap.Features.UserPostList.UserPostListViewModelProtocol
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 
@@ -74,14 +83,17 @@ enum class Channel(@StringRes val title: Int) {
     Start(title = R.string.start),
     TimeTable(title = R.string.timetable),
     Taxi(title = R.string.taxi),
-    TrendingBoard(title = R.string.general_board),
+    BoardList(title = R.string.general_board),
     Boards(title = R.string.boards),
-    PostView(title = R.string.postview), //임시
+    PostView(title = R.string.postview),
     PostCompose(title = R.string.postcompose),
-    LectureDetail(title= R.string.lecturedetail),//임시
+    LectureDetail(title= R.string.lecturedetail),
     TaxiRoomCreation(title = R.string.taxi_room_creation),
     TaxiChatView(title = R.string.taxichatview),
-    TaxiChatListView(title = R.string.taxichatlistview)
+    TaxiChatListView(title = R.string.taxichatlistview),
+    AraChatView(title = R.string.ara_chat_view), //임시
+    UserPostListView(title = R.string.user_post_list_view),
+    SearchView(title = R.string.search)
 }
 
 @Composable
@@ -92,6 +104,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     val currentScreen = Channel.entries.find { screen ->
         currentRoute?.startsWith(screen.name) == true
     } ?: Channel.Start
+
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -105,10 +118,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Channel.Start.name,
             ) { HomeView(navController) }
-
-            composable(
-                route = Channel.Boards.name
-            ) { BoardListView(navController) }
 
             composable(
                 route = Channel.TimeTable.name
@@ -177,21 +186,87 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 TaxiChatListView(viewModel, navController)
             }
 
-            composable(
-                route = Channel.TrendingBoard.name
-            ) { PostListView(navController = navController) }
+            navigation(
+                startDestination = Channel.Boards.name,
+                route = "AraGraph"
+            ) {
+                composable(
+                    route = Channel.Boards.name
+                ) { backStackEntry ->
+                    val viewModel: BoardListViewModel = hiltViewModel(backStackEntry)
+                    BoardListView(viewModel = viewModel, navController = navController)
+                }
 
-            composable(
-                route = Channel.PostView.name
-            ) { PostView(navController = navController) }
+                composable(
+                    route = Channel.BoardList.name + "?board_json={board_json}",
+                    arguments = listOf(
+                        navArgument("board_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) { backStackEntry ->
 
+                    val viewModelImpl: PostListViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: PostListViewModelProtocol = viewModelImpl
+                    PostListView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.PostView.name + "?post_json={post_json}",
+                    arguments = listOf(
+                        navArgument("post_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) { backStackEntry ->
+                    val viewModelImpl: PostViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: PostViewModelProtocol = viewModelImpl
+                    PostView(viewModel = viewModel, navController = navController)
+                }
+            }
             composable(
-                route = Channel.PostCompose.name,
+                route = Channel.PostCompose.name+ "?board_json={board_json}",
+                arguments = listOf(
+                    navArgument("board_json") {
+                        type = NavType.StringType
+                        nullable = false
+                    }
+                ),
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) { PostComposeView(postListViewModel = viewModel(), navController = navController) }
+            ) {backStackEntry ->
+                val viewModelImpl: PostComposeViewModel = hiltViewModel(backStackEntry)
+                val viewModel: PostComposeViewModelProtocol = viewModelImpl
+                PostComposeView(
+                    viewModel = viewModel,
+                    navController = navController
+                )
+            }
+
+            composable(
+                route = Channel.UserPostListView.name+ "?author_json={author_json}",
+                arguments = listOf(
+                    navArgument("author_json") {
+                        type = NavType.StringType
+                        nullable = false
+                    }
+                ),
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ){backStackEntry ->
+                val viewModelImpl: UserPostListViewModel = hiltViewModel(backStackEntry)
+                val viewModel: UserPostListViewModelProtocol = viewModelImpl
+                UserPostListView(viewModel = viewModel, navController = navController)
+            }
 
             composable(
                 route = "${Channel.LectureDetail.name}/{lectureId}",
@@ -206,6 +281,15 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
             }
 
+            composable(
+                route = Channel.SearchView.name,
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ) {
+               // SearchView()
+            }
         }
     }
 }
@@ -255,6 +339,9 @@ fun AppBar(
                         )
                     }
                     ChatButton(onClick = {navController.navigate(Channel.TaxiChatListView.name)} )
+                }
+                Channel.Boards -> {
+                    ChatButton(onClick = {navController.navigate(Channel.AraChatView.name)})
                 }
                 else -> {}
             }

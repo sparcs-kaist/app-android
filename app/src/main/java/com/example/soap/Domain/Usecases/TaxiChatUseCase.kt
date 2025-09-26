@@ -6,8 +6,8 @@ import com.example.soap.Domain.Models.Taxi.TaxiChat
 import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiChatRequest
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
-import com.example.soap.Domain.Repositories.TaxiChatRepository
-import com.example.soap.Domain.Repositories.TaxiRoomRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiChatRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
 import com.example.soap.Domain.Services.TaxiChatService
 import com.example.soap.Shared.Extensions.toByteArray
 import com.example.soap.Shared.Extensions.toISO8601
@@ -105,8 +105,11 @@ class TaxiChatUseCase @Inject constructor(
                 val filtered = newChats.filter { it.roomID == room.id }
                 if (filtered.isEmpty()) return@onEach
 
+                val merged = (_accumulatedChats + filtered)
+                    .distinctBy { it.id }
+
                 _accumulatedChats.clear()
-                _accumulatedChats.addAll(filtered.distinctBy { it.id })
+                _accumulatedChats.addAll(merged)
 
                 _groupedChatsFlow.value =
                     groupChats(_accumulatedChats.toList(), user?.oid ?: "")
@@ -203,8 +206,5 @@ class TaxiChatUseCase @Inject constructor(
     override fun switchRoom(newRoomId: String) {
         _accumulatedChats.clear()
         taxiChatService.setRoom(newRoomId)
-        scope.launch {
-            fetchInitialChats()
-        }
     }
 }
