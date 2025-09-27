@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -68,6 +67,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Models.Taxi.TaxiChat
 import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
@@ -110,6 +110,7 @@ fun TaxiChatView(
     var text by remember { mutableStateOf("") }
     var tappedImageId by remember { mutableStateOf<String?>(null) }
     var showCallTaxiAlert by remember { mutableStateOf(false) }
+    var showPaymentAlert by remember { mutableStateOf(false) }
     var showErrorAlert by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var selectedImage by remember { mutableStateOf<Bitmap?>(null) }
@@ -157,7 +158,10 @@ fun TaxiChatView(
                 onDismiss = { navController.navigate(Channel.TaxiChatListView.name) },
                 onClickCallTaxi = { showCallTaxiAlert = true },
                 onClickLeave = {
-                    coroutineScope.launch { viewModel.leaveRoom() }
+                    coroutineScope.launch {
+                        viewModel.leaveRoom()
+                        navController.popBackStack()
+                    }
                 },
                 isEnabled = viewModel.isLeaveRoomAvailable
             )
@@ -225,6 +229,7 @@ fun TaxiChatView(
                     groupedChats = groupedChats,
                     viewModel = viewModel,
                     onImageClick = { tappedImageId = it },
+                    onCommitPayment = { showPaymentAlert = true },
                     topChatID = topChatID,
                     isLoadingMore = isLoadingMore,
                     modifier = Modifier.fillMaxSize()
@@ -269,6 +274,36 @@ fun TaxiChatView(
         )
     }
 
+    if (showPaymentAlert){
+        AlertDialog(
+            onDismissRequest = { showPaymentAlert = false  },
+            dismissButton = {
+                Button(onClick = { showPaymentAlert = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = { Text("Send Payment") },
+            text = {
+                Text(
+                    "Select the app to send your payment. Tap Already Sent once you've completed the transfer."
+                )
+            },
+            confirmButton = {
+                Row {
+                    TextButton(onClick = { openKakaoPay(context) }) {
+                        Text("Open Kakao Pay")
+                    }
+                    Button(onClick = { openToss(context, viewModel.account) }) {
+                        Text("Open Toss")
+                    }
+                    TextButton(onClick = { coroutineScope.launch { viewModel.commitPayment() } }) {
+                        Text("Already Sent")
+                    }
+                }
+            }
+        )
+    }
+
     if (showErrorAlert) {
         AlertDialog(
             onDismissRequest = { showErrorAlert = false },
@@ -294,6 +329,7 @@ fun ContentView(
     groupedChats: List<TaxiChatGroup>,
     viewModel: TaxiChatViewModelProtocol,
     onImageClick: (String) -> Unit,
+    onCommitPayment: () -> Unit,
     topChatID: MutableState<String?>,
     isLoadingMore: MutableState<Boolean>,
     modifier: Modifier = Modifier
@@ -391,15 +427,7 @@ fun ContentView(
                                 TaxiChatAccountBubble(
                                     content = chat.content,
                                     isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable
-                                ) {
-                                    coroutineScope.launch {
-                                        try {
-                                            viewModel.commitPayment()
-                                        } catch (e: Exception) {
-                                            Log.e("TaxiChatView", "Failed to commit payment", e)
-                                        }
-                                    }
-                                }
+                                ) { onCommitPayment() }
 
                             TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
                             else -> Text(chat.type.name)
@@ -725,6 +753,31 @@ fun openUber(context: Context, viewModel: TaxiChatViewModelProtocol) {
     }
 }
 
+fun openKakaoPay(context: Context) {
+    val url = "kakaotalk://kakaopay/money/to/bank"
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    } else {
+        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakaopay.app"))
+        context.startActivity(marketIntent)
+    }
+}
+
+fun openToss(context: Context, account: String?) {
+    val bankName = account?.split(" ")?.firstOrNull().orEmpty()
+    val accountNo = account?.split(" ")?.lastOrNull().orEmpty()
+    val bankCode = Constants.taxiBankCodeMap[bankName].orEmpty()
+
+    val url = "supertoss://send?bankCode=$bankCode&accountNo=$accountNo"
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    } else {
+        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=viva.republica.toss"))
+        context.startActivity(marketIntent)
+    }
+}
 
 // MARK: - Previews
 @Preview
