@@ -35,8 +35,8 @@ fun TaxiChatBubble(
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var selectedUrl by remember { mutableStateOf<String?>(null) }
 
-    val backgroundColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
-    val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
+    val backgroundColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.scrim
     val urlColor = if (isMe) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primary
 
     val annotatedString = buildAnnotatedString {
