@@ -1,7 +1,6 @@
 package com.example.soap.Domain.Models.Feed
 
 import com.example.soap.Domain.Enums.FeedVoteType
-import java.net.URL
 import java.util.Date
 
 data class FeedPost(
@@ -10,7 +9,7 @@ data class FeedPost(
     val isAnonymous: Boolean,
     val authorName: String,
     val nickname: String?,
-    val profileImageURL: URL?,
+    val profileImageURL: String?,
     val createdAt: Date,
     var commentCount: Int,
     val upVotes: Int,

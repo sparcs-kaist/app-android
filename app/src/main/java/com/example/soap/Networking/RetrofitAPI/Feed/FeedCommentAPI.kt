@@ -10,35 +10,35 @@ import retrofit2.http.Path
 
 interface FeedCommentApi {
 
-    @GET("/posts/{postID}/comments")
+    @GET("posts/{postID}/comments")
     suspend fun fetchComments(
         @Path("postID") postID: String
     ): List<FeedCommentDTO>
 
-    @POST("/posts/{postID}/comments")
+    @POST("posts/{postID}/comments")
     suspend fun writeComment(
         @Path("postID") postID: String,
         @Body request: FeedCommentRequestDTO
     ): FeedCommentDTO
 
-    @POST("/comments/{commentID}/replies")
+    @POST("comments/{commentID}/replies")
     suspend fun writeReply(
         @Path("commentID") commentID: String,
         @Body request: FeedCommentRequestDTO
     ): FeedCommentDTO
 
-    @DELETE("/comments/{commentID}")
+    @DELETE("comments/{commentID}")
     suspend fun deleteComment(
         @Path("commentID") commentID: String
     )
 
-    @POST("/comments/{commentID}/vote")
+    @POST("comments/{commentID}/vote")
     suspend fun vote(
         @Path("commentID") commentID: String,
         @Body vote: Map<String, String>
     )
 
-    @DELETE("/comments/{commentID}/vote")
+    @DELETE("comments/{commentID}/vote")
     suspend fun deleteVote(
         @Path("commentID") commentID: String
     )

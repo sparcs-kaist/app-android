@@ -1,20 +1,16 @@
 package com.example.soap.Features.Feed
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -26,15 +22,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Domain.Models.Feed.FeedPost
 import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Features.Feed.Components.FeedPostRow
-import com.example.soap.Shared.Mocks.mockList
+import com.example.soap.Features.Feed.Components.FeedPostRowSkeleton
+import com.example.soap.Features.NavigationBar.AppBar
+import com.example.soap.Features.NavigationBar.AppDownBar
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.ui.theme.Theme
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +49,7 @@ fun FeedView(
 
     var showSettings by remember { mutableStateOf(false) }
     var showCompose by remember { mutableStateOf(false) }
-
+    val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
         viewModel.fetchInitialData()
@@ -57,25 +57,27 @@ fun FeedView(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Feed") },
-                actions = {
-                    IconButton(onClick = { showCompose = true }) {
-                        Icon(Icons.Default.Create, contentDescription = "Write")
-                    }
-                    IconButton(onClick = { showSettings = true }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
-                    }
-                }
+            AppBar(
+                currentScreen = Channel.Start,
+                scrollOffset = scrollState.value
+            )
+        },
+
+        bottomBar = {
+            AppDownBar(
+                navController = navController,
+                currentScreen = Channel.Start
             )
         }
     ) { padding ->
         when (state) {
             is FeedViewModel.ViewState.Loading -> {
                 LazyColumn(modifier = Modifier.padding(padding)) {
-                    items(FeedPost.mockList()) { post ->
-                        FeedPostRow(post = post, onPostDeleted = {}, onComment = {}, feedPostRepository = repo )
-                        HorizontalDivider()
+                    repeat(3){
+                       item {
+                           FeedPostRowSkeleton()
+                           HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                       }
                     }
                 }
             }
@@ -87,10 +89,13 @@ fun FeedView(
                             onPostDeleted = { postId ->
                                 coroutineScope.launch { viewModel.deletePost(postId) }
                             },
-                            onComment = { /* navigate to comments */ },
+                            onComment = {
+                                val json = Uri.encode(Gson().toJson(post))
+                                navController.navigate(Channel.FeedPost.name + "?feed_json=$json")
+                            },
                             feedPostRepository = repo
                         )
-                        HorizontalDivider()
+                        HorizontalDivider(Modifier.padding(horizontal = 8.dp))
                     }
                 }
             }
