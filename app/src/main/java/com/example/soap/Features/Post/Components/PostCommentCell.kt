@@ -380,7 +380,8 @@ fun PostCommentFooter(
                             commentState = updated
                         }
                     }
-                }
+                },
+                enabled = commentState.isMine == true
             )
         }
     }
@@ -392,8 +393,6 @@ suspend fun handleVote(
     repo: AraCommentRepositoryProtocol,
     update: (AraPostComment) -> Unit
 ) {
-    if (comment.isMine == true) return
-
     val prev = comment.copy()
 
     val updated = when {

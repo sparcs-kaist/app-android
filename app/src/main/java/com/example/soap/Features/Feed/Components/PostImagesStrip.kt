@@ -27,7 +27,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
@@ -46,10 +45,10 @@ fun PostImagesStrip(images: List<FeedImage>) {
             .onSizeChanged { parentWidth = it.width }
             .height(IntrinsicSize.Min)
     ) {
-        val pw = if (parentWidth > 0) parentWidth.toFloat() else LocalConfiguration.current.screenWidthDp.dp.toPx()
-        val contentWidth = (pw - 2 * hPadding.toPx()).coerceAtLeast(0f)
+        val pw = parentWidth.toFloat()
+        val contentWidth = (pw - 2 * hPadding.value).coerceAtLeast(0f)
         val maxW = contentWidth
-        val minW = 100.dp.toPx()
+        val minW = 100.dp
         val height = maxW * 3f / 4f
 
         LazyRow(
