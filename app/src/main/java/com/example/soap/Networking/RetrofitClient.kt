@@ -36,6 +36,9 @@ import com.example.soap.Networking.RetrofitAPI.Ara.AraCommentApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraUserApi
 import com.example.soap.Networking.RetrofitAPI.AuthApi
 import com.example.soap.Networking.RetrofitAPI.Feed.FeedCommentApi
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedImageApi
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedPostApi
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedUserApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiUserApi
@@ -279,6 +282,24 @@ object NetworkModule {
     @Singleton
     fun provideFeedCommentApi(@Named("AraBackend") retrofit: Retrofit): FeedCommentApi {
         return retrofit.create(FeedCommentApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedUserApi(@Named("FeedBackend") retrofit: Retrofit): FeedUserApi {
+        return retrofit.create(FeedUserApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedImageApi(@Named("FeedBackend") retrofit: Retrofit): FeedImageApi {
+        return retrofit.create(FeedImageApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedPostApi(@Named("FeedBackend") retrofit: Retrofit): FeedPostApi {
+        return retrofit.create(FeedPostApi::class.java)
     }
 }
 

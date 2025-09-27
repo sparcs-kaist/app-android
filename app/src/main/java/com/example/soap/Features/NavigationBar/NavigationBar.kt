@@ -119,10 +119,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             enterTransition = { fadeIn(animationSpec = tween(500)) },
             exitTransition = { fadeOut(animationSpec = tween(500)) }
         ) {
-            navigation(
-                startDestination = Channel.Start.name,
-                route = "FeedGraph"
-            ) {
+//            navigation(
+//                startDestination = Channel.Start.name,
+//                route = "FeedGraph"
+//            ) {
                 composable(
                     route = Channel.Start.name,
                 ) { backStackEntry->
@@ -153,7 +153,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 ////                    FeedPostComposeView(navController = navController, viewModel = viewModel)
 //                }
 
-            }
+//            }
             composable(
                 route = Channel.TimeTable.name
             ) { TimetableView(navController) }
