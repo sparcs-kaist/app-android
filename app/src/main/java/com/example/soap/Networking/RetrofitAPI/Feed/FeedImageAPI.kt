@@ -10,7 +10,7 @@ import retrofit2.http.Part
 
 interface FeedImageApi {
     @Multipart
-    @POST("/images")
+    @POST("images")
     suspend fun uploadPostImage(
         @Part file: MultipartBody.Part,
         @Part("description") description: RequestBody,

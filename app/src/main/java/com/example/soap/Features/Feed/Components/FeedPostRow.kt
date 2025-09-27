@@ -1,11 +1,13 @@
 package com.example.soap.Features.Feed.Components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,7 +62,7 @@ fun FeedPostRow(
     val coroutineScope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Header(post, onPostDeleted, showDeleteConfirmation, onPostDeleted, feedPostRepository) { showDeleteConfirmation = it }
+        Header(post, onPostDeleted, showDeleteConfirmation, onPostDeleted) { showDeleteConfirmation = it }
         Content(post)
         Footer(post, onComment, onPostDeleted, feedPostRepository, coroutineScope)
     }
@@ -84,7 +86,7 @@ fun ProfileImage(post: FeedPost) {
             modifier = Modifier
                 .size(24.dp)
                 .clip(CircleShape)
-                .background(Color.LightGray)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             Text("😀", style = MaterialTheme.typography.labelSmall)
         }
@@ -97,28 +99,30 @@ fun Header(
     onPostDeleted: ((String) -> Unit)?,
     showDeleteConfirmation: Boolean,
     onDelete: ((String) -> Unit)?,
-    feedPostRepository: FeedPostRepositoryProtocol,
     setShowDelete: (Boolean) -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 8.dp)
     ) {
         ProfileImage(post)
         Spacer(Modifier.width(8.dp))
         Text(post.authorName, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(8.dp))
         Text(
-            if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
-            color = MaterialTheme.colorScheme.grayBB
+            text = if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
+            color = MaterialTheme.colorScheme.grayBB,
+            style = MaterialTheme.typography.bodySmall
         )
         Spacer(Modifier.weight(1f))
         if (onPostDeleted != null && post.isAuthor) {
             IconButton(onClick = { setShowDelete(true) }) {
                 Icon(painterResource(R.drawable.more_horiz), contentDescription = null)
             }
+        } else {
+            Box(modifier = Modifier.size(32.dp))
         }
     }
 
@@ -161,7 +165,7 @@ fun Footer(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         PostVoteButton(
             myVote = when (postState.myVote) {
@@ -175,6 +179,7 @@ fun Footer(
             enabled = post.isAuthor
         )
 
+        Spacer(Modifier.width(8.dp))
         PostCommentButton(commentCount = postState.commentCount, onClick = onComment)
         Spacer(Modifier.weight(1f))
         if (onPostDeleted == null) PostShareButton()
@@ -241,6 +246,79 @@ suspend fun downVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (
     }
 }
 
+@Composable
+fun FeedPostRowSkeleton() {
+    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(Color.LightGray.copy(alpha = 0.3f))
+            )
+            Spacer(Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
+                    .height(14.dp)
+                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+            )
+            Spacer(Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .width(50.dp)
+                    .height(12.dp)
+                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+            )
+        }
+
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(16.dp)
+                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+            )
+            Spacer(Modifier.height(8.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+
+                Box(
+                    modifier = Modifier
+                        .size(width = 300.dp, height = 75.dp)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(Color.LightGray.copy(alpha = 0.3f))
+                )
+            }
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(32.dp)
+                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+            )
+            Spacer(Modifier.width(8.dp))
+            Box(
+                modifier = Modifier
+                    .width(50.dp)
+                    .height(32.dp)
+                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+            )
+        }
+    }
+}
+
 
 @Composable
 @Preview
@@ -266,4 +344,10 @@ private fun Preview(){
             }
         )
     }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun SkeletonPreview(){
+    Theme { FeedPostRowSkeleton() }
 }
