@@ -287,7 +287,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideFeedCommentApi(@Named("AraBackend") retrofit: Retrofit): FeedCommentApi {
+    fun provideFeedCommentApi(@Named("FeedBackend") retrofit: Retrofit): FeedCommentApi {
         return retrofit.create(FeedCommentApi::class.java)
     }
 

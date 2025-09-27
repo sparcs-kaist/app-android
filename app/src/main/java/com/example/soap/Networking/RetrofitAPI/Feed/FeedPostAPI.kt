@@ -14,30 +14,30 @@ import retrofit2.http.Query
 
 interface FeedPostApi {
 
-    @GET("/posts")
+    @GET("posts")
     suspend fun fetchPosts(
         @Query("cursor") cursor: String? = null,
         @Query("limit") limit: Int
     ): FeedPostPageDTO
 
-    @POST("/posts")
+    @POST("posts")
     suspend fun writePost(
         @Body request: FeedPostRequestDTO
     ): FeedPostDTO
 
-    @DELETE("/posts/{postId}")
+    @DELETE("posts/{postID}")
     suspend fun deletePost(
-        @Path("postId") postId: String
+        @Path("postID") postId: String
     ): Response<Unit>
 
-    @POST("/posts/{postId}/vote")
+    @POST("posts/{postID}/vote")
     suspend fun vote(
-        @Path("postId") postId: String,
+        @Path("postID") postId: String,
         @Body body:  Map<String, String>
     ): Response<Unit>
 
-    @DELETE("/posts/{postId}/vote")
+    @DELETE("posts/{postID}/vote")
     suspend fun deleteVote(
-        @Path("postId") postId: String
+        @Path("postID") postId: String
     ): Response<Unit>
 }

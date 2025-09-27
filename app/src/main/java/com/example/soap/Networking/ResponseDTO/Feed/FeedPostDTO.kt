@@ -4,7 +4,6 @@ import com.example.soap.Domain.Enums.FeedVoteType
 import com.example.soap.Domain.Models.Feed.FeedPost
 import com.example.soap.Shared.Extensions.toDate
 import com.google.gson.annotations.SerializedName
-import java.net.URL
 import java.util.Date
 
 data class FeedPostDTO (
@@ -54,7 +53,7 @@ data class FeedPostDTO (
             isAnonymous = isAnonymous,
             authorName = authorName,
             nickname = nickname,
-            profileImageURL = profileImageURL?.let { URL(it) },
+            profileImageURL = profileImageURL,
             createdAt = createdAt.toDate() ?: Date(),
             commentCount = commentCount,
             upVotes = upVotes,
