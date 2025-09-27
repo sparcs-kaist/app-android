@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
@@ -52,6 +54,7 @@ import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.ViewModelMocks.MockTaxiSettingsViewModel
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
@@ -93,9 +96,13 @@ fun TaxiSettingsView(
                     onOpenUrl = { safariURL = it })
                 is TaxiSettingsViewModel.ViewState.Error -> {
                     val message = (state as TaxiSettingsViewModel.ViewState.Error).message
+                    ErrorView(
+                        icon = Icons.Default.Warning,
+                        errorMessage = message,
+                        onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
+                    )
                     Log.e("TaxiSettingsView", message)
                 }
-                    //TODO ErrorView
             }
 
             Spacer(modifier = Modifier.height(16.dp))
