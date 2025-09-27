@@ -51,8 +51,8 @@ import kotlinx.coroutines.launch
 fun FeedCommentRow(
     comment: FeedComment,
     isReply: Boolean,
-    onReply: (() -> Unit)? = null,
-    repo: FeedCommentRepositoryProtocol
+    onReply: () -> Unit,
+    feedCommentRepository: FeedCommentRepositoryProtocol
 ) {
     var localComment by remember { mutableStateOf(comment) }
 
@@ -69,13 +69,13 @@ fun FeedCommentRow(
         }
 
         Column(modifier = Modifier.weight(1f)) {
-            Header(localComment, repo) { updated ->
+            Header(localComment, feedCommentRepository) { updated ->
                 localComment = updated
             }
 
             Content(localComment)
 
-            Footer(localComment, onReply, repo) { updated ->
+            Footer(localComment, onReply, feedCommentRepository) { updated ->
                 localComment = updated
             }
         }
@@ -269,7 +269,8 @@ private fun Preview(){
         FeedCommentRow(
             comment = FeedComment.mock(),
             isReply = false,
-            repo = object : FeedCommentRepositoryProtocol {
+            onReply = {},
+            feedCommentRepository = object : FeedCommentRepositoryProtocol {
                 private val mockComments = FeedComment.mockList()
                 override suspend fun fetchComments(postId: String): List<FeedComment> {
                     return mockComments

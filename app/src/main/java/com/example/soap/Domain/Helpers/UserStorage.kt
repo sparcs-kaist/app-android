@@ -1,6 +1,7 @@
 package com.example.soap.Domain.Helpers
 
 import com.example.soap.Domain.Models.Ara.AraUser
+import com.example.soap.Domain.Models.Feed.FeedUser
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -12,7 +13,7 @@ class UserStorage @Inject constructor(
 ): UserStorageProtocol {
     private var araUser: AraUser? = null
     private var taxiUser: TaxiUser? = null
-//    private var feedUser: TaxiUser? = null
+    private var feedUser: FeedUser? = null
     private val mutex = Mutex()
 
     //Mark: Ara
@@ -36,12 +37,12 @@ class UserStorage @Inject constructor(
     }
 
     //Mark: Feed
-//    override suspend fun setFeedUser(user: FeedUser?) {
-//        mutex.withLock {
-//            feedUser = user
-//        }
-//    }
-//    override suspend fun getFeedUser(): FeedUser? {
-//        return mutex.withLock { feedUser }
-//    }
+    override suspend fun setFeedUser(user: FeedUser?) {
+        mutex.withLock {
+            feedUser = user
+        }
+    }
+    override suspend fun getFeedUser(): FeedUser? {
+        return mutex.withLock { feedUser }
+    }
 }

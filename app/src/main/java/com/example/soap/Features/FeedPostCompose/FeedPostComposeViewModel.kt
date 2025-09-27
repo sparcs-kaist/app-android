@@ -9,21 +9,17 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.soap.Domain.Models.Feed.FeedComment
 import com.example.soap.Domain.Models.Feed.FeedCreatePost
 import com.example.soap.Domain.Models.Feed.FeedUser
 import com.example.soap.Domain.Repositories.Feed.FeedImageRepositoryProtocol
 import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
-import com.example.soap.Features.FeedPost.FeedPostViewModel.ViewState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -57,7 +53,6 @@ class FeedPostComposeViewModel @Inject constructor(
         get() = _selectedItems
         set(value) {
             _selectedItems = value
-            viewModelScope.launch { loadImagesAndReconcile() }
         }
 
     override var selectedImages by mutableStateOf(listOf<FeedPostPhotoItem>())
@@ -65,7 +60,7 @@ class FeedPostComposeViewModel @Inject constructor(
     // MARK: - Functions
     override suspend fun fetchFeedUser() {
         viewModelScope.launch {
-            feedUser = userUseCase.feedUser()
+            feedUser = userUseCase.feedUser
         }
     }
 

@@ -11,6 +11,14 @@ import com.example.soap.Domain.Repositories.Ara.AraCommentRepository
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import com.example.soap.Domain.Repositories.Ara.AraUserRepository
 import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedCommentRepository
+import com.example.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedImageRepository
+import com.example.soap.Domain.Repositories.Feed.FeedImageRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedPostRepository
+import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedUserRepository
+import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepository
 import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
@@ -29,6 +37,7 @@ import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraCommentApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraUserApi
 import com.example.soap.Networking.RetrofitAPI.AuthApi
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedCommentApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiReportApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
@@ -191,6 +200,39 @@ object NetworkModule {
             .build()
     }
 
+    @Provides
+    @Singleton
+    @Named("FeedBackend")
+    fun feedBackEndURL(
+        gson: Gson,
+        tokenStorage: TokenStorageProtocol
+    ): Retrofit {
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val accessToken = runBlocking { tokenStorage.getAccessToken() }
+                val newRequest = original.newBuilder()
+                    .header("Origin", "sparcsapp")
+                    .header("Content-Type", "application/json")
+                    .apply {
+                        accessToken?.let {
+                            header("Authorization", "Bearer $it")
+                        }
+                    }
+                    .build()
+                chain.proceed(newRequest)
+            }
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(Constants.feedBackendURL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+    }
 
     @Provides
     @Singleton
@@ -238,6 +280,12 @@ object NetworkModule {
     @Singleton
     fun provideAraUserApi(@Named("AraBackend") retrofit: Retrofit): AraUserApi {
         return retrofit.create(AraUserApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedCommentApi(@Named("AraBackend") retrofit: Retrofit): FeedCommentApi {
+        return retrofit.create(FeedCommentApi::class.java)
     }
 }
 
@@ -293,6 +341,30 @@ abstract class RepositoryModule {
     abstract fun bindAraUserRepository(
         impl: AraUserRepository
     ): AraUserRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedCommentRepository(
+        impl: FeedCommentRepository
+    ): FeedCommentRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedUserRepository(
+        impl: FeedUserRepository
+    ): FeedUserRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedImageRepository(
+        impl: FeedImageRepository
+    ): FeedImageRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedPostRepository(
+        impl: FeedPostRepository
+    ): FeedPostRepositoryProtocol
 }
 
 @Module
