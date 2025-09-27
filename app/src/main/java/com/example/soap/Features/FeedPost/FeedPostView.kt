@@ -1,12 +1,11 @@
 package com.example.soap.Features.FeedPost
 
+import android.util.Log
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -31,7 +30,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.soap.Domain.Models.Feed.FeedComment
 import com.example.soap.Domain.Models.Feed.FeedPost
 import com.example.soap.Domain.Models.Feed.FeedUser
@@ -40,7 +41,9 @@ import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Features.Feed.Components.FeedPostRow
 import com.example.soap.Features.Feed.FeedViewModel
 import com.example.soap.Features.FeedPost.Components.FeedCommentRow
+import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -48,9 +51,8 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedPostView(
-    post: MutableState<FeedPost>,
-    onDelete: () -> Unit,
-    viewModel: FeedPostViewModelProtocol = hiltViewModel()
+    viewModel: FeedPostViewModelProtocol = hiltViewModel(),
+    navController: NavController
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
@@ -63,8 +65,11 @@ fun FeedPostView(
     val scrollState = rememberScrollState()
 
     val repo: FeedPostRepositoryProtocol = hiltViewModel<FeedViewModel>().feedPostRepository
-
     val repo1: FeedCommentRepositoryProtocol = hiltViewModel<FeedPostViewModel>().feedCommentRepository
+    val vm = hiltViewModel<FeedViewModel>()
+    val backStackEntry = navController.currentBackStackEntry!!
+    val json = backStackEntry.savedStateHandle.get<String>("feed_json")
+    val post = remember { mutableStateOf(Gson().fromJson(json, FeedPost::class.java)) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchComments(postID = post.value.id)
@@ -132,7 +137,7 @@ fun FeedPostView(
             text = { Text("Are you sure you want to delete this post?") },
             confirmButton = {
                 Button(onClick = {
-                    onDelete()
+                    coroutineScope.launch { vm.deletePost(post.value.id) }
                     showDeleteConfirmation = false
                 }) {
                     Text("Delete")
@@ -183,13 +188,13 @@ private fun InputBar(
                     CoroutineScope(Dispatchers.Main).launch {
                         var uploadedComment: FeedComment? = null
                         try {
-                            if (targetComment != null) {
-                                uploadedComment = viewModel.writeReply(targetComment.id)
+                            uploadedComment = if (targetComment != null) {
+                                viewModel.writeReply(targetComment.id)
                             } else {
-                                uploadedComment = viewModel.writeComment(post.value.id)
+                                viewModel.writeComment(post.value.id)
                             }
                         } catch (e: Exception) {
-                            // handle error
+                            Log.e("FeedPostView", "Failed to upload comment", e)
                         }
                         onCommentUploaded(uploadedComment)
                     }
@@ -199,7 +204,7 @@ private fun InputBar(
                 if (isUploadingComment) {
                     CircularProgressIndicator()
                 } else {
-                    Icon(Icons.Default.Send, contentDescription = "Send")
+                    Icon(painterResource(R.drawable.paperplane), contentDescription = "Send")
                 }
             }
         }
