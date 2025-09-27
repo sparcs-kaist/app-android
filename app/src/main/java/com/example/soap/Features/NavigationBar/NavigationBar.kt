@@ -42,6 +42,9 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
+import com.example.soap.Features.Feed.FeedView
+import com.example.soap.Features.Feed.FeedViewModel
+import com.example.soap.Features.Feed.FeedViewModelProtocol
 import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
@@ -100,6 +103,8 @@ import com.example.soap.ui.theme.Theme
 enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
     Start(title = R.string.start),
+    FeedPost(title = R.string.feed_post_view),
+    FeedPostCompose(title = R.string.feed_post_compose_view),
     TimeTable(title = R.string.timetable),
     Taxi(title = R.string.taxi),
     BoardList(title = R.string.general_board),
@@ -141,10 +146,41 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             enterTransition = { fadeIn(animationSpec = tween(500)) },
             exitTransition = { fadeOut(animationSpec = tween(500)) }
         ) {
-            composable(
-                route = Channel.Start.name,
-            ) { HomeView(navController) }
+            navigation(
+                startDestination = Channel.Start.name,
+                route = "FeedGraph"
+            ) {
+                composable(
+                    route = Channel.Start.name,
+                ) { backStackEntry->
+                    val viewModelImpl: FeedViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: FeedViewModelProtocol = viewModelImpl
+//                    HomeView(navController)
+                    FeedView(navController = navController, viewModel = viewModel)
+                }
 
+//                composable(
+//                    route = Channel.FeedPost.name,
+//                ) { backStackEntry->
+//                    val viewModelImpl: FeedPostViewModel = hiltViewModel(backStackEntry)
+//                    val viewModel: FeedPostViewModelProtocol = viewModelImpl
+////                    FeedPostView(navController = navController, viewModel = viewModel)
+//                }
+//
+//                composable(
+//                    route = Channel.FeedPostCompose.name,
+//                    enterTransition = trendingEnterTransition(),
+//                    exitTransition = trendingExitTransition(),
+//                    popEnterTransition = trendingPopEnterTransition(),
+//                    popExitTransition = trendingPopExitTransition()
+//                ) { backStackEntry ->
+//                    val viewModelImpl: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
+//                    val viewModel: FeedPostComposeViewModelProtocol = viewModelImpl
+//
+////                    FeedPostComposeView(navController = navController, viewModel = viewModel)
+//                }
+
+            }
             /*___________OTL___________*/
             composable(
                 route = Channel.TimeTable.name

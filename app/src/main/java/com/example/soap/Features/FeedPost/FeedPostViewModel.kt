@@ -5,24 +5,32 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Feed.FeedComment
 import com.example.soap.Domain.Models.Feed.FeedCreateComment
 import com.example.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
+import com.example.soap.Domain.Usecases.UserUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class FeedPostViewModel @Inject constructor(
-    private val feedCommentRepository: FeedCommentRepositoryProtocol
+    val feedCommentRepository: FeedCommentRepositoryProtocol,
+    val userUseCase: UserUseCaseProtocol
 ) : ViewModel(), FeedPostViewModelProtocol {
 
     sealed interface ViewState {
         data object Loading : ViewState
         data object Loaded : ViewState
         data class Error(val message: String) : ViewState
+    }
+
+    init {
+        viewModelScope.launch { userUseCase.fetchFeedUser() }
     }
 
     // MARK: - Properties

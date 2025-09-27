@@ -5,6 +5,7 @@ import com.example.soap.Domain.Models.Feed.FeedComment
 import com.example.soap.Domain.Models.Feed.FeedCreateComment
 import com.example.soap.Networking.RequestDTO.Feed.FeedCommentRequestDTO
 import com.example.soap.Networking.RetrofitAPI.Feed.FeedCommentApi
+import javax.inject.Inject
 
 interface FeedCommentRepositoryProtocol {
     suspend fun fetchComments(postId: String): List<FeedComment>
@@ -15,7 +16,7 @@ interface FeedCommentRepositoryProtocol {
     suspend fun deleteVote(commentId: String)
 }
 
-class FeedCommentRepository(
+class FeedCommentRepository @Inject constructor(
     private val api: FeedCommentApi
 ) : FeedCommentRepositoryProtocol {
 

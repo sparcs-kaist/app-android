@@ -11,7 +11,7 @@ data class FeedCommentRequestDTO (
     val isAnonymous: Boolean,
 
     @SerializedName("image_id")
-    val imageID: FeedImageRequestDTO?
+    val imageID: String?
 ) {
     companion object {
         fun fromModel(model: FeedCreateComment): FeedCommentRequestDTO {

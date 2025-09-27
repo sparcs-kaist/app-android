@@ -12,7 +12,7 @@ data class FeedPost(
     val nickname: String?,
     val profileImageURL: URL?,
     val createdAt: Date,
-    val commentCount: Int,
+    var commentCount: Int,
     val upVotes: Int,
     val downVotes: Int,
     val myVote: FeedVoteType?,
