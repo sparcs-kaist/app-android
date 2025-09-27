@@ -43,7 +43,7 @@ fun TaxiChatPaymentBubble() {
         Icon(
             imageVector = Icons.AutoMirrored.Filled.Send,
             contentDescription = "Send",
-            tint = Color.White
+            tint = MaterialTheme.colorScheme.background
         )
     }
 }
