@@ -87,6 +87,8 @@ import com.example.soap.Features.TaxiChatList.TaxiChatListViewModelProtocol
 import com.example.soap.Features.TaxiList.TaxiListView
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
+import com.example.soap.Features.TaxiReport.TaxiReportView
+import com.example.soap.Features.TaxiReport.TaxiReportViewModel
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.Features.UserPostList.UserPostListView
@@ -108,6 +110,7 @@ enum class Channel(@StringRes val title: Int) {
     TaxiRoomCreation(title = R.string.taxi_room_creation),
     TaxiChatView(title = R.string.taxichatview),
     TaxiChatListView(title = R.string.taxichatlistview),
+    TaxiReportView(title = R.string.taxi_report_view),
     AraChatView(title = R.string.ara_chat_view), //임시
     UserPostListView(title = R.string.user_post_list_view),
     SearchView(title = R.string.search),
@@ -223,6 +226,18 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
                     TaxiChatListView(viewModel, navController)
                 }
+
+                composable(
+                    route = Channel.TaxiReportView.name + "?room_json={room_json}",
+                    arguments = listOf(
+                        navArgument("room_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) { backStackEntry ->
+                    val viewModelImpl: TaxiReportViewModel = hiltViewModel(backStackEntry)
+                    TaxiReportView(viewModelImpl, navController) }
             }
 
             /*___________Ara___________*/
