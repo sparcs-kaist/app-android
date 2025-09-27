@@ -9,12 +9,12 @@ import retrofit2.http.POST
 
 interface FeedUserApi {
 
-    @POST("/auth/bootstrap")
+    @POST("auth/bootstrap")
     suspend fun register(
         @Body request: RegisterRequest
     ): Response<Unit>
 
-    @GET("/me")
+    @GET("me")
     suspend fun getUser(): FeedUserDTO
 }
 

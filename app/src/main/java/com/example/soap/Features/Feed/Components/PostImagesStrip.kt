@@ -3,6 +3,7 @@ package com.example.soap.Features.Feed.Components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -27,40 +28,51 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.soap.Domain.Models.Feed.FeedImage
-
 @Composable
 fun PostImagesStrip(images: List<FeedImage>) {
     val hPadding = 16.dp
+    val spacing = 12.dp
+    val minW = 100.dp
 
-    val imageHeight = 150.dp
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(imageHeight)
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxWidth()
     ) {
+        val parentWidth = maxWidth
+        val maxW = parentWidth - hPadding * 2
+        val height = maxW * 3 / 4
+
         LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(horizontal = hPadding)
+            horizontalArrangement = Arrangement.spacedBy(spacing),
+            contentPadding = PaddingValues(horizontal = hPadding),
+            modifier = Modifier.height(height)
         ) {
             items(images) { item ->
                 SubcomposeAsyncImage(
                     model = item.url.toString(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .height(imageHeight)
-                        .width(imageHeight * 16 / 9)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
+                    contentDescription = null
                 ) {
-                    val state = painter.state
-                    when (state) {
+                    when (val state = painter.state) {
                         is AsyncImagePainter.State.Loading -> {
-                            Placeholder(width = (imageHeight * 16 / 9), height = imageHeight)
+                            Placeholder(width = minW, height = height)
                         }
                         is AsyncImagePainter.State.Error -> {
-                            Placeholder(width = (imageHeight * 16 / 9), height = imageHeight, systemImage = Icons.Default.Warning)
+                            Placeholder(width = minW, height = height, systemImage = Icons.Default.Warning)
                         }
-                        else -> SubcomposeAsyncImageContent()
+                        is AsyncImagePainter.State.Success -> {
+                            val size = state.painter.intrinsicSize
+                            val aspect = if (size.height > 0) size.width / size.height else 16f / 9f
+                            val fitWidth = height * aspect
+                            val clampedWidth = fitWidth.coerceIn(minW, maxW)
+
+                            SubcomposeAsyncImageContent(
+                                modifier = Modifier
+                                    .height(height)
+                                    .width(clampedWidth)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = if (fitWidth in minW..maxW) ContentScale.Fit else ContentScale.Crop
+                            )
+                        }
+                        else -> {}
                     }
                 }
             }
