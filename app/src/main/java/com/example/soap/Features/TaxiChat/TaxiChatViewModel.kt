@@ -29,7 +29,7 @@ import javax.inject.Inject
 class TaxiChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val taxiChatUseCase: TaxiChatUseCaseProtocol,
-    private val userUseCase: UserUseCaseProtocol,
+    val userUseCase: UserUseCaseProtocol,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol
 ) : ViewModel(), TaxiChatViewModelProtocol {
 

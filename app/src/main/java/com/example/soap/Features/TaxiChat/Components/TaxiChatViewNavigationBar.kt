@@ -23,6 +23,7 @@ fun TaxiChatViewNavigationBar(
     room: TaxiRoom,
     onDismiss: () -> Unit,
     onClickCallTaxi: () -> Unit,
+    onReport: () -> Unit,
     onClickLeave: () -> Unit,
     isEnabled: Boolean
 ) {
@@ -42,7 +43,7 @@ fun TaxiChatViewNavigationBar(
                 room = room,
                 onClickShare = { /* TODO: Share room */ },
                 onClickCallTaxi = { onClickCallTaxi() },
-                onClickReport = { /* TODO: Report room */ },
+                onClickReport = { onReport() },
                 onClickLeave = { onClickLeave() },
                 isEnabled = isEnabled
             ) },
@@ -58,6 +59,6 @@ fun TaxiChatViewNavigationBar(
 @Preview
 private fun Preview(){
     Theme {
-        Box(Modifier.fillMaxSize()){ TaxiChatViewNavigationBar(TaxiRoom.mock(), {}, {}, {}, true) } }
+        Box(Modifier.fillMaxSize()){ TaxiChatViewNavigationBar(TaxiRoom.mock(), {}, {}, {}, {}, true) } }
 }
 

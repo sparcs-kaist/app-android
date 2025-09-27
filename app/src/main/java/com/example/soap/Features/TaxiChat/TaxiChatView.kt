@@ -163,6 +163,10 @@ fun TaxiChatView(
                         navController.popBackStack()
                     }
                 },
+                onReport = {
+                    val json = Uri.encode(Gson().toJson(room))
+                    navController.navigate(Channel.TaxiReportView.name + "?room_json=$json")
+                },
                 isEnabled = viewModel.isLeaveRoomAvailable
             )
         },
@@ -250,8 +254,7 @@ fun TaxiChatView(
             title = { Text("Call Taxi") },
             text = {
                 Text(
-                    "Launch the taxi app with departure/destination set. " +
-                            "Once everyone has gathered, press to call a taxi from ${room.source.title} → ${room.destination.title}."
+                    "You can launch the taxi app with the departure and destination already set. \nOnce everyone has gathered at the departure point, press the button to call a taxi from ${room.source.title.localized()} to ${room.destination.title.localized()}."
                 )
             },
             confirmButton = {
@@ -334,14 +337,14 @@ fun ContentView(
     isLoadingMore: MutableState<Boolean>,
     modifier: Modifier = Modifier
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
     val listState = rememberLazyListState()
 
-    LaunchedEffect(groupedChats.map { it.chats.lastOrNull()?.id }) {
-        val lastIndex = groupedChats.lastIndex
-        if (lastIndex >= 0) {
-            listState.animateScrollToItem(lastIndex)
+    val flattenedChats = groupedChats.flatMap { it.chats }
+
+    LaunchedEffect(flattenedChats.size) {
+        if (flattenedChats.isNotEmpty()) {
+            listState.animateScrollToItem(flattenedChats.lastIndex)
         }
     }
 
@@ -360,15 +363,7 @@ fun ContentView(
 //                    }
 //            )
 //        }
-        val flattenedChats = groupedChats.flatMap { group ->
-            group.chats.map { chat -> chat to group }
-        }
-        items(flattenedChats, key = { (chat, _) -> chat.id }) { (chat, group) ->
-            val showTimeLabel = group.lastChatID == chat.id
-            val otherParticipants =
-                viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
-            val readCount = otherParticipants.count { it.readAt <= chat.time }
-
+        items(groupedChats, key = { it.id }) { group ->
             TaxiChatUserWrapper(
                 authorID = group.authorID,
                 authorName = group.authorName,
@@ -378,72 +373,79 @@ fun ContentView(
                 isGeneral = group.isGeneral,
                 isWithdrawn = group.authorIsWithdrew ?: false
             ) {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    if (group.isMe && group.lastChatID != null) {
-                        Column(horizontalAlignment = Alignment.End) {
-                            if (readCount > 0) Text(
-                                "$readCount",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                            if (showTimeLabel) Text(
-                                group.time.formattedTime(),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
+                group.chats.forEach { chat ->
+                    val showTimeLabel = group.lastChatID == chat.id
+                    val otherParticipants =
+                        viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
+                    val readCount = otherParticipants.count { it.readAt <= chat.time }
 
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .wrapContentWidth(if (group.isMe) Alignment.End else Alignment.Start)
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        when (chat.type) {
-                            TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
-                                TaxiChatGeneralMessage(
-                                    authorName = chat.authorName,
-                                    type = chat.type
+                        if (group.isMe && group.lastChatID != null) {
+                            Column(horizontalAlignment = Alignment.End) {
+                                if (readCount > 0) Text(
+                                    "$readCount",
+                                    style = MaterialTheme.typography.labelSmall
                                 )
-
-                            TaxiChat.ChatType.TEXT ->
-                                TaxiChatBubble(
-                                    content = chat.content,
-                                    showTip = showTimeLabel,
-                                    isMe = group.isMe
+                                if (showTimeLabel) Text(
+                                    group.time.formattedTime(),
+                                    style = MaterialTheme.typography.labelSmall
                                 )
-
-                            TaxiChat.ChatType.S3IMG ->
-                                TaxiChatImageBubble(id = chat.content) { onImageClick(chat.content) }
-
-                            TaxiChat.ChatType.DEPARTURE ->
-                                TaxiDepartureBubble(room = viewModel.room.collectAsState().value)
-
-                            TaxiChat.ChatType.ARRIVAL -> TaxiArrivalBubble()
-                            TaxiChat.ChatType.SETTLEMENT -> TaxiChatSettlementBubble()
-                            TaxiChat.ChatType.PAYMENT -> TaxiChatPaymentBubble()
-                            TaxiChat.ChatType.ACCOUNT ->
-                                TaxiChatAccountBubble(
-                                    content = chat.content,
-                                    isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable
-                                ) { onCommitPayment() }
-
-                            TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
-                            else -> Text(chat.type.name)
+                            }
                         }
-                    }
 
-                    if (!group.isMe && group.lastChatID != null) {
-                        Column(horizontalAlignment = Alignment.Start) {
-                            if (readCount > 0) Text(
-                                "$readCount",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                            if (showTimeLabel) Text(
-                                group.time.formattedTime(),
-                                style = MaterialTheme.typography.labelSmall
-                            )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .wrapContentWidth(if (group.isMe) Alignment.End else Alignment.Start)
+                        ) {
+                            when (chat.type) {
+                                TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
+                                    TaxiChatGeneralMessage(
+                                        authorName = chat.authorName,
+                                        type = chat.type
+                                    )
+
+                                TaxiChat.ChatType.TEXT ->
+                                    TaxiChatBubble(
+                                        content = chat.content,
+                                        showTip = showTimeLabel,
+                                        isMe = group.isMe
+                                    )
+
+                                TaxiChat.ChatType.S3IMG ->
+                                    TaxiChatImageBubble(id = chat.content) { onImageClick(chat.content) }
+
+                                TaxiChat.ChatType.DEPARTURE ->
+                                    TaxiDepartureBubble(room = viewModel.room.collectAsState().value)
+
+                                TaxiChat.ChatType.ARRIVAL -> TaxiArrivalBubble()
+                                TaxiChat.ChatType.SETTLEMENT -> TaxiChatSettlementBubble()
+                                TaxiChat.ChatType.PAYMENT -> TaxiChatPaymentBubble()
+                                TaxiChat.ChatType.ACCOUNT ->
+                                    TaxiChatAccountBubble(
+                                        content = chat.content,
+                                        isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable
+                                    ) { onCommitPayment() }
+
+                                TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
+                                else -> Text(chat.type.name)
+                            }
+                        }
+
+                        if (!group.isMe && group.lastChatID != null) {
+                            Column(horizontalAlignment = Alignment.Start) {
+                                if (readCount > 0) Text(
+                                    "$readCount",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                if (showTimeLabel) Text(
+                                    group.time.formattedTime(),
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
                         }
                     }
                 }
