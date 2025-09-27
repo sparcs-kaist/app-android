@@ -5,6 +5,7 @@ import com.example.soap.Domain.Models.Feed.FeedCreatePost
 import com.example.soap.Domain.Models.Feed.FeedPostPage
 import com.example.soap.Networking.RequestDTO.Feed.FeedPostRequestDTO
 import com.example.soap.Networking.RetrofitAPI.Feed.FeedPostApi
+import javax.inject.Inject
 
 interface FeedPostRepositoryProtocol {
     suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage
@@ -14,7 +15,7 @@ interface FeedPostRepositoryProtocol {
     suspend fun deleteVote(postID: String)
 }
 
-class FeedPostRepository (
+class FeedPostRepository @Inject constructor(
     private val api: FeedPostApi
 ) : FeedPostRepositoryProtocol {
 

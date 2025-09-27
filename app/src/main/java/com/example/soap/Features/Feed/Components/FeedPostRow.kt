@@ -1,16 +1,27 @@
 package com.example.soap.Features.Feed.Components
 
-import com.example.soap.Domain.Enums.FeedVoteType
-import com.example.soap.Domain.Models.Feed.FeedPost
-import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
-import com.example.soap.Features.Post.Components.PostCommentButton
-import com.example.soap.Features.Post.Components.PostShareButton
-import com.example.soap.Features.Post.Components.PostVoteButton
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -20,8 +31,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.soap.Domain.Enums.FeedVoteType
 import com.example.soap.Domain.Models.Feed.FeedCreatePost
+import com.example.soap.Domain.Models.Feed.FeedPost
 import com.example.soap.Domain.Models.Feed.FeedPostPage
+import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import com.example.soap.Features.Post.Components.PostCommentButton
+import com.example.soap.Features.Post.Components.PostShareButton
+import com.example.soap.Features.Post.Components.PostVoteButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.relativeTimeString
 import com.example.soap.Shared.Extensions.timeAgoDisplay
@@ -35,8 +52,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedPostRow(
     post: FeedPost,
-    onPostDeleted: ((String) -> Unit)? = null,
-    onComment: (() -> Unit)? = null,
+    onPostDeleted: (String) -> Unit,
+    onComment: () -> Unit,
     feedPostRepository: FeedPostRepositoryProtocol
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -134,7 +151,7 @@ fun Content(post: FeedPost) {
 @Composable
 fun Footer(
     post: FeedPost,
-    onComment: (() -> Unit)?,
+    onComment: () -> Unit,
     onPostDeleted: ((String) -> Unit)?,
     feedPostRepository: FeedPostRepositoryProtocol,
     coroutineScope: CoroutineScope
@@ -152,9 +169,10 @@ fun Footer(
                 FeedVoteType.DOWN -> false
                 else -> null
             },
-            Votes = postState.upVotes - postState.downVotes,
+            votes = postState.upVotes - postState.downVotes,
             onUpVote = { coroutineScope.launch { upVote(postState, feedPostRepository, update = { postState = it }) } },
-            onDownVote = { coroutineScope.launch { downVote(postState, feedPostRepository, update = { postState = it }) } }
+            onDownVote = { coroutineScope.launch { downVote(postState, feedPostRepository, update = { postState = it }) } },
+            enabled = post.isAuthor
         )
 
         PostCommentButton(commentCount = postState.commentCount, onClick = onComment)

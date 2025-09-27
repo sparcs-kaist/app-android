@@ -7,12 +7,13 @@ import com.example.soap.Shared.Extensions.compressForUpload
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import javax.inject.Inject
 
 interface FeedImageRepositoryProtocol {
     suspend fun uploadPostImage(item: FeedPostPhotoItem): FeedImage
 }
 
-class FeedImageRepository(
+class FeedImageRepository @Inject constructor(
     private val api: FeedImageApi
 ): FeedImageRepositoryProtocol {
 

@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val authUseCase: AuthUseCaseProtocol,
-    private val feedPostRepository: FeedPostRepositoryProtocol
+    val feedPostRepository: FeedPostRepositoryProtocol
 ) : ViewModel(), FeedViewModelProtocol {
 
     sealed interface ViewState {
