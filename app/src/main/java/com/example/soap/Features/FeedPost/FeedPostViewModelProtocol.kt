@@ -11,7 +11,7 @@ interface FeedPostViewModelProtocol {
     var image: Bitmap?
     var isAnonymous: Boolean
 
-    suspend fun fetchComments(postId: String)
-    suspend fun writeComment(postId: String): FeedComment
+    suspend fun fetchComments(postID: String)
+    suspend fun writeComment(postID: String): FeedComment
     suspend fun writeReply(commentId: String): FeedComment
 }

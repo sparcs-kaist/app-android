@@ -2,7 +2,7 @@
     <string name="app_name" translatable="false">soap</string>
 
 
-    <string name="start">Home</string>
+    <string name="start">Feed</string>
     <string name="trending_board">Trending</string>
     <string name="notice_board">Notice</string>
     <string name="timetable">Timetable</string>
@@ -77,5 +77,7 @@
     <string name="taxichatlistview" translatable="false">TaxiChatListView</string>
     <string name="ara_chat_view" translatable="false">AraChatView</string>
     <string name="user_post_list_view" translatable="false">UserPostListView</string>
+    <string name="feed_post_view" translatable="false">FeedPost</string>
+    <string name="feed_post_compose_view" translatable="false">FeedPostComposeView</string>
 
 </resources>
