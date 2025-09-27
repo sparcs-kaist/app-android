@@ -67,9 +67,22 @@ fun TaxiChatAccountBubble(
             enabled = isCommitPaymentAvailable,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(painterResource(R.drawable.round_account_balance), contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Mark as Sent", fontWeight = FontWeight.Medium)
+            if(isCommitPaymentAvailable){
+                Icon(painterResource(R.drawable.round_payment), contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Send Payment",
+                    fontWeight = FontWeight.Medium
+                )
+            } else {
+                Icon(painterResource(R.drawable.round_check), contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Already Sent",
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
         }
     }
 }
