@@ -84,5 +84,5 @@
     <string name="otl_settings" translatable="false">OTL Settings</string>
     <string name="ara_my_post_settings" translatable="false">My Posts</string>
     <string name="taxi_report_settings" translatable="false">Taxi Report Settings</string>
-    <string name="taxi_report_view">TaxiReportView</string>
+    <string name="taxi_report_view" translatable="false">TaxiReportView</string>
 </resources>
