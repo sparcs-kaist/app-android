@@ -2,7 +2,6 @@ package com.example.soap.Shared.Mocks
 
 import com.example.soap.Domain.Models.Feed.FeedImage
 import com.example.soap.Domain.Models.Feed.FeedPost
-import java.net.URL
 import java.util.Date
 import java.util.UUID
 
@@ -23,7 +22,7 @@ fun FeedPost.Companion.mock(): FeedPost {
         images = listOf(
             FeedImage(
                 id = UUID.randomUUID().toString(),
-                url = URL("https://dlnutnvhcnj0u.cloudfront.net/orphaned/07adc127-fb22-42f4-9483-52fdf8e72229.jpg"),
+                url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/07adc127-fb22-42f4-9483-52fdf8e72229.jpg"),
                 mimeType = "image/png",
                 size = 1258382,
                 spoiler = false
@@ -50,7 +49,7 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
             images = listOf(
                 FeedImage(
                     id = UUID.randomUUID().toString(),
-                    url = URL("https://dlnutnvhcnj0u.cloudfront.net/orphaned/07adc127-fb22-42f4-9483-52fdf8e72229.jpg"),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/07adc127-fb22-42f4-9483-52fdf8e72229.jpg"),
                     mimeType = "image/png",
                     size = 1258382,
                     spoiler = false
@@ -73,14 +72,14 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
             images = listOf(
                 FeedImage(
                     id = UUID.randomUUID().toString(),
-                    url = URL("https://dlnutnvhcnj0u.cloudfront.net/orphaned/0c351f1b-3837-4329-9ced-de317fcfea6a.jpg"),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/0c351f1b-3837-4329-9ced-de317fcfea6a.jpg"),
                     mimeType = "image/png",
                     size = 219138,
                     spoiler = false
                 ),
                 FeedImage(
                     id = UUID.randomUUID().toString(),
-                    url = URL("https://dlnutnvhcnj0u.cloudfront.net/orphaned/07adc127-fb22-42f4-9483-52fdf8e72229.jpg"),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/07adc127-fb22-42f4-9483-52fdf8e72229.jpg"),
                     mimeType = "image/png",
                     size = 1258382,
                     spoiler = false
@@ -103,7 +102,7 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
             images = listOf(
                 FeedImage(
                     id = UUID.randomUUID().toString(),
-                    url = URL("https://dlnutnvhcnj0u.cloudfront.net/orphaned/b899e2e7-d68d-4c94-8c8c-2eae607ec6d2.jpg"),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/b899e2e7-d68d-4c94-8c8c-2eae607ec6d2.jpg"),
                     mimeType = "image/png",
                     size = 48507,
                     spoiler = false
@@ -126,7 +125,7 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
             images = listOf(
                 FeedImage(
                     id = UUID.randomUUID().toString(),
-                    url = URL("https://dlnutnvhcnj0u.cloudfront.net/orphaned/c54cac50-ff4b-4866-a544-c73b65ca7eb7.jpg"),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/c54cac50-ff4b-4866-a544-c73b65ca7eb7.jpg"),
                     mimeType = "image/png",
                     size = 15823,
                     spoiler = false
@@ -149,7 +148,7 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
             images = listOf(
                 FeedImage(
                     id = UUID.randomUUID().toString(),
-                    url = URL("https://dlnutnvhcnj0u.cloudfront.net/orphaned/0c351f1b-3837-4329-9ced-de317fcfea6a.jpg"),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/0c351f1b-3837-4329-9ced-de317fcfea6a.jpg"),
                     mimeType = "image/png",
                     size = 219138,
                     spoiler = false

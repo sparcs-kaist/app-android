@@ -4,8 +4,11 @@ import android.app.Activity
 import android.util.Log
 import com.example.soap.Domain.Enums.AuthUseCaseError
 import com.example.soap.Domain.Helpers.TokenStorageProtocol
+import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.example.soap.Domain.Services.AuthenticationService
 import com.example.soap.Domain.Services.AuthenticationServiceProtocol
+import com.example.soap.Networking.ResponseDTO.Ara.AraSignInResponseDTO
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,7 +27,8 @@ import javax.inject.Singleton
 class AuthUseCase @Inject constructor(
     val authenticationService: AuthenticationServiceProtocol,
     val tokenStorage: TokenStorageProtocol,
-//    private val araUserRepository: AraUserRepositoryProtocol
+    private val araUserRepository: AraUserRepositoryProtocol,
+    private val feedUserRepository: FeedUserRepositoryProtocol
 ) : AuthUseCaseProtocol {
 
     private val _isAuthenticated = MutableStateFlow(false)
@@ -106,6 +110,21 @@ class AuthUseCase @Inject constructor(
             val tokenResponse = (authenticationService as AuthenticationService).authenticate(activity)
 
             tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
+
+            // MARK - Sign up Ara
+            val userInfo: AraSignInResponseDTO =
+                araUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+
+            try {
+                araUserRepository.agreeTOS(userID = userInfo.userID)
+            } catch (e: Exception) {
+
+                Log.e("AuthUseCase","Failed to Sign in. agreeTOS failed: ${e.message}")
+            }
+
+            // MARK - Sign up Feed
+            feedUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+
             _isAuthenticated.value = true
             scheduleRefreshToken()
 
