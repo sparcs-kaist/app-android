@@ -13,5 +13,5 @@ interface FeedPostViewModelProtocol {
 
     suspend fun fetchComments(postID: String)
     suspend fun writeComment(postID: String): FeedComment
-    suspend fun writeReply(commentId: String): FeedComment
+    suspend fun writeReply(commentID: String): FeedComment
 }

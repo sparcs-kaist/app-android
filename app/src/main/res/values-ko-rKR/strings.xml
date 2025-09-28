@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="start">홈</string>
+    <string name="start">피드</string>
     <string name="timetable">시간표</string>
     <string name="taxi">택시</string>
     <string name="trending_board">실시간 인기글</string>
@@ -21,7 +21,7 @@
     <string name="enter_the_title">제목을 입력해주세요.</string>
     <string name="enter_the_description">내용을 입력해주세요.</string>
     <string name="no_flair">말머리 없음</string>
-    <string name="sppangs">스빵스</string>
+    <string name="spangs">스빵스</string>
     <string name="meal">식사</string>
     <string name="money">돈</string>
     <string name="gaming">게임</string>
