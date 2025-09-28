@@ -3,7 +3,6 @@ package com.example.soap.Shared.Mocks
 import com.example.soap.Domain.Enums.FeedVoteType
 import com.example.soap.Domain.Models.Feed.FeedComment
 import com.example.soap.Domain.Models.Feed.FeedImage
-import java.net.URL
 import java.util.Date
 import java.util.UUID
 
@@ -18,7 +17,7 @@ fun FeedComment.Companion.mock(): FeedComment {
         authorName = "멋진호랑이677",
         isAuthor = false,
         isMyComment = true,
-        profileImageURL = URL("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
+        profileImageURL = ("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
         createdAt = Date(),
         upVotes = 5,
         downVotes = 1,
@@ -41,7 +40,7 @@ fun FeedComment.Companion.mockList(): List<FeedComment> {
             authorName = "멋진호랑이677",
             isAuthor = false,
             isMyComment = true,
-            profileImageURL = URL("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
+            profileImageURL = ("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
             createdAt = Date(),
             upVotes = 0,
             downVotes = 0,
@@ -59,7 +58,7 @@ fun FeedComment.Companion.mockList(): List<FeedComment> {
                     authorName = "멋진호랑이677",
                     isAuthor = false,
                     isMyComment = true,
-                    profileImageURL = URL("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
+                    profileImageURL = ("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
                     createdAt = Date(),
                     upVotes = 0,
                     downVotes = 0,
@@ -80,7 +79,7 @@ fun FeedComment.Companion.mockList(): List<FeedComment> {
             authorName = "Anonymous 1",
             isAuthor = false,
             isMyComment = true,
-            profileImageURL = URL("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
+            profileImageURL = ("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
             createdAt = Date(),
             upVotes = 0,
             downVotes = 0,
@@ -99,14 +98,14 @@ fun FeedComment.Companion.mockList(): List<FeedComment> {
             authorName = "Anonymous 1",
             isAuthor = false,
             isMyComment = true,
-            profileImageURL = URL("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
+            profileImageURL = ("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
             createdAt = Date(),
             upVotes = 0,
             downVotes = 0,
             myVote = null,
             image = FeedImage(
                 id = "1dc53a00-baf4-4dcb-8b7a-454e5fc9aad0",
-                url = URL("https://dlnutnvhcnj0u.cloudfront.net/orphaned/9015ab49-8261-477a-960c-715beac38af1.jpg"),
+                url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/9015ab49-8261-477a-960c-715beac38af1.jpg"),
                 mimeType = "image/png",
                 size = 1258382,
                 spoiler = false

@@ -49,10 +49,10 @@ class FeedPostViewModel @Inject constructor(
     override var isAnonymous by mutableStateOf(true)
 
     // MARK: - Functions
-    override suspend fun fetchComments(postId: String) {
+    override suspend fun fetchComments(postID: String) {
         _state.value = ViewState.Loading
         try {
-            val fetchedComments = feedCommentRepository.fetchComments(postId)
+            val fetchedComments = feedCommentRepository.fetchComments(postID)
             _comments.value = fetchedComments
             _state.value = ViewState.Loaded
         } catch (e: Exception) {
@@ -60,13 +60,13 @@ class FeedPostViewModel @Inject constructor(
         }
     }
 
-    override suspend fun writeComment(postId: String): FeedComment {
+    override suspend fun writeComment(postID: String): FeedComment {
         val request = FeedCreateComment(
             content = text,
             isAnonymous = isAnonymous,
             image = null
         )
-        val comment = feedCommentRepository.writeComment(postId, request)
+        val comment = feedCommentRepository.writeComment(postID, request)
         _comments.value += comment
         return comment
     }
@@ -82,13 +82,13 @@ class FeedPostViewModel @Inject constructor(
         }
     }
 
-    override suspend fun writeReply(commentId: String): FeedComment {
+    override suspend fun writeReply(commentID: String): FeedComment {
         val request = FeedCreateComment(
             content = text,
             isAnonymous = isAnonymous,
             image = null
         )
-        val comment = feedCommentRepository.writeReply(commentId, request)
+        val comment = feedCommentRepository.writeReply(commentID, request)
         _comments.value = insertReply(_comments.value, comment)
         return comment
     }

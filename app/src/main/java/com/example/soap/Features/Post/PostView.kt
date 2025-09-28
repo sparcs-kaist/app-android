@@ -518,7 +518,6 @@ fun InputBar(
             .navigationBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         // comment textfield
         Column(Modifier.weight(1f)) {
             if (commentOnEdit != null) {
@@ -546,7 +545,6 @@ fun InputBar(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-
                 MoveToLeftFadeOut(showProfile) { profilePicture() }
                 Box(
                     modifier = Modifier
@@ -560,8 +558,7 @@ fun InputBar(
                         onValueChange = {
                             onCommentChange(it)
                         },
-                        modifier = Modifier
-                            .focusRequester(focusRequester),
+                        modifier = Modifier.focusRequester(focusRequester),
                         maxLines = 6,
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
