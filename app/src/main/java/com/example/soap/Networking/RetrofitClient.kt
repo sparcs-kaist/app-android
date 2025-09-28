@@ -53,13 +53,8 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import javax.inject.Named
 import javax.inject.Singleton
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 
 
 /**
@@ -139,48 +134,7 @@ object NetworkModule {
         gson: Gson,
         tokenStorage: TokenStorageProtocol
     ): Retrofit {
-//        val okHttpClient = OkHttpClient.Builder()
-//            .addInterceptor { chain ->
-//                val original = chain.request()
-//                val accessToken = runBlocking { tokenStorage.getAccessToken() }
-//                val newRequest = original.newBuilder()
-//                    .header("Origin", "sparcsapp")
-//                    .header("Content-Type", "application/json")
-//                    .apply {
-//                        accessToken?.let {
-//                            header("Authorization", "Bearer $it")
-//                        }
-//                    }
-//                    .build()
-//                chain.proceed(newRequest)
-//            }
-//            .addInterceptor(HttpLoggingInterceptor().apply {
-//                level = HttpLoggingInterceptor.Level.BODY
-//            })
-//            .build()
-
-        return Retrofit.Builder()
-            .baseUrl(Constants.araBackendURL)
-            .client(getUnsafeOkHttpClient(tokenStorage)) // 개발 서버 URL
-//            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-    }
-
-    fun getUnsafeOkHttpClient(tokenStorage: TokenStorageProtocol): OkHttpClient {
-        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
-            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-        })
-
-        val sslContext = SSLContext.getInstance("SSL")
-        sslContext.init(null, trustAllCerts, SecureRandom())
-        val sslSocketFactory = sslContext.socketFactory
-
-        return OkHttpClient.Builder()
-            .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { _, _ -> true }
+        val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
@@ -198,6 +152,12 @@ object NetworkModule {
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(Constants.araBackendURL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
 
