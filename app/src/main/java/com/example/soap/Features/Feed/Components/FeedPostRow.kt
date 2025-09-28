@@ -48,7 +48,6 @@ import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.net.URL
 
 @Composable
 fun FeedPostRow(
