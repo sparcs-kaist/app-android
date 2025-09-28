@@ -2,7 +2,6 @@ package com.example.soap.Networking.ResponseDTO.Feed
 
 import com.example.soap.Domain.Models.Feed.FeedUser
 import com.google.gson.annotations.SerializedName
-import java.net.URL
 
 data class FeedUserDTO (
     @SerializedName("id")
@@ -21,7 +20,7 @@ data class FeedUserDTO (
         return FeedUser(
             id = id,
             nickname = nickname,
-            profileImageURL = URL(profileImageURL),
+            profileImageURL = profileImageURL,
             karma = karma
         )
     }
