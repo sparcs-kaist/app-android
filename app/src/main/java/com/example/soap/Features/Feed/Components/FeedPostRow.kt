@@ -13,8 +13,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -41,7 +39,7 @@ import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Features.Post.Components.PostCommentButton
 import com.example.soap.Features.Post.Components.PostShareButton
 import com.example.soap.Features.Post.Components.PostVoteButton
-import com.example.soap.R
+import com.example.soap.Shared.Extensions.noRippleClickable
 import com.example.soap.Shared.Extensions.relativeTimeString
 import com.example.soap.Shared.Extensions.timeAgoDisplay
 import com.example.soap.Shared.Mocks.mock
@@ -50,20 +48,25 @@ import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.net.URL
 
 @Composable
 fun FeedPostRow(
     post: FeedPost,
     onPostDeleted: (String) -> Unit,
-    onComment: () -> Unit,
+    onComment: () -> Unit, //post 또는 comment click
+    singleLine: Boolean,
     feedPostRepository: FeedPostRepositoryProtocol
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(Modifier
+        .fillMaxWidth()
+        .noRippleClickable { onComment() }
+    ) {
         Header(post, onPostDeleted, showDeleteConfirmation, onPostDeleted) { showDeleteConfirmation = it }
-        Content(post)
+        Content(post, singleLine)
         Footer(post, onComment, onPostDeleted, feedPostRepository, coroutineScope)
     }
 }
@@ -105,7 +108,7 @@ fun Header(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         ProfileImage(post)
         Spacer(Modifier.width(8.dp))
@@ -116,14 +119,6 @@ fun Header(
             color = MaterialTheme.colorScheme.grayBB,
             style = MaterialTheme.typography.bodySmall
         )
-        Spacer(Modifier.weight(1f))
-        if (onPostDeleted != null && post.isAuthor) {
-            IconButton(onClick = { setShowDelete(true) }) {
-                Icon(painterResource(R.drawable.more_horiz), contentDescription = null)
-            }
-        } else {
-            Box(modifier = Modifier.size(32.dp))
-        }
     }
 
     if (showDeleteConfirmation) {
@@ -145,8 +140,16 @@ fun Header(
 }
 
 @Composable
-fun Content(post: FeedPost) {
-    Text(post.content, modifier = Modifier.padding(horizontal = 16.dp))
+fun Content(
+    post: FeedPost,
+    singleLine: Boolean,
+    ) {
+    Text(
+        text = post.content,
+        modifier = Modifier.padding(horizontal = 16.dp),
+        maxLines = if(singleLine) 1 else Int.MAX_VALUE,
+        overflow = TextOverflow.Ellipsis
+    )
     if (post.images.isNotEmpty()) {
         PostImagesStrip(images = post.images)
     }
@@ -176,11 +179,11 @@ fun Footer(
             votes = postState.upVotes - postState.downVotes,
             onUpVote = { coroutineScope.launch { upVote(postState, feedPostRepository, update = { postState = it }) } },
             onDownVote = { coroutineScope.launch { downVote(postState, feedPostRepository, update = { postState = it }) } },
-            enabled = post.isAuthor
+            enabled = !post.isAuthor
         )
 
         Spacer(Modifier.width(8.dp))
-        PostCommentButton(commentCount = postState.commentCount, onClick = onComment)
+        PostCommentButton(commentCount = postState.commentCount){ onComment() }
         Spacer(Modifier.weight(1f))
         if (onPostDeleted == null) PostShareButton()
     }
@@ -327,6 +330,7 @@ private fun Preview(){
     Theme {
         FeedPostRow(
             post = FeedPost.mock(),
+            singleLine = true,
             onPostDeleted = {},
             onComment = {},
             feedPostRepository = object : FeedPostRepositoryProtocol {

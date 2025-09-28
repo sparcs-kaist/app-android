@@ -19,7 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -38,12 +37,7 @@ class FeedPostComposeViewModel @Inject constructor(
     }
 
     // MARK: - Properties
-    private val _feedUser = MutableStateFlow<FeedUser?>(null)
-    override var feedUser: FeedUser?
-        get() = _feedUser.value
-        set(value) {
-            _feedUser.value = value
-        }
+    override var feedUser by mutableStateOf<FeedUser?>(null)
 
     override var text by mutableStateOf("")
     override var selectedComposeType by mutableStateOf(ComposeType.ANONYMOUSLY)
@@ -95,7 +89,7 @@ class FeedPostComposeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadImagesAndReconcile(context: Context) {
+    override suspend fun loadImagesAndReconcile(context: Context) {
         val loaded = coroutineScope {
             selectedItems.mapIndexed { idx, uri ->
                 async {
@@ -118,5 +112,12 @@ class FeedPostComposeViewModel @Inject constructor(
         } catch (e: Exception) {
             null
         }
+    }
+
+    override fun removeImage(index: Int) {
+        val mutable = selectedImages.toMutableList()
+        mutable.removeAt(index)
+        selectedImages = mutable.toList()
+        _selectedItems = _selectedItems.toMutableList().apply { removeAt(index) }
     }
 }

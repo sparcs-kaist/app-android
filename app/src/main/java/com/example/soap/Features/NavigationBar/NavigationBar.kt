@@ -48,6 +48,9 @@ import com.example.soap.Features.Feed.FeedViewModelProtocol
 import com.example.soap.Features.FeedPost.FeedPostView
 import com.example.soap.Features.FeedPost.FeedPostViewModel
 import com.example.soap.Features.FeedPost.FeedPostViewModelProtocol
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeView
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModel
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
@@ -55,7 +58,6 @@ import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransit
 import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.example.soap.Features.NavigationBar.Components.AddButton
 import com.example.soap.Features.NavigationBar.Components.ChatButton
-import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.Post.PostViewModel
@@ -127,7 +129,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) { backStackEntry ->
                 val viewModelImpl: FeedViewModel = hiltViewModel(backStackEntry)
                 val viewModel: FeedViewModelProtocol = viewModelImpl
-//                    HomeView(navController)
                 FeedView(navController = navController, viewModel = viewModel)
             }
 
@@ -138,26 +139,29 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         type = NavType.StringType
                         nullable = false
                     }
-                )
+                ),
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
                 val viewModelImpl: FeedPostViewModel = hiltViewModel(backStackEntry)
                 val viewModel: FeedPostViewModelProtocol = viewModelImpl
                 FeedPostView(navController = navController, viewModel = viewModel)
             }
 
-//
-//                composable(
-//                    route = Channel.FeedPostCompose.name,
-//                    enterTransition = trendingEnterTransition(),
-//                    exitTransition = trendingExitTransition(),
-//                    popEnterTransition = trendingPopEnterTransition(),
-//                    popExitTransition = trendingPopExitTransition()
-//                ) { backStackEntry ->
-//                    val viewModelImpl: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
-//                    val viewModel: FeedPostComposeViewModelProtocol = viewModelImpl
-//
-////                    FeedPostComposeView(navController = navController, viewModel = viewModel)
-//                }
+            composable(
+                route = Channel.FeedPostCompose.name,
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ) { backStackEntry ->
+                val viewModelImpl: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
+                val viewModel: FeedPostComposeViewModelProtocol = viewModelImpl
+
+                FeedPostComposeView(navController = navController, viewModel = viewModel)
+            }
 
             composable(
                 route = Channel.TimeTable.name
@@ -361,7 +365,10 @@ fun AppBar(
         actions = {
             when (currentScreen) {
                 Channel.Start -> {
-                    NotificationButton()
+                    AddButton(
+                        contentDescription = "Create Feed",
+                        onClick = { navController.navigate(Channel.FeedPostCompose.name) }
+                    )
                     SettingButton()
                 }
                 Channel.TimeTable -> {
