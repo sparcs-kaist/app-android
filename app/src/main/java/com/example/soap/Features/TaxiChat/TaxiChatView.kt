@@ -150,7 +150,6 @@ fun TaxiChatView(
         }
     }
 
-
     Scaffold(
         topBar = {
             TaxiChatViewNavigationBar(
@@ -341,11 +340,13 @@ fun ContentView(
     val listState = rememberLazyListState()
 
     val flattenedChats = groupedChats.flatMap { it.chats }
+    val previousCount = remember { mutableStateOf(flattenedChats.size) }
 
     LaunchedEffect(flattenedChats.size) {
-        if (flattenedChats.isNotEmpty()) {
+        if (flattenedChats.size > previousCount.value) {
             listState.animateScrollToItem(flattenedChats.lastIndex)
         }
+        previousCount.value = flattenedChats.size
     }
 
     LazyColumn(
