@@ -27,7 +27,8 @@ data class AraPost(
     var comments: MutableList<AraPostComment>,
     val content: String?,
     var myVote: Boolean?,
-    var myScrap: Boolean?
+    var myScrap: Boolean,
+    val scrapID: Int?
 ) {
     enum class AttachmentType(val type: String) {
         NONE("NONE"),

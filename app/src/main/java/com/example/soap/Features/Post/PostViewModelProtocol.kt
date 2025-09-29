@@ -18,5 +18,5 @@ interface PostViewModelProtocol{
     suspend fun report(type: AraContentReportType)
     suspend fun summarisedContent(): String
     suspend fun deletePost()
-
+    suspend fun toggleBookmark()
 }

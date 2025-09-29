@@ -401,12 +401,15 @@ private fun Footer(
             myVote = post.myVote,
             votes = post.upVotes - post.downVotes,
             onUpVote = {
-                if (post.isMine == false) scope.launch{ viewModel.upVote() } },
-            onDownVote = { if (post.isMine == false) scope.launch{ viewModel.downVote() } }
+                if (post.isMine == false) scope.launch { viewModel.upVote() }
+            },
+            onDownVote = { if (post.isMine == false) scope.launch { viewModel.downVote() } }
         )
         PostCommentButton(commentCount = post.commentCount) { onCommentClick() }
         Spacer(Modifier.weight(1f))
-        PostBookmarkButton()
+        PostBookmarkButton(
+            post.myScrap,
+            onToggleBookmark = { scope.launch { viewModel.toggleBookmark() } })
         PostShareButton()
     }
 }
