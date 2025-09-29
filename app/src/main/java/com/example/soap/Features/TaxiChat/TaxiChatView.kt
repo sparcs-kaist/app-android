@@ -12,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -382,7 +383,8 @@ fun ContentView(
 
                     Row(
                         verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = if(chat.type == TaxiChat.ChatType.TEXT && !showTimeLabel) Modifier.width(IntrinsicSize.Max) else Modifier
                     ) {
                         if (group.isMe && group.lastChatID != null) {
                             Column(horizontalAlignment = Alignment.End) {
@@ -796,20 +798,27 @@ private fun PreviewTaxiChatViewLoading() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun PreviewTaxiChatViewLoaded() {
-    val viewModel = remember {
-        MockTaxiChatViewModel(
-            initialState = TaxiChatViewModel.ViewState.Loaded(TaxiChatGroup.mockList()),
-            initialGroupedChats = TaxiChatGroup.mockList(),
-            initialTaxiUser = TaxiUser.mock()
+fun PreviewContentView() {
+    val groupedChats = TaxiChatGroup.mockList()
+    val mockViewModel = MockTaxiChatViewModel(
+        initialGroupedChats = groupedChats,
+        initialTaxiUser = TaxiUser.mock()
+    )
+
+    Theme {
+        ContentView(
+            groupedChats = groupedChats,
+            viewModel = mockViewModel,
+            onImageClick = {},
+            onCommitPayment = {},
+            topChatID = remember { mutableStateOf(null) },
+            isLoadingMore = remember { mutableStateOf(false) }
         )
     }
-    Theme {
-        TaxiChatView(viewModel = viewModel, navController = rememberNavController())
-    }
 }
+
 
 @Preview
 @Composable
