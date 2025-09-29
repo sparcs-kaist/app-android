@@ -21,6 +21,5 @@ interface UserUseCaseProtocol {
 //    @Throws(Exception::class)
 //    suspend fun fetchFeedUser()
 
-    @Throws(Exception::class)
-    suspend fun fetchTaxiUser()
+    suspend fun fetchTaxiUser(): TaxiUser
 }
