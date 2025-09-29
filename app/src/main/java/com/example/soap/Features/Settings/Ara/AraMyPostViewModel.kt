@@ -101,6 +101,7 @@ class AraMyPostViewModel @Inject constructor(
 
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.message ?: "Unknown error")
+            Log.e("AraMyPostViewModel", "fetchInitialPosts failed$e")
         }
     }
 

@@ -15,6 +15,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import retrofit2.HttpException
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -37,7 +38,10 @@ interface AraBoardRepositoryProtocol {
     suspend fun cancelVote(postID: Int)
     suspend fun reportPost(postID: Int, type: AraContentReportType)
     suspend fun deletePost(postID: Int): Response<Unit>
+    suspend fun addBookmark(postID: Int): Response<Unit>
+    suspend fun removeBookmark(bookmarkID: Int): Response<Unit>
 }
+
 
 class AraBoardRepository @Inject constructor(
     private val api: AraBoardApi
@@ -103,10 +107,23 @@ class AraBoardRepository @Inject constructor(
     override suspend fun upVotePost(postID: Int) = api.upVote(postID)
     override suspend fun downVotePost(postID: Int) = api.downVote(postID)
     override suspend fun cancelVote(postID: Int) = api.cancelVote(postID)
-    override suspend fun reportPost(postID: Int, type: AraContentReportType) =
-        api.report(mapOf("post_id" to postID, "type" to type.name))
+    override suspend fun reportPost(postID: Int, type: AraContentReportType) = api.report(mapOf("post_id" to postID, "type" to type.name))
 
     override suspend fun deletePost(postID: Int): Response<Unit> {
-        return api.delete(postID)
+        val response = api.delete(postID)
+        if (!response.isSuccessful) throw HttpException(response)
+        return response
+    }
+
+    override suspend fun addBookmark(postID: Int): Response<Unit> {
+        val response = api.addBookmark(mapOf("parent_article" to postID))
+        if (!response.isSuccessful) throw HttpException(response)
+        return response
+    }
+
+    override suspend fun removeBookmark(bookmarkID: Int): Response<Unit> {
+        val response = api.removeBookmark(bookmarkID)
+        if (!response.isSuccessful) throw HttpException(response)
+        return response
     }
 }

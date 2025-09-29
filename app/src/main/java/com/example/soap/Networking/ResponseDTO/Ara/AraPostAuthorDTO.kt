@@ -5,7 +5,7 @@ import kotlinx.serialization.SerialName
 
 data class AraPostAuthorDTO(
     @SerialName("id")
-    val id: String,
+    val id: Any,
 
     @SerialName("username")
     val username: String,
@@ -16,9 +16,10 @@ data class AraPostAuthorDTO(
     @SerialName("is_blocked")
     val isBlocked: Boolean?
 ) {
+
     fun toModel(): AraPostAuthor {
         return AraPostAuthor(
-            id = id,
+            id = id.toString(),
             username = username,
             profile = profile.toModel(),
             isBlocked = isBlocked
