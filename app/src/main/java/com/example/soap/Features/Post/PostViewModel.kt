@@ -185,9 +185,27 @@ class PostViewModel @Inject constructor(
     override suspend fun deletePost() {
         araBoardRepository.deletePost(postID = _post.value.id)
     }
+
+    override suspend fun toggleBookmark() {
+        val current = _post.value
+        val previous = current.myScrap
+
+        _post.value = current.copy(myScrap = !previous)
+
+        try {
+            if (previous) {
+                val scrapId = current.scrapID ?: return
+                araBoardRepository.removeBookmark(scrapId)
+                _post.value = _post.value.copy(scrapID = null)
+            } else {
+                araBoardRepository.addBookmark(current.id)
+            }
+        } catch (e: Exception) {
+            Log.e("PostViewModel", "toggleBookmark error", e)
+            _post.value = current
+        }
+    }
 }
-
-
 
 class MockPostViewModel(
     initialPost: AraPost = AraPost.mock()
@@ -223,4 +241,5 @@ class MockPostViewModel(
     }
 
     override suspend fun deletePost() { }
+    override suspend fun toggleBookmark() { }
 }

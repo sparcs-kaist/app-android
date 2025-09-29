@@ -3,6 +3,7 @@ package com.example.soap.Networking.RetrofitAPI.Ara
 import com.example.soap.Networking.RequestDTO.AraPostRequestDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraAttachmentDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraBoardDTO
+import com.example.soap.Networking.ResponseDTO.Ara.AraBookmarkDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraPostDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraPostPageDTO
 import okhttp3.MultipartBody
@@ -56,7 +57,13 @@ interface AraBoardApi {
     suspend fun fetchBookmarks(
         @Query("page") page: Int,
         @Query("page_size") pageSize: Int
-    ): AraPostPageDTO
+    ): AraBookmarkDTO
+
+    @POST("scraps/")
+    suspend fun addBookmark(@Body body: Map<String, Int>): Response<Unit>
+
+    @DELETE("scraps/{scrapId}/")
+    suspend fun removeBookmark(@Path("scrapId") scrapId: Int): Response<Unit>
 
     @Multipart
     @POST("attachments/")

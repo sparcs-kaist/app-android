@@ -216,7 +216,8 @@ fun AraPost.Companion.mock(): AraPost {
         <p>SPARCS&nbsp;Ara팀 드림</p>
     """.trimIndent(),
         myVote = null,
-        myScrap = null
+        myScrap = false,
+        scrapID = null
     )
 
 }
@@ -258,7 +259,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12327,
@@ -295,7 +297,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12326,
@@ -332,7 +335,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12325,
@@ -369,7 +373,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12318,
@@ -406,7 +411,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12317,
@@ -452,7 +458,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12316,
@@ -489,7 +496,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12315,
@@ -526,7 +534,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12250,
@@ -563,7 +572,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12240,
@@ -600,7 +610,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12239,
@@ -637,7 +648,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12235,
@@ -674,7 +686,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12233,
@@ -720,7 +733,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12079,
@@ -766,7 +780,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     ),
                     AraPost(
                         id = 12043,
@@ -812,7 +827,8 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                         comments = mutableListOf(),
                         content = null,
                         myVote = null,
-                        myScrap = null
+                        myScrap = false,
+                        scrapID = null
                     )
                 )
         }

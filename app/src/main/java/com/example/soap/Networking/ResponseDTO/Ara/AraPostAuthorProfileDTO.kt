@@ -6,7 +6,7 @@ import java.net.URL
 
 data class AraPostAuthorProfileDTO(
     @SerializedName("user")
-    val id: String,
+    val id: Any,
 
     @SerializedName("picture")
     val profilePictureURL: String?,
@@ -22,7 +22,7 @@ data class AraPostAuthorProfileDTO(
 ) {
     fun toModel(): AraPostAuthorProfile =
         AraPostAuthorProfile(
-            id = id,
+            id = id.toString(),
             profilePictureURL = profilePictureURL?.let { try { URL(it) } catch (e: Exception) { null } },
             nickname = nickname,
             isOfficial = isOfficial,
