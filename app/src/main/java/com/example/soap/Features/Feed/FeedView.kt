@@ -48,8 +48,6 @@ fun FeedView(
     val posts by viewModel.posts.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
 
-    var showSettings by remember { mutableStateOf(false) }
-    var showCompose by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
 
@@ -131,16 +129,6 @@ fun FeedView(
                             )
                         }
                     }
-                }
-                if (showSettings) {
-//        SettingsView(onDismiss = { showSettings = false })
-                }
-
-                if (showCompose) {
-//        FeedPostComposeView(onDismiss = {
-//            showCompose = false
-//            viewModel.fetchInitialData()
-//        })
                 }
             }
         }
