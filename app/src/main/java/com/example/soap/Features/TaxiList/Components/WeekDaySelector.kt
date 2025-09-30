@@ -23,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
@@ -65,14 +64,6 @@ fun WeekDaySelector(
         label = "indicator width"
     )
 
-    Box(
-        modifier = Modifier
-            .shadow(
-                4.dp,
-                RoundedCornerShape(28.dp),
-                spotColor = MaterialTheme.colorScheme.gray64
-            )
-    ) {
         Box(
             modifier = Modifier
                 .padding(4.dp)
@@ -154,7 +145,7 @@ fun WeekDaySelector(
             }
         }
     }
-}
+
 
 @Preview
 @Composable

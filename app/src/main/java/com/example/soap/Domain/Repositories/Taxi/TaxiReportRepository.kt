@@ -16,19 +16,15 @@ class TaxiReportRepository @Inject constructor(
 ) : TaxiReportRepositoryProtocol {
 
     override suspend fun fetchMyReports(): TaxiReports {
-        try {
-            val response = api.fetchMyReports()
-            if (response.isSuccessful) {
-                val body = response.body() ?: throw Exception("Empty response body")
-                val incoming = body.incoming.map { it.toModel() }
-                val outgoing = body.outgoing.map { it.toModel() }
-                return TaxiReports(incoming, outgoing)
-            } else {
-                val errorBody = response.errorBody()?.string()
-                throw ApiException(errorBody ?: "Unknown error", response.code())
-            }
-        } catch (e: Exception) {
-            throw e
+        val response = api.fetchMyReports()
+        if (response.isSuccessful) {
+            val body = response.body() ?: throw Exception("Empty response body")
+            val incoming = body.incoming.map { it.toModel() }
+            val outgoing = body.outgoing.map { it.toModel() }
+            return TaxiReports(incoming, outgoing)
+        } else {
+            val errorBody = response.errorBody()?.string()
+            throw ApiException(errorBody ?: "Unknown error", response.code())
         }
     }
 
