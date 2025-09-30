@@ -21,14 +21,6 @@ import com.example.soap.Domain.Repositories.Feed.FeedUserRepository
 import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepository
 import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
-import com.example.soap.Domain.Repositories.Feed.FeedCommentRepository
-import com.example.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
-import com.example.soap.Domain.Repositories.Feed.FeedImageRepository
-import com.example.soap.Domain.Repositories.Feed.FeedImageRepositoryProtocol
-import com.example.soap.Domain.Repositories.Feed.FeedPostRepository
-import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
-import com.example.soap.Domain.Repositories.Feed.FeedUserRepository
-import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepository
