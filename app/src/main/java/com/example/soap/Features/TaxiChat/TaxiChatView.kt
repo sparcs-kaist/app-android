@@ -292,11 +292,11 @@ fun TaxiChatView(
                 )
             },
             confirmButton = {
-                Row {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     TextButton(onClick = { openKakaoPay(context) }) {
                         Text("Open Kakao Pay")
                     }
-                    Button(onClick = { openToss(context, viewModel.account) }) {
+                    TextButton(onClick = { openToss(context, viewModel.account) }) {
                         Text("Open Toss")
                     }
                     TextButton(onClick = { coroutineScope.launch { viewModel.commitPayment() } }) {
@@ -364,7 +364,7 @@ fun ContentView(
 //                        loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
 //                    }
 //            )
-//        }
+//        }//TODO - 보류
         items(groupedChats, key = { it.id }) { group ->
             TaxiChatUserWrapper(
                 authorID = group.authorID,

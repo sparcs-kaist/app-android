@@ -74,11 +74,9 @@ class TaxiChatViewModel @Inject constructor(
 
     init {
         taxiChatUseCase.setRoom(initialRoom)
-        bind()
-
         viewModelScope.launch {
         setup()
-            }
+        }
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
@@ -129,9 +127,7 @@ class TaxiChatViewModel @Inject constructor(
     // MARK: - Chat send
     override suspend fun sendChat(message: String, type: TaxiChat.ChatType) {
         if (type == TaxiChat.ChatType.TEXT && message.isBlank()) return
-        viewModelScope.launch {
-            taxiChatUseCase.sendChat(message, type)
-        }
+        taxiChatUseCase.sendChat(message, type)
     }
 
     // MARK: - Room management
@@ -142,19 +138,26 @@ class TaxiChatViewModel @Inject constructor(
     override val isLeaveRoomAvailable: Boolean
         get() = !room.value.isDeparted
 
+    override val isCommitSettlementAvailable: Boolean
+        get() = room.value.isDeparted && room.value.settlementTotal == 0
+
+
     override suspend fun commitSettlement() {
-        viewModelScope.launch {
-            try {
-                val newRoom = taxiRoomRepository.commitSettlement(room.value.id)
-                _room.value = newRoom
-            } catch (e: Exception) {
-                Log.e("TaxiChatViewModel", "Failed to commit settlement for room ${room.value.id}", e)
+        try {
+            val newRoom = taxiRoomRepository.commitSettlement(room.value.id)
+            _room.value = newRoom
+
+            val me = newRoom.participants.firstOrNull { it.id == taxiUser.value?.oid }
+            if (me?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement) {
+                val latestUser = userUseCase.fetchTaxiUser()
+                val myAccount = latestUser.account
+                taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
             }
+        } catch (e: Exception) {
+            Log.e("TaxiChatViewModel", "commitSettlement failed", e)
         }
     }
 
-    override val isCommitSettlementAvailable: Boolean
-        get() = room.value.isDeparted && room.value.settlementTotal == 0
 
     override suspend fun commitPayment() {
         viewModelScope.launch {
@@ -176,7 +179,8 @@ class TaxiChatViewModel @Inject constructor(
 
     override val account: String?
         get() {
-            val paidParticipant = room.value.participants.firstOrNull { it.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement }
+            val paidParticipant = room.value.participants
+                .firstOrNull { it.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement }
                 ?: return null
 
             return taxiChatUseCase.accountChats
