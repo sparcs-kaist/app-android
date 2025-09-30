@@ -69,7 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedPostView(
     viewModel: FeedPostViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
@@ -105,7 +105,7 @@ fun FeedPostView(
                         //Todo - report
                     }
                 },
-                onTranslate = {/*Todo - translate*/},
+                onTranslate = {/*Todo - translate*/ },
                 isMine = post.value.isAuthor
             )
         },
@@ -177,11 +177,12 @@ fun FeedPostView(
                 title = { Text(text = "Delete Post", fontWeight = FontWeight.Bold) },
                 text = { Text("Are you sure you want to delete this post?") },
                 confirmButton = {
-                    Button(onClick = {
-                        coroutineScope.launch { vm.deletePost(post.value.id) }
-                        showDeleteConfirmation = false
-                        navController.popBackStack()
-                    },
+                    Button(
+                        onClick = {
+                            coroutineScope.launch { vm.deletePost(post.value.id) }
+                            showDeleteConfirmation = false
+                            navController.popBackStack()
+                        },
                         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
                     ) {
                         Text(
@@ -204,7 +205,7 @@ private fun InputBar(
     isUploadingComment: Boolean,
     onCommentUploaded: (FeedComment?) -> Unit,
     coroutineScope: CoroutineScope,
-    focusRequester: FocusRequester
+    focusRequester: FocusRequester,
 ) {
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
     Row(
@@ -238,7 +239,8 @@ private fun InputBar(
                     BasicTextField(
                         value = viewModel.text,
                         onValueChange = { viewModel.text = it },
-                        modifier = Modifier.focusRequester(focusRequester)
+                        modifier = Modifier
+                            .focusRequester(focusRequester)
                             .onFocusChanged { focusState ->
                                 isFocused = focusState.isFocused
                             },
@@ -270,45 +272,47 @@ private fun InputBar(
 
 
 
-        Spacer(modifier = Modifier.width(8.dp))
-            MoveToLeftFadeIn(viewModel.text.isNotEmpty()) {
-                Button(
-                    onClick = {
-                        if (viewModel.text.isEmpty()) return@Button
-                        coroutineScope.launch {
-                            var uploadedComment: FeedComment? = null
-                            try {
-                                uploadedComment = if (targetComment != null) {
-                                    viewModel.writeReply(targetComment.id)
-                                } else {
-                                    viewModel.writeComment(post.value.id)
+                Spacer(modifier = Modifier.width(8.dp))
+                MoveToLeftFadeIn(viewModel.text.isNotEmpty()) {
+                    Button(
+                        onClick = {
+                            if (viewModel.text.isEmpty()) return@Button
+                            coroutineScope.launch {
+                                var uploadedComment: FeedComment? = null
+                                try {
+                                    uploadedComment = if (targetComment != null) {
+                                        viewModel.writeReply(targetComment.id)
+                                    } else {
+                                        viewModel.writeComment(post.value.id)
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("FeedPostView", "Failed to upload comment", e)
                                 }
-                            } catch (e: Exception) {
-                                Log.e("FeedPostView", "Failed to upload comment", e)
+                                onCommentUploaded(uploadedComment)
                             }
-                            onCommentUploaded(uploadedComment)
+                        },
+                        enabled = !isUploadingComment
+                    ) {
+                        if (isUploadingComment) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.paperplane),
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                contentDescription = "Send"
+                            )
                         }
-                    },
-                    enabled = !isUploadingComment
-                ) {
-                    if (isUploadingComment) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.paperplane),
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            contentDescription = "Send"
-                        )
                     }
                 }
             }
         }
-}}}
+    }
+}
 
 @Composable
 private fun Comments(
@@ -318,28 +322,54 @@ private fun Comments(
     targetComment: FeedComment?,
     isWritingCommentFocusState: Boolean,
     feedCommentRepository: FeedCommentRepositoryProtocol,
-    onReply: (FeedComment) -> Unit
+    onReply: (FeedComment) -> Unit,
 ) {
     when (val state = viewModel.state.collectAsState().value) {
         is FeedPostViewModel.ViewState.Loading -> {
             Column(Modifier.padding(horizontal = 8.dp)) {
                 HorizontalDivider()
-                Text("${post.value.commentCount} comments", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    "${post.value.commentCount} comments",
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
+
         is FeedPostViewModel.ViewState.Loaded -> {
             Column(Modifier.padding(horizontal = 8.dp)) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0, modifier = Modifier.padding(vertical = 4.dp))
-                Text("${post.value.commentCount} comments", style = MaterialTheme.typography.bodyMedium)
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.lightGray0,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+                Text(
+                    "${post.value.commentCount} comments",
+                    style = MaterialTheme.typography.bodyMedium
+                )
                 viewModel.comments.forEach { comment ->
-                    FeedCommentRow(comment = comment, isMine = isMine, isReply = false, onReply = { onReply(comment) }, feedCommentRepository = feedCommentRepository )
+                    FeedCommentRow(
+                        comment = comment,
+                        isMine = isMine,
+                        isReply = false,
+                        onReply = { onReply(comment) },
+                        feedCommentRepository = feedCommentRepository
+                    )
                     comment.replies.forEach { reply ->
-                        FeedCommentRow(comment = reply, isMine = isMine, isReply = true, onReply = {}, feedCommentRepository = feedCommentRepository )
+                        FeedCommentRow(
+                            comment = reply,
+                            isMine = isMine,
+                            isReply = true,
+                            onReply = {},
+                            feedCommentRepository = feedCommentRepository
+                        )
                     }
-                    HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0, modifier = Modifier.padding(vertical = 4.dp))
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.lightGray0,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
                 }
             }
         }
+
         is FeedPostViewModel.ViewState.Error -> {
             Text("Error: ${state.message}", Modifier.padding(horizontal = 8.dp))
         }

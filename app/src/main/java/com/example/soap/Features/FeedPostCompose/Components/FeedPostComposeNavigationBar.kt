@@ -40,7 +40,7 @@ fun FeedPostComposeNavigationBar(
     navController: NavController,
     isDoneEnabled: Boolean,
     onDoneClick: () -> Unit,
-    isUploading: Boolean
+    isUploading: Boolean,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -100,8 +100,8 @@ fun FeedPostComposeNavigationBar(
 private fun DoneButton(
     isDoneEnabled: Boolean,
     onDoneClick: () -> Unit,
-    isUploading: Boolean
-){
+    isUploading: Boolean,
+) {
     TextButton(
         onClick = {
             if (isDoneEnabled) {
@@ -110,7 +110,7 @@ private fun DoneButton(
         },
         enabled = isDoneEnabled,
         modifier = Modifier.semantics { contentDescription = "Post Button" }
-    ){
+    ) {
         if (isUploading) {
             CircularProgressIndicator(modifier = Modifier.size(24.dp))
         } else {
@@ -126,6 +126,6 @@ private fun DoneButton(
 
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ FeedPostComposeNavigationBar(rememberNavController(), false, {}, false) }
+private fun Preview() {
+    Theme { FeedPostComposeNavigationBar(rememberNavController(), false, {}, false) }
 }

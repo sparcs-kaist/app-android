@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedView(
     viewModel: FeedViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val repo: FeedPostRepositoryProtocol = hiltViewModel<FeedViewModel>().feedPostRepository
     val state by viewModel.state.collectAsState()
@@ -138,7 +138,7 @@ fun FeedView(
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme {
         FeedView(viewModel(), rememberNavController())
     }

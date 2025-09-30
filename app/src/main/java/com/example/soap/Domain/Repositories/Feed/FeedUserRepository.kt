@@ -11,7 +11,7 @@ interface FeedUserRepositoryProtocol {
 }
 
 class FeedUserRepository @Inject constructor(
-    private val api: FeedUserApi
+    private val api: FeedUserApi,
 ) : FeedUserRepositoryProtocol {
 
     override suspend fun register(ssoInfo: String) {

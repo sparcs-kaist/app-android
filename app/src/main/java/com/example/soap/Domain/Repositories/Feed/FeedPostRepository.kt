@@ -16,7 +16,7 @@ interface FeedPostRepositoryProtocol {
 }
 
 class FeedPostRepository @Inject constructor(
-    private val api: FeedPostApi
+    private val api: FeedPostApi,
 ) : FeedPostRepositoryProtocol {
 
     override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage {

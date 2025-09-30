@@ -18,30 +18,33 @@ interface FeedCommentRepositoryProtocol {
     suspend fun deleteVote(commentId: String)
 }
 
-class FakeFeedCommentRepository: FeedCommentRepositoryProtocol {
-        private val mockComments = FeedComment.mockList()
-        override suspend fun fetchComments(postId: String): List<FeedComment> {
-            return mockComments
-        }
-        override suspend fun writeComment(
-            postId: String,
-            request: FeedCreateComment
-        ): FeedComment {
-            return FeedComment.mock()
-        }
-        override suspend fun writeReply(
-            commentId: String,
-            request: FeedCreateComment
-        ): FeedComment {
-            return FeedComment.mock()
-        }
-        override suspend fun deleteComment(commentId: String) {}
-        override suspend fun vote(commentId: String, type: FeedVoteType) {}
-        override suspend fun deleteVote(commentId: String) {}
+class FakeFeedCommentRepository : FeedCommentRepositoryProtocol {
+    private val mockComments = FeedComment.mockList()
+    override suspend fun fetchComments(postId: String): List<FeedComment> {
+        return mockComments
+    }
+
+    override suspend fun writeComment(
+        postId: String,
+        request: FeedCreateComment,
+    ): FeedComment {
+        return FeedComment.mock()
+    }
+
+    override suspend fun writeReply(
+        commentId: String,
+        request: FeedCreateComment,
+    ): FeedComment {
+        return FeedComment.mock()
+    }
+
+    override suspend fun deleteComment(commentId: String) {}
+    override suspend fun vote(commentId: String, type: FeedVoteType) {}
+    override suspend fun deleteVote(commentId: String) {}
 }
 
 class FeedCommentRepository @Inject constructor(
-    private val api: FeedCommentApi
+    private val api: FeedCommentApi,
 ) : FeedCommentRepositoryProtocol {
 
     override suspend fun fetchComments(postId: String): List<FeedComment> {
