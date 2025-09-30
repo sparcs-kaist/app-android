@@ -134,9 +134,10 @@ class TaxiChatService @Inject constructor(
                 }
             }
 
-            val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
-            chatsForRoom.clear()
-            chatsForRoom.addAll(newChats)
+            val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }.apply {
+                clear()
+                addAll(newChats)
+            }
 
             if (roomId == currentRoomId) {
                 serviceScope.launch { _chatsFlow.emit(chatsForRoom) }
@@ -163,12 +164,12 @@ class TaxiChatService @Inject constructor(
             val newChats = parseChatArray(chatArray)
             val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
 
+            val existingIds = chatsForRoom.map { it.id }.toSet()
             val filteredChats = newChats.filter { newChat ->
-            chatsForRoom.none { it.id == newChat.id }
-        }
+                !existingIds.contains(newChat.id)
+            }
 
             chatsForRoom.addAll(filteredChats)
-
 
             if (roomId == currentRoomId) {
                 serviceScope.launch { _chatsFlow.emit(chatsForRoom) }
