@@ -28,6 +28,7 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.soap.Domain.Models.Feed.FeedImage
+
 @Composable
 fun PostImagesStrip(images: List<FeedImage>) {
     val hPadding = 16.dp
@@ -55,9 +56,15 @@ fun PostImagesStrip(images: List<FeedImage>) {
                         is AsyncImagePainter.State.Loading -> {
                             Placeholder(width = minW, height = height)
                         }
+
                         is AsyncImagePainter.State.Error -> {
-                            Placeholder(width = minW, height = height, systemImage = Icons.Default.Warning)
+                            Placeholder(
+                                width = minW,
+                                height = height,
+                                systemImage = Icons.Default.Warning
+                            )
                         }
+
                         is AsyncImagePainter.State.Success -> {
                             val size = state.painter.intrinsicSize
                             val aspect = if (size.height > 0) size.width / size.height else 16f / 9f
@@ -72,6 +79,7 @@ fun PostImagesStrip(images: List<FeedImage>) {
                                 contentScale = if (fitWidth in minW..maxW) ContentScale.Fit else ContentScale.Crop
                             )
                         }
+
                         else -> {}
                     }
                 }

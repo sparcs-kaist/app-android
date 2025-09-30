@@ -20,7 +20,7 @@ import javax.inject.Inject
 @HiltViewModel
 class FeedPostViewModel @Inject constructor(
     val feedCommentRepository: FeedCommentRepositoryProtocol,
-    val userUseCase: UserUseCaseProtocol
+    val userUseCase: UserUseCaseProtocol,
 ) : ViewModel(), FeedPostViewModelProtocol {
 
     sealed interface ViewState {
@@ -71,7 +71,10 @@ class FeedPostViewModel @Inject constructor(
         return comment
     }
 
-    private fun insertReply(commentsList: List<FeedComment>, comment: FeedComment): List<FeedComment> {
+    private fun insertReply(
+        commentsList: List<FeedComment>,
+        comment: FeedComment,
+    ): List<FeedComment> {
         val parentId = comment.parentCommentID ?: return commentsList
         return commentsList.map { c ->
             if (c.id == parentId) {

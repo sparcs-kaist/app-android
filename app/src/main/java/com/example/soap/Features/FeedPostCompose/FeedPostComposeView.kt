@@ -81,7 +81,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedPostComposeView(
     viewModel: FeedPostComposeViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     var showPhotosPicker by remember { mutableStateOf(false) }
     var isUploading by remember { mutableStateOf(false) }
@@ -140,14 +140,14 @@ fun FeedPostComposeView(
                     .fillMaxWidth()
                     .padding(end = 8.dp),
                 contentAlignment = Alignment.CenterEnd
-            ){
+            ) {
                 FeedPostOptionsRow(
                     isUploading = isUploading,
                     onPhotoButton = { showPhotosPicker = true }
                 )
             }
         }
-    ){ innerPadding ->
+    ) { innerPadding ->
         Column(modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
@@ -232,9 +232,10 @@ fun FeedPostComposeView(
         }
     }
 }
+
 @Composable
 private fun FeedPostHeader(
-    viewModel: FeedPostComposeViewModelProtocol
+    viewModel: FeedPostComposeViewModelProtocol,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -344,7 +345,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
 @Composable
 private fun FeedPostOptionsRow(
     isUploading: Boolean,
-    onPhotoButton: () -> Unit
+    onPhotoButton: () -> Unit,
 ) {
     Surface(
         shape = RoundedCornerShape(50),
@@ -374,7 +375,7 @@ private fun FeedPostOptionsRow(
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme {
         FeedPostComposeView(navController = rememberNavController(), viewModel = viewModel())
     }

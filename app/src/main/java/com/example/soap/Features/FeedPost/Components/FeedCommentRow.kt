@@ -62,7 +62,7 @@ fun FeedCommentRow(
     isMine: Boolean? = null,
     isReply: Boolean,
     onReply: () -> Unit,
-    feedCommentRepository: FeedCommentRepositoryProtocol
+    feedCommentRepository: FeedCommentRepositoryProtocol,
 ) {
     var localComment by remember { mutableStateOf(comment) }
 
@@ -79,7 +79,10 @@ fun FeedCommentRow(
         }
 
         Column(modifier = Modifier.weight(1f)) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.background, modifier = Modifier.padding(vertical = 4.dp))
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
             //TODO - 추가할지 말지 고민
             Header(localComment, isMine, feedCommentRepository) { updated ->
                 localComment = updated
@@ -99,7 +102,7 @@ private fun Header(
     comment: FeedComment,
     isMine: Boolean?,
     repo: FeedCommentRepositoryProtocol,
-    update: (FeedComment) -> Unit
+    update: (FeedComment) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -122,27 +125,28 @@ private fun Header(
         Spacer(modifier = Modifier.weight(1f))
 
         if (!comment.isDeleted) {
-        FeedCommentActionsMenu(
-            isMine = isMine,
-            onEdit = {/*Todo - edit*/},
-            onDelete = {
-                expanded = false
-                CoroutineScope(Dispatchers.IO).launch {
-                    val prev = comment.copy()
-                    update(comment.copy(isDeleted = true))
-                    try {
-                        repo.deleteComment(comment.id)
-                    } catch (e: Exception) {
-                        update(prev)
+            FeedCommentActionsMenu(
+                isMine = isMine,
+                onEdit = {/*Todo - edit*/ },
+                onDelete = {
+                    expanded = false
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val prev = comment.copy()
+                        update(comment.copy(isDeleted = true))
+                        try {
+                            repo.deleteComment(comment.id)
+                        } catch (e: Exception) {
+                            update(prev)
+                        }
                     }
-                }
-            },
-            onReport = {/*Todo - report*/},
-            onTranslate = {/*Todo - translate*/},
-            isComment = true
-        )
+                },
+                onReport = {/*Todo - report*/ },
+                onTranslate = {/*Todo - translate*/ },
+                isComment = true
+            )
+        }
     }
-}}
+}
 
 
 @Composable
@@ -153,7 +157,7 @@ private fun FeedCommentActionsMenu(
     onReport: (AraContentReportType) -> Unit,
     onTranslate: () -> Unit,
     isComment: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var reportExpanded by remember { mutableStateOf(false) }
@@ -164,7 +168,7 @@ private fun FeedCommentActionsMenu(
             contentDescription = "More",
             modifier = modifier
                 .clickable { expanded = true },
-            tint = if(isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            tint = if (isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
         )
 
         DropdownMenu(
@@ -191,7 +195,8 @@ private fun FeedCommentActionsMenu(
                         Icon(
                             painter = painterResource(R.drawable.arrow_forward_ios),
                             contentDescription = "show Report",
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier
+                                .size(18.dp)
                                 .rotate(if (reportExpanded) 270f else 0f)
                         )
                     }
@@ -295,7 +300,8 @@ private fun ProfileImage(comment: FeedComment) {
 @Composable
 private fun Content(comment: FeedComment) {
     val text = if (comment.isDeleted) "This comment has been deleted." else comment.content
-    val color = if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+    val color =
+        if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
     Text(
         text = text,
         color = color,
@@ -309,10 +315,10 @@ private fun Footer(
     comment: FeedComment,
     onReply: (() -> Unit)?,
     repo: FeedCommentRepositoryProtocol,
-    update: (FeedComment) -> Unit
+    update: (FeedComment) -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-    Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
 
         if (comment.parentCommentID == null) {
             PostCommentButton(
@@ -350,16 +356,34 @@ suspend fun handleVote(
     comment: FeedComment,
     isUpVote: Boolean,
     repo: FeedCommentRepositoryProtocol,
-    update: (FeedComment) -> Unit
+    update: (FeedComment) -> Unit,
 ) {
     val prev = comment.copy()
 
     val updated = when {
-        isUpVote && comment.myVote == FeedVoteType.UP -> comment.copy(myVote = null, upVotes = comment.upVotes - 1)
-        isUpVote && comment.myVote == FeedVoteType.DOWN -> comment.copy(myVote = FeedVoteType.UP, upVotes = comment.upVotes + 1, downVotes = comment.downVotes - 1)
+        isUpVote && comment.myVote == FeedVoteType.UP -> comment.copy(
+            myVote = null,
+            upVotes = comment.upVotes - 1
+        )
+
+        isUpVote && comment.myVote == FeedVoteType.DOWN -> comment.copy(
+            myVote = FeedVoteType.UP,
+            upVotes = comment.upVotes + 1,
+            downVotes = comment.downVotes - 1
+        )
+
         isUpVote -> comment.copy(myVote = FeedVoteType.UP, upVotes = comment.upVotes + 1)
-        !isUpVote && comment.myVote == FeedVoteType.DOWN -> comment.copy(myVote = null, downVotes = comment.downVotes - 1)
-        !isUpVote && comment.myVote == FeedVoteType.UP -> comment.copy(myVote = FeedVoteType.DOWN, upVotes = comment.upVotes - 1, downVotes = comment.downVotes + 1)
+        !isUpVote && comment.myVote == FeedVoteType.DOWN -> comment.copy(
+            myVote = null,
+            downVotes = comment.downVotes - 1
+        )
+
+        !isUpVote && comment.myVote == FeedVoteType.UP -> comment.copy(
+            myVote = FeedVoteType.DOWN,
+            upVotes = comment.upVotes - 1,
+            downVotes = comment.downVotes + 1
+        )
+
         else -> comment.copy(myVote = FeedVoteType.DOWN, downVotes = comment.downVotes + 1)
     }
 
@@ -367,9 +391,15 @@ suspend fun handleVote(
 
     try {
         if (isUpVote) {
-            if (prev.myVote == FeedVoteType.UP) repo.deleteVote(prev.id) else repo.vote(prev.id, FeedVoteType.UP)
+            if (prev.myVote == FeedVoteType.UP) repo.deleteVote(prev.id) else repo.vote(
+                prev.id,
+                FeedVoteType.UP
+            )
         } else {
-            if (prev.myVote == FeedVoteType.DOWN) repo.deleteVote(prev.id) else repo.vote(prev.id, FeedVoteType.DOWN)
+            if (prev.myVote == FeedVoteType.DOWN) repo.deleteVote(prev.id) else repo.vote(
+                prev.id,
+                FeedVoteType.DOWN
+            )
         }
     } catch (e: Exception) {
         update(prev)
@@ -378,7 +408,7 @@ suspend fun handleVote(
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme {
         FeedCommentRow(
             comment = FeedComment.mock(),
@@ -393,7 +423,7 @@ private fun Preview(){
 
 @Composable
 @Preview
-private fun Preview2(){
+private fun Preview2() {
     Theme {
         FeedCommentRow(
             comment = FeedComment.mock(),

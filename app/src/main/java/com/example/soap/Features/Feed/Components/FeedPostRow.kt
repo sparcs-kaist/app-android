@@ -55,7 +55,7 @@ fun FeedPostRow(
     onPostDeleted: (String) -> Unit,
     onComment: () -> Unit, //post 또는 comment click
     singleLine: Boolean,
-    feedPostRepository: FeedPostRepositoryProtocol
+    feedPostRepository: FeedPostRepositoryProtocol,
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -64,7 +64,12 @@ fun FeedPostRow(
         .fillMaxWidth()
         .noRippleClickable { onComment() }
     ) {
-        Header(post, onPostDeleted, showDeleteConfirmation, onPostDeleted) { showDeleteConfirmation = it }
+        Header(
+            post,
+            onPostDeleted,
+            showDeleteConfirmation,
+            onPostDeleted
+        ) { showDeleteConfirmation = it }
         Content(post, singleLine)
         Footer(post, onComment, onPostDeleted, feedPostRepository, coroutineScope)
     }
@@ -101,7 +106,7 @@ fun Header(
     onPostDeleted: ((String) -> Unit)?,
     showDeleteConfirmation: Boolean,
     onDelete: ((String) -> Unit)?,
-    setShowDelete: (Boolean) -> Unit
+    setShowDelete: (Boolean) -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -142,11 +147,11 @@ fun Header(
 fun Content(
     post: FeedPost,
     singleLine: Boolean,
-    ) {
+) {
     Text(
         text = post.content,
         modifier = Modifier.padding(horizontal = 16.dp),
-        maxLines = if(singleLine) 1 else Int.MAX_VALUE,
+        maxLines = if (singleLine) 1 else Int.MAX_VALUE,
         overflow = TextOverflow.Ellipsis
     )
     if (post.images.isNotEmpty()) {
@@ -160,7 +165,7 @@ fun Footer(
     onComment: () -> Unit,
     onPostDeleted: ((String) -> Unit)?,
     feedPostRepository: FeedPostRepositoryProtocol,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
 ) {
     var postState by remember { mutableStateOf(post) }
     Row(
@@ -176,13 +181,27 @@ fun Footer(
                 else -> null
             },
             votes = postState.upVotes - postState.downVotes,
-            onUpVote = { coroutineScope.launch { upVote(postState, feedPostRepository, update = { postState = it }) } },
-            onDownVote = { coroutineScope.launch { downVote(postState, feedPostRepository, update = { postState = it }) } },
+            onUpVote = {
+                coroutineScope.launch {
+                    upVote(
+                        postState,
+                        feedPostRepository,
+                        update = { postState = it })
+                }
+            },
+            onDownVote = {
+                coroutineScope.launch {
+                    downVote(
+                        postState,
+                        feedPostRepository,
+                        update = { postState = it })
+                }
+            },
             enabled = !post.isAuthor
         )
 
         Spacer(Modifier.width(8.dp))
-        PostCommentButton(commentCount = postState.commentCount){ onComment() }
+        PostCommentButton(commentCount = postState.commentCount) { onComment() }
         Spacer(Modifier.weight(1f))
         if (onPostDeleted == null) PostShareButton()
     }
@@ -203,6 +222,7 @@ suspend fun upVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (Fe
             // remove downvote if there was
             downVotes = post.downVotes - 1
         )
+
         else -> post.copy(myVote = FeedVoteType.UP, upVotes = post.upVotes + 1)
     }
 
@@ -232,6 +252,7 @@ suspend fun downVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (
             // remove downvote if there was
             downVotes = post.downVotes + 1
         )
+
         else -> post.copy(myVote = FeedVoteType.DOWN, downVotes = post.downVotes + 1)
     }
 
@@ -250,7 +271,9 @@ suspend fun downVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (
 
 @Composable
 fun FeedPostRowSkeleton() {
-    Column(Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
+    Column(Modifier
+        .fillMaxWidth()
+        .padding(vertical = 8.dp)) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -324,7 +347,7 @@ fun FeedPostRowSkeleton() {
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
 
     Theme {
         FeedPostRow(
@@ -340,6 +363,7 @@ private fun Preview(){
                         hasNext = false
                     )
                 }
+
                 override suspend fun writePost(request: FeedCreatePost) {}
                 override suspend fun deletePost(postID: String) {}
                 override suspend fun vote(postID: String, type: FeedVoteType) {}
@@ -351,6 +375,6 @@ private fun Preview(){
 
 @Composable
 @Preview(showBackground = true)
-private fun SkeletonPreview(){
+private fun SkeletonPreview() {
     Theme { FeedPostRowSkeleton() }
 }
