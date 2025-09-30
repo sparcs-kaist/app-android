@@ -81,7 +81,7 @@ data class AraPostDTO(
     val myVote: Boolean?,
 
     @SerializedName("my_scrap")
-    val myScrap: Boolean?
+    val myScrap: AraScrapDTO?
 ) {
     fun toModel(): AraPost = AraPost(
         id = id,
@@ -111,6 +111,7 @@ data class AraPostDTO(
         comments = comments?.map { it.toModel() }?.toMutableList() ?: mutableListOf(),
         content = content,
         myVote = myVote,
-        myScrap = myScrap
+        myScrap = myScrap != null,
+        scrapID = myScrap?.id
     )
 }

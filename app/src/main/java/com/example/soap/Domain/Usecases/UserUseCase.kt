@@ -6,7 +6,8 @@ import com.example.soap.Domain.Models.Ara.AraUser
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -22,7 +23,7 @@ class UserUseCase @Inject constructor(
     init {
         Log.d("UserUseCase","Fetching Users")
 
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             fetchUsers()
         }
     }
@@ -66,11 +67,12 @@ class UserUseCase @Inject constructor(
         fetchAraUser()
     }
 
-    override suspend fun fetchTaxiUser() {
+    override suspend fun fetchTaxiUser(): TaxiUser {
         Log.d("UserUseCase","Fetching Taxi User")
         val user = taxiUserRepository.fetchUser()
         userStorage.setTaxiUser(user)
         Log.d("UserUseCase", user.toString())
+        return user
     }
 
 //    override suspend fun fetchFeedUser() {

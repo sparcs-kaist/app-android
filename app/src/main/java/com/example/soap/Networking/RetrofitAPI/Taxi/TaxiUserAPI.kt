@@ -1,6 +1,6 @@
 package com.example.soap.Networking.RetrofitAPI.Taxi
 
-import com.example.soap.Networking.ResponseDTO.Taxi.TaxiReportDTO
+import com.example.soap.Networking.ResponseDTO.Taxi.TaxiMyReportsResponseDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiUserDTO
 import retrofit2.Response
 import retrofit2.http.Body
@@ -14,9 +14,9 @@ interface TaxiUserApi {
 
     @POST("users/editAccount")
     suspend fun editBankAccount(
-        @Body body: String
+        @Body request: String
     ): Response<Unit>
 
     @GET("reports/searchByUser")
-    suspend fun fetchReports(): Response<TaxiReportDTO>
+    suspend fun fetchReports(): TaxiMyReportsResponseDTO
 }

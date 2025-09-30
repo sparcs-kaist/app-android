@@ -9,35 +9,39 @@ object Constants {
     val taxiSocketURL = "https://taxi.dev.sparcs.org/"
     val taxiChatImageURL = "https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/chat-img/"
 
+    val taxiBankCodeMap: Map<String, String> = mapOf(
+        "NH농협" to "011",
+        "KB국민" to "004",
+        "카카오뱅크" to "090",
+        "신한" to "088",
+        "우리" to "020",
+        "IBK기업" to "003",
+        "하나" to "081",
+        "토스뱅크" to "092",
+        "새마을" to "045",
+        "부산" to "032",
+        "대구" to "031",
+        "케이뱅크" to "089",
+        "신협" to "048",
+        "우체국" to "071",
+        "SC제일" to "023",
+        "경남" to "039",
+        "수협" to "007",
+        "광주" to "034",
+        "전북" to "037",
+        "저축은행" to "050",
+        "씨티" to "027",
+        "제주" to "035",
+        "KDB산업" to "002",
+        "산림" to "064"
+    )
+
+    val taxiBankNameList: List<String> = taxiBankCodeMap.keys.toList()
+
     // MARK: Ara
     val araBackendURL = "https://newara.dev.sparcs.org/api/"
 
     // MARK: Feed
     val feedBackendURL = "https://app.dev.sparcs.org/v1"
 
-    val taxiBankNameList: List<String> = listOf(
-        "NH농협",
-        "KB국민",
-        "카카오뱅크",
-        "신한",
-        "우리",
-        "IBK기업",
-        "하나",
-        "토스뱅크",
-        "새마을",
-        "부산",
-        "대구",
-        "케이뱅크",
-        "신협",
-        "우체국",
-        "SC제일",
-        "경남",
-        "수협",
-        "광주",
-        "전북",
-        "저축은행",
-        "씨티",
-        "제주",
-        "KDB산업"
-    )
 }

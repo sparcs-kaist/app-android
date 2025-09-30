@@ -1,6 +1,5 @@
 package com.example.soap.Domain.Repositories.Taxi
 
-import com.example.soap.Domain.Models.Taxi.TaxiReport
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiUserApi
 import javax.inject.Inject
@@ -8,7 +7,6 @@ import javax.inject.Inject
 interface TaxiUserRepositoryProtocol {
     suspend fun fetchUser(): TaxiUser
     suspend fun editBankAccount(account: String)
-    suspend fun fetchReports(): Pair<List<TaxiReport>, List<TaxiReport>>
 }
 
 enum class TaxiUserErrorCode(val code: Int) {
@@ -16,11 +14,11 @@ enum class TaxiUserErrorCode(val code: Int) {
 }
 
 class TaxiUserRepository @Inject constructor(
-    private val taxiUserApi: TaxiUserApi
+    private val api: TaxiUserApi
 ) : TaxiUserRepositoryProtocol {
 
     override suspend fun fetchUser(): TaxiUser {
-        val response = taxiUserApi.fetchUserInfo()
+        val response = api.fetchUserInfo()
         if (!response.isSuccessful) {
             throw Exception("Failed to fetch user: ${response.code()}")
         }
@@ -29,33 +27,18 @@ class TaxiUserRepository @Inject constructor(
     }
 
     override suspend fun editBankAccount(account: String) {
-        val response = taxiUserApi.editBankAccount(account)
+        val response = api.editBankAccount(account)
         if (!response.isSuccessful) {
             throw Exception(
                 "Failed to edit bank account",
                 Throwable().apply {
                     initCause(
-                        TaxiUserError(
-                            TaxiUserErrorCode.EDIT_BANK_ACCOUNT_FAILED.code,
-                            "Failed to edit bank account"
-                        )
+                        TaxiUserError( TaxiUserErrorCode.EDIT_BANK_ACCOUNT_FAILED.code,
+                            "Failed to edit bank account")
                     )
                 }
             )
         }
-    }
-
-    override suspend fun fetchReports(): Pair<List<TaxiReport>, List<TaxiReport>> {
-        val response = taxiUserApi.fetchReports()
-        if (!response.isSuccessful) {
-            throw Exception("Failed to fetch reports: ${response.code()}")
-        }
-        val dto = response.body() ?: throw Exception("Empty response")
-
-        val reported = dto.reported.map { it.toModel(TaxiReport.ReportType.REPORTED) }
-        val reporting = dto.reporting.map { it.toModel(TaxiReport.ReportType.REPORTING) }
-
-        return Pair(reported, reporting)
     }
 }
 

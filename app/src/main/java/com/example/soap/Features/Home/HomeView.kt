@@ -33,7 +33,8 @@ fun HomeView(navController: NavController){
         topBar = {
             AppBar(
                 currentScreen = Channel.Start,
-                scrollOffset = scrollState.value
+                scrollOffset = scrollState.value,
+                navController = navController
             )
                  },
         

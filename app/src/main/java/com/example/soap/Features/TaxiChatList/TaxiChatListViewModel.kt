@@ -38,7 +38,6 @@ class TaxiChatListViewModel @Inject constructor(
     override suspend fun fetchData(){
         viewModelScope.launch {
             try {
-
                 val (onGoingRooms, doneRooms) = taxiRoomRepository.fetchMyRooms()
                 _state.value = ViewState.Loaded(
                     onGoing = onGoingRooms,
@@ -53,6 +52,6 @@ class TaxiChatListViewModel @Inject constructor(
     }
 
     private fun fetchTaxiUser(){
-        this.taxiUser = userUseCase.taxiUser
+        viewModelScope.launch { taxiUser = userUseCase.fetchTaxiUser() }
     }
 }

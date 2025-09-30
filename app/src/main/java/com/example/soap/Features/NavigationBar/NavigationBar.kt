@@ -42,6 +42,7 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
+import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
@@ -51,7 +52,6 @@ import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransiti
 import com.example.soap.Features.NavigationBar.Components.AddButton
 import com.example.soap.Features.NavigationBar.Components.ChatButton
 import com.example.soap.Features.NavigationBar.Components.NotificationButton
-import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.Post.PostViewModel
 import com.example.soap.Features.Post.PostViewModelProtocol
@@ -61,6 +61,23 @@ import com.example.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.Features.PostList.PostListViewModelProtocol
+import com.example.soap.Features.Settings.Ara.AraMyPostView
+import com.example.soap.Features.Settings.Ara.AraMyPostViewModel
+import com.example.soap.Features.Settings.Ara.AraMyPostViewModelProtocol
+import com.example.soap.Features.Settings.Ara.AraSettingsView
+import com.example.soap.Features.Settings.Ara.AraSettingsViewModel
+import com.example.soap.Features.Settings.Ara.AraSettingsViewModelProtocol
+import com.example.soap.Features.Settings.OTL.OTLSettingsView
+import com.example.soap.Features.Settings.OTL.OTLSettingsViewModel
+import com.example.soap.Features.Settings.OTL.OTLSettingsViewModelProtocol
+import com.example.soap.Features.Settings.SettingsView
+import com.example.soap.Features.Settings.Taxi.TaxiReportListView
+import com.example.soap.Features.Settings.Taxi.TaxiReportListViewModel
+import com.example.soap.Features.Settings.Taxi.TaxiReportListViewModelProtocol
+import com.example.soap.Features.Settings.Taxi.TaxiSettingsView
+import com.example.soap.Features.Settings.Taxi.TaxiSettingsViewModel
+import com.example.soap.Features.Settings.Taxi.TaxiSettingsViewModelProtocol
+import com.example.soap.Features.SignIn.SignInView
 import com.example.soap.Features.TaxiChat.TaxiChatView
 import com.example.soap.Features.TaxiChat.TaxiChatViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatViewModelProtocol
@@ -70,6 +87,8 @@ import com.example.soap.Features.TaxiChatList.TaxiChatListViewModelProtocol
 import com.example.soap.Features.TaxiList.TaxiListView
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
+import com.example.soap.Features.TaxiReport.TaxiReportView
+import com.example.soap.Features.TaxiReport.TaxiReportViewModel
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.Features.UserPostList.UserPostListView
@@ -87,13 +106,21 @@ enum class Channel(@StringRes val title: Int) {
     Boards(title = R.string.boards),
     PostView(title = R.string.postview),
     PostCompose(title = R.string.postcompose),
-    LectureDetail(title= R.string.lecturedetail),
+    LectureDetail(title = R.string.lecturedetail),
     TaxiRoomCreation(title = R.string.taxi_room_creation),
     TaxiChatView(title = R.string.taxichatview),
     TaxiChatListView(title = R.string.taxichatlistview),
+    TaxiReportView(title = R.string.taxi_report_view),
     AraChatView(title = R.string.ara_chat_view), //임시
     UserPostListView(title = R.string.user_post_list_view),
-    SearchView(title = R.string.search)
+    SearchView(title = R.string.search),
+    SignOut(title = R.string.sign_out),
+    Settings(title = R.string.settings),
+    TaxiSettings(title = R.string.taxi_settings),
+    TaxiReportSettings(title = R.string.taxi_report_settings),
+    AraSettings(title = R.string.ara_settings),
+    AraMyPostSettings(title = R.string.ara_my_post_settings),
+    OTLSettings(title = R.string.otl_settings)
 }
 
 @Composable
@@ -104,7 +131,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     val currentScreen = Channel.entries.find { screen ->
         currentRoute?.startsWith(screen.name) == true
     } ?: Channel.Start
-
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -119,10 +145,25 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = Channel.Start.name,
             ) { HomeView(navController) }
 
+            /*___________OTL___________*/
             composable(
                 route = Channel.TimeTable.name
             ) { TimetableView(navController) }
 
+            composable(
+                route = "${Channel.LectureDetail.name}/{lectureId}",
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ) { backStackEntry ->
+                val lectureId = backStackEntry.arguments?.getString("lectureId")?.toIntOrNull()
+                lectureId?.let {
+                    LectureDetailView(lectureId = it, navController = navController)
+                }
+            }
+
+            /*___________Taxi___________*/
             navigation(
                 startDestination = Channel.Taxi.name,
                 route = "TaxiGraph"
@@ -142,11 +183,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
                 composable(
                     route = Channel.TaxiRoomCreation.name,
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ) { backStackEntry ->
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("TaxiGraph")
                     }
@@ -158,34 +199,48 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         viewModel = viewModel
                     )
                 }
+
+
+                composable(
+                    route = Channel.TaxiChatView.name + "?room_json={room_json}",
+                    arguments = listOf(
+                        navArgument("room_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) { backStackEntry ->
+                    val viewModelImpl: TaxiChatViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: TaxiChatViewModelProtocol = viewModelImpl
+                    TaxiChatView(
+                        viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.TaxiChatListView.name
+                ) { backStackEntry ->
+                    val viewModelImpl: TaxiChatListViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: TaxiChatListViewModelProtocol = viewModelImpl
+
+                    TaxiChatListView(viewModel, navController)
+                }
+
+                composable(
+                    route = Channel.TaxiReportView.name + "?room_json={room_json}",
+                    arguments = listOf(
+                        navArgument("room_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) { backStackEntry ->
+                    val viewModelImpl: TaxiReportViewModel = hiltViewModel(backStackEntry)
+                    TaxiReportView(viewModelImpl, navController) }
             }
 
-            composable(
-                route = Channel.TaxiChatView.name + "?room_json={room_json}",
-                arguments = listOf(
-                    navArgument("room_json") {
-                        type = NavType.StringType
-                        nullable = false
-                    }
-                )
-            ) { backStackEntry ->
-                val viewModelImpl: TaxiChatViewModel = hiltViewModel(backStackEntry)
-                val viewModel: TaxiChatViewModelProtocol = viewModelImpl
-                TaxiChatView(
-                    viewModel,
-                    navController = navController
-                )
-            }
-
-            composable(
-                route = Channel.TaxiChatListView.name
-            ) {backStackEntry->
-                val viewModelImpl: TaxiChatListViewModel = hiltViewModel(backStackEntry)
-                val viewModel: TaxiChatListViewModelProtocol = viewModelImpl
-
-                TaxiChatListView(viewModel, navController)
-            }
-
+            /*___________Ara___________*/
             navigation(
                 startDestination = Channel.Boards.name,
                 route = "AraGraph"
@@ -228,56 +283,44 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     val viewModel: PostViewModelProtocol = viewModelImpl
                     PostView(viewModel = viewModel, navController = navController)
                 }
-            }
-            composable(
-                route = Channel.PostCompose.name+ "?board_json={board_json}",
-                arguments = listOf(
-                    navArgument("board_json") {
-                        type = NavType.StringType
-                        nullable = false
-                    }
-                ),
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ) {backStackEntry ->
-                val viewModelImpl: PostComposeViewModel = hiltViewModel(backStackEntry)
-                val viewModel: PostComposeViewModelProtocol = viewModelImpl
-                PostComposeView(
-                    viewModel = viewModel,
-                    navController = navController
-                )
-            }
 
-            composable(
-                route = Channel.UserPostListView.name+ "?author_json={author_json}",
-                arguments = listOf(
-                    navArgument("author_json") {
-                        type = NavType.StringType
-                        nullable = false
-                    }
-                ),
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ){backStackEntry ->
-                val viewModelImpl: UserPostListViewModel = hiltViewModel(backStackEntry)
-                val viewModel: UserPostListViewModelProtocol = viewModelImpl
-                UserPostListView(viewModel = viewModel, navController = navController)
-            }
+                composable(
+                    route = Channel.PostCompose.name + "?board_json={board_json}",
+                    arguments = listOf(
+                        navArgument("board_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModelImpl: PostComposeViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: PostComposeViewModelProtocol = viewModelImpl
+                    PostComposeView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
 
-            composable(
-                route = "${Channel.LectureDetail.name}/{lectureId}",
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ) { backStackEntry ->
-                val lectureId = backStackEntry.arguments?.getString("lectureId")?.toIntOrNull()
-                lectureId?.let {
-                    LectureDetailView(lectureId = it, navController = navController)
+                composable(
+                    route = Channel.UserPostListView.name + "?author_json={author_json}",
+                    arguments = listOf(
+                        navArgument("author_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModelImpl: UserPostListViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: UserPostListViewModelProtocol = viewModelImpl
+                    UserPostListView(viewModel = viewModel, navController = navController)
                 }
             }
 
@@ -289,6 +332,85 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popExitTransition = trendingPopExitTransition()
             ) {
                // SearchView()
+            }
+
+            composable(
+                route = Channel.SignOut.name
+            ) {
+                SignInView()
+                //TODO - viewmodel-reset token
+            }
+
+            /*___________Settings___________*/
+            navigation(
+                startDestination = Channel.Settings.name,
+                route = "SettingsGraph"
+            ) {
+
+                composable(
+                    route = Channel.Settings.name
+                ) { SettingsView(navController = navController) }
+
+
+                composable(
+                    route = Channel.AraSettings.name
+                ) { backStackEntry ->
+                    val viewModelImpl: AraSettingsViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: AraSettingsViewModelProtocol = viewModelImpl
+
+                    AraSettingsView(viewModel = viewModel, navController = navController)
+                }
+
+                composable(
+                    route = Channel.AraMyPostSettings.name + "?type_json={type_json}",
+                    arguments = listOf(
+                        navArgument("type_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) {backStackEntry ->
+                    val viewModelImpl: AraMyPostViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: AraMyPostViewModelProtocol = viewModelImpl
+
+                    AraMyPostView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.TaxiSettings.name
+                ) { backStackEntry ->
+                    val viewModelImpl: TaxiSettingsViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: TaxiSettingsViewModelProtocol = viewModelImpl
+
+                    TaxiSettingsView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.TaxiReportSettings.name
+                ) { backStackEntry ->
+                    val viewModelImpl: TaxiReportListViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: TaxiReportListViewModelProtocol = viewModelImpl
+
+                    TaxiReportListView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.OTLSettings.name
+                ) { backStackEntry ->
+                    val viewModelImpl: OTLSettingsViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: OTLSettingsViewModelProtocol = viewModelImpl
+
+                    OTLSettingsView(viewModel = viewModel, navController = navController)
+                }
             }
         }
     }
@@ -322,7 +444,10 @@ fun AppBar(
             when (currentScreen) {
                 Channel.Start -> {
                     NotificationButton()
-                    SettingButton()
+                    HomeViewDropDownMenu(
+                        onClickSettings = { navController.navigate(Channel.Settings.name) },
+                        onClickSignOut = { navController.navigate(Channel.SignOut.name) }
+                    )
                 }
                 Channel.TimeTable -> {
                     AddButton(
