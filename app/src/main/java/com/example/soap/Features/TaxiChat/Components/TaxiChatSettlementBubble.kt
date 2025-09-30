@@ -43,7 +43,7 @@ fun TaxiChatSettlementBubble() {
         Icon(
             painter = painterResource(R.drawable.baseline_credit_card),
             contentDescription = "Credit Card",
-            tint = Color.White
+            tint = MaterialTheme.colorScheme.background
         )
     }
 }

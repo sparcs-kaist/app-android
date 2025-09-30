@@ -5,7 +5,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -13,6 +12,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Models.Taxi.TaxiChat
 import com.example.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
@@ -110,6 +111,7 @@ fun TaxiChatView(
     var text by remember { mutableStateOf("") }
     var tappedImageId by remember { mutableStateOf<String?>(null) }
     var showCallTaxiAlert by remember { mutableStateOf(false) }
+    var showPaymentAlert by remember { mutableStateOf(false) }
     var showErrorAlert by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var selectedImage by remember { mutableStateOf<Bitmap?>(null) }
@@ -149,7 +151,6 @@ fun TaxiChatView(
         }
     }
 
-
     Scaffold(
         topBar = {
             TaxiChatViewNavigationBar(
@@ -157,7 +158,14 @@ fun TaxiChatView(
                 onDismiss = { navController.navigate(Channel.TaxiChatListView.name) },
                 onClickCallTaxi = { showCallTaxiAlert = true },
                 onClickLeave = {
-                    coroutineScope.launch { viewModel.leaveRoom() }
+                    coroutineScope.launch {
+                        viewModel.leaveRoom()
+                        navController.popBackStack()
+                    }
+                },
+                onReport = {
+                    val json = Uri.encode(Gson().toJson(room))
+                    navController.navigate(Channel.TaxiReportView.name + "?room_json=$json")
                 },
                 isEnabled = viewModel.isLeaveRoomAvailable
             )
@@ -225,6 +233,7 @@ fun TaxiChatView(
                     groupedChats = groupedChats,
                     viewModel = viewModel,
                     onImageClick = { tappedImageId = it },
+                    onCommitPayment = { showPaymentAlert = true },
                     topChatID = topChatID,
                     isLoadingMore = isLoadingMore,
                     modifier = Modifier.fillMaxSize()
@@ -245,8 +254,7 @@ fun TaxiChatView(
             title = { Text("Call Taxi") },
             text = {
                 Text(
-                    "Launch the taxi app with departure/destination set. " +
-                            "Once everyone has gathered, press to call a taxi from ${room.source.title} → ${room.destination.title}."
+                    "You can launch the taxi app with the departure and destination already set. \nOnce everyone has gathered at the departure point, press the button to call a taxi from ${room.source.title.localized()} to ${room.destination.title.localized()}."
                 )
             },
             confirmButton = {
@@ -264,6 +272,36 @@ fun TaxiChatView(
                         )
                     }) { Text("Open Uber") }
                     TextButton(onClick = { showCallTaxiAlert = false }) { Text("Cancel") }
+                }
+            }
+        )
+    }
+
+    if (showPaymentAlert){
+        AlertDialog(
+            onDismissRequest = { showPaymentAlert = false  },
+            dismissButton = {
+                Button(onClick = { showPaymentAlert = false }) {
+                    Text("Cancel")
+                }
+            },
+            title = { Text("Send Payment") },
+            text = {
+                Text(
+                    "Select the app to send your payment. Tap Already Sent once you've completed the transfer."
+                )
+            },
+            confirmButton = {
+                Row {
+                    TextButton(onClick = { openKakaoPay(context) }) {
+                        Text("Open Kakao Pay")
+                    }
+                    Button(onClick = { openToss(context, viewModel.account) }) {
+                        Text("Open Toss")
+                    }
+                    TextButton(onClick = { coroutineScope.launch { viewModel.commitPayment() } }) {
+                        Text("Already Sent")
+                    }
                 }
             }
         )
@@ -294,19 +332,22 @@ fun ContentView(
     groupedChats: List<TaxiChatGroup>,
     viewModel: TaxiChatViewModelProtocol,
     onImageClick: (String) -> Unit,
+    onCommitPayment: () -> Unit,
     topChatID: MutableState<String?>,
     isLoadingMore: MutableState<Boolean>,
     modifier: Modifier = Modifier
 ) {
-    val coroutineScope = rememberCoroutineScope()
     val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
     val listState = rememberLazyListState()
 
-    LaunchedEffect(groupedChats.map { it.chats.lastOrNull()?.id }) {
-        val lastIndex = groupedChats.lastIndex
-        if (lastIndex >= 0) {
-            listState.animateScrollToItem(lastIndex)
+    val flattenedChats = groupedChats.flatMap { it.chats }
+    val previousCount = remember { mutableStateOf(flattenedChats.size) }
+
+    LaunchedEffect(flattenedChats.size) {
+        if (flattenedChats.size > previousCount.value) {
+            listState.animateScrollToItem(flattenedChats.lastIndex)
         }
+        previousCount.value = flattenedChats.size
     }
 
     LazyColumn(
@@ -324,15 +365,7 @@ fun ContentView(
 //                    }
 //            )
 //        }
-        val flattenedChats = groupedChats.flatMap { group ->
-            group.chats.map { chat -> chat to group }
-        }
-        items(flattenedChats, key = { (chat, _) -> chat.id }) { (chat, group) ->
-            val showTimeLabel = group.lastChatID == chat.id
-            val otherParticipants =
-                viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
-            val readCount = otherParticipants.count { it.readAt <= chat.time }
-
+        items(groupedChats, key = { it.id }) { group ->
             TaxiChatUserWrapper(
                 authorID = group.authorID,
                 authorName = group.authorName,
@@ -342,80 +375,80 @@ fun ContentView(
                 isGeneral = group.isGeneral,
                 isWithdrawn = group.authorIsWithdrew ?: false
             ) {
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    if (group.isMe && group.lastChatID != null) {
-                        Column(horizontalAlignment = Alignment.End) {
-                            if (readCount > 0) Text(
-                                "$readCount",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                            if (showTimeLabel) Text(
-                                group.time.formattedTime(),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
+                group.chats.forEach { chat ->
+                    val showTimeLabel = group.lastChatID == chat.id
+                    val otherParticipants =
+                        viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
+                    val readCount = otherParticipants.count { it.readAt <= chat.time }
 
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .wrapContentWidth(if (group.isMe) Alignment.End else Alignment.Start)
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = if(chat.type == TaxiChat.ChatType.TEXT && !showTimeLabel) Modifier.width(IntrinsicSize.Max) else Modifier
                     ) {
-                        when (chat.type) {
-                            TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
-                                TaxiChatGeneralMessage(
-                                    authorName = chat.authorName,
-                                    type = chat.type
+                        if (group.isMe && group.lastChatID != null) {
+                            Column(horizontalAlignment = Alignment.End) {
+                                if (readCount > 0) Text(
+                                    "$readCount",
+                                    style = MaterialTheme.typography.labelSmall
                                 )
-
-                            TaxiChat.ChatType.TEXT ->
-                                TaxiChatBubble(
-                                    content = chat.content,
-                                    showTip = showTimeLabel,
-                                    isMe = group.isMe
+                                if (showTimeLabel) Text(
+                                    group.time.formattedTime(),
+                                    style = MaterialTheme.typography.labelSmall
                                 )
-
-                            TaxiChat.ChatType.S3IMG ->
-                                TaxiChatImageBubble(id = chat.content) { onImageClick(chat.content) }
-
-                            TaxiChat.ChatType.DEPARTURE ->
-                                TaxiDepartureBubble(room = viewModel.room.collectAsState().value)
-
-                            TaxiChat.ChatType.ARRIVAL -> TaxiArrivalBubble()
-                            TaxiChat.ChatType.SETTLEMENT -> TaxiChatSettlementBubble()
-                            TaxiChat.ChatType.PAYMENT -> TaxiChatPaymentBubble()
-                            TaxiChat.ChatType.ACCOUNT ->
-                                TaxiChatAccountBubble(
-                                    content = chat.content,
-                                    isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable
-                                ) {
-                                    coroutineScope.launch {
-                                        try {
-                                            viewModel.commitPayment()
-                                        } catch (e: Exception) {
-                                            Log.e("TaxiChatView", "Failed to commit payment", e)
-                                        }
-                                    }
-                                }
-
-                            TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
-                            else -> Text(chat.type.name)
+                            }
                         }
-                    }
 
-                    if (!group.isMe && group.lastChatID != null) {
-                        Column(horizontalAlignment = Alignment.Start) {
-                            if (readCount > 0) Text(
-                                "$readCount",
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                            if (showTimeLabel) Text(
-                                group.time.formattedTime(),
-                                style = MaterialTheme.typography.labelSmall
-                            )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .wrapContentWidth(if (group.isMe) Alignment.End else Alignment.Start)
+                        ) {
+                            when (chat.type) {
+                                TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
+                                    TaxiChatGeneralMessage(
+                                        authorName = chat.authorName,
+                                        type = chat.type
+                                    )
+
+                                TaxiChat.ChatType.TEXT ->
+                                    TaxiChatBubble(
+                                        content = chat.content,
+                                        showTip = showTimeLabel,
+                                        isMe = group.isMe
+                                    )
+
+                                TaxiChat.ChatType.S3IMG ->
+                                    TaxiChatImageBubble(id = chat.content) { onImageClick(chat.content) }
+
+                                TaxiChat.ChatType.DEPARTURE ->
+                                    TaxiDepartureBubble(room = viewModel.room.collectAsState().value)
+
+                                TaxiChat.ChatType.ARRIVAL -> TaxiArrivalBubble()
+                                TaxiChat.ChatType.SETTLEMENT -> TaxiChatSettlementBubble()
+                                TaxiChat.ChatType.PAYMENT -> TaxiChatPaymentBubble()
+                                TaxiChat.ChatType.ACCOUNT ->
+                                    TaxiChatAccountBubble(
+                                        content = chat.content,
+                                        isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable
+                                    ) { onCommitPayment() }
+
+                                TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
+                                else -> Text(chat.type.name)
+                            }
+                        }
+
+                        if (!group.isMe && group.lastChatID != null) {
+                            Column(horizontalAlignment = Alignment.Start) {
+                                if (readCount > 0) Text(
+                                    "$readCount",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                if (showTimeLabel) Text(
+                                    group.time.formattedTime(),
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
                         }
                     }
                 }
@@ -725,6 +758,31 @@ fun openUber(context: Context, viewModel: TaxiChatViewModelProtocol) {
     }
 }
 
+fun openKakaoPay(context: Context) {
+    val url = "kakaotalk://kakaopay/money/to/bank"
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    } else {
+        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakaopay.app"))
+        context.startActivity(marketIntent)
+    }
+}
+
+fun openToss(context: Context, account: String?) {
+    val bankName = account?.split(" ")?.firstOrNull().orEmpty()
+    val accountNo = account?.split(" ")?.lastOrNull().orEmpty()
+    val bankCode = Constants.taxiBankCodeMap[bankName].orEmpty()
+
+    val url = "supertoss://send?bankCode=$bankCode&accountNo=$accountNo"
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+    if (intent.resolveActivity(context.packageManager) != null) {
+        context.startActivity(intent)
+    } else {
+        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=viva.republica.toss"))
+        context.startActivity(marketIntent)
+    }
+}
 
 // MARK: - Previews
 @Preview
@@ -740,20 +798,27 @@ private fun PreviewTaxiChatViewLoading() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-fun PreviewTaxiChatViewLoaded() {
-    val viewModel = remember {
-        MockTaxiChatViewModel(
-            initialState = TaxiChatViewModel.ViewState.Loaded(TaxiChatGroup.mockList()),
-            initialGroupedChats = TaxiChatGroup.mockList(),
-            initialTaxiUser = TaxiUser.mock()
+fun PreviewContentView() {
+    val groupedChats = TaxiChatGroup.mockList()
+    val mockViewModel = MockTaxiChatViewModel(
+        initialGroupedChats = groupedChats,
+        initialTaxiUser = TaxiUser.mock()
+    )
+
+    Theme {
+        ContentView(
+            groupedChats = groupedChats,
+            viewModel = mockViewModel,
+            onImageClick = {},
+            onCommitPayment = {},
+            topChatID = remember { mutableStateOf(null) },
+            isLoadingMore = remember { mutableStateOf(false) }
         )
     }
-    Theme {
-        TaxiChatView(viewModel = viewModel, navController = rememberNavController())
-    }
 }
+
 
 @Preview
 @Composable

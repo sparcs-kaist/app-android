@@ -29,7 +29,7 @@ import javax.inject.Inject
 class TaxiChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val taxiChatUseCase: TaxiChatUseCaseProtocol,
-    private val userUseCase: UserUseCaseProtocol,
+    val userUseCase: UserUseCaseProtocol,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol
 ) : ViewModel(), TaxiChatViewModelProtocol {
 
@@ -172,6 +172,16 @@ class TaxiChatViewModel @Inject constructor(
             val me = room.value.participants.firstOrNull { it.id == taxiUser.value?.oid }
             return room.value.isDeparted && room.value.settlementTotal != 0 &&
                     (me?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired)
+        }
+
+    override val account: String?
+        get() {
+            val paidParticipant = room.value.participants.firstOrNull { it.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement }
+                ?: return null
+
+            return taxiChatUseCase.accountChats
+                .lastOrNull { it.authorID == paidParticipant.id }
+                ?.content
         }
 
     // MARK: - Image upload

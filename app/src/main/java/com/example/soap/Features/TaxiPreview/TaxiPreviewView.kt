@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiPreview
 
+import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +33,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiPreview.Components.InfoRow
 import com.example.soap.Features.TaxiPreview.Components.RouteHeaderView
 import com.example.soap.R
@@ -46,6 +50,7 @@ import com.example.soap.ui.theme.grayBB
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.gson.Gson
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
@@ -58,7 +63,8 @@ import kotlinx.coroutines.launch
 fun TaxiPreviewView(
     room: TaxiRoom,
     viewModel: TaxiPreviewViewModel = hiltViewModel(),
-    onDismiss: ()-> Unit
+    onDismiss: ()-> Unit,
+    navController: NavController
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -169,24 +175,29 @@ fun TaxiPreviewView(
                 Button(
                     onClick = {
                         scope.launch {
-                            try {
-                                viewModel.joinRoom(
-                                    id = room.id
-                                )
-                                onDismiss()
-                            } catch (e: Exception) {
-                                errorMessage = e.message ?: "Unknown error"
-                                showError = true
+                            if (viewModel.isJoined(room.participants)) {
+                                //이미 참가한 방인 경우 채팅으로 바로가기
+                                val json = Uri.encode(Gson().toJson(room))
+                                navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
+                            } else {
+                                try {
+                                    viewModel.joinRoom(
+                                        id = room.id
+                                    )
+                                    onDismiss()
+                                } catch (e: Exception) {
+                                    errorMessage = e.message ?: "Unknown error"
+                                    showError = true
+                                }
                             }
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = room.participants.size < room.capacity &&
-                            !viewModel.isJoined(room.participants)
+                    enabled = room.participants.size < room.capacity || viewModel.isJoined(room.participants)
                 ) {
                     Text(
                         when {
-                            viewModel.isJoined(room.participants) -> "Joined"
+                            viewModel.isJoined(room.participants) -> "Joined(Enter chat)"
                             room.participants.size >= room.capacity -> "This room is full"
                             else -> "Join"
                         }
@@ -201,6 +212,6 @@ fun TaxiPreviewView(
 @Composable
 private fun Preview() {
     Theme {
-        TaxiPreviewView(room = TaxiRoom.mockList()[1], onDismiss = {})
+        TaxiPreviewView(room = TaxiRoom.mockList()[1], onDismiss = {}, navController = rememberNavController())
     }
 }

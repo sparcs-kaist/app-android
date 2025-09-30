@@ -40,7 +40,7 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
     Column(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.secondaryContainer,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(12.dp),
@@ -48,7 +48,7 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
     ) {
         Text(
             text = "⏰ It's 15 minutes before your taxi leaves! If everyone's gathered, go ahead and call the taxi to head out together.",
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyLarge
         )
 
         Button(

@@ -10,6 +10,7 @@ import java.util.Date
 interface TaxiChatUseCaseProtocol {
     val groupedChatsFlow: Flow<List<TaxiChatGroup>>
     val roomUpdateFlow: Flow<TaxiRoom>
+    val accountChats: List<TaxiChat>
 
     fun setRoom(room: TaxiRoom)
     suspend fun fetchInitialChats()

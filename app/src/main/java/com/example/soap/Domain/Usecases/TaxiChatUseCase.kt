@@ -53,6 +53,9 @@ class TaxiChatUseCase @Inject constructor(
 
     private val _accumulatedChats = mutableListOf<TaxiChat>()
 
+    // MARK: - Computed Properties
+    override var accountChats: List<TaxiChat> = emptyList()
+
     override suspend fun fetchInitialChats() {
         bind()
         try {
@@ -91,6 +94,7 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     private fun bind() {
+        // is socket(TaxiChatService) connected
         taxiChatService.isConnectedPublisher
             .onEach { isConnected ->
                 isSocketConnected = isConnected
@@ -98,6 +102,7 @@ class TaxiChatUseCase @Inject constructor(
             }
             .launchIn(scope)
 
+        // converts [TaxiChat] into [TaxiChatGroup]
         taxiChatService.chatsPublisher
             .onEach { newChats ->
                 val user = userUseCase.taxiUser
@@ -113,9 +118,11 @@ class TaxiChatUseCase @Inject constructor(
 
                 _groupedChatsFlow.value =
                     groupChats(_accumulatedChats.toList(), user?.oid ?: "")
+                accountChats = _accumulatedChats.filter { it.type == TaxiChat.ChatType.ACCOUNT }
             }
             .launchIn(scope)
 
+        // handles room updates from chat_update event
         taxiChatService.roomUpdatePublisher
             .onEach { roomId ->
                 if (roomId != room.id) return@onEach

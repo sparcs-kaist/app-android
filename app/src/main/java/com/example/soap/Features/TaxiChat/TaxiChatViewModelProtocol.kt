@@ -23,6 +23,7 @@ interface TaxiChatViewModelProtocol {
     val isLeaveRoomAvailable: Boolean
     val isCommitSettlementAvailable: Boolean
     val isCommitPaymentAvailable: Boolean
+    val account: String?
 
     // MARK: - Functions
     suspend fun setup()

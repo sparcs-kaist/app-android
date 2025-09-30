@@ -1,6 +1,7 @@
 package com.example.soap.Features.TaxiChat.Components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,7 +19,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,10 +35,11 @@ fun TaxiChatAccountBubble(
     isCommitPaymentAvailable: Boolean,
     markAsSent: () -> Unit
 ) {
+    val clipboardManager: ClipboardManager = LocalClipboardManager.current
     Column(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.secondaryContainer,
+                color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(12.dp)
@@ -53,7 +58,15 @@ fun TaxiChatAccountBubble(
             val accountNumber = parts[1]
             // use bank and accountNumber here
 
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.combinedClickable (
+                    onClick = { clipboardManager.setText(AnnotatedString("$bank $accountNumber")) },
+                    onLongClick = {
+                        clipboardManager.setText(AnnotatedString("$bank $accountNumber"))
+                    }
+                )) {
                 Icon(Icons.Default.Check, contentDescription = null)
                 Text(bank, fontWeight = FontWeight.SemiBold)
                 Text(accountNumber)
@@ -67,9 +80,23 @@ fun TaxiChatAccountBubble(
             enabled = isCommitPaymentAvailable,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(painterResource(R.drawable.round_account_balance), contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Mark as Sent", fontWeight = FontWeight.Medium)
+            if(isCommitPaymentAvailable){
+                Icon(painterResource(R.drawable.round_payment), contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Send Payment",
+                    fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            } else {
+                Icon(painterResource(R.drawable.round_check), contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Already Sent",
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
         }
     }
 }

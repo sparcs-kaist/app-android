@@ -20,13 +20,13 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -62,6 +62,7 @@ import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModel.MockTaxiListViewModel
 import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
+import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
@@ -77,8 +78,9 @@ fun TaxiListView(
     val uiState by viewModel.state.collectAsState()
     var selectedDate = viewModel.selectedDate
 
-    var showRoomCreation by remember { mutableStateOf(true) }
+    val showRoomCreation by remember { mutableStateOf(true) }
     val locations by viewModel.locations.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
 
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val scrollState = rememberScrollState()
@@ -102,147 +104,168 @@ fun TaxiListView(
             )
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .verticalScroll(scrollState)
-                .padding(innerPadding)
-        ) {
-            Column(
-                Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxSize()
-            ) {
-                Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    TaxiDestinationPicker(
-                        source = viewModel.source,
-                        destination = viewModel.destination,
-                        locations = locations,
-                        onSourceChange = { newSource ->
-                            viewModel.source = newSource
-                        },
-                        onDestinationChange = { newDestination ->
-                            viewModel.destination = newDestination
-                        }
-                    )
-                }
 
-                Spacer(Modifier.padding(8.dp))
-
-                WeekDaySelector(
-                    week = viewModel.week,
-                    selectedDate = selectedDate,
-                    onSelect = { newDate ->
-                        selectedDate =  if (selectedDate == newDate) {
-                            null
-                        } else {
-                            newDate
-                        }
-                        viewModel.selectedDate = selectedDate
-                    }
-                )
-
-            }
-
-            Spacer(Modifier.padding(16.dp))
-
-            when (uiState) {
-                is TaxiListViewModel.ViewState.Loading -> {
-                    LoadingView()
-                }
-
-                is TaxiListViewModel.ViewState.Loaded -> {
-                    LoadedView(
-                        rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
-                        locations = (uiState as TaxiListViewModel.ViewState.Loaded).locations,
-                        week = viewModel.week,
-                        selectedDate = selectedDate,
-                        source = viewModel.source,
-                        destination = viewModel.destination,
-                        onRoomSelected = { selectedRoom = it },
-                        viewModel = viewModel,
-                        navController = navController
-                    )
-                }
-
-                is TaxiListViewModel.ViewState.Empty -> {
-                    EmptyView(locations = locations, navController = navController)
-                }
-
-                is TaxiListViewModel.ViewState.Error -> {
-                    ErrorView(
-                        icon = Icons.Default.Warning,
-                        errorMessage = (uiState as TaxiListViewModel.ViewState.Error).message,
-                        onRetry = {
-                            coroutineScope.launch {
-                                viewModel.fetchData()
-                            }
-                        }
-                    )
-                }
-            }
-        }
-    }
-
-    selectedRoom?.let { room ->
-        ModalBottomSheet(
-            onDismissRequest = {
-                selectedRoom = null
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
                 coroutineScope.launch {
                     viewModel.fetchData()
+                    isRefreshing = false
                 }
-            },
-            sheetState = sheetState,
-            dragHandle = {
-                Column{
-                    Box(
-                        modifier = Modifier
-                            .width(30.dp)
-                            .padding(top = 4.dp)
-                            .height(4.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.grayBB)
-                    )
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface
+            }
         ) {
-            TaxiPreviewView(
-                room = room,
-                onDismiss = {
-                    coroutineScope.launch {
-                        sheetState.hide()
-                        selectedRoom = null
-                        viewModel.fetchData()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background)
+                    .verticalScroll(scrollState)
+                    .padding(innerPadding)
+            ) {
+                Column(
+                    Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxSize()
+                ) {
+                    Card(
+                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        TaxiDestinationPicker(
+                            source = viewModel.source,
+                            destination = viewModel.destination,
+                            locations = locations,
+                            onSourceChange = { newSource ->
+                                viewModel.source = newSource
+                            },
+                            onDestinationChange = { newDestination ->
+                                viewModel.destination = newDestination
+                            }
+                        )
+                    }
+
+                    Spacer(Modifier.padding(8.dp))
+
+                    WeekDaySelector(
+                        week = viewModel.week,
+                        selectedDate = selectedDate,
+                        onSelect = { newDate ->
+                            selectedDate = if (selectedDate == newDate) {
+                                null
+                            } else {
+                                newDate
+                            }
+                            viewModel.selectedDate = selectedDate
+                        }
+                    )
+
+                }
+
+                Spacer(Modifier.padding(16.dp))
+
+                when (uiState) {
+                    is TaxiListViewModel.ViewState.Loading -> {
+                        LoadingView()
+                    }
+
+                    is TaxiListViewModel.ViewState.Loaded -> {
+                        LoadedView(
+                            rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
+                            locations = (uiState as TaxiListViewModel.ViewState.Loaded).locations,
+                            week = viewModel.week,
+                            selectedDate = selectedDate,
+                            source = viewModel.source,
+                            destination = viewModel.destination,
+                            onRoomSelected = { selectedRoom = it },
+                            viewModel = viewModel,
+                            navController = navController
+                        )
+                    }
+
+                    is TaxiListViewModel.ViewState.Empty -> {
+                        EmptyView(locations = locations, navController = navController)
+                    }
+
+                    is TaxiListViewModel.ViewState.Error -> {
+                        ErrorView(
+                            icon = Icons.Default.Warning,
+                            errorMessage = (uiState as TaxiListViewModel.ViewState.Error).message,
+                            onRetry = {
+                                coroutineScope.launch {
+                                    viewModel.fetchData()
+                                }
+                            }
+                        )
                     }
                 }
-            )
+            }
         }
-    }
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchData()
+        selectedRoom?.let { room ->
+            ModalBottomSheet(
+                onDismissRequest = {
+                    selectedRoom = null
+                    coroutineScope.launch {
+                        viewModel.fetchData()
+                    }
+                },
+                sheetState = sheetState,
+                dragHandle = {
+                    Column {
+                        Box(
+                            modifier = Modifier
+                                .width(30.dp)
+                                .padding(top = 4.dp)
+                                .height(4.dp)
+                                .align(Alignment.CenterHorizontally)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(MaterialTheme.colorScheme.grayBB)
+                        )
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                TaxiPreviewView(
+                    room = room,
+                    onDismiss = {
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            selectedRoom = null
+                            viewModel.fetchData()
+                        }
+                    },
+                    navController = navController
+                )
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            viewModel.fetchData()
+        }
     }
 }
 
 @Composable
 private fun LoadingView() {
     Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 8.dp),
+        verticalArrangement = Arrangement.Center
     ) {
-        CircularProgressIndicator()
-        Text(
-            text = "Loading...",
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(top = 16.dp)
-        )
+        repeat(2) {
+                Box(
+                    modifier = Modifier
+                        .padding(start = 12.dp)
+                        .width(30.dp)
+                        .height(15.dp)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
+                )
+                repeat((1..2).random()) {
+                    TaxiRoomSkeletonCell()
+                    Spacer(Modifier.padding(4.dp))
+                }
+        }
     }
 }
 
@@ -288,10 +311,13 @@ private fun LoadedView(
                 val description: String = when {
                     viewModel.source != null && viewModel.destination != null ->
                         "No rooms found from ${viewModel.source?.title} to ${viewModel.destination?.title} on ${day.weekdaySymbol()}. Be the first one to create one!"
+
                     viewModel.source != null ->
                         "No rooms found from ${viewModel.source?.title} to any destination on ${day.weekdaySymbol()}. Be the first one to create one!"
+
                     viewModel.destination != null ->
                         "No rooms found heading to ${viewModel.destination?.title} on ${day.weekdaySymbol()}. Be the first one to create one!"
+
                     else ->
                         "No rooms found on ${day.weekdaySymbol()}. Be the first one to create one!"
                 }
@@ -319,7 +345,7 @@ private fun LoadedView(
                             )
                         }
                     }
-                }else if (selectedDate != null) {
+                } else if (selectedDate != null) {
                     EmptyResultView(
                         viewModel = viewModel,
                         description = description,
@@ -330,6 +356,7 @@ private fun LoadedView(
         }
     }
 }
+
 
 @Composable
 private fun EmptyView(locations: List<TaxiLocation>, navController: NavController) {
@@ -380,7 +407,7 @@ private fun EmptyView(locations: List<TaxiLocation>, navController: NavControlle
 }
 
 @Composable
-fun EmptyResultView(
+private fun EmptyResultView(
     viewModel: TaxiListViewModelProtocol,
     description: String,
     navController: NavController

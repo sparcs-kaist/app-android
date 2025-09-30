@@ -44,6 +44,7 @@ class MockTaxiChatViewModel(
     override val isLeaveRoomAvailable: Boolean = true
     override val isCommitSettlementAvailable: Boolean = false
     override val isCommitPaymentAvailable: Boolean = false
+    override var account: String? = null
 
     // MARK: - Functions
     override suspend fun setup() {}
