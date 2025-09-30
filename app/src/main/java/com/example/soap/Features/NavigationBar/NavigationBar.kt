@@ -53,6 +53,15 @@ import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeView
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModel
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
+import com.example.soap.Features.Feed.FeedView
+import com.example.soap.Features.Feed.FeedViewModel
+import com.example.soap.Features.Feed.FeedViewModelProtocol
+import com.example.soap.Features.FeedPost.FeedPostView
+import com.example.soap.Features.FeedPost.FeedPostViewModel
+import com.example.soap.Features.FeedPost.FeedPostViewModelProtocol
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeView
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModel
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
@@ -60,7 +69,6 @@ import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransit
 import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.example.soap.Features.NavigationBar.Components.AddButton
 import com.example.soap.Features.NavigationBar.Components.ChatButton
-import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.NavigationBar.Components.SettingButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.Post.PostViewModel
