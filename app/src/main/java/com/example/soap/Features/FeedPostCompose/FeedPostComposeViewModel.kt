@@ -28,7 +28,7 @@ import javax.inject.Inject
 class FeedPostComposeViewModel @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
     private val feedImageRepository: FeedImageRepositoryProtocol,
-    private val feedPostRepository: FeedPostRepositoryProtocol
+    private val feedPostRepository: FeedPostRepositoryProtocol,
 ) : ViewModel(), FeedPostComposeViewModelProtocol {
 
     enum class ComposeType(val value: Int) {
@@ -77,7 +77,10 @@ class FeedPostComposeViewModel @Inject constructor(
         feedPostRepository.writePost(request)
     }
 
-    private fun reconcile(new: List<FeedPostPhotoItem>, current: List<FeedPostPhotoItem>): List<FeedPostPhotoItem> {
+    private fun reconcile(
+        new: List<FeedPostPhotoItem>,
+        current: List<FeedPostPhotoItem>,
+    ): List<FeedPostPhotoItem> {
         val byId = current.associateBy { it.id }
         return new.map { fresh ->
             byId[fresh.id]?.let { old ->
@@ -95,7 +98,14 @@ class FeedPostComposeViewModel @Inject constructor(
                 async {
                     val id = UUID.randomUUID().toString()
                     val image = loadBitmapFromUri(uri, context)
-                    idx to image?.let { FeedPostPhotoItem(id, it, spoiler = false, description = "") }
+                    idx to image?.let {
+                        FeedPostPhotoItem(
+                            id,
+                            it,
+                            spoiler = false,
+                            description = ""
+                        )
+                    }
                 }
             }.awaitAll()
         }.sortedBy { it.first }
@@ -104,15 +114,16 @@ class FeedPostComposeViewModel @Inject constructor(
         selectedImages = reconcile(new = loaded, current = selectedImages)
     }
 
-    private suspend fun loadBitmapFromUri(uri: Uri, context: Context): Bitmap? = withContext(Dispatchers.IO) {
-        try {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                BitmapFactory.decodeStream(stream)
+    private suspend fun loadBitmapFromUri(uri: Uri, context: Context): Bitmap? =
+        withContext(Dispatchers.IO) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    BitmapFactory.decodeStream(stream)
+                }
+            } catch (e: Exception) {
+                null
             }
-        } catch (e: Exception) {
-            null
         }
-    }
 
     override fun removeImage(index: Int) {
         val mutable = selectedImages.toMutableList()

@@ -9,7 +9,7 @@ data class FeedPostPhotoItem(
     val id: String,
     val image: Bitmap,
     var spoiler: Boolean,
-    var description: String
+    var description: String,
 )
 
 interface FeedPostComposeViewModelProtocol {

@@ -28,11 +28,11 @@ import com.example.soap.ui.theme.darkGray
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedPostNavigationBar(
-    navController : NavController,
+    navController: NavController,
     onDelete: () -> Unit,
     onReport: (AraContentReportType) -> Unit,
     onTranslate: () -> Unit,
-    isMine: Boolean?
+    isMine: Boolean?,
 ) {
     TopAppBar(
         navigationIcon = {
@@ -76,6 +76,6 @@ fun FeedPostNavigationBar(
 
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ FeedPostNavigationBar(rememberNavController(), {}, {}, {}, false) }
+private fun Preview() {
+    Theme { FeedPostNavigationBar(rememberNavController(), {}, {}, {}, false) }
 }
