@@ -22,10 +22,10 @@ data class TaxiReport(
 ) {
     companion object{}
 
-    enum class Reason(val value: String) {
-        NO_SETTLEMENT("no-settlement"),
-        NO_SHOW("no-show"),
-        ETC_REASON("etc-reason");
+    enum class Reason(val value: String, val text: String) {
+        NO_SETTLEMENT("no-settlement", "Didn't send money!"),
+        NO_SHOW("no-show", "Didn't come on time!"),
+        ETC_REASON("etc-reason", "Etc");
 
         companion object {
             fun from(value: String): Reason = entries.firstOrNull { it.value == value }

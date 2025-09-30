@@ -216,7 +216,7 @@ fun ReasonCard(
                 Text("Reason")
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = selectedReason?.value ?: "Didn't send money!",
+                    text = selectedReason?.text ?: "Didn't send money!",
                     color = MaterialTheme.colorScheme.grayBB
                 )
                 Icon(
