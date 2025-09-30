@@ -212,6 +212,8 @@ class TaxiChatUseCase @Inject constructor(
 
     override fun switchRoom(newRoomId: String) {
         _accumulatedChats.clear()
+        accountChats = emptyList()
+        _groupedChatsFlow.value = emptyList()
         taxiChatService.setRoom(newRoomId)
     }
 }
