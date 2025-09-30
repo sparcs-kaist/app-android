@@ -16,12 +16,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,7 +30,6 @@ import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.lightGray0
-import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun PostList(
@@ -40,6 +37,7 @@ fun PostList(
     onRefresh: ( () -> Unit),
     onLoadMore: ( () -> Unit),
     onPostClick: (AraPost) -> Unit,
+    onPostDisappear: (Int) -> Unit,
     isRefreshing: Boolean
 ) {
     if (posts != null && posts.isEmpty()) {
@@ -60,6 +58,7 @@ fun PostList(
                 onLoadMore = { onLoadMore() },
                 onPostClick = onPostClick,
                 onRefresh = onRefresh,
+                onPostDisappear = onPostDisappear,
                 isRefreshing = isRefreshing
             )
         }
@@ -73,26 +72,13 @@ private fun LoadedView(
     onLoadMore: ( () -> Unit),
     onPostClick: (AraPost) -> Unit,
     onRefresh: ( () -> Unit),
+    onPostDisappear: (Int) -> Unit,
     isRefreshing: Boolean
 ) {
     var isLoadingMore by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .distinctUntilChanged()
-            .collect { lastVisibleIndex ->
-                val totalItems = listState.layoutInfo.totalItemsCount
-                if (!isLoadingMore && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
-                    isLoadingMore = true
-                    try {
-                        onLoadMore()
-                    } finally {
-                        isLoadingMore = false
-                    }
-                }
-            }
-    }
+    //TODO postDisappear
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
@@ -138,7 +124,7 @@ private fun LoadingView() {
 @Preview
 private fun LoadingPreview(){
     Theme {
-        PostList(posts = null, onRefresh = {}, onLoadMore = {}, onPostClick = {}, false)
+        PostList(posts = null, onRefresh = {}, onLoadMore = {}, onPostClick = {}, onPostDisappear = {}, false)
     }
 }
 
@@ -146,7 +132,7 @@ private fun LoadingPreview(){
 @Preview
 private fun EmptyPreview(){
     Theme {
-        PostList(posts = emptyList(), onRefresh = {}, onLoadMore = {},onPostClick = {}, false)
+        PostList(posts = emptyList(), onRefresh = {}, onLoadMore = {},onPostClick = {}, onPostDisappear = {}, false)
     }
 }
 
@@ -154,6 +140,6 @@ private fun EmptyPreview(){
 @Preview
 private fun LoadedPreview(){
     Theme {
-        PostList(posts = AraPost.mockList(), onRefresh = {}, onLoadMore = {}, onPostClick = {}, isRefreshing= false)
+        PostList(posts = AraPost.mockList(), onRefresh = {}, onLoadMore = {}, onPostClick = {}, onPostDisappear = {}, isRefreshing= false)
     }
 }

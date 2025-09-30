@@ -139,7 +139,11 @@ fun weekdayNameIfWithinAWeek(date: Date): String? {
 }
 
 fun Date.formattedString(): String{
-    val formatter = SimpleDateFormat("MMMM d, EEE, h:mm a", Locale.getDefault())
+    val formatter = java.text.DateFormat.getDateTimeInstance(
+        java.text.DateFormat.LONG,
+        java.text.DateFormat.SHORT,
+        Locale.getDefault()
+    )
     return formatter.format(this)
 }
 

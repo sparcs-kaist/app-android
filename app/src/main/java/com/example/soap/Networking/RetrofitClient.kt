@@ -11,6 +11,8 @@ import com.example.soap.Domain.Repositories.Ara.AraCommentRepository
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import com.example.soap.Domain.Repositories.Ara.AraUserRepository
 import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepository
+import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepository
@@ -28,6 +30,7 @@ import com.example.soap.Networking.RetrofitAPI.Ara.AraCommentApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraUserApi
 import com.example.soap.Networking.RetrofitAPI.AuthApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
+import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiReportApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiUserApi
 import com.google.gson.Gson
@@ -48,7 +51,6 @@ import javax.inject.Singleton
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManager
 import javax.net.ssl.X509TrustManager
-
 
 /**
  * NetworkModule
@@ -217,6 +219,11 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideTaxiReportApi(@Named("TaxiBackend") retrofit: Retrofit): TaxiReportApi {
+        return retrofit.create(TaxiReportApi::class.java)
+    }
+    @Provides
+    @Singleton
     fun provideAraBoardApi(@Named("AraBackend") retrofit: Retrofit): AraBoardApi {
         return retrofit.create(AraBoardApi::class.java)
     }
@@ -262,6 +269,12 @@ abstract class RepositoryModule {
     abstract fun bindTaxiUserRepository(
         impl: TaxiUserRepository
     ): TaxiUserRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTaxiReportRepository(
+        impl: TaxiReportRepository
+    ): TaxiReportRepositoryProtocol
 
     @Binds
     @Singleton

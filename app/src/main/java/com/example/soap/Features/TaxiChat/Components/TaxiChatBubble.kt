@@ -1,6 +1,6 @@
 package com.example.soap.Features.TaxiChat.Components
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +15,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
@@ -29,10 +32,11 @@ fun TaxiChatBubble(
     showTip: Boolean,
     isMe: Boolean
 ) {
+    val clipboardManager: ClipboardManager = LocalClipboardManager.current
     var selectedUrl by remember { mutableStateOf<String?>(null) }
 
-    val backgroundColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondaryContainer
-    val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSecondaryContainer
+    val backgroundColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.scrim
     val urlColor = if (isMe) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primary
 
     val annotatedString = buildAnnotatedString {
@@ -76,12 +80,15 @@ fun TaxiChatBubble(
             color = contentColor,
             modifier = Modifier
                 .padding(12.dp)
-                .clickable(
+                .combinedClickable(
                     onClick = {
                         annotatedString.getStringAnnotations(tag = "URL", start = 0, end = annotatedString.length)
                             .firstOrNull()?.let { stringAnnotation ->
                                 selectedUrl = stringAnnotation.item
                             }
+                    },
+                    onLongClick = {
+                        clipboardManager.setText(AnnotatedString(content))
                     },
                     indication = null,
                     interactionSource = remember { MutableInteractionSource() }

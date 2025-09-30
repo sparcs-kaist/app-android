@@ -77,5 +77,12 @@
     <string name="taxichatlistview" translatable="false">TaxiChatListView</string>
     <string name="ara_chat_view" translatable="false">AraChatView</string>
     <string name="user_post_list_view" translatable="false">UserPostListView</string>
-
+    <string name="sign_out" translatable="false">SignOut</string>
+    <string name="settings" translatable="false">Settings</string>
+    <string name="taxi_settings" translatable="false">Taxi Settings</string>
+    <string name="ara_settings" translatable="false">Ara Settings</string>
+    <string name="otl_settings" translatable="false">OTL Settings</string>
+    <string name="ara_my_post_settings" translatable="false">My Posts</string>
+    <string name="taxi_report_settings" translatable="false">Taxi Report Settings</string>
+    <string name="taxi_report_view" translatable="false">TaxiReportView</string>
 </resources>
