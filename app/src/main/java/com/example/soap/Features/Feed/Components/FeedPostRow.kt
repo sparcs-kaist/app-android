@@ -68,7 +68,6 @@ fun FeedPostRow(
             post,
             onPostDeleted,
             showDeleteConfirmation,
-            onPostDeleted
         ) { showDeleteConfirmation = it }
         Content(post, singleLine)
         Footer(post, onComment, onPostDeleted, feedPostRepository, coroutineScope)
@@ -105,7 +104,6 @@ fun Header(
     post: FeedPost,
     onPostDeleted: ((String) -> Unit)?,
     showDeleteConfirmation: Boolean,
-    onDelete: ((String) -> Unit)?,
     setShowDelete: (Boolean) -> Unit,
 ) {
     Row(
@@ -130,7 +128,7 @@ fun Header(
             onDismissRequest = { setShowDelete(false) },
             confirmButton = {
                 TextButton(onClick = {
-                    onDelete?.invoke(post.id)
+                    onPostDeleted?.invoke(post.id)
                     setShowDelete(false)
                 }) { Text("Delete") }
             },
