@@ -106,6 +106,7 @@ fun FeedPostComposeView(
     LaunchedEffect(Unit) {
         viewModel.fetchFeedUser()
     }
+
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = 10)
     ) { uri: List<Uri> ->
@@ -156,7 +157,7 @@ fun FeedPostComposeView(
             .focusRequester(contentFocusRequester)
             .noRippleClickable { contentFocusRequester.requestFocus() }
         ) {
-            FeedPostHeader(viewModel)
+            Header(viewModel)
             Spacer(Modifier.padding(4.dp))
             BasicTextField(
                 value = contentField,
@@ -234,7 +235,7 @@ fun FeedPostComposeView(
 }
 
 @Composable
-private fun FeedPostHeader(
+private fun Header(
     viewModel: FeedPostComposeViewModelProtocol,
 ) {
     Row(
@@ -267,7 +268,7 @@ private fun ProfileImage(viewModel: FeedPostComposeViewModelProtocol) {
             modifier = Modifier
                 .size(32.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.grayBB),
+                .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
             Text("😀", fontSize = 14.sp)
