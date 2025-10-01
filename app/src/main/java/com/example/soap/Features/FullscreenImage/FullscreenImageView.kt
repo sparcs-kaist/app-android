@@ -16,7 +16,7 @@ import com.example.soap.Domain.Helpers.Constants
 @Composable
 fun FullscreenImageView(
     id: String?,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val imageUrl = Constants.taxiChatImageURL + id
     if (id != null) {
