@@ -26,7 +26,6 @@ interface AraUserApi {
     suspend fun fetchMe(): Response<AraUserDTO>
 
     @PATCH("user_profiles/{id}/")
-    @JvmSuppressWildcards
     suspend fun updateUser(
         @Path("id") userID: Int,
         @Body params: Map<String, Any>

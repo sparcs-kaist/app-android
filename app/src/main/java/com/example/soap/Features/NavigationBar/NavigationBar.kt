@@ -43,15 +43,15 @@ import androidx.navigation.navigation
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
 import com.example.soap.Features.Feed.FeedView
-import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
-import com.example.soap.Features.FeedPostCompose.FeedPostComposeView
 import com.example.soap.Features.Feed.FeedViewModel
 import com.example.soap.Features.Feed.FeedViewModelProtocol
 import com.example.soap.Features.FeedPost.FeedPostView
 import com.example.soap.Features.FeedPost.FeedPostViewModel
 import com.example.soap.Features.FeedPost.FeedPostViewModelProtocol
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeView
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModel
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
+import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
@@ -535,7 +535,7 @@ fun AppDownBar(
     currentScreen: Channel
 ) {
     val items = listOf(
-        Triple(Channel.Start, stringResource(Channel.Start.title), R.drawable.round_home),
+        Triple(Channel.Start, stringResource(Channel.Start.title), R.drawable.round_feed),
         Triple(Channel.Boards, stringResource(Channel.Boards.title), R.drawable.round_format_list_bulleted),
         Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), R.drawable.timetable),
         Triple(Channel.Taxi, stringResource(Channel.Taxi.title), R.drawable.taxi),

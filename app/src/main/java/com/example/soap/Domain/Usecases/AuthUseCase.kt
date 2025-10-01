@@ -114,11 +114,9 @@ class AuthUseCase @Inject constructor(
             // MARK - Sign up Ara
             val userInfo: AraSignInResponseDTO =
                 araUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
-
             try {
                 araUserRepository.agreeTOS(userID = userInfo.userID)
             } catch (e: Exception) {
-
                 Log.e("AuthUseCase","Failed to Sign in. agreeTOS failed: ${e.message}")
             }
 
