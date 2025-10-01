@@ -37,7 +37,7 @@ object Constants {
     )
 
     val taxiBankNameList: List<String> = taxiBankCodeMap.keys.toList()
-
+    val taxiInviteURL = "https://taxi.dev.sparcs.org/invite/"
     // MARK: Ara
     val araBackendURL = "https://newara.dev.sparcs.org/api/"
 
