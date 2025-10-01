@@ -116,7 +116,7 @@ fun Header(
         Spacer(Modifier.width(8.dp))
         Text(post.authorName, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(8.dp))
-        Text(
+        Text(      // onPostDeleted == nil here means FeedPostRow is in the FeedPostView.
             text = if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
             color = MaterialTheme.colorScheme.grayBB,
             style = MaterialTheme.typography.bodySmall
@@ -269,9 +269,11 @@ suspend fun downVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (
 
 @Composable
 fun FeedPostRowSkeleton() {
-    Column(Modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
@@ -346,7 +348,6 @@ fun FeedPostRowSkeleton() {
 @Composable
 @Preview
 private fun Preview() {
-
     Theme {
         FeedPostRow(
             post = FeedPost.mock(),
