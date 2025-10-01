@@ -386,7 +386,7 @@ fun ContentView(
                 isWithdrawn = group.authorIsWithdrew ?: false
             ) {
                 group.chats.forEach { chat ->
-
+                    TaxiChatShareBubble(room = viewModel.room.collectAsState().value)
                     val showTimeLabel = group.lastChatID == chat.id
                     val otherParticipants =
                         viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
@@ -449,7 +449,7 @@ fun ContentView(
                                         isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable
                                     ) { onCommitPayment() }
 
-                                TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
+                                TaxiChat.ChatType.SHARE -> TaxiChatShareBubble(room = viewModel.room.collectAsState().value)
                                 else -> Text(chat.type.name)
                             }
                         }
@@ -536,7 +536,7 @@ private fun LoadingView() {
                                     isCommitPaymentAvailable = true
                                 ) {}
 
-                                TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
+                                TaxiChat.ChatType.SHARE -> TaxiChatShareBubble(TaxiRoom.mock())
                                 else -> Text(chat.type.name)
                             }
                         }
