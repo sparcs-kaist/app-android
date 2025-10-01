@@ -60,6 +60,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -236,7 +237,8 @@ fun TaxiChatView(
                     onCommitPayment = { showPaymentAlert = true },
                     topChatID = topChatID,
                     isLoadingMore = isLoadingMore,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    coroutineScope = coroutineScope
                 )
             }
         }
@@ -336,6 +338,7 @@ fun ContentView(
     topChatID: MutableState<String?>,
     isLoadingMore: MutableState<Boolean>,
     modifier: Modifier = Modifier,
+    coroutineScope: CoroutineScope
 ) {
     val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
     val listState = rememberLazyListState()
@@ -355,16 +358,16 @@ fun ContentView(
         state = listState
     ) {
 
-//        item {
-//            Spacer(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(1.dp)
-//                    .onGloballyPositioned {
-//                        loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
-//                    }
-//            )
-//        }//TODO - 보류
+        item {
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .onGloballyPositioned {
+                        loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
+                    }
+            )
+        }
 
         var previousDate: LocalDate? = null
 
@@ -859,7 +862,8 @@ fun PreviewContentView() {
             onImageClick = {},
             onCommitPayment = {},
             topChatID = remember { mutableStateOf(null) },
-            isLoadingMore = remember { mutableStateOf(false) }
+            isLoadingMore = remember { mutableStateOf(false) },
+            coroutineScope = rememberCoroutineScope()
         )
     }
 }
