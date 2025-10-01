@@ -39,6 +39,7 @@ fun PostImagesStrip(images: List<FeedImage>) {
         modifier = Modifier.fillMaxWidth()
     ) {
         val parentWidth = maxWidth
+        //TODO - 이미지 가로 폭 줄이기
         val maxW = parentWidth - hPadding * 2
         val height = maxW * 3 / 4
 
@@ -49,7 +50,7 @@ fun PostImagesStrip(images: List<FeedImage>) {
         ) {
             items(images) { item ->
                 SubcomposeAsyncImage(
-                    model = item.url.toString(),
+                    model = item.url,
                     contentDescription = null
                 ) {
                     when (val state = painter.state) {
