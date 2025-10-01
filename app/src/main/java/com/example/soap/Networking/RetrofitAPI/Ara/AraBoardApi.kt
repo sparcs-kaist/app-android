@@ -1,6 +1,6 @@
 package com.example.soap.Networking.RetrofitAPI.Ara
 
-import com.example.soap.Networking.RequestDTO.AraPostRequestDTO
+import com.example.soap.Networking.RequestDTO.Ara.AraPostRequestDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraAttachmentDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraBoardDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraBookmarkDTO

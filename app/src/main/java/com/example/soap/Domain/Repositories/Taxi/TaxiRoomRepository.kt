@@ -3,7 +3,7 @@ package com.example.soap.Domain.Repositories.Taxi
 import com.example.soap.Domain.Models.Taxi.TaxiCreateRoom
 import com.example.soap.Domain.Models.Taxi.TaxiLocation
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
-import com.example.soap.Networking.RequestDTO.TaxiCreateRoomRequestDTO
+import com.example.soap.Networking.RequestDTO.Taxi.TaxiCreateRoomRequestDTO
 import com.example.soap.Networking.ResponseDTO.ApiErrorResponse
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import com.example.soap.Shared.Mocks.mock
