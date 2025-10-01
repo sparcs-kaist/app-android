@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -165,6 +166,7 @@ fun Footer(
     feedPostRepository: FeedPostRepositoryProtocol,
     coroutineScope: CoroutineScope,
 ) {
+    val context = LocalContext.current
     var postState by remember { mutableStateOf(post) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -201,7 +203,10 @@ fun Footer(
         Spacer(Modifier.width(8.dp))
         PostCommentButton(commentCount = postState.commentCount) { onComment() }
         Spacer(Modifier.weight(1f))
-        if (onPostDeleted == null) PostShareButton()
+        if (onPostDeleted == null) PostShareButton(
+            url = "https://sparcs.org/feed/${post.id}",
+            context = context
+        )
     }
 }
 
