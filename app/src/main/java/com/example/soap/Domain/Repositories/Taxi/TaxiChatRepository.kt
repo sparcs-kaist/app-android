@@ -1,7 +1,7 @@
 package com.example.soap.Domain.Repositories.Taxi
 
 import com.example.soap.Domain.Models.Taxi.TaxiChatRequest
-import com.example.soap.Networking.RequestDTO.TaxiChatRequestDTO
+import com.example.soap.Networking.RequestDTO.Taxi.TaxiChatRequestDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiChatPresignedURLDTO
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.example.soap.Shared.Extensions.toISO8601

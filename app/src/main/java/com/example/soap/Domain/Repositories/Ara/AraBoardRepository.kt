@@ -7,7 +7,7 @@ import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraCreatePost
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostPage
-import com.example.soap.Networking.RequestDTO.AraPostRequestDTO
+import com.example.soap.Networking.RequestDTO.Ara.AraPostRequestDTO
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.example.soap.Shared.Extensions.compressForUpload

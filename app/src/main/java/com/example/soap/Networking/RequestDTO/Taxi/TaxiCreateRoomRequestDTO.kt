@@ -1,4 +1,4 @@
-package com.example.soap.Networking.RequestDTO
+package com.example.soap.Networking.RequestDTO.Taxi
 
 import com.example.soap.Domain.Models.Taxi.TaxiCreateRoom
 import com.example.soap.Shared.Extensions.toISO8601

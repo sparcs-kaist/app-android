@@ -1,6 +1,7 @@
 package com.example.soap.Features.Feed.Components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -16,10 +17,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
@@ -38,8 +46,7 @@ fun PostImagesStrip(images: List<FeedImage>) {
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
     ) {
-        val parentWidth = maxWidth
-        //TODO - 이미지 가로 폭 줄이기
+        val parentWidth = if (images.size > 1) maxWidth - 16.dp else maxWidth
         val maxW = parentWidth - hPadding * 2
         val height = maxW * 3 / 4
 
@@ -48,47 +55,72 @@ fun PostImagesStrip(images: List<FeedImage>) {
             contentPadding = PaddingValues(horizontal = hPadding),
             modifier = Modifier.height(height)
         ) {
+
             items(images) { item ->
-                SubcomposeAsyncImage(
-                    model = item.url,
-                    contentDescription = null
+                var showSpoiler by remember { mutableStateOf(item.spoiler) }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { showSpoiler = false }
                 ) {
-                    when (val state = painter.state) {
-                        is AsyncImagePainter.State.Loading -> {
-                            Placeholder(width = minW, height = height)
-                        }
+                    SubcomposeAsyncImage(
+                        model = item.url,
+                        contentDescription = null
+                    ) {
+                        when (val state = painter.state) {
+                            is AsyncImagePainter.State.Loading -> {
+                                Placeholder(width = minW, height = height)
+                            }
 
-                        is AsyncImagePainter.State.Error -> {
-                            Placeholder(
-                                width = minW,
-                                height = height,
-                                systemImage = Icons.Default.Warning
+                            is AsyncImagePainter.State.Error -> {
+                                Placeholder(
+                                    width = minW,
+                                    height = height,
+                                    systemImage = Icons.Default.Warning
+                                )
+                            }
+
+                            is AsyncImagePainter.State.Success -> {
+                                val size = state.painter.intrinsicSize
+                                val aspect = if (size.height > 0) size.width / size.height else 16f / 9f
+                                val fitWidth = height * aspect
+                                val clampedWidth = fitWidth.coerceIn(minW, maxW)
+
+                                SubcomposeAsyncImageContent(
+                                    modifier = Modifier
+                                        .height(height)
+                                        .width(clampedWidth)
+                                        .then(
+                                            if (showSpoiler == true) Modifier.blur(20.dp) else Modifier
+                                        ),
+                                    contentScale = if (fitWidth in minW..maxW) ContentScale.Fit else ContentScale.Crop
+                                )
+                            }
+                            else -> {}
+                        }
+                    }
+
+                    if (showSpoiler == true) {
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .background(Color.Black.copy(0.3f))
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "Spoiler",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White
                             )
                         }
-
-                        is AsyncImagePainter.State.Success -> {
-                            val size = state.painter.intrinsicSize
-                            val aspect = if (size.height > 0) size.width / size.height else 16f / 9f
-                            val fitWidth = height * aspect
-                            val clampedWidth = fitWidth.coerceIn(minW, maxW)
-
-                            SubcomposeAsyncImageContent(
-                                modifier = Modifier
-                                    .height(height)
-                                    .width(clampedWidth)
-                                    .clip(RoundedCornerShape(12.dp)),
-                                contentScale = if (fitWidth in minW..maxW) ContentScale.Fit else ContentScale.Crop
-                            )
-                        }
-
-                        else -> {}
                     }
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun Placeholder(width: Dp, height: Dp, systemImage: ImageVector? = null) {
