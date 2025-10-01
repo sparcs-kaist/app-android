@@ -49,6 +49,7 @@ import com.example.soap.Features.Post.Components.PostVoteButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.timeAgoDisplay
 import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.grayF8
@@ -427,7 +428,7 @@ private fun Preview() {
 private fun Preview2() {
     Theme {
         FeedCommentRow(
-            comment = FeedComment.mock(),
+            comment = FeedComment.mockList()[0],
             isMine = false,
             isReply = true,
             onReply = {},
