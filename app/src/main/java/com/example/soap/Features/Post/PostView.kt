@@ -50,6 +50,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -393,6 +394,7 @@ private fun Footer(
     post: AraPost,
     onCommentClick: () -> Unit,
 ) {
+    val context = LocalContext.current
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -409,7 +411,7 @@ private fun Footer(
         PostBookmarkButton(
             post.myScrap,
             onToggleBookmark = { scope.launch { viewModel.toggleBookmark() } })
-        PostShareButton()
+        PostShareButton(url = "https://newara.dev.sparcs.org/post/${post.id}", context = context)
     }
 }
 
