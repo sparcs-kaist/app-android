@@ -386,7 +386,6 @@ fun ContentView(
                 isWithdrawn = group.authorIsWithdrew ?: false
             ) {
                 group.chats.forEach { chat ->
-                    TaxiChatShareBubble(room = viewModel.room.collectAsState().value)
                     val showTimeLabel = group.lastChatID == chat.id
                     val otherParticipants =
                         viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
