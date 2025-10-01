@@ -12,7 +12,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -98,11 +97,12 @@ import com.example.soap.ui.theme.Theme
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 @Composable
 fun TaxiChatView(
     viewModel: TaxiChatViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
     val groupedChats by viewModel.groupedChats.collectAsState(initial = emptyList())
@@ -277,9 +277,9 @@ fun TaxiChatView(
         )
     }
 
-    if (showPaymentAlert){
+    if (showPaymentAlert) {
         AlertDialog(
-            onDismissRequest = { showPaymentAlert = false  },
+            onDismissRequest = { showPaymentAlert = false },
             dismissButton = {
                 Button(onClick = { showPaymentAlert = false }) {
                     Text("Cancel")
@@ -335,14 +335,13 @@ fun ContentView(
     onCommitPayment: () -> Unit,
     topChatID: MutableState<String?>,
     isLoadingMore: MutableState<Boolean>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
     val listState = rememberLazyListState()
 
     val flattenedChats = groupedChats.flatMap { it.chats }
     val previousCount = remember { mutableStateOf(flattenedChats.size) }
-
     LaunchedEffect(flattenedChats.size) {
         if (flattenedChats.size > previousCount.value) {
             listState.animateScrollToItem(flattenedChats.lastIndex)
@@ -355,6 +354,7 @@ fun ContentView(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         state = listState
     ) {
+
 //        item {
 //            Spacer(
 //                modifier = Modifier
@@ -365,7 +365,17 @@ fun ContentView(
 //                    }
 //            )
 //        }//TODO - 보류
+
+        var previousDate: LocalDate? = null
+
         items(groupedChats, key = { it.id }) { group ->
+
+            val currentDate = group.time.toLocalDate()
+
+            if (currentDate != previousDate) {
+                TaxiChatDayMessage(date = currentDate)
+                previousDate = currentDate
+            }
             TaxiChatUserWrapper(
                 authorID = group.authorID,
                 authorName = group.authorName,
@@ -376,6 +386,7 @@ fun ContentView(
                 isWithdrawn = group.authorIsWithdrew ?: false
             ) {
                 group.chats.forEach { chat ->
+
                     val showTimeLabel = group.lastChatID == chat.id
                     val otherParticipants =
                         viewModel.room.collectAsState().value.participants.filter { it.id != taxiUser?.oid }
@@ -383,26 +394,27 @@ fun ContentView(
 
                     Row(
                         verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        modifier = if(chat.type == TaxiChat.ChatType.TEXT && !showTimeLabel) Modifier.width(IntrinsicSize.Max) else Modifier
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        if (group.isMe && group.lastChatID != null) {
-                            Column(horizontalAlignment = Alignment.End) {
-                                if (readCount > 0) Text(
-                                    "$readCount",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                if (showTimeLabel) Text(
-                                    group.time.formattedTime(),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
+                        if (group.isMe) {
+                            if (group.lastChatID != null) {
+                                Column(horizontalAlignment = Alignment.End) {
+                                    if (readCount > 0) Text(
+                                        "$readCount",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                    if (showTimeLabel) Text(
+                                        group.time.formattedTime(),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
                             }
                         }
 
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .wrapContentWidth(if (group.isMe) Alignment.End else Alignment.Start)
+                        Column(
+                            modifier = Modifier.weight(1f, fill = false),
+                            horizontalAlignment = if (group.isMe) Alignment.End else Alignment.Start,
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             when (chat.type) {
                                 TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
@@ -419,7 +431,11 @@ fun ContentView(
                                     )
 
                                 TaxiChat.ChatType.S3IMG ->
-                                    TaxiChatImageBubble(id = chat.content) { onImageClick(chat.content) }
+                                    TaxiChatImageBubble(id = chat.content) {
+                                        onImageClick(
+                                            chat.content
+                                        )
+                                    }
 
                                 TaxiChat.ChatType.DEPARTURE ->
                                     TaxiDepartureBubble(room = viewModel.room.collectAsState().value)
@@ -438,16 +454,21 @@ fun ContentView(
                             }
                         }
 
-                        if (!group.isMe && group.lastChatID != null) {
-                            Column(horizontalAlignment = Alignment.Start) {
-                                if (readCount > 0) Text(
-                                    "$readCount",
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                                if (showTimeLabel) Text(
-                                    group.time.formattedTime(),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
+                        if (!group.isMe) {
+                            if (group.lastChatID != null) {
+                                Column(
+                                    horizontalAlignment = Alignment.Start,
+                                    verticalArrangement = Arrangement.Bottom
+                                ) {
+                                    if (readCount > 0) Text(
+                                        "$readCount",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                    if (showTimeLabel) Text(
+                                        group.time.formattedTime(),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
                             }
                         }
                     }
@@ -485,7 +506,8 @@ private fun LoadingView() {
                     val showTimeLabel = groupedChat.lastChatID == chat.id
                     Row(
                         verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -493,22 +515,42 @@ private fun LoadingView() {
                         ) {
                             when (chat.type) {
                                 TaxiChat.ChatType.IN, TaxiChat.ChatType.OUT ->
-                                    TaxiChatGeneralMessage(authorName = chat.authorName, type = chat.type)
+                                    TaxiChatGeneralMessage(
+                                        authorName = chat.authorName,
+                                        type = chat.type
+                                    )
+
                                 TaxiChat.ChatType.TEXT ->
-                                    TaxiChatBubble(content = chat.content, showTip = showTimeLabel, isMe = false)
+                                    TaxiChatBubble(
+                                        content = chat.content,
+                                        showTip = showTimeLabel,
+                                        isMe = false
+                                    )
+
                                 TaxiChat.ChatType.DEPARTURE -> TaxiDepartureBubble(room = TaxiRoom.mock())
                                 TaxiChat.ChatType.ARRIVAL -> TaxiArrivalBubble()
                                 TaxiChat.ChatType.SETTLEMENT -> TaxiChatSettlementBubble()
                                 TaxiChat.ChatType.PAYMENT -> TaxiChatPaymentBubble()
-                                TaxiChat.ChatType.ACCOUNT -> TaxiChatAccountBubble(content = "BANK NUMBER", isCommitPaymentAvailable = true) {}
+                                TaxiChat.ChatType.ACCOUNT -> TaxiChatAccountBubble(
+                                    content = "BANK NUMBER",
+                                    isCommitPaymentAvailable = true
+                                ) {}
+
                                 TaxiChat.ChatType.SHARE -> TaxiChatShareBubble() {}
                                 else -> Text(chat.type.name)
-                            }}
+                            }
+                        }
                         if (showTimeLabel) {
-                            Column(horizontalAlignment = Alignment.Start,
-                                modifier = Modifier.wrapContentWidth()) {
+                            Column(
+                                horizontalAlignment = Alignment.Start,
+                                modifier = Modifier.wrapContentWidth()
+                            ) {
                                 Text("3", style = MaterialTheme.typography.labelSmall)
-                                Text(groupedChat.time.formattedTime(), style = MaterialTheme.typography.labelSmall, modifier = Modifier.wrapContentWidth())
+                                Text(
+                                    groupedChat.time.formattedTime(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.wrapContentWidth()
+                                )
                             }
                         }
                     }
@@ -533,7 +575,7 @@ private fun InputBar(
     onCommitSettlement: () -> Unit,
     onPickPhoto: () -> Unit,
     taxiUser: TaxiUser?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -714,10 +756,11 @@ fun loadMoreIfNeeded(
     viewModel: TaxiChatViewModelProtocol,
     topChatID: MutableState<String?>,
     isLoadingMore: MutableState<Boolean>,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
 ) {
     if (isLoadingMore.value) return
-    val oldestDate = viewModel.groupedChats.value.firstOrNull()?.chats?.firstOrNull()?.time ?: return
+    val oldestDate =
+        viewModel.groupedChats.value.firstOrNull()?.chats?.firstOrNull()?.time ?: return
     if (viewModel.fetchedDateSet.contains(oldestDate)) return
 
     topChatID.value = viewModel.groupedChats.value.firstOrNull()?.id
@@ -739,7 +782,8 @@ fun openKakaoT(context: Context, viewModel: TaxiChatViewModelProtocol) {
     if (intent.resolveActivity(context.packageManager) != null) {
         context.startActivity(intent)
     } else {
-        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakao.taxi"))
+        val marketIntent =
+            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakao.taxi"))
         context.startActivity(marketIntent)
     }
 }
@@ -764,7 +808,8 @@ fun openKakaoPay(context: Context) {
     if (intent.resolveActivity(context.packageManager) != null) {
         context.startActivity(intent)
     } else {
-        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakaopay.app"))
+        val marketIntent =
+            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.kakaopay.app"))
         context.startActivity(marketIntent)
     }
 }
@@ -779,7 +824,8 @@ fun openToss(context: Context, account: String?) {
     if (intent.resolveActivity(context.packageManager) != null) {
         context.startActivity(intent)
     } else {
-        val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=viva.republica.toss"))
+        val marketIntent =
+            Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=viva.republica.toss"))
         context.startActivity(marketIntent)
     }
 }
@@ -793,7 +839,7 @@ private fun PreviewTaxiChatViewLoading() {
             initialState = TaxiChatViewModel.ViewState.Loading
         )
     }
-    Theme{
+    Theme {
         TaxiChatView(viewModel = viewModel, navController = rememberNavController())
     }
 }
