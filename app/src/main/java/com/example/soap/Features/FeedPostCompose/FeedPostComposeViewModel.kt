@@ -54,6 +54,7 @@ class FeedPostComposeViewModel @Inject constructor(
     // MARK: - Functions
     override suspend fun fetchFeedUser() {
         viewModelScope.launch {
+            userUseCase.fetchFeedUser()
             feedUser = userUseCase.feedUser
         }
     }

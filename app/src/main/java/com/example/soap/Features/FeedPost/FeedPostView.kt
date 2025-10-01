@@ -71,7 +71,6 @@ fun FeedPostView(
     viewModel: FeedPostViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
     val coroutineScope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
 
