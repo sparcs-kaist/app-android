@@ -89,6 +89,8 @@ fun FeedPostComposeView(
     val scrollState = rememberScrollState()
     val contentFocusRequester = remember { FocusRequester() }
     val context = LocalContext.current
+    var isVisible by remember { mutableStateOf(false) }
+
     //KeyBoard
     var contentField by remember { mutableStateOf(TextFieldValue(viewModel.text)) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -194,6 +196,7 @@ fun FeedPostComposeView(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     itemsIndexed(viewModel.selectedImages) { index, bitmap ->
+                        var isSpoiler by remember(bitmap.id) { mutableStateOf(bitmap.spoiler) }
                         Box {
                             Image(
                                 bitmap = bitmap.image.asImageBitmap(),
@@ -217,6 +220,23 @@ fun FeedPostComposeView(
                                 Icon(
                                     Icons.Default.Close,
                                     contentDescription = "Remove Image",
+                                    tint = Color.White
+                                )
+                            }
+
+                            IconButton(
+                                onClick = { isSpoiler = !isSpoiler; bitmap.spoiler = isSpoiler },
+                                modifier = Modifier
+                                    .align(Alignment.BottomEnd)
+                                    .background(
+                                        Color.Black.copy(alpha = 0.3f),
+                                        shape = CircleShape
+                                    )
+                                    .size(24.dp)
+                            ) {
+                                Icon(
+                                    if(isSpoiler) painterResource(R.drawable.baseline_visibility_off) else painterResource(R.drawable.baseline_visibility),
+                                    contentDescription = "Spoiler Image",
                                     tint = Color.White
                                 )
                             }

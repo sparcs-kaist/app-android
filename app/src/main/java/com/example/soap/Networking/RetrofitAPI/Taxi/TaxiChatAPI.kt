@@ -1,6 +1,6 @@
 package com.example.soap.Networking.RetrofitAPI.Taxi
 
-import com.example.soap.Networking.RequestDTO.TaxiChatRequestDTO
+import com.example.soap.Networking.RequestDTO.Taxi.TaxiChatRequestDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiChatPresignedURLDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiChatResponseDTO
 import okhttp3.MultipartBody
