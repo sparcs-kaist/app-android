@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -85,6 +86,7 @@ import com.example.soap.Features.Settings.Taxi.TaxiSettingsView
 import com.example.soap.Features.Settings.Taxi.TaxiSettingsViewModel
 import com.example.soap.Features.Settings.Taxi.TaxiSettingsViewModelProtocol
 import com.example.soap.Features.SignIn.SignInView
+import com.example.soap.Features.SignIn.SignInViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatView
 import com.example.soap.Features.TaxiChat.TaxiChatViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatViewModelProtocol
@@ -381,9 +383,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Channel.SignOut.name
-            ) {
-                SignInView()
-                //TODO - viewmodel-reset token
+            ) { backStackEntry ->
+                val viewModelImpl: SignInViewModel = hiltViewModel(backStackEntry)
+                LaunchedEffect(Unit) { viewModelImpl.authUseCase.signOut() }
+                SignInView(viewModelImpl)
             }
 
             /*___________Settings___________*/
