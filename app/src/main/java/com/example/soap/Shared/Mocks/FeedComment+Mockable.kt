@@ -38,7 +38,7 @@ fun FeedComment.Companion.mockList(): List<FeedComment> {
             isDeleted = false,
             isAnonymous = false,
             authorName = "멋진호랑이677",
-            isAuthor = false,
+            isAuthor = true,
             isMyComment = true,
             profileImageURL = ("https://dlnutnvhcnj0u.cloudfront.net/imgs/CatOTL.png"),
             createdAt = Date(),
