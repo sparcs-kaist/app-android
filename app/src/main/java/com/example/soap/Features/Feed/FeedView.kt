@@ -110,10 +110,9 @@ fun FeedView(
                                 },
                                 feedPostRepository = repo
                             )
-                            HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                            HorizontalDivider(Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                         }
                     }
-
 
                     is FeedViewModel.ViewState.Error -> {
                         val message = (state as FeedViewModel.ViewState.Error).message
@@ -134,7 +133,6 @@ fun FeedView(
         }
     }
 }
-
 
 @Composable
 @Preview
