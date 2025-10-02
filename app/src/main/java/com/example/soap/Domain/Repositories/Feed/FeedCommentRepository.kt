@@ -1,5 +1,6 @@
 package com.example.soap.Domain.Repositories.Feed
 
+import com.example.soap.Domain.Enums.FeedReportType
 import com.example.soap.Domain.Enums.FeedVoteType
 import com.example.soap.Domain.Models.Feed.FeedComment
 import com.example.soap.Domain.Models.Feed.FeedCreateComment
@@ -16,6 +17,7 @@ interface FeedCommentRepositoryProtocol {
     suspend fun deleteComment(commentId: String)
     suspend fun vote(commentId: String, type: FeedVoteType)
     suspend fun deleteVote(commentId: String)
+    suspend fun reportComment(commentId: String, reason: FeedReportType)
 }
 
 class FakeFeedCommentRepository : FeedCommentRepositoryProtocol {
@@ -41,6 +43,7 @@ class FakeFeedCommentRepository : FeedCommentRepositoryProtocol {
     override suspend fun deleteComment(commentId: String) {}
     override suspend fun vote(commentId: String, type: FeedVoteType) {}
     override suspend fun deleteVote(commentId: String) {}
+    override suspend fun reportComment(commentId: String, reason: FeedReportType) {}
 }
 
 class FeedCommentRepository @Inject constructor(
@@ -71,5 +74,9 @@ class FeedCommentRepository @Inject constructor(
 
     override suspend fun deleteVote(commentId: String) {
         api.deleteVote(commentId)
+    }
+
+    override suspend fun reportComment(commentId: String, reason: FeedReportType) {
+        api.reportComment(commentId, mapOf("reason" to reason.name))
     }
 }

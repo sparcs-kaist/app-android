@@ -63,7 +63,6 @@ fun FeedView(
                 navController = navController
             )
         },
-
         bottomBar = {
             AppDownBar(
                 currentScreen = Channel.Start,

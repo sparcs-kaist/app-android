@@ -1,12 +1,8 @@
 package com.example.soap.Features.FeedPost.Components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import PostCommentActionsMenu
+import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,9 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,19 +20,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.soap.Domain.Enums.AraContentReportType
+import com.example.soap.Domain.Enums.FeedReportType
 import com.example.soap.Domain.Enums.FeedVoteType
 import com.example.soap.Domain.Models.Feed.FeedComment
 import com.example.soap.Domain.Repositories.Feed.FakeFeedCommentRepository
@@ -104,7 +98,9 @@ private fun Header(
     repo: FeedCommentRepositoryProtocol,
     update: (FeedComment) -> Unit,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         ProfileImage(comment)
@@ -126,12 +122,13 @@ private fun Header(
         Spacer(modifier = Modifier.weight(1f))
 
         if (!comment.isDeleted) {
-            FeedCommentActionsMenu(
+            PostCommentActionsMenu(
+                enumClass = FeedReportType::class,
                 isMine = isMine,
                 onEdit = {/*Todo - edit*/ },
                 onDelete = {
                     expanded = false
-                    CoroutineScope(Dispatchers.IO).launch {
+                    coroutineScope.launch {
                         val prev = comment.copy()
                         update(comment.copy(isDeleted = true))
                         try {
@@ -141,135 +138,15 @@ private fun Header(
                         }
                     }
                 },
-                onReport = {/*Todo - report*/ },
+                onReport = {
+                    coroutineScope.launch {
+                        repo.reportComment(comment.id, it)
+                    }
+                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                },
                 onTranslate = {/*Todo - translate*/ },
                 isComment = true
             )
-        }
-    }
-}
-
-
-@Composable
-private fun FeedCommentActionsMenu(
-    isMine: Boolean?,
-    onEdit: () -> Unit? = {},
-    onDelete: () -> Unit,
-    onReport: (AraContentReportType) -> Unit,
-    onTranslate: () -> Unit,
-    isComment: Boolean,
-    modifier: Modifier = Modifier,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var reportExpanded by remember { mutableStateOf(false) }
-
-    Box {
-        Icon(
-            painter = painterResource(R.drawable.more_horiz),
-            contentDescription = "More",
-            modifier = modifier
-                .clickable { expanded = true },
-            tint = if (isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-        )
-
-        DropdownMenu(
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(16.dp),
-            expanded = expanded,
-            onDismissRequest = {
-                expanded = false
-                reportExpanded = false
-            }) {
-            if (isMine == false) {
-                DropdownMenuItem(
-                    text = { Text("Report") },
-                    onClick = {
-                        reportExpanded = !reportExpanded
-                    },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_sms_failed),
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_forward_ios),
-                            contentDescription = "show Report",
-                            modifier = Modifier
-                                .size(18.dp)
-                                .rotate(if (reportExpanded) 270f else 0f)
-                        )
-                    }
-                )
-
-                AnimatedVisibility(
-                    visible = reportExpanded,
-                    enter = expandVertically() + fadeIn(),
-                    exit = shrinkVertically() + fadeOut()
-                ) {
-                    Column {
-                        AraContentReportType.entries.forEach { type ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(
-                                        type.name.replace("_", " ")
-                                            .replaceFirstChar { it.uppercase() })
-                                },
-                                onClick = {
-                                    onReport(type)
-                                    expanded = false
-                                    reportExpanded = false
-                                }
-                            )
-                        }
-                    }
-                }
-            } else {
-                if (isComment) {
-                    DropdownMenuItem(
-                        text = { Text("Edit") },
-                        onClick = { onEdit(); expanded = false },
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(R.drawable.outline_edit),
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    HorizontalDivider()
-                }
-            }
-
-            DropdownMenuItem(
-                text = { Text("Translate") },
-                onClick = { onTranslate(); expanded = false },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_translate),
-                        contentDescription = null
-                    )
-                }
-            )
-
-            if (isMine == true) {
-                HorizontalDivider()
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = "Delete",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    },
-                    onClick = { onDelete(); expanded = false },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.outline_delete),
-                            contentDescription = null
-                        )
-                    }
-                )
-            }
         }
     }
 }

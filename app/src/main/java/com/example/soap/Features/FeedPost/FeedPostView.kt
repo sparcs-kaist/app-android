@@ -1,6 +1,7 @@
 package com.example.soap.Features.FeedPost
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,6 +45,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -87,7 +89,7 @@ fun FeedPostView(
     val backStackEntry = navController.currentBackStackEntry!!
     val json = backStackEntry.savedStateHandle.get<String>("feed_json")
     val post = remember { mutableStateOf(Gson().fromJson(json, FeedPost::class.java)) }
-
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.fetchComments(postID = post.value.id)
     }
@@ -97,10 +99,11 @@ fun FeedPostView(
             FeedPostNavigationBar(
                 navController = navController,
                 onDelete = { showDeleteConfirmation = true },
-                onReport = { type ->
+                onReport = {
                     coroutineScope.launch {
-                        //Todo - report
+                        repo.reportPost(post.value.id, it)
                     }
+                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
                 },
                 onTranslate = {/*Todo - translate*/ },
                 isMine = post.value.isAuthor

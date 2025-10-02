@@ -42,4 +42,10 @@ interface FeedCommentApi {
     suspend fun deleteVote(
         @Path("commentID") commentID: String
     )
+
+    @POST("comments/{commentID}/report")
+    suspend fun reportComment(
+        @Path("commentID") commentID: String,
+        @Body report: Map<String, String> //reason, detail
+    )
 }
