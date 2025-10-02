@@ -320,7 +320,7 @@ fun FeedPostRowSkeleton() {
 
                 Box(
                     modifier = Modifier
-                        .size(width = 300.dp, height = 75.dp)
+                        .size(width = 400.dp, height = 200.dp)
                         .clip(MaterialTheme.shapes.medium)
                         .background(Color.LightGray.copy(alpha = 0.3f))
                 )
