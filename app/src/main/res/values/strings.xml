@@ -87,4 +87,7 @@
     <string name="ara_my_post_settings" translatable="false">My Posts</string>
     <string name="taxi_report_settings" translatable="false">Taxi Report Settings</string>
     <string name="taxi_report_view" translatable="false">TaxiReportView</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="system_default">System default</string>
+    <string name="white_mode">White Mode</string>
 </resources>
