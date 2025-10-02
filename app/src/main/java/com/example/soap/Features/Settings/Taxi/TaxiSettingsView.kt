@@ -40,6 +40,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -75,7 +76,7 @@ fun TaxiSettingsView(
     Scaffold(
         topBar = {
         SettingsViewNavigationBar(
-            title = "Taxi Settings",
+            title = stringResource(R.string.taxi_settings),
             onDismiss = { navController.navigate(Channel.Settings.name )}
         )
     }){ innerPadding ->
@@ -122,7 +123,7 @@ fun TaxiSettingsView(
                         painter = painterResource(R.drawable.round_check),
                         contentDescription = null
                     )
-                    Text("Done")
+                    Text(stringResource(R.string.done))
                 }
             }
         }
@@ -135,8 +136,8 @@ fun TaxiSettingsView(
 @Composable
 private fun LoadingView() {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        RowElementView(title = "Nickname", content = "Unknown")
-        RowElementView(title = "Bank Account", content = "Unknown")
+        RowElementView(title = stringResource(R.string.nickname), content = "Unknown")
+        RowElementView(title = stringResource(R.string.bank_name), content = "Unknown")
     }
 }
 
@@ -144,9 +145,9 @@ private fun LoadingView() {
 private fun LoadedView(viewModel: TaxiSettingsViewModelProtocol, navController: NavController, onOpenUrl: (String) -> Unit) {
     Column {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)){
-            Text("Profile", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
 
-            RowElementView(title = "Nickname", content = viewModel.user?.nickname ?: "Unknown")
+            RowElementView(title = stringResource(R.string.nickname), content = viewModel.user?.nickname ?: "Unknown")
 
             BankPicker(
                 selected = viewModel.bankName,
@@ -157,24 +158,24 @@ private fun LoadedView(viewModel: TaxiSettingsViewModelProtocol, navController: 
             OutlinedTextField(
                 value = viewModel.bankNumber,
                 onValueChange = { viewModel.bankNumber = it },
-                label = { Text("Enter Bank Number", color = MaterialTheme.colorScheme.grayBB) },
+                label = { Text(stringResource(R.string.enter_bank_number), color = MaterialTheme.colorScheme.grayBB) },
                 modifier = Modifier.fillMaxWidth()
             )
 
             OutlinedTextField(
                 value = viewModel.bankNumber,
                 onValueChange = { viewModel.bankNumber = it },
-                label = { Text("Enter Phone Number", color = MaterialTheme.colorScheme.grayBB) },
+                label = { Text(stringResource(R.string.enter_phone_number), color = MaterialTheme.colorScheme.grayBB) },
                 modifier = Modifier.fillMaxWidth()
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
-        Text("Service", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.services), style = MaterialTheme.typography.titleMedium)
 
-        NavigationLinkWithIcon({ navController.navigate(Channel.TaxiReportSettings.name) }, "Report Details", painterResource(R.drawable.outline_sms_failed))
-        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Terms of Service", painterResource(R.drawable.round_format_list_bulleted))
-        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, "Privacy Policy", painterResource(R.drawable.round_format_list_bulleted))
+        NavigationLinkWithIcon({ navController.navigate(Channel.TaxiReportSettings.name) }, stringResource(R.string.report_details), painterResource(R.drawable.outline_sms_failed))
+        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, stringResource(R.string.terms_of_service), painterResource(R.drawable.round_format_list_bulleted))
+        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, stringResource(R.string.privacy_policy), painterResource(R.drawable.round_format_list_bulleted))
     }//Todo - ? ScrollableTextView("taxi_privacy_policy")?
 }
 
@@ -223,7 +224,7 @@ private fun WebViewDialog(url: String, onDismiss: () -> Unit) {
         onDismissRequest = { onDismiss() },
         confirmButton = {
             TextButton(onClick = { onDismiss() }) {
-                Text("Close")
+                Text(stringResource(R.string.close))
             }
         },
         text = {
@@ -254,7 +255,7 @@ fun BankPicker(
             .clickable { expanded = !expanded },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text("Bank Name")
+        Text(stringResource(R.string.bank_name))
         Spacer(Modifier.weight(1f))
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             Row{
