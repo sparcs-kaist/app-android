@@ -7,7 +7,7 @@ import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,20 +15,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Features.NavigationBar.Channel
@@ -39,6 +49,7 @@ import com.example.soap.ui.theme.Theme
 @Composable
 fun SettingsView(
     navController: NavHostController,
+    settingsViewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
 
@@ -51,7 +62,6 @@ fun SettingsView(
         }) { innerPadding ->
         LazyColumn(
             contentPadding = innerPadding,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.padding(16.dp)
         ) {
             item {
@@ -62,7 +72,9 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
                 AppSettings(context)
+                ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
 
             item {
@@ -77,10 +89,13 @@ fun SettingsView(
                     "Ara",
                     painterResource(R.drawable.ara_logo)
                 ) { navController.navigate(Channel.AraSettings.name) }
+
                 ServiceNavButton(
                     "Taxi",
                     painterResource(R.drawable.taxi_logo)
                 ) { navController.navigate(Channel.TaxiSettings.name) }
+
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
 
             item {
@@ -91,11 +106,12 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
                 SignOutButton { navController.navigate(Channel.SignOut.name) }
+
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
         }
     }
 }
-
 
 @Composable
 private fun AppSettings(context: Context) {
@@ -133,7 +149,7 @@ private fun AppSettings(context: Context) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.round_public),
+            painter = painterResource(R.drawable.outline_language),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface
         )
@@ -172,7 +188,7 @@ private fun FeedbackButton(context: Context) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.round_feedback),
+            painter = painterResource(R.drawable.outline_feedback),
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface
         )
@@ -249,6 +265,82 @@ private fun SignOutButton(onClick: () -> Unit) {
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.error,
             modifier = Modifier.padding(vertical = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun ThemeSwitcherButton(
+    settingsViewModel: SettingsViewModel,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val darkMode by settingsViewModel.darkModeSetting.collectAsState(initial = null)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .clickable { showDialog = true },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.outline_dark_mode),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        Text(
+            text = stringResource(R.string.dark_mode),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            title = { Text(stringResource(R.string.dark_mode)) },
+            text = {
+                Column {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { settingsViewModel.setTheme("system"); showDialog = false }
+                    ){
+                        RadioButton(
+                            selected = darkMode == null,
+                            onClick = { settingsViewModel.setTheme("system"); showDialog = false }
+                        )
+                        Text(stringResource(R.string.system_default))
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { settingsViewModel.setTheme("light"); showDialog = false }
+                    ) {
+                        RadioButton(
+                            selected = darkMode == false,
+                            onClick = { settingsViewModel.setTheme("light"); showDialog = false }
+                        )
+                        Text(stringResource(R.string.white_mode))
+                    }
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.clickable { settingsViewModel.setTheme("dark"); showDialog = false }
+                    ) {
+                        RadioButton(
+                            selected = darkMode == true,
+                            onClick = { settingsViewModel.setTheme("dark"); showDialog = false })
+                        Text(stringResource(R.string.dark_mode))
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {}
         )
     }
 }
