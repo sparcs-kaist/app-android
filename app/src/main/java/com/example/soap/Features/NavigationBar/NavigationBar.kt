@@ -75,9 +75,6 @@ import com.example.soap.Features.Settings.Ara.AraMyPostViewModelProtocol
 import com.example.soap.Features.Settings.Ara.AraSettingsView
 import com.example.soap.Features.Settings.Ara.AraSettingsViewModel
 import com.example.soap.Features.Settings.Ara.AraSettingsViewModelProtocol
-import com.example.soap.Features.Settings.OTL.OTLSettingsView
-import com.example.soap.Features.Settings.OTL.OTLSettingsViewModel
-import com.example.soap.Features.Settings.OTL.OTLSettingsViewModelProtocol
 import com.example.soap.Features.Settings.SettingsView
 import com.example.soap.Features.Settings.Taxi.TaxiReportListView
 import com.example.soap.Features.Settings.Taxi.TaxiReportListViewModel
@@ -130,8 +127,7 @@ enum class Channel(@StringRes val title: Int) {
     TaxiSettings(title = R.string.taxi_settings),
     TaxiReportSettings(title = R.string.taxi_report_settings),
     AraSettings(title = R.string.ara_settings),
-    AraMyPostSettings(title = R.string.ara_my_post_settings),
-    OTLSettings(title = R.string.otl_settings)
+    AraMyPostSettings(title = R.string.ara_my_post_settings)
 }
 
 @Composable
@@ -247,7 +243,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     )
                 }
 
-
                 composable(
                     route = Channel.TaxiChatView.name + "?room_json={room_json}",
                     arguments = listOf(
@@ -284,7 +279,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     )
                 ) { backStackEntry ->
                     val viewModelImpl: TaxiReportViewModel = hiltViewModel(backStackEntry)
-                    TaxiReportView(viewModelImpl, navController) }
+                    TaxiReportView(viewModelImpl, navController)
+                }
             }
 
             /*___________Ara___________*/
@@ -378,7 +374,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) {
-               // SearchView()
+                // SearchView()
             }
 
             composable(
@@ -394,11 +390,9 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 startDestination = Channel.Settings.name,
                 route = "SettingsGraph"
             ) {
-
                 composable(
                     route = Channel.Settings.name
                 ) { SettingsView(navController = navController) }
-
 
                 composable(
                     route = Channel.AraSettings.name
@@ -417,7 +411,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             nullable = false
                         }
                     )
-                ) {backStackEntry ->
+                ) { backStackEntry ->
                     val viewModelImpl: AraMyPostViewModel = hiltViewModel(backStackEntry)
                     val viewModel: AraMyPostViewModelProtocol = viewModelImpl
 
@@ -450,15 +444,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         navController = navController
                     )
                 }
-
-                composable(
-                    route = Channel.OTLSettings.name
-                ) { backStackEntry ->
-                    val viewModelImpl: OTLSettingsViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: OTLSettingsViewModelProtocol = viewModelImpl
-
-                    OTLSettingsView(viewModel = viewModel, navController = navController)
-                }
             }
         }
     }
@@ -471,7 +456,7 @@ fun AppBar(
     currentScreen: Channel,
     scrollOffset: Int = 0,
     navController: NavController = rememberNavController(),
-    isButtonEnabled: Boolean = true
+    isButtonEnabled: Boolean = true,
 ) {
     val elevationDp by animateDpAsState(
         if (scrollOffset > 0) 4.dp else 0.dp,
@@ -480,7 +465,7 @@ fun AppBar(
 
     TopAppBar(
         title = {
-            Row{
+            Row {
                 Text(
                     text = stringResource(currentScreen.title),
                     style = MaterialTheme.typography.displaySmall,
@@ -497,28 +482,35 @@ fun AppBar(
                     )
                     HomeViewDropDownMenu(
                         onClickSettings = { navController.navigate(Channel.Settings.name) },
-                        onClickSignOut = { navController.navigate(Channel.SignOut.name) }
+                        onClickNotification = { navController.navigate(Channel.SignOut.name) }
                     )
                 }
+
                 Channel.TimeTable -> {
                     AddButton(
                         contentDescription = "Add Timetable",
                         onClick = {}
                     )
                 }
+
                 Channel.Taxi -> {
-                    if(isButtonEnabled) {
+                    if (isButtonEnabled) {
                         AddButton(
                             contentDescription = "Create Taxi Room",
-                            onClick = { navController.navigate(Channel.TaxiRoomCreation.name){
-                                launchSingleTop = true} }
+                            onClick = {
+                                navController.navigate(Channel.TaxiRoomCreation.name) {
+                                    launchSingleTop = true
+                                }
+                            }
                         )
                     }
-                    ChatButton(onClick = {navController.navigate(Channel.TaxiChatListView.name)} )
+                    ChatButton(onClick = { navController.navigate(Channel.TaxiChatListView.name) })
                 }
+
                 Channel.Boards -> {
-                    ChatButton(onClick = {navController.navigate(Channel.AraChatView.name)})
+                    ChatButton(onClick = { navController.navigate(Channel.AraChatView.name) })
                 }
+
                 else -> {}
             }
         },
@@ -531,15 +523,18 @@ fun AppBar(
 }
 
 
-
 @Composable
 fun AppDownBar(
     navController: NavController,
-    currentScreen: Channel
+    currentScreen: Channel,
 ) {
     val items = listOf(
         Triple(Channel.Start, stringResource(Channel.Start.title), R.drawable.round_feed),
-        Triple(Channel.Boards, stringResource(Channel.Boards.title), R.drawable.round_format_list_bulleted),
+        Triple(
+            Channel.Boards,
+            stringResource(Channel.Boards.title),
+            R.drawable.round_format_list_bulleted
+        ),
         Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), R.drawable.timetable),
         Triple(Channel.Taxi, stringResource(Channel.Taxi.title), R.drawable.taxi),
         Triple(null, stringResource(R.string.search), R.drawable.search)
@@ -569,7 +564,7 @@ fun AppDownBar(
                         label = { Text(label) },
                         colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
                     )
-                }else{
+                } else {
                     NavigationBarItem(
                         selected = false,
                         onClick = {},
@@ -590,10 +585,9 @@ fun AppDownBar(
 }
 
 
-
 @Preview
 @Composable
-private fun Preview(){
+private fun Preview() {
     Theme {
         MainTabBar()
     }
@@ -602,15 +596,17 @@ private fun Preview(){
 
 @Preview
 @Composable
-private fun AppBarPreview(){
-   Theme { AppBar(
-       currentScreen = Channel.Start
-   ) }
+private fun AppBarPreview() {
+    Theme {
+        AppBar(
+            currentScreen = Channel.Start
+        )
+    }
 }
 
 @Preview
 @Composable
-private fun AppDownBarPreview(){
+private fun AppDownBarPreview() {
     Theme {
         AppDownBar(
             navController = rememberNavController(),
