@@ -1,5 +1,6 @@
 package com.example.soap.Features.PostList.Components.PostListRow
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -9,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,9 +34,9 @@ fun BoardNavigationBar(
             Icon(
                 painter = painterResource(R.drawable.arrow_back_ios),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.darkGray
+                tint = MaterialTheme.colorScheme.darkGray,
+                modifier = Modifier.clickable { navController.popBackStack() }
             )
-
         },
         title = {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
