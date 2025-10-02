@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -36,17 +38,17 @@ import com.example.soap.ui.theme.Theme
 
 @Composable
 fun SettingsView(
-    navController: NavHostController
+    navController: NavHostController,
 ) {
     val context = LocalContext.current
 
     Scaffold(
         topBar = {
-            SettingsViewNavigationBar (
+            SettingsViewNavigationBar(
                 title = "Settings",
-                onDismiss = { navController.navigate(Channel.Start.name )}
+                onDismiss = { navController.navigate(Channel.Start.name) }
             )
-    }){ innerPadding ->
+        }) { innerPadding ->
         LazyColumn(
             contentPadding = innerPadding,
             verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -60,6 +62,7 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
                 AppSettings(context)
+                FeedbackButton(context)
             }
 
             item {
@@ -70,9 +73,24 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
 
-                ServiceNavButton("Ara", painterResource(R.drawable.baseline_electric_bolt)) { navController.navigate(Channel.AraSettings.name) }
-                ServiceNavButton("Taxi", painterResource(R.drawable.baseline_electric_bolt)) { navController.navigate(Channel.TaxiSettings.name) }
-                ServiceNavButton("OTL", painterResource(R.drawable.baseline_electric_bolt)) { navController.navigate(Channel.OTLSettings.name) }
+                ServiceNavButton(
+                    "Ara",
+                    painterResource(R.drawable.ara_logo)
+                ) { navController.navigate(Channel.AraSettings.name) }
+                ServiceNavButton(
+                    "Taxi",
+                    painterResource(R.drawable.taxi_logo)
+                ) { navController.navigate(Channel.TaxiSettings.name) }
+            }
+
+            item {
+                Text(
+                    text = "Sign Out",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(8.dp)
+                )
+                SignOutButton { navController.navigate(Channel.SignOut.name) }
             }
         }
     }
@@ -80,12 +98,13 @@ fun SettingsView(
 
 
 @Composable
-fun AppSettings(context: Context){
+private fun AppSettings(context: Context) {
     val onClick = {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
                 // Android 13 이상: 앱 언어 변경 화면
-                val action = Settings::class.java.getField("ACTION_APP_LOCALE_SETTINGS").get(null) as String
+                val action =
+                    Settings::class.java.getField("ACTION_APP_LOCALE_SETTINGS").get(null) as String
                 val intent = Intent(action).apply {
                     data = Uri.fromParts("package", context.packageName, null)
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -112,11 +131,11 @@ fun AppSettings(context: Context){
             .padding(vertical = 8.dp, horizontal = 16.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
         Icon(
             painter = painterResource(R.drawable.round_public),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(Modifier.width(8.dp))
@@ -124,27 +143,68 @@ fun AppSettings(context: Context){
         Text(
             text = "Change Language",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.primary
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(vertical = 8.dp)
         )
     }
 }
 
 @Composable
-fun ServiceNavButton(
-    text: String,
-    painter: Painter,
-    onClick: () -> Unit
-){
+private fun FeedbackButton(context: Context) {
+    val onClick = {
+        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:app@sparcs.org")
+        }
+
+        val chooser = Intent.createChooser(emailIntent, "Send Feedback")
+
+        try {
+            context.startActivity(chooser)
+        } catch (e: Exception) {
+            Log.e("SettingsView", "Error launching email app")
+        }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 16.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.round_feedback),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        Text(
+            text = "Send Feedback",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+    }
+}
+
+@Composable
+private fun ServiceNavButton(
+    text: String,
+    painter: Painter,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Icon(
             painter = painter,
             contentDescription = null,
+            tint = Color.Unspecified
         )
 
         Spacer(Modifier.width(8.dp))
@@ -168,8 +228,34 @@ fun ServiceNavButton(
 }
 
 @Composable
+private fun SignOutButton(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.round_logout),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        Text(
+            text = "Sign Out",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+    }
+}
+
+@Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme {
         SettingsView(rememberNavController())
     }
