@@ -189,20 +189,16 @@ fun TaxiPreviewView(
                 Button(
                     onClick = {
                         scope.launch {
-                            if (viewModel.isJoined(room.participants)) {
-                                //이미 참가한 방인 경우 채팅으로 바로가기
+                            try {
+                                viewModel.joinRoom(
+                                    id = room.id
+                                )
+                                onDismiss()
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
-                            } else {
-                                try {
-                                    viewModel.joinRoom(
-                                        id = room.id
-                                    )
-                                    onDismiss()
-                                } catch (e: Exception) {
-                                    errorMessage = e.message ?: "Unknown error"
-                                    showError = true
-                                }
+                            } catch (e: Exception) {
+                                errorMessage = e.message ?: "Unknown error"
+                                showError = true
                             }
                         }
                     },
