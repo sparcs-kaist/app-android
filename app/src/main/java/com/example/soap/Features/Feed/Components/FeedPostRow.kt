@@ -197,7 +197,7 @@ fun Footer(
                         update = { postState = it })
                 }
             },
-            enabled = !post.isAuthor
+            enabled = true
         )
 
         Spacer(Modifier.width(8.dp))
