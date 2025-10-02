@@ -397,14 +397,13 @@ private fun VersionRow() {
         val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         pInfo.versionName ?: "1.0"
     } catch (e: Exception) {
-        "1.0"
+        "0.0"
     }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable {},
+            .padding(vertical = 8.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
