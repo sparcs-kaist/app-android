@@ -482,7 +482,7 @@ fun AppBar(
                     )
                     HomeViewDropDownMenu(
                         onClickSettings = { navController.navigate(Channel.Settings.name) },
-                        onClickNotification = { navController.navigate(Channel.SignOut.name) }
+                        onClickNotification = {  }
                     )
                 }
 
@@ -579,7 +579,6 @@ fun AppDownBar(
                     )
                 }
             }
-
         }
     }
 }
