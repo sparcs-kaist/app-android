@@ -235,7 +235,9 @@ fun FeedPostComposeView(
                                     .size(24.dp)
                             ) {
                                 Icon(
-                                    if(isSpoiler) painterResource(R.drawable.baseline_visibility_off) else painterResource(R.drawable.baseline_visibility),
+                                    if (isSpoiler) painterResource(R.drawable.baseline_visibility_off) else painterResource(
+                                        R.drawable.baseline_visibility
+                                    ),
                                     contentDescription = "Spoiler Image",
                                     tint = Color.White
                                 )

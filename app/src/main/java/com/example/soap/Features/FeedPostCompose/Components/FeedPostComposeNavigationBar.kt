@@ -33,7 +33,6 @@ import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.darkGray
 import com.example.soap.ui.theme.grayBB
 
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedPostComposeNavigationBar(
