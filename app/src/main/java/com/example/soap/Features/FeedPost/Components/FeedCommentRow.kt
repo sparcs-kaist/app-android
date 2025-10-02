@@ -83,8 +83,7 @@ fun FeedCommentRow(
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.padding(vertical = 4.dp)
-            )
-            //TODO - 추가할지 말지 고민
+            ) //TODO - 추가할지 말지 고민
             Header(localComment, isMine, feedCommentRepository) { updated ->
                 localComment = updated
             }
@@ -348,7 +347,7 @@ private fun Footer(
                         handleVote(comment, false, repo, update)
                     }
                 },
-                enabled = !comment.isMyComment
+                enabled = true
             )
         }
     }
