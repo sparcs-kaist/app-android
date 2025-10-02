@@ -3,6 +3,7 @@ package com.example.soap.Features.Post
 import PostCommentCell
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -118,7 +119,7 @@ fun PostView(
     var alertMessage by remember { mutableStateOf("") }
 
     val post by viewModel.post.collectAsState()
-
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
     }
@@ -131,6 +132,7 @@ fun PostView(
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { type ->
                     scope.launch{ viewModel.report(type) }
+                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
                            },
                 onTranslate = {
                     showTranslationView = true
