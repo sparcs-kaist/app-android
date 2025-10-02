@@ -44,14 +44,14 @@ import java.util.Date
 fun WeekDaySelector(
     selectedDate: Date?,
     week: List<Date>,
-    onSelect: (Date) -> Unit
+    onSelect: (Date?) -> Unit,
 ) {
     val density = LocalDensity.current
     val itemBounds = remember { mutableStateListOf<Pair<Int, Int>>() }
-
-    val selectedLocalDate = selectedDate?.toLocalDate()
     val localWeek = week.map { it.toLocalDate() }
-    val selectedIndex = localWeek.indexOf(selectedLocalDate).coerceAtLeast(0)
+    val selectedIndex =
+        if (selectedDate == null) 0 else localWeek.indexOf(selectedDate.toLocalDate()) + 1
+
     val selectedBounds = itemBounds.getOrNull(selectedIndex)
 
     val animatedOffsetX by animateDpAsState(
@@ -63,88 +63,105 @@ fun WeekDaySelector(
         targetValue = with(density) { selectedBounds?.second?.toDp() ?: 0.dp },
         label = "indicator width"
     )
+    Box(
+        modifier = Modifier
+            .padding(4.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .height(60.dp)
+    ) {
+        if (selectedBounds != null) {
+            val day = selectedDate?.toLocalDate() ?: LocalDate.now()
+            val boxColor = when (day.dayOfWeek) {
+                DayOfWeek.SUNDAY -> Color(0xFFDA4A45)
+                DayOfWeek.SATURDAY -> Color(0xFF45A7DA)
+                else -> MaterialTheme.colorScheme.gray64
+            }
 
-        Box(
+            Box(
+                modifier = Modifier
+                    .offset(x = animatedOffsetX)
+                    .width(animatedWidth)
+                    .fillMaxHeight()
+                    .padding(4.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .background(boxColor)
+            )
+        }
+
+        Row(
             modifier = Modifier
-                .padding(4.dp)
+                .fillMaxWidth()
                 .clip(RoundedCornerShape(28.dp))
-                .background(MaterialTheme.colorScheme.surface)
-                .height(60.dp)
+                .height(60.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (selectedBounds != null) {
-                val day = selectedDate?.toLocalDate() ?: LocalDate.now()
-                val boxColor = when (day.dayOfWeek) {
-                    DayOfWeek.SUNDAY -> Color(0xFFDA4A45)
-                    DayOfWeek.SATURDAY -> Color(0xFF45A7DA)
-                    else -> MaterialTheme.colorScheme.gray64
-                }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(16.dp))
+                    .onGloballyPositioned { coords ->
+                        val x = coords.positionInParent().x.toInt()
+                        val width = coords.size.width
+                        if (itemBounds.isEmpty()) itemBounds.add(x to width)
+                        else itemBounds[0] = x to width
+                    }
+                    .clickable { onSelect(null) },
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-                Box(
-                    modifier = Modifier
-                        .offset(x = animatedOffsetX)
-                        .width(animatedWidth)
-                        .fillMaxHeight()
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(
-                            if(selectedDate != null) boxColor else MaterialTheme.colorScheme.surface
-                        )
+                Text(
+                    text = "All",
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                    color = if (selectedDate == null) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(28.dp))
-                    .height(60.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                week.forEachIndexed { index, date ->
-                    val day = date.toLocalDate()
-                    val isSelected = (day == selectedDate?.toLocalDate())
+            week.forEachIndexed { index, date ->
+                val day = date.toLocalDate()
+                val isSelected = (day == selectedDate?.toLocalDate())
 
-                    val textColor = when (day.dayOfWeek) {
-                        DayOfWeek.SUNDAY -> Color(0xFFDA4A45)
-                        DayOfWeek.SATURDAY -> Color(0xFF45A7DA)
-                        else -> MaterialTheme.colorScheme.onSurface
-                    }
+                val textColor = when (day.dayOfWeek) {
+                    DayOfWeek.SUNDAY -> Color(0xFFDA4A45)
+                    DayOfWeek.SATURDAY -> Color(0xFF45A7DA)
+                    else -> MaterialTheme.colorScheme.onSurface
+                }
 
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(16.dp))
-                            .onGloballyPositioned { coords ->
-                                val x = coords.positionInParent().x.toInt()
-                                val width = coords.size.width
-                                if (itemBounds.size <= index) {
-                                    itemBounds.add(x to width)
-                                } else {
-                                    itemBounds[index] = x to width
-                                }
-                            }
-                            .clickable {
-                                onSelect(day.toDate())
-                            },
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = day.dayOfMonth.toString(),
-                            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                            color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
-                        )
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(16.dp))
+                        .onGloballyPositioned { coords ->
+                            val x = coords.positionInParent().x.toInt()
+                            val width = coords.size.width
+                            if (itemBounds.size <= index + 1) itemBounds.add(x to width)
+                            else itemBounds[index + 1] = x to width
+                        }
+                        .clickable {
+                            onSelect(day.toDate())
+                        },
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = day.dayOfMonth.toString(),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                        color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
+                    )
 
-                        Text(
-                            text = day.dayOfWeek.name.take(3).uppercase(),
-                            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                            color = if (isSelected) MaterialTheme.colorScheme.surface else textColor
-                        )
-                    }
+                    Text(
+                        text = day.dayOfWeek.name.take(3).uppercase(),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                        color = if (isSelected) MaterialTheme.colorScheme.surface else textColor
+                    )
                 }
             }
         }
     }
+}
 
 
 @Preview
