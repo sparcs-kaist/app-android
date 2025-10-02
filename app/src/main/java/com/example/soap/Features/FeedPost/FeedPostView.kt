@@ -77,7 +77,6 @@ fun FeedPostView(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var isWritingCommentFocusState by remember { mutableStateOf(false) }
     var targetComment by remember { mutableStateOf<FeedComment?>(null) }
-    var isUploadingComment by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
 
     val repo: FeedPostRepositoryProtocol = hiltViewModel<FeedViewModel>().feedPostRepository
@@ -113,7 +112,6 @@ fun FeedPostView(
                 viewModel = viewModel,
                 targetComment = targetComment,
                 isWritingCommentFocusState = isWritingCommentFocusState,
-                isUploadingComment = isUploadingComment,
                 onCommentUploaded = { uploadedComment ->
                     post.value.commentCount += 1
                     targetComment = null
@@ -200,11 +198,11 @@ private fun InputBar(
     viewModel: FeedPostViewModelProtocol,
     targetComment: FeedComment?,
     isWritingCommentFocusState: Boolean,
-    isUploadingComment: Boolean,
     onCommentUploaded: (FeedComment?) -> Unit,
     coroutineScope: CoroutineScope,
     focusRequester: FocusRequester,
 ) {
+    var isUploadingComment by remember { mutableStateOf(false) }
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
     Row(
         modifier = Modifier
@@ -268,13 +266,14 @@ private fun InputBar(
                     )
                 }
 
-
-
                 Spacer(modifier = Modifier.width(8.dp))
+
                 MoveToLeftFadeIn(viewModel.text.isNotEmpty()) {
+
                     Button(
                         onClick = {
                             if (viewModel.text.isEmpty()) return@Button
+                            isUploadingComment = true
                             coroutineScope.launch {
                                 var uploadedComment: FeedComment? = null
                                 try {
@@ -288,6 +287,7 @@ private fun InputBar(
                                 }
                                 onCommentUploaded(uploadedComment)
                             }
+                            isUploadingComment = false
                         },
                         enabled = !isUploadingComment
                     ) {
@@ -336,7 +336,6 @@ private fun Comments(
         is FeedPostViewModel.ViewState.Loaded -> {
             Column(Modifier.padding(horizontal = 8.dp)) {
                 HorizontalDivider(
-                    color = MaterialTheme.colorScheme.lightGray0,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
                 Text(
