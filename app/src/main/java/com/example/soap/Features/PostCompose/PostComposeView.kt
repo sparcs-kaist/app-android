@@ -1,4 +1,5 @@
 package com.example.soap.Features.PostCompose
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -70,6 +71,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Features.PostCompose.Components.PostComposeNavigationBar
 import com.example.soap.Features.PostCompose.Components.TopicSelector
 import com.example.soap.R
@@ -383,8 +385,14 @@ fun PostOptionsRow(
 }
 
 @Composable
-private fun TermsOfUseButton(){
-    TextButton(onClick = { /* TODO: Terms click */ }) {
+fun TermsOfUseButton(){
+    val context = LocalContext.current
+    TextButton(
+        onClick = {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.termsOfUseURL))
+            context.startActivity(intent)
+        }
+    ){
         Text(
             text = "terms of use",
             style = MaterialTheme.typography.bodySmall,

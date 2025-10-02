@@ -72,6 +72,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.soap.Features.FeedPostCompose.Components.FeedPostComposeNavigationBar
 import com.example.soap.Features.PostCompose.Components.AnimatedAlphabetText
+import com.example.soap.Features.PostCompose.TermsOfUseButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.noRippleClickable
 import com.example.soap.ui.theme.Theme
@@ -89,7 +90,6 @@ fun FeedPostComposeView(
     val scrollState = rememberScrollState()
     val contentFocusRequester = remember { FocusRequester() }
     val context = LocalContext.current
-    var isVisible by remember { mutableStateOf(false) }
 
     //KeyBoard
     var contentField by remember { mutableStateOf(TextFieldValue(viewModel.text)) }
@@ -268,6 +268,7 @@ private fun Header(
         Spacer(modifier = Modifier.width(8.dp))
         ComposeTypePicker(viewModel)
         Spacer(modifier = Modifier.weight(1f))
+        TermsOfUseButton()
     }
 }
 
