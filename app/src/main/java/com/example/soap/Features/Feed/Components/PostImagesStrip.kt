@@ -93,12 +93,11 @@ fun PostImagesStrip(images: List<FeedImage>) {
                                         .height(height)
                                         .width(clampedWidth)
                                         .then(
-                                            if (showSpoiler == true) Modifier.blur(20.dp) else Modifier
+                                            if (showSpoiler == true) Modifier.blur(50.dp) else Modifier
                                         ),
                                     contentScale = if (fitWidth in minW..maxW) ContentScale.Fit else ContentScale.Crop
                                 )
                             }
-
                             else -> {}
                         }
                     }
