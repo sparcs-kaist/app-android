@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -28,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -39,6 +42,7 @@ import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.Features.Settings.Taxi.NavigationLinkWithIcon
 import com.example.soap.R
 import com.example.soap.Shared.ViewModelMocks.MockAraSettingsViewModel
+import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import com.google.gson.Gson
@@ -66,7 +70,7 @@ fun AraSettingsView(
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
-                title = "Ara Settings",
+                title = stringResource(R.string.ara_settings),
                 onDismiss = { navController.navigate(Channel.Settings.name) }
             )
         }
@@ -87,6 +91,11 @@ fun AraSettingsView(
 
                 is AraSettingsViewModel.ViewState.Error -> {
                     val message = (state as AraSettingsViewModel.ViewState.Error).message
+                    ErrorView(
+                        icon = Icons.Default.Warning,
+                        errorMessage = message,
+                        onRetry = {}
+                    )
                     Text("Error: $message", color = MaterialTheme.colorScheme.error)
                 }
             }
@@ -135,7 +144,7 @@ private fun LoadedView(
 
     Column {
         //profile
-        Text("Profile", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
 
         OutlinedTextField(
             value = viewModel.nickname,
@@ -148,14 +157,14 @@ private fun LoadedView(
 
         if (!nicknameUpdatable && nicknameUpdatableFrom != null) {
             Text(
-                text = "You can't change nickname until ${formatter.format(nicknameUpdatableFrom)}.",
+                text = stringResource(R.string.you_cant_change_nickname_until, formatter.format(nicknameUpdatableFrom)),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.grayBB
             )
         }
 
         Text(
-            text = "Nicknames can only be changed every 3 months.",
+            text = stringResource(R.string.nicknames_can_only_be_changed_every_3_months),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.grayBB
         )
@@ -163,16 +172,16 @@ private fun LoadedView(
         Spacer(Modifier.height(16.dp))
 
         //content preferences
-        Text("Content Preferences", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.content_preferences), style = MaterialTheme.typography.titleMedium)
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Allow NSFW")
+            Text(stringResource(R.string.allow_nsfw))
             Spacer(Modifier.weight(1f))
             Switch(checked = viewModel.allowNSFW, onCheckedChange = { viewModel.allowNSFW = it })
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Allow Political")
+            Text(stringResource(R.string.allow_political))
             Spacer(Modifier.weight(1f))
             Switch(checked = viewModel.allowPolitical, onCheckedChange = { viewModel.allowPolitical = it })
         }
@@ -180,14 +189,14 @@ private fun LoadedView(
         Spacer(Modifier.height(16.dp))
 
         //posts
-        Text("Posts", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.posts), style = MaterialTheme.typography.titleMedium)
 
         NavigationLinkWithIcon(
             onClick = {
                 val json = Uri.encode(Gson().toJson(AraMyPostViewModel.PostType.ALL))
                 navController.navigate(Channel.AraMyPostSettings.name + "?type_json=$json")
             },
-            text = "My Posts",
+            text = stringResource(R.string.my_posts),
             icon = painterResource(R.drawable.round_format_list_bulleted)
         )
 
@@ -196,7 +205,7 @@ private fun LoadedView(
                 val json = Uri.encode(Gson().toJson(AraMyPostViewModel.PostType.BOOKMARK))
                 navController.navigate(Channel.AraMyPostSettings.name + "?type_json=$json")
             },
-            text = "Bookmarked Posts",
+            text = stringResource(R.string.bookmarked_posts),
             icon = painterResource(R.drawable.bookmark_border)
         )
     }

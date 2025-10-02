@@ -41,10 +41,12 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun SettingsView(
@@ -56,7 +58,7 @@ fun SettingsView(
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
-                title = "Settings",
+                title = stringResource(R.string.settings),
                 onDismiss = { navController.navigate(Channel.Start.name) }
             )
         }) { innerPadding ->
@@ -66,7 +68,7 @@ fun SettingsView(
         ) {
             item {
                 Text(
-                    text = "Miscellaneous",
+                    text = stringResource(R.string.miscellaneous),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
@@ -79,35 +81,55 @@ fun SettingsView(
 
             item {
                 Text(
-                    text = "Services",
+                    text = stringResource(R.string.services),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
                 )
 
                 ServiceNavButton(
-                    "Ara",
+                    stringResource(R.string.ara),
                     painterResource(R.drawable.ara_logo)
                 ) { navController.navigate(Channel.AraSettings.name) }
 
                 ServiceNavButton(
-                    "Taxi",
+                    stringResource(R.string.taxi),
                     painterResource(R.drawable.taxi_logo)
                 ) { navController.navigate(Channel.TaxiSettings.name) }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
 
+            item{
+                Text(
+                    text = stringResource(R.string.information),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(8.dp)
+                )
+                ServiceNavButton(
+                    stringResource(R.string.privacy_policy),
+                    painterResource(R.drawable.outline_policy)
+                ){ val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.privacyPolicyURL)); context.startActivity(intent) }
+
+                ServiceNavButton(
+                    stringResource(R.string.terms_of_use),
+                    painterResource(R.drawable.outline_description)
+                ){ val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.termsOfUseURL)); context.startActivity(intent) }
+
+                VersionRow()
+
+                HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            }
+
             item {
                 Text(
-                    text = "Sign Out",
+                    text = stringResource(R.string.sign_out),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
                 )
                 SignOutButton { navController.navigate(Channel.SignOut.name) }
-
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
         }
     }
@@ -115,6 +137,14 @@ fun SettingsView(
 
 @Composable
 private fun AppSettings(context: Context) {
+    val currentLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        context.resources.configuration.locales[0]
+    } else {
+        @Suppress("DEPRECATION")
+        context.resources.configuration.locale
+    }
+
+    val languageDisplayName = currentLocale.displayLanguage
     val onClick = {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
@@ -155,13 +185,18 @@ private fun AppSettings(context: Context) {
         )
 
         Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = "Change Language",
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+        Column(modifier = Modifier.padding(vertical = 8.dp)){
+            Text(
+                text = stringResource(R.string.change_language),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = languageDisplayName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.grayBB
+            )
+        }
     }
 }
 
@@ -196,7 +231,7 @@ private fun FeedbackButton(context: Context) {
         Spacer(Modifier.width(8.dp))
 
         Text(
-            text = "Send Feedback",
+            text = stringResource(R.string.send_feedback),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -261,7 +296,7 @@ private fun SignOutButton(onClick: () -> Unit) {
         Spacer(Modifier.width(8.dp))
 
         Text(
-            text = "Sign Out",
+            text = stringResource(R.string.sign_out),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.error,
             modifier = Modifier.padding(vertical = 8.dp)
@@ -275,7 +310,11 @@ private fun ThemeSwitcherButton(
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val darkMode by settingsViewModel.darkModeSetting.collectAsState(initial = null)
-
+    val currentModeText = when (darkMode) {
+        true -> stringResource(R.string.dark_mode)
+        false -> stringResource(R.string.white_mode)
+        null -> stringResource(R.string.system_default)
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -291,12 +330,18 @@ private fun ThemeSwitcherButton(
 
         Spacer(Modifier.width(8.dp))
 
-        Text(
-            text = stringResource(R.string.dark_mode),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
+        Column(modifier = Modifier.padding(vertical = 8.dp)){
+            Text(
+                text = stringResource(R.string.dark_mode),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = currentModeText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.grayBB
+            )
+        }
     }
 
     if (showDialog) {
@@ -341,6 +386,47 @@ private fun ThemeSwitcherButton(
             },
             confirmButton = {},
             dismissButton = {}
+        )
+    }
+}
+
+@Composable
+private fun VersionRow() {
+    val context = LocalContext.current
+    val versionName = try {
+        val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        pInfo.versionName ?: "1.0"
+    } catch (e: Exception) {
+        "1.0"
+    }
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp)
+            .clickable {},
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.round_error_outline),
+            contentDescription = null
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        Text(
+            text = stringResource(R.string.app_version),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        Spacer(Modifier.weight(1f))
+
+        Text(
+            text = versionName,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.grayBB
         )
     }
 }

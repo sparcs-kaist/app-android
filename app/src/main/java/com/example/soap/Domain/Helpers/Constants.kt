@@ -4,6 +4,11 @@ object Constants {
     // MARK: Authorization
     val authorizationURL = "https://taxi.dev.sparcs.org/api/auth/sparcsapp/login?codeChallenge="
 
+
+    // MARK: Terms
+    val privacyPolicyURL = "https://github.com/sparcs-kaist/privacy/blob/main/Privacy.md"
+    val termsOfUseURL = "https://github.com/sparcs-kaist/privacy/blob/main/TermsOfUse.md"
+
     // MARK: Taxi
     val taxiBackendURL = "https://taxi.dev.sparcs.org/api/"
     val taxiSocketURL = "https://taxi.dev.sparcs.org/"
