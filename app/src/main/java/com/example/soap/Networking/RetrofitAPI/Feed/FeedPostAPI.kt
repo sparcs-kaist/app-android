@@ -40,4 +40,10 @@ interface FeedPostApi {
     suspend fun deleteVote(
         @Path("postID") postId: String
     ): Response<Unit>
+
+    @POST("posts/{postID}/report")
+    suspend fun reportPost(
+        @Path("postID") postID: String,
+        @Body body: Map<String, String> //reason, detail
+    ): Response<Unit>
 }

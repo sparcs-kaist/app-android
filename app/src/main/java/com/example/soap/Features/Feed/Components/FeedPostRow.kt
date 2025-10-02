@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import com.example.soap.Domain.Enums.FeedReportType
 import com.example.soap.Domain.Enums.FeedVoteType
 import com.example.soap.Domain.Models.Feed.FeedCreatePost
 import com.example.soap.Domain.Models.Feed.FeedPost
@@ -372,6 +373,7 @@ private fun Preview() {
                 override suspend fun deletePost(postID: String) {}
                 override suspend fun vote(postID: String, type: FeedVoteType) {}
                 override suspend fun deleteVote(postID: String) {}
+                override suspend fun reportPost(postID: String, reason: FeedReportType) {}
             }
         )
     }

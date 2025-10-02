@@ -59,6 +59,7 @@ fun PostNavigationBar(
 
         actions = {
             PostCommentActionsMenu(
+                enumClass = AraContentReportType::class,
                 isMine = isMine,
                 onDelete = onDelete,
                 onReport = onReport,
