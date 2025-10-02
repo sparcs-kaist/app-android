@@ -111,10 +111,10 @@ private fun Header(
         ProfileImage(comment)
         Spacer(Modifier.width(8.dp))
         Text(
-            text = if(comment.isAuthor) comment.authorName + " (Author)" else comment.authorName,
+            text = if (comment.isAuthor) comment.authorName + " (Author)" else comment.authorName,
             fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.bodyMedium,
-            color = if(comment.isAuthor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.scrim
+            color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.scrim
         )
 
         Text(

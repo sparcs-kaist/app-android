@@ -83,7 +83,8 @@ fun PostImagesStrip(images: List<FeedImage>) {
 
                             is AsyncImagePainter.State.Success -> {
                                 val size = state.painter.intrinsicSize
-                                val aspect = if (size.height > 0) size.width / size.height else 16f / 9f
+                                val aspect =
+                                    if (size.height > 0) size.width / size.height else 16f / 9f
                                 val fitWidth = height * aspect
                                 val clampedWidth = fitWidth.coerceIn(minW, maxW)
 
@@ -97,6 +98,7 @@ fun PostImagesStrip(images: List<FeedImage>) {
                                     contentScale = if (fitWidth in minW..maxW) ContentScale.Fit else ContentScale.Crop
                                 )
                             }
+
                             else -> {}
                         }
                     }
