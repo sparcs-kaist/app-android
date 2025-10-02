@@ -65,4 +65,7 @@
     <string name="timetable_add">시간표 추가</string>
     <string name="timetable_delete">시간표 삭제</string>
     <string name="taxi_room_creation">방 개설하기</string>
+    <string name="dark_mode">다크 모드</string>
+    <string name="system_default">시스템 기본 설정</string>
+    <string name="white_mode">화이트 모드</string>
 </resources>
