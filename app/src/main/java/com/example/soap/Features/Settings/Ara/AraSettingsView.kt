@@ -150,8 +150,12 @@ private fun LoadedView(
             value = viewModel.nickname,
             onValueChange = { viewModel.nickname = it },
             enabled = nicknameUpdatable,
+            label = { Text(stringResource(R.string.enter_nickname), color = MaterialTheme.colorScheme.grayBB) },
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions { onNicknameClick() },
+            keyboardActions = KeyboardActions(
+                onDone = { onNicknameClick() }
+            ),
+            singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
 
