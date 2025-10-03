@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,12 +48,16 @@ fun FeedView(
     val state by viewModel.state.collectAsState()
     val posts by viewModel.posts.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
+    var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        viewModel.fetchInitialData()
+        if(!loadedInitialPost.value) {
+            loadedInitialPost.value = true
+            viewModel.fetchInitialData()
+        }
     }
 
     Scaffold(
