@@ -97,7 +97,9 @@ class TaxiChatService @Inject constructor(
         }
 
         currentRoomId = roomId
-        val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
+
+        val chatsForRoom = mutableListOf<TaxiChat>()
+        roomChats[roomId] = chatsForRoom
 
         serviceScope.launch {
             _chatsFlow.emit(chatsForRoom)
