@@ -60,6 +60,8 @@ fun FeedCommentRow(
     feedCommentRepository: FeedCommentRepositoryProtocol,
 ) {
     var localComment by remember { mutableStateOf(comment) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -78,9 +80,23 @@ fun FeedCommentRow(
                 color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.padding(vertical = 4.dp)
             ) //TODO - 추가할지 말지 고민
-            Header(localComment, isMine, feedCommentRepository) { updated ->
-                localComment = updated
-            }
+            Header(
+                comment = localComment,
+                isMine = isMine,
+                onDelete = {
+                    coroutineScope.launch {
+                        localComment = localComment.copy(isDeleted = true)
+                        feedCommentRepository.deleteComment(localComment.id)
+                    }
+                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                },
+                onReport = {
+                    coroutineScope.launch {
+                        feedCommentRepository.reportComment(comment.id, it)
+                    }
+                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                }
+            )
 
             Content(localComment)
 
@@ -95,12 +111,10 @@ fun FeedCommentRow(
 private fun Header(
     comment: FeedComment,
     isMine: Boolean?,
-    repo: FeedCommentRepositoryProtocol,
-    update: (FeedComment) -> Unit,
+    onDelete: () -> Unit,
+    onReport: (FeedReportType) -> Unit,
 ) {
-    val coroutineScope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
-    val context = LocalContext.current
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         ProfileImage(comment)
@@ -128,22 +142,9 @@ private fun Header(
                 onEdit = {/*Todo - edit*/ },
                 onDelete = {
                     expanded = false
-                    coroutineScope.launch {
-                        val prev = comment.copy()
-                        update(comment.copy(isDeleted = true))
-                        try {
-                            repo.deleteComment(comment.id)
-                        } catch (e: Exception) {
-                            update(prev)
-                        }
-                    }
+                    onDelete()
                 },
-                onReport = {
-                    coroutineScope.launch {
-                        repo.reportComment(comment.id, it)
-                    }
-                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
-                },
+                onReport = onReport,
                 onTranslate = {/*Todo - translate*/ },
                 isComment = true
             )
