@@ -284,7 +284,6 @@ fun <T : Enum<T>> PostCommentActionsMenu(
                 }
             }
 
-
             DropdownMenuItem(
                 text = { Text("Translate") },
                 onClick = { onTranslate(); expanded = false },

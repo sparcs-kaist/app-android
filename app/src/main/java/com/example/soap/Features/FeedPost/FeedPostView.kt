@@ -63,7 +63,6 @@ import com.example.soap.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import com.example.soap.R
 import com.example.soap.ui.theme.lightGray0
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,6 +79,7 @@ fun FeedPostView(
     var isWritingCommentFocusState by remember { mutableStateOf(false) }
     var targetComment by remember { mutableStateOf<FeedComment?>(null) }
     var isRefreshing by remember { mutableStateOf(false) }
+    var isUploadingComment by remember { mutableStateOf(false) }
 
     val repo: FeedPostRepositoryProtocol = hiltViewModel<FeedViewModel>().feedPostRepository
     val repo1: FeedCommentRepositoryProtocol =
@@ -111,18 +111,41 @@ fun FeedPostView(
         },
         bottomBar = {
             InputBar(
-                post = post,
                 viewModel = viewModel,
                 targetComment = targetComment,
                 isWritingCommentFocusState = isWritingCommentFocusState,
-                onCommentUploaded = { uploadedComment ->
-                    post.value.commentCount += 1
-                    targetComment = null
-                    viewModel.text = ""
-                    isWritingCommentFocusState = false
+                onCommentUploaded = {
+                    if (viewModel.text.isEmpty()) return@InputBar
+                    isUploadingComment = true
+                    coroutineScope.launch {
+                        var uploadedComment: FeedComment?
+                        try {
+                            uploadedComment = if (targetComment != null) {
+                                viewModel.writeReply(targetComment!!.id)
+                            } else {
+                                viewModel.writeComment(post.value.id)
+                            }
+
+                            uploadedComment.let { comment ->
+                                post.value.commentCount += 1
+                                targetComment = null
+                                viewModel.text = ""
+                                isWritingCommentFocusState = false
+
+                                val index = viewModel.comments.indexOfFirst { it.id == comment.id }
+                                if (index != -1) {
+                                    proxy.animateScrollToItem(index)
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("FeedPostView", "Failed to upload comment", e)
+                        } finally {
+                            isUploadingComment = false
+                        }
+                    }
                 },
-                coroutineScope = coroutineScope,
-                focusRequester = focusRequester
+                focusRequester = focusRequester,
+                isUploadingComment = isUploadingComment
             )
         }
     ) { innerPadding ->
@@ -197,15 +220,13 @@ fun FeedPostView(
 
 @Composable
 private fun InputBar(
-    post: MutableState<FeedPost>,
     viewModel: FeedPostViewModelProtocol,
     targetComment: FeedComment?,
     isWritingCommentFocusState: Boolean,
-    onCommentUploaded: (FeedComment?) -> Unit,
-    coroutineScope: CoroutineScope,
+    onCommentUploaded: () -> Unit,
     focusRequester: FocusRequester,
+    isUploadingComment: Boolean
 ) {
-    var isUploadingComment by remember { mutableStateOf(false) }
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
     Row(
         modifier = Modifier
@@ -274,24 +295,7 @@ private fun InputBar(
                 MoveToLeftFadeIn(viewModel.text.isNotEmpty()) {
 
                     Button(
-                        onClick = {
-                            if (viewModel.text.isEmpty()) return@Button
-                            isUploadingComment = true
-                            coroutineScope.launch {
-                                var uploadedComment: FeedComment? = null
-                                try {
-                                    uploadedComment = if (targetComment != null) {
-                                        viewModel.writeReply(targetComment.id)
-                                    } else {
-                                        viewModel.writeComment(post.value.id)
-                                    }
-                                } catch (e: Exception) {
-                                    Log.e("FeedPostView", "Failed to upload comment", e)
-                                }
-                                onCommentUploaded(uploadedComment)
-                            }
-                            isUploadingComment = false
-                        },
+                        onClick = onCommentUploaded,
                         enabled = !isUploadingComment
                     ) {
                         if (isUploadingComment) {
