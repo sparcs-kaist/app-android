@@ -36,6 +36,7 @@ class MainActivity : ComponentActivity() {
             val useDarkTheme = darkMode ?: isSystemInDarkTheme()
 
             Theme(darkTheme = useDarkTheme) {
+
                 val isAuthenticated by viewModel.isAuthenticated.collectAsState()
                 val isLoading by viewModel.isLoading.collectAsState()
 

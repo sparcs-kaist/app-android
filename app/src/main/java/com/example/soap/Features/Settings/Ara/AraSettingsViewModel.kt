@@ -35,7 +35,7 @@ class AraSettingsViewModel @Inject constructor(
     override var allowNSFW by mutableStateOf(false)
     override var allowPolitical by mutableStateOf(false)
 
-    override var nickname: String = ""
+    override var nickname by  mutableStateOf("")
 
     override val nicknameUpdatable: Boolean
         get() = nicknameUpdatableFrom?.let { it <= Date() } ?: true

@@ -111,7 +111,7 @@ fun PostImagesStrip(images: List<FeedImage>) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Spoiler",
+                                text = "Show Spoiler",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White
                             )

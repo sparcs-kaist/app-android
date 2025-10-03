@@ -108,4 +108,5 @@
     <string name="terms_of_service">이용 약관</string>
     <string name="close">닫기</string>
     <string name="bank_name">계좌</string>
+    <string name="enter_nickname">닉네임을 입력해주세요.</string>
 </resources>
