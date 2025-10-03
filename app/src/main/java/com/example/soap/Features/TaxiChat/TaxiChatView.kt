@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -127,6 +128,7 @@ fun TaxiChatView(
     val context = LocalContext.current
 
     val room = viewModel.room.collectAsState().value ?: return
+    val listState = remember(room.id) { LazyListState() }
 
     LaunchedEffect(room.id) {
         try {
@@ -236,7 +238,8 @@ fun TaxiChatView(
                     topChatID = topChatID,
                     isLoadingMore = isLoadingMore,
                     modifier = Modifier.fillMaxSize(),
-                    coroutineScope = coroutineScope
+                    coroutineScope = coroutineScope,
+                    listState
                 )
             }
         }
@@ -336,10 +339,10 @@ fun ContentView(
     topChatID: MutableState<String?>,
     isLoadingMore: MutableState<Boolean>,
     modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
+    listState: LazyListState
 ) {
     val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
-    val listState = rememberLazyListState()
 
     val flattenedChats = groupedChats.flatMap { it.chats }
     val previousCount = remember { mutableStateOf(flattenedChats.size) }
@@ -349,6 +352,7 @@ fun ContentView(
         }
         previousCount.value = flattenedChats.size
     }
+
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -362,14 +366,14 @@ fun ContentView(
                     .fillMaxWidth()
                     .height(1.dp)
                     .onGloballyPositioned {
-                        loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
+//                        loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
                     }
             )
         }
 
         var previousDate: LocalDate? = null
 
-        items(groupedChats, key = { it.id }) { group ->
+        items(groupedChats, key = { it.authorID + "_" + it.id }) { group ->
 
             val currentDate = group.time.toLocalDate()
 
@@ -861,7 +865,8 @@ fun PreviewContentView() {
             onCommitPayment = {},
             topChatID = remember { mutableStateOf(null) },
             isLoadingMore = remember { mutableStateOf(false) },
-            coroutineScope = rememberCoroutineScope()
+            coroutineScope = rememberCoroutineScope(),
+            listState = rememberLazyListState()
         )
     }
 }
