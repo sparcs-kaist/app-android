@@ -110,7 +110,7 @@ class TaxiChatUseCase @Inject constructor(
                 val filtered = newChats.filter { it.roomID == room.id }
                 if (filtered.isEmpty()) return@onEach
 
-                val merged = (_accumulatedChats + filtered)
+                val merged = ( filtered + _accumulatedChats )
                     .distinctBy { it.id }
 
                 _accumulatedChats.clear()
