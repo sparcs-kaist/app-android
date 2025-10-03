@@ -53,13 +53,7 @@ fun AraMyPostView(
     val searchKeyword by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
-    val backStackEntry = navController.currentBackStackEntry!!
     val type = viewModel.type
-
-    LaunchedEffect(Unit) {
-        val json = Gson().toJson(type)
-        backStackEntry.savedStateHandle["type_json"] = json
-    }
 
     LaunchedEffect(type) {
         if (!loadedInitialPosts) {
