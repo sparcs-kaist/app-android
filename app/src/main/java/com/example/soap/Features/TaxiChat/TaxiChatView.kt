@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -54,6 +53,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -61,7 +61,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -98,6 +97,7 @@ import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 
@@ -128,7 +128,6 @@ fun TaxiChatView(
     val context = LocalContext.current
 
     val room = viewModel.room.collectAsState().value ?: return
-    val listState = remember(room.id) { LazyListState() }
 
     LaunchedEffect(room.id) {
         try {
@@ -238,8 +237,7 @@ fun TaxiChatView(
                     topChatID = topChatID,
                     isLoadingMore = isLoadingMore,
                     modifier = Modifier.fillMaxSize(),
-                    coroutineScope = coroutineScope,
-                    listState
+                    coroutineScope = coroutineScope
                 )
             }
         }
@@ -339,20 +337,52 @@ fun ContentView(
     topChatID: MutableState<String?>,
     isLoadingMore: MutableState<Boolean>,
     modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope,
-    listState: LazyListState
+    coroutineScope: CoroutineScope
 ) {
-    val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
 
-    val flattenedChats = groupedChats.flatMap { it.chats }
-    val previousCount = remember { mutableStateOf(flattenedChats.size) }
-    LaunchedEffect(flattenedChats.size) {
-        if (flattenedChats.size > previousCount.value) {
-            listState.animateScrollToItem(flattenedChats.lastIndex)
-        }
-        previousCount.value = flattenedChats.size
+    val listState = rememberLazyListState()
+
+    val previousItemCount = remember { mutableStateOf(0) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .distinctUntilChanged()
+            .collect { (index, offset) ->
+                if (!isLoadingMore.value && index == 0) {
+                    loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
+                }
+            }
     }
 
+    val taxiUser by viewModel.taxiUser.collectAsState(initial = null)
+
+    val isInitialLoad = remember { mutableStateOf(true) }
+    val previousFirstVisibleIndex = remember { mutableStateOf(0) }
+    val previousFirstVisibleOffset = remember { mutableStateOf(0) }
+
+    LaunchedEffect(groupedChats) {
+        val flattenedChats = groupedChats.flatMap { it.chats }
+
+        if (isInitialLoad.value) {
+            if (flattenedChats.isNotEmpty()) {
+                listState.scrollToItem(flattenedChats.lastIndex)
+            }
+            isInitialLoad.value = false
+        } else {
+            val firstVisibleIndex = listState.firstVisibleItemIndex
+            val firstVisibleOffset = listState.firstVisibleItemScrollOffset
+            val addedItems = flattenedChats.size - previousFirstVisibleIndex.value
+
+            if (addedItems > 0 && firstVisibleIndex > 0) {
+                listState.scrollToItem(
+                    previousFirstVisibleIndex.value + addedItems,
+                    previousFirstVisibleOffset.value
+                )
+            }
+            previousFirstVisibleIndex.value = firstVisibleIndex
+            previousFirstVisibleOffset.value = firstVisibleOffset
+        }
+    }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
@@ -360,20 +390,9 @@ fun ContentView(
         state = listState
     ) {
 
-        item {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .onGloballyPositioned {
-//                        loadMoreIfNeeded(viewModel, topChatID, isLoadingMore, coroutineScope)
-                    }
-            )
-        }
-
         var previousDate: LocalDate? = null
 
-        items(groupedChats, key = { it.authorID + "_" + it.id }) { group ->
+        items(groupedChats, key = { it.id }) { group ->
 
             val currentDate = group.time.toLocalDate()
 
@@ -763,19 +782,26 @@ fun loadMoreIfNeeded(
     coroutineScope: CoroutineScope,
 ) {
     if (isLoadingMore.value) return
-    val oldestDate =
-        viewModel.groupedChats.value.firstOrNull()?.chats?.firstOrNull()?.time ?: return
+
+    val firstGroup = viewModel.groupedChats.value.firstOrNull() ?: return
+    val oldestChat = firstGroup.chats.firstOrNull() ?: return
+    val oldestDate = oldestChat.time
+
     if (viewModel.fetchedDateSet.contains(oldestDate)) return
 
-    topChatID.value = viewModel.groupedChats.value.firstOrNull()?.id
+    topChatID.value = firstGroup.id
     viewModel.fetchedDateSet.add(oldestDate)
     isLoadingMore.value = true
 
     coroutineScope.launch {
-        viewModel.fetchChats(before = oldestDate)
-        isLoadingMore.value = false
+        try {
+            viewModel.fetchChats(before = oldestDate)
+        } finally {
+            isLoadingMore.value = false
+        }
     }
 }
+
 
 fun openKakaoT(context: Context, viewModel: TaxiChatViewModelProtocol) {
     val url = "kakaot://taxi/set?" +
@@ -865,8 +891,7 @@ fun PreviewContentView() {
             onCommitPayment = {},
             topChatID = remember { mutableStateOf(null) },
             isLoadingMore = remember { mutableStateOf(false) },
-            coroutineScope = rememberCoroutineScope(),
-            listState = rememberLazyListState()
+            coroutineScope = rememberCoroutineScope()
         )
     }
 }
