@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -33,10 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.Domain.Models.TimeTable.Lecture
-import com.example.soap.Domain.Models.TimeTable.gradeLetter
-import com.example.soap.Domain.Models.TimeTable.loadLetter
-import com.example.soap.Domain.Models.TimeTable.speechLetter
+import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
@@ -57,15 +53,15 @@ fun LectureReviews(lecture: Lecture){
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LectureSummaryRow(title = stringResource(R.string.grade), description = lecture.gradeLetter)
-
-            Spacer(Modifier.weight(1f))
-
-            LectureSummaryRow(title = stringResource(R.string.load), description = lecture.loadLetter)
-
-            Spacer(Modifier.weight(1f))
-
-            LectureSummaryRow(title = stringResource(R.string.speech), description = lecture.speechLetter)
+//            LectureSummaryRow(title = stringResource(R.string.grade), description = lecture.gradeLetter)
+//
+//            Spacer(Modifier.weight(1f))
+//
+//            LectureSummaryRow(title = stringResource(R.string.load), description = lecture.loadLetter)
+//
+//            Spacer(Modifier.weight(1f))
+//
+//            LectureSummaryRow(title = stringResource(R.string.speech), description = lecture.speechLetter)
 
             Spacer(Modifier.weight(1f))
 
@@ -134,7 +130,7 @@ fun ReviewCard(lecture: Lecture) {
 
                 Box {
                     Icon(
-                        imageVector = Icons.Default.MoreVert,
+                        painter = painterResource(R.drawable.more_horiz),
                         contentDescription = "More",
                         modifier = Modifier.clickable { expanded = true }
                     )

@@ -1,4 +1,4 @@
-package com.example.soap.Domain.Models.TimeTable
+package com.example.soap.Domain.Models.OTL
 
 import com.example.soap.Domain.Enums.SemesterType
 import java.util.Date
@@ -15,7 +15,7 @@ data class Semester(
         get() = "$year-${semesterType}"
 
     val description: String
-        get() = "${semesterType} $year"
+        get() = "$year ${semesterType.rawValue}"
 
     override fun compareTo(other: Semester): Int {
         return if (this.year != other.year) {

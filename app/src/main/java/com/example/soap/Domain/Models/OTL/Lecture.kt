@@ -1,11 +1,10 @@
-package com.example.soap.Domain.Models.TimeTable
+package com.example.soap.Domain.Models.OTL
 
 import androidx.compose.ui.graphics.Color
 import com.example.soap.Domain.Enums.LectureType
 import com.example.soap.Domain.Enums.SemesterType
 import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Helpers.TimetableColorPalette
-import kotlin.math.roundToInt
 
 // Background color for TimetableGridCell
 val Lecture.backgroundColor: Color
@@ -29,7 +28,7 @@ data class Lecture(
     val year: Int,
     val semester: SemesterType,
     val title: LocalizedString,
-    val department: LocalizedString,
+    val department: Department,
     val isEnglish: Boolean,
     val credit: Int,
     val creditAu: Int,
@@ -47,26 +46,3 @@ data class Lecture(
 ){
     companion object{}
 }
-
-private fun Lecture.calculateWeightedAverage(value: Double, withCredits: Boolean = true ): Double {
-      val denominator = credit + creditAu
-    return if (denominator > 0) {
-        value
-    } else {
-        0.0
-    }
-}
-
-private fun Lecture.letter(forValue: Double): String {
-    val index = forValue.roundToInt()
-    return Timetable.letters.getOrNull(index) ?: "?"
-}
-
-val Lecture.gradeLetter: String
-    get() = letter(forValue = this.grade)
-
-val Lecture.loadLetter: String
-    get() = letter(forValue = this.load)
-
-val Lecture.speechLetter: String
-    get() = letter(forValue = this.speech)

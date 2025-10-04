@@ -49,4 +49,6 @@ object Constants {
     // MARK: Feed
     val feedBackendURL = "https://app.dev.sparcs.org/v1/"
 
+    // MARK: OTL
+    val otlBackendURL = "https://api.otl.dev.sparcs.org/"
 }
