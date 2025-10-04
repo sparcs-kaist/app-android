@@ -17,6 +17,30 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface UserUseCaseProtocol {
+
+    val araUser: AraUser?
+    val taxiUser: TaxiUser?
+    val feedUser: FeedUser?
+    val otlUser: OTLUser?
+
+    suspend fun fetchUsers()
+
+    @Throws(Exception::class)
+    suspend fun fetchAraUser()
+
+    @Throws(Exception::class)
+    suspend fun updateAraUser(params: Map<String, Any>)
+
+    @Throws(Exception::class)
+    suspend fun fetchFeedUser()
+
+    suspend fun fetchTaxiUser(): TaxiUser
+
+    @Throws(Exception::class)
+    suspend fun fetchOTLUser()
+}
+
 @Singleton
 class UserUseCase @Inject constructor(
     private val taxiUserRepository: TaxiUserRepositoryProtocol,
