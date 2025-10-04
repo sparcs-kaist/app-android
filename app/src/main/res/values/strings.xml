@@ -2,7 +2,7 @@
     <string name="app_name" translatable="false">soap</string>
 
 
-    <string name="start">Home</string>
+    <string name="start">Feed</string>
     <string name="trending_board">Trending</string>
     <string name="notice_board">Notice</string>
     <string name="timetable">Timetable</string>
@@ -23,7 +23,7 @@
     <string name="enter_the_title">Please enter the title</string>
     <string name="enter_the_description">What\'s happening</string>
     <string name="no_flair">No flair</string>
-    <string name="sppangs">SPPANGS</string>
+    <string name="spangs">SPANGS</string>
     <string name="meal">Meal</string>
     <string name="money">Money</string>
     <string name="gaming">Gaming</string>
@@ -77,12 +77,53 @@
     <string name="taxichatlistview" translatable="false">TaxiChatListView</string>
     <string name="ara_chat_view" translatable="false">AraChatView</string>
     <string name="user_post_list_view" translatable="false">UserPostListView</string>
-    <string name="sign_out" translatable="false">SignOut</string>
-    <string name="settings" translatable="false">Settings</string>
-    <string name="taxi_settings" translatable="false">Taxi Settings</string>
-    <string name="ara_settings" translatable="false">Ara Settings</string>
-    <string name="otl_settings" translatable="false">OTL Settings</string>
+    <string name="feed_post_view" translatable="false">FeedPost</string>
+    <string name="feed_post_compose_view" translatable="false">FeedPostComposeView</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="settings">Settings</string>
+    <string name="taxi_settings">Taxi Settings</string>
+    <string name="ara_settings">Ara Settings</string>
+    <string name="otl_settings">OTL Settings</string>
     <string name="ara_my_post_settings" translatable="false">My Posts</string>
     <string name="taxi_report_settings" translatable="false">Taxi Report Settings</string>
     <string name="taxi_report_view" translatable="false">TaxiReportView</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="system_default">System default</string>
+    <string name="white_mode">White Mode</string>
+    <string name="miscellaneous">Miscellaneous</string>
+    <string name="ara">Ara</string>
+    <string name="services">Services</string>
+    <string name="change_language">Change Language</string>
+    <string name="send_feedback">Send Feedback</string>
+    <string name="app_version">App Version</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="my_posts">My Posts</string>
+    <string name="bookmarked">Bookmarked</string>
+    <string name="no_results">No Results</string>
+    <string name="no_results_for">No results for %1$s</string>
+    <string name="allow_nsfw">Allow NSFW</string>
+    <string name="allow_political">Allow Political</string>
+    <string name="posts">Posts</string>
+    <string name="bookmarked_posts">Bookmarked Posts</string>
+    <string name="you_cant_change_nickname_until">You can\'t change nickname until %1$s.</string>
+    <string name="profile">Profile</string>
+    <string name="nicknames_can_only_be_changed_every_3_months">Nicknames can only be changed every 3 months.</string>
+    <string name="content_preferences">Content Preferences</string>
+    <string name="reason">Reason</string>
+    <string name="other_reasons">Other reasons</string>
+    <string name="not_showing_up">Not showing up</string>
+    <string name="no_settlement">No settlement</string>
+    <string name="nickname">Nickname</string>
+    <string name="date">Date</string>
+    <string name="report_reason">Reason</string>
+    <string name="taxi_reports">Taxi Reports</string>
+    <string name="no_reports">No Reports</string>
+    <string name="done">Done</string>
+    <string name="enter_bank_number">Enter Bank Number</string>
+    <string name="enter_phone_number">Enter Phone Number</string>
+    <string name="report_details">Report Details</string>
+    <string name="terms_of_service">Terms of Service</string>
+    <string name="close">Close</string>
+    <string name="bank_name">Bank Name</string>
+    <string name="enter_nickname">Enter Nickname</string>
 </resources>

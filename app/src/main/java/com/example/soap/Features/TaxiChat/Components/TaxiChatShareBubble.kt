@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiChat.Components
 
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,14 +19,20 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Domain.Helpers.Constants
+import com.example.soap.Domain.Models.Taxi.TaxiRoom
+import com.example.soap.Shared.Extensions.formattedString
+import com.example.soap.Shared.Mocks.mock
 import java.util.Date
 
 @Composable
 fun TaxiChatShareBubble(
-    share: () -> Unit
+    room: TaxiRoom
 ) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .background(
@@ -41,7 +48,19 @@ fun TaxiChatShareBubble(
             style = MaterialTheme.typography.bodyMedium
         )
         Button(
-            onClick = share,
+            onClick = {
+                val shareUrl = "${Constants.taxiInviteURL}${room.id}"
+                val shareMessage = "🚕 Looking for someone to ride with on ${room.departAt.formattedString()} from ${room.source.title} to ${room.destination.title}! 🚕\n$shareUrl"
+
+                val sendIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, shareMessage)
+                    type = "text/plain"
+                }
+
+                val shareIntent = Intent.createChooser(sendIntent, null)
+                context.startActivity(shareIntent)
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
@@ -72,8 +91,6 @@ private fun Preview() {
         isGeneral = false,
         isWithdrawn = false
     ) {
-        TaxiChatShareBubble {
-            println("share sheet goes here")
-        }
+        TaxiChatShareBubble(room = TaxiRoom.mock())
     }
 }

@@ -1,5 +1,6 @@
 package com.example.soap.Features.TaxiPreview
 
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.background
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiPreview.Components.InfoRow
@@ -168,27 +170,35 @@ fun TaxiPreviewView(
             InfoRow(label = "Depart at", value = room.departAt.formattedString())
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                IconButton(onClick = {/*Todo-share*/}) {
+                IconButton(onClick = {
+                    val shareUrl = "${Constants.taxiInviteURL}${room.id}"
+                    val shareMessage = "🚕 Looking for someone to ride with on ${room.departAt.formattedString()} from ${room.source.title} to ${room.destination.title}! 🚕\n$shareUrl"
+
+                    val sendIntent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, shareMessage)
+                        type = "text/plain"
+                    }
+
+                    val shareIntent = Intent.createChooser(sendIntent, null)
+                    context.startActivity(shareIntent)
+                }) {
                     Icon(Icons.Default.Share, contentDescription = "Share")
                 }
 
                 Button(
                     onClick = {
                         scope.launch {
-                            if (viewModel.isJoined(room.participants)) {
-                                //이미 참가한 방인 경우 채팅으로 바로가기
+                            try {
+                                viewModel.joinRoom(
+                                    id = room.id
+                                )
+                                onDismiss()
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
-                            } else {
-                                try {
-                                    viewModel.joinRoom(
-                                        id = room.id
-                                    )
-                                    onDismiss()
-                                } catch (e: Exception) {
-                                    errorMessage = e.message ?: "Unknown error"
-                                    showError = true
-                                }
+                            } catch (e: Exception) {
+                                errorMessage = e.message ?: "Unknown error"
+                                showError = true
                             }
                         }
                     },

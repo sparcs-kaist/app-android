@@ -15,7 +15,7 @@ interface AraUserRepositoryProtocol {
 }
 
 class AraUserRepository @Inject constructor(
-    private val api: AraUserApi
+    private val api: AraUserApi,
 ) : AraUserRepositoryProtocol {
 
     override suspend fun register(ssoInfo: String): AraSignInResponseDTO {

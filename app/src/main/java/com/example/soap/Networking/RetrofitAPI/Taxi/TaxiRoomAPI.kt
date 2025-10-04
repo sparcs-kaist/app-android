@@ -1,6 +1,6 @@
 package com.example.soap.Networking.RetrofitAPI.Taxi
 
-import com.example.soap.Networking.RequestDTO.TaxiCreateRoomRequestDTO
+import com.example.soap.Networking.RequestDTO.Taxi.TaxiCreateRoomRequestDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiLocationResponseDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiMyRoomsResponseDTO
 import com.example.soap.Networking.ResponseDTO.Taxi.TaxiRoomDTO

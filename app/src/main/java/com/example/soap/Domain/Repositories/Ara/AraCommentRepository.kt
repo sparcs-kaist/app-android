@@ -47,7 +47,7 @@ class FakeAraCommentRepository : AraCommentRepositoryProtocol {
 }
 
 class AraCommentRepository @Inject constructor(
-    private val araCommentApi: AraCommentApi
+    private val araCommentApi: AraCommentApi,
 ) : AraCommentRepositoryProtocol {
 
     override suspend fun upVoteComment(commentID: Int) {

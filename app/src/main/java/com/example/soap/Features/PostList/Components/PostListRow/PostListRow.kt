@@ -53,7 +53,6 @@ fun PostListRow(
                 Spacer(Modifier.width(4.dp))
             }
 
-
             Text(
                 text = title(post),
                 style = MaterialTheme.typography.titleMedium,

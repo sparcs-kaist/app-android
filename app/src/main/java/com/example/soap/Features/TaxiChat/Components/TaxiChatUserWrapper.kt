@@ -5,7 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -81,7 +80,7 @@ fun TaxiChatUserWrapper(
                 Column(
                     horizontalAlignment = if (isMe) Alignment.End else Alignment.Start,
                     verticalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier = Modifier.width(intrinsicSize = IntrinsicSize.Max)
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     content()
                 }
@@ -222,6 +221,7 @@ private fun Preview() {
             ) {
                 TaxiChatBubble(content = "same here", showTip = false, isMe = true)
                 TaxiChatBubble(content = "just working through emails", showTip = true, isMe = true)
+                TaxiChatBubble(content = "just working emails", showTip = true, isMe = true)
             }
         }
     }

@@ -42,6 +42,18 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             isValid = true,
             inOutNames = emptyList()
         ),
+        TaxiChat(
+            roomID = roomID,
+            type = TaxiChat.ChatType.TEXT,
+            authorID = "user1",
+            authorName = "Alice",
+            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorIsWithdrew = false,
+            content = "Hello!",
+            time = Date(baseDate.time - 3500_000),
+            isValid = true,
+            inOutNames = emptyList()
+        ),
         // Bob enters
         TaxiChat(
             roomID = roomID,

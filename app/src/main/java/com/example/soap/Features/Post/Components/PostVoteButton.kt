@@ -28,7 +28,8 @@ fun PostVoteButton(
     myVote: Boolean?,
     votes: Int,
     onDownVote: () -> Unit,
-    onUpVote: () -> Unit
+    onUpVote: () -> Unit,
+    enabled: Boolean
 ) {
     val upvoteImage = if (myVote == true) R.drawable.icon_arrowup else R.drawable.icon_arrowup //filled, outlined
     val downvoteImage = if (myVote == false) R.drawable.icon_arrowdown else R.drawable.icon_arrowdown //filled, outlined
@@ -56,7 +57,7 @@ fun PostVoteButton(
                 tint = if (myVote == true) upVoteColor else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .size(20.dp)
-                    .clickable { onUpVote() }
+                    .clickable { if(enabled) onUpVote() }
             )
             AnimatedContent(
                 targetState = votes,
@@ -82,7 +83,7 @@ fun PostVoteButton(
             painter = painterResource(downvoteImage),
             contentDescription = "DownVote",
             tint = if (myVote == false) downVoteColor else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(20.dp).clickable { onDownVote() }
+            modifier = Modifier.size(20.dp).clickable { if(enabled) onDownVote() }
         )
 
     }
@@ -92,5 +93,5 @@ fun PostVoteButton(
 @Composable
 @Preview
 private fun Preview(){
-    Theme { PostVoteButton(true, 2, {}, {}) }
+    Theme { PostVoteButton(true, 2, {}, {}, true) }
 }

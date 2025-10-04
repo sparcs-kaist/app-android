@@ -97,7 +97,9 @@ class TaxiChatService @Inject constructor(
         }
 
         currentRoomId = roomId
-        val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
+
+        val chatsForRoom = mutableListOf<TaxiChat>()
+        roomChats[roomId] = chatsForRoom
 
         serviceScope.launch {
             _chatsFlow.emit(chatsForRoom)
@@ -144,15 +146,17 @@ class TaxiChatService @Inject constructor(
             }
         }
 
-
         socket?.on("chat_push_front") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
+            val roomId = firstArg.optString("roomId", null) ?: currentRoomId ?: return@on
             val chatArray = (firstArg.optJSONArray("chats") ?: JSONArray()).let { array ->
                 (0 until array.length()).mapNotNull { i -> array.optJSONObject(i)?.toMap() }
             }
             val newChats = parseChatArray(chatArray)
-            chats.addAll(0, newChats)
-            serviceScope.launch { _chatsFlow.emit(chats) }
+            val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
+
+            chatsForRoom.addAll(0, newChats)
+            serviceScope.launch { _chatsFlow.emit(chatsForRoom) }
         }
 
         socket?.on("chat_push_back") { args ->

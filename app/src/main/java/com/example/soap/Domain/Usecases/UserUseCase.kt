@@ -3,8 +3,10 @@ package com.example.soap.Domain.Usecases
 import android.util.Log
 import com.example.soap.Domain.Helpers.UserStorageProtocol
 import com.example.soap.Domain.Models.Ara.AraUser
+import com.example.soap.Domain.Models.Feed.FeedUser
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +19,7 @@ import javax.inject.Singleton
 class UserUseCase @Inject constructor(
     private val taxiUserRepository: TaxiUserRepositoryProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
+    private val feedUserRepository: FeedUserRepositoryProtocol,
     private val userStorage: UserStorageProtocol
 ) : UserUseCaseProtocol {
 
@@ -31,8 +34,8 @@ class UserUseCase @Inject constructor(
     override val araUser: AraUser?
         get() = runBlocking { userStorage.getAraUser() }
 
-//    override val feedUser: FeedUser?
-//        get() = runBlocking { userStorage.getFeedUser() }
+    override val feedUser: FeedUser?
+        get() = runBlocking { userStorage.getFeedUser() }
 
     override val taxiUser: TaxiUser?
         get() = runBlocking { userStorage.getTaxiUser() }
@@ -41,7 +44,7 @@ class UserUseCase @Inject constructor(
         try {
             fetchTaxiUser()
             fetchAraUser()
-//            fetchFeedUser()
+            fetchFeedUser()
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -75,10 +78,10 @@ class UserUseCase @Inject constructor(
         return user
     }
 
-//    override suspend fun fetchFeedUser() {
-//        Log.d("UserUseCase","Fetching Feed User")
-//        val user = feedUserRepository.fetchUser()
-//        userStorage.setFeedUser(user)
-//        Log.d("UserUseCase", user.toString())
-//    }
+    override suspend fun fetchFeedUser() {
+        Log.d("UserUseCase","Fetching Feed User")
+        val user = feedUserRepository.getUser()
+        userStorage.setFeedUser(user)
+        Log.d("UserUseCase", user.toString())
+    }
 }
