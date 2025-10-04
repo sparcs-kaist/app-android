@@ -23,6 +23,23 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface AuthUseCaseProtocol {
+    val isAuthenticatedFlow: Flow<Boolean>
+
+    @Throws(Exception::class)
+    suspend fun signIn(activity: Activity)
+
+    @Throws(Exception::class)
+    suspend fun signOut()
+
+    fun getAccessToken(): String?
+
+    @Throws(Exception::class)
+    suspend fun getValidAccessToken(): String
+
+    @Throws(Exception::class)
+    suspend fun refreshAccessTokenIfNeeded()
+}
 
 @Singleton
 class AuthUseCase @Inject constructor(

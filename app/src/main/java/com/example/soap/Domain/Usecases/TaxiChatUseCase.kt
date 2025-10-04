@@ -26,6 +26,19 @@ import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
+interface TaxiChatUseCaseProtocol {
+    val groupedChatsFlow: Flow<List<TaxiChatGroup>>
+    val roomUpdateFlow: Flow<TaxiRoom>
+    val accountChats: List<TaxiChat>
+
+    fun setRoom(room: TaxiRoom)
+    suspend fun fetchInitialChats()
+    suspend fun fetchChats(before: Date)
+    suspend fun sendChat(content: String?, type: TaxiChat.ChatType)
+    suspend fun sendImage(content: Bitmap)
+    fun switchRoom(newRoomId: String)
+}
+
 class TaxiChatUseCase @Inject constructor(
     private val taxiChatService: TaxiChatService,
     private val userUseCase: UserUseCase,
