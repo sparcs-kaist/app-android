@@ -194,7 +194,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             val mockVm = TimetableViewModel(timetableUseCase = MockTimetableUseCase())
             composable(
                 route = Channel.TimeTable.name
-            ) { TimetableView(viewModel =  mockVm,navController = navController) }
+            ) { backStackEntry ->
+                val viewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
+                TimetableView(viewModel =  viewModelImpl,navController = navController)
+            }
 
             composable(
                 route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",   enterTransition = trendingEnterTransition(),
