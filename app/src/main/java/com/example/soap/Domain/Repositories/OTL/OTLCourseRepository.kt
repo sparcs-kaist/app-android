@@ -1,13 +1,13 @@
 package com.example.soap.Domain.Repositories.OTL
 
 import com.example.soap.Domain.Models.OTL.Course
-import com.example.soap.Domain.Models.OTL.CourseReview
+import com.example.soap.Domain.Models.OTL.LectureReview
 import com.example.soap.Networking.RetrofitAPI.OTL.OTLCourseApi
 import javax.inject.Inject
 
 interface OTLCourseRepositoryProtocol {
     suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course>
-    suspend fun getCourseReview(courseId: Int, offset: Int, limit: Int): List<CourseReview>
+    suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview>
     suspend fun likeReview(reviewId: Int)
     suspend fun unlikeReview(reviewId: Int)
 }
@@ -21,8 +21,8 @@ class OTLCourseRepository @Inject constructor(
         return response.map { it.toModel() }
     }
 
-    override suspend fun getCourseReview(courseId: Int, offset: Int, limit: Int): List<CourseReview> {
-        val response = api.getCourseReview(courseId, offset, limit)
+    override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> {
+        val response = api.fetchReviews(courseId, offset, limit)
         return response.map { it.toModel() }
     }
 
