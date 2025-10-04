@@ -28,6 +28,9 @@ data class LectureReviewDTO(
     @SerialName("speech")
     val speech: Int,
 
+    @SerialName("is_deleted")
+    val isDeleted: Int,
+
     @SerialName("userspecific_is_liked")
     val isLiked: Boolean
 ) {
@@ -40,6 +43,7 @@ data class LectureReviewDTO(
         grade = grade,
         load = load,
         speech = speech,
+        isDeleted = isDeleted != 0,
         isLiked = isLiked
     )
 }
