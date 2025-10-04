@@ -21,6 +21,17 @@ import kotlinx.coroutines.launch
 import java.util.Date
 import javax.inject.Inject
 
+interface TaxiReportViewModelProtocol {
+    val room: StateFlow<TaxiRoom>
+    val selectedUser: StateFlow<TaxiParticipant?>
+    val selectedReason: StateFlow<TaxiReport.Reason?>
+    val maxEtcDetailsLength: Int
+    var etcDetails: String
+
+    fun setSelectedUser(user: TaxiParticipant?)
+    fun setSelectedReason(reason: TaxiReport.Reason?)
+    suspend fun createReport(roomID: String)
+}
 
 @HiltViewModel
 class TaxiReportViewModel @Inject constructor(
