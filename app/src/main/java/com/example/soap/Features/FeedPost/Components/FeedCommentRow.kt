@@ -3,6 +3,7 @@ package com.example.soap.Features.FeedPost.Components
 import PostCommentActionsMenu
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,7 +29,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -88,7 +95,7 @@ fun FeedCommentRow(
                         localComment = localComment.copy(isDeleted = true)
                         feedCommentRepository.deleteComment(localComment.id)
                     }
-                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "삭제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
                 },
                 onReport = {
                     coroutineScope.launch {
@@ -181,11 +188,49 @@ private fun Content(comment: FeedComment) {
     val text = if (comment.isDeleted) "This comment has been deleted." else comment.content
     val color =
         if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+    var expanded by remember { mutableStateOf(false) }
+    var isOverflowing by remember { mutableStateOf(false) }
+    var hasMeasured by remember { mutableStateOf(false) }
+    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+
+    val moreColor = MaterialTheme.colorScheme.grayBB
+
+    val displayText = remember(text, expanded, isOverflowing) {
+        if (expanded || !isOverflowing) {
+            AnnotatedString(text)
+        } else {
+            val visibleEnd =
+                textLayoutResult?.getLineEnd(2, visibleEnd = true) ?: text.length
+            val safeEnd = visibleEnd.coerceAtMost(text.length)
+            val visibleText = text.substring(0, safeEnd).trimEnd()
+            buildAnnotatedString {
+                append(visibleText)
+                append("… ")
+                withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
+                    append("More")
+                }
+            }
+        }
+    }
+
     Text(
-        text = text,
+        text = displayText,
         color = color,
         style = MaterialTheme.typography.bodyMedium,
-        modifier = Modifier.padding(vertical = 8.dp)
+        maxLines = if (!expanded) 4 else Int.MAX_VALUE,
+        overflow = TextOverflow.Ellipsis,
+        onTextLayout = { layoutResult ->
+            if (!hasMeasured && !expanded) {
+                hasMeasured = true
+                isOverflowing = layoutResult.hasVisualOverflow
+                textLayoutResult = layoutResult
+            }
+        },
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .clickable {
+                if (!expanded && isOverflowing && !comment.isDeleted) expanded = true
+            }
     )
 }
 
