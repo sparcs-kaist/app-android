@@ -1,6 +1,7 @@
 package com.example.soap.Features.Feed.Components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,7 +29,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -148,13 +155,48 @@ fun Content(
     post: FeedPost,
     singleLine: Boolean,
 ) {
+    var expanded by remember { mutableStateOf(false) }
+    var isOverflowing by remember { mutableStateOf(false) }
+    var hasMeasured by remember { mutableStateOf(false) }
+    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+    val moreColor = MaterialTheme.colorScheme.grayBB
+
+    val displayText = remember(post.content, expanded, isOverflowing) {
+        if (expanded || !isOverflowing) {
+            AnnotatedString(post.content)
+        } else {
+            val visibleEnd = textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
+            val safeEnd = visibleEnd.coerceAtMost(post.content.length)
+            val visibleText = post.content.substring(0, safeEnd).trimEnd()
+            buildAnnotatedString {
+                append(visibleText)
+                append("… ")
+                withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
+                    append("More")
+                }
+            }
+        }
+    }
+
     Text(
-        text = post.content,
-        modifier = Modifier.padding(horizontal = 16.dp),
-        maxLines = if (singleLine) 1 else Int.MAX_VALUE,
-        overflow = TextOverflow.Ellipsis
+        text = displayText,
+        maxLines = if (singleLine && !expanded) 2 else Int.MAX_VALUE,
+        overflow = TextOverflow.Ellipsis,
+        onTextLayout = { layoutResult ->
+            if (!hasMeasured && singleLine && !expanded) {
+                hasMeasured = true
+                isOverflowing = layoutResult.hasVisualOverflow
+                textLayoutResult = layoutResult
+            }
+        },
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .clickable {
+                if (!expanded && isOverflowing) expanded = true
+            }
     )
-    if (post.images.isNotEmpty()) {
+
+if (post.images.isNotEmpty()) {
         PostImagesStrip(images = post.images)
     }
 }
