@@ -2,13 +2,12 @@ package com.example.soap.Features.Timetable
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Domain.Models.OTL.Semester
 import com.example.soap.Domain.Models.OTL.Timetable
 import com.example.soap.Domain.Usecases.TimetableUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -18,7 +17,6 @@ import javax.inject.Inject
 class TimetableViewModel @Inject constructor(
     private val timetableUseCase: TimetableUseCaseProtocol
 ): ViewModel() {
-    private val scope = CoroutineScope(Dispatchers.Main)
 
     val isLoading = MutableStateFlow(false)
 
@@ -44,7 +42,7 @@ class TimetableViewModel @Inject constructor(
 
     // MARK: - Functions
     fun fetchData() {
-        scope.launch {
+        viewModelScope.launch {
             isLoading.value = true
             try {
                 timetableUseCase.load()
@@ -86,11 +84,41 @@ class TimetableViewModel @Inject constructor(
     }
 
     fun createTable() {
-        scope.launch {
+        viewModelScope.launch {
             try {
                 timetableUseCase.createTable()
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error creating table", e)
+            }
+        }
+    }
+
+    fun deleteTable() {
+        viewModelScope.launch {
+            try {
+                timetableUseCase.deleteTable()
+            } catch (e: Exception) {
+                Log.e("TimetableViewModel", "Error deleting table", e)
+            }
+        }
+    }
+
+    fun addLecture(lecture: Lecture) {
+        viewModelScope.launch {
+            try {
+                timetableUseCase.addLecture(lecture)
+            } catch (e: Exception) {
+                Log.e("TimetableViewModel", "Error adding lecture", e)
+            }
+        }
+    }
+
+    fun deleteLecture(lecture: Lecture) {
+        viewModelScope.launch {
+            try {
+                timetableUseCase.deleteLecture(lecture)
+            } catch (e: Exception) {
+                Log.e("TimetableViewModel", "Error deleting lecture", e)
             }
         }
     }

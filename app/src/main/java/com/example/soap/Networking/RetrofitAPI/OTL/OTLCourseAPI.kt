@@ -1,7 +1,7 @@
 package com.example.soap.Networking.RetrofitAPI.OTL
 
 import com.example.soap.Networking.ResponseDTO.OTL.CourseDTO
-import com.example.soap.Networking.ResponseDTO.OTL.CourseReviewDTO
+import com.example.soap.Networking.ResponseDTO.OTL.LectureReviewDTO
 import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -18,11 +18,11 @@ interface OTLCourseApi {
     ): List<CourseDTO>
 
     @GET("/api/courses/{courseId}/reviews")
-    suspend fun getCourseReview(
+    suspend fun fetchReviews(
         @Path("courseId") courseId: Int,
         @Query("offset") offset: Int,
         @Query("limit") limit: Int
-    ): List<CourseReviewDTO>
+    ): List<LectureReviewDTO>
 
     @POST("/api/reviews/{reviewId}/like")
     suspend fun likeReview(@Path("reviewId") reviewId: Int): Response<Unit>
