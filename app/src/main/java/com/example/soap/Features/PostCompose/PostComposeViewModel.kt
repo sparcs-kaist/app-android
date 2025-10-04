@@ -25,6 +25,23 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+interface PostComposeViewModelProtocol {
+    val board: AraBoard
+    var selectedTopic: AraBoardTopic?
+    var title: String
+    var content: String
+    var selectedItems: List<Uri>
+    var selectedImages: List<Bitmap>
+
+    var writeAsAnonymous: Boolean
+    var isNSFW: Boolean
+    var isPolitical: Boolean
+
+    suspend fun writePost()
+    suspend fun updateSelectedImages(context: Context)
+    fun removeImage(index: Int)
+}
+
 @HiltViewModel
 class PostComposeViewModel @Inject constructor(
     private val araBoardRepository: AraBoardRepositoryProtocol,
