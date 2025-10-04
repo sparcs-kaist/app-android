@@ -37,7 +37,6 @@ import com.example.soap.Shared.Extensions.toLocalDate
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.gray64
 import java.time.DayOfWeek
-import java.time.LocalDate
 import java.util.Date
 
 @Composable
@@ -71,8 +70,8 @@ fun WeekDaySelector(
             .height(60.dp)
     ) {
         if (selectedBounds != null) {
-            val day = selectedDate?.toLocalDate() ?: LocalDate.now()
-            val boxColor = when (day.dayOfWeek) {
+            val day = selectedDate?.toLocalDate()
+            val boxColor = when (day?.dayOfWeek) {
                 DayOfWeek.SUNDAY -> Color(0xFFDA4A45)
                 DayOfWeek.SATURDAY -> Color(0xFF45A7DA)
                 else -> MaterialTheme.colorScheme.gray64
@@ -111,7 +110,6 @@ fun WeekDaySelector(
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
                 Text(
                     text = "All",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
