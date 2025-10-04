@@ -16,10 +16,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Enums.TaxiReportType
 import com.example.soap.Domain.Models.Taxi.TaxiReport
+import com.example.soap.R
 import com.example.soap.Shared.Extensions.formattedString
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
@@ -38,23 +40,23 @@ fun TaxiReportDetailRow(
             .padding(8.dp)
     ) {
         when (report.reason) {
-            TaxiReport.Reason.ETC_REASON -> RowElementView(title = "Reason", content = "Other reasons")
-            TaxiReport.Reason.NO_SHOW -> RowElementView(title = "Reason", content = "Not showing up")
-            TaxiReport.Reason.NO_SETTLEMENT -> RowElementView(title = "Reason", content = "No settlement")
+            TaxiReport.Reason.ETC_REASON -> RowElementView(title = stringResource(R.string.report_reason), content = stringResource(R.string.other_reasons))
+            TaxiReport.Reason.NO_SHOW -> RowElementView(title = stringResource(R.string.report_reason), content = stringResource(R.string.not_showing_up))
+            TaxiReport.Reason.NO_SETTLEMENT -> RowElementView(title = stringResource(R.string.report_reason), content = stringResource(R.string.no_settlement))
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         if (reportType == TaxiReportType.OUTGOING) {
-            RowElementView(title = "Nickname", content = report.reportedUser.nickname)
+            RowElementView(title = stringResource(R.string.nickname), content = report.reportedUser.nickname)
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        RowElementView(title = "Date", content = report.time.formattedString())
+        RowElementView(title = stringResource(R.string.date), content = report.time.formattedString())
         Spacer(modifier = Modifier.height(4.dp))
 
         if (report.reason == TaxiReport.Reason.ETC_REASON) {
-            RowElementView(title = "Other reasons", content = report.etcDetails)
+            RowElementView(title = stringResource(R.string.other_reasons), content = report.etcDetails)
         }
     }
 }

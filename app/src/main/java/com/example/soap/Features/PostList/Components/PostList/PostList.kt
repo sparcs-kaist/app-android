@@ -16,10 +16,12 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.lightGray0
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun PostList(
@@ -75,10 +78,26 @@ private fun LoadedView(
     onPostDisappear: (Int) -> Unit,
     isRefreshing: Boolean
 ) {
+
     var isLoadingMore by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
-    //TODO postDisappear
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .distinctUntilChanged()
+            .collect { lastVisibleIndex ->
+                val totalItems = listState.layoutInfo.totalItemsCount
+                if (!isLoadingMore && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
+                    isLoadingMore = true
+                    try {
+                        onLoadMore()
+                    } finally {
+                        isLoadingMore = false
+                    }
+                }
+            }
+    }
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,

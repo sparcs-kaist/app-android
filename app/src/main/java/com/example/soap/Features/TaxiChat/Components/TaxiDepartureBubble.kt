@@ -47,8 +47,7 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "⏰ It's 15 minutes before your taxi leaves! If everyone's gathered, go ahead and call the taxi to head out together.",
-            style = MaterialTheme.typography.bodyLarge
+            text = "⏰ It's 15 minutes before your taxi leaves! If everyone's gathered, go ahead and call the taxi to head out together."
         )
 
         Button(

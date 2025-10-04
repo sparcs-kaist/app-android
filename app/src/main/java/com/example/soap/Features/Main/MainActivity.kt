@@ -6,10 +6,12 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.example.soap.Domain.Services.AuthenticationCallbackHandler
 import com.example.soap.Features.NavigationBar.MainTabBar
+import com.example.soap.Features.Settings.SettingsViewModel
 import com.example.soap.Features.SignIn.SignInView
 import com.example.soap.ui.theme.Theme
 import dagger.hilt.android.AndroidEntryPoint
@@ -19,6 +21,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
+    private val settingsViewModel: SettingsViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,12 +32,16 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-            Theme {
+            val darkMode by settingsViewModel.darkModeSetting.collectAsState(initial = null)
+            val useDarkTheme = darkMode ?: isSystemInDarkTheme()
+
+            Theme(darkTheme = useDarkTheme) {
+
                 val isAuthenticated by viewModel.isAuthenticated.collectAsState()
                 val isLoading by viewModel.isLoading.collectAsState()
 
                 when {
-                    isLoading -> {}
+                    isLoading -> {/*TODO 아이콘 로딩 화면*/}
                     isAuthenticated == true -> {
                         MainTabBar()
                     }

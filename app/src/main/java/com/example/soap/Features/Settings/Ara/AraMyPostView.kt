@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -19,6 +19,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,8 +32,10 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.PostList.Components.PostList.PostList
 import com.example.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
+import com.example.soap.R
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.ContentViews.ErrorView
+import com.example.soap.Shared.Views.ContentViews.UnavailableView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.lightGray0
 import com.google.gson.Gson
@@ -49,13 +53,7 @@ fun AraMyPostView(
     val searchKeyword by remember { mutableStateOf("") }
 
     val coroutineScope = rememberCoroutineScope()
-    val backStackEntry = navController.currentBackStackEntry!!
     val type = viewModel.type
-
-    LaunchedEffect(Unit) {
-        val json = Gson().toJson(type)
-        backStackEntry.savedStateHandle["type_json"] = json
-    }
 
     LaunchedEffect(type) {
         if (!loadedInitialPosts) {
@@ -67,7 +65,7 @@ fun AraMyPostView(
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
-                title = if (type == AraMyPostViewModel.PostType.ALL) "My Posts" else "Bookmarked",
+                title = if (type == AraMyPostViewModel.PostType.ALL) stringResource(R.string.my_posts) else stringResource(R.string.bookmarked),
                 onDismiss = { navController.popBackStack() },
                 isSearchEnabled = true
             )
@@ -119,7 +117,14 @@ private fun MyPostView(
     navController: NavController
 ) {
     if (searchKeyword.isNotEmpty() && posts.isEmpty()) {
-        Text("No results for \"$searchKeyword\"")
+        UnavailableView(
+            icon = painterResource(R.drawable.search),
+            title = stringResource(R.string.no_results),
+            description = stringResource(
+                id = R.string.no_results_for,
+                searchKeyword
+            )
+        )
     } else {
         when (state) {
             is AraMyPostViewModel.ViewState.Loading -> LoadingView()
@@ -130,7 +135,11 @@ private fun MyPostView(
                 onPostDisappear = onPostDisappear,
                 navController = navController
             )
-            is AraMyPostViewModel.ViewState.Error -> Text("Error: ${state.message}")
+            is AraMyPostViewModel.ViewState.Error -> ErrorView(
+                icon = Icons.Default.Warning,
+                errorMessage = state.message,
+                onRetry = onRefresh
+            )
         }
     }
 }

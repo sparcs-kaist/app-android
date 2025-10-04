@@ -11,6 +11,14 @@ import com.example.soap.Domain.Repositories.Ara.AraCommentRepository
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import com.example.soap.Domain.Repositories.Ara.AraUserRepository
 import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedCommentRepository
+import com.example.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedImageRepository
+import com.example.soap.Domain.Repositories.Feed.FeedImageRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedPostRepository
+import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedUserRepository
+import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepository
 import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
@@ -29,6 +37,10 @@ import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraCommentApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraUserApi
 import com.example.soap.Networking.RetrofitAPI.AuthApi
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedCommentApi
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedImageApi
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedPostApi
+import com.example.soap.Networking.RetrofitAPI.Feed.FeedUserApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiReportApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
@@ -44,13 +56,9 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import javax.inject.Named
 import javax.inject.Singleton
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
+
 
 /**
  * NetworkModule
@@ -129,48 +137,7 @@ object NetworkModule {
         gson: Gson,
         tokenStorage: TokenStorageProtocol
     ): Retrofit {
-//        val okHttpClient = OkHttpClient.Builder()
-//            .addInterceptor { chain ->
-//                val original = chain.request()
-//                val accessToken = runBlocking { tokenStorage.getAccessToken() }
-//                val newRequest = original.newBuilder()
-//                    .header("Origin", "sparcsapp")
-//                    .header("Content-Type", "application/json")
-//                    .apply {
-//                        accessToken?.let {
-//                            header("Authorization", "Bearer $it")
-//                        }
-//                    }
-//                    .build()
-//                chain.proceed(newRequest)
-//            }
-//            .addInterceptor(HttpLoggingInterceptor().apply {
-//                level = HttpLoggingInterceptor.Level.BODY
-//            })
-//            .build()
-
-        return Retrofit.Builder()
-            .baseUrl(Constants.araBackendURL)
-            .client(getUnsafeOkHttpClient(tokenStorage)) // 개발 서버 URL
-//            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-    }
-
-    fun getUnsafeOkHttpClient(tokenStorage: TokenStorageProtocol): OkHttpClient {
-        val trustAllCerts = arrayOf<TrustManager>(object : X509TrustManager {
-            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {}
-            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {}
-            override fun getAcceptedIssuers(): Array<X509Certificate> = arrayOf()
-        })
-
-        val sslContext = SSLContext.getInstance("SSL")
-        sslContext.init(null, trustAllCerts, SecureRandom())
-        val sslSocketFactory = sslContext.socketFactory
-
-        return OkHttpClient.Builder()
-            .sslSocketFactory(sslSocketFactory, trustAllCerts[0] as X509TrustManager)
-            .hostnameVerifier { _, _ -> true }
+        val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
@@ -189,8 +156,47 @@ object NetworkModule {
                 level = HttpLoggingInterceptor.Level.BODY
             })
             .build()
+
+        return Retrofit.Builder()
+            .baseUrl(Constants.araBackendURL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
     }
 
+    @Provides
+    @Singleton
+    @Named("FeedBackend")
+    fun feedBackEndURL(
+        gson: Gson,
+        tokenStorage: TokenStorageProtocol
+    ): Retrofit {
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val accessToken = runBlocking { tokenStorage.getAccessToken() }
+                val newRequest = original.newBuilder()
+                    .header("Origin", "sparcsapp")
+                    .header("Content-Type", "application/json")
+                    .apply {
+                        accessToken?.let {
+                            header("Authorization", "Bearer $it")
+                        }
+                    }
+                    .build()
+                chain.proceed(newRequest)
+            }
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(Constants.feedBackendURL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+    }
 
     @Provides
     @Singleton
@@ -238,6 +244,30 @@ object NetworkModule {
     @Singleton
     fun provideAraUserApi(@Named("AraBackend") retrofit: Retrofit): AraUserApi {
         return retrofit.create(AraUserApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedCommentApi(@Named("FeedBackend") retrofit: Retrofit): FeedCommentApi {
+        return retrofit.create(FeedCommentApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedUserApi(@Named("FeedBackend") retrofit: Retrofit): FeedUserApi {
+        return retrofit.create(FeedUserApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedImageApi(@Named("FeedBackend") retrofit: Retrofit): FeedImageApi {
+        return retrofit.create(FeedImageApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideFeedPostApi(@Named("FeedBackend") retrofit: Retrofit): FeedPostApi {
+        return retrofit.create(FeedPostApi::class.java)
     }
 }
 
@@ -293,6 +323,30 @@ abstract class RepositoryModule {
     abstract fun bindAraUserRepository(
         impl: AraUserRepository
     ): AraUserRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedCommentRepository(
+        impl: FeedCommentRepository
+    ): FeedCommentRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedUserRepository(
+        impl: FeedUserRepository
+    ): FeedUserRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedImageRepository(
+        impl: FeedImageRepository
+    ): FeedImageRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedPostRepository(
+        impl: FeedPostRepository
+    ): FeedPostRepositoryProtocol
 }
 
 @Module

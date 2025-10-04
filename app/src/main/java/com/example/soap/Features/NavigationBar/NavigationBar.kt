@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -42,8 +43,16 @@ import androidx.navigation.navArgument
 import androidx.navigation.navigation
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
+import com.example.soap.Features.Feed.FeedView
+import com.example.soap.Features.Feed.FeedViewModel
+import com.example.soap.Features.Feed.FeedViewModelProtocol
+import com.example.soap.Features.FeedPost.FeedPostView
+import com.example.soap.Features.FeedPost.FeedPostViewModel
+import com.example.soap.Features.FeedPost.FeedPostViewModelProtocol
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeView
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModel
+import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
 import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
-import com.example.soap.Features.Home.HomeView
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
@@ -51,7 +60,6 @@ import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransit
 import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.example.soap.Features.NavigationBar.Components.AddButton
 import com.example.soap.Features.NavigationBar.Components.ChatButton
-import com.example.soap.Features.NavigationBar.Components.NotificationButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.Post.PostViewModel
 import com.example.soap.Features.Post.PostViewModelProtocol
@@ -67,9 +75,6 @@ import com.example.soap.Features.Settings.Ara.AraMyPostViewModelProtocol
 import com.example.soap.Features.Settings.Ara.AraSettingsView
 import com.example.soap.Features.Settings.Ara.AraSettingsViewModel
 import com.example.soap.Features.Settings.Ara.AraSettingsViewModelProtocol
-import com.example.soap.Features.Settings.OTL.OTLSettingsView
-import com.example.soap.Features.Settings.OTL.OTLSettingsViewModel
-import com.example.soap.Features.Settings.OTL.OTLSettingsViewModelProtocol
 import com.example.soap.Features.Settings.SettingsView
 import com.example.soap.Features.Settings.Taxi.TaxiReportListView
 import com.example.soap.Features.Settings.Taxi.TaxiReportListViewModel
@@ -78,6 +83,7 @@ import com.example.soap.Features.Settings.Taxi.TaxiSettingsView
 import com.example.soap.Features.Settings.Taxi.TaxiSettingsViewModel
 import com.example.soap.Features.Settings.Taxi.TaxiSettingsViewModelProtocol
 import com.example.soap.Features.SignIn.SignInView
+import com.example.soap.Features.SignIn.SignInViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatView
 import com.example.soap.Features.TaxiChat.TaxiChatViewModel
 import com.example.soap.Features.TaxiChat.TaxiChatViewModelProtocol
@@ -100,6 +106,8 @@ import com.example.soap.ui.theme.Theme
 enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
     Start(title = R.string.start),
+    FeedPost(title = R.string.feed_post_view),
+    FeedPostCompose(title = R.string.feed_post_compose_view),
     TimeTable(title = R.string.timetable),
     Taxi(title = R.string.taxi),
     BoardList(title = R.string.general_board),
@@ -119,8 +127,7 @@ enum class Channel(@StringRes val title: Int) {
     TaxiSettings(title = R.string.taxi_settings),
     TaxiReportSettings(title = R.string.taxi_report_settings),
     AraSettings(title = R.string.ara_settings),
-    AraMyPostSettings(title = R.string.ara_my_post_settings),
-    OTLSettings(title = R.string.otl_settings)
+    AraMyPostSettings(title = R.string.ara_my_post_settings)
 }
 
 @Composable
@@ -143,8 +150,44 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         ) {
             composable(
                 route = Channel.Start.name,
-            ) { HomeView(navController) }
+            ) { backStackEntry ->
+                val viewModelImpl: FeedViewModel = hiltViewModel(backStackEntry)
+                val viewModel: FeedViewModelProtocol = viewModelImpl
+                FeedView(navController = navController, viewModel = viewModel)
+            }
 
+            composable(
+                route = Channel.FeedPost.name + "?feed_json={feed_json}",
+                arguments = listOf(
+                    navArgument("feed_json") {
+                        type = NavType.StringType
+                        nullable = false
+                    }
+                ),
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ) { backStackEntry ->
+                val viewModelImpl: FeedPostViewModel = hiltViewModel(backStackEntry)
+                val viewModel: FeedPostViewModelProtocol = viewModelImpl
+                FeedPostView(navController = navController, viewModel = viewModel)
+            }
+
+            composable(
+                route = Channel.FeedPostCompose.name,
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ) { backStackEntry ->
+                val viewModelImpl: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
+                val viewModel: FeedPostComposeViewModelProtocol = viewModelImpl
+
+                FeedPostComposeView(navController = navController, viewModel = viewModel)
+            }
+
+//            }
             /*___________OTL___________*/
             composable(
                 route = Channel.TimeTable.name
@@ -200,7 +243,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     )
                 }
 
-
                 composable(
                     route = Channel.TaxiChatView.name + "?room_json={room_json}",
                     arguments = listOf(
@@ -237,7 +279,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     )
                 ) { backStackEntry ->
                     val viewModelImpl: TaxiReportViewModel = hiltViewModel(backStackEntry)
-                    TaxiReportView(viewModelImpl, navController) }
+                    TaxiReportView(viewModelImpl, navController)
+                }
             }
 
             /*___________Ara___________*/
@@ -331,14 +374,15 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) {
-               // SearchView()
+                // SearchView()
             }
 
             composable(
                 route = Channel.SignOut.name
-            ) {
-                SignInView()
-                //TODO - viewmodel-reset token
+            ) { backStackEntry ->
+                val viewModelImpl: SignInViewModel = hiltViewModel(backStackEntry)
+                LaunchedEffect(Unit) { viewModelImpl.authUseCase.signOut() }
+                SignInView(viewModelImpl)
             }
 
             /*___________Settings___________*/
@@ -346,11 +390,9 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 startDestination = Channel.Settings.name,
                 route = "SettingsGraph"
             ) {
-
                 composable(
                     route = Channel.Settings.name
                 ) { SettingsView(navController = navController) }
-
 
                 composable(
                     route = Channel.AraSettings.name
@@ -369,7 +411,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             nullable = false
                         }
                     )
-                ) {backStackEntry ->
+                ) { backStackEntry ->
                     val viewModelImpl: AraMyPostViewModel = hiltViewModel(backStackEntry)
                     val viewModel: AraMyPostViewModelProtocol = viewModelImpl
 
@@ -402,15 +444,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         navController = navController
                     )
                 }
-
-                composable(
-                    route = Channel.OTLSettings.name
-                ) { backStackEntry ->
-                    val viewModelImpl: OTLSettingsViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: OTLSettingsViewModelProtocol = viewModelImpl
-
-                    OTLSettingsView(viewModel = viewModel, navController = navController)
-                }
             }
         }
     }
@@ -423,7 +456,7 @@ fun AppBar(
     currentScreen: Channel,
     scrollOffset: Int = 0,
     navController: NavController = rememberNavController(),
-    isButtonEnabled: Boolean = true
+    isButtonEnabled: Boolean = true,
 ) {
     val elevationDp by animateDpAsState(
         if (scrollOffset > 0) 4.dp else 0.dp,
@@ -432,7 +465,7 @@ fun AppBar(
 
     TopAppBar(
         title = {
-            Row{
+            Row {
                 Text(
                     text = stringResource(currentScreen.title),
                     style = MaterialTheme.typography.displaySmall,
@@ -443,31 +476,41 @@ fun AppBar(
         actions = {
             when (currentScreen) {
                 Channel.Start -> {
-                    NotificationButton()
+                    AddButton(
+                        contentDescription = "Create Feed",
+                        onClick = { navController.navigate(Channel.FeedPostCompose.name) }
+                    )
                     HomeViewDropDownMenu(
                         onClickSettings = { navController.navigate(Channel.Settings.name) },
-                        onClickSignOut = { navController.navigate(Channel.SignOut.name) }
+                        onClickNotification = {  }
                     )
                 }
+
                 Channel.TimeTable -> {
                     AddButton(
                         contentDescription = "Add Timetable",
                         onClick = {}
                     )
                 }
+
                 Channel.Taxi -> {
-                    if(isButtonEnabled) {
+                    if (isButtonEnabled) {
                         AddButton(
                             contentDescription = "Create Taxi Room",
-                            onClick = { navController.navigate(Channel.TaxiRoomCreation.name){
-                                launchSingleTop = true} }
+                            onClick = {
+                                navController.navigate(Channel.TaxiRoomCreation.name) {
+                                    launchSingleTop = true
+                                }
+                            }
                         )
                     }
-                    ChatButton(onClick = {navController.navigate(Channel.TaxiChatListView.name)} )
+                    ChatButton(onClick = { navController.navigate(Channel.TaxiChatListView.name) })
                 }
+
                 Channel.Boards -> {
-                    ChatButton(onClick = {navController.navigate(Channel.AraChatView.name)})
+                    ChatButton(onClick = { navController.navigate(Channel.AraChatView.name) })
                 }
+
                 else -> {}
             }
         },
@@ -480,15 +523,18 @@ fun AppBar(
 }
 
 
-
 @Composable
 fun AppDownBar(
     navController: NavController,
-    currentScreen: Channel
+    currentScreen: Channel,
 ) {
     val items = listOf(
-        Triple(Channel.Start, stringResource(Channel.Start.title), R.drawable.round_home),
-        Triple(Channel.Boards, stringResource(Channel.Boards.title), R.drawable.round_format_list_bulleted),
+        Triple(Channel.Start, stringResource(Channel.Start.title), R.drawable.round_feed),
+        Triple(
+            Channel.Boards,
+            stringResource(Channel.Boards.title),
+            R.drawable.round_format_list_bulleted
+        ),
         Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), R.drawable.timetable),
         Triple(Channel.Taxi, stringResource(Channel.Taxi.title), R.drawable.taxi),
         Triple(null, stringResource(R.string.search), R.drawable.search)
@@ -518,7 +564,7 @@ fun AppDownBar(
                         label = { Text(label) },
                         colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
                     )
-                }else{
+                } else {
                     NavigationBarItem(
                         selected = false,
                         onClick = {},
@@ -533,16 +579,14 @@ fun AppDownBar(
                     )
                 }
             }
-
         }
     }
 }
 
 
-
 @Preview
 @Composable
-private fun Preview(){
+private fun Preview() {
     Theme {
         MainTabBar()
     }
@@ -551,15 +595,17 @@ private fun Preview(){
 
 @Preview
 @Composable
-private fun AppBarPreview(){
-   Theme { AppBar(
-       currentScreen = Channel.Start
-   ) }
+private fun AppBarPreview() {
+    Theme {
+        AppBar(
+            currentScreen = Channel.Start
+        )
+    }
 }
 
 @Preview
 @Composable
-private fun AppDownBarPreview(){
+private fun AppDownBarPreview() {
     Theme {
         AppDownBar(
             navController = rememberNavController(),

@@ -3,6 +3,7 @@ package com.example.soap.Features.Post
 import PostCommentCell
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +51,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -117,7 +119,7 @@ fun PostView(
     var alertMessage by remember { mutableStateOf("") }
 
     val post by viewModel.post.collectAsState()
-
+    val context = LocalContext.current
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
     }
@@ -130,6 +132,7 @@ fun PostView(
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { type ->
                     scope.launch{ viewModel.report(type) }
+                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
                            },
                 onTranslate = {
                     showTranslationView = true
@@ -393,6 +396,7 @@ private fun Footer(
     post: AraPost,
     onCommentClick: () -> Unit,
 ) {
+    val context = LocalContext.current
     Row(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -400,17 +404,16 @@ private fun Footer(
         PostVoteButton(
             myVote = post.myVote,
             votes = post.upVotes - post.downVotes,
-            onUpVote = {
-                if (post.isMine == false) scope.launch { viewModel.upVote() }
-            },
-            onDownVote = { if (post.isMine == false) scope.launch { viewModel.downVote() } }
+            onUpVote = { scope.launch{ viewModel.upVote() } },
+            onDownVote = { scope.launch{ viewModel.downVote() } },
+            enabled = post.isMine == false
         )
         PostCommentButton(commentCount = post.commentCount) { onCommentClick() }
         Spacer(Modifier.weight(1f))
         PostBookmarkButton(
             post.myScrap,
             onToggleBookmark = { scope.launch { viewModel.toggleBookmark() } })
-        PostShareButton()
+        PostShareButton(url = "https://newara.dev.sparcs.org/post/${post.id}", context = context)
     }
 }
 
@@ -519,7 +522,6 @@ fun InputBar(
             .navigationBarsPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         // comment textfield
         Column(Modifier.weight(1f)) {
             if (commentOnEdit != null) {
@@ -547,7 +549,6 @@ fun InputBar(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-
                 MoveToLeftFadeOut(showProfile) { profilePicture() }
                 Box(
                     modifier = Modifier
@@ -561,8 +562,7 @@ fun InputBar(
                         onValueChange = {
                             onCommentChange(it)
                         },
-                        modifier = Modifier
-                            .focusRequester(focusRequester),
+                        modifier = Modifier.focusRequester(focusRequester),
                         maxLines = 6,
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                         cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),

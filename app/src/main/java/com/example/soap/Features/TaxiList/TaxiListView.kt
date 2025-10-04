@@ -150,15 +150,10 @@ fun TaxiListView(
                         week = viewModel.week,
                         selectedDate = selectedDate,
                         onSelect = { newDate ->
-                            selectedDate = if (selectedDate == newDate) {
-                                null
-                            } else {
-                                newDate
-                            }
+                            selectedDate = newDate
                             viewModel.selectedDate = selectedDate
                         }
                     )
-
                 }
 
                 Spacer(Modifier.padding(16.dp))

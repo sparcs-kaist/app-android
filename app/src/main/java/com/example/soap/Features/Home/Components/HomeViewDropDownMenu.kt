@@ -34,7 +34,7 @@ import com.example.soap.ui.theme.lightGray0
 @Composable
 fun HomeViewDropDownMenu(
     onClickSettings: () -> Unit,
-    onClickSignOut: () -> Unit
+    onClickNotification: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -58,10 +58,9 @@ fun HomeViewDropDownMenu(
     ) {
         Column {
             DropDownItems(
-                text = "Settings",
-                icon = R.drawable.round_settings
-            ) { onClickSettings() }
-
+                text = "Notification",
+                icon = R.drawable.baseline_notifications
+            ) { onClickNotification() }
 
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.lightGray0,
@@ -69,10 +68,9 @@ fun HomeViewDropDownMenu(
             )
 
             DropDownItems(
-                text = "Sign out",
-                icon = R.drawable.round_logout,
-                color = MaterialTheme.colorScheme.error
-            ) { onClickSignOut() }
+                text = "Settings",
+                icon = R.drawable.round_settings
+            ) { onClickSettings() }
         }
     }
 }
@@ -82,14 +80,15 @@ private fun DropDownItems(
     text: String,
     icon: Int,
     color: Color = MaterialTheme.colorScheme.onSurface,
-    onClick: () -> Unit
-){
+    onClick: () -> Unit,
+) {
     DropdownMenuItem(
         text = {
             Text(
                 text = text,
                 color = color
-            ) },
+            )
+        },
         onClick = { onClick() },
         leadingIcon = {
             Icon(
@@ -103,13 +102,13 @@ private fun DropDownItems(
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme {
-        Box(Modifier.fillMaxSize()){
+        Box(Modifier.fillMaxSize()) {
             Button(
                 onClick = {}
             ) {
-                HomeViewDropDownMenu({},{})
+                HomeViewDropDownMenu({}, {})
             }
         }
     }

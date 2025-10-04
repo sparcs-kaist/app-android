@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -37,6 +36,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -47,10 +48,12 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.Features.Settings.Components.TaxiReportDetailRow
 import com.example.soap.Features.Settings.Components.TaxiReportDetailSkeletonRow
+import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.ViewModelMocks.MockTaxiReportListViewModel
 import com.example.soap.Shared.Views.ContentViews.ErrorView
+import com.example.soap.Shared.Views.ContentViews.UnavailableView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.CoroutineScope
@@ -73,7 +76,7 @@ fun TaxiReportListView(
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
-                title = "Taxi Reports",
+                title = stringResource(R.string.taxi_reports),
                 onDismiss = { navController.navigate(Channel.TaxiSettings.name )}
             )
         }
@@ -133,20 +136,20 @@ private fun LoadedView(
 
     ReportViewList(
         reports = reports,
-        reportType = taxiReportType,
-        onRefresh = { coroutineScope.launch { viewModel.fetchReports() } }
+        reportType = taxiReportType
     )
 }
 
 @Composable
 private fun ReportViewList(
     reports: List<TaxiReport>,
-    reportType: TaxiReportType,
-    onRefresh: () -> Unit
+    reportType: TaxiReportType
     )
 {
     if (reports.isEmpty()) {
-        ErrorView(Icons.Default.Clear, "No Reports", onRefresh)
+        UnavailableView(
+            painterResource(R.drawable.baseline_search_off), stringResource(R.string.no_reports), ""
+        )
     } else {
         LazyColumn {
             items(reports) { report ->

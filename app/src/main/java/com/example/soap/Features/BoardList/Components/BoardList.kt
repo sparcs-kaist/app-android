@@ -32,8 +32,8 @@ import com.example.soap.ui.theme.Theme
 fun BoardList(
     title: String,
     icon: Painter,
-    sections: List<@Composable () -> Unit>
-){
+    sections: List<@Composable () -> Unit>,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -61,7 +61,7 @@ fun BoardList(
             colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
-        ){
+        ) {
             Column(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -77,7 +77,7 @@ fun BoardList(
 }
 
 @Composable
-fun BoardListSkeleton(num: Int){
+fun BoardListSkeleton(num: Int) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,14 +90,20 @@ fun BoardListSkeleton(num: Int){
             Box(
                 modifier = Modifier
                     .size(24.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
             )
             Spacer(Modifier.width(8.dp))
             Box(
                 modifier = Modifier
                     .height(20.dp)
                     .fillMaxWidth(0.4f)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
             )
         }
 
@@ -119,7 +125,10 @@ fun BoardListSkeleton(num: Int){
                             .padding(vertical = 8.dp)
                             .height(16.dp)
                             .fillMaxWidth(listOf(0.3f, 0.5f, 0.7f).random())
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
                     )
                 }
             }
@@ -127,14 +136,20 @@ fun BoardListSkeleton(num: Int){
     }
 
 }
+
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ BoardList(title = "title", icon = painterResource(R.drawable.baseline_drafts), listOf{}) }
+private fun Preview() {
+    Theme {
+        BoardList(
+            title = "title",
+            icon = painterResource(R.drawable.baseline_drafts),
+            listOf {})
+    }
 }
 
 @Composable
 @Preview
-private fun PreviewSkeleton(){
-    Theme{ BoardListSkeleton(3) }
+private fun PreviewSkeleton() {
+    Theme { BoardListSkeleton(3) }
 }
