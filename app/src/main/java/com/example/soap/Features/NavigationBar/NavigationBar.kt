@@ -41,6 +41,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
+import com.example.soap.Domain.Usecases.MockTimetableUseCase
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
 import com.example.soap.Features.Feed.FeedView
@@ -97,6 +98,7 @@ import com.example.soap.Features.TaxiReport.TaxiReportView
 import com.example.soap.Features.TaxiReport.TaxiReportViewModel
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
 import com.example.soap.Features.Timetable.TimetableView
+import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.Features.UserPostList.UserPostListView
 import com.example.soap.Features.UserPostList.UserPostListViewModel
 import com.example.soap.Features.UserPostList.UserPostListViewModelProtocol
@@ -189,21 +191,20 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
 //            }
             /*___________OTL___________*/
+            val mockVm = TimetableViewModel(timetableUseCase = MockTimetableUseCase())
             composable(
                 route = Channel.TimeTable.name
-            ) { TimetableView(navController) }
+            ) { TimetableView(viewModel =  mockVm,navController = navController) }
 
             composable(
-                route = "${Channel.LectureDetail.name}/{lectureId}",
-                enterTransition = trendingEnterTransition(),
+                route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",   enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
                 val lectureId = backStackEntry.arguments?.getString("lectureId")?.toIntOrNull()
-                lectureId?.let {
-                    LectureDetailView(lectureId = it, navController = navController)
-                }
+
+                LectureDetailView(onAdd = null, navController = navController)
             }
 
             /*___________Taxi___________*/
@@ -489,7 +490,8 @@ fun AppBar(
                 Channel.TimeTable -> {
                     AddButton(
                         contentDescription = "Add Timetable",
-                        onClick = {}
+                        onClick = {},
+                        isEnabled = isButtonEnabled
                     )
                 }
 

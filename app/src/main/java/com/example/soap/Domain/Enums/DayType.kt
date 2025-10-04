@@ -1,13 +1,13 @@
 package com.example.soap.Domain.Enums
 
 enum class DayType(val value: Int, val stringValue: String) : Comparable<DayType> {
-    SUN(0, "Sun"),
-    MON(1, "Mon"),
-    TUE(2, "Tue"),
-    WED(3, "Wed"),
-    THU(4, "Thu"),
-    FRI(5, "Fri"),
-    SAT(6, "Sat");
+    SUN(6, "Sun"),
+    MON(0, "Mon"),
+    TUE(1, "Tue"),
+    WED(2, "Wed"),
+    THU(3, "Thu"),
+    FRI(4, "Fri"),
+    SAT(5, "Sat");
 
     val id: String get() = stringValue
 
@@ -15,8 +15,9 @@ enum class DayType(val value: Int, val stringValue: String) : Comparable<DayType
     companion object {
         fun fromValue(value: Int): DayType? =
             entries.find { it.value == value }
+
+        fun weekdays() = listOf(MON, TUE, WED, THU, FRI)
     }
 }
-
 
 

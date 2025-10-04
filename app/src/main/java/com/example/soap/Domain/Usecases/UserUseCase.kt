@@ -4,9 +4,11 @@ import android.util.Log
 import com.example.soap.Domain.Helpers.UserStorageProtocol
 import com.example.soap.Domain.Models.Ara.AraUser
 import com.example.soap.Domain.Models.Feed.FeedUser
+import com.example.soap.Domain.Models.OTL.OTLUser
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +22,7 @@ class UserUseCase @Inject constructor(
     private val taxiUserRepository: TaxiUserRepositoryProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
+    private val otlUserRepository: OTLUserRepositoryProtocol,
     private val userStorage: UserStorageProtocol
 ) : UserUseCaseProtocol {
 
@@ -39,6 +42,9 @@ class UserUseCase @Inject constructor(
 
     override val taxiUser: TaxiUser?
         get() = runBlocking { userStorage.getTaxiUser() }
+
+    override val otlUser: OTLUser?
+        get() = runBlocking { userStorage.getOTLUser() }
 
     override suspend fun fetchUsers() {
         try {
@@ -83,5 +89,11 @@ class UserUseCase @Inject constructor(
         val user = feedUserRepository.getUser()
         userStorage.setFeedUser(user)
         Log.d("UserUseCase", user.toString())
+    }
+
+    override suspend fun fetchOTLUser() {
+        Log.d("UserUseCase", "Fetching OTL User")
+        val user = otlUserRepository.fetchUser()
+        userStorage.setOTLUser(user)
     }
 }

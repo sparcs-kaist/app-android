@@ -50,10 +50,11 @@ fun SettingButton(
 @Composable
 fun AddButton(
     contentDescription: String,
-    onClick: ()-> Unit
+    onClick: ()-> Unit,
+    isEnabled: Boolean = true
 ) {
     IconButton(
-        onClick = { onClick() },
+        onClick = { if(isEnabled) onClick() },
         colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
     ) {
         Icon(

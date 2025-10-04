@@ -18,7 +18,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.darkGray
@@ -27,11 +26,12 @@ import com.example.soap.ui.theme.darkGray
 @Composable
 fun LectureDetailNavigationBar(
     navController: NavController,
-    text: String
+    text: String,
+    onAdd: (() -> Unit)?
 ) {
     TopAppBar(
         navigationIcon = {
-            IconButton(onClick = { navController.navigate(Channel.TimeTable.name) }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = "Back",
@@ -49,15 +49,31 @@ fun LectureDetailNavigationBar(
             )
         },
         actions = {
-            IconButton(
-                onClick = {},
-                colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.outline_delete),
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.darkGray
-                )
+            if(onAdd != null) {
+                IconButton(
+                    onClick = {
+                        onAdd()
+                        navController.popBackStack()
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.round_add),
+                        contentDescription = "Plus",
+                        tint = MaterialTheme.colorScheme.darkGray
+                    )
+                }
+            } else {
+                IconButton(
+                    onClick = {},
+                    colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_delete),
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.darkGray
+                    )
+                }
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -66,10 +82,8 @@ fun LectureDetailNavigationBar(
     )
 }
 
-
-
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ LectureDetailNavigationBar(rememberNavController(), "title") }
+    Theme{ LectureDetailNavigationBar(rememberNavController(), "title", null) }
 }

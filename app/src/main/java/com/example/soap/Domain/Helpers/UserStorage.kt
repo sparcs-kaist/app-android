@@ -2,6 +2,7 @@ package com.example.soap.Domain.Helpers
 
 import com.example.soap.Domain.Models.Ara.AraUser
 import com.example.soap.Domain.Models.Feed.FeedUser
+import com.example.soap.Domain.Models.OTL.OTLUser
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -44,5 +45,18 @@ class UserStorage @Inject constructor(
     }
     override suspend fun getFeedUser(): FeedUser? {
         return mutex.withLock { feedUser }
+    }
+
+    //MARK: OTL User
+    private var otlUser: OTLUser? = null
+
+    override suspend fun setOTLUser(user: OTLUser?) {
+        mutex.withLock {
+            otlUser = user
+        }
+    }
+
+    override suspend fun getOTLUser(): OTLUser? {
+        return mutex.withLock { otlUser }
     }
 }
