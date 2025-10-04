@@ -93,5 +93,5 @@ dependencies {
     implementation(libs.androidx.security.crypto)
     implementation(libs.socket.io.client)
     implementation (libs.kotlinx.serialization.json)
-
+    implementation(libs.androidx.datastore.preferences)
 }

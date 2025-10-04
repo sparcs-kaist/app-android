@@ -1,4 +1,4 @@
-package com.example.soap.Networking.RequestDTO
+package com.example.soap.Networking.RequestDTO.Ara
 
 import com.example.soap.Domain.Models.Ara.AraCreatePost
 import com.example.soap.Shared.Extensions.toHTMLParagraphs

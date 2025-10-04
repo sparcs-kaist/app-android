@@ -2,7 +2,6 @@ package com.example.soap.Features.PostList.Components.PostListRow
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -13,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
@@ -29,28 +27,19 @@ import com.example.soap.ui.theme.grayBB
 fun BoardNavigationBar(
     title: String,
     subTitle: String,
-    navController: NavController
+    navController: NavController,
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = {
-            Row(
-                modifier = Modifier.clickable { navController.popBackStack() },
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.arrow_back_ios),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.darkGray
-                )
-                Text(
-                    text = stringResource(R.string.start),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.darkGray
-                )
-            }
+            Icon(
+                painter = painterResource(R.drawable.arrow_back_ios),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.darkGray,
+                modifier = Modifier.clickable { navController.popBackStack() }
+            )
         },
         title = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally){
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
@@ -73,9 +62,8 @@ fun BoardNavigationBar(
 }
 
 
-
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ BoardNavigationBar("Title","notices", rememberNavController()) }
+private fun Preview() {
+    Theme { BoardNavigationBar("Title", "notices", rememberNavController()) }
 }

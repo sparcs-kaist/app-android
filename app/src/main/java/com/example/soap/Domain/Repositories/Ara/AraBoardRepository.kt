@@ -7,7 +7,7 @@ import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraCreatePost
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostPage
-import com.example.soap.Networking.RequestDTO.AraPostRequestDTO
+import com.example.soap.Networking.RequestDTO.Ara.AraPostRequestDTO
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.example.soap.Shared.Extensions.compressForUpload
@@ -26,7 +26,7 @@ interface AraBoardRepositoryProtocol {
         type: AraBoardTarget.PostListType,
         page: Int,
         pageSize: Int,
-        searchKeyword: String? = null
+        searchKeyword: String? = null,
     ): AraPostPage
 
     suspend fun fetchPost(origin: AraBoardTarget.PostOrigin?, postID: Int): AraPost
@@ -44,7 +44,7 @@ interface AraBoardRepositoryProtocol {
 
 
 class AraBoardRepository @Inject constructor(
-    private val api: AraBoardApi
+    private val api: AraBoardApi,
 ) : AraBoardRepositoryProtocol {
 
     // MARK: - Caches
@@ -64,12 +64,13 @@ class AraBoardRepository @Inject constructor(
         type: AraBoardTarget.PostListType,
         page: Int,
         pageSize: Int,
-        searchKeyword: String?
+        searchKeyword: String?,
     ): AraPostPage {
         val response = when (type) {
             is AraBoardTarget.PostListType.Board -> api.fetchPosts(
                 page, pageSize, parentBoard = type.boardID
             )
+
             is AraBoardTarget.PostListType.User -> api.fetchPosts(
                 page, pageSize, createdBy = type.userID
             )
@@ -107,7 +108,8 @@ class AraBoardRepository @Inject constructor(
     override suspend fun upVotePost(postID: Int) = api.upVote(postID)
     override suspend fun downVotePost(postID: Int) = api.downVote(postID)
     override suspend fun cancelVote(postID: Int) = api.cancelVote(postID)
-    override suspend fun reportPost(postID: Int, type: AraContentReportType) = api.report(mapOf("post_id" to postID, "type" to type.name))
+    override suspend fun reportPost(postID: Int, type: AraContentReportType) =
+        api.report(mapOf("post_id" to postID, "type" to type.name))
 
     override suspend fun deletePost(postID: Int): Response<Unit> {
         val response = api.delete(postID)

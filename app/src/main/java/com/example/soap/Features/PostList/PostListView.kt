@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +64,7 @@ fun PostListView(
     viewModel: PostListViewModelProtocol = hiltViewModel(),
     navController: NavController
 ) {
-    var loadedInitialPost by remember { mutableStateOf(false) }
+    var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
     val searchText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
@@ -77,11 +78,10 @@ fun PostListView(
     LaunchedEffect(Unit) {
         val json = Gson().toJson(board)
         backStackEntry.savedStateHandle["board_json"] = json
-        if (!loadedInitialPost) {
-            loadedInitialPost = true
+        if (!loadedInitialPost.value) {
+            loadedInitialPost.value = true
             viewModel.board = board
             viewModel.bind()
-            loadedInitialPost = false
         }
     }
 
@@ -144,10 +144,9 @@ fun PostListView(
                         errorMessage = error,
                         onRetry = {
                             coroutineScope.launch {
-                                if (!loadedInitialPost) {
+                                if (!loadedInitialPost.value) {
                                     viewModel.fetchInitialPosts()
                                     viewModel.bind()
-                                    loadedInitialPost = true
                                 }
                             }
                         }

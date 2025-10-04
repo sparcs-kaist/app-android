@@ -53,6 +53,7 @@ import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.launch
+import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -178,6 +179,7 @@ fun PostCommentHeader(
 
         if (!isDeleted) {
             PostCommentActionsMenu(
+                enumClass = AraContentReportType::class,
                 isMine = comment.isMine,
                 onEdit = onEdit,
                 onDelete = onDelete,
@@ -190,11 +192,12 @@ fun PostCommentHeader(
 }
 
 @Composable
-fun PostCommentActionsMenu(
+fun <T : Enum<T>> PostCommentActionsMenu(
+    enumClass: KClass<T>, //ara or feed report type
     isMine: Boolean?,
     onEdit: () -> Unit? = {},
     onDelete: () -> Unit,
-    onReport: (AraContentReportType) -> Unit,
+    onReport: (T) -> Unit,
     onTranslate: () -> Unit,
     isComment: Boolean,
     modifier: Modifier = Modifier
@@ -247,12 +250,14 @@ fun PostCommentActionsMenu(
                     exit = shrinkVertically() + fadeOut()
                 ) {
                     Column {
-                        AraContentReportType.entries.forEach { type ->
+                        enumClass.java.enumConstants?.forEach { type ->
                             DropdownMenuItem(
                                 text = {
                                     Text(
                                         type.name.replace("_", " ")
-                                            .replaceFirstChar { it.uppercase() })
+                                            .lowercase()
+                                            .replaceFirstChar { it.uppercase() }
+                                    )
                                 },
                                 onClick = {
                                     onReport(type)
@@ -278,7 +283,6 @@ fun PostCommentActionsMenu(
                     HorizontalDivider()
                 }
             }
-
 
             DropdownMenuItem(
                 text = { Text("Translate") },
@@ -380,7 +384,8 @@ fun PostCommentFooter(
                             commentState = updated
                         }
                     }
-                }
+                },
+                enabled = commentState.isMine == true
             )
         }
     }
@@ -392,8 +397,6 @@ suspend fun handleVote(
     repo: AraCommentRepositoryProtocol,
     update: (AraPostComment) -> Unit
 ) {
-    if (comment.isMine == true) return
-
     val prev = comment.copy()
 
     val updated = when {

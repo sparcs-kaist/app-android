@@ -2,7 +2,7 @@ package com.example.soap.Domain.Repositories.Taxi
 
 import com.example.soap.Domain.Models.Taxi.TaxiCreateReport
 import com.example.soap.Features.Settings.Taxi.TaxiReports
-import com.example.soap.Networking.RequestDTO.TaxiCreateReportRequestDTO
+import com.example.soap.Networking.RequestDTO.Taxi.TaxiCreateReportRequestDTO
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiReportApi
 import javax.inject.Inject
 
