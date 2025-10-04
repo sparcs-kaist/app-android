@@ -95,7 +95,7 @@ fun FeedCommentRow(
                         localComment = localComment.copy(isDeleted = true)
                         feedCommentRepository.deleteComment(localComment.id)
                     }
-                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "삭제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
                 },
                 onReport = {
                     coroutineScope.launch {
@@ -200,7 +200,7 @@ private fun Content(comment: FeedComment) {
             AnnotatedString(text)
         } else {
             val visibleEnd =
-                textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: text.length
+                textLayoutResult?.getLineEnd(2, visibleEnd = true) ?: text.length
             val safeEnd = visibleEnd.coerceAtMost(text.length)
             val visibleText = text.substring(0, safeEnd).trimEnd()
             buildAnnotatedString {
@@ -217,7 +217,7 @@ private fun Content(comment: FeedComment) {
         text = displayText,
         color = color,
         style = MaterialTheme.typography.bodyMedium,
-        maxLines = if (!expanded) 2 else Int.MAX_VALUE,
+        maxLines = if (!expanded) 4 else Int.MAX_VALUE,
         overflow = TextOverflow.Ellipsis,
         onTextLayout = { layoutResult ->
             if (!hasMeasured && !expanded) {
