@@ -16,7 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.Domain.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
@@ -38,7 +38,7 @@ fun LectureInformation(lecture: Lecture){
 
         LectureDetailRow(title = stringResource(R.string.type), description = lecture.typeDetail.localized())
 
-        LectureDetailRow(title = stringResource(R.string.department), description = lecture.department.localized())
+//       LectureDetailRow(title = stringResource(R.string.department), description = lecture.department.localized())
 
         LectureDetailRow(
             title = stringResource(R.string.professor),
@@ -56,14 +56,14 @@ fun LectureInformation(lecture: Lecture){
 
         LectureDetailRow(title = stringResource(R.string.capacity), description = lecture.capacity.toString())
 
-        LectureDetailRow(
-            title = stringResource(R.string.exams),
-            description = if(lecture.code.isEmpty()){
-                stringResource(R.string.unknown)
-            } else {
-                lecture.examTimes.joinToString("\n") { it.str.localized() }
-            }
-        )
+//        LectureDetailRow(
+//            title = stringResource(R.string.exams),
+//            description = if(lecture.code.isEmpty()){
+//                stringResource(R.string.unknown)
+//            } else {
+//                lecture.examTimes.joinToString("\n") { it.str.localized() }
+//            }
+//        )
 
         Row(
             modifier = Modifier

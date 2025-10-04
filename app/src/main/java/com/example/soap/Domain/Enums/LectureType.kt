@@ -1,10 +1,26 @@
 package com.example.soap.Domain.Enums
 
-enum class LectureType{
-    BR, //Basic Required 기초 필수
-    BE, //Basic Elective 기초 선택
-    MR, //Major Required 전공 필수
-    ME, //Major Elective 전공 선택
-    HSE, //Humanities and Social Elective 인문 선택
-    ETC //기타
+
+import com.example.soap.Domain.Helpers.LocalizedString
+
+enum class LectureType(val code: String, val displayName: LocalizedString) {
+    BR("BR", LocalizedString(mapOf("en" to "Basic Required", "ko" to "기초필수"))),
+    BE("BE", LocalizedString(mapOf("en" to "Basic Elective", "ko" to "기초선택"))),
+    MR("MR", LocalizedString(mapOf("en" to "Major Required", "ko" to "전공필수"))),
+    ME("ME", LocalizedString(mapOf("en" to "Major Elective", "ko" to "전공선택"))),
+    HSE("HSE", LocalizedString(mapOf("en" to "Humanities and Social Elective", "ko" to "인문사회선택"))),
+    ETC("ETC", LocalizedString(mapOf("en" to "ETC", "ko" to "기타")));
+
+    companion object {
+        fun fromRawValue(rawValue: String): LectureType {
+            return when (rawValue) {
+                "Basic Required" -> BR
+                "Basic Elective" -> BE
+                "Major Required" -> MR
+                "Major Elective" -> ME
+                "Humanities and Social Elective" -> HSE
+                else -> ETC
+            }
+        }
+    }
 }

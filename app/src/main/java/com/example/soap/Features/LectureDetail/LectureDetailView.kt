@@ -11,35 +11,37 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Domain.Models.TimeTable.Lecture
+import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Features.LectureDetail.Components.LectureDetailNavigationBar
 import com.example.soap.Features.LectureDetail.Components.LectureInformation
 import com.example.soap.Features.LectureDetail.Components.LectureReviews
 import com.example.soap.Features.LectureDetail.Components.LectureSummary
-import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
+import com.google.gson.Gson
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LectureDetailView(
-    lectureId: Int,
+    onAdd: (() -> Unit)?,
     navController: NavController
 ) {
     val scrollState = rememberScrollState()
-    val viewModel = remember { LectureDetailViewModel() }
-    val lecture = viewModel.getLectureById(lectureId)!!
+    val backStackEntry = navController.currentBackStackEntry!!
+
+    val json = backStackEntry.savedStateHandle.get<String>("lecture_json")!!
+    val lecture = Gson().fromJson(json, Lecture::class.java)
 
     Scaffold(
         topBar = {
             LectureDetailNavigationBar(
                 navController = navController,
-                text = lecture.title.localized()
+                text = lecture.title.localized(),
+                onAdd = onAdd
             )
         }
     ) { innerPadding->
@@ -70,9 +72,8 @@ fun LectureDetailView(
     }
 }
 
-
 @Composable
 @Preview
 private fun Preview(){
-    Theme { LectureDetailView(lectureId = Lecture.mock().id, rememberNavController()) }
+    Theme { LectureDetailView(onAdd = null, navController = rememberNavController()) }
 }

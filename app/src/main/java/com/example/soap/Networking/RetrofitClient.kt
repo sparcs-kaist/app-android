@@ -19,6 +19,12 @@ import com.example.soap.Domain.Repositories.Feed.FeedPostRepository
 import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Domain.Repositories.Feed.FeedUserRepository
 import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.OTL.OTLCourseRepository
+import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import com.example.soap.Domain.Repositories.OTL.OTLTimetableRepository
+import com.example.soap.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
+import com.example.soap.Domain.Repositories.OTL.OTLUserRepository
+import com.example.soap.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepository
 import com.example.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
@@ -31,6 +37,8 @@ import com.example.soap.Domain.Usecases.AuthUseCase
 import com.example.soap.Domain.Usecases.AuthUseCaseProtocol
 import com.example.soap.Domain.Usecases.TaxiChatUseCase
 import com.example.soap.Domain.Usecases.TaxiChatUseCaseProtocol
+import com.example.soap.Domain.Usecases.TimetableUseCase
+import com.example.soap.Domain.Usecases.TimetableUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCase
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
@@ -41,6 +49,10 @@ import com.example.soap.Networking.RetrofitAPI.Feed.FeedCommentApi
 import com.example.soap.Networking.RetrofitAPI.Feed.FeedImageApi
 import com.example.soap.Networking.RetrofitAPI.Feed.FeedPostApi
 import com.example.soap.Networking.RetrofitAPI.Feed.FeedUserApi
+import com.example.soap.Networking.RetrofitAPI.OTL.OTLCourseApi
+import com.example.soap.Networking.RetrofitAPI.OTL.OTLLectureApi
+import com.example.soap.Networking.RetrofitAPI.OTL.OTLTimetableApi
+import com.example.soap.Networking.RetrofitAPI.OTL.OTLUserApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiReportApi
 import com.example.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
@@ -200,6 +212,40 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @Named("OTLBackend")
+    fun otlBackEndURL(
+        gson: Gson,
+        tokenStorage: TokenStorageProtocol
+    ): Retrofit {
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val accessToken = runBlocking { tokenStorage.getAccessToken() }
+                val newRequest = original.newBuilder()
+                    .header("Origin", "sparcsapp")
+                    .header("Content-Type", "application/json")
+                    .apply {
+                        accessToken?.let {
+                            header("Authorization", "Bearer $it")
+                        }
+                    }
+                    .build()
+                chain.proceed(newRequest)
+            }
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(Constants.otlBackendURL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideTaxiRoomApi(@Named("TaxiBackend") retrofit: Retrofit): TaxiRoomApi {
         return retrofit.create(TaxiRoomApi::class.java)
     }
@@ -268,6 +314,30 @@ object NetworkModule {
     @Singleton
     fun provideFeedPostApi(@Named("FeedBackend") retrofit: Retrofit): FeedPostApi {
         return retrofit.create(FeedPostApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOTLUserApi(@Named("OTLBackend") retrofit: Retrofit): OTLUserApi {
+        return retrofit.create(OTLUserApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOTLTimetableApi(@Named("OTLBackend") retrofit: Retrofit): OTLTimetableApi {
+        return retrofit.create(OTLTimetableApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOTLCourseApi(@Named("OTLBackend") retrofit: Retrofit): OTLCourseApi {
+        return retrofit.create(OTLCourseApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOTLLectureApi(@Named("OTLBackend") retrofit: Retrofit): OTLLectureApi {
+        return retrofit.create(OTLLectureApi::class.java)
     }
 }
 
@@ -347,6 +417,24 @@ abstract class RepositoryModule {
     abstract fun bindFeedPostRepository(
         impl: FeedPostRepository
     ): FeedPostRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindOTLUserRepository(
+        impl: OTLUserRepository
+    ): OTLUserRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindOTLTimetableRepository(
+        impl: OTLTimetableRepository
+    ): OTLTimetableRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindOTLCourseRepository(
+        impl: OTLCourseRepository
+    ): OTLCourseRepositoryProtocol
 }
 
 @Module
@@ -365,6 +453,9 @@ abstract class UseCaseModule {
     @Singleton
     abstract fun bindTaxiChatUseCase(impl: TaxiChatUseCase): TaxiChatUseCaseProtocol
 
+    @Binds
+    @Singleton
+    abstract fun bindTimetableUseCase(impl: TimetableUseCase): TimetableUseCaseProtocol
 }
 
 

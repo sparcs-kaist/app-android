@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,19 +26,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.soap.Domain.Models.TimeTable.Timetable
+import com.example.soap.Domain.Usecases.MockTimetableUseCase
 import com.example.soap.Features.NavigationBar.Animation.AnimatedText
 import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.R
-import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun CompactTimetableSelector(
-    timetableViewModel: TimetableViewModel,
-    selectedTimetable: Timetable
+    viewModel: TimetableViewModel,
 ) {
     Row(
         modifier = Modifier
@@ -45,24 +43,25 @@ fun CompactTimetableSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
 
-        SemesterSelector(timetableViewModel = timetableViewModel, selectedTimetable = selectedTimetable)
+        SemesterSelector(viewModel = viewModel)
 
         Spacer(Modifier.weight(1f))
 
-        TableSelector()
+        TableSelector(viewModel = viewModel)
     }
 }
 
 @Composable
 fun SemesterSelector(
-    timetableViewModel: TimetableViewModel,
-    selectedTimetable: Timetable
-){
-    val isEnabledPreviousButton = timetableViewModel.semesters.isNotEmpty() && (timetableViewModel.semesters.first() != selectedTimetable.semester)
-    val isEnabledNextButton = timetableViewModel.semesters.isNotEmpty() && (timetableViewModel.semesters.last() != selectedTimetable.semester)
+    viewModel: TimetableViewModel,
+) {
+    val selectedSemester = viewModel.selectedSemester
+    val isEnabledPreviousButton =
+        viewModel.semesters.collectAsState().value.firstOrNull() != selectedSemester.collectAsState().value
+    val isEnabledNextButton =
+        viewModel.semesters.collectAsState().value.lastOrNull() != selectedSemester.collectAsState().value
 
-
-    Box(Modifier.shadow(4.dp, RoundedCornerShape(25.dp))){
+    Box(Modifier.shadow(4.dp, RoundedCornerShape(25.dp))) {
 
         Row(
             modifier = Modifier
@@ -80,13 +79,13 @@ fun SemesterSelector(
                     .padding(horizontal = 4.dp)
                     .then(
                         if (isEnabledPreviousButton) Modifier.clickable {
-                            timetableViewModel.selectPreviousSemester()
+                            viewModel.selectPreviousSemester()
                         } else Modifier
                     )
             )
 
             AnimatedText(
-                text = selectedTimetable.semester.description,
+                text = viewModel.selectedSemester.value?.description ?: "Unknown",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold
             )
@@ -100,7 +99,7 @@ fun SemesterSelector(
                     .padding(horizontal = 4.dp)
                     .then(
                         if (isEnabledNextButton) Modifier.clickable {
-                            timetableViewModel.selectNextSemester()
+                            viewModel.selectNextSemester()
                         } else Modifier
                     )
             )
@@ -109,10 +108,10 @@ fun SemesterSelector(
 }
 
 @Composable
-fun TableSelector(){
+fun TableSelector(viewModel: TimetableViewModel) {
     var expanded by remember { mutableStateOf(false) }
 
-    Box(Modifier.shadow(4.dp, RoundedCornerShape(25.dp))){
+    Box(Modifier.shadow(4.dp, RoundedCornerShape(25.dp))) {
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(25.dp))
@@ -138,7 +137,8 @@ fun TableSelector(){
 
             TimetableDropDownMenu(
                 expanded = expanded,
-                onDismiss = { expanded = false }
+                onDismiss = { expanded = false },
+                viewModel = viewModel
             )
         }
     }
@@ -146,11 +146,7 @@ fun TableSelector(){
 
 @Composable
 @Preview
-private fun Preview(){
-    Theme {
-        CompactTimetableSelector(
-            timetableViewModel = viewModel(),
-            selectedTimetable = Timetable.mock()
-        )
-    }
+private fun Preview() {
+    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase())) }
+    Theme { CompactTimetableSelector(viewModel = vm) }
 }
