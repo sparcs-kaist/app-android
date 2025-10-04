@@ -21,6 +21,8 @@ import com.example.soap.Domain.Repositories.Feed.FeedUserRepository
 import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.OTL.OTLCourseRepository
 import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import com.example.soap.Domain.Repositories.OTL.OTLLectureRepository
+import com.example.soap.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
 import com.example.soap.Domain.Repositories.OTL.OTLTimetableRepository
 import com.example.soap.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
 import com.example.soap.Domain.Repositories.OTL.OTLUserRepository
@@ -435,6 +437,12 @@ abstract class RepositoryModule {
     abstract fun bindOTLCourseRepository(
         impl: OTLCourseRepository
     ): OTLCourseRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindOTLLectureRepository(
+        impl: OTLLectureRepository
+    ): OTLLectureRepositoryProtocol
 }
 
 @Module
