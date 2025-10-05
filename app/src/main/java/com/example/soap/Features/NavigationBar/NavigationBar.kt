@@ -41,10 +41,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navigation
-import com.example.soap.Domain.Usecases.MockTimetableUseCase
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
 import com.example.soap.Features.Course.CourseView
+import com.example.soap.Features.Course.CourseViewModel
 import com.example.soap.Features.Feed.FeedView
 import com.example.soap.Features.Feed.FeedViewModel
 import com.example.soap.Features.Feed.FeedViewModelProtocol
@@ -56,6 +56,9 @@ import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModel
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
 import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.LectureDetail.LectureDetailView
+import com.example.soap.Features.LectureDetail.LectureDetailViewModel
+import com.example.soap.Features.LectureSearch.LectureSearchView
+import com.example.soap.Features.LectureSearch.LectureSearchViewModel
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransition
@@ -71,8 +74,9 @@ import com.example.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.Features.PostList.PostListViewModelProtocol
-import com.example.soap.Features.ReviewCompose.MockReviewComposeViewModel
 import com.example.soap.Features.ReviewCompose.ReviewComposeView
+import com.example.soap.Features.ReviewCompose.ReviewComposeViewModel
+import com.example.soap.Features.ReviewCompose.ReviewComposeViewModelProtocol
 import com.example.soap.Features.Settings.Ara.AraMyPostView
 import com.example.soap.Features.Settings.Ara.AraMyPostViewModel
 import com.example.soap.Features.Settings.Ara.AraMyPostViewModelProtocol
@@ -117,6 +121,7 @@ enum class Channel(@StringRes val title: Int) {
     LectureDetail(title = R.string.lecturedetail),
     ReviewCompose(title = R.string.reviewcompose),
     CourseView(title = R.string.course_view),
+    LectureSearch(title = R.string.lecture_search_view),
     Taxi(title = R.string.taxi),
     BoardList(title = R.string.general_board),
     Boards(title = R.string.boards),
@@ -194,14 +199,13 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 FeedPostComposeView(navController = navController, viewModel = viewModel)
             }
 
-//            }
             /*___________OTL___________*/
-            val mockVm = TimetableViewModel(timetableUseCase = MockTimetableUseCase())
             composable(
                 route = Channel.TimeTable.name
             ) { backStackEntry ->
                 val viewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
-                TimetableView(viewModel =  mockVm,navController = navController)
+                val viewModel: LectureSearchViewModel = hiltViewModel(backStackEntry)
+                TimetableView(viewModel =  viewModelImpl,navController = navController, lectureSearchViewModel = viewModel)
             }
 
             composable(
@@ -211,7 +215,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
-                LectureDetailView(navController = navController)
+                val viewModelImpl: LectureDetailViewModel = hiltViewModel(backStackEntry)
+                LectureDetailView(viewModel = viewModelImpl, navController = navController)
             }
 
             composable(
@@ -220,8 +225,9 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ){
-                CourseView(navController = navController, viewModel = hiltViewModel())
+            ){ backStackEntry ->
+                val viewModelImpl: CourseViewModel = hiltViewModel(backStackEntry)
+                CourseView(navController = navController, viewModel = viewModelImpl)
             }
 
             composable(
@@ -230,8 +236,22 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) {
-                ReviewComposeView(viewModel = MockReviewComposeViewModel(),navController = navController)
+            ) { backStackEntry ->
+                val viewModelImpl: ReviewComposeViewModel = hiltViewModel(backStackEntry)
+                val viewModel: ReviewComposeViewModelProtocol = viewModelImpl
+                ReviewComposeView(viewModel = viewModel,navController = navController)
+            }
+
+            composable(
+                route = Channel.LectureSearch.name,
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ){ backStackEntry ->
+                val timetableViewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
+                val lectureSearchViewModelImpl: LectureSearchViewModel = hiltViewModel(backStackEntry)
+                LectureSearchView(navController = navController, timetableViewModel = timetableViewModelImpl, lectureSearchViewModel = lectureSearchViewModelImpl) { }
             }
 
             /*___________Taxi___________*/
@@ -517,7 +537,7 @@ fun AppBar(
                 Channel.TimeTable -> {
                     AddButton(
                         contentDescription = "Add Timetable",
-                        onClick = {},
+                        onClick = { navController.navigate(Channel.LectureSearch.name) },
                         isEnabled = isButtonEnabled
                     )
                 }

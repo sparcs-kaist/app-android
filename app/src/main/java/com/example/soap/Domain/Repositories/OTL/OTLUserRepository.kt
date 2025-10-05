@@ -14,7 +14,9 @@ class OTLUserRepository @Inject constructor(
 ) : OTLUserRepositoryProtocol {
 
     override suspend fun register(ssoInfo: String) {
-        val response = api.register(ssoInfo)
+        val response = api.register(
+            mapOf("sso_info" to ssoInfo)
+        )
         if (!response.isSuccessful) {
             throw Exception("Register failed: ${response.code()}")
         }
