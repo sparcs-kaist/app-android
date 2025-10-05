@@ -7,9 +7,6 @@ data class LectureReviewDTO(
     @SerialName("id")
     val id: Int,
 
-    @SerialName("course")
-    val course: CourseDTO,
-
     @SerialName("lecture")
     val lecture: LectureDTO,
 
@@ -36,7 +33,6 @@ data class LectureReviewDTO(
 ) {
     fun toModel(): LectureReview = LectureReview(
         id = id,
-        course = course.toModel(),
         lecture = lecture.toModel(),
         content = content,
         like = like,

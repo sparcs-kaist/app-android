@@ -44,6 +44,7 @@ import androidx.navigation.navigation
 import com.example.soap.Domain.Usecases.MockTimetableUseCase
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
+import com.example.soap.Features.Course.CourseView
 import com.example.soap.Features.Feed.FeedView
 import com.example.soap.Features.Feed.FeedViewModel
 import com.example.soap.Features.Feed.FeedViewModelProtocol
@@ -70,6 +71,8 @@ import com.example.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.example.soap.Features.PostList.PostListView
 import com.example.soap.Features.PostList.PostListViewModel
 import com.example.soap.Features.PostList.PostListViewModelProtocol
+import com.example.soap.Features.ReviewCompose.MockReviewComposeViewModel
+import com.example.soap.Features.ReviewCompose.ReviewComposeView
 import com.example.soap.Features.Settings.Ara.AraMyPostView
 import com.example.soap.Features.Settings.Ara.AraMyPostViewModel
 import com.example.soap.Features.Settings.Ara.AraMyPostViewModelProtocol
@@ -111,12 +114,14 @@ enum class Channel(@StringRes val title: Int) {
     FeedPost(title = R.string.feed_post_view),
     FeedPostCompose(title = R.string.feed_post_compose_view),
     TimeTable(title = R.string.timetable),
+    LectureDetail(title = R.string.lecturedetail),
+    ReviewCompose(title = R.string.reviewcompose),
+    CourseView(title = R.string.course_view),
     Taxi(title = R.string.taxi),
     BoardList(title = R.string.general_board),
     Boards(title = R.string.boards),
     PostView(title = R.string.postview),
     PostCompose(title = R.string.postcompose),
-    LectureDetail(title = R.string.lecturedetail),
     TaxiRoomCreation(title = R.string.taxi_room_creation),
     TaxiChatView(title = R.string.taxichatview),
     TaxiChatListView(title = R.string.taxichatlistview),
@@ -196,18 +201,37 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = Channel.TimeTable.name
             ) { backStackEntry ->
                 val viewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
-                TimetableView(viewModel =  viewModelImpl,navController = navController)
+                TimetableView(viewModel =  mockVm,navController = navController)
             }
 
             composable(
-                route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",   enterTransition = trendingEnterTransition(),
+                route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",
+                enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
-                val lectureId = backStackEntry.arguments?.getString("lectureId")?.toIntOrNull()
+                LectureDetailView(navController = navController)
+            }
 
-                LectureDetailView(onAdd = null, navController = navController)
+            composable(
+                route = Channel.CourseView.name + "?course_json={course_json}",
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ){
+                CourseView(navController = navController, viewModel = hiltViewModel())
+            }
+
+            composable(
+                route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}",
+                enterTransition = trendingEnterTransition(),
+                exitTransition = trendingExitTransition(),
+                popEnterTransition = trendingPopEnterTransition(),
+                popExitTransition = trendingPopExitTransition()
+            ) {
+                ReviewComposeView(viewModel = MockReviewComposeViewModel(),navController = navController)
             }
 
             /*___________Taxi___________*/

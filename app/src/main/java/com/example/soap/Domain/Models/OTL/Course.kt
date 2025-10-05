@@ -17,4 +17,6 @@ data class Course(
     val creditAu: Int,
     val numClasses: Int,
     val numLabs: Int
-)
+){
+    companion object
+}

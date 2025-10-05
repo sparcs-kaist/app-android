@@ -12,6 +12,13 @@ interface OTLCourseRepositoryProtocol {
     suspend fun unlikeReview(reviewId: Int)
 }
 
+class FakeOTLCourseRepository: OTLCourseRepositoryProtocol {
+    override suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course> { return emptyList() }
+    override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> { return emptyList() }
+    override suspend fun likeReview(reviewId: Int) {}
+    override suspend fun unlikeReview(reviewId: Int) {}
+}
+
 class OTLCourseRepository @Inject constructor(
     private val api: OTLCourseApi
 ) : OTLCourseRepositoryProtocol {
