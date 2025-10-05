@@ -2,7 +2,6 @@ package com.example.soap.Domain.Models.OTL
 
 data class LectureReview(
     val id: Int,
-    val course: Course,
     val lecture: Lecture,
     val content: String,
     var like: Int,

@@ -6,12 +6,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,11 +26,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,7 +57,7 @@ fun TimetableDropDownMenu(
         Column {
             MyTableDropDownItems(viewModel)
 
-            BottomMenuDropDownItems()
+            BottomMenuDropDownItems(viewModel)
         }
     }
 }
@@ -134,7 +129,7 @@ fun MyTableDropDownItems(
 }
 
 @Composable
-private fun BottomMenuDropDownItems(){
+private fun BottomMenuDropDownItems(viewModel: TimetableViewModel){
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
         onClick = { /* TODO */ },
@@ -153,7 +148,7 @@ private fun BottomMenuDropDownItems(){
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_delete), color = Color(0xFFE54C65)) },
-        onClick = { /* TODO */ },
+        onClick = { if(viewModel.isEditable) viewModel.deleteTable() },
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.outline_delete),

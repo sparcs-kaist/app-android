@@ -6,6 +6,8 @@ import com.example.soap.Domain.Models.OTL.LectureSearchRequest
 import com.example.soap.Networking.RequestDTO.OTL.LectureSearchRequestDTO
 import com.example.soap.Networking.RequestDTO.OTL.WriteReviewRequest
 import com.example.soap.Networking.RetrofitAPI.OTL.OTLLectureApi
+import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Mocks.mockList
 import javax.inject.Inject
 
 interface OTLLectureRepositoryProtocol {
@@ -18,6 +20,18 @@ interface OTLLectureRepositoryProtocol {
         load: Int,
         speech: Int
     ): LectureReview
+}
+
+class FakeOTLLectureRepository : OTLLectureRepositoryProtocol {
+    override suspend fun searchLectures(request: LectureSearchRequest): List<Lecture> { return Lecture.mockList() }
+    override suspend fun fetchLectures(lectureID: Int): List<LectureReview> { return LectureReview.mockList() }
+    override suspend fun writeReview(
+        lectureID: Int,
+        content: String,
+        grade: Int,
+        load: Int,
+        speech: Int
+    ): LectureReview { return LectureReview.mock() }
 }
 
 class OTLLectureRepository @Inject constructor(

@@ -126,4 +126,6 @@
     <string name="close">Close</string>
     <string name="bank_name">Bank Name</string>
     <string name="enter_nickname">Enter Nickname</string>
+    <string name="reviewcompose" translatable="false">ReviewCompose</string>
+    <string name="course_view" translatable="false">CourseView</string>
 </resources>
