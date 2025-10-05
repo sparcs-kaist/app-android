@@ -33,14 +33,14 @@ interface TimetableUseCaseProtocol {
 }
 
 class MockTimetableUseCase : TimetableUseCaseProtocol {
-    private val _semesters = MutableStateFlow<List<Semester>>(Semester.mockList())
+    private val _semesters = MutableStateFlow(Semester.mockList())
     override val semesters: StateFlow<List<Semester>> = _semesters.asStateFlow()
     override var selectedSemesterID: String? = Semester.mockList()[9].id
     override var selectedTimetableID: String? = Timetable.mock().id
     override val selectedSemester: Semester?
         get() = semesters.value.firstOrNull { it.id == selectedSemesterID }
     override val selectedTimetable: Timetable?
-        get() = selectedSemesterID?.let { Timetable(id = "$it-myTable", lectures = emptyList()) }
+        get() = selectedSemesterID?.let { Timetable(id = "$it-myTable", lectures = Lecture.mockList()) }
     override val timetableIDsForSelectedSemester: List<String>
         get() = selectedSemesterID?.let { listOf("$it-myTable") } ?: emptyList()
     override val selectedTimetableDisplayName: String

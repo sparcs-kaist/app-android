@@ -10,6 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
@@ -29,6 +33,9 @@ fun LectureDetailNavigationBar(
     text: String,
     onAdd: (() -> Unit)?
 ) {
+    var lineCount by remember { mutableStateOf(1) }
+    var hasMeasured by remember { mutableStateOf(false) }
+
     TopAppBar(
         navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
@@ -42,10 +49,19 @@ fun LectureDetailNavigationBar(
         title = {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleLarge,
+                style = if (lineCount > 1) MaterialTheme.typography.titleMedium
+                else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                onTextLayout = { textLayoutResult ->
+                    if(hasMeasured) return@Text
+                    hasMeasured = true
+                    val newLineCount = textLayoutResult.lineCount
+                    if (lineCount != newLineCount) {
+                        lineCount = newLineCount
+                    }
+                }
             )
         },
         actions = {
