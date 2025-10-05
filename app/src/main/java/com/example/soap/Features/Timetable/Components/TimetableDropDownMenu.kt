@@ -6,9 +6,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,9 +29,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,6 +67,55 @@ fun TimetableDropDownMenu(
     }
 }
 
+@Composable
+private fun TopDropDownItems(){ //지도, 시험 시간표(바꿀 수 있도록)
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        IconWithText(
+            icon = painterResource(R.drawable.outline_timetable),
+            text = stringResource(R.string.timetable)
+        )//기본
+
+        IconWithText(
+            icon = painterResource(R.drawable.outline_description),
+            text = stringResource(R.string.timetable)
+        )//시험
+
+        IconWithText(
+            icon = painterResource(R.drawable.rounded_location_on),
+            text = stringResource(R.string.timetable)
+        )//지도
+    }
+
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.lightGray0,
+        modifier = Modifier.padding(4.dp)
+    )
+}//TODO - 나중에?
+
+@Composable
+private fun IconWithText(
+    icon: Painter,
+    text: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier.padding(8.dp)
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = text
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium
+        )
+    }
+
+}
 @Composable
 fun MyTableDropDownItems(
     viewModel: TimetableViewModel

@@ -10,7 +10,7 @@ interface OTLUserApi {
 
     @POST("session/register-oneapp")
     suspend fun register(
-        @Body params: String
+        @Body params: Map<String, String>
     ): Response<Unit>
 
     @GET("session/info")

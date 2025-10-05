@@ -11,7 +11,7 @@ import retrofit2.http.Query
 
 interface OTLTimetableApi {
 
-    @GET("/api/users/{userID}/timetables")
+    @GET("api/users/{userID}/timetables")
     suspend fun fetchTables(
         @Path("userID") userID: Int,
         @Query("year") year: Int,
@@ -19,7 +19,7 @@ interface OTLTimetableApi {
         @Query("order") order: String = "arrange_order"
     ): List<TimetableDTO>
 
-    @POST("/api/users/{userID}/timetables")
+    @POST("api/users/{userID}/timetables")
     suspend fun createTable(
         @Path("userID") userID: Int,
         @Query("year") year: Int,
@@ -27,29 +27,29 @@ interface OTLTimetableApi {
         @Body lectures: List<Any> = emptyList()
     ): TimetableDTO
 
-    @DELETE("/api/users/{userId}/timetables/{timetableId}")
+    @DELETE("api/users/{userId}/timetables/{timetableId}")
     suspend fun deleteTable(
         @Path("userId") userId: Int,
         @Path("timetableId") timetableId: Int
     )
 
-    @POST("/api/users/{userId}/timetables/{timetableId}/add-lecture")
+    @POST("api/users/{userId}/timetables/{timetableId}/add-lecture")
     suspend fun addLecture(
         @Path("userId") userId: Int,
         @Path("timetableId") timetableId: Int,
         @Query("lecture")lectureID: Int
     ): TimetableDTO
 
-    @POST("/api/users/{userId}/timetables/{timetableId}/remove-lecture")
+    @POST("api/users/{userId}/timetables/{timetableId}/remove-lecture")
     suspend fun deleteLecture(
         @Path("userId") userId: Int,
         @Path("timetableId") timetableId: Int,
         @Query("lecture")lectureID: Int
     ): TimetableDTO
 
-    @GET("/api/semesters")
+    @GET("api/semesters")
     suspend fun fetchSemesters(): List<SemesterDTO>
 
-    @GET("/api/semesters/current")
+    @GET("api/semesters/current")
     suspend fun fetchCurrentSemester(): SemesterDTO
 }

@@ -47,27 +47,15 @@ fun LectureReviews(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LectureSummaryRow(
-                title = stringResource(
-                    R.string.grade
-                ), description = lecture.gradeLetterWithSign
-            )
+            LectureSummaryRow(title = stringResource(R.string.grade), description = lecture.gradeLetterWithSign)
 
             Spacer(Modifier.weight(1f))
 
-            LectureSummaryRow(
-                title = stringResource(
-                    R.string.load
-                ), description = lecture.loadLetterWithSign
-            )
+            LectureSummaryRow(title = stringResource(R.string.load), description = lecture.loadLetterWithSign)
 
             Spacer(Modifier.weight(1f))
 
-            LectureSummaryRow(
-                title = stringResource(
-                    R.string.speech
-                ), description = lecture.speechLetterWithSign
-            )
+            LectureSummaryRow(title = stringResource(R.string.speech), description = lecture.speechLetterWithSign)
 
             Spacer(Modifier.weight(1f))
 

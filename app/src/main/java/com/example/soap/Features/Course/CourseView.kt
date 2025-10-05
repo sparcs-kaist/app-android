@@ -45,7 +45,7 @@ import com.example.soap.R
 fun CourseView(
     viewModel: CourseViewModelProtocol = hiltViewModel(),
     navController: NavController,
-    ) {
+) {
     val repo: OTLCourseRepositoryProtocol = hiltViewModel<CourseViewModel>().otlCourseRepository
     val course = viewModel.course.collectAsState().value
     val state by viewModel.state.collectAsState()
@@ -115,7 +115,10 @@ fun CourseSummary(course: Course) {
             )
             LectureDetailRow(stringResource(R.string.code), course.code)
             LectureDetailRow(stringResource(R.string.type), course.type.localized())
-            LectureDetailRow(stringResource(R.string.department), course.department.name.localized())
+            LectureDetailRow(
+                stringResource(R.string.department),
+                course.department.name.localized()
+            )
 
             if (course.summary.isNotEmpty()) {
                 Text(
@@ -139,7 +142,7 @@ fun CourseReviewSection(
     course: Course,
     reviews: List<LectureReview>,
     state: CourseViewModel.ViewState,
-    repo: OTLCourseRepositoryProtocol
+    repo: OTLCourseRepositoryProtocol,
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -169,6 +172,6 @@ fun CourseReviewSection(
 @Preview
 @Composable
 fun CourseSummaryPreview() {
-    val fakeVM = remember { FakeCourseViewModel()}
+    val fakeVM = remember { FakeCourseViewModel() }
     CourseView(fakeVM, rememberNavController())
 }

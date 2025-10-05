@@ -10,7 +10,7 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface OTLLectureApi {
-    @GET("/api/lectures")
+    @GET("api/lectures")
     suspend fun searchLecture(
         @Query("year") year: Int,
         @Query("semester") semester: Int,
@@ -23,7 +23,7 @@ interface OTLLectureApi {
     ): List<LectureDTO>
 
 
-    @GET("/api/lectures/{lectureId}/related-reviews")
+    @GET("api/lectures/{lectureId}/related-reviews")
     suspend fun fetchReviews(
         @Path("lectureID") lectureID: Int,
         @Query("order") order: String = "-written_datetime",
