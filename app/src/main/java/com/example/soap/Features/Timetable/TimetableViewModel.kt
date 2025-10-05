@@ -40,6 +40,10 @@ class TimetableViewModel @Inject constructor(
     val isEditable: Boolean
         get() = selectedTimetable.value?.id?.contains("myTable")?.not() ?: false
 
+    init {
+        fetchData()
+    }
+
     // MARK: - Functions
     fun fetchData() {
         viewModelScope.launch {
@@ -60,9 +64,12 @@ class TimetableViewModel @Inject constructor(
         } ?: return
 
         if (currentIndex > 0) {
-            timetableUseCase.selectedSemesterID = semestersList[currentIndex - 1].id
+            val newSemester = semestersList[currentIndex - 1]
+            timetableUseCase.selectedSemesterID = newSemester.id
+            _selectedSemester.value = newSemester
         }
     }
+
     fun selectNextSemester() {
         val semestersList = timetableUseCase.semesters.value
         val currentIndex = timetableUseCase.selectedSemesterID?.let { id ->
@@ -70,7 +77,9 @@ class TimetableViewModel @Inject constructor(
         } ?: return
 
         if (currentIndex >= 0 && currentIndex < semestersList.size - 1) {
-            timetableUseCase.selectedSemesterID = semestersList[currentIndex + 1].id
+            val newSemester = semestersList[currentIndex + 1]
+            timetableUseCase.selectedSemesterID = newSemester.id
+            _selectedSemester.value = newSemester
         }
     }
 

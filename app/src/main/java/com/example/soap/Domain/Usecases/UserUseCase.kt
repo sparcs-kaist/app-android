@@ -75,6 +75,7 @@ class UserUseCase @Inject constructor(
             fetchTaxiUser()
             fetchAraUser()
             fetchFeedUser()
+            fetchOTLUser()
         } catch (e: Exception) {
             e.printStackTrace()
         }

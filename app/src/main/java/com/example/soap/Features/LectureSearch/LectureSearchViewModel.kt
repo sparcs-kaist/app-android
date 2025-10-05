@@ -37,7 +37,6 @@ class LectureSearchViewModel @Inject constructor(
     val lectures: StateFlow<List<Lecture>> = _lectures
 
     var searchKeyword by mutableStateOf("")
-       private set
 
     private val searchKeywordFlow = MutableStateFlow("")
 
@@ -47,7 +46,7 @@ class LectureSearchViewModel @Inject constructor(
     val isLastPage: Boolean
         get() = currentPage * itemsPerPage > _lectures.value.size
 
-    private fun bind() {
+    fun bind() {
         viewModelScope.launch {
             searchKeywordFlow
                 .debounce(350)
