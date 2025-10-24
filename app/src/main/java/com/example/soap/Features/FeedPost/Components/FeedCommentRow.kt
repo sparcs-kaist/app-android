@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -69,7 +70,8 @@ fun FeedCommentRow(
     var localComment by remember { mutableStateOf(comment) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
+    val deleteSuccessText = stringResource(R.string.deleted_successfully)
+    val reportSuccessText = stringResource(R.string.reported_successfully)
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
@@ -95,13 +97,13 @@ fun FeedCommentRow(
                         localComment = localComment.copy(isDeleted = true)
                         feedCommentRepository.deleteComment(localComment.id)
                     }
-                    Toast.makeText(context, "삭제가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, deleteSuccessText, Toast.LENGTH_SHORT).show()
                 },
                 onReport = {
                     coroutineScope.launch {
                         feedCommentRepository.reportComment(comment.id, it)
                     }
-                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, reportSuccessText, Toast.LENGTH_SHORT).show()
                 }
             )
 
@@ -127,7 +129,7 @@ private fun Header(
         ProfileImage(comment)
         Spacer(Modifier.width(8.dp))
         Text(
-            text = if (comment.isAuthor) comment.authorName + " (Author)" else comment.authorName,
+            text = if (comment.isAuthor) comment.authorName + " (${stringResource(R.string.author)})" else comment.authorName,
             fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.bodyMedium,
             color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.scrim
@@ -185,14 +187,14 @@ private fun ProfileImage(comment: FeedComment) {
 
 @Composable
 private fun Content(comment: FeedComment) {
-    val text = if (comment.isDeleted) "This comment has been deleted." else comment.content
+    val text = if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
     val color =
         if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
     var expanded by remember { mutableStateOf(false) }
     var isOverflowing by remember { mutableStateOf(false) }
     var hasMeasured by remember { mutableStateOf(false) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-
+    val moreText = stringResource(R.string.more)
     val moreColor = MaterialTheme.colorScheme.grayBB
 
     val displayText = remember(text, expanded, isOverflowing) {
@@ -207,7 +209,7 @@ private fun Content(comment: FeedComment) {
                 append(visibleText)
                 append("… ")
                 withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
-                    append("More")
+                    append(moreText)
                 }
             }
         }

@@ -30,12 +30,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.example.soap.Domain.Models.Feed.FeedImage
+import com.example.soap.R
 
 @Composable
 fun PostImagesStrip(images: List<FeedImage>) {
@@ -111,7 +113,7 @@ fun PostImagesStrip(images: List<FeedImage>) {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Show Spoiler",
+                                text = stringResource(R.string.show_spoiler),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = Color.White
                             )
