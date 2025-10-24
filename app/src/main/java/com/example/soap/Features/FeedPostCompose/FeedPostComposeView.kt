@@ -219,7 +219,7 @@ fun FeedPostComposeView(
                             ) {
                                 Icon(
                                     Icons.Default.Close,
-                                    contentDescription = "Remove Image",
+                                    contentDescription = stringResource(R.string.remove_image),
                                     tint = Color.White
                                 )
                             }
@@ -238,7 +238,7 @@ fun FeedPostComposeView(
                                     if (isSpoiler) painterResource(R.drawable.baseline_visibility_off) else painterResource(
                                         R.drawable.baseline_visibility
                                     ),
-                                    contentDescription = "Spoiler Image",
+                                    contentDescription = stringResource(R.string.show_spoiler),
                                     tint = Color.White
                                 )
                             }
@@ -307,15 +307,15 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
     val selectedType = viewModel.selectedComposeType
     val typeLabels = mapOf(
         FeedPostComposeViewModel.ComposeType.PUBLICLY to viewModel.feedUser?.nickname,
-        FeedPostComposeViewModel.ComposeType.ANONYMOUSLY to "Anonymous"
+        FeedPostComposeViewModel.ComposeType.ANONYMOUSLY to stringResource(R.string.anonymous)
     )
 
     if (previousType != selectedType) {
         previousType = selectedType
     }
 
-    val displayText = typeLabels[selectedType] ?: "Select Type"
-    val previousText = typeLabels[previousType] ?: "Select Type"
+    val displayText = typeLabels[selectedType] ?: stringResource(R.string.select_type)
+    val previousText = typeLabels[previousType] ?: stringResource(R.string.select_type)
 
     Box {
         Card(
@@ -334,7 +334,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     painter = painterResource(R.drawable.baseline_arrow_drop_down),
-                    contentDescription = "Change Type"
+                    contentDescription = stringResource(R.string.change_type)
                 )
             }
         }
@@ -348,7 +348,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = label ?: "Unknown",
+                            text = label ?: stringResource(R.string.unknown),
                             style = MaterialTheme.typography.titleMedium,
                             color = if (selectedType == type)
                                 MaterialTheme.colorScheme.primary
@@ -389,7 +389,7 @@ private fun FeedPostOptionsRow(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.outline_photo_library),
-                    contentDescription = "add Photo",
+                    contentDescription = stringResource(R.string.add_photo),
                     modifier = Modifier.size(28.dp)
                 )
             }
