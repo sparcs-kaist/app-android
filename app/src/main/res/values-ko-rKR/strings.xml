@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="start">피드</string>
+    <string name="start">타임라인</string>
     <string name="timetable">시간표</string>
     <string name="taxi">택시</string>
     <string name="trending_board">실시간 인기글</string>
@@ -27,7 +27,7 @@
     <string name="gaming">게임</string>
     <string name="dating">연애</string>
     <string name="lost_and_found">분실물</string>
-    <string name="discard_this_post">정말로 돌아가시겠습니까? 작성하신 글은 저장되지 않습니다.</string>
+    <string name="discard_this_post">이 게시글 작성을 취소하시겠습니까?</string>
     <string name="save_in_drafts">임시저장</string>
     <string name="ok">확인</string>
     <string name="cancel">취소</string>
@@ -57,7 +57,7 @@
     <string name="type">구분</string>
     <string name="department">학과</string>
     <string name="professor">교수</string>
-    <string name="classroom">장소</string>
+    <string name="classroom">강의실</string>
     <string name="capacity">정원</string>
     <string name="exams">시험</string>
     <string name="view_dictionary">과목 사전</string>
@@ -77,15 +77,15 @@
     <string name="send_feedback">의견 보내기</string>
     <string name="app_version">앱 버전</string>
     <string name="privacy_policy">개인정보 처리방침</string>
-    <string name="my_posts">작성한 글</string>
+    <string name="my_posts">내 게시글</string>
     <string name="bookmarked">담아둔 글</string>
-    <string name="no_results">결과가 없습니다.</string>
+    <string name="no_results">검색 결과가 없습니다.</string>
     <string name="no_results_for">%1$s에 대한 결과가 없습니다.</string>
     <string name="taxi_settings">택시 설정</string>
     <string name="ara_settings">아라 설정</string>
     <string name="otl_settings">OTL 설정</string>
-    <string name="allow_nsfw">성인글 보기</string>
-    <string name="allow_political">정치글 보기</string>
+    <string name="allow_nsfw">성인글 허용</string>
+    <string name="allow_political">정치글 허용</string>
     <string name="posts">게시글</string>
     <string name="bookmarked_posts">담아둔 글</string>
     <string name="you_cant_change_nickname_until">닉네임은 %1$s 이후에 변경할 수 있습니다.</string>
@@ -101,7 +101,7 @@
     <string name="report_reason">신고 사유</string>
     <string name="taxi_reports">신고 내역</string>
     <string name="no_reports">신고 내역이 없습니다.</string>
-    <string name="done">완료</string>
+    <string name="done">확인</string>
     <string name="enter_bank_number">계좌 번호를 입력해주세요.</string>
     <string name="enter_phone_number">전화번호를 입력해주세요.</string>
     <string name="report_details">신고 내역</string>
@@ -109,4 +109,38 @@
     <string name="close">닫기</string>
     <string name="bank_name">계좌</string>
     <string name="enter_nickname">닉네임을 입력해주세요.</string>
+    <string name="delete_post">게시글 삭제</string>
+    <string name="are_you_sure_you_want_to_delete_this_post">이 게시물을 삭제하시겠습니까?</string>
+    <string name="more">더보기</string>
+    <string name="show_spoiler">스포일러 보기</string>
+    <string name="deleted_successfully">삭제가 완료되었습니다.</string>
+    <string name="reported_successfully">신고가 성공적으로 접수되었습니다.</string>
+    <string name="author">작성자</string>
+    <string name="this_comment_has_been_deleted">삭제된 댓글입니다.</string>
+    <string name="feed">타임라인</string>
+    <string name="delete">삭제</string>
+    <string name="write_anonymously">익명</string>
+    <string name="write_a_comment">댓글 쓰기</string>
+    <string name="write_a_reply_to">%1$s에게 댓글 쓰기</string>
+    <string name="send">보내기</string>
+    <string name="the_number_of_comments">%1$s개의 댓글</string>
+    <string name="back">뒤로가기</string>
+    <string name="remove_image">사진 삭제하기</string>
+    <string name="select_type">유형 선택</string>
+    <string name="change_type">유형 바꾸기</string>
+    <string name="add_photo">사진 추가</string>
+    <string name="edit">수정</string>
+    <string name="no_one_has_commented_yet">아직 댓글이 없습니다.</string>
+    <string name="be_the_first_one_to_share_your_thoughts">가장 먼저 당신의 생각을 나눠보세요.</string>
+    <string name="editing">수정 중</string>
+    <string name="untitled">무제</string>
+    <string name="reply_as">%1$s으로 댓글 작성</string>
+    <string name="no_topic">말머리 없음</string>
+    <string name="views">조회 %1$s</string>
+    <string name="this_post_contains_nsfw_content">NSFW 내용의 게시글입니다.</string>
+    <string name="this_post_contains_political_content">정치/사회성 내용의 게시글입니다.</string>
+    <string name="this_post_is_hidden">숨겨진 게시글입니다.</string>
+    <string name="no_result">검색 결과 없음</string>
+    <string name="no_results_found_for">%1$s에 대한 결과가 없습니다.</string>
+    <string name="clear_search_text">검색창 비우기</string>
 </resources>

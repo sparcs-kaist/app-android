@@ -47,6 +47,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -90,6 +91,9 @@ fun FeedPostView(
     val json = backStackEntry.savedStateHandle.get<String>("feed_json")
     val post = remember { mutableStateOf(Gson().fromJson(json, FeedPost::class.java)) }
     val context = LocalContext.current
+    val deleteSuccessText = stringResource(R.string.deleted_successfully)
+    val reportSuccessText = stringResource(R.string.reported_successfully)
+
     LaunchedEffect(Unit) {
         viewModel.fetchComments(postID = post.value.id)
     }
@@ -103,7 +107,7 @@ fun FeedPostView(
                     coroutineScope.launch {
                         repo.reportPost(post.value.id, it)
                     }
-                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, reportSuccessText, Toast.LENGTH_SHORT).show()
                 },
                 onTranslate = {/*Todo - translate*/ },
                 isMine = post.value.isAuthor
@@ -196,8 +200,8 @@ fun FeedPostView(
         if (showDeleteConfirmation) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirmation = false },
-                title = { Text(text = "Delete Post", fontWeight = FontWeight.Bold) },
-                text = { Text("Are you sure you want to delete this post?") },
+                title = { Text(text = stringResource(R.string.delete_post), fontWeight = FontWeight.Bold) },
+                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -208,7 +212,7 @@ fun FeedPostView(
                         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
                     ) {
                         Text(
-                            text = "Delete",
+                            text = stringResource(R.string.delete),
                             color = MaterialTheme.colorScheme.error
                         )
                     }
@@ -239,7 +243,7 @@ private fun InputBar(
         Column(Modifier.weight(1f)) {
             if (isFocused) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "WRITE ANONYMOUSLY")
+                    Text(text = stringResource(R.string.write_anonymously))
                     Spacer(modifier = Modifier.weight(1f))
                     Switch(
                         checked = viewModel.isAnonymous,
@@ -277,9 +281,12 @@ private fun InputBar(
                                 if (viewModel.text.isEmpty()) {
                                     Text(
                                         text = if (targetComment != null)
-                                            "Write a reply to ${targetComment.authorName}"
+                                            stringResource(
+                                                R.string.write_a_reply_to,
+                                                targetComment.authorName
+                                            )
                                         else
-                                            "Write a comment",
+                                            stringResource(R.string.write_a_comment),
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                         style = MaterialTheme.typography.bodyMedium
                                     )
@@ -309,7 +316,7 @@ private fun InputBar(
                                 painter = painterResource(id = R.drawable.paperplane),
                                 modifier = Modifier.size(20.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary,
-                                contentDescription = "Send"
+                                contentDescription = stringResource(R.string.send)
                             )
                         }
                     }
@@ -334,7 +341,10 @@ private fun Comments(
             Column(Modifier.padding(horizontal = 8.dp)) {
                 HorizontalDivider()
                 Text(
-                    "${post.value.commentCount} comments",
+                    stringResource(
+                        R.string.the_number_of_comments,
+                        post.value.commentCount
+                    ),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -346,7 +356,10 @@ private fun Comments(
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
                 Text(
-                    "${post.value.commentCount} comments",
+                    stringResource(
+                        R.string.the_number_of_comments,
+                        post.value.commentCount
+                    ),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 viewModel.comments.forEach { comment ->

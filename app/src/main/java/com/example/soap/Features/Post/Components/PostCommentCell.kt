@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -131,7 +132,7 @@ fun PostCommentCell(
     if (showReportDialog) {
         AlertDialog(
             onDismissRequest = { showReportDialog = false },
-            confirmButton = { TextButton(onClick = { showReportDialog = false }) { Text("OK") } },
+            confirmButton = { TextButton(onClick = { showReportDialog = false }) { Text(stringResource(R.string.ok)) } },
             title = { Text("Report Submitted") },
             text = { Text("Your report has been submitted successfully.") }
         )
@@ -208,7 +209,7 @@ fun <T : Enum<T>> PostCommentActionsMenu(
     Box {
             Icon(
                 painter = painterResource(R.drawable.more_horiz),
-                contentDescription = "More",
+                contentDescription = stringResource(R.string.more),
                 modifier = modifier
                     .clickable { expanded = true },
                 tint = if(isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
@@ -224,7 +225,7 @@ fun <T : Enum<T>> PostCommentActionsMenu(
         }) {
             if (isMine == false) {
                 DropdownMenuItem(
-                    text = { Text("Report") },
+                    text = { Text(stringResource(R.string.report)) },
                     onClick = {
                         reportExpanded = !reportExpanded
                               },
@@ -271,7 +272,7 @@ fun <T : Enum<T>> PostCommentActionsMenu(
             } else {
                 if (isComment) {
                     DropdownMenuItem(
-                        text = { Text("Edit") },
+                        text = { Text(stringResource(R.string.edit)) },
                         onClick = { onEdit(); expanded = false },
                         leadingIcon = {
                             Icon(
@@ -285,7 +286,7 @@ fun <T : Enum<T>> PostCommentActionsMenu(
             }
 
             DropdownMenuItem(
-                text = { Text("Translate") },
+                text = { Text(stringResource(R.string.translate)) },
                 onClick = { onTranslate(); expanded = false },
                 leadingIcon = {
                     Icon(
@@ -300,7 +301,7 @@ fun <T : Enum<T>> PostCommentActionsMenu(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = "Delete",
+                            text = stringResource(R.string.delete),
                             color = MaterialTheme.colorScheme.error
                         )
                            },
@@ -339,7 +340,7 @@ fun ProfilePicture(url: String?) {
 fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
     AnimatedContent(targetState = comment.content) { content ->
         Text(
-            text = content ?: "This comment has been deleted.",
+            text = content ?: stringResource(R.string.this_comment_has_been_deleted),
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(vertical = 8.dp),
             color = if (isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f)
