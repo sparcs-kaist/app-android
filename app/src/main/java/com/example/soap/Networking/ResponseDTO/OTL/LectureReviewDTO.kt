@@ -1,34 +1,34 @@
 package com.example.soap.Networking.ResponseDTO.OTL
 
 import com.example.soap.Domain.Models.OTL.LectureReview
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class LectureReviewDTO(
-    @SerialName("id")
+    @SerializedName("id")
     val id: Int,
 
-    @SerialName("lecture")
+    @SerializedName("lecture")
     val lecture: LectureDTO,
 
-    @SerialName("content")
+    @SerializedName("content")
     val content: String,
 
-    @SerialName("like")
+    @SerializedName("like")
     val like: Int,
 
-    @SerialName("grade")
+    @SerializedName("grade")
     val grade: Int,
 
-    @SerialName("load")
+    @SerializedName("load")
     val load: Int,
 
-    @SerialName("speech")
+    @SerializedName("speech")
     val speech: Int,
 
-    @SerialName("is_deleted")
+    @SerializedName("is_deleted")
     val isDeleted: Int,
 
-    @SerialName("userspecific_is_liked")
+    @SerializedName("userspecific_is_liked")
     val isLiked: Boolean
 ) {
     fun toModel(): LectureReview = LectureReview(

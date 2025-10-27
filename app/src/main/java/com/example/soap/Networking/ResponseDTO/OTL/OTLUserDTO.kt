@@ -1,37 +1,37 @@
 package com.example.soap.Networking.ResponseDTO.OTL
 
 import com.example.soap.Domain.Models.OTL.OTLUser
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class OTLUserDTO(
-    @SerialName("id")
+    @SerializedName("id")
     val id: Int,
 
-    @SerialName("email")
+    @SerializedName("email")
     val email: String,
 
-    @SerialName("student_id")
+    @SerializedName("student_id")
     val studentID: String,
 
-    @SerialName("first_name")
+    @SerializedName("first_name")
     val firstName: String,
 
-    @SerialName("last_name")
+    @SerializedName("last_name")
     val lastName: String,
 
-    @SerialName("department")
+    @SerializedName("department")
     val department: DepartmentDTO?,
 
-    @SerialName("majors")
+    @SerializedName("majors")
     val majors: List<DepartmentDTO>,
 
-    @SerialName("review_writable_lectures")
+    @SerializedName("review_writable_lectures")
     val reviewWritableLectures: List<LectureDTO>,
 
-    @SerialName("my_timetable_lectures")
+    @SerializedName("my_timetable_lectures")
     val myTimetableLectures: List<LectureDTO>,
 
-    @SerialName("reviews")
+    @SerializedName("reviews")
     val reviews: List<LectureReviewDTO>
 ) {
     fun toModel(): OTLUser = OTLUser(

@@ -3,34 +3,34 @@ package com.example.soap.Networking.ResponseDTO.OTL
 import com.example.soap.Domain.Enums.DayType
 import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Models.OTL.ClassTime
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class ClassTimeDTO(
-    @SerialName("building_code")
+    @SerializedName("building_code")
     val buildingCode: String,
 
-    @SerialName("classroom")
+    @SerializedName("classroom")
     val classroom: String,
 
-    @SerialName("classroom_en")
+    @SerializedName("classroom_en")
     val enClassroom: String,
 
-    @SerialName("classroom_short")
+    @SerializedName("classroom_short")
     val classroomShort: String,
 
-    @SerialName("classroom_short_en")
+    @SerializedName("classroom_short_en")
     val enClassroomShort: String,
 
-    @SerialName("room_name")
+    @SerializedName("room_name")
     val roomName: String,
 
-    @SerialName("day")
+    @SerializedName("day")
     val day: Int,
 
-    @SerialName("begin")
+    @SerializedName("begin")
     val begin: Int,
 
-    @SerialName("end")
+    @SerializedName("end")
     val end: Int
 ) {
     fun toModel(): ClassTime = ClassTime(

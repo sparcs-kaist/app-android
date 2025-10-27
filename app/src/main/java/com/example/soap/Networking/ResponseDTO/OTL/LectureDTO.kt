@@ -5,100 +5,100 @@ import com.example.soap.Domain.Enums.SemesterType
 import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Models.OTL.Department
 import com.example.soap.Domain.Models.OTL.Lecture
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class LectureDTO(
-    @SerialName("id")
+    @SerializedName("id")
     val id: Int,
 
-    @SerialName("title")
+    @SerializedName("title")
     val title: String,
 
-    @SerialName("title_en")
+    @SerializedName("title_en")
     val enTitle: String,
 
-    @SerialName("course")
+    @SerializedName("course")
     val course: Int,
 
-    @SerialName("old_code")
+    @SerializedName("old_code")
     val oldCode: String,
 
-    @SerialName("class_no")
+    @SerializedName("class_no")
     val classNumber: String,
 
-    @SerialName("year")
+    @SerializedName("year")
     val year: Int,
 
-    @SerialName("semester")
+    @SerializedName("semester")
     val semester: Int,
 
-    @SerialName("code")
+    @SerializedName("code")
     val code: String,
 
-    @SerialName("department")
+    @SerializedName("department")
     val department: Int,
 
-    @SerialName("department_code")
+    @SerializedName("department_code")
     val departmentCode: String,
 
-    @SerialName("department_name")
+    @SerializedName("department_name")
     val departmentName: String,
 
-    @SerialName("department_name_en")
+    @SerializedName("department_name_en")
     val departmentEnName: String,
 
-    @SerialName("type")
+    @SerializedName("type")
     val type: String,
 
-    @SerialName("type_en")
+    @SerializedName("type_en")
     val enType: String,
 
-    @SerialName("limit")
+    @SerializedName("limit")
     val limit: Int,
 
-    @SerialName("num_people")
+    @SerializedName("num_people")
     val numPeople: Int,
 
-    @SerialName("is_english")
+    @SerializedName("is_english")
     val isEnglish: Boolean,
 
-    @SerialName("credit")
+    @SerializedName("credit")
     val credit: Int,
 
-    @SerialName("credit_au")
+    @SerializedName("credit_au")
     val creditAu: Int,
 
-    @SerialName("common_title")
+    @SerializedName("common_title")
     val commonTitle: String,
 
-    @SerialName("common_title_en")
+    @SerializedName("common_title_en")
     val commonEnTitle: String,
 
-    @SerialName("class_title")
+    @SerializedName("class_title")
     val classTitle: String,
 
-    @SerialName("class_title_en")
+    @SerializedName("class_title_en")
     val classEnTitle: String,
 
-    @SerialName("review_total_weight")
+    @SerializedName("review_total_weight")
     val reviewTotalWeight: Double? = 0.0,
 
-    @SerialName("grade")
+    @SerializedName("grade")
     val grade: Double? = 0.0,
 
-    @SerialName("load")
+    @SerializedName("load")
     val load: Double? = 0.0,
 
-    @SerialName("speech")
+    @SerializedName("speech")
     val speech: Double? = 0.0,
 
-    @SerialName("professors")
+    @SerializedName("professors")
     val professors: List<ProfessorDTO>,
 
-    @SerialName("classtimes")
+    @SerializedName("classtimes")
     val classTimes: List<ClassTimeDTO>?,
 
-    @SerialName("examtimes")
+    @SerializedName("examtimes")
     val examTimes: List<ExamTimeDTO>?
 ) {
     fun toModel(): Lecture = Lecture(
