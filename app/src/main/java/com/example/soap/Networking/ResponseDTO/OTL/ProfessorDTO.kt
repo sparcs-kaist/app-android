@@ -2,19 +2,19 @@ package com.example.soap.Networking.ResponseDTO.OTL
 
 import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Models.OTL.Professor
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class ProfessorDTO(
-    @SerialName("professor_id")
+    @SerializedName("professor_id")
     val id: Int,
 
-    @SerialName("name")
+    @SerializedName("name")
     val name: String,
 
-    @SerialName("name_en")
+    @SerializedName("name_en")
     val enName: String,
 
-    @SerialName("review_total_weight")
+    @SerializedName("review_total_weight")
     val reviewTotalWeight: Double
 ) {
     fun toModel(): Professor = Professor(

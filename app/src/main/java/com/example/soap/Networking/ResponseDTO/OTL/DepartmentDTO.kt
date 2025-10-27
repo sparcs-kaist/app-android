@@ -2,19 +2,19 @@ package com.example.soap.Networking.ResponseDTO.OTL
 
 import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Models.OTL.Department
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class DepartmentDTO(
-    @SerialName("id")
+    @SerializedName("id")
     val id: Int,
 
-    @SerialName("name")
+    @SerializedName("name")
     val name: String,
 
-    @SerialName("name_en")
+    @SerializedName("name_en")
     val enName: String,
 
-    @SerialName("code")
+    @SerializedName("code")
     val code: String
 ) {
     fun toModel(): Department = Department(

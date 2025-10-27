@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,6 +36,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
@@ -60,7 +63,6 @@ fun TimetableBottomSheet(
 
     val offsetY = remember { mutableStateOf(anchors[0]) }
     val scope = rememberCoroutineScope()
-
 
     Box{
 
@@ -105,7 +107,7 @@ fun TimetableBottomSheet(
                     )
                 }
 
-                SearchCourses(value = searchCourse, onValueChange = { searchCourse = it })
+                SearchCourses(value = searchCourse, onValueChange = { searchCourse = it }, onClick = {})
 
                 Spacer(Modifier.padding(4.dp))
 
@@ -122,9 +124,9 @@ fun TimetableBottomSheet(
 @Composable
 fun SearchCourses(
     value: String,
-    onValueChange: (String)-> Unit
+    onValueChange: (String)-> Unit,
+    onClick: () -> Unit
 ){
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -137,7 +139,7 @@ fun SearchCourses(
 
             Icon(
                 painter = painterResource(R.drawable.search),
-                contentDescription = "Send Button",
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.grayBB
             )
 
@@ -146,14 +148,19 @@ fun SearchCourses(
             Box(
                 Modifier
                     .weight(1f)
-                    .padding(4.dp),
-                ) {
+                    .padding(horizontal = 12.dp, vertical = 8.dp)
+            ) {
 
                 BasicTextField(
                     value = value,
                     onValueChange = onValueChange,
-                    textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(
+                        onDone = { onClick() }
+                    ),
+                    singleLine = true,
                     decorationBox = { innerTextField ->
                         Box(
                             modifier = Modifier.fillMaxWidth(),
