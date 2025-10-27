@@ -23,7 +23,7 @@ interface OTLLectureApi {
     ): List<LectureDTO>
 
 
-    @GET("api/lectures/{lectureId}/related-reviews")
+    @GET("api/lectures/{lectureID}/related-reviews")
     suspend fun fetchReviews(
         @Path("lectureID") lectureID: Int,
         @Query("order") order: String = "-written_datetime",

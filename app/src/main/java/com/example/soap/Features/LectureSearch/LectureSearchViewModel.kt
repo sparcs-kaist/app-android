@@ -11,6 +11,7 @@ import com.example.soap.Domain.Models.OTL.LectureSearchRequest
 import com.example.soap.Domain.Repositories.OTL.OTLLectureRepository
 import com.example.soap.Domain.Usecases.TimetableUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -37,8 +38,7 @@ class LectureSearchViewModel @Inject constructor(
     val lectures: StateFlow<List<Lecture>> = _lectures
 
     var searchKeyword by mutableStateOf("")
-
-    private val searchKeywordFlow = MutableStateFlow("")
+    val searchKeywordFlow = MutableStateFlow("")
 
     private val itemsPerPage = 50
     private var currentPage = 0
@@ -46,6 +46,7 @@ class LectureSearchViewModel @Inject constructor(
     val isLastPage: Boolean
         get() = currentPage * itemsPerPage > _lectures.value.size
 
+    @OptIn(FlowPreview::class)
     fun bind() {
         viewModelScope.launch {
             searchKeywordFlow
@@ -60,7 +61,7 @@ class LectureSearchViewModel @Inject constructor(
         }
     }
 
-    fun fetchLectures() {
+    private fun fetchLectures() {
         val selectedSemester = timetableUseCase.selectedSemester ?: return
         if (isLastPage) return
 

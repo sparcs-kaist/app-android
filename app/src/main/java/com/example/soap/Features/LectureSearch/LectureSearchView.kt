@@ -1,5 +1,6 @@
 package com.example.soap.Features.LectureSearch
 
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -25,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -35,9 +36,10 @@ import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Features.LectureSearch.Components.LectureSearchViewNavigationBar
 import com.example.soap.Features.Timetable.Components.SearchCourses
 import com.example.soap.Features.Timetable.TimetableViewModel
+import com.example.soap.R
+import com.example.soap.Shared.Views.ContentViews.UnavailableView
 import com.example.soap.ui.theme.Theme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LectureSearchView(
     navController: NavController,
@@ -58,6 +60,7 @@ fun LectureSearchView(
                 result.add(lecture.course)
             }
         }
+        Log.d("ORDERED", "orderedCourses = $result")
         result
     }
 
@@ -74,13 +77,19 @@ fun LectureSearchView(
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxSize()
         ) {
             // Search bar
             SearchCourses(
                 value = searchKeyword,
-                onValueChange = { lectureSearchViewModel.searchKeyword = it }
+                onValueChange = {
+                    lectureSearchViewModel.searchKeyword = it
+                    lectureSearchViewModel.searchKeywordFlow.value = it
+                    },
+                onClick = { lectureSearchViewModel.bind(); Log.d("HEY", orderedCourses.toString()) }
             )
+
             Spacer(modifier = Modifier.height(8.dp))
 
             // Lecture list
@@ -88,40 +97,58 @@ fun LectureSearchView(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(bottom = 80.dp)
             ) {
-                orderedCourses.forEach { course ->
-                    val courseLectures = groupedByCourse[course] ?: emptyList()
-                    if (courseLectures.isNotEmpty()) {
-                        stickyHeader {
-                            val firstItem = courseLectures.first()
-                            Surface(color = MaterialTheme.colorScheme.background) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = firstItem.title.localized(),
-                                        style = MaterialTheme.typography.titleSmall,
-                                        modifier = Modifier.weight(1f)
-                                    )
-                                    Column(horizontalAlignment = Alignment.End) {
-                                        Text(firstItem.code)
-                                        Text(firstItem.typeDetail.localized())
+                if (searchKeyword.isEmpty()) {
+                    item {
+                        UnavailableView(
+                            icon = painterResource(R.drawable.search),
+                            title = "Search",
+                            description = "Search courses, codes, or professors."
+                        )
+                    }
+                } else if (orderedCourses.isEmpty()) {
+                    item {
+                        UnavailableView(
+                            icon = painterResource(R.drawable.search),
+                            title = "No Results for \"${searchKeyword}\"",
+                            description = "Check the spelling or try a new search"
+                        )
+                    }
+                } else {
+                    orderedCourses.forEach { course ->
+                        val courseLectures = groupedByCourse[course] ?: emptyList()
+                        if (courseLectures.isNotEmpty()) {
+                            stickyHeader {
+                                val firstItem = courseLectures.first()
+                                Surface(color = MaterialTheme.colorScheme.background) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = firstItem.title.localized(),
+                                            style = MaterialTheme.typography.titleSmall,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        Column(horizontalAlignment = Alignment.End) {
+                                            Text(firstItem.code)
+                                            Text(firstItem.typeDetail.localized())
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        items(courseLectures) { lecture ->
-                            LectureRow(
-                                lecture = lecture,
-                                onClick = {
-                                    timetableViewModel.candidateLecture = lecture
-//                                    onDetentChange(130f)
-                                    navController.navigate("lectureDetail/${lecture.id}")
-                                }
-                            )
+                            items(courseLectures) { lecture ->
+                                LectureRow(
+                                    lecture = lecture,
+                                    onClick = {
+                                        timetableViewModel.candidateLecture = lecture
+                                    onDetentChange(130f)
+                                        navController.navigate("lectureDetail/${lecture.id}")
+                                    }
+                                )
+                            }
                         }
                     }
                 }

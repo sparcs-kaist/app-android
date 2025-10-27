@@ -2,55 +2,55 @@ package com.example.soap.Networking.ResponseDTO.OTL
 
 import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Models.OTL.Course
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class CourseDTO(
-    @SerialName("id")
+    @SerializedName("id")
     val id: Int,
 
-    @SerialName("old_code")
+    @SerializedName("old_code")
     val code: String,
 
-    @SerialName("department")
+    @SerializedName("department")
     val department: DepartmentDTO,
 
-    @SerialName("type")
+    @SerializedName("type")
     val type: String,
 
-    @SerialName("type_en")
+    @SerializedName("type_en")
     val enType: String,
 
-    @SerialName("title")
+    @SerializedName("title")
     val title: String,
 
-    @SerialName("title_en")
+    @SerializedName("title_en")
     val enTitle: String,
 
-    @SerialName("summary")
+    @SerializedName("summary")
     val summary: String,
 
-    @SerialName("review_total_weight")
+    @SerializedName("review_total_weight")
     val reviewTotalWeight: Double,
 
-    @SerialName("grade")
+    @SerializedName("grade")
     val grade: Double?,
 
-    @SerialName("load")
+    @SerializedName("load")
     val load: Double?,
 
-    @SerialName("speech")
+    @SerializedName("speech")
     val speech: Double?,
 
-    @SerialName("credit")
+    @SerializedName("credit")
     val credit: Int,
 
-    @SerialName("credit_au")
+    @SerializedName("credit_au")
     val creditAU: Int,
 
-    @SerialName("num_classes")
+    @SerializedName("num_classes")
     val numClasses: Int,
 
-    @SerialName("num_labs")
+    @SerializedName("num_labs")
     val numLabs: Int
 ) {
     fun toModel(): Course = Course(

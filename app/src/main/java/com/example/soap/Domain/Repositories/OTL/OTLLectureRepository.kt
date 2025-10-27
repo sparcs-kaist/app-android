@@ -1,5 +1,6 @@
 package com.example.soap.Domain.Repositories.OTL
 
+import android.util.Log
 import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Domain.Models.OTL.LectureReview
 import com.example.soap.Domain.Models.OTL.LectureSearchRequest
@@ -50,6 +51,7 @@ class OTLLectureRepository @Inject constructor(
             limit = dto.limit,
             offset = dto.offset
         )
+        Log.d("HEY", response.toString())
         return response.map { it.toModel() }
     }
 

@@ -1,6 +1,5 @@
 package com.example.soap.Domain.Enums
 
-
 import com.example.soap.Domain.Helpers.LocalizedString
 
 enum class LectureType(val code: String, val displayName: LocalizedString) {

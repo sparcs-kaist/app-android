@@ -3,22 +3,22 @@ package com.example.soap.Networking.ResponseDTO.OTL
 import com.example.soap.Domain.Enums.DayType
 import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Models.OTL.ExamTime
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class ExamTimeDTO(
-    @SerialName("str")
+    @SerializedName("str")
     val description: String,
 
-    @SerialName("str_en")
+    @SerializedName("str_en")
     val enDescription: String,
 
-    @SerialName("day")
+    @SerializedName("day")
     val day: Int,
 
-    @SerialName("begin")
+    @SerializedName("begin")
     val begin: Int,
 
-    @SerialName("end")
+    @SerializedName("end")
     val end: Int
 ) {
     fun toModel(): ExamTime = ExamTime(
