@@ -19,13 +19,13 @@ interface OTLTimetableApi {
         @Query("order") order: String = "arrange_order"
     ): List<TimetableDTO>
 
+    @JvmSuppressWildcards
     @POST("api/users/{userID}/timetables")
     suspend fun createTable(
         @Path("userID") userID: Int,
-        @Query("year") year: Int,
-        @Query("semester") semester: Int,
-        @Body lectures: List<Any> = emptyList()
+        @Body request: CreateTableRequest
     ): TimetableDTO
+
 
     @DELETE("api/users/{userId}/timetables/{timetableId}")
     suspend fun deleteTable(
@@ -37,7 +37,7 @@ interface OTLTimetableApi {
     suspend fun addLecture(
         @Path("userId") userId: Int,
         @Path("timetableId") timetableId: Int,
-        @Query("lecture")lectureID: Int
+        @Body request: AddLectureRequest
     ): TimetableDTO
 
     @POST("api/users/{userId}/timetables/{timetableId}/remove-lecture")
@@ -53,3 +53,13 @@ interface OTLTimetableApi {
     @GET("api/semesters/current")
     suspend fun fetchCurrentSemester(): SemesterDTO
 }
+
+data class CreateTableRequest(
+    val year: Int,
+    val semester: Int,
+    val lectures: List<Int> = emptyList()
+)
+
+data class AddLectureRequest(
+    val lecture: Int
+)

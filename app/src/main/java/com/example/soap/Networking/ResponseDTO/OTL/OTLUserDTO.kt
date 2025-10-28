@@ -13,10 +13,10 @@ data class OTLUserDTO(
     @SerializedName("student_id")
     val studentID: String,
 
-    @SerializedName("first_name")
+    @SerializedName("firstName")
     val firstName: String,
 
-    @SerializedName("last_name")
+    @SerializedName("lastName")
     val lastName: String,
 
     @SerializedName("department")

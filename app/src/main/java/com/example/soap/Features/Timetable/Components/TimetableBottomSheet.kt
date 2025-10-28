@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -23,14 +24,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -40,6 +40,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.example.soap.R
+import com.example.soap.Shared.Extensions.noRippleClickable
 import com.example.soap.ui.theme.darkGray
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.grayF8
@@ -50,10 +51,11 @@ import kotlin.math.roundToInt
 
 @Composable
 fun TimetableBottomSheet(
+    content: @Composable () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val configuration = LocalConfiguration.current
     val screenHeight = with(LocalDensity.current) { configuration.screenHeightDp.dp.toPx() }
-    var searchCourse by remember { mutableStateOf("") }
 
     val anchors = listOf(
         (screenHeight) * 0.9f,
@@ -61,10 +63,16 @@ fun TimetableBottomSheet(
         (screenHeight) * 0.1f
     )
 
-    val offsetY = remember { mutableStateOf(anchors[0]) }
+    val offsetY = remember { mutableStateOf(anchors[1]) }
     val scope = rememberCoroutineScope()
 
     Box{
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.3f))
+                .noRippleClickable { onDismiss() }
+        )
 
         Box(
             modifier = Modifier
@@ -72,14 +80,17 @@ fun TimetableBottomSheet(
                 .fillMaxWidth()
                 .height((screenHeight - offsetY.value).dp)
                 .background(
-                    MaterialTheme.colorScheme.surface,
+                    MaterialTheme.colorScheme.background,
                     RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
                 )
                 .draggable(
                     orientation = Orientation.Vertical,
                     state = rememberDraggableState { delta ->
-                        offsetY.value =
-                            (offsetY.value + delta).coerceIn(anchors.first(), anchors.last())
+                        val minOffset = anchors.minOrNull() ?: 0f
+                        val maxOffset = anchors.maxOrNull() ?: screenHeight
+
+                        offsetY.value = (offsetY.value + delta).coerceIn(minOffset, maxOffset)
+
                     },
                     onDragStopped = { velocity ->
                         val nearest = anchors.minByOrNull { abs(it - offsetY.value) }!!
@@ -90,9 +101,12 @@ fun TimetableBottomSheet(
                                 animationSpec = tween(250)
                             ) { value, _ -> offsetY.value = value }
                         }
+                        if (nearest == anchors[0]) {
+                            onDismiss()
+                        }
                     }
                 )
-                .padding(16.dp)
+                .padding(top = 16.dp)
         ) {
             Column {
                 Box(Modifier
@@ -106,15 +120,7 @@ fun TimetableBottomSheet(
                             .background(MaterialTheme.colorScheme.darkGray, RoundedCornerShape(2.dp))
                     )
                 }
-
-                SearchCourses(value = searchCourse, onValueChange = { searchCourse = it }, onClick = {})
-
-                Spacer(Modifier.padding(4.dp))
-
-                //화면
-                //학년/학과/구분+버튼
-                //강의 내용
-
+                content()
             }
         }
     }

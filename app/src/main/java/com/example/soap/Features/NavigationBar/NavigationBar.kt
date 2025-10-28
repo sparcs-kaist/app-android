@@ -210,6 +210,12 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",
+                arguments = listOf(
+                    navArgument("lecture_json") {
+                        type = NavType.StringType
+                        nullable = false
+                    }
+                ),
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
@@ -251,7 +257,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ){ backStackEntry ->
                 val timetableViewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
                 val lectureSearchViewModelImpl: LectureSearchViewModel = hiltViewModel(backStackEntry)
-                LectureSearchView(navController = navController, timetableViewModel = timetableViewModelImpl, lectureSearchViewModel = lectureSearchViewModelImpl) { }
+                LectureSearchView(navController = navController, timetableViewModel = timetableViewModelImpl, lectureSearchViewModel = lectureSearchViewModelImpl)
             }
 
             /*___________Taxi___________*/
@@ -505,6 +511,7 @@ fun AppBar(
     scrollOffset: Int = 0,
     navController: NavController = rememberNavController(),
     isButtonEnabled: Boolean = true,
+    onClick: () -> Unit = {}
 ) {
     val elevationDp by animateDpAsState(
         if (scrollOffset > 0) 4.dp else 0.dp,
@@ -537,7 +544,10 @@ fun AppBar(
                 Channel.TimeTable -> {
                     AddButton(
                         contentDescription = "Add Timetable",
-                        onClick = { navController.navigate(Channel.LectureSearch.name) },
+                        onClick = {
+                        //    navController.navigate(Channel.LectureSearch.name)
+                            onClick()
+                                  },
                         isEnabled = isButtonEnabled
                     )
                 }
