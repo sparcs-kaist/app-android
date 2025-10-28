@@ -1,20 +1,17 @@
 package com.example.soap.Networking.RequestDTO.OTL
 
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 
 data class WriteReviewRequest(
-    @SerialName("lecture")
-    val lecture: Int,
-
-    @SerialName("content")
+    @SerializedName("content")
     val content: String,
 
-    @SerialName("grade")
+    @SerializedName("grade")
     val grade: Int,
 
-    @SerialName("load")
+    @SerializedName("load")
     val load: Int,
 
-    @SerialName("speech")
+    @SerializedName("speech")
     val speech: Int
 )

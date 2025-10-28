@@ -81,7 +81,7 @@ fun SemesterSelector(
         )
 
         AnimatedText(
-            text = viewModel.selectedSemester.value?.description ?: "Unknown",
+            text = selectedSemester?.description ?: "Unknown",
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.SemiBold
         )
@@ -105,6 +105,7 @@ fun SemesterSelector(
 @Composable
 fun TableSelector(viewModel: TimetableViewModel) {
     var expanded by remember { mutableStateOf(false) }
+    val selectedTimetableDisplayName by viewModel.selectedTimetableDisplayName.collectAsState()
 
     Row(
         modifier = Modifier
@@ -114,7 +115,7 @@ fun TableSelector(viewModel: TimetableViewModel) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = viewModel.selectedTimetableDisplayName.collectAsState().value,
+            text = selectedTimetableDisplayName,
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 8.dp)

@@ -78,7 +78,7 @@ fun TimetableBottomSheet(
             modifier = Modifier
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .fillMaxWidth()
-                .height((screenHeight - offsetY.value).dp)
+                .height(((screenHeight - offsetY.value) / LocalDensity.current.density).dp)
                 .background(
                     MaterialTheme.colorScheme.background,
                     RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
@@ -110,8 +110,7 @@ fun TimetableBottomSheet(
         ) {
             Column {
                 Box(Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 8.dp)){
+                    .fillMaxWidth()){
                     Box(
                         modifier = Modifier
                             .align(Alignment.Center)

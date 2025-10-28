@@ -30,8 +30,9 @@ interface OTLLectureApi {
         @Query("limit") limit: Int = 100
     ): List<LectureReviewDTO>
 
-    @POST("api/reviews")
+    @POST("api/reviews/{lectureID}")
     suspend fun writeReview(
+        @Path("lectureID") lectureID: Int,
         @Body request: WriteReviewRequest
     ): LectureReviewDTO
 }

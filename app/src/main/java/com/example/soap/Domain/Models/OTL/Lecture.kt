@@ -45,6 +45,5 @@ data class Lecture(
     val classTimes: List<ClassTime>,
     val examTimes: List<ExamTime>
 ): CourseRepresentable {
-
     companion object { }
 }

@@ -67,7 +67,7 @@ class LectureSearchViewModel @Inject constructor(
 
 
     private fun fetchLectures() {
-        val selectedSemester = timetableUseCase.selectedSemester ?: return
+        val selectedSemester = timetableUseCase.selectedSemester.value ?: return
         if (isLastPage) return
 
         viewModelScope.launch {

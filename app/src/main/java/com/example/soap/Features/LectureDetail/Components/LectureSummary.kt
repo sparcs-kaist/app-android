@@ -13,6 +13,7 @@ import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
+import java.util.Locale
 
 @Composable
 fun LectureSummary(lecture: Lecture){
@@ -36,20 +37,16 @@ fun LectureSummary(lecture: Lecture){
                 description = (lecture.credit + lecture.creditAu).toString()
             )
 
-
             LectureSummaryRow(
                 title = stringResource(R.string.competition),
                 description =
-                if (lecture.capacity == 0 || lecture.numberOfPeople == 0)
+                if (lecture.capacity == 0 || lecture.numberOfPeople == 0) {
                     "0.0:1"
-                else "${
-                    (String.format(
-                        "%.1f",
-                        (lecture.numberOfPeople / lecture.capacity).toFloat()
-                    ))
-                }:1"
+                } else {
+                    val ratio = lecture.numberOfPeople.toFloat() / lecture.capacity.toFloat()
+                    "${String.format(Locale.getDefault(), "%.1f", ratio)}:1"
+                }
             )
-
         }
     }
 }

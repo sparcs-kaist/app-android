@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -13,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -28,6 +31,10 @@ import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import com.example.soap.Features.LectureDetail.LectureDetailViewModel
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
+import com.example.soap.Shared.Views.ContentViews.ErrorView
+import com.example.soap.Shared.Views.ContentViews.UnavailableView
+import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.lightGray0
 import com.google.gson.Gson
 
 @Composable
@@ -35,8 +42,12 @@ fun LectureReviews(
     lecture: Lecture,
     viewModel: LectureDetailViewModel,
     repo: OTLCourseRepositoryProtocol,
-    navController: NavController
+    navController: NavController,
+    canWriteReview: Boolean
 ){
+    val state by viewModel.state.collectAsState()
+    val textColor = if(canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
+    val reviews = viewModel.reviews.collectAsState().value
     Column {
         Row {
             Text(
@@ -64,15 +75,18 @@ fun LectureReviews(
 
             Button(
                 onClick = {
-                    val json = Uri.encode(Gson().toJson(lecture))
-                    navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}")
+                    if(canWriteReview) {
+                        val json = Uri.encode(Gson().toJson(lecture))
+                        navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}")
+                    }
                           },
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface)
+                colors = if(canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface) else
+                ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.rounded_rate_review),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = textColor
                 )
 
                 Spacer(Modifier.padding(4.dp))
@@ -80,7 +94,7 @@ fun LectureReviews(
                 Text(
                     text = stringResource(R.string.write_a_review),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
             }
 
@@ -88,13 +102,33 @@ fun LectureReviews(
         Spacer(Modifier.padding(4.dp))
 
         Column {
-            if (viewModel.state.collectAsState().value == LectureDetailViewModel.ViewState.Loading) {
-                repeat(3) {
-                   LectureReviewSkeletonCell()
+            when(state){
+                is LectureDetailViewModel.ViewState.Loading -> {
+                    repeat(3) {
+                        LectureReviewSkeletonCell()
+                    }
                 }
-            } else {
-                viewModel.reviews.collectAsState().value.forEach { review ->
-                    LectureReviewCell(review, repo)
+                is LectureDetailViewModel.ViewState.Loaded -> {
+                    if(reviews.isEmpty()) {
+                        UnavailableView(
+                            icon = painterResource(R.drawable.rounded_book_2),
+                            title = "No Reviews",
+                            description = "There are no reviews yet."
+                        )
+                    } else {
+                        reviews.forEach { review ->
+                            LectureReviewCell(review, repo)
+                        }
+                    }
+                }
+                is LectureDetailViewModel.ViewState.Error -> {
+                    val message = (state as LectureDetailViewModel.ViewState.Error).message
+                    ErrorView(
+                        icon = Icons.Default.Warning,
+                        errorMessage = message
+                    ) {
+                        viewModel.fetchReviews(lecture.id)
+                    }
                 }
             }
         }
