@@ -26,12 +26,11 @@ import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 
-//Todo : 로딩창
 @Composable
 fun TimetableSummary(
     viewModel: TimetableViewModel,
 ) {
-    val selectedTimetable = viewModel.selectedTimetable.collectAsState().value
+    val selectedTimetable by viewModel.timetableUseCase.selectedTimetable.collectAsState()
     Card(
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp),

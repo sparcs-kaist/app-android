@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -130,7 +131,7 @@ fun TimetableCreditGraph(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 data.forEach { element ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
@@ -141,7 +142,7 @@ fun TimetableCreditGraph(
                                     shape = RoundedCornerShape(4.dp)
                                 )
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(3.dp))
                         Text(text = element.lectureType.name + "(${element.credits})", style = MaterialTheme.typography.bodySmall)
 
                     }

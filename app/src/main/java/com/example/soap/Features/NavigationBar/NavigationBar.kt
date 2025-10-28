@@ -221,8 +221,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
-                val viewModelImpl: LectureDetailViewModel = hiltViewModel(backStackEntry)
-                LectureDetailView(viewModel = viewModelImpl, navController = navController)
+                val lectureDetailViewModelImpl: LectureDetailViewModel = hiltViewModel(backStackEntry)
+                val timetableViewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
+
+                LectureDetailView(lectureDetailViewModel = lectureDetailViewModelImpl, timetableViewModel = timetableViewModelImpl, navController = navController)
             }
 
             composable(
@@ -245,7 +247,9 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) { backStackEntry ->
                 val viewModelImpl: ReviewComposeViewModel = hiltViewModel(backStackEntry)
                 val viewModel: ReviewComposeViewModelProtocol = viewModelImpl
-                ReviewComposeView(viewModel = viewModel,navController = navController)
+                val lectureDetailViewModel: LectureDetailViewModel = hiltViewModel(backStackEntry)
+
+                ReviewComposeView(reviewComposeViewModel = viewModel, lectureDetailViewModel = lectureDetailViewModel, navController = navController)
             }
 
             composable(
@@ -544,10 +548,7 @@ fun AppBar(
                 Channel.TimeTable -> {
                     AddButton(
                         contentDescription = "Add Timetable",
-                        onClick = {
-                        //    navController.navigate(Channel.LectureSearch.name)
-                            onClick()
-                                  },
+                        onClick = { onClick() },
                         isEnabled = isButtonEnabled
                     )
                 }

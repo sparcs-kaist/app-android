@@ -3,7 +3,10 @@ package com.example.soap.Features.LectureDetail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -24,26 +27,28 @@ import com.example.soap.Features.LectureDetail.Components.LectureDetailNavigatio
 import com.example.soap.Features.LectureDetail.Components.LectureInformation
 import com.example.soap.Features.LectureDetail.Components.LectureReviews
 import com.example.soap.Features.LectureDetail.Components.LectureSummary
-import com.example.soap.Features.NavigationBar.Channel
+import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.ui.theme.Theme
 
 @Composable
 fun LectureDetailView(
-    viewModel: LectureDetailViewModel = hiltViewModel(),
+    lectureDetailViewModel: LectureDetailViewModel = hiltViewModel(),
+    timetableViewModel: TimetableViewModel = hiltViewModel(),
     navController: NavController
 ) {
-    val lecture = viewModel.lecture.collectAsState().value
+    val lecture = lectureDetailViewModel.lecture.collectAsState().value
 
     val scope = rememberCoroutineScope()
     var canWriteReview by remember { mutableStateOf(false) }
-    var Overrapping by remember { mutableStateOf(false) }
+    var showCannotAddLectureAlert by remember { mutableStateOf(false) }
+    val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
 
     val repo: OTLCourseRepositoryProtocol =
         hiltViewModel<LectureDetailViewModel>().otlCourseRepository
     val userUseCase: UserUseCaseProtocol = hiltViewModel<LectureDetailViewModel>().userUseCase
 
     LaunchedEffect(lecture.id) {
-        viewModel.fetchReviews(lecture.id)
+        lectureDetailViewModel.fetchReviews(lecture.id)
         val otl = userUseCase.otlUser
         canWriteReview = otl?.reviewWritableLectures?.any { it.id == lecture.id } ?: false
     }
@@ -53,7 +58,18 @@ fun LectureDetailView(
             LectureDetailNavigationBar(
                 navController = navController,
                 text = lecture.title.localized(),
-                onAdd = { navController.navigate(Channel.ReviewCompose.name) }
+                onAdd = {
+                    if (isOverlapping) {
+                        showCannotAddLectureAlert = true
+                    } else {
+                        timetableViewModel.addLecture(lecture)
+                    }
+                },
+                onDelete = {
+                    timetableViewModel.deleteLecture(lecture)
+                },
+                isCurrentTimetable = lectureDetailViewModel.isInCurrentTimetable,
+                isEnabled = timetableViewModel.isEditable.collectAsState().value
             )
         }
     ) { paddingValues ->
@@ -71,8 +87,26 @@ fun LectureDetailView(
 
             // Lecture Reviews
             item {
-                LectureReviews(lecture = lecture, viewModel = viewModel, repo = repo, navController = navController)
+                LectureReviews(
+                    lecture = lecture,
+                    viewModel = lectureDetailViewModel,
+                    repo = repo,
+                    navController = navController,
+                    canWriteReview = canWriteReview
+                )
             }
+        }
+        if (showCannotAddLectureAlert) {
+            AlertDialog(
+                onDismissRequest = { showCannotAddLectureAlert = false },
+                confirmButton = {
+                    TextButton(onClick = { showCannotAddLectureAlert = false }) {
+                        Text("Okay")
+                    }
+                },
+                title = { Text("Cannot Add Lecture") },
+                text = { Text("This lecture collides with an existing lecture in your timetable.") }
+            )
         }
     }
 }

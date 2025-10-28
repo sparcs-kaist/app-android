@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -63,6 +64,7 @@ fun LectureReviewCell(
     var isLikeButtonRunning = false
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    var reviewChange by remember { mutableStateOf(review) }
 
     Box(
         Modifier
@@ -154,16 +156,23 @@ fun LectureReviewCell(
                 Spacer(modifier = Modifier.weight(1f))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(review.like.toString())
+                    AnimatedContent(
+                        targetState = reviewChange.like.toString(),
+                        label = "VotesTransition"
+                    ) { targetCount ->
+                         Text(targetCount)
+                    }
                     Spacer(modifier = Modifier.padding(4.dp))
                     Icon(
-                        painter = if(review.isLiked) painterResource(R.drawable.icon_arrowup) else painterResource(R.drawable.icon_arrowup),
+                        painter = if(reviewChange.isLiked) painterResource(R.drawable.icon_arrowup) else painterResource(R.drawable.icon_arrowup),
                         contentDescription = "Vote",
-                        tint = if(review.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        tint = if(reviewChange.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.clickable {
                             if(isLikeButtonRunning) return@clickable
                             isLikeButtonRunning = true
-                            toggleLike(review, repo ,scope, context)
+                            toggleLike(reviewChange, repo, scope, context) { updated ->
+                                reviewChange = updated
+                            }
                             isLikeButtonRunning = false
                         }
                     )//TODO - icon 이미지 받아서 fill / outlined로 수정
@@ -238,7 +247,6 @@ fun LectureReviewSkeletonCell() {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 하단 평점 및 좋아요 영역
             Row(verticalAlignment = Alignment.CenterVertically) {
                 repeat(3) {
                     Box(
@@ -298,34 +306,40 @@ private fun ReviewRatingLetter(title: String, value: String) {
     }
 }
 
-
 // MARK: - Helpers
 private fun toggleLike(
     review: LectureReview,
     otlCourseRepository: OTLCourseRepositoryProtocol,
     scope: CoroutineScope,
-    context: Context
+    context: Context,
+    update: (LectureReview) -> Unit
 ) {
     scope.launch {
-        val prevLiked = review.isLiked
-        val prevLikeCount = review.like
+        val prev = review.copy()
+
+        val updated = if (review.isLiked) {
+            // If already liked, clicking will unlike and decrease count
+            review.copy(
+                isLiked = false,
+                like = review.like - 1
+            )
+        } else {
+            // If not liked yet, clicking will like and increase count
+            review.copy(
+                isLiked = true,
+                like = review.like + 1
+            )
+        }
+
+        update(updated)
 
         try {
-            val updatedReview = if (prevLiked) {
-                review.copy(isLiked = false, like = review.like - 1)
-            } else {
-                review.copy(isLiked = true, like = review.like + 1)
-            }
-
-            if (prevLiked) {
-                otlCourseRepository.unlikeReview(review.id)
-            } else {
-                otlCourseRepository.likeReview(review.id)
-            }
-
+            if (prev.isLiked) otlCourseRepository.unlikeReview(review.id)
+            else otlCourseRepository.likeReview(review.id)
         } catch (e: Exception) {
-            Log.e("toggleLike", "Error toggling like", e)
+            update(prev)
             Toast.makeText(context, "Error toggling like", Toast.LENGTH_SHORT).show()
+            Log.e("toggleLike", "Error toggling like", e)
         }
     }
 }
@@ -342,14 +356,15 @@ fun report(review: LectureReview, context: Context) {
         ${review.content}
     """.trimIndent()
 
-    val uri = Uri.parse("mailto:")
-    val intent = Intent(Intent.ACTION_SENDTO, uri).apply {
-        putExtra(Intent.EXTRA_SUBJECT, subject)
-        putExtra(Intent.EXTRA_TEXT, body)
-    }
+    val uriText = "mailto:?subject=${Uri.encode(subject)}&body=${Uri.encode(body)}"
+    val uri = Uri.parse(uriText)
+
+    val intent = Intent(Intent.ACTION_SENDTO, uri)
 
     if (intent.resolveActivity(context.packageManager) != null) {
         context.startActivity(intent)
+    } else {
+        Toast.makeText(context, "No email app found", Toast.LENGTH_SHORT).show()
     }
 }
 

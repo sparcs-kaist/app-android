@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -48,8 +51,13 @@ fun TimetableView(
 ) {
     var selectedLecture by remember { mutableStateOf<Lecture?>(null) }
     val scrollState = rememberScrollState()
+
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var lectureToDelete by remember { mutableStateOf<Lecture?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val selectedTimetable by viewModel.timetableUseCase.selectedTimetable.collectAsState()
 
     LaunchedEffect(Unit) {
         viewModel.fetchData()
@@ -63,7 +71,7 @@ fun TimetableView(
                     currentScreen = Channel.TimeTable,
                     scrollOffset = scrollState.value,
                     navController = navController,
-                    isButtonEnabled = true,
+                    isButtonEnabled = viewModel.isEditable.collectAsState().value,
                     onClick = { expanded = true }
                 )
             },
@@ -92,14 +100,21 @@ fun TimetableView(
                         .background(MaterialTheme.colorScheme.surface)
                         .padding(8.dp)
                 ) {
-                    TimetableGrid(viewModel) { lecture ->
-                        selectedLecture = lecture
-                        val json = Gson().toJson(lecture)
-                        navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                    }
+                    TimetableGrid(
+                        viewModel = viewModel,
+                        onLectureSelected = { lecture ->
+                            selectedLecture = lecture
+                            val json = Gson().toJson(lecture)
+                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                        },
+                        showDeleteDialog = { lecture ->
+                            lectureToDelete = lecture
+                            showDeleteDialog = true
+                        }
+                    )
                 }
 
-                viewModel.selectedTimetable.collectAsState().value?.let { TimetableCreditGraph(it) }
+                selectedTimetable?.let { TimetableCreditGraph(it) }
 
                 TimetableSummary(viewModel)
             }
@@ -118,6 +133,24 @@ fun TimetableView(
                     expanded = false
                     lectureSearchViewModel.searchKeyword = ""
                 }
+            )
+        }
+
+        if(showDeleteDialog && lectureToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            viewModel.deleteLecture(lecture = lectureToDelete!!)
+                        }
+                    ) {
+                        Text("Okay")
+                    }
+                },
+                title = { Text("DELETE?") },
+                text = { Text("Do you really want to delete ${lectureToDelete!!.title.localized()}?") }
             )
         }
     }
