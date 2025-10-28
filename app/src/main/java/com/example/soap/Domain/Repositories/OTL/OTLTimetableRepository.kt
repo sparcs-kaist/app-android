@@ -3,6 +3,8 @@ package com.example.soap.Domain.Repositories.OTL
 import com.example.soap.Domain.Enums.SemesterType
 import com.example.soap.Domain.Models.OTL.Semester
 import com.example.soap.Domain.Models.OTL.Timetable
+import com.example.soap.Networking.RetrofitAPI.OTL.AddLectureRequest
+import com.example.soap.Networking.RetrofitAPI.OTL.CreateTableRequest
 import com.example.soap.Networking.RetrofitAPI.OTL.OTLTimetableApi
 import javax.inject.Inject
 
@@ -25,7 +27,12 @@ class OTLTimetableRepository @Inject constructor(
     }
 
     override suspend fun createTable(userID: Int, year: Int, semester: SemesterType): Timetable {
-        return api.createTable(userID, year, semester.intValue).toModel()
+        val request = CreateTableRequest(
+            year = year,
+            semester = semester.intValue,
+            lectures = emptyList()
+        )
+        return api.createTable(userID, request).toModel()
     }
 
     override suspend fun deleteTable(userID: Int, timetableID: Int) {
@@ -33,7 +40,7 @@ class OTLTimetableRepository @Inject constructor(
     }
 
     override suspend fun addLecture(userID: Int, timetableID: Int, lectureID: Int): Timetable {
-        return api.addLecture(userID, timetableID, lectureID).toModel()
+        return api.addLecture(userID, timetableID, request = AddLectureRequest(lecture = lectureID)).toModel()
     }
 
     override suspend fun deleteLecture(userID: Int, timetableID: Int, lectureID: Int): Timetable {

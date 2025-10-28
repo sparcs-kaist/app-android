@@ -1,6 +1,9 @@
 package com.example.soap.Domain.Usecases
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Domain.Models.OTL.OTLUser
 import com.example.soap.Domain.Models.OTL.Semester
@@ -73,13 +76,25 @@ class TimetableUseCase @Inject constructor(
         set(value) {
             field = value
             // Always default-select My Table of the chosen semester
-            value?.let { selectedTimetableID = "$it-myTable" }
+            value?.let { _selectedTimetableID.value = "$it-myTable" }
 
             // Refresh tables for the newly selected semester
             CoroutineScope(Dispatchers.IO).launch { refreshTablesForSelectedSemester() }
         }
 
-    override var selectedTimetableID: String? = null
+    private val _selectedTimetableID = MutableStateFlow<String?>(null)
+    override var selectedTimetableID: String?
+        get() = _selectedTimetableID.value
+        set(value) {
+            _selectedTimetableID.value = value
+            _selectedTimetableDisplayName = value?.let { tid ->
+                if (tid.endsWith("-myTable")) "My Table"
+                else timetableIDsForSelectedSemester.indexOf(tid).let { idx ->
+                    if (idx >= 0) "Table $idx" else "Unknown"
+                }
+            } ?: "Unknown"
+        }
+
 
     // MARK: - Computed
     override val selectedSemester: Semester?
@@ -87,7 +102,7 @@ class TimetableUseCase @Inject constructor(
 
     override val selectedTimetable: Timetable?
         get() = selectedSemesterID?.let { sid ->
-            selectedTimetableID?.let { tid -> _store.value[sid]?.firstOrNull { it.id == tid } }
+            _selectedTimetableID.value?.let { tid -> _store.value[sid]?.firstOrNull { it.id == tid } }
         }
 
     override val timetableIDsForSelectedSemester: List<String>
@@ -98,12 +113,15 @@ class TimetableUseCase @Inject constructor(
     /// - "My Table" for the local user table
     /// - "Table N" for the Nth server table (1-based index)
     /// - "Unknown" as a safe fallback
+
+    private var _selectedTimetableDisplayName by mutableStateOf("Unknown")
     override val selectedTimetableDisplayName: String
         get() {
-            val tid = selectedTimetableID ?: return "Unknown"
+            val tid = _selectedTimetableID.value ?: return "Unknown"
             return if (tid.endsWith("-myTable")) "My Table"
-            else timetableIDsForSelectedSemester.indexOf(tid)
-                .let { idx -> if (idx >= 0) "Table ${idx + 1}" else "Unknown" }
+            else timetableIDsForSelectedSemester.indexOf(tid).let { idx ->
+                if (idx >= 0) "Table $idx" else "Unknown"
+            }
         }
 
     override val isEditable: Boolean
@@ -116,12 +134,13 @@ class TimetableUseCase @Inject constructor(
 
         val fetchedSemesters = otlTimetableRepository.getSemesters()
         val currentSemester = otlTimetableRepository.getCurrentSemester()
-
+        val user = userUseCase.otlUser ?: run {
+            userUseCase.fetchOTLUser()
+            userUseCase.otlUser!!
+        }
         // Persist semesters
         _semesters.value = fetchedSemesters
-
         // Seed each semester with a local "My Table" derived from user lectures
-        val user = userUseCase.otlUser
         _store.value = fetchedSemesters.associate { semester ->
             semester.id to listOf(makeMyTable(semester, user))
         }
@@ -133,7 +152,7 @@ class TimetableUseCase @Inject constructor(
 
         // Ensure a selected timetable for the chosen semester
         selectedSemesterID?.let { sid ->
-            selectedTimetableID = "$sid-myTable"
+            _selectedTimetableID.value = "$sid-myTable"
         }
         // Fetch remote tables for the selected semester and merge
         refreshTablesForSelectedSemester()
@@ -155,12 +174,12 @@ class TimetableUseCase @Inject constructor(
         }
 
         // Select the newly created table
-        selectedTimetableID = newTable.id
+        _selectedTimetableID.value = newTable.id
     }
 
     override suspend fun deleteTable() {
         val sid = selectedSemesterID ?: return
-        val tid = selectedTimetableID ?: return
+        val tid = _selectedTimetableID.value ?: return
         val user = userUseCase.otlUser ?: return
         val timetableID = tid.toIntOrNull() ?: return
 
@@ -173,12 +192,12 @@ class TimetableUseCase @Inject constructor(
         _store.value = _store.value.toMutableMap().apply { put(sid, tables) }
 
         // Select the last timetable if available
-        selectedTimetableID = tables.lastOrNull()?.id
+        _selectedTimetableID.value = tables.lastOrNull()?.id
     }
 
     override suspend fun addLecture(lecture: Lecture) {
         val sid = selectedSemesterID ?: return
-        val tid = selectedTimetableID ?: return
+        val tid = _selectedTimetableID.value ?: return
         val user = userUseCase.otlUser ?: return
         val timetableID = tid.toIntOrNull() ?: return
 
@@ -192,12 +211,12 @@ class TimetableUseCase @Inject constructor(
             this[sid] = mergeKeepingMyTableFirst(tables, emptyList())
         }
         // Ensure selection still points to the edited table
-        selectedTimetableID = updatedTable.id
+        _selectedTimetableID.value = updatedTable.id
     }
 
     override suspend fun deleteLecture(lecture: Lecture) {
         val sid = selectedSemesterID ?: return
-        val tid = selectedTimetableID ?: return
+        val tid = _selectedTimetableID.value ?: return
         val user = userUseCase.otlUser ?: return
         val timetableID = tid.toIntOrNull() ?: return
 
@@ -212,7 +231,7 @@ class TimetableUseCase @Inject constructor(
             this[sid] = mergeKeepingMyTableFirst(tables, emptyList())
         }
         // Ensure selection still points to the edited table
-        selectedTimetableID = updatedTable.id
+        _selectedTimetableID.value = updatedTable.id
     }
 
 
@@ -287,9 +306,9 @@ class TimetableUseCase @Inject constructor(
             _store.value = _store.value.toMutableMap().apply { put(sid, merged) }
 
             // If current selection disappeared, fall back to myTable
-            selectedTimetableID?.let { tid ->
+            _selectedTimetableID.value?.let { tid ->
                 if (merged.none { it.id == tid }) {
-                    selectedTimetableID = "${sid}-myTable"
+                    _selectedTimetableID.value = "${sid}-myTable"
                 }
             }
         } catch (e: Exception) {

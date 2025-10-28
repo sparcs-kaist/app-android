@@ -27,7 +27,7 @@ interface OTLLectureApi {
     suspend fun fetchReviews(
         @Path("lectureID") lectureID: Int,
         @Query("order") order: String = "-written_datetime",
-        @Query("limit") limit: Int = 150
+        @Query("limit") limit: Int = 100
     ): List<LectureReviewDTO>
 
     @POST("api/reviews")

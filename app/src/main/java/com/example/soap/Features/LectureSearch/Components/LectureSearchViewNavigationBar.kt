@@ -9,17 +9,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.soap.Features.NavigationBar.Components.DismissButton
 import com.example.soap.ui.theme.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LectureSearchViewNavigationBar(
-    title: String,
-    onDismiss: () -> Unit
+    title: String
 ) {
     CenterAlignedTopAppBar(
-        navigationIcon = { DismissButton(onClick = { onDismiss() }) },
         title = {
             Column {
                 Text(
@@ -40,6 +37,6 @@ fun LectureSearchViewNavigationBar(
 @Preview
 private fun Preview(){
     Theme {
-       LectureSearchViewNavigationBar("title", {}) }
+       LectureSearchViewNavigationBar("title") }
 }
 

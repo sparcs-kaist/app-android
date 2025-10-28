@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun LectureDetailRow(
@@ -26,6 +27,7 @@ fun LectureDetailRow(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.grayBB,
                 fontWeight = FontWeight.Medium
             )
 

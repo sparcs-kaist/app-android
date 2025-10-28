@@ -44,6 +44,7 @@ fun TimetableGrid(
 ) {
     val timetable = viewModel.selectedTimetable.collectAsState().value
     val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
+    val candidateLecture = viewModel.candidateLecture.collectAsState().value
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
@@ -96,10 +97,8 @@ fun TimetableGrid(
                             ).toDp()
                         }//+24하면 딱 맞는 이유가 뭐지...
 
-
                         val isCandidate =
-                            item.lecture.id == viewModel._candidateLecture.value?.id
-
+                            item.lecture.id == candidateLecture?.id
                         val animatedAlpha by animateFloatAsState(
                             targetValue = if (viewModel.isLoading.value) 0.5f else 1f,
                             label = "LectureAlpha"

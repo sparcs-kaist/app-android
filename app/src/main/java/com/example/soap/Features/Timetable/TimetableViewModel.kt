@@ -28,21 +28,21 @@ class TimetableViewModel @Inject constructor(
     private val _selectedTimetable = MutableStateFlow(timetableUseCase.selectedTimetable)
     val selectedTimetable: StateFlow<Timetable?> = _selectedTimetable
 
-
     val timetableIDsForSelectedSemester: List<String>
         get() = timetableUseCase.timetableIDsForSelectedSemester
 
-    val selectedTimetableDisplayName: String
-        get() = timetableUseCase.selectedTimetableDisplayName
+    private val _selectedTimetableDisplayName = MutableStateFlow(timetableUseCase.selectedTimetableDisplayName)
+    val selectedTimetableDisplayName: StateFlow<String> = _selectedTimetableDisplayName
 
-    var candidateLecture: Lecture? = null
+    val _candidateLecture = MutableStateFlow<Lecture?>(null)
+    val candidateLecture: StateFlow<Lecture?> = _candidateLecture
+
+    fun setCandidateLecture(lecture: Lecture?) {
+        _candidateLecture.value = lecture
+    }
 
     val isEditable: Boolean
         get() = selectedTimetable.value?.id?.contains("myTable")?.not() ?: false
-
-    init {
-        fetchData()
-    }
 
     // MARK: - Functions
     fun fetchData() {
@@ -50,13 +50,17 @@ class TimetableViewModel @Inject constructor(
             isLoading.value = true
             try {
                 timetableUseCase.load()
+                _selectedSemester.value = timetableUseCase.selectedSemester
+                _selectedTimetable.value = timetableUseCase.selectedTimetable
+                _selectedTimetableDisplayName.value = timetableUseCase.selectedTimetableDisplayName
             } catch (e: Exception) {
-                // TODO: handle error
+                Log.e("TimetableViewModel", "failed to fetch Timetable Data")
             } finally {
                 isLoading.value = false
             }
         }
     }
+
     fun selectPreviousSemester() {
         val semestersList = timetableUseCase.semesters.value
         val currentIndex = timetableUseCase.selectedSemesterID?.let { id ->
@@ -86,16 +90,19 @@ class TimetableViewModel @Inject constructor(
     fun selectTimetable(id: String) {
         timetableUseCase.selectedTimetableID = id
         _selectedTimetable.value = timetableUseCase.selectedTimetable?.let { timetable ->
-            candidateLecture?.let { lecture ->
+            candidateLecture.value?.let { lecture ->
                 timetable.copy(lectures = timetable.lectures + lecture)
             } ?: timetable
         }
+        _selectedTimetableDisplayName.value = timetableUseCase.selectedTimetableDisplayName
     }
 
     fun createTable() {
         viewModelScope.launch {
             try {
                 timetableUseCase.createTable()
+                _selectedTimetableDisplayName.value = timetableUseCase.selectedTimetableDisplayName
+                _selectedTimetable.value = timetableUseCase.selectedTimetable
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error creating table", e)
             }
@@ -106,6 +113,8 @@ class TimetableViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 timetableUseCase.deleteTable()
+                _selectedTimetableDisplayName.value = timetableUseCase.selectedTimetableDisplayName
+                _selectedTimetable.value = timetableUseCase.selectedTimetable
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error deleting table", e)
             }
@@ -116,6 +125,7 @@ class TimetableViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 timetableUseCase.addLecture(lecture)
+                _selectedTimetable.value = timetableUseCase.selectedTimetable
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error adding lecture", e)
             }
