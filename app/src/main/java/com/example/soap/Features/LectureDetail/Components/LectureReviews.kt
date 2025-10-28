@@ -20,6 +20,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.soap.Domain.Helpers.gradeLetter
+import com.example.soap.Domain.Helpers.loadLetter
+import com.example.soap.Domain.Helpers.speechLetter
 import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import com.example.soap.Features.LectureDetail.LectureDetailViewModel
@@ -47,15 +50,15 @@ fun LectureReviews(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LectureSummaryRow(title = stringResource(R.string.grade), description = lecture.gradeLetterWithSign)
+            LectureSummaryRow(title = stringResource(R.string.grade), description = lecture.gradeLetter)
 
             Spacer(Modifier.weight(1f))
 
-            LectureSummaryRow(title = stringResource(R.string.load), description = lecture.loadLetterWithSign)
+            LectureSummaryRow(title = stringResource(R.string.load), description = lecture.loadLetter)
 
             Spacer(Modifier.weight(1f))
 
-            LectureSummaryRow(title = stringResource(R.string.speech), description = lecture.speechLetterWithSign)
+            LectureSummaryRow(title = stringResource(R.string.speech), description = lecture.speechLetter)
 
             Spacer(Modifier.weight(1f))
 

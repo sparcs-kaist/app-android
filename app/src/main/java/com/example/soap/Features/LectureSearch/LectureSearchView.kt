@@ -1,6 +1,6 @@
 package com.example.soap.Features.LectureSearch
 
-import android.util.Log
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,13 +9,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,22 +37,24 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Features.LectureSearch.Components.LectureSearchViewNavigationBar
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.Components.SearchCourses
 import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.R
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Views.ContentViews.UnavailableView
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
+import com.google.gson.Gson
 
 @Composable
 fun LectureSearchView(
     navController: NavController,
     timetableViewModel: TimetableViewModel = hiltViewModel(),
-    lectureSearchViewModel: LectureSearchViewModel = hiltViewModel(),
-    onDetentChange: (Float) -> Unit = {}
+    lectureSearchViewModel: LectureSearchViewModel = hiltViewModel()
 ) {
     val searchKeyword = lectureSearchViewModel.searchKeyword
     val lectures by lectureSearchViewModel.lectures.collectAsState()
-
     val groupedByCourse = lectures.groupBy { it.course }
 
     val orderedCourses = remember(lectures) {
@@ -60,23 +65,22 @@ fun LectureSearchView(
                 result.add(lecture.course)
             }
         }
-        Log.d("ORDERED", "orderedCourses = $result")
         result
     }
 
     Scaffold(
         topBar = {
-            LectureSearchViewNavigationBar(
-                title = "Add to \"${timetableViewModel.selectedTimetableDisplayName}\"",
-                onDismiss = {
-                    navController.popBackStack()
-                }
-            )
+            if(searchKeyword.isEmpty()){
+                LectureSearchViewNavigationBar(
+                    title = "Add to \"${timetableViewModel.selectedTimetableDisplayName.collectAsState().value}\"",
+                )
+            }
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
+                .imePadding()
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .fillMaxSize()
         ) {
@@ -86,8 +90,8 @@ fun LectureSearchView(
                 onValueChange = {
                     lectureSearchViewModel.searchKeyword = it
                     lectureSearchViewModel.searchKeywordFlow.value = it
-                    },
-                onClick = { lectureSearchViewModel.bind(); Log.d("HEY", orderedCourses.toString()) }
+                },
+                onClick = { lectureSearchViewModel.bind() }
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -117,9 +121,14 @@ fun LectureSearchView(
                     orderedCourses.forEach { course ->
                         val courseLectures = groupedByCourse[course] ?: emptyList()
                         if (courseLectures.isNotEmpty()) {
-                            stickyHeader {
-                                val firstItem = courseLectures.first()
-                                Surface(color = MaterialTheme.colorScheme.background) {
+                            item {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+                                ) {
+                                    val firstItem = courseLectures.first()
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -132,22 +141,37 @@ fun LectureSearchView(
                                             modifier = Modifier.weight(1f)
                                         )
                                         Column(horizontalAlignment = Alignment.End) {
-                                            Text(firstItem.code)
-                                            Text(firstItem.typeDetail.localized())
+                                            Text(
+                                                text = firstItem.code,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.grayBB
+                                            )
+                                            Text(
+                                                text = firstItem.typeDetail.localized(),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.grayBB
+                                            )
                                         }
                                     }
-                                }
-                            }
 
-                            items(courseLectures) { lecture ->
-                                LectureRow(
-                                    lecture = lecture,
-                                    onClick = {
-                                        timetableViewModel.candidateLecture = lecture
-                                    onDetentChange(130f)
-                                        navController.navigate("lectureDetail/${lecture.id}")
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp))
+
+                                    courseLectures.forEach { lecture ->
+                                        LectureRow(
+                                            lecture = lecture,
+                                            onClick = {
+                                                timetableViewModel.setCandidateLecture(lecture)
+                                            },
+                                            onAddClick = {
+                                                timetableViewModel.addLecture(lecture)
+                                            },
+                                            onInfoClick = {
+                                                val json = Uri.encode(Gson().toJson(lecture))
+                                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                                            }
+                                        )
                                     }
-                                )
+                                }
                             }
                         }
                     }
@@ -161,18 +185,22 @@ fun LectureSearchView(
 
     DisposableEffect(Unit) {
         onDispose {
-            timetableViewModel.candidateLecture = null
-            onDetentChange(Float.MAX_VALUE)
+            timetableViewModel.setCandidateLecture(null)
         }
     }
 }
 
 @Composable
-fun LectureRow(lecture: Lecture, onClick: () -> Unit) {
+fun LectureRow(
+    lecture: Lecture,
+    onClick: () -> Unit,
+    onInfoClick: () -> Unit,
+    onAddClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 10.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -186,6 +214,24 @@ fun LectureRow(lecture: Lecture, onClick: () -> Unit) {
             text = lecture.professors.firstOrNull()?.name?.localized() ?: "Unknown",
             style = MaterialTheme.typography.bodyMedium
         )
+
+        Spacer(Modifier.weight(1f))
+
+        Icon(
+            painter = painterResource(R.drawable.round_info),
+            contentDescription = "info",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.clickable { onInfoClick() }
+        )
+
+        Spacer(Modifier.width(12.dp))
+
+        Icon(
+            painter = painterResource(R.drawable.round_add),
+            contentDescription = "add lecture",
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.clickable { onAddClick() }
+        )
     }
 }
 
@@ -193,6 +239,19 @@ fun LectureRow(lecture: Lecture, onClick: () -> Unit) {
 @Composable
 private fun Preview(){
     Theme {
-        LectureSearchView(navController = rememberNavController(), timetableViewModel = viewModel(), lectureSearchViewModel = viewModel(), {})
+        LectureSearchView(navController = rememberNavController(), timetableViewModel = viewModel(), lectureSearchViewModel = viewModel())
+    }
+}
+
+@Preview
+@Composable
+private fun Preview2(){
+    Theme{
+        LectureRow(
+            lecture = Lecture.mock(),
+            onClick = {},
+            onInfoClick = {},
+            onAddClick = {}
+        )
     }
 }

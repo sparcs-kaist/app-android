@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.soap.Domain.Models.OTL.Lecture
+import com.example.soap.Features.LectureSearch.LectureSearchView
 import com.example.soap.Features.LectureSearch.LectureSearchViewModel
 import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
@@ -43,72 +46,79 @@ fun TimetableView(
     lectureSearchViewModel: LectureSearchViewModel = hiltViewModel(),
     navController: NavController,
 ) {
-    var showSearchSheet by remember { mutableStateOf(false) }
     var selectedLecture by remember { mutableStateOf<Lecture?>(null) }
     val scrollState = rememberScrollState()
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
 
     LaunchedEffect(Unit) {
         viewModel.fetchData()
     }
 
-    Scaffold(
-        topBar = {
-            AppBar(
-                currentScreen = Channel.TimeTable,
-                scrollOffset = scrollState.value,
-                navController = navController,
-//                isButtonEnabled = viewModel.isEditable
-                isButtonEnabled = true
-            )
-        },
-        bottomBar = {
-            AppDownBar(
-                navController = navController,
-                currentScreen = Channel.TimeTable
-            )
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .verticalScroll(scrollState)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(28.dp)
-        ) {
-            CompactTimetableSelector(viewModel)
+    Box(modifier = Modifier.fillMaxSize()) {
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(LocalConfiguration.current.screenHeightDp.dp * 0.65f)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(8.dp)
-            ) {
-                TimetableGrid(viewModel) { lecture ->
-                    selectedLecture = lecture
-                    val json = Gson().toJson(lecture)
-                    navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                }
+        Scaffold(
+            topBar = {
+                AppBar(
+                    currentScreen = Channel.TimeTable,
+                    scrollOffset = scrollState.value,
+                    navController = navController,
+                    isButtonEnabled = true,
+                    onClick = { expanded = true }
+                )
+            },
+            bottomBar = {
+                AppDownBar(
+                    navController = navController,
+                    currentScreen = Channel.TimeTable
+                )
             }
+        ) { innerPadding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .verticalScroll(scrollState)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(28.dp)
+            ) {
+                CompactTimetableSelector(viewModel)
 
-            viewModel.selectedTimetable.collectAsState().value?.let { TimetableCreditGraph(it) }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(screenHeight * 0.65f)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(8.dp)
+                ) {
+                    TimetableGrid(viewModel) { lecture ->
+                        selectedLecture = lecture
+                        val json = Gson().toJson(lecture)
+                        navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                    }
+                }
 
-            TimetableSummary(viewModel)
+                viewModel.selectedTimetable.collectAsState().value?.let { TimetableCreditGraph(it) }
 
+                TimetableSummary(viewModel)
+            }
+        }
+
+        if (expanded) {
+            TimetableBottomSheet(
+                content = {
+                    LectureSearchView(
+                        navController = navController,
+                        timetableViewModel = viewModel,
+                        lectureSearchViewModel = lectureSearchViewModel
+                    )
+                },
+                onDismiss = {
+                    expanded = false
+                    lectureSearchViewModel.searchKeyword = ""
+                }
+            )
         }
     }
-
-    if (showSearchSheet) {
-        TimetableBottomSheet(
-        )
-    }
-
 }
-
-//@Composable
-//@Preview
-//private fun Preview() {
-//    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase())) }
-//    Theme { TimetableView(vm, rememberNavController()) }
-//}

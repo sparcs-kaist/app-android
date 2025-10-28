@@ -1,10 +1,6 @@
 package com.example.soap.Features.Timetable.Components
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +9,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -28,10 +23,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
@@ -42,6 +35,7 @@ import com.example.soap.Domain.Usecases.MockTimetableUseCase
 import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
+import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -60,9 +54,9 @@ fun TimetableDropDownMenu(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
-            MyTableDropDownItems(viewModel)
+            MyTableDropDownItems(viewModel, onDismiss)
 
-            BottomMenuDropDownItems(viewModel)
+            BottomMenuDropDownItems(viewModel, onDismiss)
         }
     }
 }
@@ -118,75 +112,47 @@ private fun IconWithText(
 }
 @Composable
 fun MyTableDropDownItems(
-    viewModel: TimetableViewModel
+    viewModel: TimetableViewModel,
+    onDismiss: () -> Unit
 ) {
-    val scope = CoroutineScope(Dispatchers.Main)
-    var isInternalMenuOpen by remember { mutableStateOf(false) }
     Column {
-        DropdownMenuItem(
-            text = { Text(stringResource(R.string.my_table)) },
-            onClick = { isInternalMenuOpen = !isInternalMenuOpen },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.arrow_forward_ios),
-                    contentDescription = "Expand",
-                    modifier = Modifier
-                        .size(18.dp)
-                        .rotate(if (isInternalMenuOpen) 270f else 0f)
-                )
-            }
-        )
-        AnimatedVisibility(
-            visible = isInternalMenuOpen,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            Column {
-                viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
-                    val displayName = if (id.contains("myTable")) "My Table" else "Table $index"
-                    val isSelected = id == viewModel.selectedTimetable.value?.id
-                    DropdownMenuItem(
-                        text = { Text(displayName) },
-                        onClick = { viewModel.selectTimetable(id) },
-                        leadingIcon = {
-                            if (isSelected) Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Selected",
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
+        viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
+            val displayName = if (id.contains("myTable")) stringResource(R.string.my_table) else "Table $index"
+            val isSelected = id == viewModel.selectedTimetable.value?.id
+
+            DropdownMenuItem(
+                text = { Text(displayName) },
+                onClick = { viewModel.selectTimetable(id); onDismiss() },
+                leadingIcon = {
+                    if (isSelected) Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Selected"
                     )
                 }
-
-                DropdownMenuItem(
-                    text = { Text("New Table") },
-                    onClick = {
-                        scope.launch {
-                            try {
-                                viewModel.createTable()
-                            } catch (e: Exception) {
-                                // TODO: handle error
-                            }
-                        }
-                    },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.round_add),
-                            contentDescription = "Add",
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                )
-            }
+            )
         }
     }
 }
 
 @Composable
-private fun BottomMenuDropDownItems(viewModel: TimetableViewModel){
+private fun BottomMenuDropDownItems(
+    viewModel: TimetableViewModel,
+    onDismiss: () -> Unit
+){
+    val scope = CoroutineScope(Dispatchers.Main)
+    val deleteColor =  if(viewModel.isEditable) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
-        onClick = { /* TODO */ },
+        onClick = {
+            scope.launch {
+                try {
+                    viewModel.createTable()
+                } catch (e: Exception) {
+                    Log.e("TimetableViewModel", "Error creating table: ${e.message}")
+                }
+            }
+            onDismiss()
+        },
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.round_add),
@@ -201,13 +167,13 @@ private fun BottomMenuDropDownItems(viewModel: TimetableViewModel){
     )
 
     DropdownMenuItem(
-        text = { Text(stringResource(R.string.timetable_delete), color = Color(0xFFE54C65)) },
-        onClick = { if(viewModel.isEditable) viewModel.deleteTable() },
+        text = { Text(stringResource(R.string.timetable_delete), color = deleteColor) },
+        onClick = { onDismiss(); if(viewModel.isEditable) viewModel.deleteTable() },
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.outline_delete),
                 contentDescription = null,
-                tint = Color(0xFFE54C65)
+                tint = deleteColor
             )
         }
     )

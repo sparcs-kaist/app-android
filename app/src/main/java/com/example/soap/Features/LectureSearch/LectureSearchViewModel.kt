@@ -43,23 +43,28 @@ class LectureSearchViewModel @Inject constructor(
     private val itemsPerPage = 50
     private var currentPage = 0
 
-    val isLastPage: Boolean
+    private val isLastPage: Boolean
         get() = currentPage * itemsPerPage > _lectures.value.size
+
+    private var isBound = false
 
     @OptIn(FlowPreview::class)
     fun bind() {
-        viewModelScope.launch {
-            searchKeywordFlow
-                .debounce(350)
-                .distinctUntilChanged()
-                .collectLatest {
-                    _lectures.value = emptyList()
-                    _state.value = ViewState.Loaded
-                    currentPage = 0
-                    fetchLectures()
-                }
+            if (isBound) return
+            isBound = true
+            viewModelScope.launch {
+                searchKeywordFlow
+                    .debounce(350)
+                    .distinctUntilChanged()
+                    .collectLatest {
+                        _lectures.value = emptyList()
+                        _state.value = ViewState.Loaded
+                        currentPage = 0
+                        fetchLectures()
+                    }
+            }
         }
-    }
+
 
     private fun fetchLectures() {
         val selectedSemester = timetableUseCase.selectedSemester ?: return
