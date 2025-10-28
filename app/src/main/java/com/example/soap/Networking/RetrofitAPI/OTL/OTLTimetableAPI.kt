@@ -37,14 +37,14 @@ interface OTLTimetableApi {
     suspend fun addLecture(
         @Path("userId") userId: Int,
         @Path("timetableId") timetableId: Int,
-        @Body request: AddLectureRequest
+        @Body request: LectureRequest
     ): TimetableDTO
 
     @POST("api/users/{userId}/timetables/{timetableId}/remove-lecture")
     suspend fun deleteLecture(
         @Path("userId") userId: Int,
         @Path("timetableId") timetableId: Int,
-        @Query("lecture")lectureID: Int
+        @Body request: LectureRequest
     ): TimetableDTO
 
     @GET("api/semesters")
@@ -60,6 +60,6 @@ data class CreateTableRequest(
     val lectures: List<Int> = emptyList()
 )
 
-data class AddLectureRequest(
+data class LectureRequest(
     val lecture: Int
 )

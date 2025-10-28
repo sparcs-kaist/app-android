@@ -2,7 +2,7 @@ package com.example.soap.Features.Timetable.Components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -41,10 +41,11 @@ import com.example.soap.ui.theme.grayBB
 fun TimetableGrid(
     viewModel: TimetableViewModel,
     onLectureSelected: (Lecture) -> Unit = {},
+    showDeleteDialog: (Lecture) -> Unit
 ) {
-    val timetable = viewModel.selectedTimetable.collectAsState().value
+    val timetable = viewModel.timetableUseCase.selectedTimetable.collectAsState().value
     val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
-    val candidateLecture = viewModel.candidateLecture.collectAsState().value
+    val candidateLecture by viewModel.candidateLecture.collectAsState()
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
@@ -111,7 +112,14 @@ fun TimetableGrid(
                                 .offset(y = cellOffsetY)
                                 .height(cellHeight)
                                 .fillMaxWidth()
-                                .clickable { onLectureSelected(item.lecture) }
+                                .combinedClickable(
+                                    onClick = {
+                                        onLectureSelected(item.lecture)
+                                    },
+                                    onLongClick = {
+                                        showDeleteDialog(item.lecture)
+                                    }
+                                )
                                 .graphicsLayer { alpha = animatedAlpha }
                         )
                     }
@@ -214,6 +222,6 @@ object TimetableDefaults {
 private fun Preview() {
     val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase())) }
     Theme {
-        TimetableGrid(viewModel = vm, onLectureSelected = {})
+        TimetableGrid(viewModel = vm, onLectureSelected = {}, showDeleteDialog = {})
     }
 }

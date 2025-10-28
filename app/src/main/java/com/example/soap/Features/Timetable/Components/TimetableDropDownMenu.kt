@@ -20,6 +20,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -115,10 +116,11 @@ fun MyTableDropDownItems(
     viewModel: TimetableViewModel,
     onDismiss: () -> Unit
 ) {
+    val selectedTimetable by viewModel.timetableUseCase.selectedTimetable.collectAsState()
     Column {
         viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
             val displayName = if (id.contains("myTable")) stringResource(R.string.my_table) else "Table $index"
-            val isSelected = id == viewModel.selectedTimetable.value?.id
+            val isSelected = id == selectedTimetable?.id
 
             DropdownMenuItem(
                 text = { Text(displayName) },
@@ -140,7 +142,7 @@ private fun BottomMenuDropDownItems(
     onDismiss: () -> Unit
 ){
     val scope = CoroutineScope(Dispatchers.Main)
-    val deleteColor =  if(viewModel.isEditable) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
+    val deleteColor =  if(viewModel.isEditable.collectAsState().value) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
         onClick = {
@@ -168,7 +170,7 @@ private fun BottomMenuDropDownItems(
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_delete), color = deleteColor) },
-        onClick = { onDismiss(); if(viewModel.isEditable) viewModel.deleteTable() },
+        onClick = { onDismiss(); if(viewModel.isEditable.value) viewModel.deleteTable() },
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.outline_delete),

@@ -28,7 +28,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -53,28 +52,26 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
+import com.example.soap.Features.LectureDetail.LectureDetailViewModel
 import com.example.soap.Features.ReviewCompose.Components.ReviewComposeNavigationBar
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.noRippleClickable
-import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReviewComposeView(
-    viewModel: ReviewComposeViewModelProtocol = hiltViewModel(),
+    reviewComposeViewModel: ReviewComposeViewModelProtocol = hiltViewModel(),
+    lectureDetailViewModel: LectureDetailViewModel = hiltViewModel(),
     navController: NavController,
 ) {
     val repo: OTLLectureRepositoryProtocol =
         hiltViewModel<ReviewComposeViewModel>().otlLectureRepository
-    val lecture = viewModel.lecture
+    val lecture = reviewComposeViewModel.lecture
     var grade by remember { mutableStateOf(5) }
     var load by remember { mutableStateOf(5) }
     var speech by remember { mutableStateOf(5) }
@@ -116,7 +113,7 @@ fun ReviewComposeView(
                                 load = load,
                                 speech = speech
                             )
-                            //TODO - write Review
+                            lectureDetailViewModel.writeReview(review)
                             navController.popBackStack()
                         } catch (e: Exception) {
                             showErrorDialog = true
@@ -244,7 +241,7 @@ private fun RatingPicker(
                     Text(
                         text = letterFromValue(targetValue),
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
                 Icon(
@@ -281,10 +278,10 @@ private fun letterFromValue(value: Int): String = when (value) {
     else -> "F"
 }
 
-@Composable
-@Preview
-private fun Preview() {
-    Theme {
-        ReviewComposeView(MockReviewComposeViewModel(), rememberNavController())
-    }
-}
+//@Composable
+//@Preview
+//private fun Preview() {
+//    Theme {
+//        ReviewComposeView(MockReviewComposeViewModel(), rememberNavController())
+//    }
+//}

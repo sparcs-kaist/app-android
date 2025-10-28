@@ -68,14 +68,13 @@ class OTLLectureRepository @Inject constructor(
         speech: Int
     ): LectureReview {
         val request = WriteReviewRequest(
-            lecture = lectureID,
             content = content,
             grade = grade,
             load = load,
             speech = speech
         )
 
-        val response = api.writeReview(request)
+        val response = api.writeReview(lectureID = lectureID, request)
         return response.toModel()
     }
 }
