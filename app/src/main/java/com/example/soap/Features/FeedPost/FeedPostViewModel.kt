@@ -17,6 +17,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface FeedPostViewModelProtocol {
+    val state: StateFlow<FeedPostViewModel.ViewState>
+    var comments: List<FeedComment>
+    var text: String
+    var image: Bitmap?
+    var isAnonymous: Boolean
+
+    suspend fun fetchComments(postID: String)
+    suspend fun writeComment(postID: String): FeedComment
+    suspend fun writeReply(commentID: String): FeedComment
+}
+
 @HiltViewModel
 class FeedPostViewModel @Inject constructor(
     val feedCommentRepository: FeedCommentRepositoryProtocol,

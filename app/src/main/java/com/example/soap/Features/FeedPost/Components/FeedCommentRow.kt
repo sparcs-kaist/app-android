@@ -101,7 +101,7 @@ fun FeedCommentRow(
                 },
                 onReport = {
                     coroutineScope.launch {
-                        feedCommentRepository.reportComment(comment.id, it)
+                        feedCommentRepository.reportComment(localComment.id, it)
                     }
                     Toast.makeText(context, reportSuccessText, Toast.LENGTH_SHORT).show()
                 }

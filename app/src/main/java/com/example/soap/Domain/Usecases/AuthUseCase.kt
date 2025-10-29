@@ -6,6 +6,7 @@ import com.example.soap.Domain.Enums.AuthUseCaseError
 import com.example.soap.Domain.Helpers.TokenStorageProtocol
 import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import com.example.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import com.example.soap.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import com.example.soap.Domain.Services.AuthenticationService
 import com.example.soap.Domain.Services.AuthenticationServiceProtocol
 import com.example.soap.Networking.ResponseDTO.Ara.AraSignInResponseDTO
@@ -22,13 +23,31 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface AuthUseCaseProtocol {
+    val isAuthenticatedFlow: Flow<Boolean>
+
+    @Throws(Exception::class)
+    suspend fun signIn(activity: Activity)
+
+    @Throws(Exception::class)
+    suspend fun signOut()
+
+    fun getAccessToken(): String?
+
+    @Throws(Exception::class)
+    suspend fun getValidAccessToken(): String
+
+    @Throws(Exception::class)
+    suspend fun refreshAccessTokenIfNeeded()
+}
 
 @Singleton
 class AuthUseCase @Inject constructor(
     val authenticationService: AuthenticationServiceProtocol,
     val tokenStorage: TokenStorageProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
-    private val feedUserRepository: FeedUserRepositoryProtocol
+    private val feedUserRepository: FeedUserRepositoryProtocol,
+    private val otlUserRepository: OTLUserRepositoryProtocol
 ) : AuthUseCaseProtocol {
 
     private val _isAuthenticated = MutableStateFlow(false)
@@ -122,6 +141,9 @@ class AuthUseCase @Inject constructor(
 
             // MARK - Sign up Feed
             feedUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+
+            // MARK - Sign up OTL
+            otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
 
             _isAuthenticated.value = true
             scheduleRefreshToken()
