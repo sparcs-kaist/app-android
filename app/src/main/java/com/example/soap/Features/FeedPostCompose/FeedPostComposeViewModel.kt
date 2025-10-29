@@ -3,6 +3,8 @@ package com.example.soap.Features.FeedPostCompose
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -135,11 +137,29 @@ class FeedPostComposeViewModel @Inject constructor(
         selectedImages = reconcile(new = loaded, current = selectedImages)
     }
 
+
     private suspend fun loadBitmapFromUri(uri: Uri, context: Context): Bitmap? =
         withContext(Dispatchers.IO) {
             try {
-                context.contentResolver.openInputStream(uri)?.use { stream ->
-                    BitmapFactory.decodeStream(stream)
+                val stream = context.contentResolver.openInputStream(uri) ?: return@withContext null
+                val bitmap = BitmapFactory.decodeStream(stream)
+
+                val exifStream = context.contentResolver.openInputStream(uri) ?: return@withContext bitmap
+                val exif = ExifInterface(exifStream)
+                val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+
+                val rotation = when (orientation) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                    ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                    ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                    else -> 0f
+                }
+
+                if (rotation == 0f) bitmap
+                else {
+                    val matrix = Matrix()
+                    matrix.postRotate(rotation)
+                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
                 }
             } catch (e: Exception) {
                 null

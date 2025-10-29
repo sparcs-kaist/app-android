@@ -91,6 +91,7 @@ fun FeedPostView(
     val json = backStackEntry.savedStateHandle.get<String>("feed_json")
     val post = remember { mutableStateOf(Gson().fromJson(json, FeedPost::class.java)) }
     val context = LocalContext.current
+
     val deleteSuccessText = stringResource(R.string.deleted_successfully)
     val reportSuccessText = stringResource(R.string.reported_successfully)
 
