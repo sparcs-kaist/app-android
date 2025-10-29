@@ -47,7 +47,7 @@ fun PostList(
         ErrorView(
             icon = Icons.Default.Clear,
             errorMessage = "Nothing Here Yet\nIt looks like there are no posts on this page right now.",
-            onRetry = { onRefresh() }
+            onRetry = { onRefresh() }//TODO - 번역?
         )
     }
     when {

@@ -64,7 +64,7 @@ fun PostComposeNavigationBar(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = "Discard Post",
+                            text = stringResource(R.string.discard_this_post),
                             color = MaterialTheme.colorScheme.error
                         )
                     },

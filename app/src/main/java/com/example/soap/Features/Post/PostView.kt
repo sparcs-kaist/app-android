@@ -429,8 +429,8 @@ private fun Comments(
 
             UnavailableView(
                 icon = painterResource(R.drawable.chat_bubble_outline),
-                title = "No one has commented yet.",
-                description = "Be the first one to share your thoughts."
+                title = stringResource(R.string.no_one_has_commented_yet),
+                description = stringResource(R.string.be_the_first_one_to_share_your_thoughts)
             )
         } else {
             post.comments.forEach { commentItem ->
@@ -531,7 +531,7 @@ fun InputBar(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = "Editing...",
+                        text = "${stringResource(R.string.editing)}...",
                         style = MaterialTheme.typography.bodySmall,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -658,7 +658,7 @@ private fun title(post: AraPost): AnnotatedString {
             )
         }
 
-        val postTitle = post.title ?: "Untitled"
+        val postTitle = post.title ?: stringResource(R.string.untitled)
         val startIndex = length
         append(postTitle)
         addStyle(
@@ -672,15 +672,25 @@ private fun title(post: AraPost): AnnotatedString {
     }
 }
 
+@Composable
 fun placeholder(
     viewModel: PostViewModelProtocol,
     targetComment: AraPostComment?,
     commentOnEdit: AraPostComment?
 ): String {
     return when {
-        targetComment != null -> "reply to ${targetComment.author.profile.nickname}"
+        targetComment != null -> stringResource(
+            R.string.write_a_reply_to,
+            targetComment.author.profile.nickname
+        )
         commentOnEdit != null -> commentOnEdit.content.orEmpty()
-        else -> "reply as ${viewModel.post.value.myCommentProfile?.profile?.nickname ?: "anonymous"}"
+        else -> {
+            val anonymousName = stringResource(R.string.anonymous)
+            stringResource(
+                R.string.reply_as,
+                viewModel.post.value.myCommentProfile?.profile?.nickname ?: anonymousName
+            )
+        }
     }
 }
 
