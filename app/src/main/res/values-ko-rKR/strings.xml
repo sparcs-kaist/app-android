@@ -62,8 +62,8 @@
     <string name="exams">시험</string>
     <string name="view_dictionary">과목 사전</string>
     <string name="view_syllabus">실라버스</string>
-    <string name="timetable_add">시간표 추가</string>
-    <string name="timetable_delete">시간표 삭제</string>
+    <string name="timetable_add">새 시간표</string>
+    <string name="timetable_delete">삭제</string>
     <string name="taxi_room_creation">방 개설하기</string>
     <string name="dark_mode">다크 모드</string>
     <string name="system_default">시스템 기본 설정</string>

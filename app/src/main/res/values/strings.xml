@@ -162,5 +162,5 @@
     <string name="clear_search_text">Clear Search Text</string>
     <string name="reviewcompose" translatable="false">ReviewCompose</string>
     <string name="course_view" translatable="false">CourseView</string>
-    <string name="lecture_search_view">LectureSearchView</string>
+    <string name="lecture_search_view" translatable="false">LectureSearchView</string>
 </resources>
