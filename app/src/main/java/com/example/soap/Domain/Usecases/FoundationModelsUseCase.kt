@@ -4,6 +4,12 @@ import com.example.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface FoundationModelsUseCaseProtocol {
+    val isAvailable: Boolean
+
+    suspend fun summarise(text: String, maxWords: Int, tone: String): String
+}
+
 @Singleton
 class FoundationModelsUseCase @Inject constructor(
     private val araUserRepository: AraUserRepositoryProtocol

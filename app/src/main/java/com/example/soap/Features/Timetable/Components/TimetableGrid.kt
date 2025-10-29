@@ -1,117 +1,127 @@
 package com.example.soap.Features.Timetable.Components
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.soap.Domain.Enums.DayType
 import com.example.soap.Domain.Helpers.TimetableConstructor
-import com.example.soap.Domain.Models.TimeTable.Lecture
-import com.example.soap.Domain.Models.TimeTable.Timetable
-import com.example.soap.Domain.Models.TimeTable.duration
-import com.example.soap.Domain.Models.TimeTable.getLectures
-import com.example.soap.Domain.Models.TimeTable.maxMinutes
-import com.example.soap.Domain.Models.TimeTable.minMinutes
-import com.example.soap.Domain.Models.TimeTable.visibleDays
+import com.example.soap.Domain.Models.OTL.Lecture
+import com.example.soap.Domain.Usecases.MockTimetableUseCase
 import com.example.soap.Features.Timetable.TimetableViewModel
-import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 
 @Composable
 fun TimetableGrid(
     viewModel: TimetableViewModel,
-    selectedLecture: ((Lecture) -> Unit)? = null
+    onLectureSelected: (Lecture) -> Unit = {},
+    showDeleteDialog: (Lecture) -> Unit,
 ) {
-    val minMinutes = viewModel.selectedTimetable?.minMinutes ?: 540 //9:00AM
-    val maxMinutes = viewModel.selectedTimetable?.maxMinutes ?: 1080 //6:00PM
-    val visibleDays = viewModel.selectedTimetable?.visibleDays
-        ?: listOf(DayType.MON, DayType.TUE, DayType.WED, DayType.THU, DayType.FRI)
-    val scrollState = rememberScrollState()
-    val density = LocalDensity.current
+    val timetable = viewModel.timetableUseCase.selectedTimetable.collectAsState().value
+    val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
+    val candidateLecture by viewModel.candidateLecture.collectAsState()
 
-    BoxWithConstraints {
-        val heightPx = with(density) { (maxHeight * 0.2f).toPx() }
-        val widthPx = with(density) { maxWidth.toPx() }
-        val size = Size(widthPx, heightPx)
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        val height = maxHeight
 
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-            modifier = Modifier.height(448.dp)
+        DaysColumnHeader(visibleDays = visibleDays)
+
+        TimesRowHeader(
+            minMinutes = timetable?.minMinutes ?: TimetableDefaults.defaultMinMinutes,
+            maxMinutes = timetable?.maxMinutes ?: TimetableDefaults.defaultMaxMinutes
+        )
+        Row(
+            modifier = Modifier
+                .padding(start = TimetableConstructor.hoursWidth + 8.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Column(Modifier.verticalScroll(scrollState)){
+            visibleDays.forEach { day ->
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                ) {
+                    GridHorizontalLines(
+                        minMinutes = timetable?.minMinutes ?: TimetableDefaults.defaultMinMinutes,
+                        maxMinutes = timetable?.maxMinutes ?: TimetableDefaults.defaultMaxMinutes
+                    )
 
-                Row {
-                    TimesRowHeader(minMinutes, maxMinutes)
+                    timetable?.getLectures(day, candidateLecture)?.forEach { item ->
+                        val density = LocalDensity.current
+                        val containerHeightPx = with(density) { height.toPx() }
+                        val daysHeightPx = with(density) { TimetableConstructor.daysHeight.toPx() }
 
-                    Column(modifier = Modifier.weight(1f)) {
-
-                        DaysColumnHeader(visibleDays)
-
-                        Row {
-                            visibleDays.forEach { day ->
-                                Box(modifier = Modifier.weight(1f)) {
-                                    Spacer(modifier = Modifier.height(14.dp))
-                                    GridHorizontalLines(
-                                        minMinutes = minMinutes,
-                                        maxMinutes = maxMinutes,
-                                        timetableViewModel = viewModel
-                                    )
-
-                                    viewModel.selectedTimetable?.getLectures(day)?.forEach { item ->
-                                        val cellHeight = TimetableConstructor.getCellHeight(
-                                            item,
-                                            size,
-                                            viewModel.selectedTimetable!!.duration
-                                        )
-                                        val offsetPx = TimetableConstructor.getCellOffset(
-                                            item,
-                                            size,
-                                            viewModel.selectedTimetable!!.minMinutes,
-                                            viewModel.selectedTimetable!!.duration
-                                        )
-
-                                        val heightDp = cellHeight.dp
-                                        val offsetDp = offsetPx.dp
-
-                                        TimetableGridCell(
-                                            lecture = item.lecture,
-                                            modifier = Modifier
-                                                .offset(y = offsetDp)
-                                                .height(heightDp)
-                                                .fillMaxWidth()
-                                                .clickable { selectedLecture?.invoke(item.lecture) }
-                                        )
-                                    }
-                                }
-                            }
-                            Spacer(Modifier.width(TimetableConstructor.hoursWidth / 2))
+                        val cellHeight = with(density) {
+                            TimetableConstructor.getCellHeightPx(
+                                item,
+                                containerHeightPx,
+                                timetable.duration,
+                                daysHeightPx + 24
+                            ).toDp()
                         }
+                        val cellOffsetY = with(density) {
+                            TimetableConstructor.getCellOffsetPx(
+                                item,
+                                containerHeightPx,
+                                timetable.minMinutes,
+                                timetable.duration,
+                                daysHeightPx + 24
+                            ).toDp()
+                        }//+24하면 딱 맞는 이유가 뭐지...
+
+                        val isCandidate =
+                            item.lecture.id == candidateLecture?.id
+                        val animatedAlpha by animateFloatAsState(
+                            targetValue = if (viewModel.isLoading.value) 0.5f else 1f,
+                            label = "LectureAlpha"
+                        )
+
+                        TimetableGridCell(
+                            lecture = item.lecture,
+                            isCandidate = isCandidate,
+                            modifier = Modifier
+                                .offset(y = cellOffsetY)
+                                .height(cellHeight)
+                                .fillMaxWidth()
+                                .combinedClickable(
+                                    onClick = {
+                                        onLectureSelected(item.lecture)
+                                    },
+                                    onLongClick = {
+                                        showDeleteDialog(item.lecture)
+                                    }
+                                )
+                                .graphicsLayer { alpha = animatedAlpha }
+                        )
                     }
                 }
             }
@@ -119,125 +129,99 @@ fun TimetableGrid(
     }
 }
 
-
 @Composable
-fun GridHorizontalLines(
-    timetableViewModel: TimetableViewModel,
-    minMinutes: Int,
-    maxMinutes: Int
-) {
-    val minHour = (timetableViewModel.selectedTimetable?.minMinutes ?: minMinutes) / 60
-    val maxHour = (timetableViewModel.selectedTimetable?.maxMinutes ?: maxMinutes) / 60
-
-    val totalLines = maxHour - minHour + 1
-
-    val lineColor = MaterialTheme.colorScheme.grayBB
-    val dashEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
-
-
-    val lineHeight = TimetableConstructor.daysHeight
-    val lineMargin = 2.dp
-
-    Column{
-
-    repeat(totalLines) { index ->
-            //실선
-            Canvas(modifier = Modifier
-                .fillMaxWidth()
-                .height(lineHeight)) {
-                drawLine(
-                    color = lineColor,
-                    start = Offset(lineMargin.toPx(), 0f),
-                    end = Offset(size.width - lineMargin.toPx(), 0f),
-                    strokeWidth = 1f
-                )
-            }
-
-            //점선
-            if (index < totalLines - 1) {
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(lineHeight)
-                ) {
-                    drawLine(
-                        color = lineColor,
-                        start = Offset(lineMargin.toPx(), 0f),
-                        end = Offset(size.width - lineMargin.toPx(), 0f),
-                        strokeWidth = 1f,
-                        pathEffect = dashEffect
-                    )
-                }
-            }
+private fun DaysColumnHeader(visibleDays: List<DayType>) {
+    Row(
+        modifier = Modifier
+            .padding(start = TimetableConstructor.hoursWidth + 8.dp)
+            .height(TimetableConstructor.daysHeight)
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        visibleDays.forEach { day ->
+            Text(
+                text = day.stringValue,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
 
-
 @Composable
-fun DaysColumnHeader(days: List<DayType>) {
-    Row(modifier = Modifier
-        .fillMaxWidth()) {
-        days.forEach { day ->
-            Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(TimetableConstructor.daysHeight)
-            ) {
-                Text(
-                    text = day.stringValue,
-                    style = MaterialTheme.typography.labelSmall,
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-        Spacer(Modifier.width(TimetableConstructor.hoursWidth/2))
-
-    }
-}
-@Composable
-fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
+private fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
     val minHour = minMinutes / 60
     val maxHour = maxMinutes / 60
 
-    //2h
-    val fixedCellHeight = (TimetableConstructor.daysHeight*2)
-
-
-    Column(
-        modifier = Modifier.width(TimetableConstructor.hoursWidth),
-        horizontalAlignment = Alignment.CenterHorizontally
+    BoxWithConstraints(
+        modifier = Modifier
+            .padding(top = TimetableConstructor.daysHeight)
+            .width(TimetableConstructor.hoursWidth)
+            .fillMaxHeight()
     ) {
+        val totalHours = maxHour - minHour
+        val spacing = (maxHeight - 15.dp) / totalHours
 
-        repeat(maxHour - minHour +1) { index ->
-            Box(
+        (minHour until maxHour).forEachIndexed { index, hour ->
+            Text(
+                text = hour.toString(),
+                style = MaterialTheme.typography.labelSmall,
+                textAlign = TextAlign.Center,
                 modifier = Modifier
-                    .height(fixedCellHeight)
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = (minHour + index).toString(),
-                    style = MaterialTheme.typography.labelSmall
+                    .width(TimetableConstructor.hoursWidth)
+                    .offset(y = spacing * index)
+                    .padding(top = 6.dp),
+
                 )
-            }
         }
     }
+}
+
+@Composable
+private fun GridHorizontalLines(minMinutes: Int, maxMinutes: Int) {
+    val lineColor = MaterialTheme.colorScheme.grayBB
+    Canvas(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = TimetableConstructor.daysHeight + 14.dp)
+    ) {
+        val duration = maxMinutes - minMinutes
+        val spacing = size.height / duration.toFloat() * 60f
+
+        val hours = (minMinutes / 60) until (maxMinutes / 60)
+        hours.forEachIndexed { i, _ ->
+            val y = i * spacing
+            drawLine(
+                color = lineColor,
+                start = Offset(0f, y),
+                end = Offset(size.width, y),
+                strokeWidth = 1f
+            )
+            drawLine(
+                color = lineColor,
+                start = Offset(0f, y + spacing / 2),
+                end = Offset(size.width, y + spacing / 2),
+                strokeWidth = 1f,
+                pathEffect = PathEffect.dashPathEffect(floatArrayOf(4f, 4f))
+            )
+        }
+    }
+}
+
+
+object TimetableDefaults {
+    const val defaultMinMinutes = 540   // 8:00 AM
+    const val defaultMaxMinutes = 1080  // 6:00 PM
 }
 
 
 @Preview
 @Composable
 private fun Preview() {
-    val mockTimetable = Timetable.mockList()
-    val mockViewModel = remember {
-        TimetableViewModel().apply {
-            selectedTimetable = mockTimetable[1]
-        }
-    }
-
+    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase())) }
     Theme {
-        TimetableGrid(viewModel = mockViewModel, selectedLecture = {})
+        TimetableGrid(viewModel = vm, onLectureSelected = {}, showDeleteDialog = {})
     }
 }

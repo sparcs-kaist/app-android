@@ -14,6 +14,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface FeedViewModelProtocol {
+    val state: StateFlow<FeedViewModel.ViewState>
+    val posts: StateFlow<List<FeedPost>>
+
+    suspend fun signOut()
+    suspend fun fetchInitialData()
+    suspend fun deletePost(postID: String)
+}
+
 @HiltViewModel
 class FeedViewModel @Inject constructor(
     private val authUseCase: AuthUseCaseProtocol,

@@ -1,24 +1,24 @@
 package com.example.soap.Features.LectureDetail.Components
 
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.darkGray
@@ -27,11 +27,18 @@ import com.example.soap.ui.theme.darkGray
 @Composable
 fun LectureDetailNavigationBar(
     navController: NavController,
-    text: String
+    text: String,
+    onAdd: () -> Unit,
+    onDelete: () -> Unit,
+    isCurrentTimetable: Boolean,
+    isEnabled: Boolean
 ) {
-    TopAppBar(
+    var lineCount by remember { mutableStateOf(1) }
+    var hasMeasured by remember { mutableStateOf(false) }
+
+    CenterAlignedTopAppBar(
         navigationIcon = {
-            IconButton(onClick = { navController.navigate(Channel.TimeTable.name) }) {
+            IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = "Back",
@@ -42,22 +49,49 @@ fun LectureDetailNavigationBar(
         title = {
             Text(
                 text = text,
-                style = MaterialTheme.typography.titleLarge,
+                style = if (lineCount > 1) MaterialTheme.typography.titleMedium
+                else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+                onTextLayout = { textLayoutResult ->
+                    if(hasMeasured) return@Text
+                    hasMeasured = true
+                    val newLineCount = textLayoutResult.lineCount
+                    if (lineCount != newLineCount) {
+                        lineCount = newLineCount
+                    }
+                }
             )
         },
         actions = {
-            IconButton(
-                onClick = {},
-                colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.outline_delete),
-                    contentDescription = "Delete",
-                    tint = MaterialTheme.colorScheme.darkGray
-                )
+            if(!isEnabled) return@CenterAlignedTopAppBar
+            if(!isCurrentTimetable) {
+                IconButton(
+                    onClick = {
+                        onAdd()
+                        navController.popBackStack()
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.round_add),
+                        contentDescription = "Plus",
+                        tint = MaterialTheme.colorScheme.darkGray
+                    )
+                }
+            } else {
+                IconButton(
+                    onClick = {
+                        onDelete()
+                        navController.popBackStack()
+                              },
+                    colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.outline_delete),
+                        contentDescription = "Delete",
+                        tint = MaterialTheme.colorScheme.darkGray
+                    )
+                }
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -66,10 +100,8 @@ fun LectureDetailNavigationBar(
     )
 }
 
-
-
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ LectureDetailNavigationBar(rememberNavController(), "title") }
+    Theme{ LectureDetailNavigationBar(rememberNavController(), "title", {}, {}, false, true) }
 }

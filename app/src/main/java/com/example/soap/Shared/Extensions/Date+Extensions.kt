@@ -15,8 +15,9 @@ fun Date.timeAgoDisplay(): String {
     val thenCalendar = Calendar.getInstance()
     thenCalendar.time = this
 
-//    val years = nowCalendar.get(Calendar.YEAR) - thenCalendar.get(Calendar.YEAR)
+    val years = nowCalendar.get(Calendar.YEAR) - thenCalendar.get(Calendar.YEAR)
     val year = thenCalendar.get(Calendar.YEAR)
+    val months = nowCalendar.get(Calendar.MONTH) - thenCalendar.get(Calendar.MONTH)
     val month = thenCalendar.get(Calendar.MONTH) + 1
     var days = nowCalendar.get(Calendar.DAY_OF_MONTH) - thenCalendar.get(Calendar.DAY_OF_MONTH)
     val day = thenCalendar.get(Calendar.DAY_OF_MONTH)
@@ -31,7 +32,7 @@ fun Date.timeAgoDisplay(): String {
         hours += 24
         days--
     }
-    if (days >= 7) return "$year/$month/$day"
+    if (days >= 7 || months > 0 || years > 0) return "$year. $month. $day"
     if (days > 0) return "$days day${if (days > 1) "s" else ""} ago"
     if (hours > 0) return "$hours hour${if (hours > 1) "s" else ""} ago"
     if (minutes > 0) return "${minutes} min ago "
