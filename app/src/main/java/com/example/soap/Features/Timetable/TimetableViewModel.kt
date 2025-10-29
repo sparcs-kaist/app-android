@@ -20,14 +20,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TimetableViewModel @Inject constructor(
-    val timetableUseCase: TimetableUseCaseProtocol
-): ViewModel() {
+    val timetableUseCase: TimetableUseCaseProtocol,
+) : ViewModel() {
 
     val isLoading = MutableStateFlow(false)
 
     val semesters: StateFlow<List<Semester>> = timetableUseCase.semesters
     val selectedSemester: StateFlow<Semester?> = timetableUseCase.selectedSemester
     val selectedTimetable: StateFlow<Timetable?> = timetableUseCase.selectedTimetable
+
     val selectedTimetableDisplayName: StateFlow<String> =
         timetableUseCase.selectedTimetableDisplayName
     val isEditable: StateFlow<Boolean> = timetableUseCase.isEditable
@@ -49,8 +50,30 @@ class TimetableViewModel @Inject constructor(
                 timetable.hasCollision(candidate)
             }
         }.distinctUntilChanged()
-            .stateIn(scope = viewModelScope, started = SharingStarted.WhileSubscribed(5000), initialValue = false)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = false
+            )
 
+    val overlappingLecture: StateFlow<Lecture?> =
+        combine(
+            timetableUseCase.selectedTimetable,
+            candidateLecture
+        ) { timetable, candidate ->
+            if (timetable == null || candidate == null) {
+                null
+            } else {
+                timetable.lectures.firstOrNull { other ->
+                    timetable.hasCollision(candidate) && timetable.hasCollision(other)
+                }
+            }
+        }.distinctUntilChanged()
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(5000),
+                initialValue = null
+            )
 
     fun setCandidateLecture(lecture: Lecture?) {
         _candidateLecture.value = lecture
@@ -80,6 +103,8 @@ class TimetableViewModel @Inject constructor(
             val newSemester = semestersList[currentIndex - 1]
             timetableUseCase.setSelectedSemesterID(newSemester.id)
         }
+        val defaultTableId = timetableUseCase.timetableIDsForSelectedSemester.firstOrNull()
+        defaultTableId?.let { selectTimetable(it) }
     }
 
     fun selectNextSemester() {
@@ -92,6 +117,8 @@ class TimetableViewModel @Inject constructor(
             val newSemester = semestersList[currentIndex + 1]
             timetableUseCase.setSelectedSemesterID(newSemester.id)
         }
+        val defaultTableId = timetableUseCase.timetableIDsForSelectedSemester.firstOrNull()
+        defaultTableId?.let { selectTimetable(it) }
     }
 
     fun selectTimetable(id: String) {
@@ -136,5 +163,14 @@ class TimetableViewModel @Inject constructor(
                 Log.e("TimetableViewModel", "Error deleting lecture", e)
             }
         }
+    }
+
+    fun removeOverlappingLectures(newLecture: Lecture) {
+        val timetable = timetableUseCase.selectedTimetable.value ?: return
+        val toRemove = timetable.lectures.firstOrNull {
+            timetable.hasCollision(it) && timetable.hasCollision(newLecture)
+        } ?: return
+
+        deleteLecture(toRemove)
     }
 }

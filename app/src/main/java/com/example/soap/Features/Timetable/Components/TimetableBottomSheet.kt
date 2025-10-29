@@ -1,6 +1,6 @@
 package com.example.soap.Features.Timetable.Components
 
-import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
@@ -24,7 +24,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -51,22 +50,32 @@ import kotlin.math.roundToInt
 
 @Composable
 fun TimetableBottomSheet(
-    content: @Composable () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    content: @Composable (onFold: () -> Unit) -> Unit,
 ) {
     val configuration = LocalConfiguration.current
     val screenHeight = with(LocalDensity.current) { configuration.screenHeightDp.dp.toPx() }
 
     val anchors = listOf(
-        (screenHeight) * 0.9f,
-        (screenHeight) * 0.5f,
-        (screenHeight) * 0.1f
+        (screenHeight) * 0.9f, //접히는 기준
+        (screenHeight) * 0.8f, //가장 많이 접힌 상태
+        (screenHeight) * 0.5f, //중간
+        (screenHeight) * 0.1f //화면 가득
     )
 
-    val offsetY = remember { mutableStateOf(anchors[1]) }
+    val offsetY = remember { Animatable(anchors[2]) }
     val scope = rememberCoroutineScope()
 
-    Box{
+    val onFold: () -> Unit = {
+        scope.launch {
+            offsetY.animateTo(
+                targetValue = anchors[1],
+                animationSpec = tween(durationMillis = 300)
+            )
+        }
+    }
+
+    Box {
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -88,18 +97,17 @@ fun TimetableBottomSheet(
                     state = rememberDraggableState { delta ->
                         val minOffset = anchors.minOrNull() ?: 0f
                         val maxOffset = anchors.maxOrNull() ?: screenHeight
-
-                        offsetY.value = (offsetY.value + delta).coerceIn(minOffset, maxOffset)
-
+                        scope.launch {
+                            offsetY.snapTo((offsetY.value + delta).coerceIn(minOffset, maxOffset))
+                        }
                     },
-                    onDragStopped = { velocity ->
+                    onDragStopped = {
                         val nearest = anchors.minByOrNull { abs(it - offsetY.value) }!!
                         scope.launch {
-                            animate(
-                                initialValue = offsetY.value,
+                            offsetY.animateTo(
                                 targetValue = nearest,
                                 animationSpec = tween(250)
-                            ) { value, _ -> offsetY.value = value }
+                            )
                         }
                         if (nearest == anchors[0]) {
                             onDismiss()
@@ -109,17 +117,22 @@ fun TimetableBottomSheet(
                 .padding(top = 16.dp)
         ) {
             Column {
-                Box(Modifier
-                    .fillMaxWidth()){
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                ) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .width(40.dp)
                             .height(4.dp)
-                            .background(MaterialTheme.colorScheme.darkGray, RoundedCornerShape(2.dp))
+                            .background(
+                                MaterialTheme.colorScheme.darkGray,
+                                RoundedCornerShape(2.dp)
+                            )
                     )
                 }
-                content()
+                content(onFold)
             }
         }
     }
@@ -129,61 +142,61 @@ fun TimetableBottomSheet(
 @Composable
 fun SearchCourses(
     value: String,
-    onValueChange: (String)-> Unit,
-    onClick: () -> Unit
-){
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(8.dp))
-                .background(MaterialTheme.colorScheme.grayF8),
-            verticalAlignment = Alignment.CenterVertically
+    onValueChange: (String) -> Unit,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.grayF8),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+
+        Spacer(Modifier.padding(4.dp))
+
+        Icon(
+            painter = painterResource(R.drawable.search),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.grayBB
+        )
+
+        Spacer(Modifier.padding(4.dp))
+
+        Box(
+            Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
 
-            Spacer(Modifier.padding(4.dp))
-
-            Icon(
-                painter = painterResource(R.drawable.search),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.grayBB
-            )
-
-            Spacer(Modifier.padding(4.dp))
-
-            Box(
-                Modifier
-                    .weight(1f)
-                    .padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-
-                BasicTextField(
-                    value = value,
-                    onValueChange = onValueChange,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(
-                        onDone = { onClick() }
-                    ),
-                    singleLine = true,
-                    decorationBox = { innerTextField ->
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            if (value.isEmpty()) {
-                                Text(
-                                    text = stringResource(R.string.search_by_course),
-                                    color = MaterialTheme.colorScheme.grayBB,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                            innerTextField()
+            BasicTextField(
+                value = value,
+                onValueChange = onValueChange,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = { onClick() }
+                ),
+                singleLine = true,
+                decorationBox = { innerTextField ->
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (value.isEmpty()) {
+                            Text(
+                                text = stringResource(R.string.search_by_course),
+                                color = MaterialTheme.colorScheme.grayBB,
+                                style = MaterialTheme.typography.bodyLarge
+                            )
                         }
+                        innerTextField()
                     }
-                )
-            }
+                }
+            )
         }
+    }
 }
 
 

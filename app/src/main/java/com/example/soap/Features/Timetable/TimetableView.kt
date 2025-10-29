@@ -122,21 +122,22 @@ fun TimetableView(
 
         if (expanded) {
             TimetableBottomSheet(
-                content = {
-                    LectureSearchView(
-                        navController = navController,
-                        timetableViewModel = viewModel,
-                        lectureSearchViewModel = lectureSearchViewModel
-                    )
-                },
                 onDismiss = {
                     expanded = false
                     lectureSearchViewModel.searchKeyword = ""
                 }
-            )
+            ) { onFold ->
+                LectureSearchView(
+                    navController = navController,
+                    timetableViewModel = viewModel,
+                    lectureSearchViewModel = lectureSearchViewModel
+                ) {
+                    onFold()
+                }
+            }
         }
 
-        if(showDeleteDialog && lectureToDelete != null) {
+        if (showDeleteDialog && lectureToDelete != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
                 confirmButton = {
