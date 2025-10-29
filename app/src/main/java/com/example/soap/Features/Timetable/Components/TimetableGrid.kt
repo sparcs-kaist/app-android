@@ -41,7 +41,7 @@ import com.example.soap.ui.theme.grayBB
 fun TimetableGrid(
     viewModel: TimetableViewModel,
     onLectureSelected: (Lecture) -> Unit = {},
-    showDeleteDialog: (Lecture) -> Unit
+    showDeleteDialog: (Lecture) -> Unit,
 ) {
     val timetable = viewModel.timetableUseCase.selectedTimetable.collectAsState().value
     val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
@@ -75,7 +75,7 @@ fun TimetableGrid(
                         maxMinutes = timetable?.maxMinutes ?: TimetableDefaults.defaultMaxMinutes
                     )
 
-                    timetable?.getLectures(day)?.forEach { item ->
+                    timetable?.getLectures(day, candidateLecture)?.forEach { item ->
                         val density = LocalDensity.current
                         val containerHeightPx = with(density) { height.toPx() }
                         val daysHeightPx = with(density) { TimetableConstructor.daysHeight.toPx() }

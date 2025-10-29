@@ -54,7 +54,8 @@ import com.google.gson.Gson
 fun LectureSearchView(
     navController: NavController,
     timetableViewModel: TimetableViewModel = hiltViewModel(),
-    lectureSearchViewModel: LectureSearchViewModel = hiltViewModel()
+    lectureSearchViewModel: LectureSearchViewModel = hiltViewModel(),
+    onFold: () -> Unit,
 ) {
     val searchKeyword = lectureSearchViewModel.searchKeyword
     val lectures by lectureSearchViewModel.lectures.collectAsState()
@@ -62,6 +63,7 @@ fun LectureSearchView(
 
     val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
+    var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
 
     val selectedTimetableDisplayName by timetableViewModel.selectedTimetableDisplayName.collectAsState()
 
@@ -78,7 +80,7 @@ fun LectureSearchView(
 
     Scaffold(
         topBar = {
-            if(searchKeyword.isEmpty()){
+            if (searchKeyword.isEmpty()) {
                 LectureSearchViewNavigationBar(
                     title = "Add to \"${selectedTimetableDisplayName}\"",
                 )
@@ -165,13 +167,23 @@ fun LectureSearchView(
                                         LectureRow(
                                             lecture = lecture,
                                             onClick = {
-                                                timetableViewModel.setCandidateLecture(lecture)
+                                                val currentCandidate =
+                                                    timetableViewModel.candidateLecture.value
+                                                if (currentCandidate?.id == lecture.id) {
+                                                    timetableViewModel.setCandidateLecture(null)
+                                                } else {
+                                                    timetableViewModel.setCandidateLecture(lecture)
+                                                }
+                                                onFold()
                                             },
                                             onAddClick = {
-                                                if(isOverlapping) {
+                                                if (isOverlapping) {
                                                     showCannotAddLectureAlert = true
+                                                    pendingLectureToAdd = lecture
+                                                    timetableViewModel.setCandidateLecture(null)
                                                 } else {
-                                                    timetableViewModel.addLecture(lecture) }
+                                                    timetableViewModel.addLecture(lecture)
+                                                }
                                             },
                                             onInfoClick = {
                                                 val json = Uri.encode(Gson().toJson(lecture))
@@ -186,26 +198,57 @@ fun LectureSearchView(
                 }
             }
             if (showCannotAddLectureAlert) {
+                val overlappingLecture by timetableViewModel.overlappingLecture.collectAsState()
+
                 AlertDialog(
-                    onDismissRequest = { showCannotAddLectureAlert = false },
+                    onDismissRequest = {
+                        showCannotAddLectureAlert = false
+                        pendingLectureToAdd = null
+                    },
                     confirmButton = {
-                        TextButton(onClick = { showCannotAddLectureAlert = false }) {
+                        TextButton(onClick = {
+                            showCannotAddLectureAlert = false
+
+                            pendingLectureToAdd?.let { lecture ->
+                                timetableViewModel.removeOverlappingLectures(lecture)
+                                timetableViewModel.addLecture(lecture)
+                                pendingLectureToAdd = null
+                            }
+                        }) {
                             Text("Okay")
                         }
                     },
-                    title = { Text("Cannot Add Lecture") },
-                    text = { Text("This lecture collides with an existing lecture in your timetable.") }
+                    dismissButton = {
+                        TextButton(onClick = {
+                            showCannotAddLectureAlert = false
+                            pendingLectureToAdd = null
+                        }) {
+                            Text("Cancel")
+                        }
+                    },
+                    title = { Text("Add Overlapping Lecture") },
+                    text = {
+                        val currentName =
+                            overlappingLecture?.title?.localized() ?: "the existing lecture"
+                        val newName = pendingLectureToAdd?.title?.localized() ?: "the new lecture"
+                        Text(
+                            text = "The lecture \"$currentName\" overlaps with your current timetable.\n" +
+                                    "If you add \"$newName\", the existing lecture will be removed.\n" +
+                                    "Would you like to add it to your timetable?"
+                        )
+                    }
                 )
             }
-        }
-    }
-    LaunchedEffect(Unit) {
-        lectureSearchViewModel.bind()
-    }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            timetableViewModel.setCandidateLecture(null)
+            LaunchedEffect(Unit) {
+                lectureSearchViewModel.bind()
+            }
+
+            DisposableEffect(Unit) {
+                onDispose {
+                    timetableViewModel.setCandidateLecture(null)
+                }
+            }
         }
     }
 }
@@ -215,7 +258,7 @@ fun LectureRow(
     lecture: Lecture,
     onClick: () -> Unit,
     onInfoClick: () -> Unit,
-    onAddClick: () -> Unit
+    onAddClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -257,16 +300,20 @@ fun LectureRow(
 
 @Preview
 @Composable
-private fun Preview(){
+private fun Preview() {
     Theme {
-        LectureSearchView(navController = rememberNavController(), timetableViewModel = viewModel(), lectureSearchViewModel = viewModel())
+        LectureSearchView(
+            navController = rememberNavController(),
+            timetableViewModel = viewModel(),
+            lectureSearchViewModel = viewModel(),
+            {})
     }
 }
 
 @Preview
 @Composable
-private fun Preview2(){
-    Theme{
+private fun Preview2() {
+    Theme {
         LectureRow(
             lecture = Lecture.mock(),
             onClick = {},

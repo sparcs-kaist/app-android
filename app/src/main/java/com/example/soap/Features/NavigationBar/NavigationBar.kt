@@ -57,7 +57,6 @@ import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtoco
 import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.LectureDetail.LectureDetailViewModel
-import com.example.soap.Features.LectureSearch.LectureSearchView
 import com.example.soap.Features.LectureSearch.LectureSearchViewModel
 import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
@@ -250,18 +249,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 val lectureDetailViewModel: LectureDetailViewModel = hiltViewModel(backStackEntry)
 
                 ReviewComposeView(reviewComposeViewModel = viewModel, lectureDetailViewModel = lectureDetailViewModel, navController = navController)
-            }
-
-            composable(
-                route = Channel.LectureSearch.name,
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ){ backStackEntry ->
-                val timetableViewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
-                val lectureSearchViewModelImpl: LectureSearchViewModel = hiltViewModel(backStackEntry)
-                LectureSearchView(navController = navController, timetableViewModel = timetableViewModelImpl, lectureSearchViewModel = lectureSearchViewModelImpl)
             }
 
             /*___________Taxi___________*/

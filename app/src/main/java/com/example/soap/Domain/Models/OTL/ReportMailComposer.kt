@@ -1,8 +1,6 @@
 package com.example.soap.Domain.Models.OTL
 
 import com.example.soap.Domain.Enums.SemesterType
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 object ReportMailComposer {
 
@@ -17,6 +15,8 @@ object ReportMailComposer {
         val body = """
             *Please describe a reason for reporting.
             ------------------------------------------------------------------
+            
+            
             ------------------------------------------------------------------
             [Review Information]
             *This information has been filled automatically. Please do NOT edit.
@@ -27,8 +27,6 @@ object ReportMailComposer {
             $content
         """.trimIndent()
 
-        val encodedBody = URLEncoder.encode(body, StandardCharsets.UTF_8.toString())
-
-        return "mailto:otlplus@sparcs.org?subject=[Reason for Reporting]&body=$encodedBody"
+        return "mailto:otlplus@sparcs.org?subject=[Reason for Reporting]&body=$body"
     }
 }
