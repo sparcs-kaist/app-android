@@ -1,68 +1,80 @@
 package com.example.soap.Features.Timetable
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import com.example.soap.Domain.Models.TimeTable.Lecture
-import com.example.soap.Features.LectureDetail.LectureDetailView
+import com.example.soap.Domain.Models.OTL.Lecture
+import com.example.soap.Features.LectureSearch.LectureSearchView
+import com.example.soap.Features.LectureSearch.LectureSearchViewModel
 import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
+import com.example.soap.Features.Timetable.Components.TimetableBottomSheet
+import com.example.soap.Features.Timetable.Components.TimetableCreditGraph
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
-import com.example.soap.ui.theme.Theme
-import com.example.soap.ui.theme.darkGray
-import kotlinx.coroutines.launch
+import com.google.gson.Gson
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TimetableView(navController: NavController) {
-    val mockViewModel = remember { TimetableViewModel() }
+fun TimetableView(
+    viewModel: TimetableViewModel = hiltViewModel(),
+    lectureSearchViewModel: LectureSearchViewModel = hiltViewModel(),
+    navController: NavController,
+) {
+    var selectedLecture by remember { mutableStateOf<Lecture?>(null) }
+    val scrollState = rememberScrollState()
+
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var lectureToDelete by remember { mutableStateOf<Lecture?>(null) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    val selectedTimetable by viewModel.timetableUseCase.selectedTimetable.collectAsState()
 
     LaunchedEffect(Unit) {
-        if (mockViewModel.timetables.isEmpty()) {
-            mockViewModel.fetchData()
-        }
+        viewModel.fetchData()
     }
 
-    val selectedLecture = remember { mutableStateOf<Lecture?>(null) }
-    val sheetState = rememberModalBottomSheetState()
-    val scope = rememberCoroutineScope()
+    Box(modifier = Modifier.fillMaxSize()) {
 
-    if (mockViewModel.selectedTimetable != null) {
         Scaffold(
             topBar = {
                 AppBar(
-                    currentScreen = Channel.TimeTable
+                    currentScreen = Channel.TimeTable,
+                    scrollOffset = scrollState.value,
+                    navController = navController,
+                    isButtonEnabled = viewModel.isEditable.collectAsState().value,
+                    onClick = { expanded = true }
                 )
             },
-
             bottomBar = {
                 AppDownBar(
                     navController = navController,
@@ -70,76 +82,77 @@ fun TimetableView(navController: NavController) {
                 )
             }
         ) { innerPadding ->
-
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
                     .padding(innerPadding)
+                    .verticalScroll(scrollState)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(28.dp)
             ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                CompactTimetableSelector(viewModel)
 
-                    CompactTimetableSelector(
-                        timetableViewModel = mockViewModel,
-                        selectedTimetable = mockViewModel.selectedTimetable!!
-                    )
-
-                    Spacer(Modifier.padding(8.dp))
-
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(screenHeight * 0.65f)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(8.dp)
+                ) {
                     TimetableGrid(
-                        viewModel = mockViewModel,
-                        selectedLecture = { lecture ->
-                            navController.navigate("${Channel.LectureDetail.name}/${lecture.id}")
+                        viewModel = viewModel,
+                        onLectureSelected = { lecture ->
+                            selectedLecture = lecture
+                            val json = Gson().toJson(lecture)
+                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                        },
+                        showDeleteDialog = { lecture ->
+                            lectureToDelete = lecture
+                            showDeleteDialog = true
                         }
                     )
+                }
 
-                    Spacer(Modifier.padding(8.dp))
+                selectedTimetable?.let { TimetableCreditGraph(it) }
 
-                    TimetableSummary()
+                TimetableSummary(viewModel)
+            }
+        }
+
+        if (expanded) {
+            TimetableBottomSheet(
+                onDismiss = {
+                    expanded = false
+                    lectureSearchViewModel.searchKeyword = ""
+                }
+            ) { onFold ->
+                LectureSearchView(
+                    navController = navController,
+                    timetableViewModel = viewModel,
+                    lectureSearchViewModel = lectureSearchViewModel
+                ) {
+                    onFold()
                 }
             }
         }
 
-
-        selectedLecture.value?.let { lecture ->
-            ModalBottomSheet(
-                onDismissRequest = {
-                    scope.launch { sheetState.hide() }.invokeOnCompletion {
-                        if (!sheetState.isVisible) selectedLecture.value = null
+        if (showDeleteDialog && lectureToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            viewModel.deleteLecture(lecture = lectureToDelete!!)
+                        }
+                    ) {
+                        Text("Okay")
                     }
                 },
-                sheetState = sheetState,
-                containerColor = MaterialTheme.colorScheme.surface,
-                modifier = Modifier.fillMaxHeight(),
-                dragHandle = {
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                                .width(30.dp)
-                                .height(4.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.darkGray,
-                                    RoundedCornerShape(2.dp)
-                                )
-                        )
-                    }
-                }
-            ) {
-                Box(Modifier.fillMaxSize()) { LectureDetailView(lectureId = lecture.id, navController = navController) }
-            }
+                title = { Text("DELETE?") },
+                text = { Text("Do you really want to delete ${lectureToDelete!!.title.localized()}?") }
+            )
         }
-    } else {
-        CircularProgressIndicator()
     }
-}
-
-@Composable
-@Preview
-private fun Preview(){
-    Theme { TimetableView(rememberNavController()) }
 }

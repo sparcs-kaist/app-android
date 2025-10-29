@@ -1,49 +1,53 @@
 package com.example.soap.Features.LectureDetail.Components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import android.net.Uri
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.soap.Domain.Models.TimeTable.Lecture
-import com.example.soap.Domain.Models.TimeTable.gradeLetter
-import com.example.soap.Domain.Models.TimeTable.loadLetter
-import com.example.soap.Domain.Models.TimeTable.speechLetter
+import androidx.navigation.NavController
+import com.example.soap.Domain.Helpers.gradeLetter
+import com.example.soap.Domain.Helpers.loadLetter
+import com.example.soap.Domain.Helpers.speechLetter
+import com.example.soap.Domain.Models.OTL.Lecture
+import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import com.example.soap.Features.LectureDetail.LectureDetailViewModel
+import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
-import com.example.soap.Shared.Mocks.mock
-import com.example.soap.ui.theme.Theme
+import com.example.soap.Shared.Views.ContentViews.ErrorView
+import com.example.soap.Shared.Views.ContentViews.UnavailableView
 import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.lightGray0
+import com.google.gson.Gson
 
 @Composable
-fun LectureReviews(lecture: Lecture){
+fun LectureReviews(
+    lecture: Lecture,
+    viewModel: LectureDetailViewModel,
+    repo: OTLCourseRepositoryProtocol,
+    navController: NavController,
+    canWriteReview: Boolean
+){
+    val state by viewModel.state.collectAsState()
+    val textColor = if(canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
+    val reviews = viewModel.reviews.collectAsState().value
     Column {
         Row {
             Text(
@@ -70,13 +74,19 @@ fun LectureReviews(lecture: Lecture){
             Spacer(Modifier.weight(1f))
 
             Button(
-                onClick = {},
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.background)
+                onClick = {
+                    if(canWriteReview) {
+                        val json = Uri.encode(Gson().toJson(lecture))
+                        navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}")
+                    }
+                          },
+                colors = if(canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface) else
+                ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.rounded_rate_review),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = textColor
                 )
 
                 Spacer(Modifier.padding(4.dp))
@@ -84,7 +94,7 @@ fun LectureReviews(lecture: Lecture){
                 Text(
                     text = stringResource(R.string.write_a_review),
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = textColor
                 )
             }
 
@@ -92,141 +102,47 @@ fun LectureReviews(lecture: Lecture){
         Spacer(Modifier.padding(4.dp))
 
         Column {
-            ReviewCard(lecture = lecture)
-            ReviewCard(lecture = lecture)
-        }
-    }
-}
-
-
-@Composable
-fun ReviewCard(lecture: Lecture) {
-    var expanded by remember { mutableStateOf(false) }
-    Box(
-        Modifier
-            .padding(vertical = 4.dp)
-            .shadow(4.dp, RoundedCornerShape(16.dp))
-    ){
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp))
-                .padding(8.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = lecture.professors.firstOrNull()?.name?.localized()
-                        ?: stringResource(R.string.unknown),
-                    style = MaterialTheme.typography.titleMedium
-                )
-
-                Spacer(modifier = Modifier.padding(4.dp))
-
-                Text(
-                    text = "${lecture.year.toString().takeLast(2)}${lecture.semester.shortCode}",
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    color = MaterialTheme.colorScheme.grayBB
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Box {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "More",
-                        modifier = Modifier.clickable { expanded = true }
-                    )
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-                        shape = RoundedCornerShape(16.dp)
+            when(state){
+                is LectureDetailViewModel.ViewState.Loading -> {
+                    repeat(3) {
+                        LectureReviewSkeletonCell()
+                    }
+                }
+                is LectureDetailViewModel.ViewState.Loaded -> {
+                    if(reviews.isEmpty()) {
+                        UnavailableView(
+                            icon = painterResource(R.drawable.rounded_book_2),
+                            title = "No Reviews",
+                            description = "There are no reviews yet."
+                        )
+                    } else {
+                        reviews.forEach { review ->
+                            LectureReviewCell(review, repo)
+                        }
+                    }
+                }
+                is LectureDetailViewModel.ViewState.Error -> {
+                    val message = (state as LectureDetailViewModel.ViewState.Error).message
+                    ErrorView(
+                        icon = Icons.Default.Warning,
+                        errorMessage = message
                     ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.translate)) },
-                            onClick = { /* TODO */ },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.baseline_translate),
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.summarise)) },
-                            onClick = { /* TODO */ },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.baseline_summarize),
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                        HorizontalDivider()
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.report)) },
-                            onClick = { /* TODO */ },
-                            leadingIcon = { Icon(Icons.Default.Warning, contentDescription = null) }
-                        )
+                        viewModel.fetchReviews(lecture.id)
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            Text(
-                text = "재수강할 각오로 기말 던지고 나왔는데 교수님이 B0를 주신 ㅎㅎ...\n수업 잘하시는데, 개인적으로 못 따라가서 좀 아쉽네요\n밑 글처럼 전산쪽 베이스 부족하면 좀 힘들 것 같습니다\n왜 전산을 하고 싶으면 시프를 들으라는지 알 수 있었네요",
-                style = MaterialTheme.typography.bodyMedium
-            )
-
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            Row(verticalAlignment = Alignment.Bottom) {
-                ReviewMetric(title = stringResource(R.string.grade), value = "A+")
-                Spacer(modifier = Modifier.padding(8.dp))
-                ReviewMetric(title = stringResource(R.string.load), value = "A+")
-                Spacer(modifier = Modifier.padding(8.dp))
-                ReviewMetric(title = stringResource(R.string.speech), value = "A")
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("20")
-                    Spacer(modifier = Modifier.padding(4.dp))
-                    Icon(
-                        painter = painterResource(R.drawable.icon_arrowup),
-                        contentDescription = "Upvote"
-                    )
-                }
-            }
         }
     }
 }
 
-@Composable
-fun ReviewMetric(title: String, value: String) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title.uppercase(),
-            color = MaterialTheme.colorScheme.grayBB
-        )
-        Spacer(modifier = Modifier.padding(4.dp))
-
-        Text(
-            text = value,
-            color = MaterialTheme.colorScheme.onSurface,
-            fontWeight = FontWeight.Medium
-        )
-    }
-}
-
-
-@Composable
-@Preview
-private fun Preview(){
-    Theme { LectureReviews(lecture = Lecture.mock()) }
-}
+//@Composable
+//@Preview
+//private fun Preview(){
+//    val repo by remember { mutableStateOf(FakeOTLCourseRepository()) }
+//    Theme { LectureReviews(
+//        lecture = Lecture.mock(),
+//        viewModel = MockLec,
+//        repo = repo,
+//        navController = NavController(LocalContext.current)
+//    ) }
+//}
