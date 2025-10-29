@@ -17,6 +17,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
+interface PostViewModelProtocol{
+    val post: StateFlow<AraPost>
+    val isFoundationModelsAvailable: Boolean
+
+    suspend fun fetchPost()
+    suspend fun upVote()
+    suspend fun downVote()
+    suspend fun writeComment(content: String): AraPostComment
+    suspend fun writeThreadedComment(commentID: Int, content: String): AraPostComment
+    suspend fun editComment(commentID: Int, content: String): AraPostComment
+    suspend fun report(type: AraContentReportType)
+    suspend fun summarisedContent(): String
+    suspend fun deletePost()
+    suspend fun toggleBookmark()
+}
+
 @HiltViewModel
 class PostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,

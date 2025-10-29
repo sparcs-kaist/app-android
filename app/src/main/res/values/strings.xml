@@ -68,8 +68,8 @@
     <string name="view_dictionary">View Dictionary</string>
     <string name="view_syllabus">View Syllabus</string>
     <string name="lecturedetail" translatable="false">LectureDetail</string>
-    <string name="timetable_add">Add Timetable</string>
-    <string name="timetable_delete">Delete Timetable</string>
+    <string name="timetable_add">New Timetable</string>
+    <string name="timetable_delete">Delete</string>
     <string name="taxi_room_creation">New Room</string>
     <string name="postcompose" translatable="false">PostCompose</string>
     <string name="taxi_preview" translatable="false">TaxiPreview</string>
@@ -126,4 +126,7 @@
     <string name="close">Close</string>
     <string name="bank_name">Bank Name</string>
     <string name="enter_nickname">Enter Nickname</string>
+    <string name="reviewcompose" translatable="false">ReviewCompose</string>
+    <string name="course_view" translatable="false">CourseView</string>
+    <string name="lecture_search_view">LectureSearchView</string>
 </resources>

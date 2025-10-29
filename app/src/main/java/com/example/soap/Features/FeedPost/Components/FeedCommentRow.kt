@@ -99,7 +99,7 @@ fun FeedCommentRow(
                 },
                 onReport = {
                     coroutineScope.launch {
-                        feedCommentRepository.reportComment(comment.id, it)
+                        feedCommentRepository.reportComment(localComment.id, it)
                     }
                     Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
                 }

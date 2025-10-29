@@ -21,6 +21,22 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface PostListViewModelProtocol {
+    var state: StateFlow<PostListViewModel.ViewState>
+    var board: AraBoard
+    var posts: List<AraPost>
+    var searchKeyword: String
+
+    var isLoadingMore: Boolean
+    var hasMorePages: Boolean
+
+    suspend fun fetchInitialPosts()
+    suspend fun loadNextPage()
+    fun refreshItem(postID: Int)
+    fun removePost(postID: Int)
+    fun bind()
+}
+
 @HiltViewModel
 class PostListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,

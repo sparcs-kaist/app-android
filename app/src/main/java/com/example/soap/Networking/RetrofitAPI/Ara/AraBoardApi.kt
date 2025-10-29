@@ -1,5 +1,6 @@
 package com.example.soap.Networking.RetrofitAPI.Ara
 
+import com.example.soap.Domain.Repositories.Ara.PostReportRequest
 import com.example.soap.Networking.RequestDTO.Ara.AraPostRequestDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraAttachmentDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraBoardDTO
@@ -86,9 +87,7 @@ interface AraBoardApi {
     suspend fun cancelVote(@Path("id") postID: Int)
 
     @POST("reports/")
-    suspend fun report(
-        @Body request: Map<String, Any>
-    )
+    suspend fun report(@Body request: PostReportRequest)
 
     @DELETE("articles/{id}/")
     suspend fun delete(@Path("id") postID: Int): Response<Unit>
