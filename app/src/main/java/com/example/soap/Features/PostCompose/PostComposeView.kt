@@ -394,7 +394,7 @@ fun TermsOfUseButton(){
         }
     ){
         Text(
-            text = "terms of use",
+            text = stringResource(R.string.terms_of_use),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.grayBB,
             textDecoration = TextDecoration.Underline

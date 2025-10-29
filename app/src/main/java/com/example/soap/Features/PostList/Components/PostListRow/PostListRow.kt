@@ -19,6 +19,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,7 +55,7 @@ fun PostListRow(
             }
 
             Text(
-                text = title(post),
+                text = title(post) { id -> stringResource(id) },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -111,7 +112,7 @@ fun PostListRow(
             Spacer(modifier = Modifier.weight(1f))
 
             Text(
-                text = "${post.views} views",
+                text = stringResource(R.string.views, post.views),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -194,12 +195,13 @@ fun PostListSkeletonRow() {
     }
 }
 
-private fun title(post: AraPost): String {
+@Composable
+fun title(post: AraPost, stringProvider: @Composable (Int) -> String): String {
     return when {
-        post.isHidden && post.isNSFW -> "This post contains NSFW content"
-        post.isHidden && post.isPolitical -> "This post contains political content"
-        post.isHidden -> "This post is hidden"
-        else -> post.title ?: "Untitled"
+        post.isHidden && post.isNSFW -> stringProvider(R.string.this_post_contains_nsfw_content)
+        post.isHidden && post.isPolitical -> stringProvider(R.string.this_post_contains_political_content)
+        post.isHidden -> stringProvider(R.string.this_post_is_hidden)
+        else -> post.title ?: stringProvider(R.string.untitled)
     }
 }
 

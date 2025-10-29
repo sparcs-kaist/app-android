@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,8 +51,8 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
         previousTopic = selectedTopic?.name
     }
 
-    val displayText = selectedTopic?.name?.localized() ?: "No Topic"
-    val previousText = previousTopic?.localized() ?: "No Topic"
+    val displayText = selectedTopic?.name?.localized() ?: stringResource(R.string.no_topic)
+    val previousText = previousTopic?.localized() ?: stringResource(R.string.no_topic)
 
     Box {
         Card(
@@ -84,7 +85,7 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
             DropdownMenuItem(
                 text = {
                     Text(
-                        text = "No Topic",
+                        text =  stringResource(R.string.no_topic),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.grayBB
                     )
@@ -133,10 +134,12 @@ fun AnimatedAlphabetText(from: String, to: String) {
     }
 
     Row {
+        val noTopicString = stringResource(R.string.no_topic)
+
         for (i in 0 until maxLength) {
             val toChar = displayed.getOrNull(i) ?: ' '
             val color =
-                if (displayed == "No Topic") MaterialTheme.colorScheme.grayBB
+                if (displayed ==  noTopicString) MaterialTheme.colorScheme.grayBB
                 else MaterialTheme.colorScheme.onSurface
 
             AnimatedContent(
