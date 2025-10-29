@@ -55,7 +55,7 @@ fun PostListRow(
             }
 
             Text(
-                text = title(post),
+                text = title(post) { id -> stringResource(id) },
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
@@ -196,12 +196,12 @@ fun PostListSkeletonRow() {
 }
 
 @Composable
-private fun title(post: AraPost): String {
+fun title(post: AraPost, stringProvider: @Composable (Int) -> String): String {
     return when {
-        post.isHidden && post.isNSFW -> stringResource(R.string.this_post_contains_nsfw_content)
-        post.isHidden && post.isPolitical -> stringResource(R.string.this_post_contains_political_content)
-        post.isHidden -> stringResource(R.string.this_post_is_hidden)
-        else -> post.title ?: stringResource(R.string.untitled)
+        post.isHidden && post.isNSFW -> stringProvider(R.string.this_post_contains_nsfw_content)
+        post.isHidden && post.isPolitical -> stringProvider(R.string.this_post_contains_political_content)
+        post.isHidden -> stringProvider(R.string.this_post_is_hidden)
+        else -> post.title ?: stringProvider(R.string.untitled)
     }
 }
 
