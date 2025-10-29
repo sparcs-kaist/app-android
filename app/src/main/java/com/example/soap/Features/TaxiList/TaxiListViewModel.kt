@@ -20,6 +20,28 @@ import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
+interface TaxiListViewModelProtocol {
+
+    // MARK: - ViewModel Properties
+    val state: StateFlow<TaxiListViewModel.ViewState>
+    val week: List<Date>
+    val rooms:StateFlow<List<TaxiRoom>>
+    val locations: StateFlow<List<TaxiLocation>>
+
+    // MARK: - View Properties
+    var source: TaxiLocation?
+    var destination: TaxiLocation?
+    var selectedDate: Date?
+
+    // MARK: - Functions
+    var roomDepartureTime: Date
+    var roomCapacity: Int
+
+    suspend fun fetchData()
+    suspend fun createRoom(title: String)
+
+}
+
 @HiltViewModel
 class TaxiListViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol

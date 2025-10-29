@@ -109,7 +109,13 @@ class AraBoardRepository @Inject constructor(
     override suspend fun downVotePost(postID: Int) = api.downVote(postID)
     override suspend fun cancelVote(postID: Int) = api.cancelVote(postID)
     override suspend fun reportPost(postID: Int, type: AraContentReportType) =
-        api.report(mapOf("post_id" to postID, "type" to type.name))
+        api.report(
+            PostReportRequest(
+                post_id = postID,
+                type = "others",
+                content = type.name
+            )
+        )
 
     override suspend fun deletePost(postID: Int): Response<Unit> {
         val response = api.delete(postID)
@@ -129,3 +135,9 @@ class AraBoardRepository @Inject constructor(
         return response
     }
 }
+
+data class PostReportRequest(
+    val post_id: Int,
+    val type: String,
+    val content: String
+)

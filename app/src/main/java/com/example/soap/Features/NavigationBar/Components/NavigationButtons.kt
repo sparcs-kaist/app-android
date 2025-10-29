@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.darkGray
+import com.example.soap.ui.theme.lightGray0
 
 @Composable
 fun NotificationButton(){
@@ -50,16 +51,17 @@ fun SettingButton(
 @Composable
 fun AddButton(
     contentDescription: String,
-    onClick: ()-> Unit
+    onClick: ()-> Unit,
+    isEnabled: Boolean = true
 ) {
     IconButton(
-        onClick = { onClick() },
+        onClick = { if(isEnabled) onClick() },
         colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
     ) {
         Icon(
             painter = painterResource(R.drawable.round_add),
             contentDescription = contentDescription,
-            tint = MaterialTheme.colorScheme.darkGray,
+            tint = if(isEnabled) MaterialTheme.colorScheme.darkGray else MaterialTheme.colorScheme.lightGray0,
             modifier = Modifier.size(30.dp)
         )
 
