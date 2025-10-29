@@ -21,6 +21,22 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface UserPostListViewModelProtocol {
+    val state: StateFlow<UserPostListViewModel.ViewState>
+    val user: AraPostAuthor
+    var posts: StateFlow<List<AraPost>>
+    var searchKeyword: StateFlow<String>
+
+    val isLoadingMore: StateFlow<Boolean>
+    var hasMorePages: Boolean
+
+    suspend fun fetchInitialPosts()
+    suspend fun loadNextPage()
+    fun refreshItem(postID: Int)
+    fun removePost(postID: Int)
+    fun bind()
+}
+
 @HiltViewModel
 class UserPostListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,

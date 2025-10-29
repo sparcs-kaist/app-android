@@ -13,6 +13,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface TaxiChatListViewModelProtocol {
+    // MARK: - ViewModel Properties
+    val state: StateFlow<TaxiChatListViewModel.ViewState>
+    var taxiUser: TaxiUser?
+
+    // MARK: - Functions
+    suspend fun fetchData()
+}
+
 @HiltViewModel
 class TaxiChatListViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,

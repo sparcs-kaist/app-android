@@ -31,8 +31,10 @@ fun PostVoteButton(
     onUpVote: () -> Unit,
     enabled: Boolean
 ) {
-    val upvoteImage = if (myVote == true) R.drawable.icon_arrowup else R.drawable.icon_arrowup //filled, outlined
-    val downvoteImage = if (myVote == false) R.drawable.icon_arrowdown else R.drawable.icon_arrowdown //filled, outlined
+    val upvoteImage =
+        if (myVote == true) R.drawable.icon_arrowup else R.drawable.icon_arrowup //filled, outlined
+    val downvoteImage =
+        if (myVote == false) R.drawable.icon_arrowdown else R.drawable.icon_arrowdown //filled, outlined
 
     val upVoteColor = Color(0xFF4CAF50)
     val downVoteColor = Color(0xFFF44336)
@@ -42,6 +44,8 @@ fun PostVoteButton(
         false -> downVoteColor
         else -> MaterialTheme.colorScheme.onSurface
     }
+
+    var isRunning = false
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -57,7 +61,14 @@ fun PostVoteButton(
                 tint = if (myVote == true) upVoteColor else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .size(20.dp)
-                    .clickable { if(enabled) onUpVote() }
+                    .clickable {
+                        if (isRunning) return@clickable
+                        if (enabled) {
+                            isRunning = true
+                            onUpVote()
+                            isRunning = false
+                        }
+                    }
             )
             AnimatedContent(
                 targetState = votes,
@@ -72,7 +83,6 @@ fun PostVoteButton(
             }
         }
 
-
         VerticalDivider(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
             modifier = Modifier
@@ -83,9 +93,17 @@ fun PostVoteButton(
             painter = painterResource(downvoteImage),
             contentDescription = "DownVote",
             tint = if (myVote == false) downVoteColor else MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(20.dp).clickable { if(enabled) onDownVote() }
+            modifier = Modifier
+                .size(20.dp)
+                .clickable {
+                    if (isRunning) return@clickable
+                    if (enabled) {
+                        isRunning = true
+                        onDownVote()
+                        isRunning = false
+                    }
+                }
         )
-
     }
 }
 
