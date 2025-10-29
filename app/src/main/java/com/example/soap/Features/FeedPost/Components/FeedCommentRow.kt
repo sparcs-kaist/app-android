@@ -3,7 +3,6 @@ package com.example.soap.Features.FeedPost.Components
 import PostCommentActionsMenu
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -207,6 +207,7 @@ private fun Content(comment: FeedComment) {
             val visibleText = text.substring(0, safeEnd).trimEnd()
             buildAnnotatedString {
                 append(visibleText)
+                pushStringAnnotation(tag = "MORE", annotation = "expand")
                 append("… ")
                 withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
                     append(moreText)
@@ -215,10 +216,9 @@ private fun Content(comment: FeedComment) {
         }
     }
 
-    Text(
+    ClickableText(
         text = displayText,
-        color = color,
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.bodyMedium.copy(color = color),
         maxLines = if (!expanded) 4 else Int.MAX_VALUE,
         overflow = TextOverflow.Ellipsis,
         onTextLayout = { layoutResult ->
@@ -228,11 +228,13 @@ private fun Content(comment: FeedComment) {
                 textLayoutResult = layoutResult
             }
         },
-        modifier = Modifier
-            .padding(vertical = 8.dp)
-            .clickable {
-                if (!expanded && isOverflowing && !comment.isDeleted) expanded = true
-            }
+        onClick = { offset ->
+            displayText.getStringAnnotations("MORE", offset, offset)
+                .firstOrNull()?.let {
+                    if (!comment.isDeleted) expanded = true
+                }
+        },
+        modifier = Modifier.padding(vertical = 8.dp)
     )
 }
 
