@@ -134,10 +134,12 @@ fun AnimatedAlphabetText(from: String, to: String) {
     }
 
     Row {
+        val noTopicString = stringResource(R.string.no_topic)
+
         for (i in 0 until maxLength) {
             val toChar = displayed.getOrNull(i) ?: ' '
             val color =
-                if (displayed ==  stringResource(R.string.no_topic)) MaterialTheme.colorScheme.grayBB
+                if (displayed ==  noTopicString) MaterialTheme.colorScheme.grayBB
                 else MaterialTheme.colorScheme.onSurface
 
             AnimatedContent(

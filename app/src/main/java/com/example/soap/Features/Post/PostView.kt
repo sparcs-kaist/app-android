@@ -430,7 +430,7 @@ private fun Comments(
             UnavailableView(
                 icon = painterResource(R.drawable.chat_bubble_outline),
                 title = stringResource(R.string.no_one_has_commented_yet),
-                description = ""
+                description = stringResource(R.string.be_the_first_one_to_share_your_thoughts)
             )
         } else {
             post.comments.forEach { commentItem ->
@@ -684,7 +684,13 @@ fun placeholder(
             targetComment.author.profile.nickname
         )
         commentOnEdit != null -> commentOnEdit.content.orEmpty()
-        else -> stringResource(R.string.reply_as, viewModel.post.value.myCommentProfile?.profile?.nickname ?: stringResource(R.string.anonymous))
+        else -> {
+            val anonymousName = stringResource(R.string.anonymous)
+            stringResource(
+                R.string.reply_as,
+                viewModel.post.value.myCommentProfile?.profile?.nickname ?: anonymousName
+            )
+        }
     }
 }
 
