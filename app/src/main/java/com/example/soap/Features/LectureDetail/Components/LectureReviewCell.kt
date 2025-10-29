@@ -44,6 +44,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.soap.Domain.Models.OTL.LectureReview
+import com.example.soap.Domain.Models.OTL.ReportMailComposer
 import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import com.example.soap.Features.Course.CourseViewModel
 import com.example.soap.R
@@ -58,7 +59,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun LectureReviewCell(
     review: LectureReview,
-    repo: OTLCourseRepositoryProtocol
+    repo: OTLCourseRepositoryProtocol,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var isLikeButtonRunning = false
@@ -69,7 +70,7 @@ fun LectureReviewCell(
     Box(
         Modifier
             .padding(vertical = 4.dp)
-    ){
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -86,7 +87,9 @@ fun LectureReviewCell(
                 Spacer(modifier = Modifier.padding(4.dp))
 
                 Text(
-                    text = "${review.lecture.year.toString().takeLast(2)}${review.lecture.semester.shortCode}",
+                    text = "${
+                        review.lecture.year.toString().takeLast(2)
+                    }${review.lecture.semester.shortCode}",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
@@ -147,11 +150,17 @@ fun LectureReviewCell(
             Spacer(modifier = Modifier.padding(4.dp))
 
             Row(verticalAlignment = Alignment.Bottom) {
-                ReviewRatingLetter(title = stringResource(R.string.grade), value = review.gradeLetter)
+                ReviewRatingLetter(
+                    title = stringResource(R.string.grade),
+                    value = review.gradeLetter
+                )
                 Spacer(modifier = Modifier.padding(8.dp))
                 ReviewRatingLetter(title = stringResource(R.string.load), value = review.loadLetter)
                 Spacer(modifier = Modifier.padding(8.dp))
-                ReviewRatingLetter(title = stringResource(R.string.speech), value = review.speechLetter)
+                ReviewRatingLetter(
+                    title = stringResource(R.string.speech),
+                    value = review.speechLetter
+                )
 
                 Spacer(modifier = Modifier.weight(1f))
 
@@ -160,15 +169,17 @@ fun LectureReviewCell(
                         targetState = reviewChange.like.toString(),
                         label = "VotesTransition"
                     ) { targetCount ->
-                         Text(targetCount)
+                        Text(targetCount)
                     }
                     Spacer(modifier = Modifier.padding(4.dp))
                     Icon(
-                        painter = if(reviewChange.isLiked) painterResource(R.drawable.icon_arrowup) else painterResource(R.drawable.icon_arrowup),
+                        painter = if (reviewChange.isLiked) painterResource(R.drawable.icon_arrowup) else painterResource(
+                            R.drawable.icon_arrowup
+                        ),
                         contentDescription = "Vote",
-                        tint = if(reviewChange.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        tint = if (reviewChange.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.clickable {
-                            if(isLikeButtonRunning) return@clickable
+                            if (isLikeButtonRunning) return@clickable
                             isLikeButtonRunning = true
                             toggleLike(reviewChange, repo, scope, context) { updated ->
                                 reviewChange = updated
@@ -312,7 +323,7 @@ private fun toggleLike(
     otlCourseRepository: OTLCourseRepositoryProtocol,
     scope: CoroutineScope,
     context: Context,
-    update: (LectureReview) -> Unit
+    update: (LectureReview) -> Unit,
 ) {
     scope.launch {
         val prev = review.copy()
@@ -345,33 +356,31 @@ private fun toggleLike(
 }
 
 fun report(review: LectureReview, context: Context) {
-    val subject = "Report Review - ${review.lecture.title.localized()}"
-    val body = """
-        Lecture: ${review.lecture.title.localized()} (${review.lecture.code})
-        Year: ${review.lecture.year}
-        Semester: ${review.lecture.semester}
-        Professor: ${review.lecture.professors.firstOrNull()?.name?.localized() ?: "Unknown"}
-        
-        Content:
-        ${review.content}
-    """.trimIndent()
+    val urlString = ReportMailComposer.compose(
+        title = review.lecture.title.localized(),
+        code = review.lecture.code,
+        year = review.lecture.year,
+        semester = review.lecture.semester,
+        professorName = review.lecture.professors.firstOrNull()?.name?.localized() ?: "Unknown",
+        content = review.content
+    )
 
-    val uriText = "mailto:?subject=${Uri.encode(subject)}&body=${Uri.encode(body)}"
-    val uri = Uri.parse(uriText)
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse(urlString)
+    }
 
-    val intent = Intent(Intent.ACTION_SENDTO, uri)
-
-    if (intent.resolveActivity(context.packageManager) != null) {
+    try {
         context.startActivity(intent)
-    } else {
-        Toast.makeText(context, "No email app found", Toast.LENGTH_SHORT).show()
+    } catch (e: Exception) {
+        Log.e("SettingsView", "Error launching email app", e)
+        Toast.makeText(context, "Failed to open email app", Toast.LENGTH_SHORT).show()
     }
 }
 
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     val repo: OTLCourseRepositoryProtocol = hiltViewModel<CourseViewModel>().otlCourseRepository
     Theme {
         LectureReviewCell(review = LectureReview.mock(), repo)
@@ -380,7 +389,7 @@ private fun Preview(){
 
 @Composable
 @Preview
-private fun SkeletonPreview(){
+private fun SkeletonPreview() {
     Theme {
         LectureReviewSkeletonCell()
     }
