@@ -29,6 +29,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -48,6 +49,7 @@ import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Features.Post.Components.PostCommentButton
 import com.example.soap.Features.Post.Components.PostShareButton
 import com.example.soap.Features.Post.Components.PostVoteButton
+import com.example.soap.R
 import com.example.soap.Shared.Extensions.noRippleClickable
 import com.example.soap.Shared.Extensions.relativeTimeString
 import com.example.soap.Shared.Extensions.timeAgoDisplay
@@ -142,10 +144,10 @@ fun Header(
                 }) { Text("Delete") }
             },
             dismissButton = {
-                TextButton(onClick = { setShowDelete(false) }) { Text("Cancel") }
+                TextButton(onClick = { setShowDelete(false) }) { Text(stringResource(R.string.cancel)) }
             },
-            title = { Text("Delete Post") },
-            text = { Text("Are you sure you want to delete this post?") }
+            title = { Text(stringResource(R.string.delete_post)) },
+            text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
         )
     }
 }
@@ -160,7 +162,7 @@ fun Content(
     var hasMeasured by remember { mutableStateOf(false) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val moreColor = MaterialTheme.colorScheme.grayBB
-
+    val moreText = stringResource(R.string.more)
     val displayText = remember(post.content, expanded, isOverflowing) {
         if (expanded || !isOverflowing) {
             AnnotatedString(post.content)
@@ -168,11 +170,12 @@ fun Content(
             val visibleEnd = textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
             val safeEnd = visibleEnd.coerceAtMost(post.content.length)
             val visibleText = post.content.substring(0, safeEnd).trimEnd()
+
             buildAnnotatedString {
                 append(visibleText)
                 append("… ")
                 withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
-                    append("More")
+                    append(moreText)
                 }
             }
         }

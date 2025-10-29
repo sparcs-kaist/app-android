@@ -51,7 +51,7 @@ fun FeedPostComposeNavigationBar(
                 }) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
-                    contentDescription = "Back",
+                    contentDescription = stringResource(R.string.back),
                     tint = MaterialTheme.colorScheme.darkGray
                 )
             }
@@ -64,7 +64,7 @@ fun FeedPostComposeNavigationBar(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = "Discard Post",
+                            text = stringResource(R.string.discard_this_post),
                             color = MaterialTheme.colorScheme.error
                         )
                     },
