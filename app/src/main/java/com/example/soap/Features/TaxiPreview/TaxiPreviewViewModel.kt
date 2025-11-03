@@ -4,9 +4,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.BuildConfig
+import com.example.soap.Domain.Enums.TaxiRoomBlockStatus
 import com.example.soap.Domain.Models.Taxi.TaxiParticipant
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
+import com.example.soap.Domain.Usecases.TaxiRoomUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCase
 import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,16 +25,21 @@ import javax.inject.Inject
 @HiltViewModel
 class TaxiPreviewViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepository,
-    private val userUseCase: UserUseCase
+    private val userUseCase: UserUseCase,
+    private val taxiRoomUseCase: TaxiRoomUseCaseProtocol
 ) : ViewModel() {
 
     // MARK: - Properties
     private val _taxiUser = MutableStateFlow<TaxiUser?>(null)
     val taxiUser: StateFlow<TaxiUser?> = _taxiUser
 
+    private val _blockStatus = MutableStateFlow<TaxiRoomBlockStatus>(TaxiRoomBlockStatus.Allow)
+    val blockStatus: StateFlow<TaxiRoomBlockStatus> = _blockStatus
+
     // MARK: - Init
     init {
         fetchTaxiUser()
+        fetchBlockStatus()
     }
 
     // MARK: - Logic
@@ -84,6 +91,12 @@ class TaxiPreviewViewModel @Inject constructor(
     private fun fetchTaxiUser() {
         viewModelScope.launch {
             _taxiUser.value = userUseCase.taxiUser
+        }
+    }
+
+    private fun fetchBlockStatus() {
+        viewModelScope.launch {
+            _blockStatus.value = taxiRoomUseCase.isBlocked()
         }
     }
 
