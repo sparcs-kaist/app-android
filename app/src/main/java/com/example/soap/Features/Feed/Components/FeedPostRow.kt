@@ -156,7 +156,7 @@ fun Header(
 fun Content(
     post: FeedPost,
     singleLine: Boolean,
-    onComment: ()-> Unit
+    onComment: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var isOverflowing by remember { mutableStateOf(false) }
@@ -168,7 +168,8 @@ fun Content(
         if (expanded || !isOverflowing) {
             AnnotatedString(post.content)
         } else {
-            val visibleEnd = textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
+            val visibleEnd =
+                textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
             val safeEnd = visibleEnd.coerceAtMost(post.content.length)
             val visibleText = post.content.substring(0, safeEnd).trimEnd()
 
@@ -194,7 +195,8 @@ fun Content(
             }
         },
         onClick = { offset ->
-            val moreAnnotation = displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()
+            val moreAnnotation =
+                displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()
             if (moreAnnotation != null) {
                 if (!expanded && isOverflowing) expanded = true
             } else {
@@ -205,7 +207,7 @@ fun Content(
             .padding(horizontal = 16.dp)
     )
 
-if (post.images.isNotEmpty()) {
+    if (post.images.isNotEmpty()) {
         PostImagesStrip(images = post.images, onComment)
     }
 }

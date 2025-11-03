@@ -74,7 +74,7 @@ fun TaxiRoomCreationNavigationBar(
     if (showAlert) {
         AlertDialog(
             onDismissRequest = { showAlert = false },
-            title = { Text("Error") },
+            title = { Text(alertTitle) },
             text = { Text(alertMessage) },
             confirmButton = {
                 TextButton(onClick = { showAlert = false }) {
