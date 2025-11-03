@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.TaxiList.TaxiListViewModel
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
@@ -42,13 +44,14 @@ import java.util.Date
 @Composable
 fun TaxiRoomCreationView(
     navController: NavController,
-    viewModel: TaxiListViewModelProtocol = hiltViewModel()
-) {
+    taxiListViewModel: TaxiListViewModelProtocol = hiltViewModel(),
+    taxiRoomCreationViewModel: TaxiRoomCreationViewModel = hiltViewModel()
+    ) {
     var title by remember { mutableStateOf("") }
 
-    val locations by viewModel.locations.collectAsState()
-    val isEnabled = remember(title, viewModel.source, viewModel.destination, viewModel.roomDepartureTime) {
-        isValid(viewModel, title)
+    val locations by taxiListViewModel.locations.collectAsState()
+    val isEnabled = remember(title, taxiListViewModel.source, taxiListViewModel.destination, taxiListViewModel.roomDepartureTime) {
+        isValid(taxiListViewModel, taxiRoomCreationViewModel ,title)
     }
 
     Scaffold(
@@ -56,19 +59,19 @@ fun TaxiRoomCreationView(
             TaxiRoomCreationNavigationBar(
                 onDismiss = {
                     title = ""
-                    viewModel.source = null
-                    viewModel.destination = null
+                    taxiListViewModel.source = null
+                    taxiListViewModel.destination = null
                     navController.navigate(Channel.Taxi.name){
                         launchSingleTop = true
                     }
                 },
                 isEnabled = isEnabled,
-                viewModel = viewModel,
+                viewModel = taxiListViewModel,
+                taxiRoomCreationViewModel = taxiRoomCreationViewModel,
                 title = title
             )
         }
     ){ innerPadding ->
-
 
         Column(
             modifier = Modifier
@@ -82,14 +85,14 @@ fun TaxiRoomCreationView(
                 shape = RoundedCornerShape(16.dp)
             ) {
                 TaxiDestinationPicker(
-                    source = viewModel.source,
-                    destination = viewModel.destination,
+                    source = taxiListViewModel.source,
+                    destination = taxiListViewModel.destination,
                     locations = locations,
                     onSourceChange = { newSource ->
-                        viewModel.source = newSource
+                        taxiListViewModel.source = newSource
                     },
                     onDestinationChange = { newDestination ->
-                        viewModel.destination = newDestination
+                        taxiListViewModel.destination = newDestination
                     }
                 )
             }
@@ -129,17 +132,17 @@ fun TaxiRoomCreationView(
             ) {
                 Column(Modifier.padding(16.dp)) {
                     TaxiDepartureTimePicker(
-                        departureTime = viewModel.roomDepartureTime,
+                        departureTime = taxiListViewModel.roomDepartureTime,
                         onDepartureTimeChange = { departureTime->
-                            viewModel.roomDepartureTime = departureTime }
+                            taxiListViewModel.roomDepartureTime = departureTime }
                     )
 
                     HorizontalDivider(Modifier.padding(vertical = 16.dp))
 
                     TaxiCapacityPicker(
-                        capacity = viewModel.roomCapacity,
+                        capacity = taxiListViewModel.roomCapacity,
                         onCapacityChange = { capacity->
-                            viewModel.roomCapacity = capacity }
+                            taxiListViewModel.roomCapacity = capacity }
                     )
                 }
             }
@@ -147,20 +150,22 @@ fun TaxiRoomCreationView(
     }
 }
 
+private fun isTitleValid(title: String): Boolean {
+    val regex = Constants.taxiRoomNameRegex ?: return false
+    return regex.matches(title)
+}
 
-private fun isValid(viewModel: TaxiListViewModelProtocol, title: String): Boolean {
+private fun isValid(viewModel: TaxiListViewModelProtocol, roomCreationViewModel: TaxiRoomCreationViewModel,title: String): Boolean {
     val source = viewModel.source
     val destination = viewModel.destination
     return source != null &&
             destination != null &&
             source != destination &&
             title.isNotBlank() &&
-            viewModel.roomDepartureTime > Date()
+            isTitleValid(title) &&
+            viewModel.roomDepartureTime > Date() &&
+            roomCreationViewModel.blockStatus.value == TaxiRoomBlockStatus.Allow
 }
-
-
-
-
 
 @Preview
 @Composable
@@ -170,7 +175,7 @@ private fun Preview() {
     Theme {
         TaxiRoomCreationView(
             rememberNavController(),
-            viewModel = mockViewModel
+            taxiListViewModel = mockViewModel
         )
     }
 }

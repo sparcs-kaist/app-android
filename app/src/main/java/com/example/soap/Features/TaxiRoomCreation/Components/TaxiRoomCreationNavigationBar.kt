@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,8 +21,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.soap.Domain.Enums.TaxiRoomBlockStatus
 import com.example.soap.Features.NavigationBar.Components.DismissButton
 import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
+import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationViewModel
 import com.example.soap.R
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
@@ -33,10 +36,12 @@ fun TaxiRoomCreationNavigationBar(
     onDismiss: () -> Unit,
     isEnabled: Boolean,
     viewModel: TaxiListViewModelProtocol,
+    taxiRoomCreationViewModel: TaxiRoomCreationViewModel,
     title: String
     ) {
-    var showErrorDialog by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
+    var showAlert by remember { mutableStateOf(false) }
+    var alertMessage by remember { mutableStateOf("") }
+    var alertTitle by remember { mutableStateOf("") }
 
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = onDismiss) },
@@ -53,8 +58,9 @@ fun TaxiRoomCreationNavigationBar(
                 isEnabled = isEnabled,
                 onClick = onDismiss,
                 onError = {
-                    errorMessage = it
-                    showErrorDialog = true
+                    alertMessage = it
+                    showAlert = true
+                    alertTitle = "Error"
                 },
                 viewModel = viewModel,
                 title = title
@@ -65,20 +71,42 @@ fun TaxiRoomCreationNavigationBar(
         )
     )
 
-
-
-    if (showErrorDialog) {
+    if (showAlert) {
         AlertDialog(
-            onDismissRequest = { showErrorDialog = false },
+            onDismissRequest = { showAlert = false },
             title = { Text("Error") },
-            text = { Text(errorMessage) },
+            text = { Text(alertMessage) },
             confirmButton = {
-                TextButton(onClick = { showErrorDialog = false }) {
+                TextButton(onClick = { showAlert = false }) {
                     Text("Okay")
                 }
-            }//TODO - In case of a name error, it appears as 'unknown'; further error handling may be needed.
+            }
         )
     }
+
+
+    LaunchedEffect(Unit) {
+        taxiRoomCreationViewModel.fetchBlockStatus()
+        when (val status = taxiRoomCreationViewModel.blockStatus.value) {
+            is TaxiRoomBlockStatus.Error -> {
+                alertTitle = "Error"
+                alertMessage = status.errorMessage
+                showAlert = true
+            }
+            TaxiRoomBlockStatus.NotPaid -> {
+                alertTitle = "Notice"
+                alertMessage = "There are rooms for which settlement has not been completed. To create a room, please settle an existing room."
+                showAlert = true
+            }
+            TaxiRoomBlockStatus.TooManyRooms -> {
+                alertTitle = "Notice"
+                alertMessage = "You are participating in more than 5 rooms. To create a room, please settle an existing room."
+                showAlert = true
+            }
+            else -> {}
+        }
+    }
+
 }
 
 @Composable
@@ -99,6 +127,7 @@ private fun SendButton(
                     onClick()
                 } catch (e: Exception) {
                     onError(e.localizedMessage ?: "Unknown error")
+
                 }
             }
         },
@@ -118,6 +147,6 @@ private fun SendButton(
 @Composable
 @Preview
 private fun Preview(){
-    Theme { TaxiRoomCreationNavigationBar({}, false, viewModel(),"") }
+    Theme { TaxiRoomCreationNavigationBar({}, false, viewModel(), viewModel(),"") }
 }
 
