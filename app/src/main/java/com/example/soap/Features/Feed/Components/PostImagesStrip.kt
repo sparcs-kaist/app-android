@@ -40,7 +40,7 @@ import com.example.soap.Domain.Models.Feed.FeedImage
 import com.example.soap.R
 
 @Composable
-fun PostImagesStrip(images: List<FeedImage>) {
+fun PostImagesStrip(images: List<FeedImage>, onComment: () -> Unit) {
     val hPadding = 16.dp
     val spacing = 12.dp
     val minW = 100.dp
@@ -64,7 +64,10 @@ fun PostImagesStrip(images: List<FeedImage>) {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .clickable { showSpoiler = false }
+                        .clickable {
+                            if(showSpoiler == true) showSpoiler = false
+                        else onComment()
+                        }
                 ) {
                     SubcomposeAsyncImage(
                         model = item.url,

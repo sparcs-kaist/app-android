@@ -39,6 +39,8 @@ import com.example.soap.Domain.Usecases.AuthUseCase
 import com.example.soap.Domain.Usecases.AuthUseCaseProtocol
 import com.example.soap.Domain.Usecases.TaxiChatUseCase
 import com.example.soap.Domain.Usecases.TaxiChatUseCaseProtocol
+import com.example.soap.Domain.Usecases.TaxiRoomUseCase
+import com.example.soap.Domain.Usecases.TaxiRoomUseCaseProtocol
 import com.example.soap.Domain.Usecases.TimetableUseCase
 import com.example.soap.Domain.Usecases.TimetableUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCase
@@ -460,6 +462,10 @@ abstract class UseCaseModule {
     @Binds
     @Singleton
     abstract fun bindTaxiChatUseCase(impl: TaxiChatUseCase): TaxiChatUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTaxiRoomUseCase(impl: TaxiRoomUseCase): TaxiRoomUseCaseProtocol
 
     @Binds
     @Singleton

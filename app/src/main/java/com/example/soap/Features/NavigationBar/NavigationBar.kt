@@ -103,6 +103,7 @@ import com.example.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.example.soap.Features.TaxiReport.TaxiReportView
 import com.example.soap.Features.TaxiReport.TaxiReportViewModel
 import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
+import com.example.soap.Features.TaxiRoomCreation.TaxiRoomCreationViewModel
 import com.example.soap.Features.Timetable.TimetableView
 import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.Features.UserPostList.UserPostListView
@@ -279,12 +280,13 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("TaxiGraph")
                     }
-                    val viewModel: TaxiListViewModelProtocol =
-                        hiltViewModel<TaxiListViewModel>(parentEntry)
+                    val taxiListViewModel: TaxiListViewModelProtocol = hiltViewModel<TaxiListViewModel>(parentEntry)
+                    val taxiRoomCreationViewModel: TaxiRoomCreationViewModel = hiltViewModel<TaxiRoomCreationViewModel>(parentEntry)
 
                     TaxiRoomCreationView(
                         navController = navController,
-                        viewModel = viewModel
+                        taxiListViewModel = taxiListViewModel,
+                        taxiRoomCreationViewModel = taxiRoomCreationViewModel
                     )
                 }
 

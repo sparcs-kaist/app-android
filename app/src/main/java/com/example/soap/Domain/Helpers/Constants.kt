@@ -43,6 +43,9 @@ object Constants {
 
     val taxiBankNameList: List<String> = taxiBankCodeMap.keys.toList()
     val taxiInviteURL = "https://taxi.dev.sparcs.org/invite/"
+
+    val taxiRoomNameRegex = Regex("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _~/#'@=\"^()+*<>{}\\[\\]\\-]{1,50}$")
+
     // MARK: Ara
     val araBackendURL = "https://newara.dev.sparcs.org/api/"
 
@@ -51,4 +54,6 @@ object Constants {
 
     // MARK: OTL
     val otlBackendURL = "https://api.otl.dev.sparcs.org/"
+
+    val taxiMaxRoomCount = 5
 }

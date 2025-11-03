@@ -277,7 +277,7 @@ private fun ProfileImage(viewModel: FeedPostComposeViewModelProtocol) {
     val imageUrl = viewModel.feedUser?.profileImageURL
     val composeType by remember { derivedStateOf { viewModel.selectedComposeType } }
 
-    if (composeType == FeedPostComposeViewModel.ComposeType.PUBLICLY && imageUrl != null) {
+    if (composeType == FeedPostComposeViewModel.ComposeType.Publicly && imageUrl != null) {
         AsyncImage(
             model = imageUrl,
             contentDescription = null,
@@ -306,8 +306,8 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
 
     val selectedType = viewModel.selectedComposeType
     val typeLabels = mapOf(
-        FeedPostComposeViewModel.ComposeType.PUBLICLY to viewModel.feedUser?.nickname,
-        FeedPostComposeViewModel.ComposeType.ANONYMOUSLY to stringResource(R.string.anonymous)
+        FeedPostComposeViewModel.ComposeType.Publicly to viewModel.feedUser?.nickname,
+        FeedPostComposeViewModel.ComposeType.Anonymously to stringResource(R.string.anonymous)
     )
 
     if (previousType != selectedType) {
