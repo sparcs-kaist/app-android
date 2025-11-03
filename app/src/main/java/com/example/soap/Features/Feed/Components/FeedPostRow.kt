@@ -1,7 +1,6 @@
 package com.example.soap.Features.Feed.Components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -80,7 +80,7 @@ fun FeedPostRow(
             onPostDeleted,
             showDeleteConfirmation,
         ) { showDeleteConfirmation = it }
-        Content(post, singleLine)
+        Content(post, singleLine, onComment)
         Footer(post, onComment, onPostDeleted, feedPostRepository, coroutineScope)
     }
 }
@@ -156,6 +156,7 @@ fun Header(
 fun Content(
     post: FeedPost,
     singleLine: Boolean,
+    onComment: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var isOverflowing by remember { mutableStateOf(false) }
@@ -167,12 +168,14 @@ fun Content(
         if (expanded || !isOverflowing) {
             AnnotatedString(post.content)
         } else {
-            val visibleEnd = textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
+            val visibleEnd =
+                textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
             val safeEnd = visibleEnd.coerceAtMost(post.content.length)
             val visibleText = post.content.substring(0, safeEnd).trimEnd()
 
             buildAnnotatedString {
                 append(visibleText)
+                pushStringAnnotation(tag = "MORE", annotation = "expand")
                 append("… ")
                 withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
                     append(moreText)
@@ -180,27 +183,32 @@ fun Content(
             }
         }
     }
-
-    Text(
+    ClickableText(
         text = displayText,
         maxLines = if (singleLine && !expanded) 2 else Int.MAX_VALUE,
         overflow = TextOverflow.Ellipsis,
         onTextLayout = { layoutResult ->
-            if (!hasMeasured && singleLine && !expanded) {
+            if (!hasMeasured && !expanded) {
                 hasMeasured = true
                 isOverflowing = layoutResult.hasVisualOverflow
                 textLayoutResult = layoutResult
             }
         },
+        onClick = { offset ->
+            val moreAnnotation =
+                displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()
+            if (moreAnnotation != null) {
+                if (!expanded && isOverflowing) expanded = true
+            } else {
+                onComment()
+            }
+        },
         modifier = Modifier
             .padding(horizontal = 16.dp)
-            .clickable {
-                if (!expanded && isOverflowing) expanded = true
-            }
     )
 
-if (post.images.isNotEmpty()) {
-        PostImagesStrip(images = post.images)
+    if (post.images.isNotEmpty()) {
+        PostImagesStrip(images = post.images, onComment)
     }
 }
 

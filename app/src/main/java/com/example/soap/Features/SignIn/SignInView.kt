@@ -64,9 +64,9 @@ fun SignInView(
             style = MaterialTheme.typography.titleMedium,
         )
 
-        TermsAndPrivacyText(context)
-
         Spacer(modifier = Modifier.weight(1f))
+
+        TermsAndPrivacyText(context)
 
         Button(
             onClick = {
@@ -151,9 +151,7 @@ private fun TermsAndPrivacyText(context: Context) {
                     context.startActivity(intent)
                 }
         },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+        modifier = Modifier.fillMaxWidth()
     )
 }
 

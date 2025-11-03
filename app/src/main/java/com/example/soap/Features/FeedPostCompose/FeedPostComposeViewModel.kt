@@ -3,6 +3,8 @@ package com.example.soap.Features.FeedPostCompose
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
+import android.media.ExifInterface
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,16 +53,17 @@ class FeedPostComposeViewModel @Inject constructor(
     private val feedPostRepository: FeedPostRepositoryProtocol,
 ) : ViewModel(), FeedPostComposeViewModelProtocol {
 
-    enum class ComposeType(val value: Int) {
-        PUBLICLY(0),
-        ANONYMOUSLY(1)
+    sealed class ComposeType(val value: Int) {
+        data object Publicly : ComposeType(0)
+        data object Anonymously : ComposeType(1)
     }
+
 
     // MARK: - Properties
     override var feedUser by mutableStateOf<FeedUser?>(null)
 
     override var text by mutableStateOf("")
-    override var selectedComposeType by mutableStateOf(ComposeType.ANONYMOUSLY)
+    override var selectedComposeType: ComposeType by mutableStateOf(ComposeType.Anonymously)
 
     private var _selectedItems by mutableStateOf(emptyList<Uri>())
     override var selectedItems: List<Uri>
@@ -92,7 +95,7 @@ class FeedPostComposeViewModel @Inject constructor(
 
         val request = FeedCreatePost(
             content = text,
-            isAnonymous = selectedComposeType == ComposeType.ANONYMOUSLY,
+            isAnonymous = selectedComposeType == ComposeType.Anonymously,
             images = uploadedImages
         )
         feedPostRepository.writePost(request)
@@ -135,11 +138,29 @@ class FeedPostComposeViewModel @Inject constructor(
         selectedImages = reconcile(new = loaded, current = selectedImages)
     }
 
+
     private suspend fun loadBitmapFromUri(uri: Uri, context: Context): Bitmap? =
         withContext(Dispatchers.IO) {
             try {
-                context.contentResolver.openInputStream(uri)?.use { stream ->
-                    BitmapFactory.decodeStream(stream)
+                val stream = context.contentResolver.openInputStream(uri) ?: return@withContext null
+                val bitmap = BitmapFactory.decodeStream(stream)
+
+                val exifStream = context.contentResolver.openInputStream(uri) ?: return@withContext bitmap
+                val exif = ExifInterface(exifStream)
+                val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+
+                val rotation = when (orientation) {
+                    ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+                    ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+                    ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+                    else -> 0f
+                }
+
+                if (rotation == 0f) bitmap
+                else {
+                    val matrix = Matrix()
+                    matrix.postRotate(rotation)
+                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
                 }
             } catch (e: Exception) {
                 null

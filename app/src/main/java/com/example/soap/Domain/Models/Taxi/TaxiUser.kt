@@ -16,6 +16,12 @@ data class TaxiUser(
     val joinedAt: Date,
     val profileImageURL: URL?,
     val account: String
-){
+) {
     companion object {}
+
+    fun hasUserPaid(rooms: List<TaxiRoom>): Boolean {
+        return rooms.none { room ->
+            room.participants.firstOrNull { it.id == this.oid }?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired
+        }
+    }
 }
