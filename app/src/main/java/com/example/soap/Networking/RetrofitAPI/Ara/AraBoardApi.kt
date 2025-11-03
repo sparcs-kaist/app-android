@@ -8,7 +8,6 @@ import com.example.soap.Networking.ResponseDTO.Ara.AraBookmarkDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraPostDTO
 import com.example.soap.Networking.ResponseDTO.Ara.AraPostPageDTO
 import okhttp3.MultipartBody
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -61,10 +60,10 @@ interface AraBoardApi {
     ): AraBookmarkDTO
 
     @POST("scraps/")
-    suspend fun addBookmark(@Body body: Map<String, Int>): Response<Unit>
+    suspend fun addBookmark(@Body body: Map<String, Int>)
 
     @DELETE("scraps/{scrapId}/")
-    suspend fun removeBookmark(@Path("scrapId") scrapId: Int): Response<Unit>
+    suspend fun removeBookmark(@Path("scrapId") scrapId: Int)
 
     @Multipart
     @POST("attachments/")
@@ -90,6 +89,6 @@ interface AraBoardApi {
     suspend fun report(@Body request: PostReportRequest)
 
     @DELETE("articles/{id}/")
-    suspend fun delete(@Path("id") postID: Int): Response<Unit>
+    suspend fun delete(@Path("id") postID: Int)
 }
 
