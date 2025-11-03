@@ -45,7 +45,7 @@ interface AraBoardRepositoryProtocol {
 
 class AraBoardRepository @Inject constructor(
     private val api: AraBoardApi,
-    private val gson: Gson = Gson()
+    private val gson: Gson = Gson(),
 ) : AraBoardRepositoryProtocol {
 
     // MARK: - Caches
@@ -127,7 +127,7 @@ class AraBoardRepository @Inject constructor(
         )
 
     override suspend fun deletePost(postID: Int) {
-       api.delete(postID)
+        api.delete(postID)
     }
 
     override suspend fun addBookmark(postID: Int) {
@@ -142,5 +142,5 @@ class AraBoardRepository @Inject constructor(
 data class PostReportRequest(
     val post_id: Int,
     val type: String,
-    val content: String
+    val content: String,
 )
