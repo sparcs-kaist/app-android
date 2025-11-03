@@ -53,16 +53,17 @@ class FeedPostComposeViewModel @Inject constructor(
     private val feedPostRepository: FeedPostRepositoryProtocol,
 ) : ViewModel(), FeedPostComposeViewModelProtocol {
 
-    enum class ComposeType(val value: Int) {
-        PUBLICLY(0),
-        ANONYMOUSLY(1)
+    sealed class ComposeType(val value: Int) {
+        data object Publicly : ComposeType(0)
+        data object Anonymously : ComposeType(1)
     }
+
 
     // MARK: - Properties
     override var feedUser by mutableStateOf<FeedUser?>(null)
 
     override var text by mutableStateOf("")
-    override var selectedComposeType by mutableStateOf(ComposeType.ANONYMOUSLY)
+    override var selectedComposeType: ComposeType by mutableStateOf(ComposeType.Anonymously)
 
     private var _selectedItems by mutableStateOf(emptyList<Uri>())
     override var selectedItems: List<Uri>
@@ -94,7 +95,7 @@ class FeedPostComposeViewModel @Inject constructor(
 
         val request = FeedCreatePost(
             content = text,
-            isAnonymous = selectedComposeType == ComposeType.ANONYMOUSLY,
+            isAnonymous = selectedComposeType == ComposeType.Anonymously,
             images = uploadedImages
         )
         feedPostRepository.writePost(request)
