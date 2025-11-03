@@ -1,6 +1,5 @@
 package com.example.soap.Features.TaxiList
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -102,19 +101,20 @@ class TaxiListViewModel @Inject constructor(
 
     //Safely capture values before any suspension
     override suspend fun createRoom(title: String) {
-        try {
-            Log.d("TaxiListViewModel", "creating a room")
-            val request = TaxiCreateRoom(
-                title = title,
-                source = source ?: return,
-                destination = destination ?: return,
-                departureTime = roomDepartureTime,
-                capacity = roomCapacity
-            )
-            taxiRoomRepository.createRoom(request)
-        } catch (e: Exception) {
-            throw e
-        }
+            try {
+                val request = TaxiCreateRoom(
+                    title = title,
+                    source = source ?: return,
+                    destination = destination ?: return,
+                    departureTime = roomDepartureTime,
+                    capacity = roomCapacity
+                )
+                taxiRoomRepository.createRoom(request)
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e.message ?: "Unknown error")
+            }
+
     }
+
 }
 

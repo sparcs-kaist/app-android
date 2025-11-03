@@ -23,6 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Enums.TaxiRoomBlockStatus
 import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Features.NavigationBar.Channel
@@ -75,6 +77,13 @@ fun TaxiPreviewView(
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var pathPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
+
+    val blockStatus = viewModel.blockStatus.collectAsState().value
+
+    val isJoinButtonDisabled: Boolean =
+        !viewModel.isJoined(room.participants) && (room.participants.size >= room.capacity ||
+                room.isDeparted ||
+                blockStatus != TaxiRoomBlockStatus.Allow)
 
     LaunchedEffect(Unit) {
         try {
@@ -203,12 +212,15 @@ fun TaxiPreviewView(
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    enabled = room.participants.size < room.capacity || viewModel.isJoined(room.participants)
+                    enabled = !isJoinButtonDisabled
                 ) {
                     Text(
                         when {
                             viewModel.isJoined(room.participants) -> "Joined(Enter chat)"
                             room.participants.size >= room.capacity -> "This room is full"
+                            room.isDeparted -> "Already Departed"
+                            blockStatus == TaxiRoomBlockStatus.TooManyRooms -> "Room Limit Reached"
+                            blockStatus == TaxiRoomBlockStatus.NotPaid -> "Room Settlement Required"
                             else -> "Join"
                         }
                     )
