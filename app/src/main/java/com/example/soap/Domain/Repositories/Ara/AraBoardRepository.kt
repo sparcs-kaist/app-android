@@ -8,15 +8,15 @@ import com.example.soap.Domain.Models.Ara.AraCreatePost
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostPage
 import com.example.soap.Networking.RequestDTO.Ara.AraPostRequestDTO
+import com.example.soap.Networking.ResponseDTO.handleApiError
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.example.soap.Shared.Extensions.compressForUpload
+import com.google.gson.Gson
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import retrofit2.HttpException
-import retrofit2.Response
 import javax.inject.Inject
 
 
@@ -37,14 +37,15 @@ interface AraBoardRepositoryProtocol {
     suspend fun downVotePost(postID: Int)
     suspend fun cancelVote(postID: Int)
     suspend fun reportPost(postID: Int, type: AraContentReportType)
-    suspend fun deletePost(postID: Int): Response<Unit>
-    suspend fun addBookmark(postID: Int): Response<Unit>
-    suspend fun removeBookmark(bookmarkID: Int): Response<Unit>
+    suspend fun deletePost(postID: Int)
+    suspend fun addBookmark(postID: Int)
+    suspend fun removeBookmark(bookmarkID: Int)
 }
 
 
 class AraBoardRepository @Inject constructor(
     private val api: AraBoardApi,
+    private val gson: Gson = Gson(),
 ) : AraBoardRepositoryProtocol {
 
     // MARK: - Caches
@@ -66,24 +67,32 @@ class AraBoardRepository @Inject constructor(
         pageSize: Int,
         searchKeyword: String?,
     ): AraPostPage {
-        val response = when (type) {
-            is AraBoardTarget.PostListType.Board -> api.fetchPosts(
-                page, pageSize, parentBoard = type.boardID
-            )
+        try {
+            val response = when (type) {
+                is AraBoardTarget.PostListType.Board -> api.fetchPosts(
+                    page, pageSize, parentBoard = type.boardID
+                )
 
-            is AraBoardTarget.PostListType.User -> api.fetchPosts(
-                page, pageSize, createdBy = type.userID
-            )
+                is AraBoardTarget.PostListType.User -> api.fetchPosts(
+                    page, pageSize, createdBy = type.userID
+                )
+            }
+            return response.toModel()
+        } catch (e: Exception) {
+            handleApiError(gson, e)
         }
-        return response.toModel()
     }
 
     override suspend fun fetchPost(origin: AraBoardTarget.PostOrigin?, postID: Int): AraPost {
-        val response = api.fetchPost(
-            postID,
-            topicId = (origin as? AraBoardTarget.PostOrigin.Topic)?.topicID
-        )
-        return response.toModel()
+        try {
+            val response = api.fetchPost(
+                postID,
+                topicId = (origin as? AraBoardTarget.PostOrigin.Topic)?.topicID
+            )
+            return response.toModel()
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
     }
 
     override suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage {
@@ -117,27 +126,21 @@ class AraBoardRepository @Inject constructor(
             )
         )
 
-    override suspend fun deletePost(postID: Int): Response<Unit> {
-        val response = api.delete(postID)
-        if (!response.isSuccessful) throw HttpException(response)
-        return response
+    override suspend fun deletePost(postID: Int) {
+        api.delete(postID)
     }
 
-    override suspend fun addBookmark(postID: Int): Response<Unit> {
-        val response = api.addBookmark(mapOf("parent_article" to postID))
-        if (!response.isSuccessful) throw HttpException(response)
-        return response
+    override suspend fun addBookmark(postID: Int) {
+        api.addBookmark(mapOf("parent_article" to postID))
     }
 
-    override suspend fun removeBookmark(bookmarkID: Int): Response<Unit> {
-        val response = api.removeBookmark(bookmarkID)
-        if (!response.isSuccessful) throw HttpException(response)
-        return response
+    override suspend fun removeBookmark(bookmarkID: Int) {
+        api.removeBookmark(bookmarkID)
     }
 }
 
 data class PostReportRequest(
     val post_id: Int,
     val type: String,
-    val content: String
+    val content: String,
 )
