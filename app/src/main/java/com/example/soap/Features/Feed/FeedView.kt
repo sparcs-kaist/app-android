@@ -30,7 +30,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Features.Feed.Components.FeedPostRow
 import com.example.soap.Features.Feed.Components.FeedPostRowSkeleton
-import com.example.soap.Features.NavigationBar.AppBar
+import com.example.soap.Features.Feed.Components.FeedViewNavigationBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Shared.Views.ContentViews.ErrorView
@@ -62,9 +62,8 @@ fun FeedView(
 
     Scaffold(
         topBar = {
-            AppBar(
-                currentScreen = Channel.Start,
-                scrollOffset = scrollState.value,
+            FeedViewNavigationBar(
+                scrollState = scrollState,
                 navController = navController
             )
         },

@@ -9,6 +9,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiCreateRoom
 import com.example.soap.Domain.Models.Taxi.TaxiLocation
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
+import com.example.soap.Domain.Usecases.TaxiLocationUseCaseProtocol
 import com.example.soap.Shared.Extensions.ceilToNextTenMinutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +44,8 @@ interface TaxiListViewModelProtocol {
 
 @HiltViewModel
 class TaxiListViewModel @Inject constructor(
-    private val taxiRoomRepository: TaxiRoomRepositoryProtocol
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
+    private val taxiLocationUseCase: TaxiLocationUseCaseProtocol
 ) : ViewModel(),TaxiListViewModelProtocol {
 
     sealed class ViewState {
@@ -82,10 +84,10 @@ class TaxiListViewModel @Inject constructor(
             _state.value = ViewState.Loading
             try {
                 val roomsDeferred = taxiRoomRepository.fetchRooms()
-                val locationsDeferred = taxiRoomRepository.fetchLocations()
+                taxiLocationUseCase.fetchLocations()
 
                 _rooms.value = roomsDeferred
-                _locations.value = locationsDeferred
+                _locations.value = taxiLocationUseCase.locations.value
 
                 _state.value = if (_rooms.value.isEmpty()) {
                     ViewState.Empty(_locations.value)
