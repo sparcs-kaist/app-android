@@ -497,7 +497,7 @@ private fun Comments(
 }
 
 @Composable
-fun InputBar(
+private fun InputBar(
     comment: String,
     onCommentChange: (String) -> Unit,
     isWritingComment: Boolean,

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.OTL.Course
 import com.example.soap.Domain.Models.OTL.LectureReview
 import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 interface CourseViewModelProtocol {
     val course: StateFlow<Course>
@@ -25,7 +27,7 @@ interface CourseViewModelProtocol {
 @HiltViewModel
 class CourseViewModel @Inject constructor(
     val otlCourseRepository: OTLCourseRepositoryProtocol,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel(), CourseViewModelProtocol {
 
     sealed class ViewState {
@@ -42,7 +44,7 @@ class CourseViewModel @Inject constructor(
 
     // MARK: - Properties
     private val _course = MutableStateFlow(initialCourse)
-    override val course : StateFlow<Course> = _course.asStateFlow()
+    override val course: StateFlow<Course> = _course.asStateFlow()
 
     // MARK: - State
     private val _reviews = MutableStateFlow<List<LectureReview>>(emptyList())
@@ -60,7 +62,6 @@ class CourseViewModel @Inject constructor(
                 _reviews.value = result
                 _state.value = ViewState.Loaded
             } catch (e: Exception) {
-                e.printStackTrace()
                 _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
             }
         }
@@ -72,8 +73,6 @@ class FakeCourseViewModel : CourseViewModelProtocol {
     override val reviews = MutableStateFlow(LectureReview.mockList())
     override val state = MutableStateFlow(CourseViewModel.ViewState.Loaded)
 
-    override fun fetchReviews(courseId: Int) {
-        // Preview에서는 아무것도 하지 않음
-    }
+    override fun fetchReviews(courseId: Int) {}
 }
 

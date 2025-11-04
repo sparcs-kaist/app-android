@@ -79,7 +79,7 @@ class AraBoardRepository @Inject constructor(
                 )
 
                 is PostListType.All -> api.fetchPosts(
-                    page, pageSize
+                    page, pageSize, searchKeyword = searchKeyword
                 )
             }
             return response.toModel()

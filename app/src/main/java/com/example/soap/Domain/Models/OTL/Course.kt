@@ -1,5 +1,6 @@
 package com.example.soap.Domain.Models.OTL
 
+import com.example.soap.Domain.Helpers.CourseRepresentable
 import com.example.soap.Domain.Helpers.LocalizedString
 
 data class Course(
@@ -10,13 +11,13 @@ data class Course(
     val title: LocalizedString,
     val summary: String,
     val reviewTotalWeight: Double,
-    val grade: Double,
-    val load: Double,
-    val speech: Double,
-    val credit: Int,
-    val creditAu: Int,
+    override val grade: Double,
+    override val load: Double,
+    override val speech: Double,
+    override val credit: Int,
+    override val creditAu: Int,
     val numClasses: Int,
     val numLabs: Int
-){
-    companion object
+): CourseRepresentable {
+    companion object{}
 }

@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Models.OTL.Course
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.ui.theme.Theme
@@ -34,10 +35,10 @@ fun CourseCell(
                 text = course.title.localized(),
                 maxLines = 2,
                 fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier
+                    .weight(1f)
             )
-
-            Spacer(Modifier.weight(1f))
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
@@ -72,6 +73,6 @@ fun CourseCell(
 @Preview
 private fun Preview() {
     Theme {
-        CourseCell(Course.mock(), {})
+        CourseCell(Course.mock().copy(title = LocalizedString(mapOf("en" to "Hello World", "ko" to "버디 안드로이드 파이팅"))), {})
     }
 }
