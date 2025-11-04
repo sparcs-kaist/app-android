@@ -29,9 +29,9 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraBoardGroup
 import com.example.soap.Features.BoardList.Components.BoardList
+import com.example.soap.Features.BoardList.Components.BoardListNavigationBar
 import com.example.soap.Features.BoardList.Components.BoardListSectionItem
 import com.example.soap.Features.BoardList.Components.BoardListSkeleton
-import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
@@ -55,9 +55,8 @@ fun BoardListView(
 
     Scaffold(
         topBar = {
-            AppBar(
-                currentScreen = Channel.Boards,
-                scrollOffset = scrollState.value,
+            BoardListNavigationBar(
+                scrollState = scrollState,
                 navController = navController
             )
         },

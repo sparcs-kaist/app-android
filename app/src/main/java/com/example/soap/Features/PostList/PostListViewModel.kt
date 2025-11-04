@@ -5,10 +5,11 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soap.Domain.Enums.PostListType
+import com.example.soap.Domain.Enums.PostOrigin
 import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
-import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -95,7 +96,7 @@ class PostListViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val page = araBoardRepository.fetchPosts(
-                    type = AraBoardTarget.PostListType.Board(boardID = board.id),
+                    type = PostListType.Board(boardID = board.id),
                     page = 1,
                     pageSize = pageSize,
                     searchKeyword = searchKeyword.ifBlank { null }
@@ -118,7 +119,7 @@ class PostListViewModel @Inject constructor(
             try {
                 val nextPage = currentPage + 1
                 val page = araBoardRepository.fetchPosts(
-                    type = AraBoardTarget.PostListType.Board(boardID = board.id),
+                    type = PostListType.Board(boardID = board.id),
                     page = nextPage,
                     pageSize = pageSize,
                     searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
@@ -139,7 +140,7 @@ class PostListViewModel @Inject constructor(
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             val updated = try {
-                araBoardRepository.fetchPost(postID = postID, origin = AraBoardTarget.PostOrigin.None)
+                araBoardRepository.fetchPost(postID = postID, origin = PostOrigin.None)
             } catch (e: Exception) {
                 null
             } ?: return@launch

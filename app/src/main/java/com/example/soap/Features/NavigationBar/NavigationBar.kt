@@ -1,24 +1,19 @@
 package com.example.soap.Features.NavigationBar
 
 import androidx.annotation.StringRes
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,7 +23,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,7 +48,6 @@ import com.example.soap.Features.FeedPost.FeedPostViewModelProtocol
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeView
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModel
 import com.example.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
-import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.LectureDetail.LectureDetailView
 import com.example.soap.Features.LectureDetail.LectureDetailViewModel
 import com.example.soap.Features.LectureSearch.LectureSearchViewModel
@@ -62,8 +55,6 @@ import com.example.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingExitTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingPopEnterTransition
 import com.example.soap.Features.NavigationBar.Animation.trendingPopExitTransition
-import com.example.soap.Features.NavigationBar.Components.AddButton
-import com.example.soap.Features.NavigationBar.Components.ChatButton
 import com.example.soap.Features.Post.PostView
 import com.example.soap.Features.Post.PostViewModel
 import com.example.soap.Features.Post.PostViewModelProtocol
@@ -76,6 +67,9 @@ import com.example.soap.Features.PostList.PostListViewModelProtocol
 import com.example.soap.Features.ReviewCompose.ReviewComposeView
 import com.example.soap.Features.ReviewCompose.ReviewComposeViewModel
 import com.example.soap.Features.ReviewCompose.ReviewComposeViewModelProtocol
+import com.example.soap.Features.Search.SearchView
+import com.example.soap.Features.Search.SearchViewModel
+import com.example.soap.Features.Search.SearchViewModelProtocol
 import com.example.soap.Features.Settings.Ara.AraMyPostView
 import com.example.soap.Features.Settings.Ara.AraMyPostViewModel
 import com.example.soap.Features.Settings.Ara.AraMyPostViewModelProtocol
@@ -114,26 +108,38 @@ import com.example.soap.ui.theme.Theme
 
 enum class Channel(@StringRes val title: Int) {
     Appname(title = R.string.app_name),
+
+    //Feed
     Start(title = R.string.start),
     FeedPost(title = R.string.feed_post_view),
     FeedPostCompose(title = R.string.feed_post_compose_view),
+
+    //OTL
     TimeTable(title = R.string.timetable),
     LectureDetail(title = R.string.lecturedetail),
     ReviewCompose(title = R.string.reviewcompose),
     CourseView(title = R.string.course_view),
     LectureSearch(title = R.string.lecture_search_view),
-    Taxi(title = R.string.taxi),
+
+    //Ara
     BoardList(title = R.string.general_board),
     Boards(title = R.string.boards),
     PostView(title = R.string.postview),
     PostCompose(title = R.string.postcompose),
+    AraChatView(title = R.string.ara_chat_view), //임시
+    UserPostListView(title = R.string.user_post_list_view),
+
+    //Taxi
+    Taxi(title = R.string.taxi),
     TaxiRoomCreation(title = R.string.taxi_room_creation),
     TaxiChatView(title = R.string.taxichatview),
     TaxiChatListView(title = R.string.taxichatlistview),
     TaxiReportView(title = R.string.taxi_report_view),
-    AraChatView(title = R.string.ara_chat_view), //임시
-    UserPostListView(title = R.string.user_post_list_view),
+
+    //Search
     SearchView(title = R.string.search),
+
+    //Setting
     SignOut(title = R.string.sign_out),
     Settings(title = R.string.settings),
     TaxiSettings(title = R.string.taxi_settings),
@@ -205,7 +211,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) { backStackEntry ->
                 val viewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
                 val viewModel: LectureSearchViewModel = hiltViewModel(backStackEntry)
-                TimetableView(viewModel =  viewModelImpl,navController = navController, lectureSearchViewModel = viewModel)
+                TimetableView(
+                    viewModel = viewModelImpl,
+                    navController = navController,
+                    lectureSearchViewModel = viewModel
+                )
             }
 
             composable(
@@ -221,10 +231,15 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
-                val lectureDetailViewModelImpl: LectureDetailViewModel = hiltViewModel(backStackEntry)
+                val lectureDetailViewModelImpl: LectureDetailViewModel =
+                    hiltViewModel(backStackEntry)
                 val timetableViewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
 
-                LectureDetailView(lectureDetailViewModel = lectureDetailViewModelImpl, timetableViewModel = timetableViewModelImpl, navController = navController)
+                LectureDetailView(
+                    lectureDetailViewModel = lectureDetailViewModelImpl,
+                    timetableViewModel = timetableViewModelImpl,
+                    navController = navController
+                )
             }
 
             composable(
@@ -233,7 +248,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ){ backStackEntry ->
+            ) { backStackEntry ->
                 val viewModelImpl: CourseViewModel = hiltViewModel(backStackEntry)
                 CourseView(navController = navController, viewModel = viewModelImpl)
             }
@@ -249,7 +264,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 val viewModel: ReviewComposeViewModelProtocol = viewModelImpl
                 val lectureDetailViewModel: LectureDetailViewModel = hiltViewModel(backStackEntry)
 
-                ReviewComposeView(reviewComposeViewModel = viewModel, lectureDetailViewModel = lectureDetailViewModel, navController = navController)
+                ReviewComposeView(
+                    reviewComposeViewModel = viewModel,
+                    lectureDetailViewModel = lectureDetailViewModel,
+                    navController = navController
+                )
             }
 
             /*___________Taxi___________*/
@@ -280,8 +299,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("TaxiGraph")
                     }
-                    val taxiListViewModel: TaxiListViewModelProtocol = hiltViewModel<TaxiListViewModel>(parentEntry)
-                    val taxiRoomCreationViewModel: TaxiRoomCreationViewModel = hiltViewModel<TaxiRoomCreationViewModel>(parentEntry)
+                    val taxiListViewModel: TaxiListViewModelProtocol =
+                        hiltViewModel<TaxiListViewModel>(parentEntry)
+                    val taxiRoomCreationViewModel: TaxiRoomCreationViewModel =
+                        hiltViewModel<TaxiRoomCreationViewModel>(parentEntry)
 
                     TaxiRoomCreationView(
                         navController = navController,
@@ -420,8 +441,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 exitTransition = trendingExitTransition(),
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
-            ) {
-                // SearchView()
+            ) { backStackEntry ->
+                val viewModelImpl: SearchViewModel = hiltViewModel(backStackEntry)
+                val viewModel: SearchViewModelProtocol = viewModelImpl
+                SearchView(viewModel = viewModel)
             }
 
             composable(
@@ -496,82 +519,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun AppBar(
-    currentScreen: Channel,
-    scrollOffset: Int = 0,
-    navController: NavController = rememberNavController(),
-    isButtonEnabled: Boolean = true,
-    onClick: () -> Unit = {}
-) {
-    val elevationDp by animateDpAsState(
-        if (scrollOffset > 0) 4.dp else 0.dp,
-        label = "ElevationAnimation"
-    )
-
-    TopAppBar(
-        title = {
-            Row {
-                Text(
-                    text = stringResource(currentScreen.title),
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        actions = {
-            when (currentScreen) {
-                Channel.Start -> {
-                    AddButton(
-                        contentDescription = "Create Feed",
-                        onClick = { navController.navigate(Channel.FeedPostCompose.name) }
-                    )
-                    HomeViewDropDownMenu(
-                        onClickSettings = { navController.navigate(Channel.Settings.name) },
-                        onClickNotification = {  }
-                    )
-                }
-
-                Channel.TimeTable -> {
-                    AddButton(
-                        contentDescription = "Add Timetable",
-                        onClick = { onClick() },
-                        isEnabled = isButtonEnabled
-                    )
-                }
-
-                Channel.Taxi -> {
-                    if (isButtonEnabled) {
-                        AddButton(
-                            contentDescription = "Create Taxi Room",
-                            onClick = {
-                                navController.navigate(Channel.TaxiRoomCreation.name) {
-                                    launchSingleTop = true
-                                }
-                            }
-                        )
-                    }
-                    ChatButton(onClick = { navController.navigate(Channel.TaxiChatListView.name) })
-                }
-
-                Channel.Boards -> {
-                    ChatButton(onClick = { navController.navigate(Channel.AraChatView.name) })
-                }
-
-                else -> {}
-            }
-        },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.background
-        ),
-        modifier = Modifier.shadow(elevationDp)
-    )
-}
-
-
 @Composable
 fun AppDownBar(
     navController: NavController,
@@ -586,7 +533,7 @@ fun AppDownBar(
         ),
         Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), R.drawable.timetable),
         Triple(Channel.Taxi, stringResource(Channel.Taxi.title), R.drawable.taxi),
-        Triple(null, stringResource(R.string.search), R.drawable.search)
+        Triple(Channel.SearchView, stringResource(R.string.search), R.drawable.search)
     )
     Box(
         Modifier
@@ -600,33 +547,18 @@ fun AppDownBar(
             containerColor = MaterialTheme.colorScheme.surface
         ) {
             items.forEach { (channel, label, iconRes) ->
-                if (channel != null) {
-                    NavigationBarItem(
-                        selected = currentScreen == channel,
-                        onClick = { navController.navigate(channel.name) },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = iconRes),
-                                contentDescription = label
-                            )
-                        },
-                        label = { Text(label) },
-                        colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
-                    )
-                } else {
-                    NavigationBarItem(
-                        selected = false,
-                        onClick = {},
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = iconRes),
-                                contentDescription = label
-                            )
-                        },
-                        label = { Text(label) },
-                        colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
-                    )
-                }
+                NavigationBarItem(
+                    selected = currentScreen == channel,
+                    onClick = { navController.navigate(channel.name) },
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = label
+                        )
+                    },
+                    label = { Text(label) },
+                    colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
+                )
             }
         }
     }
@@ -638,17 +570,6 @@ fun AppDownBar(
 private fun Preview() {
     Theme {
         MainTabBar()
-    }
-}
-
-
-@Preview
-@Composable
-private fun AppBarPreview() {
-    Theme {
-        AppBar(
-            currentScreen = Channel.Start
-        )
     }
 }
 
