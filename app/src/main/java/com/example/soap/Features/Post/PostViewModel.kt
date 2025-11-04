@@ -4,11 +4,11 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import com.example.soap.Domain.Enums.AraContentReportType
+import com.example.soap.Domain.Enums.PostOrigin
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostComment
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
-import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.example.soap.Shared.Mocks.mock
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -69,7 +69,7 @@ class PostViewModel @Inject constructor(
     // MARK: - Functions
     override suspend fun fetchPost() {
         try {
-            val fetchedPost = araBoardRepository.fetchPost(origin = AraBoardTarget.PostOrigin.Board, postID = _post.value.id)
+            val fetchedPost = araBoardRepository.fetchPost(origin = PostOrigin.Board, postID = _post.value.id)
             _post.value = fetchedPost
         } catch (e: Exception) {
             Log.e("PostViewModel", "fetchPost error", e)

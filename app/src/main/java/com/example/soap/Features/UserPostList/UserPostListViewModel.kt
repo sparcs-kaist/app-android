@@ -5,12 +5,14 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soap.Domain.Enums.PostListType
+import com.example.soap.Domain.Enums.PostOrigin
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostAuthor
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
-import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -89,7 +91,7 @@ class UserPostListViewModel @Inject constructor(
             _state.value = ViewState.Loading
             try {
                 val page = araBoardRepository.fetchPosts(
-                    type = AraBoardTarget.PostListType.User(userID),
+                    type = PostListType.User(userID),
                     page = 1,
                     pageSize = pageSize,
                     searchKeyword = if (_searchKeyword.value.isBlank()) null else _searchKeyword.value
@@ -114,7 +116,7 @@ class UserPostListViewModel @Inject constructor(
             try {
                 val nextPage = currentPage + 1
                 val page = araBoardRepository.fetchPosts(
-                    type = AraBoardTarget.PostListType.User(userID),
+                    type = PostListType.User(userID),
                     page = nextPage,
                     pageSize = pageSize,
                     searchKeyword = if (_searchKeyword.value.isBlank()) null else _searchKeyword.value
@@ -133,7 +135,7 @@ class UserPostListViewModel @Inject constructor(
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             try {
-                val updated = araBoardRepository.fetchPost(origin = AraBoardTarget.PostOrigin.None, postID = postID)
+                val updated = araBoardRepository.fetchPost(origin = PostOrigin.None, postID = postID)
                 val updatedPosts = _posts.value.toMutableList()
                 val idx = updatedPosts.indexOfFirst { it.id == updated.id }
                 if (idx != -1) {
@@ -164,6 +166,7 @@ class UserPostListViewModel @Inject constructor(
         }
     }
 
+    @OptIn(FlowPreview::class)
     override fun bind() {
         viewModelScope.launch {
             _searchKeyword
