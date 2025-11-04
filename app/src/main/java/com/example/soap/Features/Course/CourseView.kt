@@ -10,11 +10,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,14 +33,20 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Helpers.gradeLetter
+import com.example.soap.Domain.Helpers.loadLetter
+import com.example.soap.Domain.Helpers.speechLetter
 import com.example.soap.Domain.Models.OTL.Course
 import com.example.soap.Domain.Models.OTL.LectureReview
 import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import com.example.soap.Features.Course.Components.CourseNavigationBar
 import com.example.soap.Features.LectureDetail.Components.LectureDetailRow
 import com.example.soap.Features.LectureDetail.Components.LectureReviewCell
 import com.example.soap.Features.LectureDetail.Components.LectureReviewSkeletonCell
 import com.example.soap.Features.LectureDetail.Components.LectureSummaryRow
 import com.example.soap.R
+import com.example.soap.Shared.Views.ContentViews.ErrorView
+import com.example.soap.Shared.Views.ContentViews.UnavailableView
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,9 +65,9 @@ fun CourseView(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(course.title.localized()) },
-                navigationIcon = { navController.popBackStack() }
+            CourseNavigationBar(
+                navController = navController,
+                text = course.title.localized()
             )
         }
     ) { paddingValues ->
@@ -79,11 +87,10 @@ fun CourseView(
 
                 is CourseViewModel.ViewState.Error -> {
                     val message = (state as CourseViewModel.ViewState.Error).message
-                    Text(
-                        text = "Error: $message",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
+                    ErrorView(
+                        icon = Icons.Default.Warning,
+                        errorMessage = "Error: $message",
+                        onRetry = { viewModel.fetchReviews(courseId = course.id) }
                     )
                 }
             }
@@ -94,8 +101,11 @@ fun CourseView(
 
 @Composable
 fun CourseSummary(course: Course) {
-    Column {
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             LectureSummaryRow("Hours", course.numClasses.toString())
             LectureSummaryRow("Lab", course.numLabs.toString())
             if (course.credit == 0) {
@@ -122,7 +132,7 @@ fun CourseSummary(course: Course) {
 
             if (course.summary.isNotEmpty()) {
                 Text(
-                    "Summary",
+                    stringResource(R.string.summary),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(vertical = 4.dp)
@@ -148,17 +158,27 @@ fun CourseReviewSection(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Reviews", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow("Grade", course.grade.toString())
-            LectureSummaryRow("Load", course.load.toString())
-            LectureSummaryRow("Speech", course.speech.toString())
+            LectureSummaryRow("Grade", course.gradeLetter)
+            Spacer(modifier = Modifier.weight(1f))
+            LectureSummaryRow("Load", course.loadLetter)
+            Spacer(modifier = Modifier.weight(1f))
+            LectureSummaryRow("Speech", course.speechLetter)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (state == CourseViewModel.ViewState.Loaded) {
-                reviews.forEach { review ->
-                    LectureReviewCell(review, repo)
+                if(reviews.isEmpty()) {
+                    UnavailableView(
+                        icon = painterResource(R.drawable.rounded_book_2),
+                        title = "No Reviews",
+                        description = "There are no reviews yet."
+                    )
+                } else {
+                    reviews.forEach { review ->
+                        LectureReviewCell(review, repo)
+                    }
                 }
             } else {
                 repeat(3) {

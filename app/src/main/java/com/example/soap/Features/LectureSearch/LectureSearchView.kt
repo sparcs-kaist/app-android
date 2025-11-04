@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -41,10 +42,10 @@ import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Features.LectureSearch.Components.LectureSearchViewNavigationBar
 import com.example.soap.Features.NavigationBar.Channel
-import com.example.soap.Features.Timetable.Components.SearchCourses
 import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
+import com.example.soap.Shared.Views.ContentViews.SearchCourses
 import com.example.soap.Shared.Views.ContentViews.UnavailableView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
@@ -101,7 +102,7 @@ fun LectureSearchView(
                     lectureSearchViewModel.searchKeyword = it
                     lectureSearchViewModel.searchKeywordFlow.value = it
                 },
-                onClick = { lectureSearchViewModel.bind() }
+                placeHolder = stringResource(R.string.search_by_course)
             )
 
             Spacer(modifier = Modifier.height(8.dp))
