@@ -39,6 +39,7 @@ import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
 import com.example.soap.Features.Course.CourseView
 import com.example.soap.Features.Course.CourseViewModel
+import com.example.soap.Features.Course.CourseViewModelProtocol
 import com.example.soap.Features.Feed.FeedView
 import com.example.soap.Features.Feed.FeedViewModel
 import com.example.soap.Features.Feed.FeedViewModelProtocol
@@ -206,6 +207,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             }
 
             /*___________OTL___________*/
+            navigation(
+                startDestination = Channel.TimeTable.name,
+                route = "OTLGraph"
+            ) {
             composable(
                 route = Channel.TimeTable.name
             ) { backStackEntry ->
@@ -244,13 +249,16 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
             composable(
                 route = Channel.CourseView.name + "?course_json={course_json}",
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
+                arguments = listOf(
+                    navArgument("course_json") {
+                        type = NavType.StringType
+                        nullable = false
+                    }
+                )
             ) { backStackEntry ->
                 val viewModelImpl: CourseViewModel = hiltViewModel(backStackEntry)
-                CourseView(navController = navController, viewModel = viewModelImpl)
+                val viewModel: CourseViewModelProtocol = viewModelImpl
+                CourseView(navController = navController, viewModel = viewModel)
             }
 
             composable(
@@ -262,7 +270,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) { backStackEntry ->
                 val viewModelImpl: ReviewComposeViewModel = hiltViewModel(backStackEntry)
                 val viewModel: ReviewComposeViewModelProtocol = viewModelImpl
-                val lectureDetailViewModel: LectureDetailViewModel = hiltViewModel(backStackEntry)
+                val lectureDetailViewModel: LectureDetailViewModel =
+                    hiltViewModel(backStackEntry)
 
                 ReviewComposeView(
                     reviewComposeViewModel = viewModel,
@@ -270,6 +279,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     navController = navController
                 )
             }
+        }
 
             /*___________Taxi___________*/
             navigation(
@@ -436,15 +446,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             }
 
             composable(
-                route = Channel.SearchView.name,
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
+                route = Channel.SearchView.name
             ) { backStackEntry ->
                 val viewModelImpl: SearchViewModel = hiltViewModel(backStackEntry)
                 val viewModel: SearchViewModelProtocol = viewModelImpl
-                SearchView(viewModel = viewModel)
+                SearchView(viewModel = viewModel, navController = navController)
             }
 
             composable(
@@ -549,7 +555,9 @@ fun AppDownBar(
             items.forEach { (channel, label, iconRes) ->
                 NavigationBarItem(
                     selected = currentScreen == channel,
-                    onClick = { navController.navigate(channel.name) },
+                    onClick = { navController.navigate(channel.name){
+                        launchSingleTop = true
+                    } },
                     icon = {
                         Icon(
                             painter = painterResource(id = iconRes),
