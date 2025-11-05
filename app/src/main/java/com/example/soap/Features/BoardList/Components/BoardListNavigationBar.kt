@@ -51,7 +51,7 @@ fun BoardListNavigationBar(
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme {
         BoardListNavigationBar(
             scrollState = ScrollState(0),

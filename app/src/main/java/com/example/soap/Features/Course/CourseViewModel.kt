@@ -6,8 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.OTL.Course
 import com.example.soap.Domain.Models.OTL.LectureReview
 import com.example.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
-import com.example.soap.Shared.Mocks.mock
-import com.example.soap.Shared.Mocks.mockList
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,12 +65,3 @@ class CourseViewModel @Inject constructor(
         }
     }
 }
-
-class FakeCourseViewModel : CourseViewModelProtocol {
-    override val course = MutableStateFlow(Course.mockList().first())
-    override val reviews = MutableStateFlow(LectureReview.mockList())
-    override val state = MutableStateFlow(CourseViewModel.ViewState.Loaded)
-
-    override fun fetchReviews(courseId: Int) {}
-}
-

@@ -41,7 +41,7 @@ interface AraMyPostViewModelProtocol {
 class AraMyPostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     userUseCase: UserUseCase,
-    private val araBoardRepository: AraBoardRepositoryProtocol
+    private val araBoardRepository: AraBoardRepositoryProtocol,
 ) : ViewModel(), AraMyPostViewModelProtocol {
 
     sealed class ViewState {
@@ -91,6 +91,7 @@ class AraMyPostViewModel @Inject constructor(
                 }
         }
     }
+
     override suspend fun fetchInitialPosts() {
         val currentUser = user ?: return
         _state.value = ViewState.Loading
@@ -103,6 +104,7 @@ class AraMyPostViewModel @Inject constructor(
                     pageSize = pageSize,
                     searchKeyword = _searchKeyword.value.takeIf { it.isNotEmpty() }
                 )
+
                 PostType.BOOKMARK -> araBoardRepository.fetchBookmarks(
                     page = 1,
                     pageSize = pageSize
@@ -136,6 +138,7 @@ class AraMyPostViewModel @Inject constructor(
                         pageSize = pageSize,
                         searchKeyword = _searchKeyword.value.takeIf { it.isNotEmpty() }
                     )
+
                     PostType.BOOKMARK -> araBoardRepository.fetchBookmarks(
                         page = nextPage,
                         pageSize = pageSize
@@ -157,7 +160,7 @@ class AraMyPostViewModel @Inject constructor(
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             try {
-                val updated = araBoardRepository.fetchPost( PostOrigin.None ,postID)
+                val updated = araBoardRepository.fetchPost(PostOrigin.None, postID)
                 val idx = _posts.value.indexOfFirst { it.id == updated.id }
                 if (idx != -1) {
                     val newPosts = _posts.value.toMutableList()

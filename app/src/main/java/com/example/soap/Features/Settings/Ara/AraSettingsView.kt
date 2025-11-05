@@ -53,7 +53,7 @@ import java.util.Locale
 @Composable
 fun AraSettingsView(
     viewModel: AraSettingsViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
@@ -72,8 +72,7 @@ fun AraSettingsView(
             SettingsViewNavigationBar(
                 title = stringResource(R.string.ara_settings),
                 onDismiss = { navController.navigate(Channel.Settings.name) },
-
-            )
+                )
         }
     ) { innerPadding ->
 
@@ -137,7 +136,7 @@ private fun LoadingView() {
 private fun LoadedView(
     viewModel: AraSettingsViewModelProtocol,
     navController: NavController,
-    onNicknameClick: () -> Unit
+    onNicknameClick: () -> Unit,
 ) {
     val nicknameUpdatable = viewModel.nicknameUpdatable
     val nicknameUpdatableFrom = viewModel.nicknameUpdatableFrom
@@ -151,7 +150,12 @@ private fun LoadedView(
             value = viewModel.nickname,
             onValueChange = { viewModel.nickname = it },
             enabled = nicknameUpdatable,
-            label = { Text(stringResource(R.string.enter_nickname), color = MaterialTheme.colorScheme.grayBB) },
+            label = {
+                Text(
+                    stringResource(R.string.enter_nickname),
+                    color = MaterialTheme.colorScheme.grayBB
+                )
+            },
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
                 onDone = { onNicknameClick() }
@@ -162,7 +166,10 @@ private fun LoadedView(
 
         if (!nicknameUpdatable && nicknameUpdatableFrom != null) {
             Text(
-                text = stringResource(R.string.you_cant_change_nickname_until, formatter.format(nicknameUpdatableFrom)),
+                text = stringResource(
+                    R.string.you_cant_change_nickname_until,
+                    formatter.format(nicknameUpdatableFrom)
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.grayBB
             )
@@ -177,7 +184,10 @@ private fun LoadedView(
         Spacer(Modifier.height(16.dp))
 
         //content preferences
-        Text(stringResource(R.string.content_preferences), style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(R.string.content_preferences),
+            style = MaterialTheme.typography.titleMedium
+        )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.allow_nsfw))
@@ -188,7 +198,9 @@ private fun LoadedView(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.allow_political))
             Spacer(Modifier.weight(1f))
-            Switch(checked = viewModel.allowPolitical, onCheckedChange = { viewModel.allowPolitical = it })
+            Switch(
+                checked = viewModel.allowPolitical,
+                onCheckedChange = { viewModel.allowPolitical = it })
         }
 
         Spacer(Modifier.height(16.dp))
@@ -219,8 +231,11 @@ private fun LoadedView(
 
 @Preview
 @Composable
-private fun Preview(){
+private fun Preview() {
     Theme {
-        AraSettingsView(MockAraSettingsViewModel(AraSettingsViewModel.ViewState.Loaded), rememberNavController())
+        AraSettingsView(
+            MockAraSettingsViewModel(AraSettingsViewModel.ViewState.Loaded),
+            rememberNavController()
+        )
     }
 }

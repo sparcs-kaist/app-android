@@ -106,7 +106,7 @@ fun SearchCustomBar(
                         .clip(CircleShape)
                         .align(Alignment.CenterEnd)
                         .background(MaterialTheme.colorScheme.grayBB)
-                        .clickable{ onValueClear() },
+                        .clickable { onValueClear() },
                     tint = MaterialTheme.colorScheme.onPrimary,
                     contentDescription = "Send"
                 )

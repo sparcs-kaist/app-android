@@ -48,7 +48,7 @@ class SearchViewModel @Inject constructor(
     private val araBoardRepository: AraBoardRepositoryProtocol,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
-    private val otlCourseRepository: OTLCourseRepositoryProtocol
+    private val otlCourseRepository: OTLCourseRepositoryProtocol,
 ) : ViewModel(), SearchViewModelProtocol {
 
     // MARK: - Properties
@@ -144,11 +144,16 @@ class SearchViewModel @Inject constructor(
 
             fetchedRooms.forEach { room ->
                 matchedLocations.forEach { location ->
-                    if ((room.source.id == location.id || room.destination.id == location.id) && added.add(room)) {
+                    if ((room.source.id == location.id || room.destination.id == location.id) && added.add(
+                            room
+                        )
+                    ) {
                         matchedRooms.add(room)
                     }
                 }
-                if (room.title.lowercase().contains(keyword.lowercase().trim()) && added.add(room)) {
+                if (room.title.lowercase()
+                        .contains(keyword.lowercase().trim()) && added.add(room)
+                ) {
                     matchedRooms.add(room)
                 }
             }
