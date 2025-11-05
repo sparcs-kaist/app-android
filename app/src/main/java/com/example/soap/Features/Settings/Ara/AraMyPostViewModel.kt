@@ -23,6 +23,19 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface AraMyPostViewModelProtocol {
+    val posts: StateFlow<List<AraPost>>
+    val state: StateFlow<AraMyPostViewModel.ViewState>
+    var type: AraMyPostViewModel.PostType
+    var user: AraUser?
+    val searchKeyword: StateFlow<String>
+
+    fun onSearchTextChange(text: String)
+    fun bind()
+    suspend fun fetchInitialPosts()
+    suspend fun loadNextPage()
+    fun refreshItem(postID: Int)
+}
 
 @HiltViewModel
 class AraMyPostViewModel @Inject constructor(
@@ -54,9 +67,11 @@ class AraMyPostViewModel @Inject constructor(
     override var user: AraUser? = userUseCase.araUser
 
     private val _searchKeyword = MutableStateFlow("")
-    override var searchKeyword: String
-        get() = _searchKeyword.value
-        set(value) { _searchKeyword.value = value }
+    override val searchKeyword: StateFlow<String> = _searchKeyword
+
+    override fun onSearchTextChange(text: String) {
+        _searchKeyword.value = text
+    }
 
     private var isLoadingMore = false
     private var hasMorePages = true
@@ -86,7 +101,7 @@ class AraMyPostViewModel @Inject constructor(
                     type = PostListType.User(currentUser.id),
                     page = 1,
                     pageSize = pageSize,
-                    searchKeyword = searchKeyword.takeIf { it.isNotEmpty() }
+                    searchKeyword = _searchKeyword.value.takeIf { it.isNotEmpty() }
                 )
                 PostType.BOOKMARK -> araBoardRepository.fetchBookmarks(
                     page = 1,
@@ -119,7 +134,7 @@ class AraMyPostViewModel @Inject constructor(
                         type = PostListType.User(user.id),
                         page = nextPage,
                         pageSize = pageSize,
-                        searchKeyword = searchKeyword.takeIf { it.isNotEmpty() }
+                        searchKeyword = _searchKeyword.value.takeIf { it.isNotEmpty() }
                     )
                     PostType.BOOKMARK -> araBoardRepository.fetchBookmarks(
                         page = nextPage,

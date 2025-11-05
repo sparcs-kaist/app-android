@@ -25,7 +25,9 @@ import com.example.soap.ui.theme.darkGray
 @Composable
 fun UserPostNavigationBar(
     title: String,
-    navController: NavController
+    onClickSearch: () -> Unit,
+    isSelected: Boolean,
+    navController: NavController,
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = {
@@ -48,7 +50,10 @@ fun UserPostNavigationBar(
             )
         },
         actions = {
-            SearchButton()
+            SearchButton(
+                onClick = { onClickSearch() },
+                isSelected = isSelected,
+            )
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
@@ -57,9 +62,8 @@ fun UserPostNavigationBar(
 }
 
 
-
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ UserPostNavigationBar("Title", rememberNavController()) }
+private fun Preview() {
+    Theme { UserPostNavigationBar("Title", {}, false, rememberNavController()) }
 }

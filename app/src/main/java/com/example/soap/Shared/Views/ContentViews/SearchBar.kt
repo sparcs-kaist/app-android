@@ -1,15 +1,20 @@
 package com.example.soap.Shared.Views.ContentViews
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,9 +34,10 @@ import com.example.soap.ui.theme.grayBB
 
 
 @Composable
-fun SearchCourses(
+fun SearchCustomBar(
     value: String,
     onValueChange: (String) -> Unit,
+    onValueClear: () -> Unit,
     placeHolder: String,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -41,7 +47,6 @@ fun SearchCourses(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -72,7 +77,6 @@ fun SearchCourses(
                         onDone = {
                             keyboardController?.hide()
                         }
-
                     ),
                     singleLine = true,
                     decorationBox = { innerTextField ->
@@ -94,6 +98,19 @@ fun SearchCourses(
                     }
                 )
             }
+            if (value.isNotEmpty()) {
+                Icon(
+                    imageVector = Icons.Default.Close,
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd)
+                        .background(MaterialTheme.colorScheme.grayBB)
+                        .clickable{ onValueClear() },
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    contentDescription = "Send"
+                )
+            }
         }
     }
 }
@@ -103,9 +120,10 @@ fun SearchCourses(
 @Preview
 private fun Preview() {
     Theme {
-        SearchCourses(
+        SearchCustomBar(
             value = "sasd",
             onValueChange = {},
+            onValueClear = {},
             "sd"
         )
     }

@@ -21,25 +21,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.soap.Domain.Models.Ara.AraPost
-import com.example.soap.Domain.Models.Ara.AraUser
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.PostList.Components.PostList.PostList
 import com.example.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.example.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.example.soap.R
-import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.ContentViews.ErrorView
+import com.example.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.example.soap.Shared.Views.ContentViews.UnavailableView
-import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.lightGray0
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 @Composable
@@ -50,7 +45,9 @@ fun AraMyPostView(
     var loadedInitialPosts by remember { mutableStateOf(false) }
     val state by viewModel.state.collectAsState()
     val posts by viewModel.posts.collectAsState()
-    val searchKeyword by remember { mutableStateOf("") }
+
+    val searchKeyword by viewModel.searchKeyword.collectAsState()
+    var showSearchBar by remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val type = viewModel.type
@@ -67,7 +64,9 @@ fun AraMyPostView(
             SettingsViewNavigationBar(
                 title = if (type == AraMyPostViewModel.PostType.ALL) stringResource(R.string.my_posts) else stringResource(R.string.bookmarked),
                 onDismiss = { navController.popBackStack() },
-                isSearchEnabled = true
+                isSearchEnabled = type != AraMyPostViewModel.PostType.BOOKMARK,
+                onClickSearch = { showSearchBar = !showSearchBar },
+                isSelected = showSearchBar
             )
         }
     ) { innerPadding ->
@@ -78,6 +77,19 @@ fun AraMyPostView(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
+            if (showSearchBar && type != AraMyPostViewModel.PostType.BOOKMARK) {
+                SearchCustomBar(
+                    value = searchKeyword,
+                    onValueChange = { value ->
+                        viewModel.onSearchTextChange(value)
+                    },
+                    onValueClear = {
+                        viewModel.onSearchTextChange("")
+                    },
+                    placeHolder = stringResource(R.string.search)
+                )
+            }
+
             when (type) {
                 AraMyPostViewModel.PostType.ALL -> {
                     MyPostView(
@@ -199,27 +211,4 @@ private fun LoadedView(
         onPostDisappear = onPostDisappear,
         isRefreshing = false
     )
-}
-
-@Preview
-@Composable
-private fun Preview(){
-    Theme {
-        val araMyPostViewModel = object : AraMyPostViewModelProtocol {
-            override val posts = MutableStateFlow<List<AraPost>>(emptyList())
-            override val state = MutableStateFlow<AraMyPostViewModel.ViewState>(AraMyPostViewModel.ViewState.Loaded(AraPost.mockList()))
-            override var type = AraMyPostViewModel.PostType.ALL
-            override var user: AraUser? = null
-            override var searchKeyword: String = ""
-            override fun bind() {}
-            override suspend fun fetchInitialPosts() {}
-            override suspend fun loadNextPage() {}
-            override fun refreshItem(postID: Int) {}
-        }
-
-        AraMyPostView(
-            viewModel = araMyPostViewModel,
-            navController = rememberNavController()
-        )
-    }
 }

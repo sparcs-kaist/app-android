@@ -85,15 +85,18 @@ fun ChatButton(onClick: () -> Unit){
 }
 
 @Composable
-fun SearchButton() {
+fun SearchButton(
+    onClick: () -> Unit = {},
+    isSelected: Boolean = false
+) {
     IconButton(
-        onClick = {},
+        onClick = { onClick() },
         colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
     ) {
         Icon(
             painter = painterResource(R.drawable.search),
             contentDescription = "Search",
-            tint = MaterialTheme.colorScheme.darkGray,
+            tint = if(isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(28.dp)
         )
     }
@@ -117,6 +120,6 @@ fun DismissButton(onClick: () -> Unit) {
 @Preview
 private fun Preview(){
     Theme {
-        SearchButton()
+        SearchButton({}, false)
     }
 }
