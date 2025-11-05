@@ -33,7 +33,6 @@ import androidx.navigation.NavController
 import com.example.soap.Domain.Models.OTL.Lecture
 import com.example.soap.Features.LectureSearch.LectureSearchView
 import com.example.soap.Features.LectureSearch.LectureSearchViewModel
-import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.Components.CompactTimetableSelector
@@ -41,6 +40,7 @@ import com.example.soap.Features.Timetable.Components.TimetableBottomSheet
 import com.example.soap.Features.Timetable.Components.TimetableCreditGraph
 import com.example.soap.Features.Timetable.Components.TimetableGrid
 import com.example.soap.Features.Timetable.Components.TimetableSummary
+import com.example.soap.Features.Timetable.Components.TimetableViewNavigationBar
 import com.google.gson.Gson
 
 @Composable
@@ -67,10 +67,8 @@ fun TimetableView(
 
         Scaffold(
             topBar = {
-                AppBar(
-                    currentScreen = Channel.TimeTable,
-                    scrollOffset = scrollState.value,
-                    navController = navController,
+                TimetableViewNavigationBar(
+                    scrollState = scrollState,
                     isButtonEnabled = viewModel.isEditable.collectAsState().value,
                     onClick = { expanded = true }
                 )

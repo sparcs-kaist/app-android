@@ -27,6 +27,8 @@ import com.example.soap.ui.theme.grayBB
 fun BoardNavigationBar(
     title: String,
     subTitle: String,
+    onClickSearch: () -> Unit,
+    isSelected: Boolean,
     navController: NavController,
 ) {
     CenterAlignedTopAppBar(
@@ -53,7 +55,10 @@ fun BoardNavigationBar(
             }
         },
         actions = {
-            SearchButton()
+            SearchButton(
+                onClick = { onClickSearch() },
+                isSelected = isSelected
+                )
         },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
@@ -65,5 +70,5 @@ fun BoardNavigationBar(
 @Composable
 @Preview
 private fun Preview() {
-    Theme { BoardNavigationBar("Title", "notices", rememberNavController()) }
+    Theme { BoardNavigationBar("Title", "notices", {}, false, rememberNavController()) }
 }

@@ -163,4 +163,5 @@
     <string name="reviewcompose" translatable="false">ReviewCompose</string>
     <string name="course_view" translatable="false">CourseView</string>
     <string name="lecture_search_view" translatable="false">LectureSearchView</string>
+    <string name="summary">Summary</string>
 </resources>

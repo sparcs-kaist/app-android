@@ -49,9 +49,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.soap.Domain.Models.Taxi.TaxiLocation
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
-import com.example.soap.Features.NavigationBar.AppBar
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
+import com.example.soap.Features.TaxiList.Components.TaxiListNavigationBar
 import com.example.soap.Features.TaxiList.Components.WeekDaySelector
 import com.example.soap.Features.TaxiPreview.TaxiPreviewView
 import com.example.soap.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
@@ -89,9 +89,8 @@ fun TaxiListView(
 
     Scaffold(
         topBar = {
-            AppBar(
-                currentScreen = Channel.Taxi,
-                scrollOffset = scrollState.value,
+            TaxiListNavigationBar(
+                scrollState = scrollState,
                 navController = navController,
                 isButtonEnabled = showRoomCreation
             )

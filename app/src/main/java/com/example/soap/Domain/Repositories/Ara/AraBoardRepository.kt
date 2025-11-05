@@ -2,6 +2,8 @@ package com.example.soap.Domain.Repositories.Ara
 
 import android.graphics.Bitmap
 import com.example.soap.Domain.Enums.AraContentReportType
+import com.example.soap.Domain.Enums.PostListType
+import com.example.soap.Domain.Enums.PostOrigin
 import com.example.soap.Domain.Models.Ara.AraAttachment
 import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraCreatePost
@@ -10,7 +12,6 @@ import com.example.soap.Domain.Models.Ara.AraPostPage
 import com.example.soap.Networking.RequestDTO.Ara.AraPostRequestDTO
 import com.example.soap.Networking.ResponseDTO.handleApiError
 import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardApi
-import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.example.soap.Shared.Extensions.compressForUpload
 import com.google.gson.Gson
 import kotlinx.coroutines.sync.Mutex
@@ -23,13 +24,13 @@ import javax.inject.Inject
 interface AraBoardRepositoryProtocol {
     suspend fun fetchBoards(): List<AraBoard>
     suspend fun fetchPosts(
-        type: AraBoardTarget.PostListType,
+        type: PostListType,
         page: Int,
         pageSize: Int,
         searchKeyword: String? = null,
     ): AraPostPage
 
-    suspend fun fetchPost(origin: AraBoardTarget.PostOrigin?, postID: Int): AraPost
+    suspend fun fetchPost(origin: PostOrigin?, postID: Int): AraPost
     suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage
     suspend fun uploadImage(image: Bitmap): AraAttachment
     suspend fun writePost(request: AraCreatePost)
@@ -62,19 +63,23 @@ class AraBoardRepository @Inject constructor(
     }
 
     override suspend fun fetchPosts(
-        type: AraBoardTarget.PostListType,
+        type: PostListType,
         page: Int,
         pageSize: Int,
         searchKeyword: String?,
     ): AraPostPage {
         try {
             val response = when (type) {
-                is AraBoardTarget.PostListType.Board -> api.fetchPosts(
-                    page, pageSize, parentBoard = type.boardID
+                is PostListType.Board -> api.fetchPosts(
+                    page, pageSize, parentBoard = type.boardID, searchKeyword = searchKeyword
                 )
 
-                is AraBoardTarget.PostListType.User -> api.fetchPosts(
-                    page, pageSize, createdBy = type.userID
+                is PostListType.User -> api.fetchPosts(
+                    page, pageSize, createdBy = type.userID, searchKeyword = searchKeyword
+                )
+
+                is PostListType.All -> api.fetchPosts(
+                    page, pageSize, searchKeyword = searchKeyword
                 )
             }
             return response.toModel()
@@ -83,11 +88,11 @@ class AraBoardRepository @Inject constructor(
         }
     }
 
-    override suspend fun fetchPost(origin: AraBoardTarget.PostOrigin?, postID: Int): AraPost {
+    override suspend fun fetchPost(origin: PostOrigin?, postID: Int): AraPost {
         try {
             val response = api.fetchPost(
                 postID,
-                topicId = (origin as? AraBoardTarget.PostOrigin.Topic)?.topicID
+                topicId = (origin as? PostOrigin.Topic)?.topicID
             )
             return response.toModel()
         } catch (e: Exception) {
