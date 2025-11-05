@@ -18,7 +18,7 @@ import com.example.soap.Shared.Extensions.elevation
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchNavigationBar(
-    scrollState: ScrollState
+    scrollState: ScrollState,
 ) {
     TopAppBar(
         title = {

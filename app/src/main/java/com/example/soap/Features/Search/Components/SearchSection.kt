@@ -94,7 +94,7 @@ fun CourseSection(
     onScopeChange: (SearchScope) -> Unit,
     navController: NavController,
     onLoadMore: (suspend () -> Unit)? = null,
-    isSkeleton: Boolean
+    isSkeleton: Boolean,
 ) {
     SearchSection(
         title = "Courses",
@@ -106,9 +106,9 @@ fun CourseSection(
             results = courses,
             onLoadMore = onLoadMore,
         ) { course ->
-            if(isSkeleton){
+            if (isSkeleton) {
                 CourseSkeletonCell()
-            }else{
+            } else {
                 CourseCell(
                     course = course,
                     onClick = {
@@ -128,7 +128,7 @@ fun PostSection(
     onScopeChange: (SearchScope) -> Unit,
     onLoadMore: suspend () -> Unit,
     navController: NavController,
-    isSkeleton: Boolean
+    isSkeleton: Boolean,
 ) {
     SearchSection(
         title = "Posts",
@@ -140,9 +140,9 @@ fun PostSection(
             results = posts,
             onLoadMore = if (searchScope == SearchScope.Posts) onLoadMore else null
         ) { post ->
-            if(isSkeleton) {
+            if (isSkeleton) {
                 PostListSkeletonRow()
-            }else{
+            } else {
                 PostListRow(
                     post = post,
                     modifier = Modifier.clickable(enabled = !post.isHidden) {
@@ -162,7 +162,7 @@ fun TaxiSection(
     onScopeChange: (SearchScope) -> Unit,
     onTaxiClick: (TaxiRoom) -> Unit,
     onLoadMore: (suspend () -> Unit)? = null,
-    isSkeleton: Boolean
+    isSkeleton: Boolean,
 ) {
     SearchSection(
         title = "Rides",
@@ -174,9 +174,9 @@ fun TaxiSection(
             results = rooms,
             onLoadMore = onLoadMore
         ) { room ->
-            if(isSkeleton) {
+            if (isSkeleton) {
                 TaxiRoomSkeletonCell()
-            }else{
+            } else {
                 TaxiRoomCell(room = room) {
                     onTaxiClick(room)
                 }
