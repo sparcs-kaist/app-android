@@ -71,7 +71,8 @@ fun AraSettingsView(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.ara_settings),
-                onDismiss = { navController.navigate(Channel.Settings.name) }
+                onDismiss = { navController.navigate(Channel.Settings.name) },
+
             )
         }
     ) { innerPadding ->

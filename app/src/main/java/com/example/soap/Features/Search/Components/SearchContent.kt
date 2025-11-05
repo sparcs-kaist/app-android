@@ -34,7 +34,6 @@ fun <T : Any> SearchContent(
     cell: @Composable (T) -> Unit,
 ) {
     var isLoadingMore by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
 
     if (results.isEmpty()) {
         UnavailableView(

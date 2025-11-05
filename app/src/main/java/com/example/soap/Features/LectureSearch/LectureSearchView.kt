@@ -45,7 +45,7 @@ import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.Timetable.TimetableViewModel
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
-import com.example.soap.Shared.Views.ContentViews.SearchCourses
+import com.example.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.example.soap.Shared.Views.ContentViews.UnavailableView
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
@@ -96,11 +96,15 @@ fun LectureSearchView(
                 .fillMaxSize()
         ) {
             // Search bar
-            SearchCourses(
+            SearchCustomBar(
                 value = searchKeyword,
                 onValueChange = {
                     lectureSearchViewModel.searchKeyword = it
                     lectureSearchViewModel.searchKeywordFlow.value = it
+                },
+                onValueClear = {
+                    lectureSearchViewModel.searchKeyword = ""
+                    lectureSearchViewModel.searchKeywordFlow.value = ""
                 },
                 placeHolder = stringResource(R.string.search_by_course)
             )

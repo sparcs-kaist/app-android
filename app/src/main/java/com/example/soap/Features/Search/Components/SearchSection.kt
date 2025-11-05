@@ -30,9 +30,11 @@ import com.example.soap.Domain.Models.SearchScope
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.PostList.Components.PostListRow.PostListRow
+import com.example.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.example.soap.R
 import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
+import com.example.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import com.example.soap.ui.theme.Theme
 import com.google.gson.Gson
 
@@ -59,7 +61,7 @@ fun SearchSection(
 
             if (searchScope != targetScope) {
                 IconButton(
-                    onClick = { onScopeChange(searchScope) }
+                    onClick = { onScopeChange(targetScope) }
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.arrow_forward_ios),
@@ -91,7 +93,8 @@ fun CourseSection(
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     navController: NavController,
-    onLoadMore: (suspend () -> Unit)? = null
+    onLoadMore: (suspend () -> Unit)? = null,
+    isSkeleton: Boolean
 ) {
     SearchSection(
         title = "Courses",
@@ -103,13 +106,17 @@ fun CourseSection(
             results = courses,
             onLoadMore = onLoadMore,
         ) { course ->
-            CourseCell(
-                course = course,
-                onClick = {
-                    val json = Uri.encode(Gson().toJson(course))
-                    navController.navigate(Channel.CourseView.name + "?course_json=$json")
-                }
-            )
+            if(isSkeleton){
+                CourseSkeletonCell()
+            }else{
+                CourseCell(
+                    course = course,
+                    onClick = {
+                        val json = Uri.encode(Gson().toJson(course))
+                        navController.navigate(Channel.CourseView.name + "?course_json=$json")
+                    }
+                )
+            }
         }
     }
 }
@@ -120,7 +127,8 @@ fun PostSection(
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     onLoadMore: suspend () -> Unit,
-    navController: NavController
+    navController: NavController,
+    isSkeleton: Boolean
 ) {
     SearchSection(
         title = "Posts",
@@ -132,13 +140,17 @@ fun PostSection(
             results = posts,
             onLoadMore = if (searchScope == SearchScope.Posts) onLoadMore else null
         ) { post ->
-            PostListRow(
-                post = post,
-                modifier = Modifier.clickable(enabled = !post.isHidden) {
-                    val json = Uri.encode(Gson().toJson(post))
-                    navController.navigate(Channel.PostView.name + "?post_json=$json")
-               }
-            )
+            if(isSkeleton) {
+                PostListSkeletonRow()
+            }else{
+                PostListRow(
+                    post = post,
+                    modifier = Modifier.clickable(enabled = !post.isHidden) {
+                        val json = Uri.encode(Gson().toJson(post))
+                        navController.navigate(Channel.PostView.name + "?post_json=$json")
+                    }
+                )
+            }
         }
     }
 }
@@ -149,7 +161,8 @@ fun TaxiSection(
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     onTaxiClick: (TaxiRoom) -> Unit,
-    onLoadMore: (suspend () -> Unit)? = null
+    onLoadMore: (suspend () -> Unit)? = null,
+    isSkeleton: Boolean
 ) {
     SearchSection(
         title = "Rides",
@@ -159,10 +172,14 @@ fun TaxiSection(
     ) {
         SearchContent(
             results = rooms,
-            onLoadMore = if (searchScope == SearchScope.Rides) onLoadMore else null
+            onLoadMore = onLoadMore
         ) { room ->
-            TaxiRoomCell(room = room) {
-                onTaxiClick(room)
+            if(isSkeleton) {
+                TaxiRoomSkeletonCell()
+            }else{
+                TaxiRoomCell(room = room) {
+                    onTaxiClick(room)
+                }
             }
         }
     }
