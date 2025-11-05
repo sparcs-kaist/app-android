@@ -10,20 +10,23 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.example.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Features.NavigationBar.Components.AddButton
 import com.example.soap.Shared.Extensions.elevation
+import com.example.soap.ui.theme.Theme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedViewNavigationBar(
     scrollState: ScrollState,
-    navController: NavController
+    navController: NavController,
 ) {
     TopAppBar(
         title = {
@@ -51,4 +54,16 @@ fun FeedViewNavigationBar(
         ),
         modifier = Modifier.shadow(scrollState.elevation())
     )
+}
+
+
+@Composable
+@Preview
+private fun Preview() {
+    Theme {
+        FeedViewNavigationBar(
+            scrollState = ScrollState(0),
+            navController = NavController(LocalContext.current)
+        )
+    }
 }

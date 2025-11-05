@@ -28,9 +28,9 @@ class BoardListViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    var boards: List<AraBoard> = emptyList()
+    private var boards: List<AraBoard> = emptyList()
         private set
-    var groups: List<AraBoardGroup> = emptyList()
+    private var groups: List<AraBoardGroup> = emptyList()
         private set
 
     fun fetchBoards() {

@@ -23,9 +23,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import com.example.soap.Domain.Helpers.LocalizedString
 import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraBoardGroup
 import com.example.soap.Features.BoardList.Components.BoardList
@@ -35,6 +34,7 @@ import com.example.soap.Features.BoardList.Components.BoardListSkeleton
 import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.R
+import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
 import com.google.gson.Gson
@@ -158,5 +158,13 @@ fun systemImage(slug: String): Painter {
 @Composable
 @Preview
 private fun Preview() {
-    Theme{ BoardListView(viewModel = viewModel(),navController = rememberNavController()) }
+    Theme{
+        LoadedView(
+            boards = AraBoard.mockList(),
+            groups = listOf(
+                AraBoardGroup(id = 123, slug = "slug", name = LocalizedString(mapOf("en" to "Group Name", "ko" to "그룹"))),
+                ),
+            onBoardClick = {}
+        )
+    }
 }
