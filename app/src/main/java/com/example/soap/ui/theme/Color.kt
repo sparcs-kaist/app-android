@@ -127,4 +127,4 @@ val theme_dark_lightGray0 = Color(0xFF2A2A2A)
 val theme_dark_gray64 = Color(0xFF9A9A9A)
 val theme_dark_grayBB = Color(0xFFB6B6B6)
 val theme_dark_grayF8 = Color(0xFF1E1E1E)
-val theme_dark_darkGray = Color.LightGray
+val theme_dark_darkGray = Color(0xFFE8E8E8)
