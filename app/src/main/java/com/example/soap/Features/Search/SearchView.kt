@@ -253,9 +253,7 @@ fun ResultView(
         if (searchScope == SearchScope.All) {
             item {
                 TaxiSection(
-                    rooms = if (state == SearchViewModel.ViewState.Loading)
-                        rooms.take(3)
-                    else rooms.take(3),
+                    rooms = rooms.take(3),
                     searchScope = searchScope,
                     onScopeChange = viewModel::onScopeChange,
                     onTaxiClick = onTaxiClick,
@@ -265,9 +263,7 @@ fun ResultView(
         } else if (searchScope == SearchScope.Rides) {
             item {
                 TaxiSection(
-                    rooms = if (state == SearchViewModel.ViewState.Loading)
-                        rooms
-                    else rooms,
+                    rooms = rooms,
                     searchScope = searchScope,
                     onScopeChange = viewModel::onScopeChange,
                     onTaxiClick = onTaxiClick,

@@ -107,7 +107,10 @@ fun CourseSkeletonCell() {
                     modifier = Modifier
                         .height(16.dp)
                         .width(40.dp)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .background(
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            RoundedCornerShape(4.dp)
+                        )
 
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -115,7 +118,10 @@ fun CourseSkeletonCell() {
                     modifier = Modifier
                         .height(16.dp)
                         .width(60.dp)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .background(
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            RoundedCornerShape(4.dp)
+                        )
                 )
             }
         }
@@ -126,7 +132,10 @@ fun CourseSkeletonCell() {
             modifier = Modifier
                 .height(40.dp)
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                .background(
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                    RoundedCornerShape(4.dp)
+                )
         )
     }
 }
@@ -149,7 +158,7 @@ private fun Preview() {
 
 @Composable
 @Preview
-private fun SkeletonPreview(){
+private fun SkeletonPreview() {
     Theme {
         CourseSkeletonCell()
     }

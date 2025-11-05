@@ -168,7 +168,7 @@ fun CourseReviewSection(
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             if (state == CourseViewModel.ViewState.Loaded) {
-                if(reviews.isEmpty()) {
+                if (reviews.isEmpty()) {
                     UnavailableView(
                         icon = painterResource(R.drawable.rounded_book_2),
                         title = "No Reviews",
@@ -191,7 +191,7 @@ fun CourseReviewSection(
 @Preview
 @Composable
 private fun Preview() {
-    Column{
+    Column {
         CourseSummary(Course.mock())
         Spacer(modifier = Modifier.height(16.dp))
         CourseReviewSection(
@@ -200,4 +200,5 @@ private fun Preview() {
             CourseViewModel.ViewState.Loaded,
             FakeOTLCourseRepository()
         )
-    }}
+    }
+}

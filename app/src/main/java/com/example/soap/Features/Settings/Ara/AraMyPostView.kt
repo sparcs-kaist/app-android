@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AraMyPostView(
     viewModel: AraMyPostViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     var loadedInitialPosts by remember { mutableStateOf(false) }
     val state by viewModel.state.collectAsState()
@@ -62,7 +62,9 @@ fun AraMyPostView(
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
-                title = if (type == AraMyPostViewModel.PostType.ALL) stringResource(R.string.my_posts) else stringResource(R.string.bookmarked),
+                title = if (type == AraMyPostViewModel.PostType.ALL) stringResource(R.string.my_posts) else stringResource(
+                    R.string.bookmarked
+                ),
                 onDismiss = { navController.popBackStack() },
                 isSearchEnabled = type != AraMyPostViewModel.PostType.BOOKMARK,
                 onClickSearch = { showSearchBar = !showSearchBar },
@@ -126,7 +128,7 @@ private fun MyPostView(
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
     onPostDisappear: (Int) -> Unit,
-    navController: NavController
+    navController: NavController,
 ) {
     if (searchKeyword.isNotEmpty() && posts.isEmpty()) {
         UnavailableView(
@@ -147,6 +149,7 @@ private fun MyPostView(
                 onPostDisappear = onPostDisappear,
                 navController = navController
             )
+
             is AraMyPostViewModel.ViewState.Error -> ErrorView(
                 icon = Icons.Default.Warning,
                 errorMessage = state.message,
@@ -163,7 +166,7 @@ private fun BookmarkPostView(
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
     navController: NavController,
-    onPostDisappear: (Int) -> Unit
+    onPostDisappear: (Int) -> Unit,
 ) {
     when (state) {
         is AraMyPostViewModel.ViewState.Loading -> LoadingView()
@@ -174,6 +177,7 @@ private fun BookmarkPostView(
             onPostDisappear = onPostDisappear,
             navController = navController
         )
+
         is AraMyPostViewModel.ViewState.Error -> ErrorView(
             icon = Icons.Default.Clear,
             errorMessage = state.message,
@@ -185,7 +189,7 @@ private fun BookmarkPostView(
 @Composable
 private fun LoadingView() {
     Column {
-        repeat(15){
+        repeat(15) {
             PostListSkeletonRow()
             HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
         }
@@ -198,7 +202,7 @@ private fun LoadedView(
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
     onPostDisappear: (Int) -> Unit,
-    navController: NavController
+    navController: NavController,
 ) {
     PostList(
         posts = posts,

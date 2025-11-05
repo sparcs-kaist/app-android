@@ -26,7 +26,7 @@ import com.example.soap.ui.theme.darkGray
 @Composable
 fun CourseNavigationBar(
     navController: NavController,
-    text: String
+    text: String,
 ) {
     var lineCount by remember { mutableStateOf(1) }
     var hasMeasured by remember { mutableStateOf(false) }
@@ -48,7 +48,7 @@ fun CourseNavigationBar(
                 else MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 onTextLayout = { textLayoutResult ->
-                    if(hasMeasured) return@Text
+                    if (hasMeasured) return@Text
                     hasMeasured = true
                     val newLineCount = textLayoutResult.lineCount
                     if (lineCount != newLineCount) {
@@ -65,6 +65,6 @@ fun CourseNavigationBar(
 
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ CourseNavigationBar(rememberNavController(), "title") }
+private fun Preview() {
+    Theme { CourseNavigationBar(rememberNavController(), "title") }
 }
