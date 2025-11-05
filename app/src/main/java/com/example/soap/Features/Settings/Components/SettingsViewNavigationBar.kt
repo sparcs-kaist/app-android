@@ -16,7 +16,9 @@ import com.example.soap.Features.NavigationBar.Components.SearchButton
 fun SettingsViewNavigationBar(
     title: String,
     onDismiss: () -> Unit,
-    isSearchEnabled: Boolean?= false
+    isSearchEnabled: Boolean? = false,
+    onClickSearch: () -> Unit = {},
+    isSelected: Boolean = false
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = { onDismiss() }) },
@@ -32,6 +34,12 @@ fun SettingsViewNavigationBar(
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         ),
-        actions = { if(isSearchEnabled == true) SearchButton() }
+        actions = {
+            if (isSearchEnabled == true)
+                SearchButton(
+                    onClick = { onClickSearch() },
+                    isSelected = isSelected
+                )
+        }
     )
 }

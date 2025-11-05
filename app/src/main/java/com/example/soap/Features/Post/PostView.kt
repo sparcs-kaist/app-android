@@ -298,7 +298,6 @@ private fun Header(
     post: AraPost,
     onAuthorClick: () -> Unit
 ) {
-
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = title(post),

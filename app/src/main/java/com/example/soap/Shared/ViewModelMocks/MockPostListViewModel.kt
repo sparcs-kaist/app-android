@@ -13,12 +13,15 @@ class MockPostListViewModel(initialState: PostListViewModel.ViewState) : PostLis
     override var state: StateFlow<PostListViewModel.ViewState> = MutableStateFlow(initialState)
     override var board: AraBoard = AraBoard.mock()
     override var posts: List<AraPost> = emptyList()
-    override var searchKeyword: String = ""
+
+    private val _searchKeyword = MutableStateFlow("")
+    override val searchKeyword: StateFlow<String> = _searchKeyword
 
     override var isLoadingMore: Boolean = false
     override var hasMorePages: Boolean = true
 
     // MARK: - Functions
+    override fun onSearchTextChange(text: String) {}
     override suspend fun fetchInitialPosts() {}
     override suspend fun loadNextPage(){}
     override fun refreshItem(postID: Int){}

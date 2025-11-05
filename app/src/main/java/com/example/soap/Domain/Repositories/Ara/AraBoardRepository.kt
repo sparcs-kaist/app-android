@@ -71,11 +71,11 @@ class AraBoardRepository @Inject constructor(
         try {
             val response = when (type) {
                 is PostListType.Board -> api.fetchPosts(
-                    page, pageSize, parentBoard = type.boardID
+                    page, pageSize, parentBoard = type.boardID, searchKeyword = searchKeyword
                 )
 
                 is PostListType.User -> api.fetchPosts(
-                    page, pageSize, createdBy = type.userID
+                    page, pageSize, createdBy = type.userID, searchKeyword = searchKeyword
                 )
 
                 is PostListType.All -> api.fetchPosts(

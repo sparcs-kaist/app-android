@@ -94,10 +94,9 @@ class SearchViewModel @Inject constructor(
 
     override fun onScopeChange(scope: SearchScope) {
         _searchScope.value = scope
-        viewModelScope.launch {
-            scopedFetch()
-        }
+        searchKeywordFlow.tryEmit(searchText.value)
     }
+
     @OptIn(FlowPreview::class)
     override suspend fun bind() {
         searchKeywordFlow
@@ -182,7 +181,7 @@ class SearchViewModel @Inject constructor(
                 searchKeyword = searchText.value
             )
             currentPage = page.currentPage
-            _posts.value = _posts.value + page.results
+            _posts.value += page.results
             hasMorePages = currentPage < totalPages
             isLoadingMore = false
             _state.value = ViewState.Loaded
@@ -203,33 +202,4 @@ class SearchViewModel @Inject constructor(
             loadFull()
         }
     }
-}
-
-class MockSearchViewModel: SearchViewModelProtocol {
-    override val courses: StateFlow<List<Course>>
-        get() = TODO("Not yet implemented")
-
-    override val posts: StateFlow<List<AraPost>>
-        get() = TODO("Not yet implemented")
-
-    override val taxiRooms: StateFlow<List<TaxiRoom>>
-        get() = TODO("Not yet implemented")
-
-    override val searchScope: StateFlow<SearchScope>
-        get() = TODO("Not yet implemented")
-
-    override val searchText: StateFlow<String>
-        get() = TODO("Not yet implemented")
-
-    override val state: StateFlow<SearchViewModel.ViewState>
-        get() = TODO("Not yet implemented")
-
-    override suspend fun bind() {}
-    override suspend fun fetchInitialData() {}
-    override suspend fun loadAraNextPage() {}
-    override fun loadFull() {}
-    override suspend fun scopedFetch() {}
-    override fun onScopeChange(scope: SearchScope) {}
-    override fun onSearchTextChange(text: String) {}
-
 }
