@@ -109,7 +109,8 @@ fun SettingsView(
                 )
                 ServiceNavButton(
                     stringResource(R.string.privacy_policy),
-                    painterResource(R.drawable.outline_policy)
+                    painterResource(R.drawable.outline_policy),
+                    color = MaterialTheme.colorScheme.onSurface
                 ) {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
@@ -119,7 +120,8 @@ fun SettingsView(
 
                 ServiceNavButton(
                     stringResource(R.string.terms_of_use),
-                    painterResource(R.drawable.outline_description)
+                    painterResource(R.drawable.outline_description),
+                    color = MaterialTheme.colorScheme.onSurface
                 ) {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
@@ -253,7 +255,8 @@ private fun FeedbackButton(context: Context) {
 private fun ServiceNavButton(
     text: String,
     painter: Painter,
-    onClick: () -> Unit,
+    color: Color = Color.Unspecified,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -265,7 +268,7 @@ private fun ServiceNavButton(
         Icon(
             painter = painter,
             contentDescription = null,
-            tint = Color.Unspecified
+            tint = color
         )
 
         Spacer(Modifier.width(8.dp))
