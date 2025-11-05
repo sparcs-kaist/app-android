@@ -1,6 +1,8 @@
 package com.example.soap.Networking
 
 import com.example.soap.Domain.Helpers.Constants
+import com.example.soap.Domain.Helpers.TaxiLocationStorage
+import com.example.soap.Domain.Helpers.TaxiLocationStorageProtocol
 import com.example.soap.Domain.Helpers.TokenStorage
 import com.example.soap.Domain.Helpers.TokenStorageProtocol
 import com.example.soap.Domain.Helpers.UserStorage
@@ -39,6 +41,8 @@ import com.example.soap.Domain.Usecases.AuthUseCase
 import com.example.soap.Domain.Usecases.AuthUseCaseProtocol
 import com.example.soap.Domain.Usecases.TaxiChatUseCase
 import com.example.soap.Domain.Usecases.TaxiChatUseCaseProtocol
+import com.example.soap.Domain.Usecases.TaxiLocationUseCase
+import com.example.soap.Domain.Usecases.TaxiLocationUseCaseProtocol
 import com.example.soap.Domain.Usecases.TaxiRoomUseCase
 import com.example.soap.Domain.Usecases.TaxiRoomUseCaseProtocol
 import com.example.soap.Domain.Usecases.TimetableUseCase
@@ -356,6 +360,10 @@ abstract class StorageModule {
     @Binds
     @Singleton
     abstract fun bindUserStorage(impl: UserStorage): UserStorageProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTaxiLocationStorage(impl: TaxiLocationStorage): TaxiLocationStorageProtocol
 }
 
 @Module
@@ -466,6 +474,10 @@ abstract class UseCaseModule {
     @Binds
     @Singleton
     abstract fun bindTaxiRoomUseCase(impl: TaxiRoomUseCase): TaxiRoomUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTaxiLocationUseCase(impl: TaxiLocationUseCase): TaxiLocationUseCaseProtocol
 
     @Binds
     @Singleton

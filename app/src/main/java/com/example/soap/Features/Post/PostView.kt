@@ -298,7 +298,6 @@ private fun Header(
     post: AraPost,
     onAuthorClick: () -> Unit
 ) {
-
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
             text = title(post),
@@ -497,7 +496,7 @@ private fun Comments(
 }
 
 @Composable
-fun InputBar(
+private fun InputBar(
     comment: String,
     onCommentChange: (String) -> Unit,
     isWritingComment: Boolean,

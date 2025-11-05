@@ -5,12 +5,13 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soap.Domain.Enums.PostListType
+import com.example.soap.Domain.Enums.PostOrigin
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostPage
 import com.example.soap.Domain.Models.Ara.AraUser
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Domain.Usecases.UserUseCase
-import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -22,12 +23,25 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface AraMyPostViewModelProtocol {
+    val posts: StateFlow<List<AraPost>>
+    val state: StateFlow<AraMyPostViewModel.ViewState>
+    var type: AraMyPostViewModel.PostType
+    var user: AraUser?
+    val searchKeyword: StateFlow<String>
+
+    fun onSearchTextChange(text: String)
+    fun bind()
+    suspend fun fetchInitialPosts()
+    suspend fun loadNextPage()
+    fun refreshItem(postID: Int)
+}
 
 @HiltViewModel
 class AraMyPostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     userUseCase: UserUseCase,
-    private val araBoardRepository: AraBoardRepositoryProtocol
+    private val araBoardRepository: AraBoardRepositoryProtocol,
 ) : ViewModel(), AraMyPostViewModelProtocol {
 
     sealed class ViewState {
@@ -53,9 +67,11 @@ class AraMyPostViewModel @Inject constructor(
     override var user: AraUser? = userUseCase.araUser
 
     private val _searchKeyword = MutableStateFlow("")
-    override var searchKeyword: String
-        get() = _searchKeyword.value
-        set(value) { _searchKeyword.value = value }
+    override val searchKeyword: StateFlow<String> = _searchKeyword
+
+    override fun onSearchTextChange(text: String) {
+        _searchKeyword.value = text
+    }
 
     private var isLoadingMore = false
     private var hasMorePages = true
@@ -75,6 +91,7 @@ class AraMyPostViewModel @Inject constructor(
                 }
         }
     }
+
     override suspend fun fetchInitialPosts() {
         val currentUser = user ?: return
         _state.value = ViewState.Loading
@@ -82,11 +99,12 @@ class AraMyPostViewModel @Inject constructor(
         try {
             val page: AraPostPage = when (type) {
                 PostType.ALL -> araBoardRepository.fetchPosts(
-                    type = AraBoardTarget.PostListType.User(currentUser.id),
+                    type = PostListType.User(currentUser.id),
                     page = 1,
                     pageSize = pageSize,
-                    searchKeyword = searchKeyword.takeIf { it.isNotEmpty() }
+                    searchKeyword = _searchKeyword.value.takeIf { it.isNotEmpty() }
                 )
+
                 PostType.BOOKMARK -> araBoardRepository.fetchBookmarks(
                     page = 1,
                     pageSize = pageSize
@@ -115,11 +133,12 @@ class AraMyPostViewModel @Inject constructor(
                 val nextPage = currentPage + 1
                 val page: AraPostPage = when (type) {
                     PostType.ALL -> araBoardRepository.fetchPosts(
-                        type = AraBoardTarget.PostListType.User(user.id),
+                        type = PostListType.User(user.id),
                         page = nextPage,
                         pageSize = pageSize,
-                        searchKeyword = searchKeyword.takeIf { it.isNotEmpty() }
+                        searchKeyword = _searchKeyword.value.takeIf { it.isNotEmpty() }
                     )
+
                     PostType.BOOKMARK -> araBoardRepository.fetchBookmarks(
                         page = nextPage,
                         pageSize = pageSize
@@ -141,7 +160,7 @@ class AraMyPostViewModel @Inject constructor(
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             try {
-                val updated = araBoardRepository.fetchPost( AraBoardTarget.PostOrigin.None ,postID)
+                val updated = araBoardRepository.fetchPost(PostOrigin.None, postID)
                 val idx = _posts.value.indexOfFirst { it.id == updated.id }
                 if (idx != -1) {
                     val newPosts = _posts.value.toMutableList()

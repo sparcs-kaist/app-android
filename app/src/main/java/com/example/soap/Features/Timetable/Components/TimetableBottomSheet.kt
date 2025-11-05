@@ -8,8 +8,6 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,32 +15,19 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.example.soap.R
 import com.example.soap.Shared.Extensions.noRippleClickable
 import com.example.soap.ui.theme.darkGray
-import com.example.soap.ui.theme.grayBB
-import com.example.soap.ui.theme.grayF8
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -137,73 +122,3 @@ fun TimetableBottomSheet(
         }
     }
 }
-
-
-@Composable
-fun SearchCourses(
-    value: String,
-    onValueChange: (String) -> Unit,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.grayF8),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        Spacer(Modifier.padding(4.dp))
-
-        Icon(
-            painter = painterResource(R.drawable.search),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.grayBB
-        )
-
-        Spacer(Modifier.padding(4.dp))
-
-        Box(
-            Modifier
-                .weight(1f)
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        ) {
-
-            BasicTextField(
-                value = value,
-                onValueChange = onValueChange,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = { onClick() }
-                ),
-                singleLine = true,
-                decorationBox = { innerTextField ->
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        if (value.isEmpty()) {
-                            Text(
-                                text = stringResource(R.string.search_by_course),
-                                color = MaterialTheme.colorScheme.grayBB,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                        innerTextField()
-                    }
-                }
-            )
-        }
-    }
-}
-
-
-//@Composable
-//@Preview
-//private fun Preview(){
-//    Theme {
-//        Column(Modifier.fillMaxSize()) { TimetableBottomSheet() }
-//    }
-//}

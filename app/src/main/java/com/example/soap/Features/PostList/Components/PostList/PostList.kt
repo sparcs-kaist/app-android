@@ -41,9 +41,11 @@ fun PostList(
     onLoadMore: ( () -> Unit),
     onPostClick: (AraPost) -> Unit,
     onPostDisappear: (Int) -> Unit,
-    isRefreshing: Boolean
+    isRefreshing: Boolean,
+    keyword: String? = ""
 ) {
-    if (posts != null && posts.isEmpty()) {
+    if (posts != null && posts.isEmpty() && keyword == null) {
+        //그냥 empty한 경우 (keyword == null)
         ErrorView(
             icon = Icons.Default.Clear,
             errorMessage = "Nothing Here Yet\nIt looks like there are no posts on this page right now.",

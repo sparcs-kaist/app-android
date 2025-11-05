@@ -16,9 +16,28 @@ import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
+interface AraSettingsViewModelProtocol {
+    val state: StateFlow<AraSettingsViewModel.ViewState>
+    var user: StateFlow<AraUser?>
+    var allowNSFW: Boolean
+    var allowPolitical: Boolean
+    var nickname: String
+    val nicknameUpdatable: Boolean
+    val nicknameUpdatableFrom: Date?
+
+    suspend fun fetchUser() {}
+
+    @Throws(Exception::class)
+    suspend fun updateNickname() {
+    }
+
+    suspend fun updateContentPreference() {}
+}
+
+
 @HiltViewModel
 class AraSettingsViewModel @Inject constructor(
-    private val userUseCase: UserUseCase
+    private val userUseCase: UserUseCase,
 ) : ViewModel(), AraSettingsViewModelProtocol {
     sealed class ViewState {
         data object Loading : ViewState()
@@ -35,7 +54,7 @@ class AraSettingsViewModel @Inject constructor(
     override var allowNSFW by mutableStateOf(false)
     override var allowPolitical by mutableStateOf(false)
 
-    override var nickname by  mutableStateOf("")
+    override var nickname by mutableStateOf("")
 
     override val nicknameUpdatable: Boolean
         get() = nicknameUpdatableFrom?.let { it <= Date() } ?: true

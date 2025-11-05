@@ -100,7 +100,7 @@ fun SettingsView(
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
 
-            item{
+            item {
                 Text(
                     text = stringResource(R.string.information),
                     style = MaterialTheme.typography.titleMedium,
@@ -110,12 +110,22 @@ fun SettingsView(
                 ServiceNavButton(
                     stringResource(R.string.privacy_policy),
                     painterResource(R.drawable.outline_policy)
-                ){ val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.privacyPolicyURL)); context.startActivity(intent) }
+                ) {
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(Constants.privacyPolicyURL)
+                    ); context.startActivity(intent)
+                }
 
                 ServiceNavButton(
                     stringResource(R.string.terms_of_use),
                     painterResource(R.drawable.outline_description)
-                ){ val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.termsOfUseURL)); context.startActivity(intent) }
+                ) {
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(Constants.termsOfUseURL)
+                    ); context.startActivity(intent)
+                }
 
                 VersionRow()
 
@@ -185,7 +195,7 @@ private fun AppSettings(context: Context) {
         )
 
         Spacer(Modifier.width(8.dp))
-        Column(modifier = Modifier.padding(vertical = 8.dp)){
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
                 text = stringResource(R.string.change_language),
                 style = MaterialTheme.typography.bodyLarge,
@@ -330,7 +340,7 @@ private fun ThemeSwitcherButton(
 
         Spacer(Modifier.width(8.dp))
 
-        Column(modifier = Modifier.padding(vertical = 8.dp)){
+        Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
                 text = stringResource(R.string.dark_mode),
                 style = MaterialTheme.typography.bodyLarge,
@@ -353,8 +363,10 @@ private fun ThemeSwitcherButton(
                 Column {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { settingsViewModel.setTheme("system"); showDialog = false }
-                    ){
+                        modifier = Modifier.clickable {
+                            settingsViewModel.setTheme("system"); showDialog = false
+                        }
+                    ) {
                         RadioButton(
                             selected = darkMode == null,
                             onClick = { settingsViewModel.setTheme("system"); showDialog = false }
@@ -364,7 +376,9 @@ private fun ThemeSwitcherButton(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { settingsViewModel.setTheme("light"); showDialog = false }
+                        modifier = Modifier.clickable {
+                            settingsViewModel.setTheme("light"); showDialog = false
+                        }
                     ) {
                         RadioButton(
                             selected = darkMode == false,
@@ -375,7 +389,9 @@ private fun ThemeSwitcherButton(
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { settingsViewModel.setTheme("dark"); showDialog = false }
+                        modifier = Modifier.clickable {
+                            settingsViewModel.setTheme("dark"); showDialog = false
+                        }
                     ) {
                         RadioButton(
                             selected = darkMode == true,

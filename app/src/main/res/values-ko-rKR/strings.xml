@@ -143,4 +143,5 @@
     <string name="no_result">검색 결과 없음</string>
     <string name="no_results_found_for">%1$s에 대한 결과가 없습니다.</string>
     <string name="clear_search_text">검색창 비우기</string>
+    <string name="summary">요약</string>
 </resources>

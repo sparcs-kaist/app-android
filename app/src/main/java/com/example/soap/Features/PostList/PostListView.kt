@@ -51,6 +51,7 @@ import com.example.soap.Features.PostList.Components.PostListRow.BoardNavigation
 import com.example.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.example.soap.R
 import com.example.soap.Shared.Views.ContentViews.ErrorView
+import com.example.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
@@ -63,18 +64,19 @@ import kotlinx.coroutines.launch
 @Composable
 fun PostListView(
     viewModel: PostListViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
-    val searchText by remember { mutableStateOf("") }
+
+    val searchKeyword by viewModel.searchKeyword.collectAsState()
+    var showSearchBar by remember { mutableStateOf(false) }
+
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
-    val board = viewModel.board
+    val state = viewModel.state.collectAsState().value
 
+    val board = viewModel.board
     val backStackEntry = navController.currentBackStackEntry!!
-    LaunchedEffect(searchText) {
-        viewModel.searchKeyword = searchText
-    }
 
     LaunchedEffect(Unit) {
         val json = Gson().toJson(board)
@@ -90,10 +92,12 @@ fun PostListView(
         topBar = {
             BoardNavigationBar(
                 title = board.name.localized(),
-            subTitle = board.group.name.localized(),
-            navController = navController
-        )
-                 },
+                subTitle = board.group.name.localized(),
+                onClickSearch = { showSearchBar = !showSearchBar },
+                isSelected = showSearchBar,
+                navController = navController
+            )
+        },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
             if (!board.isReadOnly && board.userWritable == true) {
@@ -111,56 +115,75 @@ fun PostListView(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            when (val state = viewModel.state.collectAsState().value) {
-                is PostListViewModel.ViewState.Loading -> {
-                    LoadingView()
-                }
-                is PostListViewModel.ViewState.Loaded -> {
-                    PostList(
-                        posts = state.posts,
-                        onLoadMore = {
-                            coroutineScope.launch {
-                            viewModel.loadNextPage()
-                        } },
-                        onRefresh = {
-                            isRefreshing = true
-                            coroutineScope.launch {
-                                viewModel.fetchInitialPosts()
-                                delay(500)
-                                isRefreshing = false
-                            }
-                                    },
-                        onPostClick = { post ->
-                            val json = Uri.encode(Gson().toJson(post))
-                            navController.navigate(Channel.PostView.name + "?post_json=$json")
+            Column {
+                if (showSearchBar) {
+                    SearchCustomBar(
+                        value = searchKeyword,
+                        onValueChange = { value ->
+                            viewModel.onSearchTextChange(value)
                         },
-                        onPostDisappear = { postID -> viewModel.refreshItem(postID)},
-                        isRefreshing = isRefreshing
+                        onValueClear = {
+                            viewModel.onSearchTextChange("")
+                        },
+                        placeHolder = stringResource(R.string.search)
                     )
                 }
-                is PostListViewModel.ViewState.Error -> {
-                    val error = (state).message
-                    ErrorView(
-                        icon = Icons.Default.Warning,
-                        errorMessage = error,
-                        onRetry = {
-                            coroutineScope.launch {
-                                if (!loadedInitialPost.value) {
+                when (state) {
+                    is PostListViewModel.ViewState.Loading -> {
+                        LoadingView()
+                    }
+
+                    is PostListViewModel.ViewState.Loaded -> {
+                        PostList(
+                            posts = state.posts,
+                            onLoadMore = {
+                                coroutineScope.launch {
+                                    viewModel.loadNextPage()
+                                }
+                            },
+                            onRefresh = {
+                                isRefreshing = true
+                                coroutineScope.launch {
                                     viewModel.fetchInitialPosts()
-                                    viewModel.bind()
+                                    delay(500)
+                                    isRefreshing = false
+                                }
+                            },
+                            onPostClick = { post ->
+                                val json = Uri.encode(Gson().toJson(post))
+                                navController.navigate(Channel.PostView.name + "?post_json=$json")
+                            },
+                            onPostDisappear = { postID -> viewModel.refreshItem(postID) },
+                            isRefreshing = isRefreshing,
+                            keyword = searchKeyword
+                        )
+                    }
+
+                    is PostListViewModel.ViewState.Error -> {
+                        val error = (state).message
+                        ErrorView(
+                            icon = Icons.Default.Warning,
+                            errorMessage = error,
+                            onRetry = {
+                                coroutineScope.launch {
+                                    if (!loadedInitialPost.value) {
+                                        viewModel.fetchInitialPosts()
+                                        viewModel.bind()
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
 
-            if (searchText.isNotEmpty() && viewModel.posts.isEmpty()) {
+            if (searchKeyword.isNotEmpty() && viewModel.posts.isEmpty()) {
+                //keyword에 대한 결과가 없을 경우
                 EmptyView(
-                    searchText = searchText,
+                    searchText = searchKeyword,
                     onClear = {
                         CoroutineScope(Dispatchers.IO).launch {
-                            viewModel.searchKeyword = ""
+                            viewModel.onSearchTextChange("")
                             viewModel.fetchInitialPosts()
                         }
                     }
@@ -220,7 +243,7 @@ private fun EmptyView(
 @Composable
 private fun LoadingView() {
     Column {
-        repeat(15){
+        repeat(15) {
             PostListSkeletonRow()
             HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
         }
@@ -228,8 +251,8 @@ private fun LoadingView() {
 }
 
 
-    @Composable
-private fun ComposeButton(onClick: () -> Unit){
+@Composable
+private fun ComposeButton(onClick: () -> Unit) {
     Button(
         onClick = onClick,
         shape = CircleShape,
@@ -247,7 +270,7 @@ private fun ComposeButton(onClick: () -> Unit){
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme { PostListView(viewModel(), rememberNavController()) }
 
 }
