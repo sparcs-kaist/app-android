@@ -55,7 +55,7 @@ fun TaxiChatListView(
 
     Scaffold(
         topBar = {
-            TaxiChatListViewNavigationBar { navController.navigate(Channel.Taxi.name) }
+            TaxiChatListViewNavigationBar { navController.popBackStack() }
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->

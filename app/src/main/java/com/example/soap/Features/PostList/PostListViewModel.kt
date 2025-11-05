@@ -5,10 +5,11 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soap.Domain.Enums.PostListType
+import com.example.soap.Domain.Enums.PostOrigin
 import com.example.soap.Domain.Models.Ara.AraBoard
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
-import com.example.soap.Networking.RetrofitAPI.Ara.AraBoardTarget
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
@@ -25,10 +26,12 @@ interface PostListViewModelProtocol {
     var state: StateFlow<PostListViewModel.ViewState>
     var board: AraBoard
     var posts: List<AraPost>
-    var searchKeyword: String
+    val searchKeyword: StateFlow<String>
 
     var isLoadingMore: Boolean
     var hasMorePages: Boolean
+
+    fun onSearchTextChange(text: String)
 
     suspend fun fetchInitialPosts()
     suspend fun loadNextPage()
@@ -40,7 +43,7 @@ interface PostListViewModelProtocol {
 @HiltViewModel
 class PostListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val araBoardRepository: AraBoardRepositoryProtocol
+    private val araBoardRepository: AraBoardRepositoryProtocol,
 ) : ViewModel(), PostListViewModelProtocol {
 
     private val initialBoard: AraBoard by lazy {
@@ -51,7 +54,7 @@ class PostListViewModel @Inject constructor(
 
     override var board: AraBoard = initialBoard
 
-    sealed class ViewState{
+    sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val posts: List<AraPost>) : ViewState()
         data class Error(val message: String) : ViewState()
@@ -63,20 +66,19 @@ class PostListViewModel @Inject constructor(
     override var posts: List<AraPost> = emptyList()
 
     //Search Properties
-    var _searchKeyword: MutableStateFlow<String> = MutableStateFlow("")
-    override var searchKeyword: String =""
-        get() = _searchKeyword.value
-        set(value) {
-            _searchKeyword.value = value
-            field = value
-        }
+    private val _searchKeyword = MutableStateFlow("")
+    override val searchKeyword: StateFlow<String> = _searchKeyword
+
+    override fun onSearchTextChange(text: String) {
+        _searchKeyword.value = text
+    }
 
     //Infinite Scroll Properties
     override var isLoadingMore: Boolean = false
     override var hasMorePages: Boolean = true
-    var currentPage: Int = 1
-    var totalPages: Int = 0
-    var pageSize: Int = 30
+    private var currentPage: Int = 1
+    private var totalPages: Int = 0
+    private var pageSize: Int = 30
 
     //Mark: - Functions
     @OptIn(FlowPreview::class)
@@ -92,54 +94,51 @@ class PostListViewModel @Inject constructor(
     }
 
     override suspend fun fetchInitialPosts() {
-        viewModelScope.launch {
-            try {
-                val page = araBoardRepository.fetchPosts(
-                    type = AraBoardTarget.PostListType.Board(boardID = board.id),
-                    page = 1,
-                    pageSize = pageSize,
-                    searchKeyword = searchKeyword.ifBlank { null }
-                )
-                totalPages = page.pages
-                currentPage = page.currentPage
-                posts = page.results
-                hasMorePages = currentPage < totalPages
-                _state.value = ViewState.Loaded(posts)
-            } catch (e: Exception) {
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
-            }
+        _state.value = ViewState.Loading
+        try {
+            val page = araBoardRepository.fetchPosts(
+                type = PostListType.Board(boardID = board.id),
+                page = 1,
+                pageSize = pageSize,
+                searchKeyword = _searchKeyword.value.ifBlank { null }
+            )
+            totalPages = page.pages
+            currentPage = page.currentPage
+            posts = page.results
+            hasMorePages = currentPage < totalPages
+            _state.value = ViewState.Loaded(posts)
+        } catch (e: Exception) {
+            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
         }
     }
 
     override suspend fun loadNextPage() {
         if (isLoadingMore || !hasMorePages) return
         isLoadingMore = true
-        viewModelScope.launch {
-            try {
-                val nextPage = currentPage + 1
-                val page = araBoardRepository.fetchPosts(
-                    type = AraBoardTarget.PostListType.Board(boardID = board.id),
-                    page = nextPage,
-                    pageSize = pageSize,
-                    searchKeyword = if (searchKeyword.isBlank()) null else searchKeyword
-                )
-                currentPage = page.currentPage
-                posts = posts + page.results
-                hasMorePages = currentPage < totalPages
-                _state.value = ViewState.Loaded(posts)
-                isLoadingMore = false
+        try {
+            val nextPage = currentPage + 1
+            val page = araBoardRepository.fetchPosts(
+                type = PostListType.Board(boardID = board.id),
+                page = nextPage,
+                pageSize = pageSize,
+                searchKeyword = if (_searchKeyword.value.isBlank()) null else _searchKeyword.value
+            )
+            currentPage = page.currentPage
+            posts = posts + page.results
+            hasMorePages = currentPage < totalPages
+            _state.value = ViewState.Loaded(posts)
+            isLoadingMore = false
 
-            } catch (e: Exception) {
-                Log.e("PostListViewModel", "Error loading next page: $e")
-                isLoadingMore = false
-            }
+        } catch (e: Exception) {
+            Log.e("PostListViewModel", "Error loading next page: $e")
+            isLoadingMore = false
         }
     }
 
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             val updated = try {
-                araBoardRepository.fetchPost(postID = postID, origin = AraBoardTarget.PostOrigin.None)
+                araBoardRepository.fetchPost(postID = postID, origin = PostOrigin.None)
             } catch (e: Exception) {
                 null
             } ?: return@launch

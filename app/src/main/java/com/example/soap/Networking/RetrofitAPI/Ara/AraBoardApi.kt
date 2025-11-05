@@ -17,20 +17,6 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-sealed class AraBoardTarget{
-    sealed class PostListType {
-        data class Board(val boardID: Int) : PostListType()
-        data class User(val userID: Int) : PostListType()
-    }
-
-    sealed class PostOrigin {
-        data object All : PostOrigin()
-        data object Board : PostOrigin()
-        data class Topic(val topicID: String) : PostOrigin()
-        data object None : PostOrigin()
-    }
-}
-
 interface AraBoardApi {
 
     @GET("boards/")
