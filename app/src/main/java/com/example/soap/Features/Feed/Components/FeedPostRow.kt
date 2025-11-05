@@ -57,6 +57,7 @@ import com.example.soap.Shared.Mocks.mock
 import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
+import com.example.soap.ui.theme.lightGray0
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -95,7 +96,7 @@ fun ProfileImage(post: FeedPost) {
             modifier = Modifier
                 .size(24.dp)
                 .clip(CircleShape)
-                .background(Color.LightGray)
+                .background(MaterialTheme.colorScheme.lightGray0)
         )
     } else {
         Box(
@@ -185,6 +186,7 @@ fun Content(
     }
     ClickableText(
         text = displayText,
+        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
         maxLines = if (singleLine && !expanded) 2 else Int.MAX_VALUE,
         overflow = TextOverflow.Ellipsis,
         onTextLayout = { layoutResult ->
