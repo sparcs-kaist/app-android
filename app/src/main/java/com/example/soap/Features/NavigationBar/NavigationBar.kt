@@ -555,9 +555,7 @@ fun AppDownBar(
             items.forEach { (channel, label, iconRes) ->
                 NavigationBarItem(
                     selected = currentScreen == channel,
-                    onClick = { navController.navigate(channel.name){
-                        launchSingleTop = true
-                    } },
+                    onClick = { navController.navigate(channel.name)},
                     icon = {
                         Icon(
                             painter = painterResource(id = iconRes),
