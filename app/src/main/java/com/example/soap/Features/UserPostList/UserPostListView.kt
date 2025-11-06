@@ -47,7 +47,6 @@ fun UserPostListView(
 
     LaunchedEffect(Unit) {
         viewModel.bind()
-        viewModel.fetchInitialPosts()
     }
 
     Scaffold(
