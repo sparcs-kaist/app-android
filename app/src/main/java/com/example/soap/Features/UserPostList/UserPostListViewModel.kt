@@ -88,7 +88,7 @@ class UserPostListViewModel @Inject constructor(
     }
 
     override suspend fun fetchInitialPosts() {
-        val userID = user.id.toIntOrNull() ?: return
+        val userID = user.id.toDoubleOrNull()?.toInt() ?: return
         _state.value = ViewState.Loading
         try {
             val page = araBoardRepository.fetchPosts(
@@ -105,11 +105,10 @@ class UserPostListViewModel @Inject constructor(
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
         }
-
     }
 
     override suspend fun loadNextPage() {
-        val userID = user.id.toIntOrNull() ?: return
+        val userID = user.id.toDoubleOrNull()?.toInt() ?: return
         if (_isLoadingMore.value || !hasMorePages) return
 
         _isLoadingMore.value = true
