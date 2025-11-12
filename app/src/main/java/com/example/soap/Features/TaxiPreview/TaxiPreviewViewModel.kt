@@ -4,20 +4,22 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Models.Taxi.TaxiParticipant
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
 import com.example.soap.Domain.Usecases.TaxiRoomUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCase
-import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
-import java.net.URL
+import org.osmdroid.util.GeoPoint
 import javax.inject.Inject
 
 
@@ -47,32 +49,49 @@ class TaxiPreviewViewModel @Inject constructor(
     }
 
     suspend fun calculateRoutePoints(
-        source: LatLng,
-        destination: LatLng,
-    ): List<LatLng> = withContext(Dispatchers.IO) {
+        source: GeoPoint,
+        destination: GeoPoint,
+    ): List<GeoPoint> = withContext(Dispatchers.IO) {
         try {
             val apiKey = com.example.soap.BuildConfig.MAPS_API_KEY
+            val client = OkHttpClient()
 
-            val url = "https://api.openrouteservice.org/v2/directions/driving-car?" +
+            val url = Constants.mapsURL +
                     "api_key=$apiKey" +
                     "&start=${source.longitude},${source.latitude}" +
                     "&end=${destination.longitude},${destination.latitude}"
 
-            val response = URL(url).readText()
-            val json = JSONObject(response)
+            val request = Request.Builder()
+                .url(url)
+                .get()
+                .build()
 
-            val features = json.getJSONArray("features")
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                Log.e("TaxiPreviewViewModel", "HTTP error: ${response.code}")
+                return@withContext emptyList()
+            }
+
+            val json = JSONObject(response.body?.string() ?: "{}")
+
+            if (json.has("error")) {
+                val errorMsg = json.getJSONObject("error").optString("message", "Unknown API error")
+                Log.e("TaxiPreviewViewModel", "OpenRouteService API error: $errorMsg")
+                return@withContext emptyList()
+            }
+
+            val features = json.optJSONArray("features") ?: return@withContext emptyList()
             if (features.length() == 0) return@withContext emptyList()
 
             val geometry = features.getJSONObject(0).getJSONObject("geometry")
             val coordinates = geometry.getJSONArray("coordinates")
 
-            val points = mutableListOf<LatLng>()
+            val points = mutableListOf<GeoPoint>()
             for (i in 0 until coordinates.length()) {
                 val coord = coordinates.getJSONArray(i)
                 val lon = coord.getDouble(0)
                 val lat = coord.getDouble(1)
-                points.add(LatLng(lat, lon))
+                points.add(GeoPoint(lat, lon))
             }
 
             points
