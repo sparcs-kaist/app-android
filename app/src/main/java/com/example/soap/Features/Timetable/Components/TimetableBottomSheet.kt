@@ -8,9 +8,11 @@ import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -48,6 +50,9 @@ fun TimetableBottomSheet(
         (screenHeight) * 0.1f //화면 가득
     )
 
+    val imeInsets = WindowInsets.ime
+    val imeBottom = imeInsets.getBottom(LocalDensity.current)
+
     val offsetY = remember { Animatable(anchors[2]) }
     val scope = rememberCoroutineScope()
 
@@ -70,9 +75,9 @@ fun TimetableBottomSheet(
 
         Box(
             modifier = Modifier
-                .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                .offset { IntOffset(0, (offsetY.value - imeBottom).roundToInt()) }
                 .fillMaxWidth()
-                .height(((screenHeight - offsetY.value) / LocalDensity.current.density).dp)
+                .height(((screenHeight - offsetY.value + imeBottom) / LocalDensity.current.density).dp)
                 .background(
                     MaterialTheme.colorScheme.background,
                     RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
