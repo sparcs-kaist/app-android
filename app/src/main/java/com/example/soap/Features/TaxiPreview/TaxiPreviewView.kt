@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,7 +55,6 @@ import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
-import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
@@ -77,7 +77,7 @@ fun TaxiPreviewView(
 
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
-    var pathPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
+    var pathPoints by remember { mutableStateOf<List<GeoPoint>>(emptyList()) }
 
     val blockStatus = viewModel.blockStatus.collectAsState().value
     val routeColor = MaterialTheme.colorScheme.primary.toArgb()
@@ -87,11 +87,23 @@ fun TaxiPreviewView(
                 room.isDeparted ||
                 blockStatus != TaxiRoomBlockStatus.Allow)
 
+    val mapView = remember {
+        Configuration.getInstance().userAgentValue = context.packageName
+        MapView(context).apply {
+            setTileSource(TileSourceFactory.MAPNIK)
+            setMultiTouchControls(false)
+            isClickable = false
+            setBuiltInZoomControls(false)
+            controller.setZoom(15.0)
+            controller.setCenter(GeoPoint(room.source.latitude, room.source.longitude))
+        }
+    }
+
     LaunchedEffect(Unit) {
         try {
             pathPoints = viewModel.calculateRoutePoints(
-                source = LatLng(room.source.latitude, room.source.longitude),
-                destination = LatLng(room.destination.latitude, room.destination.longitude)
+                source = GeoPoint(room.source.latitude, room.source.longitude),
+                destination = GeoPoint(room.destination.latitude, room.destination.longitude)
             )
 
         } catch (e: Exception) {
@@ -101,18 +113,12 @@ fun TaxiPreviewView(
         }
     }
 
-
-    if (showError) {
-        AlertDialog(
-            onDismissRequest = { showError = false },
-            confirmButton = {
-                TextButton(onClick = { showError = false }) {
-                    Text("Okay")
-                }
-            },
-            title = { Text("Error") },
-            text = { Text(errorMessage) }
-        )
+    DisposableEffect(mapView) {
+        mapView.onResume()
+        onDispose {
+            mapView.onPause()
+            mapView.onDetach()
+        }
     }
 
     Column(
@@ -131,17 +137,7 @@ fun TaxiPreviewView(
                 modifier = Modifier
                     .fillMaxWidth()
                     .matchParentSize(),
-                factory = { ctx ->
-                    Configuration.getInstance().userAgentValue = ctx.packageName
-                    MapView(ctx).apply {
-                        setTileSource(TileSourceFactory.MAPNIK)
-                        setMultiTouchControls(false)
-                        isClickable = false
-                        setBuiltInZoomControls(false)
-                        controller.setZoom(15.0)
-                        controller.setCenter(GeoPoint(room.source.latitude, room.source.longitude))
-                    }
-                },
+                factory = { mapView },
                 update = { mapView ->
                     mapView.overlays.clear()
 
@@ -164,11 +160,10 @@ fun TaxiPreviewView(
                     mapView.overlays.add(endMarker)
 
                     if (pathPoints.isNotEmpty()) {
-                        val geoPoints = pathPoints.map { GeoPoint(it.latitude, it.longitude) }
-                        val bounds = BoundingBox.fromGeoPoints(geoPoints)
+                        val bounds = BoundingBox.fromGeoPoints(pathPoints)
 
                         val polyline = Polyline().apply {
-                            setPoints(pathPoints.map { GeoPoint(it.latitude, it.longitude) })
+                            setPoints(pathPoints)
                             outlinePaint.color = routeColor
                             outlinePaint.strokeWidth = 8f
                         }
@@ -258,6 +253,18 @@ fun TaxiPreviewView(
                 }
             }
         }
+    }
+    if (showError) {
+        AlertDialog(
+            onDismissRequest = { showError = false },
+            confirmButton = {
+                TextButton(onClick = { showError = false }) {
+                    Text("Okay")
+                }
+            },
+            title = { Text("Error") },
+            text = { Text(errorMessage) }
+        )
     }
 }
 
