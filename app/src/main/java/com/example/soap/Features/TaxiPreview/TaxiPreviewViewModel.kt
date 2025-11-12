@@ -3,7 +3,6 @@ package com.example.soap.Features.TaxiPreview
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.soap.BuildConfig
 import com.example.soap.Domain.Enums.TaxiRoomBlockStatus
 import com.example.soap.Domain.Models.Taxi.TaxiParticipant
 import com.example.soap.Domain.Models.Taxi.TaxiUser
@@ -26,7 +25,7 @@ import javax.inject.Inject
 class TaxiPreviewViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepository,
     private val userUseCase: UserUseCase,
-    private val taxiRoomUseCase: TaxiRoomUseCaseProtocol
+    private val taxiRoomUseCase: TaxiRoomUseCaseProtocol,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -49,30 +48,36 @@ class TaxiPreviewViewModel @Inject constructor(
 
     suspend fun calculateRoutePoints(
         source: LatLng,
-        destination: LatLng
+        destination: LatLng,
     ): List<LatLng> = withContext(Dispatchers.IO) {
         try {
-            val apiKey = BuildConfig.GOOGLE_MAPS_API_KEY
+            val apiKey = com.example.soap.BuildConfig.MAPS_API_KEY
 
-            val url = "https://maps.googleapis.com/maps/api/directions/json?" +
-                    "origin=${source.latitude},${source.longitude}" +
-                    "&destination=${destination.latitude},${destination.longitude}" +
-                    "&mode=transit" +
-                    "&key=${apiKey}"
+            val url = "https://api.openrouteservice.org/v2/directions/driving-car?" +
+                    "api_key=$apiKey" +
+                    "&start=${source.longitude},${source.latitude}" +
+                    "&end=${destination.longitude},${destination.latitude}"
 
-            val result = URL(url).readText()
-            val json = JSONObject(result)
+            val response = URL(url).readText()
+            val json = JSONObject(response)
+
+            val features = json.getJSONArray("features")
+            if (features.length() == 0) return@withContext emptyList()
+
+            val geometry = features.getJSONObject(0).getJSONObject("geometry")
+            val coordinates = geometry.getJSONArray("coordinates")
+
             val points = mutableListOf<LatLng>()
-            val routes = json.getJSONArray("routes")
-            if (routes.length() > 0) {
-                val overviewPolyline = routes.getJSONObject(0)
-                    .getJSONObject("overview_polyline")
-                    .getString("points")
-                points.addAll(decodePolyline(overviewPolyline))
+            for (i in 0 until coordinates.length()) {
+                val coord = coordinates.getJSONArray(i)
+                val lon = coord.getDouble(0)
+                val lat = coord.getDouble(1)
+                points.add(LatLng(lat, lon))
             }
+
             points
         } catch (e: Exception) {
-            Log.e("TaxiPreviewViewModel", "Error calculating route points: ${e.message}")
+            Log.e("TaxiPreviewViewModel", "Error parsing route: ${e.message}", e)
             emptyList()
         }
     }
@@ -99,40 +104,4 @@ class TaxiPreviewViewModel @Inject constructor(
             _blockStatus.value = taxiRoomUseCase.isBlocked()
         }
     }
-
-    private fun decodePolyline(encoded: String): List<LatLng> {
-        val poly = mutableListOf<LatLng>()
-        var index = 0
-        val len = encoded.length
-        var lat = 0
-        var lng = 0
-
-        while (index < len) {
-            var b: Int
-            var shift = 0
-            var result = 0
-            do {
-                b = encoded[index++].code - 63
-                result = result or (b and 0x1f shl shift)
-                shift += 5
-            } while (b >= 0x20)
-            val dLat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-            lat += dLat
-
-            shift = 0
-            result = 0
-            do {
-                b = encoded[index++].code - 63
-                result = result or (b and 0x1f shl shift)
-                shift += 5
-            } while (b >= 0x20)
-            val dLng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-            lng += dLng
-
-            poly.add(LatLng(lat / 1E5, lng / 1E5))
-        }
-
-        return poly
-    }
-
 }

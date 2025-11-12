@@ -20,6 +20,7 @@ loggingInterceptor = "4.9.2"
 navigationCompose = "2.9.3"
 maps-compose = "2.11.4"
 okhttp = "4.11.0"
+osmdroidAndroid = "6.1.18"
 play-services-maps = "19.2.0"
 play-services-location = "21.3.0"
 retrofit = "2.9.0"
@@ -60,6 +61,7 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
 logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+osmdroid-android = { module = "org.osmdroid:osmdroid-android", version.ref = "osmdroidAndroid" }
 retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
 
 
