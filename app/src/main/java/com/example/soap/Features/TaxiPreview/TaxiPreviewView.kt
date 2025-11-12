@@ -164,10 +164,7 @@ fun TaxiPreviewView(
                     mapView.overlays.add(endMarker)
 
                     if (pathPoints.isNotEmpty()) {
-                        val geoPoints = listOf(
-                            GeoPoint(room.source.latitude, room.source.longitude),
-                            GeoPoint(room.destination.latitude, room.destination.longitude)
-                        )
+                        val geoPoints = pathPoints.map { GeoPoint(it.latitude, it.longitude) }
                         val bounds = BoundingBox.fromGeoPoints(geoPoints)
 
                         val polyline = Polyline().apply {
