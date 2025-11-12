@@ -4,7 +4,6 @@ object Constants {
     // MARK: Authorization
     val authorizationURL = "https://taxi.dev.sparcs.org/api/auth/sparcsapp/login?codeChallenge="
 
-
     // MARK: Terms
     val privacyPolicyURL = "https://github.com/sparcs-kaist/privacy/blob/main/Privacy.md"
     val termsOfUseURL = "https://github.com/sparcs-kaist/privacy/blob/main/TermsOfUse.md"
@@ -46,6 +45,8 @@ object Constants {
 
     val taxiRoomNameRegex = Regex("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _~/#'@=\"^()+*<>{}\\[\\]\\-]{1,50}$")
 
+    val taxiMaxRoomCount = 5
+
     // MARK: Ara
     val araBackendURL = "https://newara.dev.sparcs.org/api/"
 
@@ -55,5 +56,7 @@ object Constants {
     // MARK: OTL
     val otlBackendURL = "https://api.otl.dev.sparcs.org/"
 
-    val taxiMaxRoomCount = 5
+    // MARK: MAPS
+    val mapsURL = "https://api.openrouteservice.org/v2/directions/driving-car?"
+
 }
