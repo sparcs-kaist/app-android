@@ -11,7 +11,7 @@ plugins {
 val properties = Properties().apply {
     load(rootProject.file("local.properties").inputStream())
 }
-val googleMapKey = properties.getProperty("google_map_key")
+val mapKey = properties.getProperty("map_api_key")
 
 
 android {
@@ -19,7 +19,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        manifestPlaceholders += mapOf("googleMapKey" to googleMapKey)
+        manifestPlaceholders += mapOf("mapKey" to mapKey)
         applicationId = "com.example.soap"
         minSdk = 31
         targetSdk = 35
@@ -28,7 +28,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
-        buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$googleMapKey\"")
+        buildConfigField("String", "MAPS_API_KEY", "\"$mapKey\"")
     }
 
     buildTypes {
@@ -94,4 +94,5 @@ dependencies {
     implementation(libs.socket.io.client)
     implementation (libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
+    implementation (libs.osmdroid.android)
 }
