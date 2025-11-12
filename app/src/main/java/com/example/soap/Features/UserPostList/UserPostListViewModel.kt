@@ -88,14 +88,14 @@ class UserPostListViewModel @Inject constructor(
     }
 
     override suspend fun fetchInitialPosts() {
-        val userID = user.id.toIntOrNull() ?: return
+        val userID = user.id.toDoubleOrNull()?.toInt() ?: return
         _state.value = ViewState.Loading
         try {
             val page = araBoardRepository.fetchPosts(
                 type = PostListType.User(userID),
                 page = 1,
                 pageSize = pageSize,
-                searchKeyword = if (_searchKeyword.value.isBlank()) null else _searchKeyword.value
+                searchKeyword = _searchKeyword.value.ifBlank { null }
             )
             totalPages = page.pages
             currentPage = page.currentPage
@@ -105,11 +105,10 @@ class UserPostListViewModel @Inject constructor(
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
         }
-
     }
 
     override suspend fun loadNextPage() {
-        val userID = user.id.toIntOrNull() ?: return
+        val userID = user.id.toDoubleOrNull()?.toInt() ?: return
         if (_isLoadingMore.value || !hasMorePages) return
 
         _isLoadingMore.value = true
@@ -119,7 +118,7 @@ class UserPostListViewModel @Inject constructor(
                 type = PostListType.User(userID),
                 page = nextPage,
                 pageSize = pageSize,
-                searchKeyword = if (_searchKeyword.value.isBlank()) null else _searchKeyword.value
+                searchKeyword = _searchKeyword.value.ifBlank { null }
             )
             currentPage = page.currentPage
             _posts.value += page.results

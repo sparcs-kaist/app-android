@@ -90,8 +90,8 @@ fun LectureSearchView(
     ) { innerPadding ->
         Column(
             modifier = Modifier
-                .padding(innerPadding)
                 .imePadding()
+                .padding(innerPadding)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
         ) {
