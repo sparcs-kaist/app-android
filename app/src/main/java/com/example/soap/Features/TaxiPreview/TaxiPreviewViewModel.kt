@@ -3,22 +3,23 @@ package com.example.soap.Features.TaxiPreview
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.soap.BuildConfig
 import com.example.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.example.soap.Domain.Helpers.Constants
 import com.example.soap.Domain.Models.Taxi.TaxiParticipant
 import com.example.soap.Domain.Models.Taxi.TaxiUser
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepository
 import com.example.soap.Domain.Usecases.TaxiRoomUseCaseProtocol
 import com.example.soap.Domain.Usecases.UserUseCase
-import com.google.android.gms.maps.model.LatLng
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.json.JSONObject
-import java.net.URL
+import org.osmdroid.util.GeoPoint
 import javax.inject.Inject
 
 
@@ -26,7 +27,7 @@ import javax.inject.Inject
 class TaxiPreviewViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepository,
     private val userUseCase: UserUseCase,
-    private val taxiRoomUseCase: TaxiRoomUseCaseProtocol
+    private val taxiRoomUseCase: TaxiRoomUseCaseProtocol,
 ) : ViewModel() {
 
     // MARK: - Properties
@@ -48,31 +49,54 @@ class TaxiPreviewViewModel @Inject constructor(
     }
 
     suspend fun calculateRoutePoints(
-        source: LatLng,
-        destination: LatLng
-    ): List<LatLng> = withContext(Dispatchers.IO) {
+        source: GeoPoint,
+        destination: GeoPoint,
+    ): List<GeoPoint> = withContext(Dispatchers.IO) {
         try {
-            val apiKey = BuildConfig.GOOGLE_MAPS_API_KEY
+            val apiKey = com.example.soap.BuildConfig.MAPS_API_KEY
+            val client = OkHttpClient()
 
-            val url = "https://maps.googleapis.com/maps/api/directions/json?" +
-                    "origin=${source.latitude},${source.longitude}" +
-                    "&destination=${destination.latitude},${destination.longitude}" +
-                    "&mode=transit" +
-                    "&key=${apiKey}"
+            val url = Constants.mapsURL +
+                    "api_key=$apiKey" +
+                    "&start=${source.longitude},${source.latitude}" +
+                    "&end=${destination.longitude},${destination.latitude}"
 
-            val result = URL(url).readText()
-            val json = JSONObject(result)
-            val points = mutableListOf<LatLng>()
-            val routes = json.getJSONArray("routes")
-            if (routes.length() > 0) {
-                val overviewPolyline = routes.getJSONObject(0)
-                    .getJSONObject("overview_polyline")
-                    .getString("points")
-                points.addAll(decodePolyline(overviewPolyline))
+            val request = Request.Builder()
+                .url(url)
+                .get()
+                .build()
+
+            val response = client.newCall(request).execute()
+            if (!response.isSuccessful) {
+                Log.e("TaxiPreviewViewModel", "HTTP error: ${response.code}")
+                return@withContext emptyList()
             }
+
+            val json = JSONObject(response.body?.string() ?: "{}")
+
+            if (json.has("error")) {
+                val errorMsg = json.getJSONObject("error").optString("message", "Unknown API error")
+                Log.e("TaxiPreviewViewModel", "OpenRouteService API error: $errorMsg")
+                return@withContext emptyList()
+            }
+
+            val features = json.optJSONArray("features") ?: return@withContext emptyList()
+            if (features.length() == 0) return@withContext emptyList()
+
+            val geometry = features.getJSONObject(0).getJSONObject("geometry")
+            val coordinates = geometry.getJSONArray("coordinates")
+
+            val points = mutableListOf<GeoPoint>()
+            for (i in 0 until coordinates.length()) {
+                val coord = coordinates.getJSONArray(i)
+                val lon = coord.getDouble(0)
+                val lat = coord.getDouble(1)
+                points.add(GeoPoint(lat, lon))
+            }
+
             points
         } catch (e: Exception) {
-            Log.e("TaxiPreviewViewModel", "Error calculating route points: ${e.message}")
+            Log.e("TaxiPreviewViewModel", "Error parsing route: ${e.message}", e)
             emptyList()
         }
     }
@@ -99,40 +123,4 @@ class TaxiPreviewViewModel @Inject constructor(
             _blockStatus.value = taxiRoomUseCase.isBlocked()
         }
     }
-
-    private fun decodePolyline(encoded: String): List<LatLng> {
-        val poly = mutableListOf<LatLng>()
-        var index = 0
-        val len = encoded.length
-        var lat = 0
-        var lng = 0
-
-        while (index < len) {
-            var b: Int
-            var shift = 0
-            var result = 0
-            do {
-                b = encoded[index++].code - 63
-                result = result or (b and 0x1f shl shift)
-                shift += 5
-            } while (b >= 0x20)
-            val dLat = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-            lat += dLat
-
-            shift = 0
-            result = 0
-            do {
-                b = encoded[index++].code - 63
-                result = result or (b and 0x1f shl shift)
-                shift += 5
-            } while (b >= 0x20)
-            val dLng = if (result and 1 != 0) (result shr 1).inv() else result shr 1
-            lng += dLng
-
-            poly.add(LatLng(lat / 1E5, lng / 1E5))
-        }
-
-        return poly
-    }
-
 }
