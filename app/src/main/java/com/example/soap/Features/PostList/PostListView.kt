@@ -66,7 +66,7 @@ fun PostListView(
     viewModel: PostListViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
+    var loadedInitialPost by rememberSaveable { mutableStateOf(false) }
 
     val searchKeyword by viewModel.searchKeyword.collectAsState()
     var showSearchBar by remember { mutableStateOf(false) }
@@ -81,8 +81,8 @@ fun PostListView(
     LaunchedEffect(Unit) {
         val json = Gson().toJson(board)
         backStackEntry.savedStateHandle["board_json"] = json
-        if (!loadedInitialPost.value) {
-            loadedInitialPost.value = true
+        if (!loadedInitialPost) {
+            loadedInitialPost = true
             viewModel.board = board
             viewModel.bind()
         }
@@ -166,7 +166,7 @@ fun PostListView(
                             errorMessage = error,
                             onRetry = {
                                 coroutineScope.launch {
-                                    if (!loadedInitialPost.value) {
+                                    if (!loadedInitialPost) {
                                         viewModel.fetchInitialPosts()
                                         viewModel.bind()
                                     }

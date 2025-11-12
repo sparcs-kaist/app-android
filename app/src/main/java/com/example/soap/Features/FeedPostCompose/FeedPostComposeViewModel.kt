@@ -3,9 +3,9 @@ package com.example.soap.Features.FeedPostCompose
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.media.ExifInterface
+import android.graphics.ImageDecoder
 import android.net.Uri
+import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -142,30 +142,20 @@ class FeedPostComposeViewModel @Inject constructor(
     private suspend fun loadBitmapFromUri(uri: Uri, context: Context): Bitmap? =
         withContext(Dispatchers.IO) {
             try {
-                val stream = context.contentResolver.openInputStream(uri) ?: return@withContext null
-                val bitmap = BitmapFactory.decodeStream(stream)
-
-                val exifStream = context.contentResolver.openInputStream(uri) ?: return@withContext bitmap
-                val exif = ExifInterface(exifStream)
-                val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-
-                val rotation = when (orientation) {
-                    ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                    ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                    ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                    else -> 0f
-                }
-
-                if (rotation == 0f) bitmap
-                else {
-                    val matrix = Matrix()
-                    matrix.postRotate(rotation)
-                    Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val source = ImageDecoder.createSource(context.contentResolver, uri)
+                    ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                        decoder.isMutableRequired = true
+                    }
+                } else {
+                    val stream = context.contentResolver.openInputStream(uri)
+                    BitmapFactory.decodeStream(stream)
                 }
             } catch (e: Exception) {
                 null
             }
         }
+
 
     override fun removeImage(index: Int) {
         val mutable = selectedImages.toMutableList()

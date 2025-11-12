@@ -509,9 +509,9 @@ private fun InputBar(
     focusRequester: FocusRequester
 ) {
     val scope = rememberCoroutineScope()
-    val isWritingState = remember { mutableStateOf(isWritingComment) }
+    val isWritingState by remember { mutableStateOf(isWritingComment) }
 
-    val showProfile = (!isWritingState.value && comment.isEmpty())
+    val showProfile = (!isWritingState && comment.isEmpty())
 
     Row(
         modifier = Modifier
