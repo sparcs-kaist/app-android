@@ -54,10 +54,16 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
     private val _selectedTimetableID = MutableStateFlow("${_selectedSemesterID.value}-myTable")
     override var selectedTimetableID: StateFlow<String?> = _selectedTimetableID.asStateFlow()
 
-    private val _selectedSemester = MutableStateFlow(semesters.value.firstOrNull { it.id == selectedSemesterID.value })
+    private val _selectedSemester =
+        MutableStateFlow(semesters.value.firstOrNull { it.id == selectedSemesterID.value })
     override val selectedSemester: StateFlow<Semester?> = _selectedSemester.asStateFlow()
 
-    private val _selectedTimetable = MutableStateFlow(Timetable(id = "${_selectedSemesterID.value}-myTable", lectures = Lecture.mockList()))
+    private val _selectedTimetable = MutableStateFlow(
+        Timetable(
+            id = "${_selectedSemesterID.value}-myTable",
+            lectures = Lecture.mockList()
+        )
+    )
     override val selectedTimetable: StateFlow<Timetable?> = _selectedTimetable.asStateFlow()
 
     private val _selectedTimetableDisplayName = MutableStateFlow("My Table")
@@ -128,11 +134,14 @@ class TimetableUseCase @Inject constructor(
     ) { tid, sid, store ->
         if (tid == null) "Unknown"
         else if (tid.endsWith("-myTable")) "My Table"
-        else sid?.let { s -> store[s]?.map { it.id }?.indexOf(tid)?.let { "Table $it" } ?: "Unknown" } ?: "Unknown"
+        else sid?.let { s ->
+            store[s]?.map { it.id }?.indexOf(tid)?.let { "Table $it" } ?: "Unknown"
+        } ?: "Unknown"
     }.stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, "Unknown")
 
-    override val isEditable: StateFlow<Boolean> = selectedTimetable.map { it?.id?.endsWith("-myTable") == false }
-        .stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, false)
+    override val isEditable: StateFlow<Boolean> =
+        selectedTimetable.map { it?.id?.endsWith("-myTable") == false }
+            .stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, false)
 
     override val timetableIDsForSelectedSemester: List<String>
         get() = _selectedSemesterID.value?.let { sid ->
@@ -141,9 +150,9 @@ class TimetableUseCase @Inject constructor(
 
 
     override val hasLectureInCurrentTable: (Lecture) -> Boolean
-    get() = { lecture ->
-        selectedTimetable.value?.lectures?.any { it.id == lecture.id } == true
-    }
+        get() = { lecture ->
+            selectedTimetable.value?.lectures?.any { it.id == lecture.id } == true
+        }
 
     // MARK: - API
     override suspend fun load() {
@@ -180,7 +189,8 @@ class TimetableUseCase @Inject constructor(
         val user = userUseCase.otlUser ?: return
         val semester = selectedSemester.value ?: return
         // Create on server
-        val newTable = otlTimetableRepository.createTable(user.id, semester.year, semester.semesterType)
+        val newTable =
+            otlTimetableRepository.createTable(user.id, semester.year, semester.semesterType)
 
         // Insert into local store for the semester (dedup & keep myTable first)
         val sid = semester.id
@@ -222,7 +232,8 @@ class TimetableUseCase @Inject constructor(
         val idx = tables.indexOfFirst { it.id == tid }
         if (idx >= 0) tables[idx] = updatedTable else tables.add(updatedTable)
 
-        _store.value = _store.value.toMutableMap().apply { put(sid, mergeKeepingMyTableFirst(tables, emptyList())) }
+        _store.value = _store.value.toMutableMap()
+            .apply { put(sid, mergeKeepingMyTableFirst(tables, emptyList())) }
 
         // Ensure selection still points to the edited table
         _selectedTimetableID.value = updatedTable.id
@@ -241,7 +252,8 @@ class TimetableUseCase @Inject constructor(
         if (idx >= 0) tables[idx] = updatedTable else tables.add(updatedTable)
 
         // Keep -myTable (if any) at the front
-        _store.value = _store.value.toMutableMap().apply { put(sid, mergeKeepingMyTableFirst(tables, emptyList())) }
+        _store.value = _store.value.toMutableMap()
+            .apply { put(sid, mergeKeepingMyTableFirst(tables, emptyList())) }
 
         // Ensure selection still points to the edited table
         _selectedTimetableID.value = updatedTable.id
@@ -265,7 +277,10 @@ class TimetableUseCase @Inject constructor(
     /// - keeps order of existing tables
     /// - appends any new ones not present (by id)
     /// - keeps `-myTable` as the first element if present
-    private fun mergeKeepingMyTableFirst(existing: List<Timetable>, incoming: List<Timetable>): List<Timetable> {
+    private fun mergeKeepingMyTableFirst(
+        existing: List<Timetable>,
+        incoming: List<Timetable>,
+    ): List<Timetable> {
         val seen = existing.map { it.id }.toMutableSet()
         val result = existing.toMutableList()
         for (t in incoming) if (!seen.contains(t.id)) {
@@ -298,7 +313,9 @@ class TimetableUseCase @Inject constructor(
 
         if (_store.value[sid]?.any { it.id.endsWith("-myTable") } != true) {
             val myTable = makeMyTable(semester, otlUser)
-            val updatedList = listOf(myTable) + (_store.value[sid]?.filterNot { it.id.endsWith("-myTable") } ?: emptyList())
+            val updatedList =
+                listOf(myTable) + (_store.value[sid]?.filterNot { it.id.endsWith("-myTable") }
+                    ?: emptyList())
             _store.value = _store.value.toMutableMap().apply { put(sid, updatedList) }
         }
 
@@ -306,7 +323,8 @@ class TimetableUseCase @Inject constructor(
         fetchingSemesters.add(sid)
         try {
             val user = otlUser ?: return
-            val fetched = otlTimetableRepository.getTables(user.id, semester.year, semester.semesterType)
+            val fetched =
+                otlTimetableRepository.getTables(user.id, semester.year, semester.semesterType)
             val existing = _store.value[sid] ?: emptyList()
             val merged = mergeKeepingMyTableFirst(existing, fetched)
             _store.value = _store.value.toMutableMap().apply { put(sid, merged) }
