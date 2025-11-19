@@ -40,11 +40,8 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.example.soap.Domain.Enums.FeedReportType
 import com.example.soap.Domain.Enums.FeedVoteType
-import com.example.soap.Domain.Models.Feed.FeedCreatePost
 import com.example.soap.Domain.Models.Feed.FeedPost
-import com.example.soap.Domain.Models.Feed.FeedPostPage
 import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Features.Post.Components.PostCommentButton
 import com.example.soap.Features.Post.Components.PostShareButton
@@ -54,7 +51,6 @@ import com.example.soap.Shared.Extensions.noRippleClickable
 import com.example.soap.Shared.Extensions.relativeTimeString
 import com.example.soap.Shared.Extensions.timeAgoDisplay
 import com.example.soap.Shared.Mocks.mock
-import com.example.soap.Shared.Mocks.mockList
 import com.example.soap.ui.theme.Theme
 import com.example.soap.ui.theme.grayBB
 import com.example.soap.ui.theme.lightGray0
@@ -410,27 +406,17 @@ fun FeedPostRowSkeleton() {
 @Preview
 private fun Preview() {
     Theme {
-        FeedPostRow(
-            post = FeedPost.mock(),
-            singleLine = true,
-            onPostDeleted = {},
-            onComment = {},
-            feedPostRepository = object : FeedPostRepositoryProtocol {
-                override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage {
-                    return FeedPostPage(
-                        items = FeedPost.mockList(),
-                        nextCursor = "",
-                        hasNext = false
-                    )
-                }
-
-                override suspend fun writePost(request: FeedCreatePost) {}
-                override suspend fun deletePost(postID: String) {}
-                override suspend fun vote(postID: String, type: FeedVoteType) {}
-                override suspend fun deleteVote(postID: String) {}
-                override suspend fun reportPost(postID: String, reason: FeedReportType) {}
-            }
-        )
+        Column(Modifier
+            .fillMaxWidth()
+            .noRippleClickable {}
+        ) {
+            Header(
+                FeedPost.mock(),
+                {},
+                false,
+            ) {}
+            Content(FeedPost.mock(), true, {})
+        }
     }
 }
 

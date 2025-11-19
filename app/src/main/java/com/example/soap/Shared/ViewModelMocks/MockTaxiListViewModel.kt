@@ -24,6 +24,8 @@ class MockTaxiListViewModel(initialState: TaxiListViewModel.ViewState) : TaxiLis
     private val _locations = MutableStateFlow<List<TaxiLocation>>(emptyList())
     override val locations: StateFlow<List<TaxiLocation>> get() = _locations
 
+    override var roomId: String? = ""
+
     private val _rooms = MutableStateFlow<List<TaxiRoom>>(emptyList())
     override val rooms: StateFlow<List<TaxiRoom>> get() = _rooms
 

@@ -47,11 +47,11 @@ class UserUseCase @Inject constructor(
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
     private val otlUserRepository: OTLUserRepositoryProtocol,
-    private val userStorage: UserStorageProtocol
+    private val userStorage: UserStorageProtocol,
 ) : UserUseCaseProtocol {
 
     init {
-        Log.d("UserUseCase","Fetching Users")
+        Log.d("UserUseCase", "Fetching Users")
 
         CoroutineScope(Dispatchers.IO).launch {
             fetchUsers()
@@ -82,18 +82,18 @@ class UserUseCase @Inject constructor(
     }
 
     override suspend fun fetchAraUser() {
-        Log.d("UserUseCase","Fetching Ara User")
+        Log.d("UserUseCase", "Fetching Ara User")
         val user = araUserRepository.fetchUser()
         userStorage.setAraUser(user)
         Log.d("UserUseCase", user.toString())
     }
 
     override suspend fun updateAraUser(params: Map<String, Any>) {
-        Log.d("UserUseCase","Updating Ara User Information: $params")
+        Log.d("UserUseCase", "Updating Ara User Information: $params")
 
         val araUser = araUser
         if (araUser == null) {
-            Log.e("UserUseCase","Ara User Not Found")
+            Log.e("UserUseCase", "Ara User Not Found")
             return
         }
 
@@ -102,7 +102,7 @@ class UserUseCase @Inject constructor(
     }
 
     override suspend fun fetchTaxiUser(): TaxiUser {
-        Log.d("UserUseCase","Fetching Taxi User")
+        Log.d("UserUseCase", "Fetching Taxi User")
         val user = taxiUserRepository.fetchUser()
         userStorage.setTaxiUser(user)
         Log.d("UserUseCase", user.toString())
@@ -110,7 +110,7 @@ class UserUseCase @Inject constructor(
     }
 
     override suspend fun fetchFeedUser() {
-        Log.d("UserUseCase","Fetching Feed User")
+        Log.d("UserUseCase", "Fetching Feed User")
         val user = feedUserRepository.getUser()
         userStorage.setFeedUser(user)
         Log.d("UserUseCase", user.toString())

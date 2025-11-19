@@ -17,7 +17,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -95,7 +94,7 @@ fun CourseSkeletonCell() {
                     .weight(1f)
                     .height(18.dp)
                     .background(
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
                         shape = RoundedCornerShape(4.dp)
                     )
             )

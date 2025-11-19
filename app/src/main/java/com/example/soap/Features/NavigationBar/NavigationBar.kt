@@ -1,5 +1,6 @@
 package com.example.soap.Features.NavigationBar
 
+import android.content.Intent
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -34,6 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
 import com.example.soap.Features.BoardList.BoardListView
 import com.example.soap.Features.BoardList.BoardListViewModel
@@ -176,11 +178,14 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             }
 
             composable(
-                route = Channel.FeedPost.name + "?feed_json={feed_json}",
+                route = Channel.FeedPost.name + "?feedId={feedId}",
                 arguments = listOf(
-                    navArgument("feed_json") {
-                        type = NavType.StringType
-                        nullable = false
+                    navArgument("feedId") { type = NavType.StringType }
+                ),
+                deepLinks = listOf(
+                    navDeepLink {
+                        uriPattern = "buddy://feedpost?feedId={feedId}"
+                        action = Intent.ACTION_VIEW
                     }
                 ),
                 enterTransition = trendingEnterTransition(),
@@ -211,82 +216,97 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 startDestination = Channel.TimeTable.name,
                 route = "OTLGraph"
             ) {
-            composable(
-                route = Channel.TimeTable.name
-            ) { backStackEntry ->
-                val viewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
-                val viewModel: LectureSearchViewModel = hiltViewModel(backStackEntry)
-                TimetableView(
-                    viewModel = viewModelImpl,
-                    navController = navController,
-                    lectureSearchViewModel = viewModel
-                )
+                composable(
+                    route = Channel.TimeTable.name
+                ) { backStackEntry ->
+                    val viewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: LectureSearchViewModel = hiltViewModel(backStackEntry)
+                    TimetableView(
+                        viewModel = viewModelImpl,
+                        navController = navController,
+                        lectureSearchViewModel = viewModel
+                    )
+                }
+
+                composable(
+                    route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",
+                    arguments = listOf(
+                        navArgument("lecture_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val lectureDetailViewModelImpl: LectureDetailViewModel =
+                        hiltViewModel(backStackEntry)
+                    val timetableViewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
+
+                    LectureDetailView(
+                        lectureDetailViewModel = lectureDetailViewModelImpl,
+                        timetableViewModel = timetableViewModelImpl,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.CourseView.name + "?course_json={course_json}",
+                    arguments = listOf(
+                        navArgument("course_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    )
+                ) { backStackEntry ->
+                    val viewModelImpl: CourseViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: CourseViewModelProtocol = viewModelImpl
+                    CourseView(navController = navController, viewModel = viewModel)
+                }
+
+                composable(
+                    route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}",
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModelImpl: ReviewComposeViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: ReviewComposeViewModelProtocol = viewModelImpl
+                    val lectureDetailViewModel: LectureDetailViewModel =
+                        hiltViewModel(backStackEntry)
+
+                    ReviewComposeView(
+                        reviewComposeViewModel = viewModel,
+                        lectureDetailViewModel = lectureDetailViewModel,
+                        navController = navController
+                    )
+                }
             }
-
-            composable(
-                route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",
-                arguments = listOf(
-                    navArgument("lecture_json") {
-                        type = NavType.StringType
-                        nullable = false
-                    }
-                ),
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ) { backStackEntry ->
-                val lectureDetailViewModelImpl: LectureDetailViewModel =
-                    hiltViewModel(backStackEntry)
-                val timetableViewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
-
-                LectureDetailView(
-                    lectureDetailViewModel = lectureDetailViewModelImpl,
-                    timetableViewModel = timetableViewModelImpl,
-                    navController = navController
-                )
-            }
-
-            composable(
-                route = Channel.CourseView.name + "?course_json={course_json}",
-                arguments = listOf(
-                    navArgument("course_json") {
-                        type = NavType.StringType
-                        nullable = false
-                    }
-                )
-            ) { backStackEntry ->
-                val viewModelImpl: CourseViewModel = hiltViewModel(backStackEntry)
-                val viewModel: CourseViewModelProtocol = viewModelImpl
-                CourseView(navController = navController, viewModel = viewModel)
-            }
-
-            composable(
-                route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}",
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
-                popExitTransition = trendingPopExitTransition()
-            ) { backStackEntry ->
-                val viewModelImpl: ReviewComposeViewModel = hiltViewModel(backStackEntry)
-                val viewModel: ReviewComposeViewModelProtocol = viewModelImpl
-                val lectureDetailViewModel: LectureDetailViewModel =
-                    hiltViewModel(backStackEntry)
-
-                ReviewComposeView(
-                    reviewComposeViewModel = viewModel,
-                    lectureDetailViewModel = lectureDetailViewModel,
-                    navController = navController
-                )
-            }
-        }
 
             /*___________Taxi___________*/
             navigation(
                 startDestination = Channel.Taxi.name,
                 route = "TaxiGraph"
             ) {
-                composable(Channel.Taxi.name) { backStackEntry ->
+                composable(
+                    route = Channel.Taxi.name + "?roomId={roomId}",
+                    arguments = listOf(
+                        navArgument("roomId") {
+                            nullable = true
+                            type = NavType.StringType
+                        }
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = "https://taxi.dev.sparcs.org/invite/{roomId}"
+                            action = Intent.ACTION_VIEW
+                        }
+                    )
+                )
+                { backStackEntry ->
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("TaxiGraph")
                     }
@@ -374,6 +394,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
+
                     route = Channel.BoardList.name + "?board_json={board_json}",
                     arguments = listOf(
                         navArgument("board_json") {
@@ -382,7 +403,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         }
                     )
                 ) { backStackEntry ->
-
                     val viewModelImpl: PostListViewModel = hiltViewModel(backStackEntry)
                     val viewModel: PostListViewModelProtocol = viewModelImpl
                     PostListView(
@@ -392,11 +412,14 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
-                    route = Channel.PostView.name + "?post_json={post_json}",
+                    route = Channel.PostView.name + "?postId={postId}",
                     arguments = listOf(
-                        navArgument("post_json") {
-                            type = NavType.StringType
-                            nullable = false
+                        navArgument("postId") { type = NavType.IntType }
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = "https://newara.dev.sparcs.org/post/{postId}"
+                            action = Intent.ACTION_VIEW
                         }
                     )
                 ) { backStackEntry ->
@@ -555,7 +578,7 @@ fun AppDownBar(
             items.forEach { (channel, label, iconRes) ->
                 NavigationBarItem(
                     selected = currentScreen == channel,
-                    onClick = { navController.navigate(channel.name)},
+                    onClick = { navController.navigate(channel.name) },
                     icon = {
                         Icon(
                             painter = painterResource(id = iconRes),

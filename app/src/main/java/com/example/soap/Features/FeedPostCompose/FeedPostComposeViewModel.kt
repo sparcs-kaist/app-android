@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.soap.Domain.Enums.FeedPostPhotoItem
 import com.example.soap.Domain.Models.Feed.FeedCreatePost
 import com.example.soap.Domain.Models.Feed.FeedUser
 import com.example.soap.Domain.Repositories.Feed.FeedImageRepositoryProtocol
@@ -26,12 +27,6 @@ import kotlinx.coroutines.withContext
 import java.util.UUID
 import javax.inject.Inject
 
-data class FeedPostPhotoItem(
-    val id: String,
-    val image: Bitmap,
-    var spoiler: Boolean,
-    var description: String,
-)
 
 interface FeedPostComposeViewModelProtocol {
     var feedUser: FeedUser?
@@ -57,7 +52,6 @@ class FeedPostComposeViewModel @Inject constructor(
         data object Publicly : ComposeType(0)
         data object Anonymously : ComposeType(1)
     }
-
 
     // MARK: - Properties
     override var feedUser by mutableStateOf<FeedUser?>(null)

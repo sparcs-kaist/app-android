@@ -3,6 +3,7 @@ package com.example.soap.Domain.Repositories.Feed
 import com.example.soap.Domain.Enums.FeedReportType
 import com.example.soap.Domain.Enums.FeedVoteType
 import com.example.soap.Domain.Models.Feed.FeedCreatePost
+import com.example.soap.Domain.Models.Feed.FeedPost
 import com.example.soap.Domain.Models.Feed.FeedPostPage
 import com.example.soap.Networking.RequestDTO.Feed.FeedPostRequestDTO
 import com.example.soap.Networking.RetrofitAPI.Feed.FeedPostApi
@@ -10,6 +11,7 @@ import javax.inject.Inject
 
 interface FeedPostRepositoryProtocol {
     suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage
+    suspend fun fetchPost(postID: String): FeedPost
     suspend fun writePost(request: FeedCreatePost)
     suspend fun deletePost(postID: String)
     suspend fun vote(postID: String, type: FeedVoteType)
@@ -23,6 +25,11 @@ class FeedPostRepository @Inject constructor(
 
     override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage {
         val dto = api.fetchPosts(cursor, page)
+        return dto.toModel()
+    }
+
+    override suspend fun fetchPost(postID: String): FeedPost {
+        val dto = api.fetchPost(postID)
         return dto.toModel()
     }
 

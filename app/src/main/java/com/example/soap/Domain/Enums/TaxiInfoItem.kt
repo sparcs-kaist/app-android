@@ -1,4 +1,4 @@
-package com.example.soap.Features.TaxiPreview.Components
+package com.example.soap.Domain.Enums
 
 sealed class TaxiInfoItem {
     abstract val label: String
