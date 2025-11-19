@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -31,7 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,7 +63,6 @@ import com.example.soap.Features.FeedPost.Components.FeedPostNavigationBar
 import com.example.soap.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import com.example.soap.R
 import com.example.soap.ui.theme.lightGray0
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -87,16 +86,19 @@ fun FeedPostView(
         hiltViewModel<FeedPostViewModel>().feedCommentRepository
     val vm = hiltViewModel<FeedViewModel>()
 
-    val backStackEntry = navController.currentBackStackEntry!!
-    val json = backStackEntry.savedStateHandle.get<String>("feed_json")
-    val post = remember { mutableStateOf(Gson().fromJson(json, FeedPost::class.java)) }
+    val post = viewModel.post.collectAsState().value
     val context = LocalContext.current
 
     val deleteSuccessText = stringResource(R.string.deleted_successfully)
     val reportSuccessText = stringResource(R.string.reported_successfully)
 
+    if (post == null) {
+        LoadingView(navController)
+        return
+    }
+
     LaunchedEffect(Unit) {
-        viewModel.fetchComments(postID = post.value.id)
+        viewModel.fetchComments(postID = post.id)
     }
 
     Scaffold(
@@ -106,12 +108,12 @@ fun FeedPostView(
                 onDelete = { showDeleteConfirmation = true },
                 onReport = {
                     coroutineScope.launch {
-                        repo.reportPost(post.value.id, it)
+                        repo.reportPost(post.id, it)
                     }
                     Toast.makeText(context, reportSuccessText, Toast.LENGTH_SHORT).show()
                 },
                 onTranslate = {/*Todo - translate*/ },
-                isMine = post.value.isAuthor
+                isMine = post.isAuthor
             )
         },
         bottomBar = {
@@ -128,11 +130,11 @@ fun FeedPostView(
                             uploadedComment = if (targetComment != null) {
                                 viewModel.writeReply(targetComment!!.id)
                             } else {
-                                viewModel.writeComment(post.value.id)
+                                viewModel.writeComment(post.id)
                             }
 
                             uploadedComment.let { comment ->
-                                post.value.commentCount += 1
+                                post.commentCount += 1
                                 targetComment = null
                                 viewModel.text = ""
                                 isWritingCommentFocusState = false
@@ -159,7 +161,7 @@ fun FeedPostView(
             onRefresh = {
                 isRefreshing = true
                 coroutineScope.launch {
-                    viewModel.fetchComments(postID = post.value.id)
+                    viewModel.fetchComments(postID = post.id)
                 }
                 isRefreshing = false
             }
@@ -170,7 +172,7 @@ fun FeedPostView(
             ) {
                 item {
                     FeedPostRow(
-                        post = post.value,
+                        post = post,
                         singleLine = false,
                         onPostDeleted = {},
                         onComment = {
@@ -185,7 +187,7 @@ fun FeedPostView(
                     Comments(
                         viewModel = viewModel,
                         post = post,
-                        isMine = post.value.isAuthor,
+                        isMine = post.isAuthor,
                         targetComment = targetComment,
                         isWritingCommentFocusState = isWritingCommentFocusState,
                         feedCommentRepository = repo1,
@@ -201,12 +203,17 @@ fun FeedPostView(
         if (showDeleteConfirmation) {
             AlertDialog(
                 onDismissRequest = { showDeleteConfirmation = false },
-                title = { Text(text = stringResource(R.string.delete_post), fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        text = stringResource(R.string.delete_post),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
                 confirmButton = {
                     Button(
                         onClick = {
-                            coroutineScope.launch { vm.deletePost(post.value.id) }
+                            coroutineScope.launch { vm.deletePost(post.id) }
                             showDeleteConfirmation = false
                             navController.popBackStack()
                         },
@@ -230,7 +237,7 @@ private fun InputBar(
     isWritingCommentFocusState: Boolean,
     onCommentUploaded: () -> Unit,
     focusRequester: FocusRequester,
-    isUploadingComment: Boolean
+    isUploadingComment: Boolean,
 ) {
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
     Row(
@@ -330,7 +337,7 @@ private fun InputBar(
 @Composable
 private fun Comments(
     viewModel: FeedPostViewModelProtocol,
-    post: MutableState<FeedPost>,
+    post: FeedPost,
     isMine: Boolean,
     targetComment: FeedComment?,
     isWritingCommentFocusState: Boolean,
@@ -344,7 +351,7 @@ private fun Comments(
                 Text(
                     stringResource(
                         R.string.the_number_of_comments,
-                        post.value.commentCount
+                        post.commentCount
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -359,7 +366,7 @@ private fun Comments(
                 Text(
                     stringResource(
                         R.string.the_number_of_comments,
-                        post.value.commentCount
+                        post.commentCount
                     ),
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -390,6 +397,32 @@ private fun Comments(
 
         is FeedPostViewModel.ViewState.Error -> {
             Text("Error: ${state.message}", Modifier.padding(horizontal = 8.dp))
+        }
+    }
+}
+
+@Composable
+private fun LoadingView(
+    navController: NavController,
+) {
+    Scaffold(
+        topBar = {
+            FeedPostNavigationBar(
+                navController = navController,
+                onDelete = {},
+                onReport = {},
+                onTranslate = {},
+                isMine = false
+            )
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.example.soap.Features.Feed
 
-import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -35,7 +34,6 @@ import com.example.soap.Features.NavigationBar.AppDownBar
 import com.example.soap.Features.NavigationBar.Channel
 import com.example.soap.Shared.Views.ContentViews.ErrorView
 import com.example.soap.ui.theme.Theme
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +52,7 @@ fun FeedView(
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
-        if(!loadedInitialPost.value) {
+        if (!loadedInitialPost.value) {
             loadedInitialPost.value = true
             viewModel.fetchInitialData()
         }
@@ -74,7 +72,6 @@ fun FeedView(
             )
         }
     ) { innerPadding ->
-
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = {
@@ -108,8 +105,7 @@ fun FeedView(
                                     coroutineScope.launch { viewModel.deletePost(postID) }
                                 },
                                 onComment = {
-                                    val json = Uri.encode(Gson().toJson(post))
-                                    navController.navigate(Channel.FeedPost.name + "?feed_json=$json")
+                                    navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
                                 },
                                 feedPostRepository = repo
                             )

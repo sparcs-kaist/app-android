@@ -4,11 +4,14 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Feed.FeedComment
 import com.example.soap.Domain.Models.Feed.FeedCreateComment
+import com.example.soap.Domain.Models.Feed.FeedPost
 import com.example.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
+import com.example.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.example.soap.Domain.Usecases.UserUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +22,7 @@ import javax.inject.Inject
 
 interface FeedPostViewModelProtocol {
     val state: StateFlow<FeedPostViewModel.ViewState>
+    val post: StateFlow<FeedPost?>
     var comments: List<FeedComment>
     var text: String
     var image: Bitmap?
@@ -31,8 +35,10 @@ interface FeedPostViewModelProtocol {
 
 @HiltViewModel
 class FeedPostViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     val feedCommentRepository: FeedCommentRepositoryProtocol,
     val userUseCase: UserUseCaseProtocol,
+    private val feedPostRepository: FeedPostRepositoryProtocol,
 ) : ViewModel(), FeedPostViewModelProtocol {
 
     sealed interface ViewState {
@@ -41,13 +47,33 @@ class FeedPostViewModel @Inject constructor(
         data class Error(val message: String) : ViewState
     }
 
-    init {
-        viewModelScope.launch { userUseCase.fetchFeedUser() }
-    }
-
     // MARK: - Properties
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
+
+    private val feedId: String =
+        savedStateHandle["feedId"] ?: throw IllegalArgumentException("feedId is missing")
+
+    private val _post = MutableStateFlow<FeedPost?>(null)
+    override val post: StateFlow<FeedPost?> = _post.asStateFlow()
+
+    // MARK: - Initializer
+    init {
+        viewModelScope.launch {
+            userUseCase.fetchFeedUser()
+        }
+
+        viewModelScope.launch {
+            _state.value = ViewState.Loading
+            try {
+                val data = feedPostRepository.fetchPost(feedId)
+                _post.value = data
+                _state.value = ViewState.Loaded
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            }
+        }
+    }
 
     private val _comments = MutableStateFlow<List<FeedComment>>(emptyList())
     override var comments: List<FeedComment>

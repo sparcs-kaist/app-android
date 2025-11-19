@@ -3,22 +3,25 @@ package com.example.soap.Features.Post
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Enums.AraContentReportType
 import com.example.soap.Domain.Enums.PostOrigin
 import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostComment
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
+import com.example.soap.Features.FeedPost.FeedPostViewModel.ViewState
 import com.example.soap.Shared.Mocks.mock
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 interface PostViewModelProtocol{
-    val post: StateFlow<AraPost>
+    val state: StateFlow<PostViewModel.ViewState>
+    val post: StateFlow<AraPost?>
     val isFoundationModelsAvailable: Boolean
 
     suspend fun fetchPost()
@@ -41,16 +44,34 @@ class PostViewModel @Inject constructor(
 //    private val foundationModelsUseCase: FoundationModelsUseCaseProtocol
 ) : ViewModel(), PostViewModelProtocol {
 
-    // MARK: - Initialiser
-    private val initialPost: AraPost by lazy {
-        val json = savedStateHandle.get<String>("post_json")
-            ?: throw IllegalStateException("post_json is null. PostViewModel requires a post_json to initialize.")
-        Gson().fromJson(json, AraPost::class.java)
+    sealed interface ViewState {
+        data object Loading : ViewState
+        data object Loaded : ViewState
+        data class Error(val message: String) : ViewState
     }
 
     // MARK: - Properties
-    private val _post = MutableStateFlow(initialPost)
-    override val post : StateFlow<AraPost> = _post.asStateFlow()
+    private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
+    override val state: StateFlow<ViewState> = _state.asStateFlow()
+
+    private val postId: Int = savedStateHandle["postId"] ?: throw IllegalArgumentException("postId is missing")
+
+    private val _post = MutableStateFlow<AraPost?>(null)
+    override val post: StateFlow<AraPost?> = _post.asStateFlow()
+
+    // MARK: - Initialiser
+    init {
+        viewModelScope.launch {
+            _state.value = ViewState.Loading
+            try {
+                val data = araBoardRepository.fetchPost(PostOrigin.All, postID = postId)
+                _post.value = data
+                _state.value = ViewState.Loaded
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            }
+        }
+    }
 
     override val isFoundationModelsAvailable: Boolean
         get() = false // TODO: foundationModelsUseCase.isAvailable
@@ -68,8 +89,9 @@ class PostViewModel @Inject constructor(
 
     // MARK: - Functions
     override suspend fun fetchPost() {
+        val current = _post.value?: return
         try {
-            val fetchedPost = araBoardRepository.fetchPost(origin = PostOrigin.Board, postID = _post.value.id)
+            val fetchedPost = araBoardRepository.fetchPost(origin = PostOrigin.Board, postID = current.id)
             _post.value = fetchedPost
         } catch (e: Exception) {
             Log.e("PostViewModel", "fetchPost error", e)
@@ -77,7 +99,7 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun upVote() {
-        val current = _post.value
+        val current = _post.value?: return
         val previousMyVote = current.myVote
         val previousUpVotes = current.upVotes
         val previousDownVotes = current.downVotes
@@ -112,7 +134,7 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun downVote() {
-        val current = _post.value
+        val current = _post.value?: return
         val previousMyVote = current.myVote
         val previousUpVotes = current.upVotes
         val previousDownVotes = current.downVotes
@@ -147,41 +169,44 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun writeComment(content: String): AraPostComment {
-        val comment = araCommentRepository.writeComment(postID = _post.value.id, content = content)
+        val current = _post.value ?: throw IllegalStateException("Post not loaded")
+        val comment = araCommentRepository.writeComment(postID = current.id, content = content)
         comment.isMine = true
-        _post.value.comments.add(comment)
-        _post.value.commentCount += 1
+        current.comments.add(comment)
+        current.commentCount += 1
         return comment
     }
 
     override suspend fun writeThreadedComment(commentID: Int, content: String): AraPostComment {
+        val current = _post.value ?: throw IllegalStateException("Post not loaded")
         val comment = araCommentRepository.writeThreadedComment(commentID = commentID, content = content)
         comment.isMine = true
 
         // insert threaded comments
-        val comments = _post.value.comments.toMutableList()
+        val comments = current.comments.toMutableList()
         insertThreadedComment(comments, comment)
-        _post.value.comments = comments
-        _post.value.commentCount += 1
+        current.comments = comments
+        current.commentCount += 1
 
         return comment
     }
 
     override suspend fun editComment(commentID: Int, content: String): AraPostComment {
+        val current = _post.value ?: throw IllegalStateException("Post not loaded")
         val comment = araCommentRepository.editComment(commentID = commentID, content = content)
         comment.isMine = true
 
-        for (i in _post.value.comments.indices) {
-            if (_post.value.comments[i].id == commentID) {
-                _post.value.comments[i].content = content
-                return _post.value.comments[i]
+        for (i in current.comments.indices) {
+            if (current.comments[i].id == commentID) {
+                current.comments[i].content = content
+                return current.comments[i]
             }
 
             // scan through threads
-            for (j in _post.value.comments[i].comments.indices) {
-                if (_post.value.comments[i].comments[j].id == commentID) {
-                    _post.value.comments[i].comments[j].content = content
-                    return _post.value.comments[i].comments[j]
+            for (j in current.comments[i].comments.indices) {
+                if (current.comments[i].comments[j].id == commentID) {
+                    current.comments[i].comments[j].content = content
+                    return current.comments[i].comments[j]
                 }
             }
         }
@@ -190,7 +215,8 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun report(type: AraContentReportType) {
-        araBoardRepository.reportPost(postID = _post.value.id, type = type)
+        val current = _post.value ?: return
+        araBoardRepository.reportPost(postID = current.id, type = type)
     }
 
     override suspend fun summarisedContent(): String {
@@ -199,20 +225,22 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun deletePost() {
-        araBoardRepository.deletePost(postID = _post.value.id)
+        val current = _post.value ?: return
+        araBoardRepository.deletePost(postID = current.id)
     }
 
     override suspend fun toggleBookmark() {
-        val current = _post.value
+        var current = _post.value ?: return
         val previous = current.myScrap
 
-        _post.value = current.copy(myScrap = !previous)
+        current = current.copy(myScrap = !previous)
 
         try {
             if (previous) {
                 val scrapId = current.scrapID ?: return
                 araBoardRepository.removeBookmark(scrapId)
-                _post.value = _post.value.copy(scrapID = null)
+                current = current.copy(scrapID = null)
+                _post.value = current
             } else {
                 araBoardRepository.addBookmark(current.id)
             }
@@ -227,10 +255,11 @@ class MockPostViewModel(
     initialPost: AraPost = AraPost.mock()
 ) : PostViewModelProtocol {
 
+    override val state: StateFlow<PostViewModel.ViewState> = MutableStateFlow(PostViewModel.ViewState.Loaded)
     override val isFoundationModelsAvailable = true
 
     private val _post = MutableStateFlow(initialPost)
-    override val post: StateFlow<AraPost> = _post.asStateFlow()
+    override val post: StateFlow<AraPost?> = _post.asStateFlow()
 
     override suspend fun fetchPost() {}
 

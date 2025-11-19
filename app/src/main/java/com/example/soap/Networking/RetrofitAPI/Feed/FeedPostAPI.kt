@@ -20,6 +20,11 @@ interface FeedPostApi {
         @Query("limit") limit: Int
     ): FeedPostPageDTO
 
+    @GET("posts/{postID}")
+    suspend fun fetchPost(
+        @Path("postID") postId: String
+    ): FeedPostDTO
+
     @POST("posts")
     suspend fun writePost(
         @Body request: FeedPostRequestDTO

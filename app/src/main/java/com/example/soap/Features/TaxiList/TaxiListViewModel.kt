@@ -3,6 +3,7 @@ package com.example.soap.Features.TaxiList
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.soap.Domain.Models.Taxi.TaxiCreateRoom
@@ -10,6 +11,7 @@ import com.example.soap.Domain.Models.Taxi.TaxiLocation
 import com.example.soap.Domain.Models.Taxi.TaxiRoom
 import com.example.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import com.example.soap.Domain.Usecases.TaxiLocationUseCaseProtocol
+import com.example.soap.Features.FeedPost.FeedPostViewModel.ViewState
 import com.example.soap.Shared.Extensions.ceilToNextTenMinutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,7 +27,8 @@ interface TaxiListViewModelProtocol {
     // MARK: - ViewModel Properties
     val state: StateFlow<TaxiListViewModel.ViewState>
     val week: List<Date>
-    val rooms:StateFlow<List<TaxiRoom>>
+    var roomId: String?
+    val rooms: StateFlow<List<TaxiRoom>>
     val locations: StateFlow<List<TaxiLocation>>
 
     // MARK: - View Properties
@@ -44,9 +47,10 @@ interface TaxiListViewModelProtocol {
 
 @HiltViewModel
 class TaxiListViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
-    private val taxiLocationUseCase: TaxiLocationUseCaseProtocol
-) : ViewModel(),TaxiListViewModelProtocol {
+    private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
+) : ViewModel(), TaxiListViewModelProtocol {
 
     sealed class ViewState {
         data object Loading : ViewState()
@@ -65,6 +69,8 @@ class TaxiListViewModel @Inject constructor(
 
     private val _locations = MutableStateFlow<List<TaxiLocation>>(emptyList())
     override val locations: StateFlow<List<TaxiLocation>> get() = _locations
+
+    override var roomId: String? = savedStateHandle["roomId"]
 
     private val _rooms = MutableStateFlow<List<TaxiRoom>>(emptyList())
     override val rooms: StateFlow<List<TaxiRoom>> get() = _rooms
@@ -103,18 +109,18 @@ class TaxiListViewModel @Inject constructor(
 
     //Safely capture values before any suspension
     override suspend fun createRoom(title: String) {
-            try {
-                val request = TaxiCreateRoom(
-                    title = title,
-                    source = source ?: return,
-                    destination = destination ?: return,
-                    departureTime = roomDepartureTime,
-                    capacity = roomCapacity
-                )
-                taxiRoomRepository.createRoom(request)
-            } catch (e: Exception) {
-                _state.value = ViewState.Error(e.message ?: "Unknown error")
-            }
+        try {
+            val request = TaxiCreateRoom(
+                title = title,
+                source = source ?: return,
+                destination = destination ?: return,
+                departureTime = roomDepartureTime,
+                capacity = roomCapacity
+            )
+            taxiRoomRepository.createRoom(request)
+        } catch (e: Exception) {
+            _state.value = ViewState.Error(e.message ?: "Unknown error")
+        }
 
     }
 

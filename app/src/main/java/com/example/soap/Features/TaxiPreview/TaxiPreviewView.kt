@@ -225,9 +225,7 @@ fun TaxiPreviewView(
                     onClick = {
                         scope.launch {
                             try {
-                                viewModel.joinRoom(
-                                    id = room.id
-                                )
+                                viewModel.joinRoom(id = room.id)
                                 onDismiss()
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
