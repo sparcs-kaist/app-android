@@ -170,7 +170,13 @@ private fun WeekDaySelectorPreview() {
     Theme {
         val fakeRepository = remember { FakeTaxiRoomRepository() }
         val savedStateHandle = remember { SavedStateHandle() }
-        val viewModel = remember { TaxiListViewModel(savedStateHandle = savedStateHandle,fakeRepository, MockTaxiLocationUseCase()) }
+        val viewModel = remember {
+            TaxiListViewModel(
+                savedStateHandle = savedStateHandle,
+                fakeRepository,
+                MockTaxiLocationUseCase()
+            )
+        }
 
         WeekDaySelector(
             selectedDate = viewModel.selectedDate,
