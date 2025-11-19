@@ -302,6 +302,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     deepLinks = listOf(
                         navDeepLink {
                             uriPattern = "https://taxi.dev.sparcs.org/invite/{roomId}"
+                            action = Intent.ACTION_VIEW
                         }
                     )
                 )

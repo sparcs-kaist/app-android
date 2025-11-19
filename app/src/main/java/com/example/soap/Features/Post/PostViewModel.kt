@@ -10,7 +10,6 @@ import com.example.soap.Domain.Models.Ara.AraPost
 import com.example.soap.Domain.Models.Ara.AraPostComment
 import com.example.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.example.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
-import com.example.soap.Features.FeedPost.FeedPostViewModel.ViewState
 import com.example.soap.Shared.Mocks.mock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +18,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-interface PostViewModelProtocol{
+interface PostViewModelProtocol {
     val state: StateFlow<PostViewModel.ViewState>
     val post: StateFlow<AraPost?>
     val isFoundationModelsAvailable: Boolean
@@ -54,7 +53,8 @@ class PostViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    private val postId: Int = savedStateHandle["postId"] ?: throw IllegalArgumentException("postId is missing")
+    private val postId: Int = savedStateHandle.get<Int>("postId")
+        ?: throw IllegalArgumentException("postId is missing")
 
     private val _post = MutableStateFlow<AraPost?>(null)
     override val post: StateFlow<AraPost?> = _post.asStateFlow()
@@ -76,7 +76,10 @@ class PostViewModel @Inject constructor(
     override val isFoundationModelsAvailable: Boolean
         get() = false // TODO: foundationModelsUseCase.isAvailable
 
-    private fun insertThreadedComment(comments: MutableList<AraPostComment>, comment: AraPostComment): Boolean {
+    private fun insertThreadedComment(
+        comments: MutableList<AraPostComment>,
+        comment: AraPostComment,
+    ): Boolean {
         val parentComment = comment.parentComment ?: return false
         for (idx in comments.indices) {
             if (comments[idx].id == parentComment) {
@@ -89,9 +92,10 @@ class PostViewModel @Inject constructor(
 
     // MARK: - Functions
     override suspend fun fetchPost() {
-        val current = _post.value?: return
+        val current = _post.value ?: return
         try {
-            val fetchedPost = araBoardRepository.fetchPost(origin = PostOrigin.Board, postID = current.id)
+            val fetchedPost =
+                araBoardRepository.fetchPost(origin = PostOrigin.Board, postID = current.id)
             _post.value = fetchedPost
         } catch (e: Exception) {
             Log.e("PostViewModel", "fetchPost error", e)
@@ -99,7 +103,7 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun upVote() {
-        val current = _post.value?: return
+        val current = _post.value ?: return
         val previousMyVote = current.myVote
         val previousUpVotes = current.upVotes
         val previousDownVotes = current.downVotes
@@ -114,6 +118,7 @@ class PostViewModel @Inject constructor(
                 // remove downvote if there was
                 downVotes = current.downVotes - 1
             )
+
             null -> current.copy(myVote = true, upVotes = current.upVotes + 1)
         }
         _post.value = newPost
@@ -134,7 +139,7 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun downVote() {
-        val current = _post.value?: return
+        val current = _post.value ?: return
         val previousMyVote = current.myVote
         val previousUpVotes = current.upVotes
         val previousDownVotes = current.downVotes
@@ -149,6 +154,7 @@ class PostViewModel @Inject constructor(
                 upVotes = current.upVotes - 1,
                 downVotes = current.downVotes + 1
             )
+
             null -> current.copy(myVote = false, downVotes = current.downVotes + 1)
         }
         _post.value = newPost
@@ -179,7 +185,8 @@ class PostViewModel @Inject constructor(
 
     override suspend fun writeThreadedComment(commentID: Int, content: String): AraPostComment {
         val current = _post.value ?: throw IllegalStateException("Post not loaded")
-        val comment = araCommentRepository.writeThreadedComment(commentID = commentID, content = content)
+        val comment =
+            araCommentRepository.writeThreadedComment(commentID = commentID, content = content)
         comment.isMine = true
 
         // insert threaded comments
@@ -252,10 +259,11 @@ class PostViewModel @Inject constructor(
 }
 
 class MockPostViewModel(
-    initialPost: AraPost = AraPost.mock()
+    initialPost: AraPost = AraPost.mock(),
 ) : PostViewModelProtocol {
 
-    override val state: StateFlow<PostViewModel.ViewState> = MutableStateFlow(PostViewModel.ViewState.Loaded)
+    override val state: StateFlow<PostViewModel.ViewState> =
+        MutableStateFlow(PostViewModel.ViewState.Loaded)
     override val isFoundationModelsAvailable = true
 
     private val _post = MutableStateFlow(initialPost)
@@ -285,6 +293,6 @@ class MockPostViewModel(
         return ""
     }
 
-    override suspend fun deletePost() { }
-    override suspend fun toggleBookmark() { }
+    override suspend fun deletePost() {}
+    override suspend fun toggleBookmark() {}
 }
