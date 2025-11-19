@@ -73,7 +73,7 @@ import java.util.Date
 @Composable
 fun TaxiListView(
     viewModel: TaxiListViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val uiState by viewModel.state.collectAsState()
     var selectedDate = viewModel.selectedDate
@@ -163,6 +163,8 @@ fun TaxiListView(
                     }
 
                     is TaxiListViewModel.ViewState.Loaded -> {
+                        selectedRoom =
+                            (uiState as TaxiListViewModel.ViewState.Loaded).rooms.find { it.id == viewModel.roomId }
                         LoadedView(
                             rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
                             locations = (uiState as TaxiListViewModel.ViewState.Loaded).locations,
@@ -199,6 +201,7 @@ fun TaxiListView(
             ModalBottomSheet(
                 onDismissRequest = {
                     selectedRoom = null
+                    viewModel.roomId = null
                     coroutineScope.launch {
                         viewModel.fetchData()
                     }
@@ -222,9 +225,10 @@ fun TaxiListView(
                 TaxiPreviewView(
                     room = room,
                     onDismiss = {
+                        viewModel.roomId = null
+                        selectedRoom = null
                         coroutineScope.launch {
                             sheetState.hide()
-                            selectedRoom = null
                             viewModel.fetchData()
                         }
                     },
@@ -248,17 +252,20 @@ private fun LoadingView() {
         verticalArrangement = Arrangement.Center
     ) {
         repeat(2) {
-                Box(
-                    modifier = Modifier
-                        .padding(start = 12.dp)
-                        .width(30.dp)
-                        .height(15.dp)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), shape = RoundedCornerShape(4.dp))
-                )
-                repeat((1..2).random()) {
-                    TaxiRoomSkeletonCell()
-                    Spacer(Modifier.padding(4.dp))
-                }
+            Box(
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .width(30.dp)
+                    .height(15.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(4.dp)
+                    )
+            )
+            repeat((1..2).random()) {
+                TaxiRoomSkeletonCell()
+                Spacer(Modifier.padding(4.dp))
+            }
         }
     }
 }
@@ -273,7 +280,7 @@ private fun LoadedView(
     destination: TaxiLocation?,
     onRoomSelected: (TaxiRoom) -> Unit,
     viewModel: TaxiListViewModelProtocol,
-    navController: NavController
+    navController: NavController,
 ) {
     val calendar = Calendar.getInstance()
     val filteredRooms = rooms.filter { room ->
@@ -281,7 +288,6 @@ private fun LoadedView(
         val matchesDestination = destination == null || room.destination.id == destination.id
         matchesSource && matchesDestination
     }
-
     val targetDates = selectedDate?.let { listOf(it) } ?: week
 
     Column {
@@ -404,7 +410,7 @@ private fun EmptyView(locations: List<TaxiLocation>, navController: NavControlle
 private fun EmptyResultView(
     viewModel: TaxiListViewModelProtocol,
     description: String,
-    navController: NavController
+    navController: NavController,
 ) {
     Column(
         modifier = Modifier
@@ -442,7 +448,7 @@ private fun EmptyResultView(
         Column {
             Button(
                 onClick = {
-                    navController.navigate(Channel.TaxiRoomCreation.name){
+                    navController.navigate(Channel.TaxiRoomCreation.name) {
                         launchSingleTop = true
                     }
                 },
@@ -471,13 +477,13 @@ private fun EmptyResultView(
 @Composable
 @Preview
 private fun TaxiListScreenLoadingPreview() {
-    Theme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Loading) }
+    Theme { MockTaxiListScreen(TaxiListViewModel.ViewState.Loading) }
 }
 
 @Composable
 @Preview
 private fun TaxiListScreenLoadedPreview() {
-    Theme{
+    Theme {
         MockTaxiListScreen(
             TaxiListViewModel.ViewState.Loaded(
                 rooms = TaxiRoom.mockList(),
@@ -490,7 +496,7 @@ private fun TaxiListScreenLoadedPreview() {
 @Composable
 @Preview
 private fun TaxiListScreenLoadedEmptyResultPreview() {
-    Theme{
+    Theme {
         MockTaxiListScreen(
             TaxiListViewModel.ViewState.Loaded(
                 rooms = listOf(),
@@ -503,13 +509,13 @@ private fun TaxiListScreenLoadedEmptyResultPreview() {
 @Composable
 @Preview
 private fun TaxiListScreenEmptyPreview() {
-    Theme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Empty(TaxiLocation.mockList())) }
+    Theme { MockTaxiListScreen(TaxiListViewModel.ViewState.Empty(TaxiLocation.mockList())) }
 }
 
 @Composable
 @Preview
 private fun TaxiListScreenErrorPreview() {
-    Theme{ MockTaxiListScreen(TaxiListViewModel.ViewState.Error("Something went wrong")) }
+    Theme { MockTaxiListScreen(TaxiListViewModel.ViewState.Error("Something went wrong")) }
 }
 
 @Composable
