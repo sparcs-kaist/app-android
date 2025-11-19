@@ -163,8 +163,10 @@ fun TaxiListView(
                     }
 
                     is TaxiListViewModel.ViewState.Loaded -> {
-                        selectedRoom =
-                            (uiState as TaxiListViewModel.ViewState.Loaded).rooms.find { it.id == viewModel.roomId }
+                        if (viewModel.roomId != null) {
+                            selectedRoom = (uiState as TaxiListViewModel.ViewState.Loaded).rooms.find { it.id == viewModel.roomId }
+                        }
+
                         LoadedView(
                             rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
                             locations = (uiState as TaxiListViewModel.ViewState.Loaded).locations,

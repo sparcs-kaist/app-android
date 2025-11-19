@@ -46,7 +46,7 @@ private fun TopBarSkeleton() {
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(vertical = 40.dp, horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
