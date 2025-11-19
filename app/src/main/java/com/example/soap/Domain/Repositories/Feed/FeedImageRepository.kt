@@ -1,7 +1,7 @@
 package com.example.soap.Domain.Repositories.Feed
 
+import com.example.soap.Domain.Enums.FeedPostPhotoItem
 import com.example.soap.Domain.Models.Feed.FeedImage
-import com.example.soap.Features.FeedPostCompose.FeedPostPhotoItem
 import com.example.soap.Networking.RetrofitAPI.Feed.FeedImageApi
 import com.example.soap.Shared.Extensions.compressForUpload
 import okhttp3.MediaType.Companion.toMediaTypeOrNull

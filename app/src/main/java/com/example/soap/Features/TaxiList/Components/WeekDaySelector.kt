@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import com.example.soap.Domain.Repositories.Taxi.FakeTaxiRoomRepository
 import com.example.soap.Domain.Usecases.MockTaxiLocationUseCase
 import com.example.soap.Features.TaxiList.TaxiListViewModel
@@ -168,8 +169,14 @@ fun WeekDaySelector(
 private fun WeekDaySelectorPreview() {
     Theme {
         val fakeRepository = remember { FakeTaxiRoomRepository() }
-
-        val viewModel = remember { TaxiListViewModel(fakeRepository, MockTaxiLocationUseCase()) }
+        val savedStateHandle = remember { SavedStateHandle() }
+        val viewModel = remember {
+            TaxiListViewModel(
+                savedStateHandle = savedStateHandle,
+                fakeRepository,
+                MockTaxiLocationUseCase()
+            )
+        }
 
         WeekDaySelector(
             selectedDate = viewModel.selectedDate,

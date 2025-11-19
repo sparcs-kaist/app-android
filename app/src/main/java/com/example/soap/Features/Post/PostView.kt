@@ -77,6 +77,7 @@ import com.example.soap.Features.Post.Components.PostBookmarkButton
 import com.example.soap.Features.Post.Components.PostCommentButton
 import com.example.soap.Features.Post.Components.PostNavigationBar
 import com.example.soap.Features.Post.Components.PostShareButton
+import com.example.soap.Features.Post.Components.PostViewSkeleton
 import com.example.soap.Features.Post.Components.PostVoteButton
 import com.example.soap.R
 import com.example.soap.Shared.Extensions.formattedString
@@ -92,7 +93,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PostView(
     viewModel: PostViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
@@ -118,8 +119,14 @@ fun PostView(
     var alertTitle by remember { mutableStateOf("") }
     var alertMessage by remember { mutableStateOf("") }
 
-    val post by viewModel.post.collectAsState()
+    val post = viewModel.post.collectAsState().value
     val context = LocalContext.current
+
+    if (post == null) {
+        PostViewSkeleton()
+        return
+    }
+
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
     }
@@ -131,13 +138,13 @@ fun PostView(
                 navController = navController,
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { type ->
-                    scope.launch{ viewModel.report(type) }
+                    scope.launch { viewModel.report(type) }
                     Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
-                           },
+                },
                 onTranslate = {
                     showTranslationView = true
-                              //TODO-Translate
-                    },
+                    //TODO-Translate
+                },
                 isMine = post.isMine
             )
         },
@@ -150,7 +157,7 @@ fun PostView(
                     isWritingComment = it
                     commentOnEdit = null
                     comment = ""
-                                         },
+                },
                 commentOnEdit = commentOnEdit,
                 isUploadingComment = isUploadingComment,
                 onUploadComment = {
@@ -158,8 +165,16 @@ fun PostView(
                         isUploadingComment = true
                         try {
                             val uploadedComment: AraPostComment = when {
-                                commentOnEdit != null -> viewModel.editComment(commentID = commentOnEdit!!.id, content = comment)
-                                targetComment != null -> viewModel.writeThreadedComment(commentID = targetComment!!.id, content = comment)
+                                commentOnEdit != null -> viewModel.editComment(
+                                    commentID = commentOnEdit!!.id,
+                                    content = comment
+                                )
+
+                                targetComment != null -> viewModel.writeThreadedComment(
+                                    commentID = targetComment!!.id,
+                                    content = comment
+                                )
+
                                 else -> viewModel.writeComment(content = comment)
                             }
 
@@ -183,7 +198,7 @@ fun PostView(
                             isUploadingComment = false
                         }
                     }
-                                  },
+                },
                 profilePicture = { ProfilePicture(post, true) },
                 placeholder = placeholder(viewModel, targetComment, commentOnEdit),
                 focusRequester = focusRequester
@@ -296,7 +311,7 @@ fun PostView(
 @Composable
 private fun Header(
     post: AraPost,
-    onAuthorClick: () -> Unit
+    onAuthorClick: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
@@ -305,7 +320,7 @@ private fun Header(
             fontWeight = FontWeight.Bold
         )
         Row(
-            horizontalArrangement  = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -353,7 +368,7 @@ private fun Content(
     htmlHeight: Dp,
     onHtmlHeightChange: (Dp) -> Unit,
     onLinkTapped: (String) -> Unit,
-    post: AraPost
+    post: AraPost,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -403,8 +418,8 @@ private fun Footer(
         PostVoteButton(
             myVote = post.myVote,
             votes = post.upVotes - post.downVotes,
-            onUpVote = { scope.launch{ viewModel.upVote() } },
-            onDownVote = { scope.launch{ viewModel.downVote() } },
+            onUpVote = { scope.launch { viewModel.upVote() } },
+            onDownVote = { scope.launch { viewModel.downVote() } },
             enabled = post.isMine == false
         )
         PostCommentButton(commentCount = post.commentCount) { onCommentClick() }
@@ -419,12 +434,15 @@ private fun Footer(
 @Composable
 private fun Comments(
     post: AraPost,
-    onCommentChange: (CommentUpdate) -> Unit
+    onCommentChange: (CommentUpdate) -> Unit,
 ) {
     val repo: AraCommentRepositoryProtocol = hiltViewModel<PostViewModel>().araCommentRepository
     Column {
         if (post.comments.isEmpty()) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0, modifier = Modifier.padding(vertical = 4.dp))
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.lightGray0,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
 
             UnavailableView(
                 icon = painterResource(R.drawable.chat_bubble_outline),
@@ -456,7 +474,7 @@ private fun Comments(
                     },
                     onDelete = {
                         post.commentCount -= 1
-                               },
+                    },
                     onTranslate = {},
                     araCommentRepository = repo
                 )
@@ -506,7 +524,7 @@ private fun InputBar(
     onUploadComment: () -> Unit,
     profilePicture: @Composable () -> Unit,
     placeholder: String,
-    focusRequester: FocusRequester
+    focusRequester: FocusRequester,
 ) {
     val scope = rememberCoroutineScope()
     val isWritingState by remember { mutableStateOf(isWritingComment) }
@@ -591,7 +609,7 @@ private fun InputBar(
 
         // Send Button
         if (comment.isNotEmpty()) {
-            MoveToLeftFadeIn(!showProfile){
+            MoveToLeftFadeIn(!showProfile) {
                 Button(
                     onClick = {
                         scope.launch {
@@ -623,9 +641,10 @@ private fun InputBar(
 @Composable
 private fun ProfilePicture(
     post: AraPost,
-    isMe: Boolean
-){
-    val profileUrl = if(isMe) post.myCommentProfile?.profile?.profilePictureURL else post.author.profile.profilePictureURL
+    isMe: Boolean,
+) {
+    val profileUrl =
+        if (isMe) post.myCommentProfile?.profile?.profilePictureURL else post.author.profile.profilePictureURL
     if (profileUrl != null) {
         AsyncImage(
             model = profileUrl.toString(),
@@ -635,9 +654,11 @@ private fun ProfilePicture(
                 .clip(CircleShape)
         )
     } else {
-        Box(Modifier
-            .size(28.dp)
-            .background(MaterialTheme.colorScheme.grayBB, CircleShape))
+        Box(
+            Modifier
+                .size(28.dp)
+                .background(MaterialTheme.colorScheme.grayBB, CircleShape)
+        )
     }
 }
 
@@ -675,19 +696,20 @@ private fun title(post: AraPost): AnnotatedString {
 fun placeholder(
     viewModel: PostViewModelProtocol,
     targetComment: AraPostComment?,
-    commentOnEdit: AraPostComment?
+    commentOnEdit: AraPostComment?,
 ): String {
     return when {
         targetComment != null -> stringResource(
             R.string.write_a_reply_to,
             targetComment.author.profile.nickname
         )
+
         commentOnEdit != null -> commentOnEdit.content.orEmpty()
         else -> {
             val anonymousName = stringResource(R.string.anonymous)
             stringResource(
                 R.string.reply_as,
-                viewModel.post.value.myCommentProfile?.profile?.nickname ?: anonymousName
+                viewModel.post.value?.myCommentProfile?.profile?.nickname ?: anonymousName
             )
         }
     }
@@ -696,9 +718,8 @@ fun placeholder(
 data class CommentUpdate(
     val targetComment: AraPostComment? = null,
     val commentOnEdit: AraPostComment? = null,
-    val comment: String = ""
+    val comment: String = "",
 )
-
 
 @Preview
 @Composable
