@@ -1,0 +1,10 @@
+package com.sparcs.soap.Domain.Enums
+
+enum class FeedReportType(val value: String) {
+    EXTREME_POLITICS("EXTREME_POLITICS"),
+    PORNOGRAPHY("PORNOGRAPHY"),
+    SPAM("SPAM"),
+    ABUSIVE_LANGUAGE("ABUSIVE_LANGUAGE"),
+    IMPERSONATION_FRAUD("IMPERSONATION_FRAUD"),
+    COMMERCIAL_AD("COMMERCIAL_AD");
+}

@@ -27,6 +27,7 @@ androidxHiltWork = "1.2.0"
 androidxHiltNavigation = "1.2.0"
 browser = "1.8.0"
 androidx-security-crypto = "1.1.0"
+firebaseBom = "34.5.0"
 
 [libraries]
 androidx-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "compiler" }
@@ -68,6 +69,9 @@ androidx-browser = { group = "androidx.browser", name = "browser", version.ref =
 androidx-security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "androidx-security-crypto" }
 socket-io-client = { module = "io.socket:socket.io-client", version.ref = "socketIoClient" }
 
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-crashlytics-ndk = { module = "com.google.firebase:firebase-crashlytics-ndk" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
