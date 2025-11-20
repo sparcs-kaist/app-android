@@ -1,0 +1,65 @@
+package com.sparcs.soap.Features.TaxiChat.Components
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import com.sparcs.soap.R
+import java.util.Date
+
+@Composable
+fun TaxiChatSettlementBubble() {
+    Row(
+        modifier = Modifier
+            .background(
+                color = MaterialTheme.colorScheme.primary,
+                shape = RoundedCornerShape(
+                    topStart = 24.dp,
+                    bottomStart = 24.dp,
+                    bottomEnd = 24.dp,
+                    topEnd = 24.dp
+                )
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "I paid for the taxi!",
+            color = Color.White,
+            style = MaterialTheme.typography.bodyMedium
+        )
+        Icon(
+            painter = painterResource(R.drawable.baseline_credit_card),
+            contentDescription = "Credit Card",
+            tint = MaterialTheme.colorScheme.background
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun Preview() {
+    TaxiChatUserWrapper(
+        authorID = null,
+        authorName = null,
+        authorProfileImageURL = null,
+        date = Date(),
+        isMe = false,
+        isGeneral = false,
+        isWithdrawn = false
+    ) {
+        TaxiChatSettlementBubble()
+    }
+}
