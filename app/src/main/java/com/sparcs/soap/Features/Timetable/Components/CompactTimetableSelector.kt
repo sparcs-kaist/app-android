@@ -23,6 +23,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Usecases.MockTimetableUseCase
 import com.sparcs.soap.Features.NavigationBar.Animation.AnimatedText
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
@@ -57,7 +58,6 @@ fun SemesterSelector(
         viewModel.semesters.collectAsState().value.firstOrNull() != selectedSemester
     val isEnabledNextButton =
         viewModel.semesters.collectAsState().value.lastOrNull() != selectedSemester
-
 
     Row(
         modifier = Modifier
@@ -141,6 +141,6 @@ fun TableSelector(viewModel: TimetableViewModel) {
 @Composable
 @Preview
 private fun Preview() {
-    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase())) }
+    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase(), CrashlyticsHelper())) }
     Theme { CompactTimetableSelector(viewModel = vm) }
 }

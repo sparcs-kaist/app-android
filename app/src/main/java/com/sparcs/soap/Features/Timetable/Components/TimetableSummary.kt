@@ -21,6 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Usecases.MockTimetableUseCase
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
 import com.sparcs.soap.R
@@ -77,6 +78,6 @@ fun BigSummary(
 @Composable
 @Preview
 private fun Preview() {
-    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase())) }
+    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase(), CrashlyticsHelper())) }
     Theme { TimetableSummary(vm) }
 }
