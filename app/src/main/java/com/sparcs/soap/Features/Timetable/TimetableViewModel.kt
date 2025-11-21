@@ -3,6 +3,7 @@ package com.sparcs.soap.Features.Timetable
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Models.OTL.Lecture
 import com.sparcs.soap.Domain.Models.OTL.Semester
 import com.sparcs.soap.Domain.Models.OTL.Timetable
@@ -21,7 +22,16 @@ import javax.inject.Inject
 @HiltViewModel
 class TimetableViewModel @Inject constructor(
     val timetableUseCase: TimetableUseCaseProtocol,
+    private val crashlyticsHelper: CrashlyticsHelper,
 ) : ViewModel() {
+
+    enum class ErrorType {
+        AddLecture,
+        CreateTable,
+        DeleteTable,
+        DeleteLecture,
+        FetchData
+    }
 
     val isLoading = MutableStateFlow(false)
 
@@ -87,6 +97,7 @@ class TimetableViewModel @Inject constructor(
                 timetableUseCase.load()
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "failed to fetch Timetable Data")
+                handleException(e, ErrorType.FetchData)
             } finally {
                 isLoading.value = false
             }
@@ -131,6 +142,7 @@ class TimetableViewModel @Inject constructor(
                 timetableUseCase.createTable()
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error creating table", e)
+                handleException(e, ErrorType.CreateTable)
             }
         }
     }
@@ -141,6 +153,7 @@ class TimetableViewModel @Inject constructor(
                 timetableUseCase.deleteTable()
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error deleting table", e)
+                handleException(e, ErrorType.DeleteTable)
             }
         }
     }
@@ -151,6 +164,7 @@ class TimetableViewModel @Inject constructor(
                 timetableUseCase.addLecture(lecture)
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error adding lecture", e)
+                handleException(e, ErrorType.AddLecture)
             }
         }
     }
@@ -161,6 +175,7 @@ class TimetableViewModel @Inject constructor(
                 timetableUseCase.deleteLecture(lecture)
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error deleting lecture", e)
+                handleException(e, ErrorType.DeleteLecture)
             }
         }
     }
@@ -172,5 +187,22 @@ class TimetableViewModel @Inject constructor(
         } ?: return
 
         deleteLecture(toRemove)
+    }
+
+    fun handleException(error: Throwable, type: ErrorType) {
+        val alertMessage: String = when (type) {
+            ErrorType.AddLecture ->
+                "An unexpected error occurred while adding a lecture. Please try again later."
+            ErrorType.CreateTable ->
+                "An unexpected error occurred while creating a new timetable. Please try again later."
+            ErrorType.DeleteLecture ->
+                "An unexpected error occurred while removing a lecture. Please try again later."
+            ErrorType.DeleteTable ->
+                "An unexpected error occurred while deleting a timetable. Please try again later."
+            ErrorType.FetchData ->
+                "An unexpected error occurred while loading timetables. Please try again later."
+        }
+
+        crashlyticsHelper.recordException(error = error, alertMessage = alertMessage)
     }
 }
