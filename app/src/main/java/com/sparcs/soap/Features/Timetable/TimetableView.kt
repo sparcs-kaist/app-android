@@ -30,6 +30,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Models.OTL.Lecture
 import com.sparcs.soap.Features.LectureSearch.LectureSearchView
 import com.sparcs.soap.Features.LectureSearch.LectureSearchViewModel
@@ -41,7 +42,6 @@ import com.sparcs.soap.Features.Timetable.Components.TimetableCreditGraph
 import com.sparcs.soap.Features.Timetable.Components.TimetableGrid
 import com.sparcs.soap.Features.Timetable.Components.TimetableSummary
 import com.sparcs.soap.Features.Timetable.Components.TimetableViewNavigationBar
-import com.google.gson.Gson
 
 @Composable
 fun TimetableView(
