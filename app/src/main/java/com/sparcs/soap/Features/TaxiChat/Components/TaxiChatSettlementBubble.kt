@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.R
@@ -36,7 +37,7 @@ fun TaxiChatSettlementBubble() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "I paid for the taxi!",
+            text = stringResource(R.string.i_paid_for_the_taxi),
             color = Color.White,
             style = MaterialTheme.typography.bodyMedium
         )

@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.OTL
 
 enum class SemesterType(val rawValue: String, val shortCode: String) {
     SPRING("Spring", "S"),

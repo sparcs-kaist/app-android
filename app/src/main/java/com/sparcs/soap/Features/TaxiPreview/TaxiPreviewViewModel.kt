@@ -3,7 +3,7 @@ package com.sparcs.soap.Features.TaxiPreview
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sparcs.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Taxi.TaxiParticipant
 import com.sparcs.soap.Domain.Models.Taxi.TaxiUser

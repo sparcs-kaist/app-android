@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sparcs.soap.Domain.Enums.AraPostNicknameType
+import com.sparcs.soap.Domain.Enums.Ara.AraPostNicknameType
 import com.sparcs.soap.Domain.Models.Ara.AraBoard
 import com.sparcs.soap.Domain.Models.Ara.AraBoardTopic
 import com.sparcs.soap.Domain.Models.Ara.AraCreatePost

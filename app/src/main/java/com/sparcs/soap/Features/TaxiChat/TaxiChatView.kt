@@ -63,11 +63,13 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Taxi.TaxiChat
 import com.sparcs.soap.Domain.Models.Taxi.TaxiChatGroup
@@ -95,7 +97,6 @@ import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -252,11 +253,9 @@ fun TaxiChatView(
     if (showCallTaxiAlert) {
         AlertDialog(
             onDismissRequest = { showCallTaxiAlert = false },
-            title = { Text("Call Taxi") },
+            title = { Text(stringResource(R.string.call_taxi)) },
             text = {
-                Text(
-                    "You can launch the taxi app with the departure and destination already set. \nOnce everyone has gathered at the departure point, press the button to call a taxi from ${room.source.title.localized()} to ${room.destination.title.localized()}."
-                )
+                Text(stringResource(R.string.taxi_launch_info))
             },
             confirmButton = {
                 Row {
@@ -265,14 +264,16 @@ fun TaxiChatView(
                             context,
                             viewModel
                         )
-                    }) { Text("Open Kakao T") }
+                    }) { Text(stringResource(R.string.open_kakao_t)) }
                     TextButton(onClick = {
                         openUber(
                             context,
                             viewModel
                         )
-                    }) { Text("Open Uber") }
-                    TextButton(onClick = { showCallTaxiAlert = false }) { Text("Cancel") }
+                    }) { Text(stringResource(R.string.open_uber)) }
+                    TextButton(onClick = {
+                        showCallTaxiAlert = false
+                    }) { Text(stringResource(R.string.cancel)) }
                 }
             }
         )
@@ -283,25 +284,23 @@ fun TaxiChatView(
             onDismissRequest = { showPaymentAlert = false },
             dismissButton = {
                 Button(onClick = { showPaymentAlert = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            title = { Text("Send Payment") },
+            title = { Text(stringResource(R.string.send_payment)) },
             text = {
-                Text(
-                    "Select the app to send your payment. Tap Already Sent once you've completed the transfer."
-                )
+                Text(stringResource(R.string.payment_send_instructions))
             },
             confirmButton = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     TextButton(onClick = { openKakaoPay(context) }) {
-                        Text("Open Kakao Pay")
+                        Text(stringResource(R.string.open_kakao_pay))
                     }
                     TextButton(onClick = { openToss(context, viewModel.account) }) {
-                        Text("Open Toss")
+                        Text(stringResource(R.string.open_toss))
                     }
                     TextButton(onClick = { coroutineScope.launch { viewModel.commitPayment() } }) {
-                        Text("Already Sent")
+                        Text(stringResource(R.string.already_sent))
                     }
                 }
             }
@@ -311,12 +310,12 @@ fun TaxiChatView(
     if (showErrorAlert) {
         AlertDialog(
             onDismissRequest = { showErrorAlert = false },
-            title = { Text("Error") },
+            title = { Text(stringResource(R.string.error)) },
             text = { Text(errorMessage) },
             confirmButton = {
                 TextButton(onClick = {
                     showErrorAlert = false
-                }) { Text("Okay") }
+                }) { Text(stringResource(R.string.ok)) }
             }
         )
     }
@@ -337,12 +336,10 @@ fun ContentView(
     topChatID: MutableState<String?>,
     isLoadingMore: MutableState<Boolean>,
     modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope
+    coroutineScope: CoroutineScope,
 ) {
 
     val listState = rememberLazyListState()
-
-    val previousItemCount = remember { mutableStateOf(0) }
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
@@ -625,7 +622,7 @@ private fun InputBar(
                     },
                     text = {
                         Text(
-                            text = "Photo Library",
+                            text = stringResource(R.string.photo_library),
                             style = MaterialTheme.typography.titleMedium
                         )
                     },
@@ -645,7 +642,7 @@ private fun InputBar(
                     enabled = isCommitSettlementAvailable,
                     text = {
                         Text(
-                            text = "Request Settlement",
+                            text = stringResource(R.string.request_settlement),
                             style = MaterialTheme.typography.titleMedium
                         )
                     },
@@ -665,7 +662,7 @@ private fun InputBar(
                     enabled = isCommitPaymentAvailable,
                     text = {
                         Text(
-                            text = "Send Payment",
+                            text = stringResource(R.string.send_payment),
                             style = MaterialTheme.typography.titleMedium
                         )
                     },
@@ -728,8 +725,9 @@ private fun InputBar(
                             contentAlignment = Alignment.CenterStart
                         ) {
                             if (text.isEmpty()) {
+                                val nickname = taxiUser?.nickname ?: stringResource(R.string.unknown)
                                 Text(
-                                    text = "Chat as ${taxiUser?.nickname ?: "unknown"}",
+                                    text = stringResource(R.string.chat_as_user, nickname),
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
@@ -895,7 +893,6 @@ fun PreviewContentView() {
         )
     }
 }
-
 
 @Preview
 @Composable

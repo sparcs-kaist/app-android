@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.sparcs.soap.Features.Settings.Taxi.NavigationLinkWithIcon
@@ -45,7 +46,6 @@ import com.sparcs.soap.Shared.ViewModelMocks.MockAraSettingsViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -108,13 +108,13 @@ fun AraSettingsView(
                     TextButton(onClick = {
                         showNicknameDialog = false
                         scope.launch { viewModel.updateNickname() }
-                    }) { Text("Confirm") }
+                    }) { Text(stringResource(R.string.confirm)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showNicknameDialog = false }) { Text("Cancel") }
+                    TextButton(onClick = { showNicknameDialog = false }) { Text(stringResource(R.string.cancel)) }
                 },
-                title = { Text("Warning") },
-                text = { Text("Nicknames can only be changed every 3 months. Change nickname to ${viewModel.nickname}?") }
+                title = { Text(stringResource(R.string.warning)) },
+                text = { Text(stringResource(R.string.nickname_change_confirmation, viewModel.nickname)) }
             )
         }
     }
@@ -123,10 +123,10 @@ fun AraSettingsView(
 @Composable
 private fun LoadingView() {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text("Profile", style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(value = "Unknown", onValueChange = {}, enabled = false)
+        Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
+        OutlinedTextField(value = stringResource(R.string.unknown), onValueChange = {}, enabled = false)
         Spacer(Modifier.height(16.dp))
-        Text("Posts", style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.posts), style = MaterialTheme.typography.titleMedium)
         Switch(checked = true, onCheckedChange = {})
         Switch(checked = true, onCheckedChange = {})
     }

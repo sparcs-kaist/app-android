@@ -122,7 +122,7 @@ fun MyTableDropDownItems(
     Column {
         viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
             val displayName =
-                if (id.contains("myTable")) stringResource(R.string.my_table) else "Table $index"
+                if (id.contains("myTable")) stringResource(R.string.my_table) else stringResource(R.string.table_label, index)
             val isSelected = id == selectedTimetable?.id
 
             DropdownMenuItem(

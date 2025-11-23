@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.Taxi
 
 sealed class TaxiRoomBlockStatus {
     data object Allow : TaxiRoomBlockStatus()

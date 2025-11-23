@@ -1,26 +1,15 @@
 package com.sparcs.soap.Domain.Models
 
-enum class SearchScope(val id: String) {
-    All("All") {
-        override val description: String
-            get() = "All"
-    },
-    Courses("Courses") {
-        override val description: String
-            get() = "Courses"
-    },
-    Posts("Posts") {
-        override val description: String
-            get() = "Posts"
-    },
-    Rides("Rides") {
-        override val description: String
-            get() = "Rides"
-    };
+import androidx.annotation.StringRes
+import com.sparcs.soap.R
 
-    abstract val description: String
+enum class SearchScope(val id: String, @StringRes val labelRes: Int) {
+    All("All", R.string.all),
+    Courses("Courses", R.string.courses),
+    Posts("Posts", R.string.posts),
+    Rides("Rides", R.string.rides);
 
     companion object {
-        fun allScopes(): Array<SearchScope> = values()
+        fun allScopes(): Array<SearchScope> = entries.toTypedArray()
     }
 }

@@ -1,6 +1,6 @@
 package com.sparcs.soap.Networking.ResponseDTO.OTL
 
-import com.sparcs.soap.Domain.Enums.DayType
+import com.sparcs.soap.Domain.Enums.OTL.DayType
 import com.sparcs.soap.Domain.Helpers.LocalizedString
 import com.sparcs.soap.Domain.Models.OTL.ExamTime
 import com.google.gson.annotations.SerializedName

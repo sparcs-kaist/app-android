@@ -105,12 +105,12 @@ fun CourseSummary(course: Course) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            LectureSummaryRow("Hours", course.numClasses.toString())
-            LectureSummaryRow("Lab", course.numLabs.toString())
+            LectureSummaryRow(stringResource(R.string.hours).uppercase(), course.numClasses.toString())
+            LectureSummaryRow(stringResource(R.string.lab).uppercase(), course.numLabs.toString())
             if (course.credit == 0) {
-                LectureSummaryRow("AU", course.creditAu.toString())
+                LectureSummaryRow(stringResource(R.string.au).uppercase(), course.creditAu.toString())
             } else {
-                LectureSummaryRow("Credit", course.credit.toString())
+                LectureSummaryRow(stringResource(R.string.credit).uppercase(), course.credit.toString())
             }
         }
 
@@ -155,13 +155,13 @@ fun CourseReviewSection(
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("Reviews", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(stringResource(R.string.reviews), fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow("Grade", course.gradeLetter)
+            LectureSummaryRow(stringResource(R.string.grade), course.gradeLetter)
             Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow("Load", course.loadLetter)
+            LectureSummaryRow(stringResource(R.string.load), course.loadLetter)
             Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow("Speech", course.speechLetter)
+            LectureSummaryRow(stringResource(R.string.speech), course.speechLetter)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -171,8 +171,8 @@ fun CourseReviewSection(
                 if (reviews.isEmpty()) {
                     UnavailableView(
                         icon = painterResource(R.drawable.rounded_book_2),
-                        title = "No Reviews",
-                        description = "There are no reviews yet."
+                        title = stringResource(R.string.no_reviews),
+                        description = stringResource(R.string.there_are_no_reviews_yet)
                     )
                 } else {
                     reviews.forEach { review ->

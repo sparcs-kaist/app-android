@@ -1,6 +1,6 @@
 package com.sparcs.soap.Domain.Usecases
 
-import com.sparcs.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Helpers.UserStorageProtocol
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol

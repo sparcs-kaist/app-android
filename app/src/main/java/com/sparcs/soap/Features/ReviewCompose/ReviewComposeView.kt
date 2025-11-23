@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -90,6 +91,7 @@ fun ReviewComposeView(
     val keyboardPaddingPx = with(LocalDensity.current) { 250.dp.toPx() }
 
     val contentFocusRequester = remember { FocusRequester() }
+    val submittedMessage = stringResource(R.string.review_submitted)
 
     LaunchedEffect(cursorLine) {
         val layout = textLayoutResult ?: return@LaunchedEffect
@@ -121,7 +123,7 @@ fun ReviewComposeView(
                             isUploading = false
                             Toast.makeText(
                                 context,
-                                "Review submitted",
+                                submittedMessage,
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -146,9 +148,9 @@ fun ReviewComposeView(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                RatingPicker(title = "Grade", value = grade, onValueChange = { grade = it })
-                RatingPicker(title = "Load", value = load, onValueChange = { load = it })
-                RatingPicker(title = "Speech", value = speech, onValueChange = { speech = it })
+                RatingPicker(title = stringResource(R.string.grade), value = grade, onValueChange = { grade = it })
+                RatingPicker(title = stringResource(R.string.load), value = load, onValueChange = { load = it })
+                RatingPicker(title = stringResource(R.string.speech), value = speech, onValueChange = { speech = it })
             }
 
             Spacer(Modifier.padding(8.dp))
@@ -173,7 +175,7 @@ fun ReviewComposeView(
                     decorationBox = { inner ->
                         if (contentField.text.isEmpty())
                             Text(
-                                text = "Share your thoughts on ${lecture.title.localized()}...",
+                                text = stringResource(R.string.share_lecture_thoughts),
                                 color = MaterialTheme.colorScheme.grayBB,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -187,11 +189,11 @@ fun ReviewComposeView(
         if (showErrorDialog) {
             AlertDialog(
                 onDismissRequest = { showErrorDialog = false },
-                title = { Text("Error") },
-                text = { Text("There was an error. Please try again later.") },
+                title = { Text(stringResource(R.string.error)) },
+                text = { Text(stringResource(R.string.error_try_again)) },
                 confirmButton = {
                     TextButton(onClick = { showErrorDialog = false }) {
-                        Text("Okay")
+                        Text(stringResource(R.string.ok))
                     }
                 }
             )

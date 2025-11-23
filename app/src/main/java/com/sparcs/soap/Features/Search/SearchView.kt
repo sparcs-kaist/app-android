@@ -115,7 +115,7 @@ fun SearchView(
                     FilterChip(
                         selected = (searchScope == scope),
                         onClick = { viewModel.onScopeChange(scope) },
-                        label = { Text(scope.description) }
+                        label = { Text(stringResource(scope.labelRes)) }
                     )
                 }
             }
@@ -132,8 +132,8 @@ fun SearchView(
                 searchText.isEmpty() -> {
                     UnavailableView(
                         icon = painterResource(R.drawable.search),
-                        title = "Search Anything",
-                        description = "Find courses, posts, rides and more."
+                        title = stringResource(R.string.search_anything),
+                        description = stringResource(R.string.find_etc)
                     )
                 }
 

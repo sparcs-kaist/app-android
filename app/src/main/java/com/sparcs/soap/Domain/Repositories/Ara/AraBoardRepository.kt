@@ -2,9 +2,9 @@ package com.sparcs.soap.Domain.Repositories.Ara
 
 import android.graphics.Bitmap
 import com.google.gson.Gson
-import com.sparcs.soap.Domain.Enums.AraContentReportType
-import com.sparcs.soap.Domain.Enums.PostListType
-import com.sparcs.soap.Domain.Enums.PostOrigin
+import com.sparcs.soap.Domain.Enums.Ara.AraContentReportType
+import com.sparcs.soap.Domain.Enums.Ara.PostListType
+import com.sparcs.soap.Domain.Enums.Ara.PostOrigin
 import com.sparcs.soap.Domain.Models.Ara.AraAttachment
 import com.sparcs.soap.Domain.Models.Ara.AraBoard
 import com.sparcs.soap.Domain.Models.Ara.AraCreatePost
@@ -12,6 +12,7 @@ import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Models.Ara.AraPostPage
 import com.sparcs.soap.Networking.RequestDTO.Ara.AraPostRequestDTO
 import com.sparcs.soap.Networking.ResponseDTO.handleApiError
+import com.sparcs.soap.Networking.ResponseDTO.parseReportCommentError
 import com.sparcs.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.sparcs.soap.Shared.Extensions.compressForUpload
 import kotlinx.coroutines.sync.Mutex
@@ -159,7 +160,7 @@ class AraBoardRepository @Inject constructor(
                 )
             )
         } catch (e: Exception) {
-            handleApiError(gson, e)
+            throw parseReportCommentError(e)
         }
 
     override suspend fun deletePost(postID: Int) = try {

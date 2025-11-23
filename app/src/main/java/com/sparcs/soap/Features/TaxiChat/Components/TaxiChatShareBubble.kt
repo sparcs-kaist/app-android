@@ -20,10 +20,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
+import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.formattedString
 import com.sparcs.soap.Shared.Mocks.mock
 import java.util.Date
@@ -33,6 +35,15 @@ fun TaxiChatShareBubble(
     room: TaxiRoom
 ) {
     val context = LocalContext.current
+    val shareUrl = "${Constants.taxiInviteURL}${room.id}"
+    val shareMessage = stringResource(
+        R.string.taxi_share_message,
+        room.departAt.formattedString(),
+        room.source.title,
+        room.destination.title,
+        shareUrl
+    )
+
     Column(
         modifier = Modifier
             .background(
@@ -44,14 +55,11 @@ fun TaxiChatShareBubble(
         horizontalAlignment = Alignment.Start
     ) {
         Text(
-            text = "Share now and create a pleasant taxi-sharing experience!",
+            text = stringResource(R.string.share_now_prompt),
             style = MaterialTheme.typography.bodyMedium
         )
         Button(
             onClick = {
-                val shareUrl = "${Constants.taxiInviteURL}${room.id}"
-                val shareMessage = "🚕 Looking for someone to ride with on ${room.departAt.formattedString()} from ${room.source.title} to ${room.destination.title}! 🚕\n$shareUrl"
-
                 val sendIntent = Intent().apply {
                     action = Intent.ACTION_SEND
                     putExtra(Intent.EXTRA_TEXT, shareMessage)
@@ -72,7 +80,7 @@ fun TaxiChatShareBubble(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Share",
+                text = stringResource(R.string.share),
                 style = MaterialTheme.typography.bodyMedium
             )
         }

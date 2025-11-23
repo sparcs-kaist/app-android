@@ -40,7 +40,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.sparcs.soap.Domain.Enums.FeedVoteType
+import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
 import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
@@ -114,6 +114,8 @@ fun Header(
     showDeleteConfirmation: Boolean,
     setShowDelete: (Boolean) -> Unit,
 ) {
+    val authorName = if(post.authorName == "Anonymous") stringResource(R.string.anonymous) else post.authorName
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -122,7 +124,7 @@ fun Header(
     ) {
         ProfileImage(post)
         Spacer(Modifier.width(8.dp))
-        Text(post.authorName, style = MaterialTheme.typography.bodyMedium)
+        Text(authorName, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(8.dp))
         Text(// onPostDeleted == nil here means FeedPostRow is in the FeedPostView.
             text = if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
@@ -138,7 +140,7 @@ fun Header(
                 TextButton(onClick = {
                     onPostDeleted?.invoke(post.id)
                     setShowDelete(false)
-                }) { Text("Delete") }
+                }) { Text(stringResource(R.string.delete)) }
             },
             dismissButton = {
                 TextButton(onClick = { setShowDelete(false) }) { Text(stringResource(R.string.cancel)) }

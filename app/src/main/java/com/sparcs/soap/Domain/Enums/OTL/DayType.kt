@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.OTL
 
 enum class DayType(val value: Int, val stringValue: String) : Comparable<DayType> {
     SUN(6, "Sun"),

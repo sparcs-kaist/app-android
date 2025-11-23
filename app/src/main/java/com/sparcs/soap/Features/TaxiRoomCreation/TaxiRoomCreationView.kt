@@ -22,12 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.sparcs.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.TaxiList.TaxiListViewModel
@@ -36,6 +37,7 @@ import com.sparcs.soap.Features.TaxiRoomCreation.Components.TaxiCapacityPicker
 import com.sparcs.soap.Features.TaxiRoomCreation.Components.TaxiDepartureTimePicker
 import com.sparcs.soap.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import com.sparcs.soap.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
+import com.sparcs.soap.R
 import com.sparcs.soap.Shared.ViewModel.MockTaxiListViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
@@ -119,7 +121,7 @@ fun TaxiRoomCreationView(
                     decorationBox = { innerTextField ->
                         if (title.isEmpty()) {
                             Text(
-                                text = "Title",
+                                text = stringResource(R.string.title),
                                 color = MaterialTheme.colorScheme.grayBB,
                                 style = MaterialTheme.typography.bodyLarge
                             )

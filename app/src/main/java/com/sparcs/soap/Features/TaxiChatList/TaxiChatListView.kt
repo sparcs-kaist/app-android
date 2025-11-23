@@ -22,22 +22,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
+import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.ViewModelMocks.MockTaxiChatListViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import com.sparcs.soap.ui.theme.Theme
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,7 +71,7 @@ fun TaxiChatListView(
         ) {
         when (state) {
             is TaxiChatListViewModel.ViewState.Loading -> {
-                LoadingView(viewModel = viewModel)
+                LoadingView()
             }
 
             is TaxiChatListViewModel.ViewState.Loaded -> {
@@ -104,7 +106,7 @@ fun TaxiChatListView(
 }
 
 @Composable
-private fun LoadingView(viewModel: TaxiChatListViewModelProtocol) {
+private fun LoadingView() {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = Modifier.fillMaxSize()
@@ -115,7 +117,7 @@ private fun LoadingView(viewModel: TaxiChatListViewModelProtocol) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Active Rooms",
+                    text = stringResource(R.string.active_groups),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -135,7 +137,7 @@ private fun LoadingView(viewModel: TaxiChatListViewModelProtocol) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Past Rooms",
+                    text = stringResource(R.string.past_groups),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -167,7 +169,7 @@ fun LoadedView(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Active Rooms",
+                    text = stringResource(R.string.active_groups),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )
@@ -189,7 +191,7 @@ fun LoadedView(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "Past Rooms",
+                    text = stringResource(R.string.past_groups),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
                 )

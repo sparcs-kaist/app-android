@@ -1,3 +1,4 @@
+package com.sparcs.soap.Features.Post
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -42,7 +43,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
-import com.sparcs.soap.Domain.Enums.AraContentReportType
+import com.sparcs.soap.Domain.Enums.Ara.AraContentReportType
+import com.sparcs.soap.Domain.Enums.Feed.ReportLabelProvider
 import com.sparcs.soap.Domain.Models.Ara.AraPostComment
 import com.sparcs.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Ara.FakeAraCommentRepository
@@ -65,7 +67,7 @@ fun PostCommentCell(
     onDelete: () -> Unit,
     onEdit: () -> Unit,
     onTranslate: (String) -> Unit,
-    araCommentRepository: AraCommentRepositoryProtocol
+    araCommentRepository: AraCommentRepositoryProtocol,
 ) {
     val scope = rememberCoroutineScope()
     var showReportDialog by remember { mutableStateOf(false) }
@@ -83,7 +85,10 @@ fun PostCommentCell(
         }
 
         Column(modifier = Modifier.weight(1f)) {
-            HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0, modifier = Modifier.padding(vertical = 4.dp))
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.lightGray0,
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
 
             PostCommentHeader(
                 comment = commentState,
@@ -132,9 +137,15 @@ fun PostCommentCell(
     if (showReportDialog) {
         AlertDialog(
             onDismissRequest = { showReportDialog = false },
-            confirmButton = { TextButton(onClick = { showReportDialog = false }) { Text(stringResource(R.string.ok)) } },
-            title = { Text("Report Submitted") },
-            text = { Text("Your report has been submitted successfully.") }
+            confirmButton = {
+                TextButton(onClick = { showReportDialog = false }) {
+                    Text(
+                        stringResource(R.string.ok)
+                    )
+                }
+            },
+            title = { Text(stringResource(R.string.report_submitted)) },
+            text = { Text(stringResource(R.string.reported_successfully)) }
         )
     }
 
@@ -155,7 +166,7 @@ fun PostCommentHeader(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onReport: (AraContentReportType) -> Unit,
-    onTranslate: () -> Unit
+    onTranslate: () -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         ProfilePicture(url = comment.author.profile.profilePictureURL.toString())
@@ -193,7 +204,7 @@ fun PostCommentHeader(
 }
 
 @Composable
-fun <T : Enum<T>> PostCommentActionsMenu(
+fun <T> PostCommentActionsMenu(
     enumClass: KClass<T>, //ara or feed report type
     isMine: Boolean?,
     onEdit: () -> Unit? = {},
@@ -201,34 +212,34 @@ fun <T : Enum<T>> PostCommentActionsMenu(
     onReport: (T) -> Unit,
     onTranslate: () -> Unit,
     isComment: Boolean,
-    modifier: Modifier = Modifier
-) {
+    modifier: Modifier = Modifier,
+) where T : Enum<T>, T : ReportLabelProvider {
     var expanded by remember { mutableStateOf(false) }
     var reportExpanded by remember { mutableStateOf(false) }
 
     Box {
-            Icon(
-                painter = painterResource(R.drawable.more_horiz),
-                contentDescription = stringResource(R.string.more),
-                modifier = modifier
-                    .clickable { expanded = true },
-                tint = if(isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-            )
+        Icon(
+            painter = painterResource(R.drawable.more_horiz),
+            contentDescription = stringResource(R.string.more),
+            modifier = modifier
+                .clickable { expanded = true },
+            tint = if (isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+        )
 
         DropdownMenu(
             modifier = Modifier.background(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp),
             expanded = expanded,
             onDismissRequest = {
-            expanded = false
-            reportExpanded = false
-        }) {
+                expanded = false
+                reportExpanded = false
+            }) {
             if (isMine == false) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.report)) },
                     onClick = {
                         reportExpanded = !reportExpanded
-                              },
+                    },
                     leadingIcon = {
                         Icon(
                             painter = painterResource(R.drawable.outline_sms_failed),
@@ -239,7 +250,8 @@ fun <T : Enum<T>> PostCommentActionsMenu(
                         Icon(
                             painter = painterResource(R.drawable.arrow_forward_ios),
                             contentDescription = "show Report",
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier
+                                .size(18.dp)
                                 .rotate(if (reportExpanded) 270f else 0f)
                         )
                     }
@@ -252,13 +264,10 @@ fun <T : Enum<T>> PostCommentActionsMenu(
                 ) {
                     Column {
                         enumClass.java.enumConstants?.forEach { type ->
+
                             DropdownMenuItem(
                                 text = {
-                                    Text(
-                                        type.name.replace("_", " ")
-                                            .lowercase()
-                                            .replaceFirstChar { it.uppercase() }
-                                    )
+                                    Text(stringResource(type.labelRes))
                                 },
                                 onClick = {
                                     onReport(type)
@@ -304,7 +313,7 @@ fun <T : Enum<T>> PostCommentActionsMenu(
                             text = stringResource(R.string.delete),
                             color = MaterialTheme.colorScheme.error
                         )
-                           },
+                    },
                     onClick = { onDelete(); expanded = false },
                     leadingIcon = {
                         Icon(
@@ -324,7 +333,9 @@ fun ProfilePicture(url: String?) {
         AsyncImage(
             model = url,
             contentDescription = null,
-            modifier = Modifier.size(21.dp).clip(CircleShape)
+            modifier = Modifier
+                .size(21.dp)
+                .clip(CircleShape)
         )
     } else {
         Box(
@@ -355,7 +366,7 @@ fun PostCommentFooter(
     isThreaded: Boolean,
     isDeleted: Boolean,
     onComment: () -> Unit,
-    araCommentRepository: AraCommentRepositoryProtocol
+    araCommentRepository: AraCommentRepositoryProtocol,
 ) {
     val scope = rememberCoroutineScope()
     var commentState by remember { mutableStateOf(comment) }
@@ -396,16 +407,34 @@ suspend fun handleVote(
     comment: AraPostComment,
     isUpVote: Boolean,
     repo: AraCommentRepositoryProtocol,
-    update: (AraPostComment) -> Unit
+    update: (AraPostComment) -> Unit,
 ) {
     val prev = comment.copy()
 
     val updated = when {
-        isUpVote && comment.myVote == true -> comment.copy(myVote = null, upVotes = comment.upVotes - 1)
-        isUpVote && comment.myVote == false -> comment.copy(myVote = true, upVotes = comment.upVotes + 1, downVotes = comment.downVotes - 1)
+        isUpVote && comment.myVote == true -> comment.copy(
+            myVote = null,
+            upVotes = comment.upVotes - 1
+        )
+
+        isUpVote && comment.myVote == false -> comment.copy(
+            myVote = true,
+            upVotes = comment.upVotes + 1,
+            downVotes = comment.downVotes - 1
+        )
+
         isUpVote -> comment.copy(myVote = true, upVotes = comment.upVotes + 1)
-        !isUpVote && comment.myVote == false -> comment.copy(myVote = null, downVotes = comment.downVotes - 1)
-        !isUpVote && comment.myVote == true -> comment.copy(myVote = false, upVotes = comment.upVotes - 1, downVotes = comment.downVotes + 1)
+        !isUpVote && comment.myVote == false -> comment.copy(
+            myVote = null,
+            downVotes = comment.downVotes - 1
+        )
+
+        !isUpVote && comment.myVote == true -> comment.copy(
+            myVote = false,
+            upVotes = comment.upVotes - 1,
+            downVotes = comment.downVotes + 1
+        )
+
         else -> comment.copy(myVote = false, downVotes = comment.downVotes + 1)
     }
 
@@ -425,7 +454,7 @@ suspend fun handleVote(
 
 @Composable
 @Preview(showBackground = true)
-private fun Preview1(){
+private fun Preview1() {
     PostCommentCell(
         comment = AraPostComment.mock(),
         isThreaded = false,
@@ -440,7 +469,7 @@ private fun Preview1(){
 
 @Composable
 @Preview(showBackground = true)
-private fun Preview2(){
+private fun Preview2() {
     PostCommentCell(
         comment = AraPostComment.mock(),
         isThreaded = true,

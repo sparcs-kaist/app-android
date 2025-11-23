@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
@@ -36,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sparcs.soap.Domain.Helpers.Constants
+import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 import kotlinx.coroutines.launch
 
@@ -91,7 +93,7 @@ fun SignInView(
                     modifier = Modifier.size(24.dp)
                 )
             } else {
-                Text("Sign In with SPARCS SSO")
+                Text(stringResource(R.string.sign_in_sso))
             }
         }
 
@@ -100,10 +102,10 @@ fun SignInView(
                 onDismissRequest = { showErrorDialog = false },
                 confirmButton = {
                     TextButton(onClick = { showErrorDialog = false }) {
-                        Text("Okay")
+                        Text(stringResource(R.string.ok))
                     }
                 },
-                title = { Text("Error") },
+                title = { Text(stringResource(R.string.error)) },
                 text = { Text(errorMessage) }
             )
         }
@@ -114,23 +116,23 @@ fun SignInView(
 @Composable
 private fun TermsAndPrivacyText(context: Context) {
     val annotatedString = buildAnnotatedString {
-        append("By continuing, you agree to our ")
+        append(stringResource(R.string.terms_and_privacy_prefix))
 
         pushStringAnnotation(tag = "TERMS", annotation = Constants.termsOfUseURL)
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-            append("Terms of Use")
+            append(stringResource(R.string.terms_of_use))
         }
         pop()
 
-        append(" and ")
+        append(stringResource(R.string.and_text))
 
         pushStringAnnotation(tag = "PRIVACY", annotation = Constants.privacyPolicyURL)
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-            append("Privacy Policy")
+            append(stringResource(R.string.privacy_policy))
         }
         pop()
 
-        append(".")
+        append(stringResource(R.string.terms_and_privacy_suffix))
     }
 
     ClickableText(

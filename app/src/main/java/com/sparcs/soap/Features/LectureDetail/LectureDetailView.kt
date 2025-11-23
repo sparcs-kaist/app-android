@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -28,6 +29,7 @@ import com.sparcs.soap.Features.LectureDetail.Components.LectureInformation
 import com.sparcs.soap.Features.LectureDetail.Components.LectureReviews
 import com.sparcs.soap.Features.LectureDetail.Components.LectureSummary
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
+import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 
 @Composable
@@ -115,7 +117,7 @@ fun LectureDetailView(
                             pendingLectureToAdd = null
                         }
                     }) {
-                        Text("Okay")
+                        Text(stringResource(R.string.ok))
                     }
                 },
                 dismissButton = {
@@ -123,18 +125,20 @@ fun LectureDetailView(
                         showCannotAddLectureAlert = false
                         pendingLectureToAdd = null
                     }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 },
-                title = { Text("Add Overlapping Lecture") },
+                title = { Text(stringResource(R.string.add_overlapping_lecture)) },
                 text = {
                     val currentName =
-                        overlappingLecture?.title?.localized() ?: "the existing lecture"
-                    val newName = pendingLectureToAdd?.title?.localized() ?: "the new lecture"
+                        overlappingLecture?.title?.localized() ?: stringResource(R.string.the_existing_lecture)
+                    val newName = pendingLectureToAdd?.title?.localized() ?: stringResource(R.string.the_new_lecture)
                     Text(
-                        text = "The lecture \"$currentName\" overlaps with your current timetable.\n" +
-                                "If you add \"$newName\", the existing lecture will be removed.\n" +
-                                "Would you like to add it to your timetable?"
+                        text = stringResource(
+                            id = R.string.lecture_overlap,
+                            currentName,
+                            newName
+                        )
                     )
                 }
             )

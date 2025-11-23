@@ -2,7 +2,7 @@ package com.sparcs.soap.Features.Settings.Taxi
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.sparcs.soap.Domain.Models.Taxi.TaxiReport
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiReports
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,15 +10,18 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
-data class TaxiReports(
-    val incoming: List<TaxiReport>,
-    val outgoing: List<TaxiReport>
-)
+
+interface TaxiReportListViewModelProtocol {
+    val state: StateFlow<TaxiReportListViewModel.ViewState>
+    var reports: TaxiReports
+
+    suspend fun fetchReports()
+}
 
 @HiltViewModel
 class TaxiReportListViewModel @Inject constructor(
-    private val taxiReportRepository: TaxiReportRepositoryProtocol
-): ViewModel(), TaxiReportListViewModelProtocol {
+    private val taxiReportRepository: TaxiReportRepositoryProtocol,
+) : ViewModel(), TaxiReportListViewModelProtocol {
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()

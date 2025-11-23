@@ -1,6 +1,6 @@
 package com.sparcs.soap.Domain.Models.OTL
 
-import com.sparcs.soap.Domain.Enums.LectureType
+import com.sparcs.soap.Domain.Enums.OTL.LectureType
 
 data class LectureCreditData(
     val lectureType: LectureType,

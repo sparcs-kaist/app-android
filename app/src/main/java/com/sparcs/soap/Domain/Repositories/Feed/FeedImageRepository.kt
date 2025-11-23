@@ -1,7 +1,7 @@
 package com.sparcs.soap.Domain.Repositories.Feed
 
 import com.google.gson.Gson
-import com.sparcs.soap.Domain.Enums.FeedPostPhotoItem
+import com.sparcs.soap.Domain.Enums.Feed.FeedPostPhotoItem
 import com.sparcs.soap.Domain.Models.Feed.FeedImage
 import com.sparcs.soap.Networking.ResponseDTO.handleApiError
 import com.sparcs.soap.Networking.RetrofitAPI.Feed.FeedImageApi

@@ -1,7 +1,7 @@
 package com.sparcs.soap.Domain.Models.OTL
 
-import com.sparcs.soap.Domain.Enums.DayType
-import com.sparcs.soap.Domain.Enums.LectureType
+import com.sparcs.soap.Domain.Enums.OTL.DayType
+import com.sparcs.soap.Domain.Enums.OTL.LectureType
 import kotlin.math.roundToInt
 
 data class Timetable(
