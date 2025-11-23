@@ -45,6 +45,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.PostList.Components.PostList.PostList
 import com.sparcs.soap.Features.PostList.Components.PostListRow.BoardNavigationBar
@@ -55,7 +56,6 @@ import com.sparcs.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import com.sparcs.soap.ui.theme.lightGray0
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -165,10 +165,10 @@ fun PostListView(
                             errorMessage = error,
                             onRetry = {
                                 coroutineScope.launch {
-                                    if (!loadedInitialPost) {
+//                                    if (!loadedInitialPost) {
                                         viewModel.fetchInitialPosts()
                                         viewModel.bind()
-                                    }
+//                                    }
                                 }
                             }
                         )
