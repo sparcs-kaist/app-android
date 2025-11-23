@@ -1,10 +1,12 @@
 package com.sparcs.soap.Domain.Repositories.Feed
 
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Enums.FeedReportType
 import com.sparcs.soap.Domain.Enums.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
 import com.sparcs.soap.Domain.Models.Feed.FeedCreateComment
 import com.sparcs.soap.Networking.RequestDTO.Feed.FeedCommentRequestDTO
+import com.sparcs.soap.Networking.ResponseDTO.handleApiError
 import com.sparcs.soap.Networking.RetrofitAPI.Feed.FeedCommentApi
 import com.sparcs.soap.Shared.Mocks.mock
 import com.sparcs.soap.Shared.Mocks.mockList
@@ -18,6 +20,61 @@ interface FeedCommentRepositoryProtocol {
     suspend fun vote(commentId: String, type: FeedVoteType)
     suspend fun deleteVote(commentId: String)
     suspend fun reportComment(commentId: String, reason: FeedReportType)
+}
+
+class FeedCommentRepository @Inject constructor(
+    private val api: FeedCommentApi,
+    private val gson: Gson = Gson(),
+) : FeedCommentRepositoryProtocol {
+
+    override suspend fun fetchComments(postId: String): List<FeedComment> = try {
+        api.fetchComments(postId).map { it.toModel() }
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
+
+    override suspend fun writeComment(postId: String, request: FeedCreateComment): FeedComment {
+        try {
+            val dto = FeedCommentRequestDTO.fromModel(request)
+            return api.writeComment(postId, dto).toModel()
+
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
+    }
+
+    override suspend fun writeReply(commentId: String, request: FeedCreateComment): FeedComment {
+        try {
+            val dto = FeedCommentRequestDTO.fromModel(request)
+            return api.writeReply(commentId, dto).toModel()
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
+    }
+
+    override suspend fun deleteComment(commentId: String) = try {
+        api.deleteComment(commentId)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
+
+    override suspend fun vote(commentId: String, type: FeedVoteType) = try {
+        api.vote(commentId, mapOf("vote" to type.name))
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
+
+    override suspend fun deleteVote(commentId: String) = try {
+        api.deleteVote(commentId)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
+
+    override suspend fun reportComment(commentId: String, reason: FeedReportType) = try {
+        api.reportComment(commentId, mapOf("reason" to reason.name))
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
 }
 
 class FakeFeedCommentRepository : FeedCommentRepositoryProtocol {
@@ -44,39 +101,4 @@ class FakeFeedCommentRepository : FeedCommentRepositoryProtocol {
     override suspend fun vote(commentId: String, type: FeedVoteType) {}
     override suspend fun deleteVote(commentId: String) {}
     override suspend fun reportComment(commentId: String, reason: FeedReportType) {}
-}
-
-class FeedCommentRepository @Inject constructor(
-    private val api: FeedCommentApi,
-) : FeedCommentRepositoryProtocol {
-
-    override suspend fun fetchComments(postId: String): List<FeedComment> {
-        return api.fetchComments(postId).map { it.toModel() }
-    }
-
-    override suspend fun writeComment(postId: String, request: FeedCreateComment): FeedComment {
-        val dto = FeedCommentRequestDTO.fromModel(request)
-        return api.writeComment(postId, dto).toModel()
-    }
-
-    override suspend fun writeReply(commentId: String, request: FeedCreateComment): FeedComment {
-        val dto = FeedCommentRequestDTO.fromModel(request)
-        return api.writeReply(commentId, dto).toModel()
-    }
-
-    override suspend fun deleteComment(commentId: String) {
-        api.deleteComment(commentId)
-    }
-
-    override suspend fun vote(commentId: String, type: FeedVoteType) {
-        api.vote(commentId, mapOf("vote" to type.name))
-    }
-
-    override suspend fun deleteVote(commentId: String) {
-        api.deleteVote(commentId)
-    }
-
-    override suspend fun reportComment(commentId: String, reason: FeedReportType) {
-        api.reportComment(commentId, mapOf("reason" to reason.name))
-    }
 }
