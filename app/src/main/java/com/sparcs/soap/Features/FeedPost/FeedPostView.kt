@@ -2,6 +2,7 @@ package com.sparcs.soap.Features.FeedPost
 
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -92,6 +93,16 @@ fun FeedPostView(
     val deleteSuccessText = stringResource(R.string.deleted_successfully)
     val reportSuccessText = stringResource(R.string.reported_successfully)
 
+    var showAlert by remember { mutableStateOf(false) }
+    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
+    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
+
+    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
+    }
+
     if (post == null) {
         LoadingView(navController)
         return
@@ -108,7 +119,20 @@ fun FeedPostView(
                 onDelete = { showDeleteConfirmation = true },
                 onReport = {
                     coroutineScope.launch {
-                        repo.reportPost(post.id, it)
+                        try {
+                            repo.reportPost(post.id, it)
+                            showAlert(
+                                title = R.string.report_submitted,
+                                message = R.string.reported_successfully
+                            )
+                        } catch (e: Exception) {
+                            viewModel.handleException(error = e)
+                            showAlert = true
+                            showAlert(
+                                title = R.string.error,
+                                message = R.string.unexpected_error_reporting_comment
+                            )
+                        }
                     }
                     Toast.makeText(context, reportSuccessText, Toast.LENGTH_SHORT).show()
                 },
@@ -146,6 +170,11 @@ fun FeedPostView(
                             }
                         } catch (e: Exception) {
                             Log.e("FeedPostView", "Failed to upload comment", e)
+                            viewModel.handleException(e)
+                            showAlert(
+                                title = R.string.error,
+                                message = R.string.unexpected_error_uploading_comment
+                            )
                         } finally {
                             isUploadingComment = false
                         }
@@ -225,6 +254,16 @@ fun FeedPostView(
                         )
                     }
                 }
+            )
+        }
+        if (showAlert) {
+            AlertDialog(
+                onDismissRequest = { showAlert = false },
+                confirmButton = {
+                    Button(onClick = { showAlert = false }) { Text("Okay") }
+                },
+                title = { Text(stringResource(alertTitle)) },
+                text = { Text(stringResource(alertMessage)) }
             )
         }
     }
@@ -372,19 +411,21 @@ private fun Comments(
                 )
                 viewModel.comments.forEach { comment ->
                     FeedCommentRow(
+                        viewModel = viewModel,
                         comment = comment,
                         isMine = isMine,
                         isReply = false,
                         onReply = { onReply(comment) },
-                        feedCommentRepository = feedCommentRepository
+                        feedCommentRepository = feedCommentRepository,
                     )
                     comment.replies.forEach { reply ->
                         FeedCommentRow(
+                            viewModel = viewModel,
                             comment = reply,
                             isMine = isMine,
                             isReply = true,
                             onReply = {},
-                            feedCommentRepository = feedCommentRepository
+                            feedCommentRepository = feedCommentRepository,
                         )
                     }
                     HorizontalDivider(

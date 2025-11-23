@@ -2,7 +2,6 @@ package com.sparcs.soap.Networking.RetrofitAPI.OTL
 
 import com.sparcs.soap.Networking.ResponseDTO.OTL.CourseDTO
 import com.sparcs.soap.Networking.ResponseDTO.OTL.LectureReviewDTO
-import retrofit2.Response
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -25,8 +24,8 @@ interface OTLCourseApi {
     ): List<LectureReviewDTO>
 
     @POST("api/reviews/{reviewId}/like")
-    suspend fun likeReview(@Path("reviewId") reviewId: Int): Response<Unit>
+    suspend fun likeReview(@Path("reviewId") reviewId: Int)
 
     @DELETE("api/reviews/{reviewId}/like")
-    suspend fun unlikeReview(@Path("reviewId") reviewId: Int): Response<Unit>
+    suspend fun unlikeReview(@Path("reviewId") reviewId: Int)
 }

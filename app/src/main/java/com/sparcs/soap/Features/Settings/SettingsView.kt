@@ -11,18 +11,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,6 +46,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.sparcs.soap.BuildConfig
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.Settings.Components.SettingsViewNavigationBar
@@ -54,6 +61,16 @@ fun SettingsView(
     settingsViewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    var showLogoutError by remember { mutableStateOf(false) }
+    var isCrashlyticsEnabled by remember {
+        mutableStateOf(
+            FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled
+        )
+    }
+
+    LaunchedEffect(isCrashlyticsEnabled) {
+        FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = isCrashlyticsEnabled
+    }
 
     Scaffold(
         topBar = {
@@ -76,6 +93,7 @@ fun SettingsView(
                 AppSettings(context)
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
+                SendCrashReportsButton(isCrashlyticsEnabled, { isCrashlyticsEnabled = it })
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
 
@@ -141,9 +159,50 @@ fun SettingsView(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
                 )
-                SignOutButton { navController.navigate(Channel.SignOut.name) }
+                SignOutButton {
+                    try {
+                        settingsViewModel.signOut()
+                    } catch (e: Exception) {
+                        showLogoutError = true
+                    } finally {
+                        navController.navigate(Channel.SignOut.name)
+                    }
+                }
             }
         }
+        if (BuildConfig.DEBUG) {
+            Text("Debug Menu", style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(8.dp))
+
+            Button(onClick = { error("DEBUG: User forced a crash") }) {
+                Text("Force Crash")
+            }
+
+            Button(
+                onClick = {
+                    settingsViewModel.handleException(
+                        Exception("Test exception from debug")
+                    )
+                }
+            ) {
+                Text("Invoke Exception")
+            }
+        }
+    }
+
+    if (showLogoutError) {
+        AlertDialog(
+            onDismissRequest = { showLogoutError = false },
+            confirmButton = {
+                TextButton(onClick = { showLogoutError = false }) {
+                    Text("OK")
+                }
+            },
+            title = { Text("Error") },
+            text = {
+                Text("An error occurred while signing out. Please try again later.")
+            }
+        )
     }
 }
 
@@ -252,11 +311,45 @@ private fun FeedbackButton(context: Context) {
 }
 
 @Composable
+private fun SendCrashReportsButton(
+    isCrashlyticsEnabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp, horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.round_lightbulb_outline),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurface
+        )
+
+        Spacer(Modifier.width(8.dp))
+
+        Text(
+            text = stringResource(R.string.send_crash_reports),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        Spacer(Modifier.weight(1f))
+        Switch(
+            checked = isCrashlyticsEnabled,
+            onCheckedChange = onCheckedChange
+        )
+    }
+}
+
+@Composable
 private fun ServiceNavButton(
     text: String,
     painter: Painter,
     color: Color = Color.Unspecified,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier

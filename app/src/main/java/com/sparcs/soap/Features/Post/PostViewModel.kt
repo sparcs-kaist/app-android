@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sparcs.soap.Domain.Enums.AraContentReportType
 import com.sparcs.soap.Domain.Enums.PostOrigin
+import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Models.Ara.AraPostComment
 import com.sparcs.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
@@ -33,6 +34,7 @@ interface PostViewModelProtocol {
     suspend fun summarisedContent(): String
     suspend fun deletePost()
     suspend fun toggleBookmark()
+    fun handleException(error: Throwable)
 }
 
 @HiltViewModel
@@ -41,6 +43,7 @@ class PostViewModel @Inject constructor(
     private val araBoardRepository: AraBoardRepositoryProtocol,
     val araCommentRepository: AraCommentRepositoryProtocol,
 //    private val foundationModelsUseCase: FoundationModelsUseCaseProtocol
+    private val crashlyticsHelper: CrashlyticsHelper
 ) : ViewModel(), PostViewModelProtocol {
 
     sealed interface ViewState {
@@ -256,6 +259,13 @@ class PostViewModel @Inject constructor(
             _post.value = current
         }
     }
+    override fun handleException(error: Throwable) {
+        Log.e("FeedPostViewModel","failed to create a report: $error")
+        crashlyticsHelper.recordException(
+            error = error,
+            alertMessage = "An unexpected error occurred while reporting a user. Please try again later."
+        )
+    }
 }
 
 class MockPostViewModel(
@@ -295,4 +305,5 @@ class MockPostViewModel(
 
     override suspend fun deletePost() {}
     override suspend fun toggleBookmark() {}
+    override fun handleException(error: Throwable) {}
 }
