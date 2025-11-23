@@ -2,7 +2,7 @@ package com.sparcs.soap.Features.TaxiRoomCreation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sparcs.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import com.sparcs.soap.Domain.Usecases.TaxiRoomUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

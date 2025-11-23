@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,7 @@ import androidx.lifecycle.SavedStateHandle
 import com.sparcs.soap.Domain.Repositories.Taxi.FakeTaxiRoomRepository
 import com.sparcs.soap.Domain.Usecases.MockTaxiLocationUseCase
 import com.sparcs.soap.Features.TaxiList.TaxiListViewModel
+import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.toDate
 import com.sparcs.soap.Shared.Extensions.toLocalDate
 import com.sparcs.soap.ui.theme.Theme
@@ -97,6 +99,8 @@ fun WeekDaySelector(
                 .height(60.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val size = if(stringResource(R.string.all) == "All") MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium
+
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -113,8 +117,8 @@ fun WeekDaySelector(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = "All",
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                    text = stringResource(R.string.all),
+                    style = size.copy(fontWeight = FontWeight.SemiBold),
                     color = if (selectedDate == null) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
                 )
             }

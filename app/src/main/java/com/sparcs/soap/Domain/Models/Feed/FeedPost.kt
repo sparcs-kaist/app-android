@@ -1,6 +1,6 @@
 package com.sparcs.soap.Domain.Models.Feed
 
-import com.sparcs.soap.Domain.Enums.FeedVoteType
+import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import java.util.Date
 
 data class FeedPost(

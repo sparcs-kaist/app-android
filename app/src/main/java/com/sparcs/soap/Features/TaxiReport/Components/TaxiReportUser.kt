@@ -19,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -49,9 +50,9 @@ fun TaxiReportUser(
             )
             if (user.isSettlement != TaxiParticipant.SettlementType.NotDeparted) {
                 val statusText = when (user.isSettlement) {
-                    TaxiParticipant.SettlementType.RequestedSettlement -> "Requested settlement"
-                    TaxiParticipant.SettlementType.PaymentSent -> "Paid"
-                    TaxiParticipant.SettlementType.PaymentRequired -> "Not paid"
+                    TaxiParticipant.SettlementType.RequestedSettlement -> stringResource(R.string.request_settlement)
+                    TaxiParticipant.SettlementType.PaymentSent -> stringResource(R.string.paid)
+                    TaxiParticipant.SettlementType.PaymentRequired -> stringResource(R.string.not_paid)
                     else -> ""
                 }
                 if (statusText.isNotEmpty()) {

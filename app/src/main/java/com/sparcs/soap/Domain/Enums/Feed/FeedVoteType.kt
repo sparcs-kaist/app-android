@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.Feed
 
 enum class FeedVoteType(val type: String){
     UP("up"),

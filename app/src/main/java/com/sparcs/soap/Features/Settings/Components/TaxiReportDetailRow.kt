@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sparcs.soap.Domain.Enums.TaxiReportType
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiReportType
 import com.sparcs.soap.Domain.Models.Taxi.TaxiReport
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.formattedString

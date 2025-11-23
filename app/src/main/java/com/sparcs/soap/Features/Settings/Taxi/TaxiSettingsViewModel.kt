@@ -1,4 +1,5 @@
 package com.sparcs.soap.Features.Settings.Taxi
+
 import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,10 +15,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface TaxiSettingsViewModelProtocol {
+    var bankName: String?
+    var bankNumber: String
+    val user: TaxiUser?
+    val state: StateFlow<TaxiSettingsViewModel.ViewState>
+
+    suspend fun fetchUser()
+    suspend fun editBankAccount(account: String)
+}
+
 @HiltViewModel
 class TaxiSettingsViewModel @Inject constructor(
     private val userUseCase: UserUseCase,
-    private val taxiUserRepository: TaxiUserRepository
+    private val taxiUserRepository: TaxiUserRepository,
 ) : ViewModel(), TaxiSettingsViewModelProtocol {
 
     sealed class ViewState {

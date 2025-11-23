@@ -1,6 +1,6 @@
 package com.sparcs.soap.Domain.Models.OTL
 
-import com.sparcs.soap.Domain.Enums.DayType
+import com.sparcs.soap.Domain.Enums.OTL.DayType
 import com.sparcs.soap.Domain.Helpers.LocalizedString
 
 data class ClassTime(

@@ -4,8 +4,8 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sparcs.soap.Domain.Enums.AraContentReportType
-import com.sparcs.soap.Domain.Enums.PostOrigin
+import com.sparcs.soap.Domain.Enums.Ara.AraContentReportType
+import com.sparcs.soap.Domain.Enums.Ara.PostOrigin
 import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Models.Ara.AraPostComment

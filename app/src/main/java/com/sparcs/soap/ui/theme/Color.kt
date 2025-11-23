@@ -2,7 +2,6 @@ package com.sparcs.soap.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-
 // Primary colors
 val theme_light_primary = Color(0xFF5E54EC)
 val theme_light_onPrimary = Color(0xFFFFFFFF)

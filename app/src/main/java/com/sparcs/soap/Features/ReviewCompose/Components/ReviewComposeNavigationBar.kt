@@ -78,7 +78,7 @@ fun ReviewComposeNavigationBar(
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = "Discard Review",
+                            text = stringResource(R.string.discard_this_review),
                             color = MaterialTheme.colorScheme.error
                         )
                     },

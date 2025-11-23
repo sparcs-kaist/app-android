@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.Auth
 
 sealed class AuthenticationServiceError : Exception() {
     data object UserCancelled : AuthenticationServiceError() {

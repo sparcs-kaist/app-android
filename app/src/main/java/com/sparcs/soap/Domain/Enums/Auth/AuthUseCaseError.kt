@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.Auth
 
 sealed class AuthUseCaseError : Throwable() {
     data class SignInFailed(val error: Throwable) : AuthUseCaseError()

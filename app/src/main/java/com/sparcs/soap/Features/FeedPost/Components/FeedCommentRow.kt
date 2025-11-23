@@ -1,6 +1,5 @@
 package com.sparcs.soap.Features.FeedPost.Components
 
-import PostCommentActionsMenu
 import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
@@ -45,14 +44,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import com.sparcs.soap.Domain.Enums.FeedReportType
-import com.sparcs.soap.Domain.Enums.FeedVoteType
+import com.sparcs.soap.Domain.Enums.Feed.FeedReportType
+import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
 import com.sparcs.soap.Domain.Repositories.Feed.FakeFeedCommentRepository
 import com.sparcs.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
 import com.sparcs.soap.Features.FeedPost.FeedPostViewModelProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
 import com.sparcs.soap.Features.Post.Components.PostVoteButton
+import com.sparcs.soap.Features.Post.PostCommentActionsMenu
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.timeAgoDisplay
 import com.sparcs.soap.Shared.Mocks.mock
@@ -141,7 +141,7 @@ fun FeedCommentRow(
         AlertDialog(
             onDismissRequest = { showAlert = false },
             confirmButton = {
-                TextButton(onClick = { showAlert = false }) { Text("Okay") }
+                TextButton(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
             },
             title = { Text(stringResource(alertTitle)) },
             text = { Text(stringResource(alertMessage)) }

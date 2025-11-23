@@ -1,7 +1,7 @@
 package com.sparcs.soap.Domain.Repositories.OTL
 
 import com.google.gson.Gson
-import com.sparcs.soap.Domain.Enums.SemesterType
+import com.sparcs.soap.Domain.Enums.OTL.SemesterType
 import com.sparcs.soap.Domain.Models.OTL.Semester
 import com.sparcs.soap.Domain.Models.OTL.Timetable
 import com.sparcs.soap.Networking.ResponseDTO.handleApiError

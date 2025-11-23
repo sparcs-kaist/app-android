@@ -42,7 +42,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.sparcs.soap.Domain.Enums.TaxiReportType
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiReportType
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiReports
 import com.sparcs.soap.Domain.Models.Taxi.TaxiReport
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.Settings.Components.SettingsViewNavigationBar
@@ -56,13 +57,12 @@ import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.lightGray0
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
 fun TaxiReportListView(
     viewModel: TaxiReportListViewModelProtocol,
-    navController: NavController
+    navController: NavController,
 ) {
     var taxiReportType by remember { mutableStateOf(TaxiReportType.INCOMING) }
     val state by viewModel.state.collectAsState()
@@ -77,7 +77,7 @@ fun TaxiReportListView(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.taxi_reports),
-                onDismiss = { navController.navigate(Channel.TaxiSettings.name )}
+                onDismiss = { navController.navigate(Channel.TaxiSettings.name) }
             )
         }
     ) { innerPadding ->
@@ -101,9 +101,10 @@ fun TaxiReportListView(
 
             when (state) {
                 is TaxiReportListViewModel.ViewState.Loading -> LoadingView()
-                is TaxiReportListViewModel.ViewState.Loaded -> LoadedView(viewModel, taxiReportType, coroutineScope)
+                is TaxiReportListViewModel.ViewState.Loaded -> LoadedView(viewModel, taxiReportType)
                 is TaxiReportListViewModel.ViewState.Error -> {
-                    val message = (viewModel.state.collectAsState().value as TaxiReportListViewModel.ViewState.Error).message
+                    val message =
+                        (viewModel.state.collectAsState().value as TaxiReportListViewModel.ViewState.Error).message
                     ErrorView(
                         Icons.Default.Warning,
                         message
@@ -127,7 +128,6 @@ private fun LoadingView() {
 private fun LoadedView(
     viewModel: TaxiReportListViewModelProtocol,
     taxiReportType: TaxiReportType,
-    coroutineScope: CoroutineScope
 ) {
     val reports = when (taxiReportType) {
         TaxiReportType.INCOMING -> viewModel.reports.incoming
@@ -143,9 +143,8 @@ private fun LoadedView(
 @Composable
 private fun ReportViewList(
     reports: List<TaxiReport>,
-    reportType: TaxiReportType
-    )
-{
+    reportType: TaxiReportType,
+) {
     if (reports.isEmpty()) {
         UnavailableView(
             painterResource(R.drawable.baseline_search_off), stringResource(R.string.no_reports), ""
@@ -158,11 +157,12 @@ private fun ReportViewList(
         }
     }
 }
+
 @Composable
 fun AnimatedSegmentedPicker(
     options: List<String>,
     selectedIndex: Int,
-    onSelected: (Int) -> Unit
+    onSelected: (Int) -> Unit,
 ) {
     val animProgress by animateFloatAsState(
         targetValue = selectedIndex.toFloat(),
@@ -208,11 +208,15 @@ fun AnimatedSegmentedPicker(
 }
 
 
-
 @Preview
 @Composable
 private fun LoadingPreview() {
-    Theme { TaxiReportListView(MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Loading), rememberNavController()) }
+    Theme {
+        TaxiReportListView(
+            MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Loading),
+            rememberNavController()
+        )
+    }
 }
 
 @Preview
@@ -233,6 +237,7 @@ private fun LoadedPreview() {
 @Preview
 @Composable
 private fun ErrorPreview() {
-    val viewModel = MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Error("Network error"))
+    val viewModel =
+        MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Error("Network error"))
     Theme { TaxiReportListView(viewModel, rememberNavController()) }
 }

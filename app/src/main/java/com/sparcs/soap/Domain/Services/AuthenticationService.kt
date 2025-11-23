@@ -4,7 +4,7 @@ import android.app.Activity
 import android.net.Uri
 import android.util.Log
 import androidx.browser.customtabs.CustomTabsIntent
-import com.sparcs.soap.Domain.Enums.AuthenticationServiceError
+import com.sparcs.soap.Domain.Enums.Auth.AuthenticationServiceError
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Helpers.TokenStorageProtocol
 import com.sparcs.soap.Networking.ResponseDTO.Auth.SignInResponseDTO

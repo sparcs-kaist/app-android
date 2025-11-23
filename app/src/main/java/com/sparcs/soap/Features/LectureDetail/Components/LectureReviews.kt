@@ -23,6 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Helpers.gradeLetter
 import com.sparcs.soap.Domain.Helpers.loadLetter
 import com.sparcs.soap.Domain.Helpers.speechLetter
@@ -35,7 +36,6 @@ import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.ui.theme.grayBB
 import com.sparcs.soap.ui.theme.lightGray0
-import com.google.gson.Gson
 
 @Composable
 fun LectureReviews(
@@ -48,6 +48,7 @@ fun LectureReviews(
     val state by viewModel.state.collectAsState()
     val textColor = if(canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
     val reviews = viewModel.reviews.collectAsState().value
+
     Column {
         Row {
             Text(
@@ -112,8 +113,8 @@ fun LectureReviews(
                     if(reviews.isEmpty()) {
                         UnavailableView(
                             icon = painterResource(R.drawable.rounded_book_2),
-                            title = "No Reviews",
-                            description = "There are no reviews yet."
+                            title = stringResource(R.string.no_reviews),
+                            description = stringResource(R.string.there_are_no_reviews_yet)
                         )
                     } else {
                         reviews.forEach { review ->

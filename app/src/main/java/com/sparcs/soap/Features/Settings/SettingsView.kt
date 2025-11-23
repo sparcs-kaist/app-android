@@ -195,12 +195,12 @@ fun SettingsView(
             onDismissRequest = { showLogoutError = false },
             confirmButton = {
                 TextButton(onClick = { showLogoutError = false }) {
-                    Text("OK")
+                    Text(stringResource(R.string.ok))
                 }
             },
-            title = { Text("Error") },
+            title = { Text(stringResource(R.string.error)) },
             text = {
-                Text("An error occurred while signing out. Please try again later.")
+                Text(stringResource(R.string.unexpected_error_signing_out))
             }
         )
     }
@@ -273,12 +273,13 @@ private fun AppSettings(context: Context) {
 
 @Composable
 private fun FeedbackButton(context: Context) {
+    val sendFeedBack = stringResource(R.string.send_feedback)
     val onClick = {
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("mailto:app@sparcs.org")
         }
 
-        val chooser = Intent.createChooser(emailIntent, "Send Feedback")
+        val chooser = Intent.createChooser(emailIntent, sendFeedBack)
 
         try {
             context.startActivity(chooser)

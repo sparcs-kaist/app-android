@@ -136,8 +136,8 @@ fun TaxiSettingsView(
 @Composable
 private fun LoadingView() {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        RowElementView(title = stringResource(R.string.nickname), content = "Unknown")
-        RowElementView(title = stringResource(R.string.bank_name), content = "Unknown")
+        RowElementView(title = stringResource(R.string.nickname), content = stringResource(R.string.unknown))
+        RowElementView(title = stringResource(R.string.bank_name), content = stringResource(R.string.unknown))
     }
 }
 
@@ -147,7 +147,7 @@ private fun LoadedView(viewModel: TaxiSettingsViewModelProtocol, navController: 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)){
             Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
 
-            RowElementView(title = stringResource(R.string.nickname), content = viewModel.user?.nickname ?: "Unknown")
+            RowElementView(title = stringResource(R.string.nickname), content = viewModel.user?.nickname ?: stringResource(R.string.unknown))
 
             BankPicker(
                 selected = viewModel.bankName,
@@ -260,7 +260,7 @@ fun BankPicker(
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             Row{
                 Text(
-                    text = selected ?: "Select Bank",
+                    text = selected ?: stringResource(R.string.select_bank),
                     color = if (selected == null)
                         MaterialTheme.colorScheme.grayBB
                     else

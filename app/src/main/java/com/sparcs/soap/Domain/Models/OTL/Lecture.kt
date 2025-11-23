@@ -1,8 +1,8 @@
 package com.sparcs.soap.Domain.Models.OTL
 
 import androidx.compose.ui.graphics.Color
-import com.sparcs.soap.Domain.Enums.LectureType
-import com.sparcs.soap.Domain.Enums.SemesterType
+import com.sparcs.soap.Domain.Enums.OTL.LectureType
+import com.sparcs.soap.Domain.Enums.OTL.SemesterType
 import com.sparcs.soap.Domain.Helpers.CourseRepresentable
 import com.sparcs.soap.Domain.Helpers.LocalizedString
 import com.sparcs.soap.Domain.Helpers.TimetableColorPalette

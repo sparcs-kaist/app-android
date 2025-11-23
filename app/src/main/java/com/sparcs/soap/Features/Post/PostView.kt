@@ -1,6 +1,5 @@
 package com.sparcs.soap.Features.Post
 
-import PostCommentCell
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.StringRes
@@ -118,6 +117,7 @@ fun PostView(
     var showAlert by remember { mutableStateOf(false) }
     @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
     @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
+    var errorMessage : String by remember { mutableStateOf("") }
 
     fun showAlert(@StringRes title: Int, @StringRes message: Int) {
         alertTitle = title
@@ -125,8 +125,14 @@ fun PostView(
         showAlert = true
     }
 
+    fun showMessage(@StringRes title: Int, message: String) {
+        alertTitle = title
+        errorMessage = message
+        showAlert = true
+    }
+
+    val reportErrorMessage = stringResource(R.string.unexpected_error_reporting_comment)
     val post = viewModel.post.collectAsState().value
-    val context = LocalContext.current
 
     if (post == null) {
         PostViewSkeleton()
@@ -150,6 +156,7 @@ fun PostView(
                         } catch (e: Exception) {
                             Log.e("PostView", "Failed to report post", e)
                             viewModel.handleException(e)
+                            showMessage(R.string.error, e.message?: reportErrorMessage)
                         }
                     }
                 },
@@ -298,13 +305,13 @@ fun PostView(
                 )
                 {
                     Text(
-                        text = "Delete",
+                        text = stringResource(R.string.delete),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
             },
-            title = { Text(text = "Delete Post", fontWeight = FontWeight.Bold) },
-            text = { Text("Are you sure you want to delete this post?") }
+            title = { Text(text = stringResource(R.string.delete_post), fontWeight = FontWeight.Bold) },
+            text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
         )
     }
 
@@ -312,10 +319,18 @@ fun PostView(
         AlertDialog(
             onDismissRequest = { showAlert = false },
             confirmButton = {
-                Button(onClick = { showAlert = false }) { Text("Okay") }
+                Button(onClick = { showAlert = false }) {
+                    Text(stringResource(R.string.ok))
+                }
             },
             title = { Text(stringResource(alertTitle)) },
-            text = { Text(stringResource(alertMessage)) }
+            text = {
+                if (alertMessage != 0) {
+                    Text(stringResource(alertMessage))
+                } else {
+                    Text(errorMessage)
+                }
+            }
         )
     }
 }
@@ -341,7 +356,7 @@ private fun Header(
                 color = MaterialTheme.colorScheme.grayBB
             )
             Text(
-                text = "${post.views} views",
+                text = stringResource(R.string.reviews, post.views),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.grayBB
             )

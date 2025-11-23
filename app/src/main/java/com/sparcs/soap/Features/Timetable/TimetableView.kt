@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -42,6 +43,7 @@ import com.sparcs.soap.Features.Timetable.Components.TimetableCreditGraph
 import com.sparcs.soap.Features.Timetable.Components.TimetableGrid
 import com.sparcs.soap.Features.Timetable.Components.TimetableSummary
 import com.sparcs.soap.Features.Timetable.Components.TimetableViewNavigationBar
+import com.sparcs.soap.R
 
 @Composable
 fun TimetableView(
@@ -145,11 +147,11 @@ fun TimetableView(
                             viewModel.deleteLecture(lecture = lectureToDelete!!)
                         }
                     ) {
-                        Text("Okay")
+                        Text(stringResource(R.string.ok))
                     }
                 },
-                title = { Text("DELETE?") },
-                text = { Text("Do you really want to delete ${lectureToDelete!!.title.localized()}?") }
+                title = { Text(stringResource(R.string.delete)) },
+                text = { Text(stringResource(R.string.do_you_really_want_to_delete_this_table,lectureToDelete!!.title.localized())) }
             )
         }
     }

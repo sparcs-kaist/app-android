@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,7 +46,7 @@ fun TaxiChatAccountBubble(
             .padding(12.dp)
     ) {
         Text(
-            text = "settlement".uppercase(),
+            text = stringResource(R.string.settlement).uppercase(),
             style = MaterialTheme.typography.labelSmall.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -72,7 +73,7 @@ fun TaxiChatAccountBubble(
                 Text(accountNumber)
             }
         } else {
-            Text("Failed to parse account information.")
+            Text(stringResource(R.string.account_parse_failed))
         }
 
         Button (
@@ -84,7 +85,7 @@ fun TaxiChatAccountBubble(
                 Icon(painterResource(R.drawable.round_payment), contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "Send Payment",
+                    text = stringResource(R.string.send_payment),
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.bodyLarge
                 )
@@ -92,7 +93,7 @@ fun TaxiChatAccountBubble(
                 Icon(painterResource(R.drawable.round_check), contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "Already Sent",
+                    text = stringResource(R.string.already_sent),
                     fontWeight = FontWeight.Medium
                 )
             }

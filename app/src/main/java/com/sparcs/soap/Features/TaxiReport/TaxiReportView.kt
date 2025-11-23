@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -76,6 +77,7 @@ fun TaxiReportView(
     val userUseCase: UserUseCaseProtocol = hiltViewModel<TaxiChatViewModel>().userUseCase
     val room by viewModel.room.collectAsState()
 
+    val reportSubmitted = stringResource(R.string.reported_successfully)
     LaunchedEffect(Unit) {
         taxiUser = userUseCase.taxiUser
     }
@@ -110,14 +112,14 @@ fun TaxiReportView(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SectionTitle("Who?")
+            SectionTitle(stringResource(R.string.who))
             ParticipantsCard(
                 participants = room.participants.filter { it.id != taxiUser?.oid },
                 selectedUser = selectedUser,
                 onUserSelected = { viewModel.setSelectedUser(it) }
             )
 
-            SectionTitle("Why?")
+            SectionTitle(stringResource(R.string.why))
 
             ReasonCard(
                 room = room,
@@ -139,7 +141,7 @@ fun TaxiReportView(
                 onClick = {
                     try {
                         scope.launch { viewModel.createReport(room.id) }
-                        Toast.makeText(context, "Report sent successfully", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, reportSubmitted, Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     } catch (e: Exception) {
                         viewModel.handleException(e)
@@ -152,7 +154,7 @@ fun TaxiReportView(
                     painter = painterResource(R.drawable.round_check),
                     contentDescription = null
                 )
-                Text("Done")
+                Text(stringResource(R.string.done))
             }
             }
         }
@@ -214,10 +216,10 @@ fun ReasonCard(
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Reason")
+                Text(stringResource(R.string.reason))
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = selectedReason?.text ?: "Didn't send money!",
+                    text = selectedReason?.text ?: stringResource(R.string.didnot_send_the_money),
                     color = MaterialTheme.colorScheme.grayBB
                 )
                 Icon(
@@ -231,7 +233,7 @@ fun ReasonCard(
                 onDismissRequest = { expanded = false }
             ) {
                 DropdownMenuItem(
-                    text = { Text("Didn't send money!") },
+                    text = { Text(stringResource(R.string.didnot_send_the_money)) },
                     enabled = room.isDeparted,
                     onClick = {
                         onReasonSelected(TaxiReport.Reason.NO_SETTLEMENT)
@@ -239,7 +241,7 @@ fun ReasonCard(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Didn't come on time!") },
+                    text = { Text(stringResource(R.string.didnot_come_on_time)) },
                     enabled = room.isDeparted,
                     onClick = {
                         onReasonSelected(TaxiReport.Reason.NO_SHOW)
@@ -247,7 +249,7 @@ fun ReasonCard(
                     }
                 )
                 DropdownMenuItem(
-                    text = { Text("Etc") },
+                    text = { Text(stringResource(R.string.etc)) },
                     onClick = {
                         onReasonSelected(TaxiReport.Reason.ETC_REASON)
                         expanded = false
@@ -296,7 +298,7 @@ fun EtcTextField(
                 decorationBox = { innerTextField ->
                     if (text.isEmpty()) {
                         Text(
-                            text = "Details",
+                            text = stringResource(R.string.report_details),
                             style = MaterialTheme.typography.bodyMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                             )
@@ -327,13 +329,13 @@ fun InfoTexts(room: TaxiRoom, selectedReason: TaxiReport.Reason?) {
     ) {
         if (!room.isDeparted) {
             Text(
-                "Reports for unsettled payments and no-shows can only be submitted after the departure time.",
+                stringResource(R.string.report_after_departure),
                 style = MaterialTheme.typography.bodySmall
             )
         }
         if (selectedReason == TaxiReport.Reason.NO_SETTLEMENT) {
             Text(
-                "An email will be sent asking them to send you the money.",
+                stringResource(R.string.email_request_payment),
                 style = MaterialTheme.typography.bodySmall
             )
         }

@@ -2,7 +2,7 @@ package com.sparcs.soap.Domain.Usecases
 
 import android.app.Activity
 import android.util.Log
-import com.sparcs.soap.Domain.Enums.AuthUseCaseError
+import com.sparcs.soap.Domain.Enums.Auth.AuthUseCaseError
 import com.sparcs.soap.Domain.Helpers.TokenStorageProtocol
 import com.sparcs.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol

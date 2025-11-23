@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.Ara
 
 sealed class PostOrigin {
         data object All : PostOrigin()

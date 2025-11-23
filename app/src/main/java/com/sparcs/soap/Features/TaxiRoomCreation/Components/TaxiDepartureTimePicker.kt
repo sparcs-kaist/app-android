@@ -40,12 +40,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.sparcs.soap.Domain.Enums.DayType
+import com.sparcs.soap.Domain.Enums.OTL.DayType
+import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.toDate
 import com.sparcs.soap.Shared.Extensions.toLocalDate
 import com.sparcs.soap.ui.theme.Theme
@@ -97,7 +99,7 @@ fun TaxiDepartureTimePicker(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Departure Time", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.departure_time), style = MaterialTheme.typography.titleMedium)
 
             Row {
                 Box(
@@ -197,14 +199,14 @@ fun CircularTimePicker(
             items = displayHours,
             listState = hourState,
             itemHeight = itemHeight,
-            text = "시"
+            text = stringResource(R.string.hour_label)
         )
 
         PickerWheel(
             items = displayMinutes,
             listState = minuteState,
             itemHeight = itemHeight,
-            text = "분"
+            text = stringResource(R.string.minute_label)
         )
     }
 }
@@ -317,7 +319,7 @@ fun CustomDatePicker(
                     tint =MaterialTheme.colorScheme.grayBB
                 )
                 Text(
-                    "날짜 : ${selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))}",
+                    stringResource(R.string.date_label, selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }

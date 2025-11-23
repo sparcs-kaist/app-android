@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sparcs.soap.Domain.Enums.TaxiInfoItem
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiInfoItem
 import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 

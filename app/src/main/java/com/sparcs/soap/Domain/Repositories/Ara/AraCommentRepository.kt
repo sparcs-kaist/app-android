@@ -1,7 +1,7 @@
 package com.sparcs.soap.Domain.Repositories.Ara
 
 import com.google.gson.Gson
-import com.sparcs.soap.Domain.Enums.AraContentReportType
+import com.sparcs.soap.Domain.Enums.Ara.AraContentReportType
 import com.sparcs.soap.Domain.Models.Ara.AraPostComment
 import com.sparcs.soap.Networking.ResponseDTO.handleApiError
 import com.sparcs.soap.Networking.RetrofitAPI.Ara.AraCommentApi

@@ -1,6 +1,6 @@
 package com.sparcs.soap.Domain.Models.OTL
 
-import com.sparcs.soap.Domain.Enums.SemesterType
+import com.sparcs.soap.Domain.Enums.OTL.SemesterType
 import java.util.Date
 
 data class Semester(

@@ -14,8 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sparcs.soap.R
 import java.util.Date
 
 @Composable
@@ -36,7 +38,7 @@ fun TaxiChatPaymentBubble() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "I sent the money!",
+            text = stringResource(R.string.i_sent_the_money),
             color = Color.White,
             style = MaterialTheme.typography.bodyMedium
         )

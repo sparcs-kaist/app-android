@@ -7,9 +7,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import com.sparcs.soap.Features.NavigationBar.Components.DismissButton
+import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,7 +24,7 @@ fun TaxiChatListViewNavigationBar(
         title = {
             Column {
                 Text(
-                    text = "Chats",
+                    text = stringResource(R.string.chats),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
