@@ -21,7 +21,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.sparcs.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import com.sparcs.soap.Features.NavigationBar.Components.DismissButton
 import com.sparcs.soap.Features.TaxiList.TaxiListViewModelProtocol
 import com.sparcs.soap.Features.TaxiRoomCreation.TaxiRoomCreationViewModel
@@ -43,12 +43,16 @@ fun TaxiRoomCreationNavigationBar(
     var alertMessage by remember { mutableStateOf("") }
     var alertTitle by remember { mutableStateOf("") }
 
+    val error = stringResource(R.string.error)
+    val notice = stringResource(R.string.notice_board)
+    val notPaid = stringResource(R.string.not_paid_message)
+    val tooManyRooms = stringResource(R.string.too_many_rooms_message)
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = onDismiss) },
 
         title = {
             Text(
-                text = "New Room",
+                text = stringResource(R.string.new_room),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -77,28 +81,27 @@ fun TaxiRoomCreationNavigationBar(
             text = { Text(alertMessage) },
             confirmButton = {
                 TextButton(onClick = { showAlert = false }) {
-                    Text("Okay")
+                    Text(stringResource(R.string.ok))
                 }
             }
         )
     }
-    
     LaunchedEffect(Unit) {
         taxiRoomCreationViewModel.fetchBlockStatus()
         when (val status = taxiRoomCreationViewModel.blockStatus.value) {
             is TaxiRoomBlockStatus.Error -> {
-                alertTitle = "Error"
+                alertTitle = error 
                 alertMessage = status.errorMessage
                 showAlert = true
             }
             TaxiRoomBlockStatus.NotPaid -> {
-                alertTitle = "Notice"
-                alertMessage = "There are rooms for which settlement has not been completed. To create a room, please settle an existing room."
+                alertTitle = notice
+                alertMessage = notPaid
                 showAlert = true
             }
             TaxiRoomBlockStatus.TooManyRooms -> {
-                alertTitle = "Notice"
-                alertMessage = "You are participating in more than 5 rooms. To create a room, please settle an existing room."
+                alertTitle = notice
+                alertMessage = tooManyRooms
                 showAlert = true
             }
             else -> {}

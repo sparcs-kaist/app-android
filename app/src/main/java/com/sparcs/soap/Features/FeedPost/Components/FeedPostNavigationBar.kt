@@ -1,6 +1,5 @@
 package com.sparcs.soap.Features.FeedPost.Components
 
-import PostCommentActionsMenu
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.sparcs.soap.Domain.Enums.FeedReportType
+import com.sparcs.soap.Domain.Enums.Feed.FeedReportType
+import com.sparcs.soap.Features.Post.PostCommentActionsMenu
 import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.darkGray

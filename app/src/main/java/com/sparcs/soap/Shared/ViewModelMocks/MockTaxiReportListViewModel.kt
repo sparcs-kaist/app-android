@@ -1,8 +1,8 @@
 package com.sparcs.soap.Shared.ViewModelMocks
 
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiReports
 import com.sparcs.soap.Features.Settings.Taxi.TaxiReportListViewModel.ViewState
 import com.sparcs.soap.Features.Settings.Taxi.TaxiReportListViewModelProtocol
-import com.sparcs.soap.Features.Settings.Taxi.TaxiReports
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

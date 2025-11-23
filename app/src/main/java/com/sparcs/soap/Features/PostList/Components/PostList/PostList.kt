@@ -23,11 +23,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Features.PostList.Components.PostListRow.PostListRow
 import com.sparcs.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
+import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
@@ -48,7 +50,7 @@ fun PostList(
         //그냥 empty한 경우 (keyword == null)
         ErrorView(
             icon = Icons.Default.Clear,
-            errorMessage = "Nothing Here Yet\nIt looks like there are no posts on this page right now.",
+            errorMessage = stringResource(R.string.nothing_here) + "\n" + stringResource(R.string.no_posts),
             onRetry = { onRefresh() }//TODO - 번역?
         )
     }

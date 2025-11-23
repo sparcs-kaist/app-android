@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.OTL
 
 import com.sparcs.soap.Domain.Helpers.LocalizedString
 

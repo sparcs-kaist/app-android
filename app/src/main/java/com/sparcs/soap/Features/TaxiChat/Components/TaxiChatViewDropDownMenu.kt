@@ -35,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
@@ -91,8 +92,8 @@ fun TaxiChatViewDropDownMenu(
     if (showLeaveDialog) {
         androidx.compose.material3.AlertDialog(
             onDismissRequest = { showLeaveDialog = false },
-            title = { Text("Do you really want to leave the room?") },
-            text = { Text("You can rejoin after cancellation. \nHowever, if you are on board alone, the room will disappear.") },
+            title = { Text(stringResource(R.string.leave_room_confirmation)) },
+            text = { Text(stringResource(R.string.leave_room_warning)) },
             confirmButton = {
                 Button(
                     onClick = {
@@ -102,7 +103,7 @@ fun TaxiChatViewDropDownMenu(
                     colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
                 ) {
                     Text(
-                        text= "Yes",
+                        text= stringResource(R.string.yes),
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -113,7 +114,7 @@ fun TaxiChatViewDropDownMenu(
                     colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
                     ) {
                     Text(
-                        text = "No",
+                        text = stringResource(R.string.no),
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
@@ -136,17 +137,17 @@ private fun TopDropDownItems(
     ) {
         IconWithText(
             icon = painterResource(R.drawable.share),
-            text = "Share",
+            text = stringResource(R.string.share),
             onClick = { onClickShare() }
         )
         IconWithText(
             icon = painterResource(R.drawable.taxi),
-            text = "Call Taxi",
+            text = stringResource(R.string.call_taxi),
             onClick = { onClickCallTaxi() }
         )
         IconWithText(
             icon = painterResource(R.drawable.round_report_problem),
-            text = "Report",
+            text = stringResource(R.string.report),
             onClick = { onClickReport() }
         )
     }
@@ -182,7 +183,11 @@ private fun MiddleDropDownItems(room: TaxiRoom) {
         DropdownMenuItem(
             text = {
                 Text(
-                    text = "Participants: ${room.participants.size}/${room.capacity}",
+                    text = stringResource(
+                        R.string.room_participants,
+                        room.participants.size,
+                        room.capacity
+                    ),
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
@@ -239,7 +244,7 @@ private fun BottomDropDownItems(
     DropdownMenuItem(
         text = {
             Text(
-                text = "Leave",
+                text = stringResource(R.string.leave),
                 color = MaterialTheme.colorScheme.gray64
             ) },
         onClick = { onClickLeave() },

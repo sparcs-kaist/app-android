@@ -11,7 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sparcs.soap.Domain.Enums.FeedPostPhotoItem
+import com.sparcs.soap.Domain.Enums.Feed.FeedPostPhotoItem
 import com.sparcs.soap.Domain.Models.Feed.FeedCreatePost
 import com.sparcs.soap.Domain.Models.Feed.FeedUser
 import com.sparcs.soap.Domain.Repositories.Feed.FeedImageRepositoryProtocol

@@ -25,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
@@ -47,7 +48,7 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "⏰ It's 15 minutes before your taxi leaves! If everyone's gathered, go ahead and call the taxi to head out together."
+            text = stringResource(R.string.taxi_15min_alert)
         )
 
         Button(
@@ -59,17 +60,20 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
                 contentDescription = "Call Taxi"
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Call Taxi", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.call_taxi), style = MaterialTheme.typography.bodyMedium)
         }
     }
 
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            title = { Text("Call Taxi") },
+            title = { Text(stringResource(R.string.call_taxi)) },
             text = {
-                Text(
-                    "You can launch the taxi app with the departure and destination already set. Once everyone has gathered at the departure point, press the button to call a taxi from ${room.source.title} to ${room.destination.title}."
+                Text(stringResource(
+                    R.string.taxi_launch_info,
+                    room.source.title,
+                    room.destination.title
+                    )
                 )
             },
             confirmButton = {
@@ -77,7 +81,7 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
                     openKakaoT(context, room)
                     showDialog = false
                 }) {
-                    Text("Open Kakao T")
+                    Text(stringResource(R.string.open_kakao_t))
                 }
             },
             dismissButton = {
@@ -86,10 +90,10 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
                         openUber(context, room)
                         showDialog = false
                     }) {
-                        Text("Open Uber")
+                        Text(stringResource(R.string.open_uber))
                     }
                     TextButton(onClick = { showDialog = false }) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             }

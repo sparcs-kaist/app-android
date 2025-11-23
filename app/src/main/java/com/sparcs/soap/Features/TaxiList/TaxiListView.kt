@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -169,7 +170,6 @@ fun TaxiListView(
 
                         LoadedView(
                             rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
-                            locations = (uiState as TaxiListViewModel.ViewState.Loaded).locations,
                             week = viewModel.week,
                             selectedDate = selectedDate,
                             source = viewModel.source,
@@ -181,7 +181,7 @@ fun TaxiListView(
                     }
 
                     is TaxiListViewModel.ViewState.Empty -> {
-                        EmptyView(locations = locations, navController = navController)
+                        EmptyView(navController = navController)
                     }
 
                     is TaxiListViewModel.ViewState.Error -> {
@@ -275,7 +275,6 @@ private fun LoadingView() {
 @Composable
 private fun LoadedView(
     rooms: List<TaxiRoom>,
-    locations: List<TaxiLocation>,
     week: List<Date>,
     selectedDate: Date?,
     source: TaxiLocation?,
@@ -295,9 +294,9 @@ private fun LoadedView(
     Column {
         if (filteredRooms.isEmpty()) {
             val description = if (selectedDate != null)
-                "No rooms found on ${selectedDate.weekdaySymbol()}. Be the first one to create one!"
+                stringResource(R.string.no_rooms_found_for_selected_week, selectedDate.weekdaySymbol())
             else
-                "No rooms found this week. Be the first one to create one!"
+                stringResource(R.string.no_rooms_found)
 
             EmptyResultView(
                 viewModel = viewModel,
@@ -312,16 +311,29 @@ private fun LoadedView(
 
                 val description: String = when {
                     viewModel.source != null && viewModel.destination != null ->
-                        "No rooms found from ${viewModel.source?.title} to ${viewModel.destination?.title} on ${day.weekdaySymbol()}. Be the first one to create one!"
-
+                        stringResource(
+                            R.string.no_rooms_from_to,
+                            viewModel.source?.title ?: "",
+                            viewModel.destination?.title ?: "",
+                            day.weekdaySymbol()
+                        )
                     viewModel.source != null ->
-                        "No rooms found from ${viewModel.source?.title} to any destination on ${day.weekdaySymbol()}. Be the first one to create one!"
-
+                        stringResource(
+                            R.string.no_rooms_from_any,
+                            viewModel.source?.title ?: "",
+                            day.weekdaySymbol()
+                        )
                     viewModel.destination != null ->
-                        "No rooms found heading to ${viewModel.destination?.title} on ${day.weekdaySymbol()}. Be the first one to create one!"
-
+                        stringResource(
+                            R.string.no_rooms_to,
+                            viewModel.destination?.title ?: "",
+                            day.weekdaySymbol()
+                        )
                     else ->
-                        "No rooms found on ${day.weekdaySymbol()}. Be the first one to create one!"
+                        stringResource(
+                            R.string.no_rooms_on,
+                            day.weekdaySymbol()
+                        )
                 }
 
                 if (roomsForDay.isNotEmpty()) {
@@ -361,7 +373,7 @@ private fun LoadedView(
 
 
 @Composable
-private fun EmptyView(locations: List<TaxiLocation>, navController: NavController) {
+private fun EmptyView(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -379,7 +391,7 @@ private fun EmptyView(locations: List<TaxiLocation>, navController: NavControlle
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "No Rides This Week",
+            text = stringResource(R.string.no_rides_this_week),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -387,7 +399,7 @@ private fun EmptyView(locations: List<TaxiLocation>, navController: NavControlle
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = "Looks like there are no rooms scheduled for this week. Be the first to create one!",
+            text = stringResource(R.string.no_rooms_this_week),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
@@ -403,7 +415,7 @@ private fun EmptyView(locations: List<TaxiLocation>, navController: NavControlle
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Create a New Room")
+            Text(stringResource(R.string.create_a_new_group))
         }
     }
 }
@@ -431,7 +443,7 @@ private fun EmptyResultView(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "No Rides This Week",
+            text = stringResource(R.string.no_rides_this_week),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -456,7 +468,7 @@ private fun EmptyResultView(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Create a New Room")
+                Text(stringResource(R.string.create_a_new_group))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -469,7 +481,7 @@ private fun EmptyResultView(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Clear Selection")
+                Text(stringResource(R.string.clear_selection))
             }
         }
     }

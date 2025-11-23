@@ -12,9 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.Domain.Models.Taxi.TaxiParticipant
+import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 
 @Composable
@@ -31,10 +33,10 @@ fun TaxiRoomStatusIndicator(
     }
 
     val text = when(settlementType){
-        TaxiParticipant.SettlementType.NotDeparted -> "Settlement Required"
-        TaxiParticipant.SettlementType.RequestedSettlement -> if(settlementCount >= participantsCount) "Settlement Completed" else "Settlement Requested"
-        TaxiParticipant.SettlementType.PaymentRequired -> "Payment Required"
-        TaxiParticipant.SettlementType.PaymentSent -> "Payment Settled"
+        TaxiParticipant.SettlementType.NotDeparted -> stringResource(R.string.request_settlement)
+        TaxiParticipant.SettlementType.RequestedSettlement -> if(settlementCount >= participantsCount) stringResource(R.string.settlement_completed) else stringResource(R.string.request_settlement)
+        TaxiParticipant.SettlementType.PaymentRequired -> stringResource(R.string.payment_required)
+        TaxiParticipant.SettlementType.PaymentSent -> stringResource(R.string.payment_settled)
     }
     Row(
         verticalAlignment = Alignment.CenterVertically,

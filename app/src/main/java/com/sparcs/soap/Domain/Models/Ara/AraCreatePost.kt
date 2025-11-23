@@ -1,6 +1,6 @@
 package com.sparcs.soap.Domain.Models.Ara
 
-import com.sparcs.soap.Domain.Enums.AraPostNicknameType
+import com.sparcs.soap.Domain.Enums.Ara.AraPostNicknameType
 
 data class AraCreatePost(
     val title: String,

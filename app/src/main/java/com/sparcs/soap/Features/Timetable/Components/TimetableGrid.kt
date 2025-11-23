@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sparcs.soap.Domain.Enums.DayType
+import com.sparcs.soap.Domain.Enums.OTL.DayType
 import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Helpers.TimetableConstructor
 import com.sparcs.soap.Domain.Models.OTL.Lecture

@@ -67,6 +67,8 @@ fun LectureReviewCell(
     val context = LocalContext.current
     var reviewChange by remember { mutableStateOf(review) }
 
+    val unknown = stringResource(R.string.unknown)
+
     Box(
         Modifier
             .padding(vertical = 4.dp)
@@ -80,7 +82,7 @@ fun LectureReviewCell(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = review.lecture.professors.firstOrNull()?.name?.localized()
-                        ?: stringResource(R.string.unknown),
+                        ?: unknown,
                     style = MaterialTheme.typography.titleMedium
                 )
 
@@ -133,7 +135,7 @@ fun LectureReviewCell(
                         HorizontalDivider()
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.report)) },
-                            onClick = { report(review, context) },
+                            onClick = { report(review, context, unknown) },
                             leadingIcon = { Icon(Icons.Default.Warning, contentDescription = null) }
                         )
                     }
@@ -355,13 +357,13 @@ private fun toggleLike(
     }
 }
 
-fun report(review: LectureReview, context: Context) {
+fun report(review: LectureReview, context: Context, unknown: String) {
     val urlString = ReportMailComposer.compose(
         title = review.lecture.title.localized(),
         code = review.lecture.code,
         year = review.lecture.year,
         semester = review.lecture.semester,
-        professorName = review.lecture.professors.firstOrNull()?.name?.localized() ?: "Unknown",
+        professorName = review.lecture.professors.firstOrNull()?.name?.localized() ?: unknown,
         content = review.content
     )
 

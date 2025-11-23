@@ -13,10 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Features.NavigationBar.Components.DismissButton
+import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.formattedString
 import com.sparcs.soap.Shared.Mocks.mock
 import com.sparcs.soap.ui.theme.Theme
@@ -32,6 +34,15 @@ fun TaxiChatViewNavigationBar(
     isEnabled: Boolean
 ) {
     val context = LocalContext.current
+    val shareUrl = "${Constants.taxiInviteURL}${room.id}"
+    val shareMessage = stringResource(
+        R.string.taxi_share_message,
+        room.departAt.formattedString(),
+        room.source.title,
+        room.destination.title,
+        shareUrl
+    )
+
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = { onDismiss() }) },
         title = {
@@ -47,9 +58,6 @@ fun TaxiChatViewNavigationBar(
             TaxiChatViewDropDownMenu(
                 room = room,
                 onClickShare = {
-                    val shareUrl = "${Constants.taxiInviteURL}${room.id}"
-                    val shareMessage = "🚕 Looking for someone to ride with on ${room.departAt.formattedString()} from ${room.source.title} to ${room.destination.title}! 🚕\n$shareUrl"
-
                     val sendIntent = Intent().apply {
                         action = Intent.ACTION_SEND
                         putExtra(Intent.EXTRA_TEXT, shareMessage)

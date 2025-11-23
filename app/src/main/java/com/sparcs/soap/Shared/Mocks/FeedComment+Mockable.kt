@@ -1,6 +1,6 @@
 package com.sparcs.soap.Shared.Mocks
 
-import com.sparcs.soap.Domain.Enums.FeedVoteType
+import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
 import com.sparcs.soap.Domain.Models.Feed.FeedImage
 import java.util.Date

@@ -1,4 +1,4 @@
-package com.sparcs.soap.Domain.Enums
+package com.sparcs.soap.Domain.Enums.Ara
 
 sealed class PostListType {
     data object All : PostListType()

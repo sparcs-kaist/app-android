@@ -2,7 +2,7 @@ package com.sparcs.soap.Features.Search
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sparcs.soap.Domain.Enums.PostListType
+import com.sparcs.soap.Domain.Enums.Ara.PostListType
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Models.OTL.Course
 import com.sparcs.soap.Domain.Models.SearchScope

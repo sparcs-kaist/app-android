@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.R
@@ -39,7 +40,7 @@ fun TaxiCapacityPicker(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            "Capacity",
+            stringResource(R.string.capacity),
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -48,7 +49,7 @@ fun TaxiCapacityPicker(
         Box{
             Row(Modifier.clickable { expanded = true }) {
                 Text(
-                    text = capacity.let { "$it people" },
+                    text = stringResource(R.string.people_count, capacity),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.grayBB
                 )
@@ -70,7 +71,7 @@ fun TaxiCapacityPicker(
             ) {
                 (2..4).forEach { count ->
                     DropdownMenuItem(
-                        text = { Text("$count people") },
+                        text = { Text(stringResource(R.string.people_count, count)) },
                         onClick = {
                             onCapacityChange(count)
                             expanded = false

@@ -83,7 +83,10 @@ fun LectureSearchView(
         topBar = {
             if (searchKeyword.isEmpty()) {
                 LectureSearchViewNavigationBar(
-                    title = "Add to \"${selectedTimetableDisplayName}\"",
+                    title = stringResource(
+                        id = R.string.add_to_timetable,
+                        selectedTimetableDisplayName
+                    ),
                 )
             }
         }
@@ -117,16 +120,16 @@ fun LectureSearchView(
                     item {
                         UnavailableView(
                             icon = painterResource(R.drawable.search),
-                            title = "Search",
-                            description = "Search courses, codes, or professors."
+                            title = stringResource(R.string.search),
+                            description = stringResource(R.string.search_by_course)
                         )
                     }
                 } else if (orderedCourses.isEmpty()) {
                     item {
                         UnavailableView(
                             icon = painterResource(R.drawable.search),
-                            title = "No Results for \"${searchKeyword}\"",
-                            description = "Check the spelling or try a new search"
+                            title = stringResource(R.string.no_results_for, searchKeyword),
+                            description = stringResource(R.string.check_the_spelling)
                         )
                     }
                 } else {
@@ -224,7 +227,7 @@ fun LectureSearchView(
                                 pendingLectureToAdd = null
                             }
                         }) {
-                            Text("Okay")
+                            Text(stringResource(R.string.ok))
                         }
                     },
                     dismissButton = {
@@ -232,18 +235,20 @@ fun LectureSearchView(
                             showCannotAddLectureAlert = false
                             pendingLectureToAdd = null
                         }) {
-                            Text("Cancel")
+                            Text(stringResource(R.string.cancel))
                         }
                     },
-                    title = { Text("Add Overlapping Lecture") },
+                    title = { Text(stringResource(R.string.add_overlapping_lecture)) },
                     text = {
                         val currentName =
-                            overlappingLecture?.title?.localized() ?: "the existing lecture"
-                        val newName = pendingLectureToAdd?.title?.localized() ?: "the new lecture"
+                            overlappingLecture?.title?.localized() ?: stringResource(R.string.the_existing_lecture)
+                        val newName = pendingLectureToAdd?.title?.localized() ?: stringResource(R.string.the_new_lecture)
                         Text(
-                            text = "The lecture \"$currentName\" overlaps with your current timetable.\n" +
-                                    "If you add \"$newName\", the existing lecture will be removed.\n" +
-                                    "Would you like to add it to your timetable?"
+                            text = stringResource(
+                                id = R.string.lecture_overlap,
+                                currentName,
+                                newName
+                            )
                         )
                     }
                 )
@@ -283,7 +288,7 @@ fun LectureRow(
         )
         Spacer(modifier = Modifier.width(12.dp))
         Text(
-            text = lecture.professors.firstOrNull()?.name?.localized() ?: "Unknown",
+            text = lecture.professors.firstOrNull()?.name?.localized() ?: stringResource(R.string.unknown),
             style = MaterialTheme.typography.bodyMedium
         )
 

@@ -1,6 +1,6 @@
 package com.sparcs.soap.Networking.ResponseDTO.Feed
 
-import com.sparcs.soap.Domain.Enums.FeedVoteType
+import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
 import com.sparcs.soap.Shared.Extensions.toDate
 import com.google.gson.annotations.SerializedName

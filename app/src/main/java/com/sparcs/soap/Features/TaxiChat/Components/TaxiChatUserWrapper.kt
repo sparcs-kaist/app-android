@@ -19,10 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
+import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 import java.net.URL
 import java.util.Date
@@ -67,10 +69,10 @@ fun TaxiChatUserWrapper(
                 if (!isMe) {
                     Text(
                         text = when {
-                            isWithdrawn -> "Unknown"
+                            isWithdrawn -> stringResource(R.string.unknown)
                             authorName != null -> authorName
-                            authorID == null -> "Taxi Bot"
-                            else -> "Unknown"
+                            authorID == null -> stringResource(R.string.taxi_bot)
+                            else -> stringResource(R.string.unknown)
                         },
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium

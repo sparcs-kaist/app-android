@@ -1,8 +1,8 @@
 package com.sparcs.soap.Domain.Repositories.Feed
 
 import com.google.gson.Gson
-import com.sparcs.soap.Domain.Enums.FeedReportType
-import com.sparcs.soap.Domain.Enums.FeedVoteType
+import com.sparcs.soap.Domain.Enums.Feed.FeedReportType
+import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedCreatePost
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
 import com.sparcs.soap.Domain.Models.Feed.FeedPostPage

@@ -36,6 +36,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -43,7 +44,8 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.sparcs.soap.Domain.Enums.TaxiRoomBlockStatus
+import com.google.gson.Gson
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Features.NavigationBar.Channel
@@ -55,7 +57,6 @@ import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
@@ -98,6 +99,15 @@ fun TaxiPreviewView(
             controller.setCenter(GeoPoint(room.source.latitude, room.source.longitude))
         }
     }
+
+    val shareUrl = "${Constants.taxiInviteURL}${room.id}"
+    val shareMessage = stringResource(
+        R.string.taxi_share_message,
+        room.departAt.formattedString(),
+        room.source.title,
+        room.destination.title,
+        shareUrl
+    )
 
     LaunchedEffect(Unit) {
         try {
@@ -201,14 +211,10 @@ fun TaxiPreviewView(
 
             Spacer(Modifier.padding(8.dp))
 
-            InfoRow(label = "Depart at", value = room.departAt.formattedString())
+            InfoRow(label = stringResource(R.string.depart_at), value = room.departAt.formattedString())
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 IconButton(onClick = {
-                    val shareUrl = "${Constants.taxiInviteURL}${room.id}"
-                    val shareMessage =
-                        "🚕 Looking for someone to ride with on ${room.departAt.formattedString()} from ${room.source.title} to ${room.destination.title}! 🚕\n$shareUrl"
-
                     val sendIntent = Intent().apply {
                         action = Intent.ACTION_SEND
                         putExtra(Intent.EXTRA_TEXT, shareMessage)
@@ -240,12 +246,12 @@ fun TaxiPreviewView(
                 ) {
                     Text(
                         when {
-                            viewModel.isJoined(room.participants) -> "Joined(Enter chat)"
-                            room.participants.size >= room.capacity -> "This room is full"
-                            room.isDeparted -> "Already Departed"
-                            blockStatus == TaxiRoomBlockStatus.TooManyRooms -> "Room Limit Reached"
-                            blockStatus == TaxiRoomBlockStatus.NotPaid -> "Room Settlement Required"
-                            else -> "Join"
+                            viewModel.isJoined(room.participants) -> stringResource(R.string.joined_enter_chat)
+                            room.participants.size >= room.capacity -> stringResource(R.string.room_full)
+                            room.isDeparted -> stringResource(R.string.already_departed)
+                            blockStatus == TaxiRoomBlockStatus.TooManyRooms -> stringResource(R.string.room_limit_reached)
+                            blockStatus == TaxiRoomBlockStatus.NotPaid -> stringResource(R.string.room_settlement_required)
+                            else -> stringResource(R.string.join)
                         }
                     )
                 }
@@ -257,10 +263,10 @@ fun TaxiPreviewView(
             onDismissRequest = { showError = false },
             confirmButton = {
                 TextButton(onClick = { showError = false }) {
-                    Text("Okay")
+                    Text(stringResource(R.string.ok))
                 }
             },
-            title = { Text("Error") },
+            title = { Text(stringResource(R.string.error)) },
             text = { Text(errorMessage) }
         )
     }

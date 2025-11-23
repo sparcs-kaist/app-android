@@ -7,26 +7,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 import java.util.Date
 
 @Composable
 fun TaxiArrivalBubble() {
+    val bubbleText = stringResource(
+        id = R.string.taxi_arrival_bubble,
+        "\n\n",
+        buildBoldAnnotatedString("+ button"),
+        buildBoldAnnotatedString("Request Settlement"),
+        buildBoldAnnotatedString("Send Payment")
+    )
+
     Text(
-        buildAnnotatedString {
-            append("There are users who have not yet requested the settlement or have not completed the payment.\n\nPlease tap the ")
-            append(buildBoldAnnotatedString("+ button"))
-            append(" at the bottom left and press ")
-            append(buildBoldAnnotatedString("Request Settlement"))
-            append(" or ")
-            append(buildBoldAnnotatedString("Send Payment"))
-            append(" to complete the settlement request or payment.")
-        },
+        text = bubbleText,
         modifier = Modifier
             .background(
                 color = MaterialTheme.colorScheme.surfaceVariant,

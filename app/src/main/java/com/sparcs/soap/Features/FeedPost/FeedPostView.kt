@@ -1,7 +1,6 @@
 package com.sparcs.soap.Features.FeedPost
 
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -46,7 +45,6 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -88,10 +86,6 @@ fun FeedPostView(
     val vm = hiltViewModel<FeedViewModel>()
 
     val post = viewModel.post.collectAsState().value
-    val context = LocalContext.current
-
-    val deleteSuccessText = stringResource(R.string.deleted_successfully)
-    val reportSuccessText = stringResource(R.string.reported_successfully)
 
     var showAlert by remember { mutableStateOf(false) }
     @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
@@ -134,7 +128,6 @@ fun FeedPostView(
                             )
                         }
                     }
-                    Toast.makeText(context, reportSuccessText, Toast.LENGTH_SHORT).show()
                 },
                 onTranslate = {/*Todo - translate*/ },
                 isMine = post.isAuthor
@@ -149,7 +142,7 @@ fun FeedPostView(
                     if (viewModel.text.isEmpty()) return@InputBar
                     isUploadingComment = true
                     coroutineScope.launch {
-                        var uploadedComment: FeedComment?
+                        val uploadedComment: FeedComment?
                         try {
                             uploadedComment = if (targetComment != null) {
                                 viewModel.writeReply(targetComment!!.id)
@@ -217,8 +210,6 @@ fun FeedPostView(
                         viewModel = viewModel,
                         post = post,
                         isMine = post.isAuthor,
-                        targetComment = targetComment,
-                        isWritingCommentFocusState = isWritingCommentFocusState,
                         feedCommentRepository = repo1,
                         onReply = { c ->
                             targetComment = c
@@ -260,7 +251,7 @@ fun FeedPostView(
             AlertDialog(
                 onDismissRequest = { showAlert = false },
                 confirmButton = {
-                    Button(onClick = { showAlert = false }) { Text("Okay") }
+                    Button(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
                 },
                 title = { Text(stringResource(alertTitle)) },
                 text = { Text(stringResource(alertMessage)) }
@@ -378,8 +369,6 @@ private fun Comments(
     viewModel: FeedPostViewModelProtocol,
     post: FeedPost,
     isMine: Boolean,
-    targetComment: FeedComment?,
-    isWritingCommentFocusState: Boolean,
     feedCommentRepository: FeedCommentRepositoryProtocol,
     onReply: (FeedComment) -> Unit,
 ) {

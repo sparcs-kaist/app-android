@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.Domain.Models.Taxi.TaxiLocation
@@ -62,7 +63,7 @@ fun TaxiDestinationPicker(
             modifier = Modifier.weight(1f)
         ) {
             LocationMenu(
-                title = "meeting point",
+                title = stringResource(R.string.meeting_point),
                 selection = source,
                 onSelectionChange = onSourceChange,
                 locations = locations
@@ -71,7 +72,7 @@ fun TaxiDestinationPicker(
             HorizontalDivider()
 
             LocationMenu(
-                title = "where to?",
+                title = stringResource(R.string.where_to),
                 selection = destination,
                 onSelectionChange = onDestinationChange,
                 locations = locations
@@ -123,7 +124,7 @@ fun LocationMenu(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = (selection?.title ?: "Select location").toString(),
+            text = (selection?.title ?: title).toString(),
             color = if (selection != null)
                 MaterialTheme.colorScheme.onSurface
             else

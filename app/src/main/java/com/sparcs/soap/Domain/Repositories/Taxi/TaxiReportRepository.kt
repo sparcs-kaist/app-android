@@ -1,8 +1,8 @@
 package com.sparcs.soap.Domain.Repositories.Taxi
 
 import com.google.gson.Gson
+import com.sparcs.soap.Domain.Enums.Taxi.TaxiReports
 import com.sparcs.soap.Domain.Models.Taxi.TaxiCreateReport
-import com.sparcs.soap.Features.Settings.Taxi.TaxiReports
 import com.sparcs.soap.Networking.RequestDTO.Taxi.TaxiCreateReportRequestDTO
 import com.sparcs.soap.Networking.ResponseDTO.handleApiError
 import com.sparcs.soap.Networking.RetrofitAPI.Taxi.TaxiReportApi

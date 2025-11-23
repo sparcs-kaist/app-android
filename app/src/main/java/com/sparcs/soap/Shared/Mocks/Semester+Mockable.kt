@@ -1,6 +1,6 @@
 package com.sparcs.soap.Shared.Mocks
 
-import com.sparcs.soap.Domain.Enums.SemesterType
+import com.sparcs.soap.Domain.Enums.OTL.SemesterType
 import com.sparcs.soap.Domain.Models.OTL.Semester
 import com.sparcs.soap.Domain.Models.OTL.SemesterEventDate
 import com.sparcs.soap.Shared.Extensions.toDate

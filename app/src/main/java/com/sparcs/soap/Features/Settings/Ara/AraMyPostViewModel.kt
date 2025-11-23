@@ -5,8 +5,8 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sparcs.soap.Domain.Enums.PostListType
-import com.sparcs.soap.Domain.Enums.PostOrigin
+import com.sparcs.soap.Domain.Enums.Ara.PostListType
+import com.sparcs.soap.Domain.Enums.Ara.PostOrigin
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Models.Ara.AraPostPage
 import com.sparcs.soap.Domain.Models.Ara.AraUser

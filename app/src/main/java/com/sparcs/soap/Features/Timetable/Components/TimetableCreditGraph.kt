@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.dp
-import com.sparcs.soap.Domain.Enums.LectureType
+import com.sparcs.soap.Domain.Enums.OTL.LectureType
 import com.sparcs.soap.Domain.Models.OTL.LectureCreditData
 import com.sparcs.soap.Domain.Models.OTL.Timetable
 import com.sparcs.soap.Shared.Mocks.mockList
