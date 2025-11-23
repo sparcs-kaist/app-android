@@ -142,6 +142,7 @@ fun TaxiReportView(
                         Toast.makeText(context, "Report sent successfully", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     } catch (e: Exception) {
+                        viewModel.handleException(e)
                         Toast.makeText(context, "Failed to send report: ${e.message}", Toast.LENGTH_SHORT).show()
                     }
                 },

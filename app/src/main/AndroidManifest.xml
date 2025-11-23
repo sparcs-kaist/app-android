@@ -69,7 +69,7 @@
 
                 <data
                     android:scheme="https"
-                    android:host="feedpost" />
+                    android:host="/feedpost/" />
             </intent-filter>
         </activity>
 

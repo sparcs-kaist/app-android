@@ -164,4 +164,10 @@
     <string name="course_view" translatable="false">CourseView</string>
     <string name="lecture_search_view" translatable="false">LectureSearchView</string>
     <string name="summary">Summary</string>
+    <string name="send_crash_reports">Send Crash Reports</string>
+    <string name="report_submitted">Report Submitted</string>
+    <string name="error">Error</string>
+    <string name="unexpected_error_reporting_comment">An unexpected error occurred while reporting a comment. Please try again later.</string>
+    <string name="unexpected_error_uploading_comment">An unexpected error occurred while uploading a comment. Please try again later.</string>
+    <string name="unexpected_error_deleting_post">An unexpected error occurred while deleting a post. Please try again later.</string>
 </resources>

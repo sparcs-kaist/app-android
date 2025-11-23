@@ -16,7 +16,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -184,7 +183,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 ),
                 deepLinks = listOf(
                     navDeepLink {
-                        uriPattern = "buddy://feedpost?feedId={feedId}"
+                        uriPattern = "https://feedpost?feedId={feedId}"
                         action = Intent.ACTION_VIEW
                     }
                 ),
@@ -480,7 +479,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = Channel.SignOut.name
             ) { backStackEntry ->
                 val viewModelImpl: SignInViewModel = hiltViewModel(backStackEntry)
-                LaunchedEffect(Unit) { viewModelImpl.authUseCase.signOut() }
                 SignInView(viewModelImpl)
             }
 

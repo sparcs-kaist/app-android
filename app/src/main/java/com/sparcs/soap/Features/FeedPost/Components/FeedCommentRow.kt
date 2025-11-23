@@ -2,6 +2,7 @@ package com.sparcs.soap.Features.FeedPost.Components
 
 import PostCommentActionsMenu
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,10 +14,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,12 +43,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sparcs.soap.Domain.Enums.FeedReportType
 import com.sparcs.soap.Domain.Enums.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
 import com.sparcs.soap.Domain.Repositories.Feed.FakeFeedCommentRepository
 import com.sparcs.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
+import com.sparcs.soap.Features.FeedPost.FeedPostViewModelProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
 import com.sparcs.soap.Features.Post.Components.PostVoteButton
 import com.sparcs.soap.R
@@ -61,6 +66,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun FeedCommentRow(
+    viewModel: FeedPostViewModelProtocol,
     comment: FeedComment,
     isMine: Boolean? = null,
     isReply: Boolean,
@@ -71,7 +77,17 @@ fun FeedCommentRow(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val deleteSuccessText = stringResource(R.string.deleted_successfully)
-    val reportSuccessText = stringResource(R.string.reported_successfully)
+
+    var showAlert by remember { mutableStateOf(false) }
+    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
+    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
+
+    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
+    }
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.Top
@@ -101,9 +117,15 @@ fun FeedCommentRow(
                 },
                 onReport = {
                     coroutineScope.launch {
-                        feedCommentRepository.reportComment(localComment.id, it)
+                        try {
+                            feedCommentRepository.reportComment(localComment.id, it)
+                            showAlert(title = R.string.report_submitted, message= R.string.reported_successfully)
+                        } catch (e: Exception) {
+                            viewModel.handleException(error = e)
+                            showAlert = true
+                            showAlert(title= R.string.error, message= R.string.unexpected_error_reporting_comment)
+                        }
                     }
-                    Toast.makeText(context, reportSuccessText, Toast.LENGTH_SHORT).show()
                 }
             )
 
@@ -113,6 +135,17 @@ fun FeedCommentRow(
                 localComment = updated
             }
         }
+    }
+
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { showAlert = false },
+            confirmButton = {
+                TextButton(onClick = { showAlert = false }) { Text("Okay") }
+            },
+            title = { Text(stringResource(alertTitle)) },
+            text = { Text(stringResource(alertMessage)) }
+        )
     }
 }
 
@@ -187,7 +220,8 @@ private fun ProfileImage(comment: FeedComment) {
 
 @Composable
 private fun Content(comment: FeedComment) {
-    val text = if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
+    val text =
+        if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
     val color =
         if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
     var expanded by remember { mutableStateOf(false) }
@@ -339,11 +373,12 @@ suspend fun handleVote(
 private fun Preview() {
     Theme {
         FeedCommentRow(
+            viewModel = hiltViewModel(),
             comment = FeedComment.mock(),
             isMine = true,
             isReply = false,
             onReply = {},
-            feedCommentRepository = FakeFeedCommentRepository()
+            feedCommentRepository = FakeFeedCommentRepository(),
         )
     }
 }
@@ -354,11 +389,12 @@ private fun Preview() {
 private fun Preview2() {
     Theme {
         FeedCommentRow(
+            viewModel = hiltViewModel(),
             comment = FeedComment.mockList()[0],
             isMine = false,
             isReply = true,
             onReply = {},
-            feedCommentRepository = FakeFeedCommentRepository()
+            feedCommentRepository = FakeFeedCommentRepository(),
         )
     }
 }

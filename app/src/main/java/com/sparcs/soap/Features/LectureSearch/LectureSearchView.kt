@@ -39,6 +39,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Models.OTL.Lecture
 import com.sparcs.soap.Features.LectureSearch.Components.LectureSearchViewNavigationBar
 import com.sparcs.soap.Features.NavigationBar.Channel
@@ -49,7 +50,6 @@ import com.sparcs.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
-import com.google.gson.Gson
 
 @Composable
 fun LectureSearchView(
@@ -187,7 +187,11 @@ fun LectureSearchView(
                                                     pendingLectureToAdd = lecture
                                                     timetableViewModel.setCandidateLecture(null)
                                                 } else {
-                                                    timetableViewModel.addLecture(lecture)
+                                                    try {
+                                                        timetableViewModel.addLecture(lecture)
+                                                    }catch (e:Exception){
+                                                        timetableViewModel.handleException(e, TimetableViewModel.ErrorType.AddLecture)
+                                                    }
                                                 }
                                             },
                                             onInfoClick = {

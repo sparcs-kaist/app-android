@@ -11,7 +11,7 @@ interface OTLUserApi {
     @POST("session/register-oneapp")
     suspend fun register(
         @Body params: Map<String, String>
-    ): Response<Unit>
+    )
 
     @GET("session/info")
     suspend fun fetchUserInfo(): Response<OTLUserDTO>
