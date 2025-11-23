@@ -41,7 +41,7 @@ sealed class TaxiChatError(val code: Int, message: String) : Exception(message) 
 }
 
 class TaxiChatRepository @Inject constructor(
-    private val taxiChatApi: TaxiChatApi
+    private val taxiChatApi: TaxiChatApi,
 ) : TaxiChatRepositoryProtocol {
 
     override suspend fun fetchChats(roomID: String) {

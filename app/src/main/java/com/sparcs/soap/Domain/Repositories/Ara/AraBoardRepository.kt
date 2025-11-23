@@ -1,6 +1,7 @@
 package com.sparcs.soap.Domain.Repositories.Ara
 
 import android.graphics.Bitmap
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Enums.AraContentReportType
 import com.sparcs.soap.Domain.Enums.PostListType
 import com.sparcs.soap.Domain.Enums.PostOrigin
@@ -13,7 +14,6 @@ import com.sparcs.soap.Networking.RequestDTO.Ara.AraPostRequestDTO
 import com.sparcs.soap.Networking.ResponseDTO.handleApiError
 import com.sparcs.soap.Networking.RetrofitAPI.Ara.AraBoardApi
 import com.sparcs.soap.Shared.Extensions.compressForUpload
-import com.google.gson.Gson
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import okhttp3.MultipartBody
@@ -101,46 +101,83 @@ class AraBoardRepository @Inject constructor(
     }
 
     override suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage {
-        val response = api.fetchBookmarks(page = page, pageSize = pageSize)
-        return response.toModel()
+        try {
+            val response = api.fetchBookmarks(page = page, pageSize = pageSize)
+            return response.toModel()
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
     }
 
     override suspend fun uploadImage(image: Bitmap): AraAttachment {
-        val compressed = image.compressForUpload(maxSizeMB = 1.0, maxDimension = 500)
-            ?: throw IllegalArgumentException("Failed to compress image")
-        val part = MultipartBody.Part.createFormData(
-            "file", "image.jpg", compressed.toRequestBody()
-        )
-        val response = api.uploadImage(part)
-        return response.toModel()
+        try {
+            val compressed = image.compressForUpload(maxSizeMB = 1.0, maxDimension = 500)
+                ?: throw IllegalArgumentException("Failed to compress image")
+            val part = MultipartBody.Part.createFormData(
+                "file", "image.jpg", compressed.toRequestBody()
+            )
+            val response = api.uploadImage(part)
+            return response.toModel()
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
     }
 
     override suspend fun writePost(request: AraCreatePost) {
-        api.writePost(AraPostRequestDTO.fromModel(request))
+        try {
+            api.writePost(AraPostRequestDTO.fromModel(request))
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
     }
 
-    override suspend fun upVotePost(postID: Int) = api.upVote(postID)
-    override suspend fun downVotePost(postID: Int) = api.downVote(postID)
-    override suspend fun cancelVote(postID: Int) = api.cancelVote(postID)
+    override suspend fun upVotePost(postID: Int) = try {
+        api.upVote(postID)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
+
+    override suspend fun downVotePost(postID: Int) = try {
+        api.downVote(postID)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
+
+    override suspend fun cancelVote(postID: Int) = try {
+        api.cancelVote(postID)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
+
     override suspend fun reportPost(postID: Int, type: AraContentReportType) =
-        api.report(
-            PostReportRequest(
-                post_id = postID,
-                type = "others",
-                content = type.name
+        try {
+            api.report(
+                PostReportRequest(
+                    post_id = postID,
+                    type = "others",
+                    content = type.name
+                )
             )
-        )
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
 
-    override suspend fun deletePost(postID: Int) {
+    override suspend fun deletePost(postID: Int) = try {
         api.delete(postID)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
     }
 
-    override suspend fun addBookmark(postID: Int) {
+    override suspend fun addBookmark(postID: Int) = try {
         api.addBookmark(mapOf("parent_article" to postID))
+    } catch (e: Exception) {
+        handleApiError(gson, e)
     }
 
-    override suspend fun removeBookmark(bookmarkID: Int) {
+    override suspend fun removeBookmark(bookmarkID: Int) = try {
         api.removeBookmark(bookmarkID)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
     }
 }
 
