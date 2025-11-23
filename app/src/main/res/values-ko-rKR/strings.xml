@@ -144,4 +144,10 @@
     <string name="no_results_found_for">%1$s에 대한 결과가 없습니다.</string>
     <string name="clear_search_text">검색창 비우기</string>
     <string name="summary">요약</string>
+    <string name="send_crash_reports">오류 보고서 전송</string>
+    <string name="report_submitted">신고 접수</string>
+    <string name="error">에러</string>
+    <string name="unexpected_error_reporting_comment">신고 과정에서 예기치 못한 에러가 발생했습니다. 다시 시도해주세요.</string>
+    <string name="unexpected_error_uploading_comment">댓글 작성 과정에서 예기치 못한 에러가 발생했습니다. 다시 시도해주세요.</string>
+    <string name="unexpected_error_deleting_post">포스트 삭제 과정에서 예기치 못한 에러가 발생했습니다. 다시 시도해주세요.</string>
 </resources>

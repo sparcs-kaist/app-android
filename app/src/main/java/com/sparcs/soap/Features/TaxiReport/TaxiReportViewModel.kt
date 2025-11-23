@@ -7,12 +7,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
+import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Models.Taxi.TaxiCreateReport
 import com.sparcs.soap.Domain.Models.Taxi.TaxiParticipant
 import com.sparcs.soap.Domain.Models.Taxi.TaxiReport
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,12 +32,14 @@ interface TaxiReportViewModelProtocol {
     fun setSelectedUser(user: TaxiParticipant?)
     fun setSelectedReason(reason: TaxiReport.Reason?)
     suspend fun createReport(roomID: String)
+    fun handleException(error: Throwable)
 }
 
 @HiltViewModel
 class TaxiReportViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val taxiReportRepository: TaxiReportRepositoryProtocol
+    private val taxiReportRepository: TaxiReportRepositoryProtocol,
+    private val crashlyticsHelper: CrashlyticsHelper,
 ) : ViewModel(), TaxiReportViewModelProtocol {
 
     // MARK: - Initialiser
@@ -48,7 +51,7 @@ class TaxiReportViewModel @Inject constructor(
 
     // MARK: - Properties
     private val _room = MutableStateFlow(initialRoom)
-    override val room : StateFlow<TaxiRoom> = _room.asStateFlow()
+    override val room: StateFlow<TaxiRoom> = _room.asStateFlow()
 
     // MARK: - View Properties
     private val _selectedUser = MutableStateFlow<TaxiParticipant?>(null)
@@ -92,5 +95,13 @@ class TaxiReportViewModel @Inject constructor(
                 Log.e("TaxiReportViewModel", "createReport: $e")
             }
         }
+    }
+
+    override fun handleException(error: Throwable) {
+        Log.e("TaxiReportViewModel","failed to create a report: $error")
+        crashlyticsHelper.recordException(
+            error = error,
+            alertMessage = "An unexpected error occurred while reporting a user. Please try again later."
+        )
     }
 }

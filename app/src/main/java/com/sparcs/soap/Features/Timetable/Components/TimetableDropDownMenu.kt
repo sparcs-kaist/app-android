@@ -32,6 +32,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Usecases.MockTimetableUseCase
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
 import com.sparcs.soap.R
@@ -46,7 +47,7 @@ import kotlinx.coroutines.launch
 fun TimetableDropDownMenu(
     expanded: Boolean,
     onDismiss: () -> Unit,
-    viewModel: TimetableViewModel
+    viewModel: TimetableViewModel,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -63,7 +64,7 @@ fun TimetableDropDownMenu(
 }
 
 @Composable
-private fun TopDropDownItems(){ //지도, 시험 시간표(바꿀 수 있도록)
+private fun TopDropDownItems() { //지도, 시험 시간표(바꿀 수 있도록)
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
@@ -93,7 +94,7 @@ private fun TopDropDownItems(){ //지도, 시험 시간표(바꿀 수 있도록)
 @Composable
 private fun IconWithText(
     icon: Painter,
-    text: String
+    text: String,
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -111,15 +112,17 @@ private fun IconWithText(
     }
 
 }
+
 @Composable
 fun MyTableDropDownItems(
     viewModel: TimetableViewModel,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val selectedTimetable by viewModel.timetableUseCase.selectedTimetable.collectAsState()
     Column {
         viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
-            val displayName = if (id.contains("myTable")) stringResource(R.string.my_table) else "Table $index"
+            val displayName =
+                if (id.contains("myTable")) stringResource(R.string.my_table) else "Table $index"
             val isSelected = id == selectedTimetable?.id
 
             DropdownMenuItem(
@@ -139,10 +142,11 @@ fun MyTableDropDownItems(
 @Composable
 private fun BottomMenuDropDownItems(
     viewModel: TimetableViewModel,
-    onDismiss: () -> Unit
-){
+    onDismiss: () -> Unit,
+) {
     val scope = CoroutineScope(Dispatchers.Main)
-    val deleteColor =  if(viewModel.isEditable.collectAsState().value) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
+    val deleteColor =
+        if (viewModel.isEditable.collectAsState().value) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
         onClick = {
@@ -151,6 +155,7 @@ private fun BottomMenuDropDownItems(
                     viewModel.createTable()
                 } catch (e: Exception) {
                     Log.e("TimetableViewModel", "Error creating table: ${e.message}")
+                    viewModel.handleException(e, TimetableViewModel.ErrorType.CreateTable)
                 }
             }
             onDismiss()
@@ -170,7 +175,16 @@ private fun BottomMenuDropDownItems(
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_delete), color = deleteColor) },
-        onClick = { onDismiss(); if(viewModel.isEditable.value) viewModel.deleteTable() },
+        onClick = {
+            onDismiss()
+            if (viewModel.isEditable.value) {
+                try {
+                    viewModel.deleteTable()
+                } catch (e: Exception) {
+                    viewModel.handleException(e, TimetableViewModel.ErrorType.DeleteTable)
+                }
+            }
+        },
         leadingIcon = {
             Icon(
                 painter = painterResource(R.drawable.outline_delete),
@@ -180,12 +194,20 @@ private fun BottomMenuDropDownItems(
         }
     )
 }
+
 @Composable
 @Preview
-private fun Preview(){
-    val vm by remember { mutableStateOf( TimetableViewModel(MockTimetableUseCase()))}
+private fun Preview() {
+    val vm by remember {
+        mutableStateOf(
+            TimetableViewModel(
+                MockTimetableUseCase(),
+                CrashlyticsHelper()
+            )
+        )
+    }
     Theme {
-        Box(Modifier.fillMaxSize()){
+        Box(Modifier.fillMaxSize()) {
             Button(
                 onClick = {}
             ) {

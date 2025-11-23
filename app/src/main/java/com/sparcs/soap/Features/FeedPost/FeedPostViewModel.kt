@@ -1,12 +1,14 @@
 package com.sparcs.soap.Features.FeedPost
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
 import com.sparcs.soap.Domain.Models.Feed.FeedCreateComment
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
@@ -31,6 +33,7 @@ interface FeedPostViewModelProtocol {
     suspend fun fetchComments(postID: String)
     suspend fun writeComment(postID: String): FeedComment
     suspend fun writeReply(commentID: String): FeedComment
+    fun handleException(error: Throwable)
 }
 
 @HiltViewModel
@@ -39,6 +42,7 @@ class FeedPostViewModel @Inject constructor(
     val feedCommentRepository: FeedCommentRepositoryProtocol,
     val userUseCase: UserUseCaseProtocol,
     private val feedPostRepository: FeedPostRepositoryProtocol,
+    private val crashlyticsHelper: CrashlyticsHelper
 ) : ViewModel(), FeedPostViewModelProtocol {
 
     sealed interface ViewState {
@@ -132,5 +136,13 @@ class FeedPostViewModel @Inject constructor(
         val comment = feedCommentRepository.writeReply(commentID, request)
         _comments.value = insertReply(_comments.value, comment)
         return comment
+    }
+
+    override fun handleException(error: Throwable) {
+        Log.e("FeedPostViewModel","failed to create a report: $error")
+        crashlyticsHelper.recordException(
+            error = error,
+            alertMessage = "An unexpected error occurred while reporting a user. Please try again later."
+        )
     }
 }

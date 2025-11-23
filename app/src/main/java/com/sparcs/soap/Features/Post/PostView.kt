@@ -3,7 +3,7 @@ package com.sparcs.soap.Features.Post
 import PostCommentCell
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -66,6 +66,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Models.Ara.AraPostComment
 import com.sparcs.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
@@ -85,7 +86,6 @@ import com.sparcs.soap.Shared.Mocks.board
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.ui.theme.grayBB
 import com.sparcs.soap.ui.theme.lightGray0
-import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -116,8 +116,14 @@ fun PostView(
     var summarisedContent by remember { mutableStateOf<String?>(null) }
 
     var showAlert by remember { mutableStateOf(false) }
-    var alertTitle by remember { mutableStateOf("") }
-    var alertMessage by remember { mutableStateOf("") }
+    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
+    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
+
+    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
+    }
 
     val post = viewModel.post.collectAsState().value
     val context = LocalContext.current
@@ -138,8 +144,14 @@ fun PostView(
                 navController = navController,
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { type ->
-                    scope.launch { viewModel.report(type) }
-                    Toast.makeText(context, "신고가 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                    scope.launch {
+                        try {
+                            viewModel.report(type)
+                        } catch (e: Exception) {
+                            Log.e("PostView", "Failed to report post", e)
+                            viewModel.handleException(e)
+                        }
+                    }
                 },
                 onTranslate = {
                     showTranslationView = true
@@ -191,9 +203,9 @@ fun PostView(
 
                         } catch (e: Exception) {
                             Log.e("PostView", "Failed to upload comment", e)
+                            viewModel.handleException(e)
                             showAlert = true
-                            alertTitle = "Error"
-                            alertMessage = "Failed to upload comment"
+                            showAlert(R.string.error, R.string.unexpected_error_uploading_comment)
                         } finally {
                             isUploadingComment = false
                         }
@@ -275,9 +287,9 @@ fun PostView(
                                 navController.popBackStack()
                             } catch (e: Exception) {
                                 Log.e("PostView", "Failed to delete post", e)
+                                viewModel.handleException(e)
                                 showAlert = true
-                                alertTitle = "Error"
-                                alertMessage = "Failed to delete post"
+                                showAlert(R.string.error, R.string.unexpected_error_deleting_post)
                             }
                         }
 
@@ -302,8 +314,8 @@ fun PostView(
             confirmButton = {
                 Button(onClick = { showAlert = false }) { Text("Okay") }
             },
-            title = { Text(alertTitle) },
-            text = { Text(alertMessage) }
+            title = { Text(stringResource(alertTitle)) },
+            text = { Text(stringResource(alertMessage)) }
         )
     }
 }

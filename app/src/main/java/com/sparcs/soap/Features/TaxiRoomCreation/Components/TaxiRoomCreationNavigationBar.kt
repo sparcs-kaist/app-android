@@ -60,7 +60,6 @@ fun TaxiRoomCreationNavigationBar(
                 onError = {
                     alertMessage = it
                     showAlert = true
-                    alertTitle = "Error"
                 },
                 viewModel = viewModel,
                 title = title
@@ -74,7 +73,7 @@ fun TaxiRoomCreationNavigationBar(
     if (showAlert) {
         AlertDialog(
             onDismissRequest = { showAlert = false },
-            title = { Text(alertTitle) },
+            title = { Text((alertTitle)) },
             text = { Text(alertMessage) },
             confirmButton = {
                 TextButton(onClick = { showAlert = false }) {
@@ -83,8 +82,7 @@ fun TaxiRoomCreationNavigationBar(
             }
         )
     }
-
-
+    
     LaunchedEffect(Unit) {
         taxiRoomCreationViewModel.fetchBlockStatus()
         when (val status = taxiRoomCreationViewModel.blockStatus.value) {

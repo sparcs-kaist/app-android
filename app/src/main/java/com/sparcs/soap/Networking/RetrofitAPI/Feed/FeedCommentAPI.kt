@@ -2,7 +2,6 @@ package com.sparcs.soap.Networking.RetrofitAPI.Feed
 
 import com.sparcs.soap.Networking.RequestDTO.Feed.FeedCommentRequestDTO
 import com.sparcs.soap.Networking.ResponseDTO.Feed.FeedCommentDTO
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -31,7 +30,7 @@ interface FeedCommentApi {
     @DELETE("comments/{commentID}")
     suspend fun deleteComment(
         @Path("commentID") commentID: String
-    ): Response<Unit?>
+    )
 
     @POST("comments/{commentID}/vote")
     suspend fun vote(
