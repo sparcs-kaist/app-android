@@ -1,7 +1,9 @@
 package com.sparcs.soap.Domain.Repositories.OTL
 
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Models.OTL.Course
 import com.sparcs.soap.Domain.Models.OTL.LectureReview
+import com.sparcs.soap.Networking.ResponseDTO.handleApiError
 import com.sparcs.soap.Networking.RetrofitAPI.OTL.OTLCourseApi
 import javax.inject.Inject
 
@@ -12,38 +14,53 @@ interface OTLCourseRepositoryProtocol {
     suspend fun unlikeReview(reviewId: Int)
 }
 
-class FakeOTLCourseRepository: OTLCourseRepositoryProtocol {
-    override suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course> { return emptyList() }
-    override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> { return emptyList() }
-    override suspend fun likeReview(reviewId: Int) {}
-    override suspend fun unlikeReview(reviewId: Int) {}
-}
 
 class OTLCourseRepository @Inject constructor(
-    private val api: OTLCourseApi
+    private val api: OTLCourseApi,
+    private val gson: Gson = Gson(),
 ) : OTLCourseRepositoryProtocol {
 
     override suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course> {
-        val response = api.searchCourse(name, offset, limit)
-        return response.map { it.toModel() }
+        try {
+            val response = api.searchCourse(name, offset, limit)
+            return response.map { it.toModel() }
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
     }
 
     override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> {
-        val response = api.fetchReviews(courseId, offset, limit)
-        return response.map { it.toModel() }
-    }
+        try {
+            val response = api.fetchReviews(courseId, offset, limit)
+            return response.map { it.toModel() }
 
-    override suspend fun likeReview(reviewId: Int) {
-        val response = api.likeReview(reviewId)
-        if (!response.isSuccessful) {
-            throw Exception("Failed to like review: ${response.code()}")
+        } catch (e: Exception) {
+            handleApiError(gson, e)
         }
     }
 
-    override suspend fun unlikeReview(reviewId: Int) {
-        val response = api.unlikeReview(reviewId)
-        if (!response.isSuccessful) {
-            throw Exception("Failed to unlike review: ${response.code()}")
-        }
+    override suspend fun likeReview(reviewId: Int) = try {
+        api.likeReview(reviewId)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
     }
+
+    override suspend fun unlikeReview(reviewId: Int) = try {
+        api.unlikeReview(reviewId)
+    } catch (e: Exception) {
+        handleApiError(gson, e)
+    }
+}
+
+class FakeOTLCourseRepository : OTLCourseRepositoryProtocol {
+    override suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course> {
+        return emptyList()
+    }
+
+    override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> {
+        return emptyList()
+    }
+
+    override suspend fun likeReview(reviewId: Int) {}
+    override suspend fun unlikeReview(reviewId: Int) {}
 }
