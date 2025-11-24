@@ -22,9 +22,9 @@ fun TaxiArrivalBubble() {
     val bubbleText = stringResource(
         id = R.string.taxi_arrival_bubble,
         "\n\n",
-        buildBoldAnnotatedString("+ button"),
-        buildBoldAnnotatedString("Request Settlement"),
-        buildBoldAnnotatedString("Send Payment")
+        buildBoldAnnotatedString("+"+ stringResource(R.string.button)),
+        buildBoldAnnotatedString(stringResource(R.string.request_settlement)),
+        buildBoldAnnotatedString(stringResource(R.string.send_payment))
     )
 
     Text(

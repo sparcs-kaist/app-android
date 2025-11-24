@@ -120,15 +120,15 @@ private fun TermsAndPrivacyText(context: Context) {
 
         pushStringAnnotation(tag = "TERMS", annotation = Constants.termsOfUseURL)
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-            append(stringResource(R.string.terms_of_use))
+            append(stringResource(R.string.terms_of_use) + " ")
         }
         pop()
 
-        append(stringResource(R.string.and_text))
+        append(stringResource(R.string.and_text) +" ")
 
         pushStringAnnotation(tag = "PRIVACY", annotation = Constants.privacyPolicyURL)
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-            append(stringResource(R.string.privacy_policy))
+            append(stringResource(R.string.privacy_policy)+ " ")
         }
         pop()
 
