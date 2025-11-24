@@ -285,10 +285,25 @@
     <string name="report_abusive_language">비속어</string>
     <string name="report_commercial_ad">상업적 광고</string>
     <string name="report_impersonation_fraud">사칭 및 사기</string>
-
     <string name="report_hate_speech">혐오 발언</string>
     <string name="report_unauthorized_sales">허가되지 않은 판매 글</string>
     <string name="report_false_information">거짓 정보</string>
     <string name="report_defamation">명예 훼손</string>
     <string name="report_other">기타</string>
+    <string name="just_now">방금 전</string>
+    <string name="minutes_ago">%1$d분 전</string>
+    <plurals name="time_days_ago">
+        <item quantity="other">%d일 전</item>
+    </plurals>
+
+    <plurals name="time_hours_ago">
+        <item quantity="other">%d시간 전</item>
+    </plurals>
+    <string name="today_at">오늘 %1$s</string>
+    <string name="tomorrow_at">내일 %1$s</string>
+    <string name="weekday_at">%1$s %2$s</string>
+    <string name="date_time_fallback_pattern">M월 d일 a h:mm</string>
+
+
+
 </resources>

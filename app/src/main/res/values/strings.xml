@@ -310,5 +310,20 @@
     <string name="report_false_information">False Information</string>
     <string name="report_defamation">Defamation</string>
     <string name="report_other">Other</string>
+    <string name="just_now">just now</string>
+    <string name="minutes_ago">%1$d min ago</string>
+    <plurals name="time_days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d hour ago</item>
+        <item quantity="other">%d hours ago</item>
+    </plurals>
+    <string name="today_at">Today at %1$s</string>
+    <string name="tomorrow_at">Tomorrow at %1$s</string>
+    <string name="weekday_at">%1$s at %2$s</string>
+    <string name="date_time_fallback_pattern">MMM d at h:mm a</string>
 
 </resources>

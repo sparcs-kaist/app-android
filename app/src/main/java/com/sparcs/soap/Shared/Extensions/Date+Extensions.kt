@@ -1,5 +1,9 @@
 package com.sparcs.soap.Shared.Extensions
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import com.sparcs.soap.R
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -10,6 +14,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
+@Composable
 fun Date.timeAgoDisplay(): String {
     val nowCalendar = Calendar.getInstance()
     val thenCalendar = Calendar.getInstance()
@@ -33,11 +38,19 @@ fun Date.timeAgoDisplay(): String {
         days--
     }
     if (days >= 7 || months > 0 || years > 0) return "$year. $month. $day"
-    if (days > 0) return "$days day${if (days > 1) "s" else ""} ago"
-    if (hours > 0) return "$hours hour${if (hours > 1) "s" else ""} ago"
-    if (minutes > 0) return "${minutes} min ago "
+    if (days > 0) return pluralStringResource(
+        id = R.plurals.time_days_ago,
+        count = days,
+        days
+    )
+    if (hours > 0) return pluralStringResource(
+        id = R.plurals.time_hours_ago,
+        count = hours,
+        hours
+    )
+    if (minutes > 0) return stringResource(R.string.minutes_ago, minutes)
 
-    return "just now"
+    return stringResource(R.string.just_now)
 }
 
 fun Date.toISO8601(): String {
@@ -73,22 +86,35 @@ fun Calendar.isDateInSameDay(date1: Date, date2: Date): Boolean {
     return localDate1 == localDate2
 }
 
-
+@Composable
 fun Date.relativeTimeString(): String {
     val time = localizedTime(this)
 
     return when {
-        isDateInToday(this) -> "Today at $time"
-        isDateInTomorrow(this) -> "Tomorrow at $time"
+        isDateInToday(this) ->
+            stringResource(R.string.today_at, time)
+
+        isDateInTomorrow(this) ->
+            stringResource(R.string.tomorrow_at, time)
+
         else -> {
-            weekdayNameIfWithinAWeek(this)?.let { "$it at $time" } ?: run {
-                val formatter = DateTimeFormatter.ofPattern("MMM d 'at' h:mm a", Locale.getDefault())
-                val localDateTime = LocalDateTime.ofInstant(this.toInstant(), ZoneId.systemDefault())
+            val weekday = weekdayNameIfWithinAWeek(this)
+
+            if (weekday != null) {
+                stringResource(R.string.weekday_at, weekday, time)
+            } else {
+                val pattern = stringResource(R.string.date_time_fallback_pattern)
+                val formatter = DateTimeFormatter.ofPattern(pattern, Locale.getDefault())
+                val localDateTime = LocalDateTime.ofInstant(
+                    this.toInstant(),
+                    ZoneId.systemDefault()
+                )
                 formatter.format(localDateTime)
             }
         }
     }
 }
+
 
 fun isDateInToday(date: Date): Boolean {
     val today = Calendar.getInstance()
