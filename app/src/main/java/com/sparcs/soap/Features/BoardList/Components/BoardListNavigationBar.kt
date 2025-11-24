@@ -16,7 +16,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import com.sparcs.soap.Features.NavigationBar.Channel
-import com.sparcs.soap.Features.NavigationBar.Components.ChatButton
 import com.sparcs.soap.Shared.Extensions.elevation
 import com.sparcs.soap.ui.theme.Theme
 
@@ -36,10 +35,6 @@ fun BoardListNavigationBar(
                     fontWeight = FontWeight.Bold
                 )
             }
-        },
-        actions = {
-                    ChatButton(onClick = { navController.navigate(Channel.AraChatView.name) })
-
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background,

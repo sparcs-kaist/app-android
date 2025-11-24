@@ -1,5 +1,6 @@
 package com.sparcs.soap.Networking
 
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Helpers.TaxiLocationStorage
 import com.sparcs.soap.Domain.Helpers.TaxiLocationStorageProtocol
@@ -65,7 +66,8 @@ import com.sparcs.soap.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import com.sparcs.soap.Networking.RetrofitAPI.Taxi.TaxiReportApi
 import com.sparcs.soap.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import com.sparcs.soap.Networking.RetrofitAPI.Taxi.TaxiUserApi
-import com.google.gson.Gson
+import com.sparcs.soap.Shared.Extensions.AndroidStringProvider
+import com.sparcs.soap.Shared.Extensions.StringProvider
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -482,8 +484,13 @@ abstract class UseCaseModule {
     @Binds
     @Singleton
     abstract fun bindTimetableUseCase(impl: TimetableUseCase): TimetableUseCaseProtocol
-}
 
+    @Binds
+    @Singleton
+    abstract fun bindStringProvider(
+        impl: AndroidStringProvider
+    ): StringProvider
+}
 
 @Module
 @InstallIn(SingletonComponent::class)

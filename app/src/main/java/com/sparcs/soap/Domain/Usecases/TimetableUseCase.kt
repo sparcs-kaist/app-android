@@ -5,6 +5,8 @@ import com.sparcs.soap.Domain.Models.OTL.OTLUser
 import com.sparcs.soap.Domain.Models.OTL.Semester
 import com.sparcs.soap.Domain.Models.OTL.Timetable
 import com.sparcs.soap.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
+import com.sparcs.soap.R
+import com.sparcs.soap.Shared.Extensions.StringProvider
 import com.sparcs.soap.Shared.Mocks.mockList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,53 +45,10 @@ interface TimetableUseCaseProtocol {
     fun setSelectedSemesterID(id: String?)
 }
 
-class MockTimetableUseCase : TimetableUseCaseProtocol {
-
-    private val _semesters = MutableStateFlow(Semester.mockList())
-    override val semesters: StateFlow<List<Semester>> = _semesters.asStateFlow()
-
-    private val _selectedSemesterID = MutableStateFlow(Semester.mockList()[0].id)
-    override var selectedSemesterID: StateFlow<String?> = _selectedSemesterID.asStateFlow()
-
-    private val _selectedTimetableID = MutableStateFlow("${_selectedSemesterID.value}-myTable")
-    override var selectedTimetableID: StateFlow<String?> = _selectedTimetableID.asStateFlow()
-
-    private val _selectedSemester =
-        MutableStateFlow(semesters.value.firstOrNull { it.id == selectedSemesterID.value })
-    override val selectedSemester: StateFlow<Semester?> = _selectedSemester.asStateFlow()
-
-    private val _selectedTimetable = MutableStateFlow(
-        Timetable(
-            id = "${_selectedSemesterID.value}-myTable",
-            lectures = Lecture.mockList()
-        )
-    )
-    override val selectedTimetable: StateFlow<Timetable?> = _selectedTimetable.asStateFlow()
-
-    private val _selectedTimetableDisplayName = MutableStateFlow("My Table")
-    override val selectedTimetableDisplayName: StateFlow<String> = _selectedTimetableDisplayName
-
-    override val isEditable: StateFlow<Boolean> = MutableStateFlow(true)
-    override val hasLectureInCurrentTable: (Lecture) -> Boolean
-        get() = TODO("Not yet implemented")
-
-    override val timetableIDsForSelectedSemester: List<String>
-        get() = listOf("${_selectedSemesterID.value}-myTable")
-
-    override suspend fun load() {}
-    override suspend fun createTable() {}
-    override suspend fun deleteTable() {}
-    override suspend fun addLecture(lecture: Lecture) {}
-    override suspend fun deleteLecture(lecture: Lecture) {}
-
-    override fun selectSemester(id: String) {}
-    override fun selectTimetable(id: String) {}
-    override fun setSelectedSemesterID(id: String?) {}
-}
-
 class TimetableUseCase @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
     private val otlTimetableRepository: OTLTimetableRepositoryProtocol,
+    private val stringProvider: StringProvider
 ) : TimetableUseCaseProtocol {
     // MARK: - Properties
     private val _store = MutableStateFlow<Map<String, List<Timetable>>>(emptyMap())
@@ -132,12 +91,12 @@ class TimetableUseCase @Inject constructor(
         _selectedSemesterID,
         _store
     ) { tid, sid, store ->
-        if (tid == null) "Unknown"
-        else if (tid.endsWith("-myTable")) "My Table"
+        if (tid == null) stringProvider.get(R.string.unknown)
+        else if (tid.endsWith("-myTable")) stringProvider.get(R.string.my_table)
         else sid?.let { s ->
-            store[s]?.map { it.id }?.indexOf(tid)?.let { "Table $it" } ?: "Unknown"
-        } ?: "Unknown"
-    }.stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, "Unknown")
+            store[s]?.map { it.id }?.indexOf(tid)?.let { stringProvider.get(R.string.table_label, it) } ?: stringProvider.get(R.string.unknown)
+        } ?: stringProvider.get(R.string.unknown)
+    }.stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, stringProvider.get(R.string.unknown))
 
     override val isEditable: StateFlow<Boolean> =
         selectedTimetable.map { it?.id?.endsWith("-myTable") == false }
@@ -336,4 +295,48 @@ class TimetableUseCase @Inject constructor(
             fetchingSemesters.remove(sid)
         }
     }
+}
+
+class MockTimetableUseCase : TimetableUseCaseProtocol {
+
+    private val _semesters = MutableStateFlow(Semester.mockList())
+    override val semesters: StateFlow<List<Semester>> = _semesters.asStateFlow()
+
+    private val _selectedSemesterID = MutableStateFlow(Semester.mockList()[0].id)
+    override var selectedSemesterID: StateFlow<String?> = _selectedSemesterID.asStateFlow()
+
+    private val _selectedTimetableID = MutableStateFlow("${_selectedSemesterID.value}-myTable")
+    override var selectedTimetableID: StateFlow<String?> = _selectedTimetableID.asStateFlow()
+
+    private val _selectedSemester =
+        MutableStateFlow(semesters.value.firstOrNull { it.id == selectedSemesterID.value })
+    override val selectedSemester: StateFlow<Semester?> = _selectedSemester.asStateFlow()
+
+    private val _selectedTimetable = MutableStateFlow(
+        Timetable(
+            id = "${_selectedSemesterID.value}-myTable",
+            lectures = Lecture.mockList()
+        )
+    )
+    override val selectedTimetable: StateFlow<Timetable?> = _selectedTimetable.asStateFlow()
+
+    private val _selectedTimetableDisplayName = MutableStateFlow("My Table")
+    override val selectedTimetableDisplayName: StateFlow<String> = _selectedTimetableDisplayName
+
+    override val isEditable: StateFlow<Boolean> = MutableStateFlow(true)
+    override val hasLectureInCurrentTable: (Lecture) -> Boolean
+        get() = TODO("Not yet implemented")
+
+    override val timetableIDsForSelectedSemester: List<String>
+        get() = listOf("${_selectedSemesterID.value}-myTable")
+
+    override suspend fun load() {}
+    override suspend fun createTable() {}
+    override suspend fun deleteTable() {}
+    override suspend fun addLecture(lecture: Lecture) {}
+    override suspend fun deleteLecture(lecture: Lecture) {}
+
+    override fun selectSemester(id: String) {}
+    override fun selectTimetable(id: String) {}
+    override fun setSelectedSemesterID(id: String?) {}
 }
