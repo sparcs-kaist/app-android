@@ -327,4 +327,6 @@
     <string name="date_time_fallback_pattern">MMM d at h:mm a</string>
     <string name="has_joined">%1$s has joined</string>
     <string name="has_left">%1$s has left</string>
+    <string name="notification">Notification</string>
+    <string name="button">Button</string>
 </resources>

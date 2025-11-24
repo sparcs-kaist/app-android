@@ -92,7 +92,7 @@ fun TaxiReportView(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("Report") },
+                title = { Text(stringResource(R.string.report)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
@@ -219,7 +219,7 @@ fun ReasonCard(
                 Text(stringResource(R.string.reason))
                 Spacer(Modifier.weight(1f))
                 Text(
-                    text = selectedReason?.text ?: stringResource(R.string.didnot_send_the_money),
+                    text = stringResource(selectedReason?.text ?: R.string.didnot_send_the_money),
                     color = MaterialTheme.colorScheme.grayBB
                 )
                 Icon(

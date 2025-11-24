@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
-import com.sparcs.soap.Features.Home.Components.HomeViewDropDownMenu
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.NavigationBar.Components.AddButton
 import com.sparcs.soap.Shared.Extensions.elevation
@@ -43,7 +42,7 @@ fun FeedViewNavigationBar(
                 contentDescription = "Create Feed",
                 onClick = { navController.navigate(Channel.FeedPostCompose.name) }
             )
-            HomeViewDropDownMenu(
+            FeedViewDropDownMenu(
                 onClickSettings = { navController.navigate(Channel.Settings.name) },
                 onClickNotification = { }
             )
