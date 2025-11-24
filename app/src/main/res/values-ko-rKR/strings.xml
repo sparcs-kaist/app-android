@@ -196,7 +196,7 @@
     <string name="i_paid_for_the_taxi">제가 택시비를 결제했어요!</string>
     <string name="share_now_prompt">지금 공유하고 즐거운 택시 동승 경험을 만들어 보세요!</string>
     <string name="taxi_share_message">
-    🚕 %1$@ %2$@ → %3$@ 택시팟 구합니다! 🚕\n%4$s
+    🚕 %1$s %2$s → %3$s 택시팟 구합니다! 🚕\n%4$s
     </string>
     <string name="taxi_bot">택시 봇</string>
     <string name="leave_room_confirmation">정말로 방을 나가시겠습니까?</string>
@@ -213,7 +213,7 @@
     <string name="open_kakao_t">카카오 T 열기</string>
     <string name="open_uber">우버 열기</string>
     <string name="payment_send_instructions">
-   결제 앱을 선택하고, 송금 후 이미 송금함을 눌러 주세요."
+   결제 앱을 선택하고, 송금 후 이미 송금함을 눌러 주세요.
     </string>
     <string name="open_kakao_pay">카카오 페이 열기</string>
     <string name="open_toss">토스 열기</string>
@@ -303,7 +303,8 @@
     <string name="tomorrow_at">내일 %1$s</string>
     <string name="weekday_at">%1$s %2$s</string>
     <string name="date_time_fallback_pattern">M월 d일 a h:mm</string>
-
+    <string name="has_joined">%1$s님이 참여했습니다.</string>
+    <string name="has_left">%1$s님이 나갔습니다.</string>
 
 
 </resources>
