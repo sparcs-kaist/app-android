@@ -271,10 +271,12 @@ fun TaxiChatView(
                             viewModel
                         )
                     }) { Text(stringResource(R.string.open_uber)) }
-                    TextButton(onClick = {
-                        showCallTaxiAlert = false
-                    }) { Text(stringResource(R.string.cancel)) }
                 }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showCallTaxiAlert = false
+                }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }
@@ -725,7 +727,8 @@ private fun InputBar(
                             contentAlignment = Alignment.CenterStart
                         ) {
                             if (text.isEmpty()) {
-                                val nickname = taxiUser?.nickname ?: stringResource(R.string.unknown)
+                                val nickname =
+                                    taxiUser?.nickname ?: stringResource(R.string.unknown)
                                 Text(
                                     text = stringResource(R.string.chat_as_user, nickname),
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),

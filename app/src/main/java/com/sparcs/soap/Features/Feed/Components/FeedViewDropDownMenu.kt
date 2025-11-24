@@ -1,4 +1,4 @@
-package com.sparcs.soap.Features.Home.Components
+package com.sparcs.soap.Features.Feed.Components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.R
@@ -32,7 +33,7 @@ import com.sparcs.soap.ui.theme.darkGray
 import com.sparcs.soap.ui.theme.lightGray0
 
 @Composable
-fun HomeViewDropDownMenu(
+fun FeedViewDropDownMenu(
     onClickSettings: () -> Unit,
     onClickNotification: () -> Unit,
 ) {
@@ -58,7 +59,7 @@ fun HomeViewDropDownMenu(
     ) {
         Column {
             DropDownItems(
-                text = "Notification",
+                text = stringResource(R.string.notification),
                 icon = R.drawable.baseline_notifications
             ) { onClickNotification() }
 
@@ -68,7 +69,7 @@ fun HomeViewDropDownMenu(
             )
 
             DropDownItems(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 icon = R.drawable.round_settings
             ) { onClickSettings() }
         }
@@ -108,7 +109,7 @@ private fun Preview() {
             Button(
                 onClick = {}
             ) {
-                HomeViewDropDownMenu({}, {})
+                FeedViewDropDownMenu({}, {})
             }
         }
     }

@@ -305,6 +305,8 @@
     <string name="date_time_fallback_pattern">M월 d일 a h:mm</string>
     <string name="has_joined">%1$s님이 참여했습니다.</string>
     <string name="has_left">%1$s님이 나갔습니다.</string>
+    <string name="notification">알림</string>
+    <string name="button">버튼</string>
 
 
 </resources>
