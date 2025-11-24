@@ -22,7 +22,7 @@ fun TaxiChatGeneralMessage(
     when (type) {
         TaxiChat.ChatType.IN -> {
             Text(
-                text = "$displayName has joined",
+                text = stringResource(R.string.has_joined, displayName),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.bodyMedium,
@@ -33,7 +33,7 @@ fun TaxiChatGeneralMessage(
         }
         TaxiChat.ChatType.OUT -> {
             Text(
-                text = "$displayName has left",
+                text = stringResource(R.string.has_left),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.bodyMedium,
