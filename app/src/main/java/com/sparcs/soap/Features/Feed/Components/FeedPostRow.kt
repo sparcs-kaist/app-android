@@ -41,6 +41,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
+import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
 import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
@@ -78,7 +79,7 @@ fun FeedPostRow(
             showDeleteConfirmation,
         ) { showDeleteConfirmation = it }
         Content(post, singleLine, onComment)
-        Footer(post, onComment, onPostDeleted, feedPostRepository, coroutineScope)
+        Footer(post, onComment, onPostDeleted, feedPostRepository, !singleLine, coroutineScope)
     }
 }
 
@@ -114,7 +115,8 @@ fun Header(
     showDeleteConfirmation: Boolean,
     setShowDelete: (Boolean) -> Unit,
 ) {
-    val authorName = if(post.authorName == "Anonymous") stringResource(R.string.anonymous) else post.authorName
+    val authorName =
+        if (post.authorName == "Anonymous") stringResource(R.string.anonymous) else post.authorName
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -218,6 +220,7 @@ fun Footer(
     onComment: () -> Unit,
     onPostDeleted: ((String) -> Unit)?,
     feedPostRepository: FeedPostRepositoryProtocol,
+    isDetailedView: Boolean,
     coroutineScope: CoroutineScope,
 ) {
     val context = LocalContext.current
@@ -257,8 +260,8 @@ fun Footer(
         Spacer(Modifier.width(8.dp))
         PostCommentButton(commentCount = postState.commentCount) { onComment() }
         Spacer(Modifier.weight(1f))
-        if (onPostDeleted == null) PostShareButton(
-            url = "https://sparcs.org/feed/${post.id}",
+        if (onPostDeleted != null && isDetailedView) PostShareButton(
+            url = Constants.feedShareURL + post.id,
             context = context
         )
     }

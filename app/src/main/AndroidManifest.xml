@@ -69,7 +69,8 @@
 
                 <data
                     android:scheme="https"
-                    android:host="/feedpost/" />
+                    android:host="sparcs.org"
+                    android:pathPrefix="/feed/"/>
             </intent-filter>
         </activity>
 
