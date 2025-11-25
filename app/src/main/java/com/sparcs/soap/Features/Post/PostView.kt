@@ -66,6 +66,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.google.gson.Gson
+import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Models.Ara.AraPostComment
 import com.sparcs.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
@@ -112,7 +113,7 @@ fun PostView(
     var showTranslationView by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    var summarisedContent by remember { mutableStateOf<String?>(null) }
+    val summarisedContent by remember { mutableStateOf<String?>(null) }
 
     var showAlert by remember { mutableStateOf(false) }
     @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
@@ -454,7 +455,7 @@ private fun Footer(
         PostBookmarkButton(
             post.myScrap,
             onToggleBookmark = { scope.launch { viewModel.toggleBookmark() } })
-        PostShareButton(url = "https://newara.dev.sparcs.org/post/${post.id}", context = context)
+        PostShareButton(url = Constants.araShareURL + post.id.toString(), context = context)
     }
 }
 

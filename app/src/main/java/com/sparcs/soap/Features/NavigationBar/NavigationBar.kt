@@ -36,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
+import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Features.BoardList.BoardListView
 import com.sparcs.soap.Features.BoardList.BoardListViewModel
 import com.sparcs.soap.Features.Course.CourseView
@@ -183,7 +184,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 ),
                 deepLinks = listOf(
                     navDeepLink {
-                        uriPattern = "https://feedpost?feedId={feedId}"
+                        uriPattern = Constants.feedShareURL + "{feedId}"
                         action = Intent.ACTION_VIEW
                     }
                 ),
@@ -300,7 +301,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = "https://taxi.dev.sparcs.org/invite/{roomId}"
+                            uriPattern = Constants.taxiInviteURL + "{roomId}"
                             action = Intent.ACTION_VIEW
                         }
                     )
@@ -417,7 +418,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = "https://newara.dev.sparcs.org/post/{postId}"
+                            uriPattern = Constants.araShareURL + "{postId}"
                             action = Intent.ACTION_VIEW
                         }
                     )
