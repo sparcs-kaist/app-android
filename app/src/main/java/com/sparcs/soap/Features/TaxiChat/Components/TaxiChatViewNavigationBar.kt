@@ -50,7 +50,8 @@ fun TaxiChatViewNavigationBar(
                 Text(text = room.title, modifier = Modifier.align(Alignment.CenterHorizontally))
                 Text(
                     text = "${room.source.title} → ${room.destination.title}",
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }
         },

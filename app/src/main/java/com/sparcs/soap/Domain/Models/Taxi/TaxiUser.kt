@@ -9,6 +9,8 @@ data class TaxiUser(
     val name: String,
     val nickname: String,
     val phoneNumber: String?,
+    val badge: Boolean,
+    val residence: String?,
     val email: String,
     val withdraw: Boolean,
     val ban: Boolean,

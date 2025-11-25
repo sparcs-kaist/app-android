@@ -8,7 +8,6 @@ import com.sparcs.soap.Shared.Extensions.toISO8601
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -80,20 +79,11 @@ class TaxiChatRepository @Inject constructor(
 
     override suspend fun uploadImage(presignedURL: TaxiChatPresignedURLDTO, imageData: ByteArray) {
         withContext(Dispatchers.IO) {
-            val builder = MultipartBody.Builder().setType(MultipartBody.FORM)
-            presignedURL.fields.forEach { (key, value) ->
-                builder.addFormDataPart(key, value)
-            }
-            builder.addFormDataPart(
-                "file",
-                "blob.png",
-                imageData.toRequestBody("image/png".toMediaTypeOrNull())
-            )
-            val requestBody = builder.build()
+            val requestBody = imageData.toRequestBody("image/png".toMediaTypeOrNull())
 
             val request = Request.Builder()
                 .url(presignedURL.url)
-                .post(requestBody)
+                .put(requestBody)
                 .build()
 
             OkHttpClient().newCall(request).execute().use { response ->
@@ -101,6 +91,7 @@ class TaxiChatRepository @Inject constructor(
             }
         }
     }
+
 
     override suspend fun notifyImageUploadComplete(id: String) {
         val body = mapOf("id" to id)

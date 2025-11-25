@@ -1,8 +1,8 @@
 package com.sparcs.soap.Networking.ResponseDTO.Taxi
 
+import com.google.gson.annotations.SerializedName
 import com.sparcs.soap.Domain.Models.Taxi.TaxiUser
 import com.sparcs.soap.Shared.Extensions.toDate
-import com.google.gson.annotations.SerializedName
 import java.net.URL
 import java.util.Date
 
@@ -21,6 +21,12 @@ data class TaxiUserDTO(
 
     @SerializedName("phoneNumber")
     val phoneNumber: String?,
+
+    @SerializedName("badge")
+    val badge: Boolean,
+
+    @SerializedName("residence")
+    val residence: String,
 
     @SerializedName("email")
     val email: String,
@@ -50,6 +56,8 @@ data class TaxiUserDTO(
             name = name,
             nickname = nickname,
             phoneNumber = phoneNumber,
+            badge = badge,
+            residence = residence,
             email = email,
             withdraw = withdraw,
             ban = ban,

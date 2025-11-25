@@ -307,6 +307,9 @@
     <string name="has_left">%1$s님이 나갔습니다.</string>
     <string name="notification">알림</string>
     <string name="button">버튼</string>
+    <string name="enter_residence">거주지를 입력해주세요.</string>
+    <string name="invalid_bank_number">계좌 정보가 잘못되었습니다.</string>
+    <string name="change_applied">변경이 완료되었습니다.</string>
 
 
 </resources>
