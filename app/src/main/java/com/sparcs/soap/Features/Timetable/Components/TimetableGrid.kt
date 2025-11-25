@@ -41,7 +41,7 @@ fun TimetableGrid(
     onLectureSelected: (Lecture) -> Unit = {},
     showDeleteDialog: (Lecture) -> Unit,
 ) {
-    val timetable = viewModel.selectedTimetable.collectAsState().value
+    val timetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
     val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
     val candidateLecture by viewModel.candidateLecture.collectAsState()
 

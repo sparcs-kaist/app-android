@@ -3,6 +3,7 @@ package com.sparcs.soap.Shared.ViewModelMocks.OTL
 import com.sparcs.soap.Domain.Models.OTL.Lecture
 import com.sparcs.soap.Domain.Models.OTL.Semester
 import com.sparcs.soap.Domain.Models.OTL.Timetable
+import com.sparcs.soap.Domain.Usecases.TimetableUseCase
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
 import com.sparcs.soap.Features.Timetable.TimetableViewModelProtocol
 import com.sparcs.soap.Shared.Mocks.mock
@@ -10,6 +11,8 @@ import com.sparcs.soap.Shared.Mocks.mockList
 import kotlinx.coroutines.flow.MutableStateFlow
 
 class MockTimetableViewModel: TimetableViewModelProtocol {
+
+    override val timetableUseCase: TimetableUseCase? = null
     override val isLoading = MutableStateFlow(false)
     override val semesters = MutableStateFlow(Semester.mockList())
     override val selectedSemester = MutableStateFlow(Semester.mockList()[0])

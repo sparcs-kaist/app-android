@@ -1,17 +1,15 @@
 package com.sparcs.soap.Features.LectureSearch
 
 import android.util.Log
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sparcs.soap.Domain.Models.OTL.Lecture
 import com.sparcs.soap.Domain.Models.OTL.LectureSearchRequest
-import com.sparcs.soap.Domain.Repositories.OTL.OTLLectureRepository
+import com.sparcs.soap.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
 import com.sparcs.soap.Domain.Usecases.TimetableUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -23,17 +21,17 @@ import javax.inject.Inject
 interface LectureSearchViewModelProtocol {
     val state: StateFlow<LectureSearchViewModel.ViewState>
     val lectures: StateFlow<List<Lecture>>
-    var searchKeyword: String
-    val searchKeywordFlow: MutableStateFlow<String>
+    var searchText: StateFlow<String>
 
     fun bind()
     fun fetchLectures()
+    fun onSearchTextChange(text: String)
 }
 
 @HiltViewModel
 class LectureSearchViewModel @Inject constructor(
-    private val otlLectureRepository: OTLLectureRepository,
-    private val timetableUseCase: TimetableUseCaseProtocol
+    private val otlLectureRepository: OTLLectureRepositoryProtocol,
+    private val timetableUseCase: TimetableUseCaseProtocol,
 ) : ViewModel(), LectureSearchViewModelProtocol {
 
     sealed class ViewState {
@@ -47,8 +45,9 @@ class LectureSearchViewModel @Inject constructor(
     private val _lectures = MutableStateFlow<List<Lecture>>(emptyList())
     override val lectures: StateFlow<List<Lecture>> = _lectures
 
-    override var searchKeyword by mutableStateOf("")
-    override val searchKeywordFlow = MutableStateFlow("")
+    private val _searchText = MutableStateFlow("")
+    override var searchText: StateFlow<String> = _searchText
+    private val searchKeywordFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
 
     private val itemsPerPage = 50
     private var currentPage = 0
@@ -58,25 +57,36 @@ class LectureSearchViewModel @Inject constructor(
 
     private var isBound = false
 
-    @OptIn(FlowPreview::class)
-    override fun bind() {
-            if (isBound) return
-            isBound = true
-            viewModelScope.launch {
-                searchKeywordFlow
-                    .debounce(350)
-                    .distinctUntilChanged()
-                    .collectLatest {
-                        _lectures.value = emptyList()
-                        _state.value = ViewState.Loaded
-                        currentPage = 0
-                        fetchLectures()
-                    }
+    override fun onSearchTextChange(text: String) {
+        _searchText.value = text
+        viewModelScope.launch {
+            if (text.isNotBlank()) {
+                fetchLectures()
+                searchKeywordFlow.emit(text)
             }
         }
+    }
+
+    @OptIn(FlowPreview::class)
+    override fun bind() {
+        if(isBound) return
+        isBound = true
+        viewModelScope.launch {
+            searchKeywordFlow
+                .debounce(350)
+                .distinctUntilChanged()
+                .collectLatest {
+                    _lectures.value = emptyList()
+                    _state.value = ViewState.Loaded
+                    currentPage = 0
+                    fetchLectures()
+                }
+        }
+    }
 
 
     override fun fetchLectures() {
+        Log.d("Asdasd", timetableUseCase.selectedSemester.value.toString())
         val selectedSemester = timetableUseCase.selectedSemester.value ?: return
         if (isLastPage) return
 
@@ -84,7 +94,7 @@ class LectureSearchViewModel @Inject constructor(
             try {
                 val request = LectureSearchRequest(
                     semester = selectedSemester,
-                    keyword = searchKeyword,
+                    keyword = searchText.value,
                     limit = itemsPerPage,
                     offset = currentPage * itemsPerPage
                 )

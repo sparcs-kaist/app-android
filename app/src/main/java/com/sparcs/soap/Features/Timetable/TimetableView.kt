@@ -65,7 +65,7 @@ fun TimetableView(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+    val selectedTimetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
 
     LaunchedEffect(Unit) {
         viewModel.fetchData()
@@ -130,7 +130,7 @@ fun TimetableView(
             TimetableBottomSheet(
                 onDismiss = {
                     expanded = false
-                    lectureSearchViewModel.searchKeyword = ""
+                    lectureSearchViewModel.onSearchTextChange("")
                 }
             ) { onFold ->
                 LectureSearchView(
