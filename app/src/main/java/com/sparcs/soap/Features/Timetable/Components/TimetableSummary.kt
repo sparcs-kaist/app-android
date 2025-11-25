@@ -12,7 +12,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -28,7 +27,7 @@ import com.sparcs.soap.ui.theme.Theme
 fun TimetableSummary(
     viewModel: TimetableViewModelProtocol,
 ) {
-    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+    val selectedTimetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
     Card(
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp),

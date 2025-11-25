@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
+    val timetableUseCase: TimetableUseCase?
     val isLoading: MutableStateFlow<Boolean>
     val semesters: StateFlow<List<Semester>>
     val selectedSemester: StateFlow<Semester?>
@@ -46,7 +47,7 @@ interface TimetableViewModelProtocol {
 
 @HiltViewModel
 class TimetableViewModel @Inject constructor(
-    val timetableUseCase: TimetableUseCase,
+    override val timetableUseCase: TimetableUseCase,
     private val crashlyticsHelper: CrashlyticsHelper,
 ) : ViewModel(), TimetableViewModelProtocol {
 

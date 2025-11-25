@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +38,7 @@ import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiChatListViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
+import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import com.sparcs.soap.ui.theme.Theme
@@ -176,6 +178,16 @@ fun LoadedView(
             }
         }
 
+        item {
+            if(onGoing.isEmpty()){
+                UnavailableView(
+                    icon = painterResource(R.drawable.round_error_outline),
+                    title = stringResource(R.string.no_result),
+                    description = stringResource(R.string.no_active_groups)
+                )
+            }
+        }
+
         items(onGoing) { room ->
             TaxiRoomCell(
                 room = room,
@@ -194,6 +206,16 @@ fun LoadedView(
                     text = stringResource(R.string.past_groups),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        item{
+            if(done.isEmpty()){
+                UnavailableView(
+                    icon = painterResource(R.drawable.round_error_outline),
+                    title = stringResource(R.string.no_result),
+                    description = stringResource(R.string.no_past_groups)
                 )
             }
         }
