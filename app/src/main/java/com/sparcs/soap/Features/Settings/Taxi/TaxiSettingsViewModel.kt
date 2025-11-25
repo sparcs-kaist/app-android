@@ -1,6 +1,5 @@
 package com.sparcs.soap.Features.Settings.Taxi
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,11 +17,15 @@ import javax.inject.Inject
 interface TaxiSettingsViewModelProtocol {
     var bankName: String?
     var bankNumber: String
+    var phoneNumber: String
+    var residence: String
     val user: TaxiUser?
     val state: StateFlow<TaxiSettingsViewModel.ViewState>
 
     suspend fun fetchUser()
     suspend fun editBankAccount(account: String)
+    suspend fun registerPhoneNumber(phoneNumber: String)
+    suspend fun registerResidence(residence: String)
 }
 
 @HiltViewModel
@@ -39,6 +42,10 @@ class TaxiSettingsViewModel @Inject constructor(
 
     override var bankName by mutableStateOf<String?>(null)
     override var bankNumber by mutableStateOf("")
+
+    override var phoneNumber by mutableStateOf("")
+    override var residence by mutableStateOf("")
+
     override var user: TaxiUser? = null
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -56,19 +63,24 @@ class TaxiSettingsViewModel @Inject constructor(
             val parts = fetchedUser.account.split(" ")
             bankName = parts.firstOrNull()
             bankNumber = parts.getOrNull(1) ?: ""
+            phoneNumber = fetchedUser.phoneNumber ?: ""
+            residence = fetchedUser.residence ?: ""
             _state.value = ViewState.Loaded
         }
     }
 
     override suspend fun editBankAccount(account: String) {
-        viewModelScope.launch {
-            try {
-                taxiUserRepository.editBankAccount(account)
-                userUseCase.fetchTaxiUser()
-            } catch (e: Exception) {
-                Log.e("TaxiSettingsViewModel", "Failed to edit bank account", e)
-                _state.value = ViewState.Error("Failed to edit bank account")
-            }
-        }
+        taxiUserRepository.editBankAccount(account)
+        userUseCase.fetchTaxiUser()
+    }
+
+    override suspend fun registerPhoneNumber(phoneNumber: String) {
+        taxiUserRepository.registerPhoneNumber(phoneNumber)
+        userUseCase.fetchTaxiUser()
+    }
+
+    override suspend fun registerResidence(residence: String) {
+        taxiUserRepository.registerResidence(residence)
+        userUseCase.fetchTaxiUser()
     }
 }

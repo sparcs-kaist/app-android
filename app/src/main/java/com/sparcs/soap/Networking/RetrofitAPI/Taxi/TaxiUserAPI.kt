@@ -14,8 +14,21 @@ interface TaxiUserApi {
 
     @POST("users/editAccount")
     suspend fun editBankAccount(
-        @Body request: String
+        @Body request: Map<String, String> //account: ~~
     ): Response<Unit>
+
+    @POST("users/registerPhoneNumber")
+    suspend fun registerPhoneNumber(
+        @Body request: Map<String, String> //phoneNumber: ~~
+    ): Response<Unit>
+
+    @POST("users/registerResidence")
+    suspend fun registerResidence(
+        @Body request: Map<String, String> //residence: ~~
+    ): Response<Unit>
+
+    @POST("users/deleteResidence")
+    suspend fun deleteResidence(): Response<Unit>
 
     @GET("reports/searchByUser")
     suspend fun fetchReports(): TaxiMyReportsResponseDTO

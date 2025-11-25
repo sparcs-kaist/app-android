@@ -8,7 +8,4 @@ data class TaxiChatPresignedURLDTO(
 
     @SerializedName("url")
     val url: String,
-
-    @SerializedName("fields")
-    val fields: Map<String, String>
 )
