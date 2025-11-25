@@ -332,4 +332,6 @@
     <string name="enter_residence">Enter Your Residence</string>
     <string name="invalid_bank_number">Invalid Bank Number</string>
     <string name="change_applied">The changes have been successfully applied.</string>
+    <string name="no_past_groups">No previously joined rooms.</string>
+    <string name="no_active_groups">No active rooms.</string>
 </resources>

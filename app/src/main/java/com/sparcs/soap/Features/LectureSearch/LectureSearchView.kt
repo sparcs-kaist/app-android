@@ -60,7 +60,7 @@ fun LectureSearchView(
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel(),
     onFold: () -> Unit,
 ) {
-    val searchKeyword = lectureSearchViewModel.searchKeyword
+    val searchText by lectureSearchViewModel.searchText.collectAsState()
     val lectures by lectureSearchViewModel.lectures.collectAsState()
     val groupedByCourse = lectures.groupBy { it.course }
 
@@ -83,7 +83,7 @@ fun LectureSearchView(
 
     Scaffold(
         topBar = {
-            if (searchKeyword.isEmpty()) {
+            if (searchText.isEmpty()) {
                 LectureSearchViewNavigationBar(
                     title = stringResource(
                         id = R.string.add_to_timetable,
@@ -102,14 +102,12 @@ fun LectureSearchView(
         ) {
             // Search bar
             SearchCustomBar(
-                value = searchKeyword,
-                onValueChange = {
-                    lectureSearchViewModel.searchKeyword = it
-                    lectureSearchViewModel.searchKeywordFlow.value = it
-                },
+                value = searchText,
+                onValueChange = { value ->
+                    lectureSearchViewModel.onSearchTextChange(value)
+                                },
                 onValueClear = {
-                    lectureSearchViewModel.searchKeyword = ""
-                    lectureSearchViewModel.searchKeywordFlow.value = ""
+                    lectureSearchViewModel.onSearchTextChange("")
                 },
                 placeHolder = stringResource(R.string.search_by_course)
             )
@@ -118,7 +116,7 @@ fun LectureSearchView(
 
             // Lecture list
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (searchKeyword.isEmpty()) {
+                if (searchText.isEmpty()) {
                     item {
                         UnavailableView(
                             icon = painterResource(R.drawable.search),
@@ -130,7 +128,7 @@ fun LectureSearchView(
                     item {
                         UnavailableView(
                             icon = painterResource(R.drawable.search),
-                            title = stringResource(R.string.no_results_for, searchKeyword),
+                            title = stringResource(R.string.no_results_for, searchText),
                             description = stringResource(R.string.check_the_spelling)
                         )
                     }

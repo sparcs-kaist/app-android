@@ -310,6 +310,8 @@
     <string name="enter_residence">거주지를 입력해주세요.</string>
     <string name="invalid_bank_number">계좌 정보가 잘못되었습니다.</string>
     <string name="change_applied">변경이 완료되었습니다.</string>
+    <string name="no_past_groups">과거 참여했던 방이 없습니다.</string>
+    <string name="no_active_groups">현재 참여 중인 방이 없습니다.</string>
 
 
 </resources>

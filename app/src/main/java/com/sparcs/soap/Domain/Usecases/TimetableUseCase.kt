@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
+import javax.inject.Singleton
 
 interface TimetableUseCaseProtocol {
     val semesters: StateFlow<List<Semester>>
@@ -45,6 +46,7 @@ interface TimetableUseCaseProtocol {
     fun setSelectedSemesterID(id: String?)
 }
 
+@Singleton
 class TimetableUseCase @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
     private val otlTimetableRepository: OTLTimetableRepositoryProtocol,

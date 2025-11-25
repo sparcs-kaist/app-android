@@ -1,17 +1,41 @@
 package com.sparcs.soap.Domain.Helpers
 
+import com.sparcs.soap.BuildConfig
+
 object Constants {
     // MARK: Authorization
-    val authorizationURL = "https://taxi.dev.sparcs.org/api/auth/sparcsapp/login?codeChallenge="
+    val authorizationURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://taxi.dev.sparcs.org/api/auth/sparcsapp/login?codeChallenge="
+        } else {
+            "https://taxi.sparcs.org/api/auth/sparcsapp/login?codeChallenge="
+        }
 
     // MARK: Terms
     val privacyPolicyURL = "https://github.com/sparcs-kaist/privacy/blob/main/Privacy.md"
     val termsOfUseURL = "https://github.com/sparcs-kaist/privacy/blob/main/TermsOfUse.md"
 
     // MARK: Taxi
-    val taxiBackendURL = "https://taxi.dev.sparcs.org/api/"
-    val taxiSocketURL = "https://taxi.dev.sparcs.org/"
-    val taxiChatImageURL = "https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/chat-img/"
+    val taxiBackendURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://taxi.dev.sparcs.org/api/"
+        } else {
+            "https://taxi.sparcs.org/api/"
+        }
+
+    val taxiSocketURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://taxi.dev.sparcs.org/"
+        } else {
+            "https://taxi.sparcs.org/"
+        }
+
+    val taxiChatImageURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/chat-img/"
+        } else {
+            "https://sparcs-taxi-prod.s3.ap-northeast-2.amazonaws.com/chat-img/"
+        }
 
     val taxiBankCodeMap: Map<String, String> = mapOf(
         "NH농협" to "011",
@@ -41,21 +65,49 @@ object Constants {
     )
 
     val taxiBankNameList: List<String> = taxiBankCodeMap.keys.toList()
-    val taxiInviteURL = "https://taxi.dev.sparcs.org/invite/"
+    val taxiInviteURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://taxi.dev.sparcs.org/invite/"
+        } else {
+            "https://taxi.sparcs.org/invite/"
+        }
 
     val taxiRoomNameRegex = Regex("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _~/#'@=\"^()+*<>{}\\[\\]\\-]{1,50}$")
 
     val taxiMaxRoomCount = 5
 
     // MARK: Ara
-    val araBackendURL = "https://newara.dev.sparcs.org/api/"
-    val araShareURL = "https://newara.dev.sparcs.org/post/"
+    val araBackendURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://newara.dev.sparcs.org/api/"
+        } else {
+            "https://newara.sparcs.org/api/"
+        }
+
+    val araShareURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://newara.dev.sparcs.org/post/"
+        } else {
+            "https://newara.sparcs.org/post/"
+        }
+
     // MARK: Feed
-    val feedBackendURL = "https://app.dev.sparcs.org/v1/"
+    val feedBackendURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://buddy.dev.sparcs.org/v1/"
+        } else {
+            "https://buddy.sparcs.org/v1/"
+        }
+
     val feedShareURL = "https://sparcs.org/feed/"
 
     // MARK: OTL
-    val otlBackendURL = "https://api.otl.dev.sparcs.org/"
+    val otlBackendURL: String
+        get() = if (BuildConfig.DEBUG) {
+            "https://api.otl.dev.sparcs.org/"
+        } else {
+            "https://otl.sparcs.org/"
+        }
 
     // MARK: MAPS
     val mapsURL = "https://api.openrouteservice.org/v2/directions/driving-car?"
