@@ -49,9 +49,10 @@ object Constants {
 
     // MARK: Ara
     val araBackendURL = "https://newara.dev.sparcs.org/api/"
-
+    val araShareURL = "https://newara.dev.sparcs.org/post/"
     // MARK: Feed
     val feedBackendURL = "https://app.dev.sparcs.org/v1/"
+    val feedShareURL = "https://sparcs.org/feed/"
 
     // MARK: OTL
     val otlBackendURL = "https://api.otl.dev.sparcs.org/"
