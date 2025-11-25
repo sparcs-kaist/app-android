@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.kapt)
     alias(libs.plugins.hilt.gradle.plugin)
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 val properties = Properties().apply {
@@ -15,12 +17,12 @@ val mapKey = properties.getProperty("map_api_key")
 
 
 android {
-    namespace = "com.example.soap"
+    namespace = "com.sparcs.soap"
     compileSdk = 35
 
     defaultConfig {
         manifestPlaceholders += mapOf("mapKey" to mapKey)
-        applicationId = "com.example.soap"
+        applicationId = "com.sparcs.soap"
         minSdk = 31
         targetSdk = 35
         versionCode = 1
@@ -38,6 +40,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
@@ -92,4 +95,8 @@ dependencies {
     implementation (libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
     implementation (libs.osmdroid.android)
+    implementation(libs.osmdroid.android)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.crashlytics.ndk)
+    implementation(libs.firebase.analytics)
 }

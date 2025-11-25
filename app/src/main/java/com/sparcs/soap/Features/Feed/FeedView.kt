@@ -1,0 +1,180 @@
+package com.sparcs.soap.Features.Feed
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.sparcs.soap.Domain.Repositories.Feed.FakeFeedPostRepository
+import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import com.sparcs.soap.Features.Feed.Components.FeedPostRow
+import com.sparcs.soap.Features.Feed.Components.FeedPostRowSkeleton
+import com.sparcs.soap.Features.Feed.Components.FeedViewNavigationBar
+import com.sparcs.soap.Features.NavigationBar.AppDownBar
+import com.sparcs.soap.Features.NavigationBar.Channel
+import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedViewModel
+import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
+import com.sparcs.soap.ui.theme.Theme
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FeedView(
+    viewModel: FeedViewModelProtocol = hiltViewModel(),
+    navController: NavController,
+) {
+    val isPreview = LocalInspectionMode.current
+    val repo: FeedPostRepositoryProtocol = if (!isPreview) hiltViewModel<FeedViewModel>().feedPostRepository else FakeFeedPostRepository()
+
+    val state by viewModel.state.collectAsState()
+    val posts by viewModel.posts.collectAsState()
+    var isRefreshing by remember { mutableStateOf(false) }
+    var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
+
+    val scrollState = rememberScrollState()
+    val listState = rememberLazyListState()
+    val stateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val listNeedsRefresh = stateHandle
+        ?.getStateFlow("listNeedsRefresh", false)
+        ?.collectAsState()
+
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        if (!loadedInitialPost.value) {
+            loadedInitialPost.value = true
+            viewModel.fetchInitialData()
+        }
+    }
+
+    LaunchedEffect(listNeedsRefresh?.value) {
+        if (listNeedsRefresh?.value == true) {
+            viewModel.fetchInitialData()
+            stateHandle["listNeedsRefresh"] = false
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            FeedViewNavigationBar(
+                scrollState = scrollState,
+                navController = navController
+            )
+        },
+        bottomBar = {
+            AppDownBar(
+                currentScreen = Channel.Start,
+                navController = navController
+            )
+        }
+    ) { innerPadding ->
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                coroutineScope.launch {
+                    viewModel.fetchInitialData()
+                    isRefreshing = false
+                }
+            }
+        ) {
+            when (state) {
+                is FeedViewModel.ViewState.Loading -> {
+                    Column {
+                        repeat(3) {
+                            FeedPostRowSkeleton()
+                            HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                        }
+                    }
+                }
+
+                is FeedViewModel.ViewState.Loaded -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(innerPadding),
+                        state = listState
+                    ) {
+                        items(posts) { post ->
+                            FeedPostRow(
+                                post = post,
+                                singleLine = true,
+                                onPostDeleted = { postID ->
+                                    coroutineScope.launch {
+                                        viewModel.deletePost(postID)
+                                        viewModel.fetchInitialData()
+                                    }
+                                },
+                                onComment = {
+                                    navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
+                                },
+                                feedPostRepository = repo
+                            )
+                            HorizontalDivider(Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                        }
+                    }
+                }
+
+                is FeedViewModel.ViewState.Error -> {
+                    val message = (state as FeedViewModel.ViewState.Error).message
+                    ErrorView(
+                        icon = Icons.Default.Warning,
+                        errorMessage = message,
+                        onRetry = {
+                            coroutineScope.launch {
+                                viewModel.fetchInitialData()
+                            }
+                        },
+                    )
+                }
+            }
+        }
+    }
+}
+/* ____________________________________________________________________*/
+
+@Composable
+private fun MockView(state: FeedViewModel.ViewState) {
+    val mockViewModel = remember { MockFeedViewModel(initialState = state) }
+    FeedView(viewModel = mockViewModel, navController = rememberNavController())
+}
+
+@Composable
+@Preview
+private fun LoadingPreview() {
+    Theme { MockView(FeedViewModel.ViewState.Loading) }
+}
+
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(FeedViewModel.ViewState.Loaded) }
+}
+
+@Composable
+@Preview
+private fun ErrorPreview() {
+    Theme { MockView(FeedViewModel.ViewState.Error("Error Message")) }
+}
