@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,20 +23,24 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Models.OTL.Lecture
+import com.sparcs.soap.Domain.Repositories.OTL.FakeOTLCourseRepository
 import com.sparcs.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import com.sparcs.soap.Domain.Usecases.MockUserUseCase
 import com.sparcs.soap.Domain.Usecases.UserUseCaseProtocol
 import com.sparcs.soap.Features.LectureDetail.Components.LectureDetailNavigationBar
 import com.sparcs.soap.Features.LectureDetail.Components.LectureInformation
 import com.sparcs.soap.Features.LectureDetail.Components.LectureReviews
 import com.sparcs.soap.Features.LectureDetail.Components.LectureSummary
-import com.sparcs.soap.Features.Timetable.TimetableViewModel
+import com.sparcs.soap.Features.Timetable.TimetableViewModelProtocol
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockLectureDetailViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import com.sparcs.soap.ui.theme.Theme
 
 @Composable
 fun LectureDetailView(
-    lectureDetailViewModel: LectureDetailViewModel = hiltViewModel(),
-    timetableViewModel: TimetableViewModel = hiltViewModel(),
+    lectureDetailViewModel: LectureDetailViewModelProtocol = hiltViewModel(),
+    timetableViewModel: TimetableViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
     val lecture = lectureDetailViewModel.lecture.collectAsState().value
@@ -45,9 +50,9 @@ fun LectureDetailView(
     val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
 
-    val repo: OTLCourseRepositoryProtocol =
-        hiltViewModel<LectureDetailViewModel>().otlCourseRepository
-    val userUseCase: UserUseCaseProtocol = hiltViewModel<LectureDetailViewModel>().userUseCase
+    val isPreview = LocalInspectionMode.current
+    val repo: OTLCourseRepositoryProtocol = if(!isPreview) hiltViewModel<LectureDetailViewModel>().otlCourseRepository else FakeOTLCourseRepository()
+    val userUseCase: UserUseCaseProtocol = if(!isPreview) hiltViewModel<LectureDetailViewModel>().userUseCase else MockUserUseCase()
 
     LaunchedEffect(lecture.id) {
         lectureDetailViewModel.fetchReviews(lecture.id)
@@ -146,8 +151,31 @@ fun LectureDetailView(
     }
 }
 
+/* ____________________________________________________________________*/
+
+@Composable
+private fun MockView(state: LectureDetailViewModel.ViewState) {
+    LectureDetailView(
+        lectureDetailViewModel = MockLectureDetailViewModel(initialState = state),
+        navController = rememberNavController(),
+        timetableViewModel = MockTimetableViewModel()
+    )
+}
+
 @Composable
 @Preview
-private fun Preview() {
-    Theme { LectureDetailView(navController = rememberNavController()) }
+private fun LoadingPreview() {
+    Theme { MockView(LectureDetailViewModel.ViewState.Loading) }
+}
+
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(LectureDetailViewModel.ViewState.Loaded) }
+}
+
+@Composable
+@Preview
+private fun ErrorPreview() {
+    Theme { MockView(LectureDetailViewModel.ViewState.Error("Error Message")) }
 }

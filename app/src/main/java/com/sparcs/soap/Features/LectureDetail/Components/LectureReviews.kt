@@ -16,31 +16,39 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import com.sparcs.soap.Domain.Helpers.gradeLetter
 import com.sparcs.soap.Domain.Helpers.loadLetter
 import com.sparcs.soap.Domain.Helpers.speechLetter
 import com.sparcs.soap.Domain.Models.OTL.Lecture
+import com.sparcs.soap.Domain.Repositories.OTL.FakeOTLCourseRepository
 import com.sparcs.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import com.sparcs.soap.Features.LectureDetail.LectureDetailViewModel
+import com.sparcs.soap.Features.LectureDetail.LectureDetailViewModelProtocol
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.Mocks.mock
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockLectureDetailViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
+import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import com.sparcs.soap.ui.theme.lightGray0
 
 @Composable
 fun LectureReviews(
     lecture: Lecture,
-    viewModel: LectureDetailViewModel,
+    viewModel: LectureDetailViewModelProtocol,
     repo: OTLCourseRepositoryProtocol,
     navController: NavController,
     canWriteReview: Boolean
@@ -136,14 +144,35 @@ fun LectureReviews(
     }
 }
 
-//@Composable
-//@Preview
-//private fun Preview(){
-//    val repo by remember { mutableStateOf(FakeOTLCourseRepository()) }
-//    Theme { LectureReviews(
-//        lecture = Lecture.mock(),
-//        viewModel = MockLec,
-//        repo = repo,
-//        navController = NavController(LocalContext.current)
-//    ) }
-//}
+
+/* ____________________________________________________________________*/
+
+@Composable
+private fun MockView(state: LectureDetailViewModel.ViewState) {
+    val mockViewModel = remember { MockLectureDetailViewModel(initialState = state) }
+    LectureReviews(
+        lecture = Lecture.mock(),
+        viewModel = mockViewModel,
+        repo = FakeOTLCourseRepository(),
+        navController = rememberNavController(),
+        canWriteReview = true
+    )
+}
+
+@Composable
+@Preview
+private fun LoadingPreview() {
+    Theme { MockView(LectureDetailViewModel.ViewState.Loading) }
+}
+
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(LectureDetailViewModel.ViewState.Loaded) }
+}
+
+@Composable
+@Preview
+private fun ErrorPreview() {
+    Theme { MockView(LectureDetailViewModel.ViewState.Error("Error Message")) }
+}

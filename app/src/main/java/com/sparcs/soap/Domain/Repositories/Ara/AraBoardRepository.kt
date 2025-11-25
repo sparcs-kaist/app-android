@@ -163,11 +163,17 @@ class AraBoardRepository @Inject constructor(
             throw parseReportCommentError(e)
         }
 
-    override suspend fun deletePost(postID: Int) = try {
-        api.delete(postID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun deletePost(postID: Int) {
+        try {
+            val response = api.delete(postID)
+            if (!response.isSuccessful) {
+                throw Exception("Delete failed: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
     }
+
 
     override suspend fun addBookmark(postID: Int) = try {
         api.addBookmark(mapOf("parent_article" to postID))

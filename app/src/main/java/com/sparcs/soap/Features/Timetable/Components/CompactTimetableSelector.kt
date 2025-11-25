@@ -28,13 +28,15 @@ import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Usecases.MockTimetableUseCase
 import com.sparcs.soap.Features.NavigationBar.Animation.AnimatedText
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
+import com.sparcs.soap.Features.Timetable.TimetableViewModelProtocol
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 
 @Composable
 fun CompactTimetableSelector(
-    viewModel: TimetableViewModel,
+    viewModel: TimetableViewModelProtocol,
 ) {
     Row(
         modifier = Modifier
@@ -52,7 +54,7 @@ fun CompactTimetableSelector(
 
 @Composable
 fun SemesterSelector(
-    viewModel: TimetableViewModel,
+    viewModel: TimetableViewModelProtocol,
 ) {
     val selectedSemester by viewModel.selectedSemester.collectAsState()
     val isEnabledPreviousButton =
@@ -104,7 +106,7 @@ fun SemesterSelector(
 }
 
 @Composable
-fun TableSelector(viewModel: TimetableViewModel) {
+fun TableSelector(viewModel: TimetableViewModelProtocol) {
     var expanded by remember { mutableStateOf(false) }
     val selectedTimetableDisplayName by viewModel.selectedTimetableDisplayName.collectAsState()
 
@@ -142,6 +144,5 @@ fun TableSelector(viewModel: TimetableViewModel) {
 @Composable
 @Preview
 private fun Preview() {
-    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase(), CrashlyticsHelper())) }
-    Theme { CompactTimetableSelector(viewModel = vm) }
+    Theme { CompactTimetableSelector(viewModel = MockTimetableViewModel()) }
 }

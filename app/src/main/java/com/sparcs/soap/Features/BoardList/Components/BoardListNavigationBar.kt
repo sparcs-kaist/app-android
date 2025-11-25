@@ -23,8 +23,7 @@ import com.sparcs.soap.ui.theme.Theme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoardListNavigationBar(
-    scrollState: ScrollState,
-    navController: NavController
+    scrollState: ScrollState
 ) {
     TopAppBar(
         title = {
@@ -50,7 +49,6 @@ private fun Preview() {
     Theme {
         BoardListNavigationBar(
             scrollState = ScrollState(0),
-            navController = NavController(LocalContext.current)
         )
     }
 }

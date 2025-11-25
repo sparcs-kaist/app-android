@@ -22,8 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,10 +30,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
-import com.sparcs.soap.Domain.Usecases.MockTimetableUseCase
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
+import com.sparcs.soap.Features.Timetable.TimetableViewModelProtocol
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import com.sparcs.soap.ui.theme.lightGray0
@@ -47,7 +45,7 @@ import kotlinx.coroutines.launch
 fun TimetableDropDownMenu(
     expanded: Boolean,
     onDismiss: () -> Unit,
-    viewModel: TimetableViewModel,
+    viewModel: TimetableViewModelProtocol,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -115,10 +113,10 @@ private fun IconWithText(
 
 @Composable
 fun MyTableDropDownItems(
-    viewModel: TimetableViewModel,
+    viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
 ) {
-    val selectedTimetable by viewModel.timetableUseCase.selectedTimetable.collectAsState()
+    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
     Column {
         viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
             val displayName =
@@ -141,7 +139,7 @@ fun MyTableDropDownItems(
 
 @Composable
 private fun BottomMenuDropDownItems(
-    viewModel: TimetableViewModel,
+    viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
 ) {
     val scope = CoroutineScope(Dispatchers.Main)
@@ -198,20 +196,12 @@ private fun BottomMenuDropDownItems(
 @Composable
 @Preview
 private fun Preview() {
-    val vm by remember {
-        mutableStateOf(
-            TimetableViewModel(
-                MockTimetableUseCase(),
-                CrashlyticsHelper()
-            )
-        )
-    }
     Theme {
         Box(Modifier.fillMaxSize()) {
             Button(
                 onClick = {}
             ) {
-                TimetableDropDownMenu(expanded = true, onDismiss = {}, vm)
+                TimetableDropDownMenu(expanded = true, onDismiss = {}, MockTimetableViewModel())
             }
         }
     }

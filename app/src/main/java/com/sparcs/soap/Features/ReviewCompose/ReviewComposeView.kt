@@ -49,29 +49,38 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import com.sparcs.soap.Domain.Repositories.OTL.FakeOTLLectureRepository
 import com.sparcs.soap.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
 import com.sparcs.soap.Features.LectureDetail.LectureDetailViewModel
+import com.sparcs.soap.Features.LectureDetail.LectureDetailViewModelProtocol
 import com.sparcs.soap.Features.ReviewCompose.Components.ReviewComposeNavigationBar
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.noRippleClickable
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockLectureDetailViewModel
+import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 
 @Composable
 fun ReviewComposeView(
     reviewComposeViewModel: ReviewComposeViewModelProtocol = hiltViewModel(),
-    lectureDetailViewModel: LectureDetailViewModel = hiltViewModel(),
+    lectureDetailViewModel: LectureDetailViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val repo: OTLLectureRepositoryProtocol =
-        hiltViewModel<ReviewComposeViewModel>().otlLectureRepository
+    val isPreview = LocalInspectionMode.current
+    val repo: OTLLectureRepositoryProtocol = if(!isPreview)
+        hiltViewModel<ReviewComposeViewModel>().otlLectureRepository else FakeOTLLectureRepository()
+
     val lecture = reviewComposeViewModel.lecture
     var grade by remember { mutableStateOf(5) }
     var load by remember { mutableStateOf(5) }
@@ -148,9 +157,18 @@ fun ReviewComposeView(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                RatingPicker(title = stringResource(R.string.grade), value = grade, onValueChange = { grade = it })
-                RatingPicker(title = stringResource(R.string.load), value = load, onValueChange = { load = it })
-                RatingPicker(title = stringResource(R.string.speech), value = speech, onValueChange = { speech = it })
+                RatingPicker(
+                    title = stringResource(R.string.grade),
+                    value = grade,
+                    onValueChange = { grade = it })
+                RatingPicker(
+                    title = stringResource(R.string.load),
+                    value = load,
+                    onValueChange = { load = it })
+                RatingPicker(
+                    title = stringResource(R.string.speech),
+                    value = speech,
+                    onValueChange = { speech = it })
             }
 
             Spacer(Modifier.padding(8.dp))
@@ -175,7 +193,7 @@ fun ReviewComposeView(
                     decorationBox = { inner ->
                         if (contentField.text.isEmpty())
                             Text(
-                                text = stringResource(R.string.share_lecture_thoughts),
+                                text = stringResource(R.string.share_lecture_thoughts, reviewComposeViewModel.lecture.title.localized()),
                                 color = MaterialTheme.colorScheme.grayBB,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -271,7 +289,6 @@ private fun RatingPicker(
     }
 }
 
-
 private fun letterFromValue(value: Int): String = when (value) {
     5 -> "A"
     4 -> "B"
@@ -280,10 +297,14 @@ private fun letterFromValue(value: Int): String = when (value) {
     else -> "F"
 }
 
-//@Composable
-//@Preview
-//private fun Preview() {
-//    Theme {
-//        ReviewComposeView(MockReviewComposeViewModel(), rememberNavController())
-//    }
-//}
+@Composable
+@Preview
+private fun Preview() {
+    Theme {
+        ReviewComposeView(
+            MockReviewComposeViewModel(),
+            MockLectureDetailViewModel(LectureDetailViewModel.ViewState.Loaded),
+            rememberNavController()
+        )
+    }
+}

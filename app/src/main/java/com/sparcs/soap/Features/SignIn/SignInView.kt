@@ -38,12 +38,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.MockSignInViewModel
 import com.sparcs.soap.ui.theme.Theme
 import kotlinx.coroutines.launch
 
 @Composable
 fun SignInView(
-    viewModel: SignInViewModel = hiltViewModel(),
+    viewModel: SignInViewModelProtocol = hiltViewModel<SignInViewModel>()
 ) {
     val isLoading = viewModel.isLoading
     var showErrorDialog by remember { mutableStateOf(false) }
@@ -116,7 +117,7 @@ fun SignInView(
 @Composable
 private fun TermsAndPrivacyText(context: Context) {
     val annotatedString = buildAnnotatedString {
-        append(stringResource(R.string.terms_and_privacy_prefix))
+        append(stringResource(R.string.terms_and_privacy_prefix) + " ")
 
         pushStringAnnotation(tag = "TERMS", annotation = Constants.termsOfUseURL)
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
@@ -160,5 +161,5 @@ private fun TermsAndPrivacyText(context: Context) {
 @Composable
 @Preview
 private fun Preview() {
-    Theme { SignInView() }
+    Theme { SignInView(MockSignInViewModel()) }
 }

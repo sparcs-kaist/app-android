@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -50,17 +51,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Models.Taxi.TaxiParticipant
 import com.sparcs.soap.Domain.Models.Taxi.TaxiReport
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Domain.Models.Taxi.TaxiUser
+import com.sparcs.soap.Domain.Usecases.MockUserUseCase
 import com.sparcs.soap.Domain.Usecases.UserUseCaseProtocol
 import com.sparcs.soap.Features.TaxiChat.TaxiChatViewModel
 import com.sparcs.soap.Features.TaxiReport.Components.TaxiReportUser
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiReportViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
@@ -69,12 +71,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun TaxiReportView(
     viewModel: TaxiReportViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
     var taxiUser by remember { mutableStateOf<TaxiUser?>(null) }
 
-    val userUseCase: UserUseCaseProtocol = hiltViewModel<TaxiChatViewModel>().userUseCase
+    val isPreview = LocalInspectionMode.current
+    val userUseCase: UserUseCaseProtocol =
+        if (!isPreview) hiltViewModel<TaxiChatViewModel>().userUseCase else MockUserUseCase()
     val room by viewModel.room.collectAsState()
 
     val reportSubmitted = stringResource(R.string.reported_successfully)
@@ -108,7 +112,8 @@ fun TaxiReportView(
 
         Column(
             modifier = Modifier
-                .padding(16.dp).padding(innerPadding)
+                .padding(16.dp)
+                .padding(innerPadding)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
@@ -138,24 +143,28 @@ fun TaxiReportView(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 Button(
-                onClick = {
-                    try {
-                        scope.launch { viewModel.createReport(room.id) }
-                        Toast.makeText(context, reportSubmitted, Toast.LENGTH_SHORT).show()
-                        navController.popBackStack()
-                    } catch (e: Exception) {
-                        viewModel.handleException(e)
-                        Toast.makeText(context, "Failed to send report: ${e.message}", Toast.LENGTH_SHORT).show()
-                    }
-                },
-                enabled = isValid
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.round_check),
-                    contentDescription = null
-                )
-                Text(stringResource(R.string.done))
-            }
+                    onClick = {
+                        try {
+                            scope.launch { viewModel.createReport(room.id) }
+                            Toast.makeText(context, reportSubmitted, Toast.LENGTH_SHORT).show()
+                            navController.popBackStack()
+                        } catch (e: Exception) {
+                            viewModel.handleException(e)
+                            Toast.makeText(
+                                context,
+                                "Failed to send report: ${e.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
+                    enabled = isValid
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.round_check),
+                        contentDescription = null
+                    )
+                    Text(stringResource(R.string.done))
+                }
             }
         }
     }
@@ -172,10 +181,10 @@ fun SectionTitle(title: String) {
 
 @Composable
 fun ParticipantsCard(
-        participants: List<TaxiParticipant>,
-        selectedUser: TaxiParticipant?,
-        onUserSelected: (TaxiParticipant) -> Unit
-    ) {
+    participants: List<TaxiParticipant>,
+    selectedUser: TaxiParticipant?,
+    onUserSelected: (TaxiParticipant) -> Unit,
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -195,13 +204,13 @@ fun ParticipantsCard(
 
 @Composable
 fun ReasonCard(
-        room: TaxiRoom,
-        selectedReason: TaxiReport.Reason?,
-        onReasonSelected: (TaxiReport.Reason) -> Unit,
-        etcText: String,
-        maxEtcLength: Int,
-        onEtcChanged: (String) -> Unit
-    ) {
+    room: TaxiRoom,
+    selectedReason: TaxiReport.Reason?,
+    onReasonSelected: (TaxiReport.Reason) -> Unit,
+    etcText: String,
+    maxEtcLength: Int,
+    onEtcChanged: (String) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
@@ -270,10 +279,10 @@ fun ReasonCard(
 
 @Composable
 fun EtcTextField(
-        text: String,
-        maxLength: Int,
-        onTextChange: (String) -> Unit
-    ) {
+    text: String,
+    maxLength: Int,
+    onTextChange: (String) -> Unit,
+) {
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -343,13 +352,12 @@ fun InfoTexts(room: TaxiRoom, selectedReason: TaxiReport.Reason?) {
 }
 
 
-
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme {
         TaxiReportView(
-            viewModel = viewModel(),
+            viewModel = MockTaxiReportViewModel(),
             navController = rememberNavController()
         )
     }

@@ -1,8 +1,7 @@
 package com.sparcs.soap.Features.Settings.Taxi
 
 import android.util.Log
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,10 +15,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -39,11 +39,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -53,19 +54,20 @@ import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.Settings.Components.RowElementView
 import com.sparcs.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.Extensions.PhoneNumberVisualTransformation
 import com.sparcs.soap.Shared.Mocks.mock
-import com.sparcs.soap.Shared.ViewModelMocks.MockTaxiSettingsViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiSettingsViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
 fun TaxiSettingsView(
     viewModel: TaxiSettingsViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
-    var safariURL by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
 
@@ -75,11 +77,11 @@ fun TaxiSettingsView(
 
     Scaffold(
         topBar = {
-        SettingsViewNavigationBar(
-            title = stringResource(R.string.taxi_settings),
-            onDismiss = { navController.navigate(Channel.Settings.name )}
-        )
-    }){ innerPadding ->
+            SettingsViewNavigationBar(
+                title = stringResource(R.string.taxi_settings),
+                onDismiss = { navController.navigate(Channel.Settings.name) }
+            )
+        }) { innerPadding ->
 
         Column(
             modifier = Modifier
@@ -94,7 +96,9 @@ fun TaxiSettingsView(
                 TaxiSettingsViewModel.ViewState.Loaded -> LoadedView(
                     viewModel,
                     navController,
-                    onOpenUrl = { safariURL = it })
+                    coroutineScope
+                )
+
                 is TaxiSettingsViewModel.ViewState.Error -> {
                     val message = (state as TaxiSettingsViewModel.ViewState.Error).message
                     ErrorView(
@@ -105,49 +109,44 @@ fun TaxiSettingsView(
                     Log.e("TaxiSettingsView", message)
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Box(Modifier.align(Alignment.End)){
-                Button(
-                    onClick = {
-                        val bankName = viewModel.bankName ?: return@Button
-                        coroutineScope.launch {
-                            viewModel.editBankAccount("$bankName ${viewModel.bankNumber}")
-                        }
-                        navController.popBackStack()
-                    },
-                    enabled = isValid(viewModel)
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.round_check),
-                        contentDescription = null
-                    )
-                    Text(stringResource(R.string.done))
-                }
-            }
         }
-
-        safariURL?.let { url ->
-            WebViewDialog(url) { safariURL = null }
-        }
-    }
-}
-@Composable
-private fun LoadingView() {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        RowElementView(title = stringResource(R.string.nickname), content = stringResource(R.string.unknown))
-        RowElementView(title = stringResource(R.string.bank_name), content = stringResource(R.string.unknown))
     }
 }
 
 @Composable
-private fun LoadedView(viewModel: TaxiSettingsViewModelProtocol, navController: NavController, onOpenUrl: (String) -> Unit) {
+private fun LoadingView() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        RowElementView(
+            title = stringResource(R.string.nickname),
+            content = stringResource(R.string.unknown)
+        )
+        RowElementView(
+            title = stringResource(R.string.bank_name),
+            content = stringResource(R.string.unknown)
+        )
+    }
+}
+
+@Composable
+private fun LoadedView(
+    viewModel: TaxiSettingsViewModelProtocol,
+    navController: NavController,
+    coroutineScope: CoroutineScope,
+) {
+    val context = LocalContext.current
+    val invalidBankNumber = stringResource(R.string.invalid_bank_number)
+    val changeApplied = stringResource(R.string.change_applied)
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
     Column {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)){
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
 
-            RowElementView(title = stringResource(R.string.nickname), content = viewModel.user?.nickname ?: stringResource(R.string.unknown))
+            RowElementView(
+                title = stringResource(R.string.nickname),
+                content = viewModel.user?.nickname ?: stringResource(R.string.unknown)
+            )
 
             BankPicker(
                 selected = viewModel.bankName,
@@ -155,28 +154,124 @@ private fun LoadedView(viewModel: TaxiSettingsViewModelProtocol, navController: 
                 onSelected = { viewModel.bankName = it }
             )
 
+            //Bank Number
             OutlinedTextField(
                 value = viewModel.bankNumber,
                 onValueChange = { viewModel.bankNumber = it },
-                label = { Text(stringResource(R.string.enter_bank_number), color = MaterialTheme.colorScheme.grayBB) },
+                label = {
+                    Text(
+                        stringResource(R.string.enter_bank_number),
+                        color = MaterialTheme.colorScheme.grayBB
+                    )
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        coroutineScope.launch {
+                            try {
+                                if (isValid(viewModel)) {
+                                    viewModel.editBankAccount("${viewModel.bankName} ${viewModel.bankNumber}")
+                                    Toast.makeText(context, changeApplied, Toast.LENGTH_SHORT)
+                                        .show()
+                                } else {
+                                    Toast.makeText(context, invalidBankNumber, Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                            } catch (e: Exception) {
+                                errorMessage = e.message ?: "Unknown error"
+                                showErrorDialog = true
+                            }
+                        }
+                    }
+                ),
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
 
+            // Phone Number
             OutlinedTextField(
-                value = viewModel.bankNumber,
-                onValueChange = { viewModel.bankNumber = it },
-                label = { Text(stringResource(R.string.enter_phone_number), color = MaterialTheme.colorScheme.grayBB) },
+                value = viewModel.phoneNumber,
+                onValueChange = { input ->
+                    viewModel.phoneNumber = input.filter { it.isDigit() }
+                },
+                label = {
+                    Text(
+                        stringResource(R.string.enter_phone_number),
+                        color = MaterialTheme.colorScheme.grayBB
+                    )
+                },
+                visualTransformation = PhoneNumberVisualTransformation(),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        coroutineScope.launch {
+                            try {
+                                viewModel.registerPhoneNumber(viewModel.phoneNumber)
+                                Toast.makeText(context, changeApplied, Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                errorMessage = e.message ?: "Unknown error"
+                                showErrorDialog = true
+                            }
+                        }
+                    }
+                ),
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            // Residence
+            OutlinedTextField(
+                value = viewModel.residence,
+                onValueChange = { viewModel.residence = it },
+                label = {
+                    Text(
+                        stringResource(R.string.enter_residence),
+                        color = MaterialTheme.colorScheme.grayBB
+                    )
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        coroutineScope.launch {
+                            try {
+                                viewModel.registerResidence(viewModel.residence)
+                                Toast.makeText(context, changeApplied, Toast.LENGTH_SHORT).show()
+                            } catch (e: Exception) {
+                                errorMessage = e.message ?: "Unknown error"
+                                showErrorDialog = true
+                            }
+                        }
+                    }
+                ),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+
         }
 
         Spacer(modifier = Modifier.height(16.dp))
         Text(stringResource(R.string.services), style = MaterialTheme.typography.titleMedium)
 
-        NavigationLinkWithIcon({ navController.navigate(Channel.TaxiReportSettings.name) }, stringResource(R.string.report_details), painterResource(R.drawable.outline_sms_failed))
-        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, stringResource(R.string.terms_of_service), painterResource(R.drawable.round_format_list_bulleted))
-        NavigationLinkWithIcon({ onOpenUrl("https://sparcs.org") }, stringResource(R.string.privacy_policy), painterResource(R.drawable.round_format_list_bulleted))
-    }//Todo - ? ScrollableTextView("taxi_privacy_policy")?
+        NavigationLinkWithIcon(
+            { navController.navigate(Channel.TaxiReportSettings.name) },
+            stringResource(R.string.report_details),
+            painterResource(R.drawable.outline_sms_failed)
+        )
+
+        if (showErrorDialog) {
+            AlertDialog(
+                onDismissRequest = { showErrorDialog = false },
+                confirmButton = {
+                    TextButton(onClick = { showErrorDialog = false }) {
+                        Text(stringResource(R.string.ok))
+                    }
+                },
+                title = { Text(stringResource(R.string.error)) },
+                text = { Text(errorMessage) }
+            )
+        }
+    }
 }
 
 @Composable
@@ -187,7 +282,7 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
             .padding(vertical = 8.dp, horizontal = 4.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
-    ){
+    ) {
 
         Icon(icon, contentDescription = null)
 
@@ -213,38 +308,18 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
 
 fun isValid(viewModel: TaxiSettingsViewModelProtocol): Boolean {
     val bankName = viewModel.bankName
+    val bankNumber = viewModel.bankNumber
+
     return bankName != null &&
-            viewModel.bankNumber.isNotEmpty() &&
-            (viewModel.user?.account != "$bankName ${viewModel.bankNumber}")
+            bankNumber.isNotEmpty() &&
+            (viewModel.user?.account != "$bankName ${bankNumber}")
 }
 
-@Composable
-private fun WebViewDialog(url: String, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = { onDismiss() },
-        confirmButton = {
-            TextButton(onClick = { onDismiss() }) {
-                Text(stringResource(R.string.close))
-            }
-        },
-        text = {
-            AndroidView(
-                factory = { context ->
-                    WebView(context).apply {
-                        webViewClient = WebViewClient()
-                        loadUrl(url)
-                    }
-                },
-                modifier = Modifier.fillMaxSize()
-            )
-        }
-    )
-}//Todo - SafariViewer
 @Composable
 fun BankPicker(
     selected: String?,
     options: List<String>,
-    onSelected: (String) -> Unit
+    onSelected: (String) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -258,7 +333,7 @@ fun BankPicker(
         Text(stringResource(R.string.bank_name))
         Spacer(Modifier.weight(1f))
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-            Row{
+            Row {
                 Text(
                     text = selected ?: stringResource(R.string.select_bank),
                     color = if (selected == null)
@@ -266,7 +341,10 @@ fun BankPicker(
                     else
                         MaterialTheme.colorScheme.onSurface
                 )
-                Icon(painterResource(R.drawable.baseline_arrow_drop_down), contentDescription = null)
+                Icon(
+                    painterResource(R.drawable.baseline_arrow_drop_down),
+                    contentDescription = null
+                )
             }
 
             DropdownMenu(

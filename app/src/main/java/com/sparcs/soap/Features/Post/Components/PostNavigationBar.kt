@@ -39,6 +39,9 @@ fun PostNavigationBar(
         navigationIcon = {
             Row(
                 modifier = Modifier.clickable {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("listNeedsRefresh", true)
                     navController.popBackStack()
                                               },
                 verticalAlignment = Alignment.CenterVertically

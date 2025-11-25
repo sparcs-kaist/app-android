@@ -35,7 +35,7 @@ import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Mocks.mockList
-import com.sparcs.soap.Shared.ViewModelMocks.MockTaxiChatListViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiChatListViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
@@ -57,7 +57,7 @@ fun TaxiChatListView(
 
     Scaffold(
         topBar = {
-            TaxiChatListViewNavigationBar { navController.popBackStack() }
+            TaxiChatListViewNavigationBar { navController.navigate(Channel.Taxi.name) }
         },
         containerColor = MaterialTheme.colorScheme.surfaceVariant
     ) { innerPadding ->

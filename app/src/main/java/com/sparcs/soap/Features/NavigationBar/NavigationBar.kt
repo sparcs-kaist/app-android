@@ -41,16 +41,12 @@ import com.sparcs.soap.Features.BoardList.BoardListView
 import com.sparcs.soap.Features.BoardList.BoardListViewModel
 import com.sparcs.soap.Features.Course.CourseView
 import com.sparcs.soap.Features.Course.CourseViewModel
-import com.sparcs.soap.Features.Course.CourseViewModelProtocol
 import com.sparcs.soap.Features.Feed.FeedView
 import com.sparcs.soap.Features.Feed.FeedViewModel
-import com.sparcs.soap.Features.Feed.FeedViewModelProtocol
 import com.sparcs.soap.Features.FeedPost.FeedPostView
 import com.sparcs.soap.Features.FeedPost.FeedPostViewModel
-import com.sparcs.soap.Features.FeedPost.FeedPostViewModelProtocol
 import com.sparcs.soap.Features.FeedPostCompose.FeedPostComposeView
 import com.sparcs.soap.Features.FeedPostCompose.FeedPostComposeViewModel
-import com.sparcs.soap.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
 import com.sparcs.soap.Features.LectureDetail.LectureDetailView
 import com.sparcs.soap.Features.LectureDetail.LectureDetailViewModel
 import com.sparcs.soap.Features.LectureSearch.LectureSearchViewModel
@@ -60,43 +56,34 @@ import com.sparcs.soap.Features.NavigationBar.Animation.trendingPopEnterTransiti
 import com.sparcs.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.sparcs.soap.Features.Post.PostView
 import com.sparcs.soap.Features.Post.PostViewModel
-import com.sparcs.soap.Features.Post.PostViewModelProtocol
 import com.sparcs.soap.Features.PostCompose.PostComposeView
 import com.sparcs.soap.Features.PostCompose.PostComposeViewModel
-import com.sparcs.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.sparcs.soap.Features.PostList.PostListView
 import com.sparcs.soap.Features.PostList.PostListViewModel
-import com.sparcs.soap.Features.PostList.PostListViewModelProtocol
 import com.sparcs.soap.Features.ReviewCompose.ReviewComposeView
 import com.sparcs.soap.Features.ReviewCompose.ReviewComposeViewModel
-import com.sparcs.soap.Features.ReviewCompose.ReviewComposeViewModelProtocol
 import com.sparcs.soap.Features.Search.SearchView
 import com.sparcs.soap.Features.Search.SearchViewModel
-import com.sparcs.soap.Features.Search.SearchViewModelProtocol
 import com.sparcs.soap.Features.Settings.Ara.AraMyPostView
 import com.sparcs.soap.Features.Settings.Ara.AraMyPostViewModel
-import com.sparcs.soap.Features.Settings.Ara.AraMyPostViewModelProtocol
 import com.sparcs.soap.Features.Settings.Ara.AraSettingsView
 import com.sparcs.soap.Features.Settings.Ara.AraSettingsViewModel
-import com.sparcs.soap.Features.Settings.Ara.AraSettingsViewModelProtocol
 import com.sparcs.soap.Features.Settings.SettingsView
+import com.sparcs.soap.Features.Settings.SettingsViewModel
 import com.sparcs.soap.Features.Settings.Taxi.TaxiReportListView
 import com.sparcs.soap.Features.Settings.Taxi.TaxiReportListViewModel
-import com.sparcs.soap.Features.Settings.Taxi.TaxiReportListViewModelProtocol
 import com.sparcs.soap.Features.Settings.Taxi.TaxiSettingsView
 import com.sparcs.soap.Features.Settings.Taxi.TaxiSettingsViewModel
-import com.sparcs.soap.Features.Settings.Taxi.TaxiSettingsViewModelProtocol
 import com.sparcs.soap.Features.SignIn.SignInView
 import com.sparcs.soap.Features.SignIn.SignInViewModel
 import com.sparcs.soap.Features.TaxiChat.TaxiChatView
 import com.sparcs.soap.Features.TaxiChat.TaxiChatViewModel
-import com.sparcs.soap.Features.TaxiChat.TaxiChatViewModelProtocol
 import com.sparcs.soap.Features.TaxiChatList.TaxiChatListView
 import com.sparcs.soap.Features.TaxiChatList.TaxiChatListViewModel
-import com.sparcs.soap.Features.TaxiChatList.TaxiChatListViewModelProtocol
 import com.sparcs.soap.Features.TaxiList.TaxiListView
 import com.sparcs.soap.Features.TaxiList.TaxiListViewModel
 import com.sparcs.soap.Features.TaxiList.TaxiListViewModelProtocol
+import com.sparcs.soap.Features.TaxiPreview.TaxiPreviewViewModel
 import com.sparcs.soap.Features.TaxiReport.TaxiReportView
 import com.sparcs.soap.Features.TaxiReport.TaxiReportViewModel
 import com.sparcs.soap.Features.TaxiRoomCreation.TaxiRoomCreationView
@@ -105,7 +92,6 @@ import com.sparcs.soap.Features.Timetable.TimetableView
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
 import com.sparcs.soap.Features.UserPostList.UserPostListView
 import com.sparcs.soap.Features.UserPostList.UserPostListViewModel
-import com.sparcs.soap.Features.UserPostList.UserPostListViewModelProtocol
 import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 
@@ -172,8 +158,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Channel.Start.name,
             ) { backStackEntry ->
-                val viewModelImpl: FeedViewModel = hiltViewModel(backStackEntry)
-                val viewModel: FeedViewModelProtocol = viewModelImpl
+                val viewModel: FeedViewModel = hiltViewModel(backStackEntry)
                 FeedView(navController = navController, viewModel = viewModel)
             }
 
@@ -193,8 +178,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
-                val viewModelImpl: FeedPostViewModel = hiltViewModel(backStackEntry)
-                val viewModel: FeedPostViewModelProtocol = viewModelImpl
+                val viewModel: FeedPostViewModel = hiltViewModel(backStackEntry)
                 FeedPostView(navController = navController, viewModel = viewModel)
             }
 
@@ -205,9 +189,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popEnterTransition = trendingPopEnterTransition(),
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
-                val viewModelImpl: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
-                val viewModel: FeedPostComposeViewModelProtocol = viewModelImpl
-
+                val viewModel: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
                 FeedPostComposeView(navController = navController, viewModel = viewModel)
             }
 
@@ -219,12 +201,13 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 composable(
                     route = Channel.TimeTable.name
                 ) { backStackEntry ->
-                    val viewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: LectureSearchViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: TimetableViewModel = hiltViewModel(backStackEntry)
+                    val lectureSearchViewModel: LectureSearchViewModel =
+                        hiltViewModel(backStackEntry)
                     TimetableView(
-                        viewModel = viewModelImpl,
+                        viewModel = viewModel,
                         navController = navController,
-                        lectureSearchViewModel = viewModel
+                        lectureSearchViewModel = lectureSearchViewModel
                     )
                 }
 
@@ -241,13 +224,14 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popEnterTransition = trendingPopEnterTransition(),
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
-                    val lectureDetailViewModelImpl: LectureDetailViewModel =
+
+                    val lectureDetailViewModel: LectureDetailViewModel =
                         hiltViewModel(backStackEntry)
-                    val timetableViewModelImpl: TimetableViewModel = hiltViewModel(backStackEntry)
+                    val timetableViewModel: TimetableViewModel = hiltViewModel(backStackEntry)
 
                     LectureDetailView(
-                        lectureDetailViewModel = lectureDetailViewModelImpl,
-                        timetableViewModel = timetableViewModelImpl,
+                        lectureDetailViewModel = lectureDetailViewModel,
+                        timetableViewModel = timetableViewModel,
                         navController = navController
                     )
                 }
@@ -261,8 +245,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         }
                     )
                 ) { backStackEntry ->
-                    val viewModelImpl: CourseViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: CourseViewModelProtocol = viewModelImpl
+                    val viewModel: CourseViewModel = hiltViewModel(backStackEntry)
                     CourseView(navController = navController, viewModel = viewModel)
                 }
 
@@ -273,8 +256,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popEnterTransition = trendingPopEnterTransition(),
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
-                    val viewModelImpl: ReviewComposeViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: ReviewComposeViewModelProtocol = viewModelImpl
+                    val viewModel: ReviewComposeViewModel = hiltViewModel(backStackEntry)
                     val lectureDetailViewModel: LectureDetailViewModel =
                         hiltViewModel(backStackEntry)
 
@@ -313,8 +295,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     val viewModel: TaxiListViewModelProtocol =
                         hiltViewModel<TaxiListViewModel>(parentEntry)
 
+                    val taxiPreviewViewModel: TaxiPreviewViewModel = hiltViewModel(backStackEntry)
+
                     TaxiListView(
                         viewModel = viewModel,
+                        taxiPreviewViewModel = taxiPreviewViewModel,
                         navController = navController
                     )
                 }
@@ -332,7 +317,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     val taxiListViewModel: TaxiListViewModelProtocol =
                         hiltViewModel<TaxiListViewModel>(parentEntry)
                     val taxiRoomCreationViewModel: TaxiRoomCreationViewModel =
-                        hiltViewModel<TaxiRoomCreationViewModel>(parentEntry)
+                        hiltViewModel(backStackEntry)
 
                     TaxiRoomCreationView(
                         navController = navController,
@@ -350,8 +335,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         }
                     )
                 ) { backStackEntry ->
-                    val viewModelImpl: TaxiChatViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: TaxiChatViewModelProtocol = viewModelImpl
+                    val viewModel: TaxiChatViewModel = hiltViewModel(backStackEntry)
                     TaxiChatView(
                         viewModel,
                         navController = navController
@@ -361,8 +345,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 composable(
                     route = Channel.TaxiChatListView.name
                 ) { backStackEntry ->
-                    val viewModelImpl: TaxiChatListViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: TaxiChatListViewModelProtocol = viewModelImpl
+                    val viewModel: TaxiChatListViewModel = hiltViewModel(backStackEntry)
 
                     TaxiChatListView(viewModel, navController)
                 }
@@ -376,8 +359,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         }
                     )
                 ) { backStackEntry ->
-                    val viewModelImpl: TaxiReportViewModel = hiltViewModel(backStackEntry)
-                    TaxiReportView(viewModelImpl, navController)
+                    val viewModel: TaxiReportViewModel = hiltViewModel(backStackEntry)
+                    TaxiReportView(viewModel, navController)
                 }
             }
 
@@ -403,8 +386,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         }
                     )
                 ) { backStackEntry ->
-                    val viewModelImpl: PostListViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: PostListViewModelProtocol = viewModelImpl
+                    val viewModel: PostListViewModel = hiltViewModel(backStackEntry)
                     PostListView(
                         viewModel = viewModel,
                         navController = navController
@@ -423,8 +405,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         }
                     )
                 ) { backStackEntry ->
-                    val viewModelImpl: PostViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: PostViewModelProtocol = viewModelImpl
+                    val viewModel: PostViewModel = hiltViewModel(backStackEntry)
                     PostView(viewModel = viewModel, navController = navController)
                 }
 
@@ -441,8 +422,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popEnterTransition = trendingPopEnterTransition(),
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
-                    val viewModelImpl: PostComposeViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: PostComposeViewModelProtocol = viewModelImpl
+                    val viewModel: PostComposeViewModel = hiltViewModel(backStackEntry)
                     PostComposeView(
                         viewModel = viewModel,
                         navController = navController
@@ -462,8 +442,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popEnterTransition = trendingPopEnterTransition(),
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
-                    val viewModelImpl: UserPostListViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: UserPostListViewModelProtocol = viewModelImpl
+                    val viewModel: UserPostListViewModel = hiltViewModel(backStackEntry)
                     UserPostListView(viewModel = viewModel, navController = navController)
                 }
             }
@@ -471,16 +450,20 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             composable(
                 route = Channel.SearchView.name
             ) { backStackEntry ->
-                val viewModelImpl: SearchViewModel = hiltViewModel(backStackEntry)
-                val viewModel: SearchViewModelProtocol = viewModelImpl
-                SearchView(viewModel = viewModel, navController = navController)
+                val viewModel: SearchViewModel = hiltViewModel(backStackEntry)
+                val taxiPreviewViewModel: TaxiPreviewViewModel = hiltViewModel(backStackEntry)
+                SearchView(
+                    viewModel = viewModel,
+                    taxiPreviewViewModel = taxiPreviewViewModel,
+                    navController = navController
+                )
             }
 
             composable(
                 route = Channel.SignOut.name
             ) { backStackEntry ->
-                val viewModelImpl: SignInViewModel = hiltViewModel(backStackEntry)
-                SignInView(viewModelImpl)
+                val viewModel: SignInViewModel = hiltViewModel(backStackEntry)
+                SignInView(viewModel = viewModel)
             }
 
             /*___________Settings___________*/
@@ -490,13 +473,15 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             ) {
                 composable(
                     route = Channel.Settings.name
-                ) { SettingsView(navController = navController) }
+                ) { backStackEntry ->
+                    val viewModel: SettingsViewModel = hiltViewModel(backStackEntry)
+                    SettingsView(navController = navController, settingsViewModel = viewModel)
+                }
 
                 composable(
                     route = Channel.AraSettings.name
                 ) { backStackEntry ->
-                    val viewModelImpl: AraSettingsViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: AraSettingsViewModelProtocol = viewModelImpl
+                    val viewModel: AraSettingsViewModel = hiltViewModel(backStackEntry)
 
                     AraSettingsView(viewModel = viewModel, navController = navController)
                 }
@@ -510,8 +495,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         }
                     )
                 ) { backStackEntry ->
-                    val viewModelImpl: AraMyPostViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: AraMyPostViewModelProtocol = viewModelImpl
+                    val viewModel: AraMyPostViewModel = hiltViewModel(backStackEntry)
 
                     AraMyPostView(
                         viewModel = viewModel,
@@ -522,8 +506,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 composable(
                     route = Channel.TaxiSettings.name
                 ) { backStackEntry ->
-                    val viewModelImpl: TaxiSettingsViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: TaxiSettingsViewModelProtocol = viewModelImpl
+                    val viewModel: TaxiSettingsViewModel = hiltViewModel(backStackEntry)
 
                     TaxiSettingsView(
                         viewModel = viewModel,
@@ -534,8 +517,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 composable(
                     route = Channel.TaxiReportSettings.name
                 ) { backStackEntry ->
-                    val viewModelImpl: TaxiReportListViewModel = hiltViewModel(backStackEntry)
-                    val viewModel: TaxiReportListViewModelProtocol = viewModelImpl
+                    val viewModel: TaxiReportListViewModel = hiltViewModel(backStackEntry)
 
                     TaxiReportListView(
                         viewModel = viewModel,

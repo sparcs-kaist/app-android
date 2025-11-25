@@ -94,7 +94,7 @@ import com.sparcs.soap.Shared.Extensions.formattedTime
 import com.sparcs.soap.Shared.Extensions.toLocalDate
 import com.sparcs.soap.Shared.Mocks.mock
 import com.sparcs.soap.Shared.Mocks.mockList
-import com.sparcs.soap.Shared.ViewModelMocks.MockTaxiChatViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiChatViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
 import kotlinx.coroutines.CoroutineScope
@@ -257,6 +257,11 @@ fun TaxiChatView(
             text = {
                 Text(stringResource(R.string.taxi_launch_info))
             },
+            dismissButton = {
+                TextButton(onClick = {
+                    showCallTaxiAlert = false
+                }) { Text(stringResource(R.string.cancel)) }
+            },
             confirmButton = {
                 Row {
                     TextButton(onClick = {
@@ -272,11 +277,6 @@ fun TaxiChatView(
                         )
                     }) { Text(stringResource(R.string.open_uber)) }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showCallTaxiAlert = false
-                }) { Text(stringResource(R.string.cancel)) }
             }
         )
     }

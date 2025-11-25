@@ -36,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
@@ -44,8 +43,11 @@ import com.sparcs.soap.Domain.Models.OTL.Lecture
 import com.sparcs.soap.Features.LectureSearch.Components.LectureSearchViewNavigationBar
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.Timetable.TimetableViewModel
+import com.sparcs.soap.Features.Timetable.TimetableViewModelProtocol
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Mocks.mock
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.ui.theme.Theme
@@ -54,8 +56,8 @@ import com.sparcs.soap.ui.theme.grayBB
 @Composable
 fun LectureSearchView(
     navController: NavController,
-    timetableViewModel: TimetableViewModel = hiltViewModel(),
-    lectureSearchViewModel: LectureSearchViewModel = hiltViewModel(),
+    timetableViewModel: TimetableViewModelProtocol = hiltViewModel(),
+    lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel(),
     onFold: () -> Unit,
 ) {
     val searchKeyword = lectureSearchViewModel.searchKeyword
@@ -312,21 +314,27 @@ fun LectureRow(
     }
 }
 
-@Preview
+/* ____________________________________________________________________*/
+
 @Composable
-private fun Preview() {
-    Theme {
-        LectureSearchView(
-            navController = rememberNavController(),
-            timetableViewModel = viewModel(),
-            lectureSearchViewModel = viewModel(),
-            {})
-    }
+private fun MockView(state: LectureSearchViewModel.ViewState) {
+    LectureSearchView(
+        navController = rememberNavController(),
+        timetableViewModel = MockTimetableViewModel(),
+        lectureSearchViewModel = MockLectureSearchViewModel(initialState = state),
+        {}
+    )
+}
+
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(LectureSearchViewModel.ViewState.Loaded) }
 }
 
 @Preview
 @Composable
-private fun Preview2() {
+private fun LectureRowPreview() {
     Theme {
         LectureRow(
             lecture = Lecture.mock(),

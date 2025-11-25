@@ -39,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -48,6 +47,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Models.Taxi.TaxiLocation
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Features.NavigationBar.AppDownBar
@@ -55,12 +55,14 @@ import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.TaxiList.Components.TaxiListNavigationBar
 import com.sparcs.soap.Features.TaxiList.Components.WeekDaySelector
 import com.sparcs.soap.Features.TaxiPreview.TaxiPreviewView
+import com.sparcs.soap.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 import com.sparcs.soap.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.isDateInSameDay
 import com.sparcs.soap.Shared.Extensions.weekdaySymbol
 import com.sparcs.soap.Shared.Mocks.mockList
-import com.sparcs.soap.Shared.ViewModel.MockTaxiListViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiListViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiPreviewViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
@@ -74,6 +76,7 @@ import java.util.Date
 @Composable
 fun TaxiListView(
     viewModel: TaxiListViewModelProtocol = hiltViewModel(),
+    taxiPreviewViewModel: TaxiPreviewViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
     val uiState by viewModel.state.collectAsState()
@@ -104,7 +107,6 @@ fun TaxiListView(
             )
         }
     ) { innerPadding ->
-
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = {
@@ -226,6 +228,7 @@ fun TaxiListView(
             ) {
                 TaxiPreviewView(
                     room = room,
+                    viewModel = taxiPreviewViewModel,
                     onDismiss = {
                         viewModel.roomId = null
                         selectedRoom = null
@@ -533,7 +536,7 @@ private fun TaxiListScreenErrorPreview() {
 }
 
 @Composable
-fun MockTaxiListScreen(state: TaxiListViewModel.ViewState) {
+private fun MockTaxiListScreen(state: TaxiListViewModel.ViewState) {
     val mockViewModel = remember { MockTaxiListViewModel(initialState = state) }
-    TaxiListView(viewModel = mockViewModel, navController = NavController(LocalContext.current))
+    TaxiListView(viewModel = mockViewModel, taxiPreviewViewModel = MockTaxiPreviewViewModel(), navController = rememberNavController())
 }

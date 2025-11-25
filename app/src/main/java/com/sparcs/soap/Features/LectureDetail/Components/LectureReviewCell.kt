@@ -42,11 +42,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.sparcs.soap.Domain.Models.OTL.LectureReview
 import com.sparcs.soap.Domain.Models.OTL.ReportMailComposer
+import com.sparcs.soap.Domain.Repositories.OTL.FakeOTLCourseRepository
 import com.sparcs.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
-import com.sparcs.soap.Features.Course.CourseViewModel
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Mocks.mock
 import com.sparcs.soap.ui.theme.Theme
@@ -383,9 +382,8 @@ fun report(review: LectureReview, context: Context, unknown: String) {
 @Composable
 @Preview
 private fun Preview() {
-    val repo: OTLCourseRepositoryProtocol = hiltViewModel<CourseViewModel>().otlCourseRepository
     Theme {
-        LectureReviewCell(review = LectureReview.mock(), repo)
+        LectureReviewCell(review = LectureReview.mock(), FakeOTLCourseRepository())
     }
 }
 

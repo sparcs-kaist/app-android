@@ -21,7 +21,7 @@ val theme_light_tertiaryContainer = Color(0xFFAE38AC)
 val theme_light_onTertiaryContainer = Color(0xFFFFE7F7)
 
 // Error colors
-val theme_light_error = Color(0xFFBA1A1A)
+val theme_light_error = Color(0xFFCB4E4E)
 val theme_light_onError = Color(0xFFFFFFFF)
 val theme_light_errorContainer = Color(0xFFFFDAD6)
 val theme_light_onErrorContainer = Color(0xFF93000A)

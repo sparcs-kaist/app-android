@@ -66,7 +66,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
@@ -75,6 +74,7 @@ import com.sparcs.soap.Features.PostCompose.Components.AnimatedAlphabetText
 import com.sparcs.soap.Features.PostCompose.TermsOfUseButton
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.noRippleClickable
+import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedPostComposeViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
@@ -130,6 +130,9 @@ fun FeedPostComposeView(
                             viewModel.writePost()
                         } finally {
                             isUploading = false
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("listNeedsRefresh", true)
                             navController.popBackStack()
                         }
                     }
@@ -401,6 +404,6 @@ private fun FeedPostOptionsRow(
 @Preview
 private fun Preview() {
     Theme {
-        FeedPostComposeView(navController = rememberNavController(), viewModel = viewModel())
+        FeedPostComposeView(navController = rememberNavController(), viewModel = MockFeedPostComposeViewModel())
     }
 }

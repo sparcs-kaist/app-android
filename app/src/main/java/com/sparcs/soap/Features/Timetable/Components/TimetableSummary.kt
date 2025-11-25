@@ -13,25 +13,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
-import com.sparcs.soap.Domain.Usecases.MockTimetableUseCase
-import com.sparcs.soap.Features.Timetable.TimetableViewModel
+import com.sparcs.soap.Features.Timetable.TimetableViewModelProtocol
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import com.sparcs.soap.ui.theme.Theme
 
 @Composable
 fun TimetableSummary(
-    viewModel: TimetableViewModel,
+    viewModel: TimetableViewModelProtocol,
 ) {
-    val selectedTimetable by viewModel.timetableUseCase.selectedTimetable.collectAsState()
+    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
     Card(
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp),
@@ -78,6 +75,5 @@ fun BigSummary(
 @Composable
 @Preview
 private fun Preview() {
-    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase(), CrashlyticsHelper())) }
-    Theme { TimetableSummary(vm) }
+    Theme { TimetableSummary(MockTimetableViewModel()) }
 }

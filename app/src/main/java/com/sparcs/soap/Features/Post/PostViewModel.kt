@@ -11,7 +11,6 @@ import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Models.Ara.AraPostComment
 import com.sparcs.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Ara.AraCommentRepositoryProtocol
-import com.sparcs.soap.Shared.Mocks.mock
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -266,44 +265,4 @@ class PostViewModel @Inject constructor(
             alertMessage = "An unexpected error occurred while reporting a user. Please try again later."
         )
     }
-}
-
-class MockPostViewModel(
-    initialPost: AraPost = AraPost.mock(),
-) : PostViewModelProtocol {
-
-    override val state: StateFlow<PostViewModel.ViewState> =
-        MutableStateFlow(PostViewModel.ViewState.Loaded)
-    override val isFoundationModelsAvailable = true
-
-    private val _post = MutableStateFlow(initialPost)
-    override val post: StateFlow<AraPost?> = _post.asStateFlow()
-
-    override suspend fun fetchPost() {}
-
-    override suspend fun upVote() {}
-
-    override suspend fun downVote() {}
-
-    override suspend fun writeComment(content: String): AraPostComment {
-        return AraPostComment.mock()
-    }
-
-    override suspend fun writeThreadedComment(commentID: Int, content: String): AraPostComment {
-        return AraPostComment.mock()
-    }
-
-    override suspend fun editComment(commentID: Int, content: String): AraPostComment {
-        return AraPostComment.mock()
-    }
-
-    override suspend fun report(type: AraContentReportType) {}
-
-    override suspend fun summarisedContent(): String {
-        return ""
-    }
-
-    override suspend fun deletePost() {}
-    override suspend fun toggleBookmark() {}
-    override fun handleException(error: Throwable) {}
 }

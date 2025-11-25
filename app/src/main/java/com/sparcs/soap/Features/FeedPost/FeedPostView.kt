@@ -18,6 +18,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -45,14 +47,19 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
+import com.sparcs.soap.Domain.Repositories.Feed.FakeFeedCommentRepository
+import com.sparcs.soap.Domain.Repositories.Feed.FakeFeedPostRepository
 import com.sparcs.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.sparcs.soap.Features.Feed.Components.FeedPostRow
@@ -61,6 +68,10 @@ import com.sparcs.soap.Features.FeedPost.Components.FeedCommentRow
 import com.sparcs.soap.Features.FeedPost.Components.FeedPostNavigationBar
 import com.sparcs.soap.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedViewModel
+import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
+import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.lightGray0
 import kotlinx.coroutines.launch
 
@@ -80,10 +91,10 @@ fun FeedPostView(
     var isRefreshing by remember { mutableStateOf(false) }
     var isUploadingComment by remember { mutableStateOf(false) }
 
-    val repo: FeedPostRepositoryProtocol = hiltViewModel<FeedViewModel>().feedPostRepository
-    val repo1: FeedCommentRepositoryProtocol =
-        hiltViewModel<FeedPostViewModel>().feedCommentRepository
-    val vm = hiltViewModel<FeedViewModel>()
+    val isPreview = LocalInspectionMode.current
+    val repo: FeedPostRepositoryProtocol = if (!isPreview) hiltViewModel<FeedViewModel>().feedPostRepository else FakeFeedPostRepository()
+    val repo1: FeedCommentRepositoryProtocol = if(!isPreview) hiltViewModel<FeedPostViewModel>().feedCommentRepository else FakeFeedCommentRepository()
+    val vm = if(!isPreview) hiltViewModel<FeedViewModel>() else MockFeedViewModel(initialState = FeedViewModel.ViewState.Loaded)
 
     val post = viewModel.post.collectAsState().value
 
@@ -235,6 +246,9 @@ fun FeedPostView(
                         onClick = {
                             coroutineScope.launch { vm.deletePost(post.id) }
                             showDeleteConfirmation = false
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("listNeedsRefresh", true)
                             navController.popBackStack()
                         },
                         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
@@ -426,7 +440,12 @@ private fun Comments(
         }
 
         is FeedPostViewModel.ViewState.Error -> {
-            Text("Error: ${state.message}", Modifier.padding(horizontal = 8.dp))
+            val coroutineScope = rememberCoroutineScope()
+            ErrorView(
+                icon = Icons.Default.Warning,
+                errorMessage = state.message,
+                onRetry = { coroutineScope.launch { viewModel.fetchComments(post.id) } }
+            )
         }
     }
 }
@@ -455,4 +474,30 @@ private fun LoadingView(
             CircularProgressIndicator()
         }
     }
+}
+
+/* ____________________________________________________________________*/
+
+@Composable
+private fun MockView(state: FeedPostViewModel.ViewState) {
+    val mockViewModel = remember { MockFeedPostViewModel(initialState = state) }
+    FeedPostView(viewModel = mockViewModel, navController = rememberNavController())
+}
+
+@Composable
+@Preview
+private fun LoadingPreview() {
+    Theme { MockView(FeedPostViewModel.ViewState.Loading) }
+}
+
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(FeedPostViewModel.ViewState.Loaded) }
+}
+
+@Composable
+@Preview
+private fun ErrorPreview() {
+    Theme { MockView(FeedPostViewModel.ViewState.Error("Error Message")) }
 }
