@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "3200102353",
+    "project_id": "sparcs-app",
+    "storage_bucket": "sparcs-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:3200102353:android:b24a3bba3782b949f23af0",
+        "android_client_info": {
+          "package_name": "com.sparcs.soap"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDufcinhz7G2ZIC2CLEmsU3nsaZUvaRJ7w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

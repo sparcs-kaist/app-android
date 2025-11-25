@@ -164,4 +164,174 @@
     <string name="course_view" translatable="false">CourseView</string>
     <string name="lecture_search_view" translatable="false">LectureSearchView</string>
     <string name="summary">Summary</string>
+    <string name="send_crash_reports">Send Crash Reports</string>
+    <string name="report_submitted">Report Submitted</string>
+    <string name="error">Error</string>
+    <string name="unexpected_error_reporting_comment">An unexpected error occurred while reporting a comment. Please try again later.</string>
+    <string name="unexpected_error_uploading_comment">An unexpected error occurred while uploading a comment. Please try again later.</string>
+    <string name="unexpected_error_deleting_post">An unexpected error occurred while deleting a post. Please try again later.</string>
+    <string name="hours">Hours</string>
+    <string name="lab">Lab</string>
+    <string name="no_reviews">No Reviews</string>
+    <string name="there_are_no_reviews_yet">There are no reviews yet.</string>
+    <string name="add_overlapping_lecture">Add Overlapping Lecture</string>
+    <string name="the_existing_lecture">the existing lecture</string>
+    <string name="the_new_lecture">the new lecture</string>
+    <string name="lecture_overlap">
+    The lecture &quot;%1$s&quot; overlaps with your current timetable.
+    If you add &quot;%2$s&quot;, the existing lecture will be removed.
+    Would you like to add it to your timetable?
+    </string>
+    <string name="add_to_timetable">Add to &quot;%1$s&quot;</string>
+    <string name="check_the_spelling">Check the spelling or try a new search</string>
+    <string name="nothing_here">Nothing Here Yet</string>
+    <string name="no_posts">It looks like there are no posts on this page right now.</string>
+    <string name="discard_this_review">Discard Review</string>
+    <string name="review_submitted">Review submitted</string>
+    <string name="share_lecture_thoughts">Share your thoughts on %1$s…</string>
+    <string name="error_try_again">There was an error. Please try again later.</string>
+    <string name="rides">Rides</string>
+    <string name="courses">Courses</string>
+    <string name="search_anything">Search Anything</string>
+    <string name="find_etc">Find courses, posts, rides and more.</string>
+    <string name="confirm">Confirm</string>
+    <string name="warning">Warning</string>
+    <string name="nickname_change_confirmation">
+    Nicknames can only be changed every 3 months. Change nickname to %1$s?
+    </string>
+    <string name="select_bank">Select Bank</string>
+    <string name="unexpected_error_signing_out">An error occurred while signing out. Please try again later.</string>
+    <string name="sign_in_sso">Sign In with SPARCS SSO</string>
+    <string name="terms_and_privacy_prefix">By continuing, you agree to our </string>
+    <string name="and_text"> and </string>
+    <string name="terms_and_privacy_suffix">.</string>
+    <string name="taxi_arrival_bubble">
+    There are users who have not yet requested the settlement or have not completed the payment.%1$sPlease tap the %2$s at the bottom left and press %3$s or %4$s to complete the settlement request or payment.
+    </string>
+    <string name="settlement">settlement</string>
+    <string name="account_parse_failed">Failed to parse account information.</string>
+    <string name="send_payment">Send Payment</string>
+    <string name="already_sent">Already Sent</string>
+    <string name="i_sent_the_money">I sent the money!</string>
+    <string name="i_paid_for_the_taxi">I paid for the taxi!</string>
+    <string name="share_now_prompt">Share now and create a pleasant taxi-sharing experience!</string>
+    <string name="taxi_share_message">
+    🚕 Looking for someone to ride with on %1$s from %2$s to %3$s! 🚕\n%4$s
+    </string>
+    <string name="taxi_bot">Taxi Bot</string>
+    <string name="leave_room_confirmation">Do you really want to leave the room?</string>
+    <string name="leave_room_warning">You can rejoin after cancellation.\nHowever, if you are on board alone, the room will disappear.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="call_taxi">Call Taxi</string>
+    <string name="leave">Leave</string>
+    <string name="room_participants">Participants: %1$d/%2$d</string>
+    <string name="taxi_15min_alert">⏰ It\'s 15 minutes before your taxi leaves! If everyone\'s gathered, go ahead and call the taxi to head out together.</string>
+    <string name="taxi_launch_info">
+    You can launch the taxi app with the departure and destination already set. Once everyone has gathered at the departure point, press the button to call a taxi from %1$s to %2$s.
+    </string>
+    <string name="open_kakao_t">Open Kakao T</string>
+    <string name="open_uber">Open Uber</string>
+    <string name="payment_send_instructions">
+    Select the app to send your payment. Tap Already Sent once you\'ve completed the transfer.
+    </string>
+    <string name="open_kakao_pay">Open Kakao Pay</string>
+    <string name="open_toss">Open Toss</string>
+    <string name="photo_library">Photo Library</string>
+    <string name="request_settlement">Request Settlement</string>
+    <string name="chat_as_user">Chat as %1$s</string>
+    <string name="chats">Chats</string>
+    <string name="active_groups">Active Groups</string>
+    <string name="past_groups">Past Groups</string>
+    <string name="no_rooms_found_for_selected_week">
+    No rooms found on %1$s. Be the first one to create one!
+    </string>
+    <string name="no_rooms_found">
+    No rooms found this week. Be the first one to create one!
+    </string>
+    <string name="no_rooms_from_to">No rooms found from %1$s to %2$s on %3$s. Be the first one to create one!</string>
+    <string name="no_rooms_from_any">No rooms found from %1$s to any destination on %2$s. Be the first one to create one!</string>
+    <string name="no_rooms_to">No rooms found heading to %1$s on %2$s. Be the first one to create one!</string>
+    <string name="no_rooms_on">No rooms found on %1$s. Be the first one to create one!</string>
+    <string name="no_rides_this_week">No Rides This Week</string>
+    <string name="no_rooms_this_week">
+    Looks like there are no rooms scheduled for this week. Be the first to create one!
+    </string>
+    <string name="create_a_new_group">Create a New Group</string>
+    <string name="clear_selection">Clear Selection</string>
+    <string name="depart_at">Depart at</string>
+    <string name="join">Join</string>
+    <string name="joined_enter_chat">Joined (Enter chat)</string>
+    <string name="room_full">This room is full</string>
+    <string name="already_departed">Already Departed</string>
+    <string name="room_limit_reached">Room Limit Reached</string>
+    <string name="room_settlement_required">Room Settlement Required</string>
+    <string name="paid">Paid</string>
+    <string name="not_paid">Not Paid</string>
+    <string name="who">Who?</string>
+    <string name="why">Why?</string>
+    <string name="didnot_send_the_money">Didn\'t send money!</string>
+    <string name="didnot_come_on_time">Didn\'t come on time!</string>
+    <string name="report_after_departure">
+    Reports for unsettled payments and no-shows can only be submitted after the departure time.
+    </string>
+    <string name="email_request_payment">
+    An email will be sent asking them to send you the money.
+    </string>
+    <string name="people_count">%1$d people</string>
+    <string name="departure_time">Departure Time</string>
+    <string name="hour_label">h</string>
+    <string name="minute_label">m</string>
+    <string name="date_label">Date: %1$s</string>
+    <string name="meeting_point">meeting point</string>
+    <string name="where_to">where to?</string>
+    <string name="select_location">Select location</string>
+    <string name="new_room">New Room</string>
+    <string name="not_paid_message">
+    There are rooms for which settlement has not been completed. To create a room, please settle an existing room.
+</string>
+    <string name="too_many_rooms_message">
+    You are participating in more than 5 rooms. To create a room, please settle an existing room.
+</string>
+    <string name="title">Title</string>
+    <string name="table_label">Table %1$d</string>
+    <string name="do_you_really_want_to_delete_this_table">Do you really want to delete %1$s?</string>
+    <string name="settlement_completed">Settlement Completed</string>
+    <string name="payment_required">Payment Required</string>
+    <string name="payment_settled">Payment Settled</string>
+    <string name="report_spam">Spam</string>
+    <string name="report_extreme_politics">Extreme Politics</string>
+    <string name="report_pornography">Pornography</string>
+    <string name="report_abusive_language">Abusive Language</string>
+    <string name="report_commercial_ad">Commercial Ad</string>
+    <string name="report_impersonation_fraud">Impersonation Fraud</string>
+    <string name="report_hate_speech">Hate Speech</string>
+    <string name="report_unauthorized_sales">Unauthorized Sales</string>
+    <string name="report_false_information">False Information</string>
+    <string name="report_defamation">Defamation</string>
+    <string name="report_other">Other</string>
+    <string name="just_now">just now</string>
+    <string name="minutes_ago">%1$d min ago</string>
+    <plurals name="time_days_ago">
+        <item quantity="one">%d day ago</item>
+        <item quantity="other">%d days ago</item>
+    </plurals>
+
+    <plurals name="time_hours_ago">
+        <item quantity="one">%d hour ago</item>
+        <item quantity="other">%d hours ago</item>
+    </plurals>
+    <string name="today_at">Today at %1$s</string>
+    <string name="tomorrow_at">Tomorrow at %1$s</string>
+    <string name="weekday_at">%1$s at %2$s</string>
+    <string name="date_time_fallback_pattern">MMM d at h:mm a</string>
+    <string name="has_joined">%1$s has joined</string>
+    <string name="has_left">%1$s has left</string>
+    <string name="notification">Notification</string>
+    <string name="button">Button</string>
+    <string name="enter_residence">Enter Your Residence</string>
+    <string name="invalid_bank_number">Invalid Bank Number</string>
+    <string name="change_applied">The changes have been successfully applied.</string>
+    <string name="no_past_groups">No previously joined rooms.</string>
+    <string name="no_active_groups">No active rooms.</string>
 </resources>
