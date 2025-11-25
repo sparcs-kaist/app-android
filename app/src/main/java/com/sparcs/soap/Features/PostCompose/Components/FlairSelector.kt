@@ -33,10 +33,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sparcs.soap.Domain.Helpers.LocalizedString
 import com.sparcs.soap.Features.PostCompose.PostComposeViewModelProtocol
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.Ara.MockPostComposeViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import kotlinx.coroutines.delay
@@ -168,5 +168,5 @@ fun AnimatedAlphabetText(from: String, to: String) {
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ TopicSelector(viewModel()) }
+    Theme{ TopicSelector(MockPostComposeViewModel()) }
 }

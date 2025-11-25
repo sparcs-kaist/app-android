@@ -105,7 +105,6 @@ class TaxiListViewModel @Inject constructor(
         }
     }
 
-
     //Safely capture values before any suspension
     override suspend fun createRoom(title: String) {
         try {

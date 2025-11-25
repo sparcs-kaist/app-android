@@ -30,6 +30,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import com.sparcs.soap.Domain.Helpers.Constants
+import com.sparcs.soap.Domain.Models.Taxi.TaxiLocation
+import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.TaxiList.TaxiListViewModel
 import com.sparcs.soap.Features.TaxiList.TaxiListViewModelProtocol
@@ -38,7 +40,9 @@ import com.sparcs.soap.Features.TaxiRoomCreation.Components.TaxiDepartureTimePic
 import com.sparcs.soap.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import com.sparcs.soap.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
 import com.sparcs.soap.R
-import com.sparcs.soap.Shared.ViewModel.MockTaxiListViewModel
+import com.sparcs.soap.Shared.Mocks.mockList
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiListViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiRoomCreationViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import java.util.Date
@@ -47,7 +51,7 @@ import java.util.Date
 fun TaxiRoomCreationView(
     navController: NavController,
     taxiListViewModel: TaxiListViewModelProtocol = hiltViewModel(),
-    taxiRoomCreationViewModel: TaxiRoomCreationViewModel = hiltViewModel(),
+    taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol = hiltViewModel(),
 ) {
     var title by remember { mutableStateOf("") }
 
@@ -166,7 +170,7 @@ private fun isTitleValid(title: String): Boolean {
 
 private fun isValid(
     viewModel: TaxiListViewModelProtocol,
-    roomCreationViewModel: TaxiRoomCreationViewModel,
+    roomCreationViewModel: TaxiRoomCreationViewModelProtocol,
     title: String,
 ): Boolean {
     val source = viewModel.source
@@ -184,12 +188,13 @@ private fun isValid(
 @Composable
 private fun Preview() {
     val mockViewModel =
-        remember { MockTaxiListViewModel(initialState = TaxiListViewModel.ViewState.Loading) }
+        remember { MockTaxiListViewModel(initialState = TaxiListViewModel.ViewState.Loaded(TaxiRoom.mockList(), TaxiLocation.mockList())) }
 
     Theme {
         TaxiRoomCreationView(
             rememberNavController(),
-            taxiListViewModel = mockViewModel
+            taxiListViewModel = mockViewModel,
+            taxiRoomCreationViewModel = MockTaxiRoomCreationViewModel()
         )
     }
 }

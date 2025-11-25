@@ -42,7 +42,7 @@ import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.sparcs.soap.Features.Settings.Taxi.NavigationLinkWithIcon
 import com.sparcs.soap.R
-import com.sparcs.soap.Shared.ViewModelMocks.MockAraSettingsViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Ara.MockAraSettingsViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB

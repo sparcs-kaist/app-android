@@ -10,6 +10,7 @@ import com.sparcs.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
+import com.sparcs.soap.Shared.Mocks.mock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -121,4 +122,22 @@ class UserUseCase @Inject constructor(
         val user = otlUserRepository.fetchUser()
         userStorage.setOTLUser(user)
     }
+}
+
+class MockUserUseCase: UserUseCaseProtocol {
+
+    override var araUser: AraUser? = null
+    override var taxiUser: TaxiUser? = null
+    override var feedUser: FeedUser? = null
+    override var otlUser: OTLUser? = null
+
+    override suspend fun fetchUsers() {}
+    override suspend fun fetchAraUser() {}
+    override suspend fun updateAraUser(params: Map<String, Any>) { }
+    override suspend fun fetchFeedUser() {}
+    override suspend fun fetchTaxiUser(): TaxiUser {
+        return taxiUser ?: TaxiUser.mock()
+    }
+
+    override suspend fun fetchOTLUser() {}
 }

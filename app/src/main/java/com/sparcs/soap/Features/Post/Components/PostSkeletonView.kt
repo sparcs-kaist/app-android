@@ -22,11 +22,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun PostViewSkeleton() {
+fun PostViewSkeleton(navController: NavController) {
     Scaffold(
-        topBar = { TopBarSkeleton() }
+        topBar = {
+            PostNavigationBar(
+                boardGroup = "",
+                navController = navController,
+                onDelete = {},
+                onReport = {},
+                onTranslate = {},
+                isMine = false
+            )
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -42,32 +53,8 @@ fun PostViewSkeleton() {
 }
 
 @Composable
-private fun TopBarSkeleton() {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(vertical = 40.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            Modifier
-                .size(24.dp)
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), CircleShape)
-        )
-        Spacer(Modifier.width(8.dp))
-        Box(
-            Modifier
-                .height(20.dp)
-                .width(140.dp)
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
-        )
-    }
-}
-
-@Composable
 private fun HeaderSkeleton() {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-
         Box(
             Modifier
                 .height(22.dp)
@@ -188,5 +175,5 @@ private fun CommentSkeleton() {
 @Preview(showBackground = true)
 @Composable
 private fun PreviewSkeleton() {
-    PostViewSkeleton()
+    PostViewSkeleton(rememberNavController())
 }

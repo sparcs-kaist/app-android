@@ -35,9 +35,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Models.SearchScope
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Features.NavigationBar.AppDownBar
@@ -47,10 +49,13 @@ import com.sparcs.soap.Features.Search.Components.PostSection
 import com.sparcs.soap.Features.Search.Components.SearchNavigationBar
 import com.sparcs.soap.Features.Search.Components.TaxiSection
 import com.sparcs.soap.Features.TaxiPreview.TaxiPreviewView
+import com.sparcs.soap.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.MockSearchViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
+import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
 
@@ -58,6 +63,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SearchView(
     viewModel: SearchViewModelProtocol = hiltViewModel(),
+    taxiPreviewViewModel: TaxiPreviewViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
@@ -170,6 +176,7 @@ fun SearchView(
             ) {
                 TaxiPreviewView(
                     room = room,
+                    viewModel = taxiPreviewViewModel,
                     onDismiss = {
                         coroutineScope.launch {
                             sheetState.hide()
@@ -272,4 +279,30 @@ fun ResultView(
             }
         }
     }
+}
+
+/* ____________________________________________________________________*/
+
+@Composable
+private fun MockView(state: SearchViewModel.ViewState) {
+    val mockViewModel = remember { MockSearchViewModel(initialState = state) }
+    SearchView(viewModel = mockViewModel, navController = rememberNavController())
+}
+
+@Composable
+@Preview
+private fun LoadingPreview() {
+    Theme { MockView(SearchViewModel.ViewState.Loading) }
+}
+
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(SearchViewModel.ViewState.Loaded) }
+}
+
+@Composable
+@Preview
+private fun ErrorPreview() {
+    Theme { MockView(SearchViewModel.ViewState.Error("Error Message")) }
 }

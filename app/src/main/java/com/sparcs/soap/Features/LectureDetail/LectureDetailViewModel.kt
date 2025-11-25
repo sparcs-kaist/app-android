@@ -4,19 +4,28 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Models.OTL.Lecture
 import com.sparcs.soap.Domain.Models.OTL.LectureReview
 import com.sparcs.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.OTL.OTLLectureRepository
 import com.sparcs.soap.Domain.Usecases.TimetableUseCaseProtocol
 import com.sparcs.soap.Domain.Usecases.UserUseCaseProtocol
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
+interface LectureDetailViewModelProtocol{
+    val lecture: StateFlow<Lecture>
+    val state: StateFlow<LectureDetailViewModel.ViewState>
+    val reviews: StateFlow<List<LectureReview>>
+    val isInCurrentTimetable: Boolean
+    fun fetchReviews(lectureID: Int)
+    fun writeReview(review: LectureReview)
+}
 
 @HiltViewModel
 class LectureDetailViewModel @Inject constructor(
@@ -25,7 +34,7 @@ class LectureDetailViewModel @Inject constructor(
     val otlCourseRepository: OTLCourseRepositoryProtocol,
     val timetableUseCase: TimetableUseCaseProtocol,
     savedStateHandle: SavedStateHandle
-) : ViewModel() {
+) : ViewModel(), LectureDetailViewModelProtocol {
 
     sealed class ViewState {
         data object Loading : ViewState()
@@ -41,17 +50,17 @@ class LectureDetailViewModel @Inject constructor(
 
     // MARK: - Properties
     private val _lecture = MutableStateFlow(initialLecture)
-    val lecture : StateFlow<Lecture> = _lecture.asStateFlow()
+    override val lecture : StateFlow<Lecture> = _lecture.asStateFlow()
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
-    val state: StateFlow<ViewState> = _state
+    override val state: StateFlow<ViewState> = _state
 
     private val _reviews = MutableStateFlow<List<LectureReview>>(emptyList())
-    val reviews: StateFlow<List<LectureReview>> = _reviews
+    override val reviews: StateFlow<List<LectureReview>> = _reviews
 
-    val isInCurrentTimetable = timetableUseCase.hasLectureInCurrentTable(lecture.value)
+    override val isInCurrentTimetable = timetableUseCase.hasLectureInCurrentTable(lecture.value)
 
-    fun fetchReviews(lectureID: Int) {
+    override fun fetchReviews(lectureID: Int) {
         viewModelScope.launch {
             try {
                 val result = otlLectureRepository.fetchLectures(lectureID)
@@ -65,7 +74,7 @@ class LectureDetailViewModel @Inject constructor(
         }
     }
 
-    fun writeReview(review: LectureReview){
+    override fun writeReview(review: LectureReview){
         viewModelScope.launch {
             try {
                 val result = otlLectureRepository.writeReview(

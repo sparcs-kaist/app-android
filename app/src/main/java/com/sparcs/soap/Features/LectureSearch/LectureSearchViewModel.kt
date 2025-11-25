@@ -20,11 +20,21 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface LectureSearchViewModelProtocol {
+    val state: StateFlow<LectureSearchViewModel.ViewState>
+    val lectures: StateFlow<List<Lecture>>
+    var searchKeyword: String
+    val searchKeywordFlow: MutableStateFlow<String>
+
+    fun bind()
+    fun fetchLectures()
+}
+
 @HiltViewModel
 class LectureSearchViewModel @Inject constructor(
     private val otlLectureRepository: OTLLectureRepository,
     private val timetableUseCase: TimetableUseCaseProtocol
-) : ViewModel() {
+) : ViewModel(), LectureSearchViewModelProtocol {
 
     sealed class ViewState {
         data object Loaded : ViewState()
@@ -32,13 +42,13 @@ class LectureSearchViewModel @Inject constructor(
     }
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loaded)
-    val state: StateFlow<ViewState> = _state
+    override val state: StateFlow<ViewState> = _state
 
     private val _lectures = MutableStateFlow<List<Lecture>>(emptyList())
-    val lectures: StateFlow<List<Lecture>> = _lectures
+    override val lectures: StateFlow<List<Lecture>> = _lectures
 
-    var searchKeyword by mutableStateOf("")
-    val searchKeywordFlow = MutableStateFlow("")
+    override var searchKeyword by mutableStateOf("")
+    override val searchKeywordFlow = MutableStateFlow("")
 
     private val itemsPerPage = 50
     private var currentPage = 0
@@ -49,7 +59,7 @@ class LectureSearchViewModel @Inject constructor(
     private var isBound = false
 
     @OptIn(FlowPreview::class)
-    fun bind() {
+    override fun bind() {
             if (isBound) return
             isBound = true
             viewModelScope.launch {
@@ -66,7 +76,7 @@ class LectureSearchViewModel @Inject constructor(
         }
 
 
-    private fun fetchLectures() {
+    override fun fetchLectures() {
         val selectedSemester = timetableUseCase.selectedSemester.value ?: return
         if (isLastPage) return
 

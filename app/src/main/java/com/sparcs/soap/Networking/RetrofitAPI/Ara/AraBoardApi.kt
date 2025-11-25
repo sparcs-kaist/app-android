@@ -8,6 +8,7 @@ import com.sparcs.soap.Networking.ResponseDTO.Ara.AraBookmarkDTO
 import com.sparcs.soap.Networking.ResponseDTO.Ara.AraPostDTO
 import com.sparcs.soap.Networking.ResponseDTO.Ara.AraPostPageDTO
 import okhttp3.MultipartBody
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -75,6 +76,6 @@ interface AraBoardApi {
     suspend fun report(@Body request: PostReportRequest)
 
     @DELETE("articles/{id}/")
-    suspend fun delete(@Path("id") postID: Int)
+    suspend fun delete(@Path("id") postID: Int): Response<Unit>
 }
 

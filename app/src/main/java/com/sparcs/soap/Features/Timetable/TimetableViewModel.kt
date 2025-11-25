@@ -7,7 +7,7 @@ import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Models.OTL.Lecture
 import com.sparcs.soap.Domain.Models.OTL.Semester
 import com.sparcs.soap.Domain.Models.OTL.Timetable
-import com.sparcs.soap.Domain.Usecases.TimetableUseCaseProtocol
+import com.sparcs.soap.Domain.Usecases.TimetableUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,11 +19,36 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface TimetableViewModelProtocol {
+    val isLoading: MutableStateFlow<Boolean>
+    val semesters: StateFlow<List<Semester>>
+    val selectedSemester: StateFlow<Semester?>
+    val selectedTimetable: StateFlow<Timetable?>
+    val selectedTimetableDisplayName: StateFlow<String>
+    val isEditable: StateFlow<Boolean>
+    val timetableIDsForSelectedSemester: List<String>
+    val candidateLecture: StateFlow<Lecture?>
+    val isCandidateOverlapping: StateFlow<Boolean>
+    val overlappingLecture: StateFlow<Lecture?>
+
+    fun setCandidateLecture(lecture: Lecture?)
+    fun fetchData()
+    fun selectPreviousSemester()
+    fun selectNextSemester()
+    fun selectTimetable(id: String)
+    fun createTable()
+    fun deleteTable()
+    fun addLecture(lecture: Lecture)
+    fun deleteLecture(lecture: Lecture)
+    fun removeOverlappingLectures(newLecture: Lecture)
+    fun handleException(error: Throwable, type: TimetableViewModel.ErrorType)
+}
+
 @HiltViewModel
 class TimetableViewModel @Inject constructor(
-    val timetableUseCase: TimetableUseCaseProtocol,
+    val timetableUseCase: TimetableUseCase,
     private val crashlyticsHelper: CrashlyticsHelper,
-) : ViewModel() {
+) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
         AddLecture,
@@ -33,23 +58,23 @@ class TimetableViewModel @Inject constructor(
         FetchData
     }
 
-    val isLoading = MutableStateFlow(false)
+    override val isLoading = MutableStateFlow(false)
 
-    val semesters: StateFlow<List<Semester>> = timetableUseCase.semesters
-    val selectedSemester: StateFlow<Semester?> = timetableUseCase.selectedSemester
-    val selectedTimetable: StateFlow<Timetable?> = timetableUseCase.selectedTimetable
+    override val semesters: StateFlow<List<Semester>> = timetableUseCase.semesters
+    override val selectedSemester: StateFlow<Semester?> = timetableUseCase.selectedSemester
+    override val selectedTimetable: StateFlow<Timetable?> = timetableUseCase.selectedTimetable
 
-    val selectedTimetableDisplayName: StateFlow<String> =
+    override val selectedTimetableDisplayName: StateFlow<String> =
         timetableUseCase.selectedTimetableDisplayName
-    val isEditable: StateFlow<Boolean> = timetableUseCase.isEditable
+    override val isEditable: StateFlow<Boolean> = timetableUseCase.isEditable
 
-    val timetableIDsForSelectedSemester: List<String>
+    override val timetableIDsForSelectedSemester: List<String>
         get() = timetableUseCase.timetableIDsForSelectedSemester
 
     private val _candidateLecture = MutableStateFlow<Lecture?>(null)
-    val candidateLecture: StateFlow<Lecture?> = _candidateLecture.asStateFlow()
+    override val candidateLecture: StateFlow<Lecture?> = _candidateLecture.asStateFlow()
 
-    val isCandidateOverlapping: StateFlow<Boolean> =
+    override val isCandidateOverlapping: StateFlow<Boolean> =
         combine(
             timetableUseCase.selectedTimetable,
             candidateLecture
@@ -66,7 +91,7 @@ class TimetableViewModel @Inject constructor(
                 initialValue = false
             )
 
-    val overlappingLecture: StateFlow<Lecture?> =
+    override val overlappingLecture: StateFlow<Lecture?> =
         combine(
             timetableUseCase.selectedTimetable,
             candidateLecture
@@ -85,12 +110,12 @@ class TimetableViewModel @Inject constructor(
                 initialValue = null
             )
 
-    fun setCandidateLecture(lecture: Lecture?) {
+    // MARK: - Functions
+    override fun setCandidateLecture(lecture: Lecture?) {
         _candidateLecture.value = lecture
     }
 
-    // MARK: - Functions
-    fun fetchData() {
+    override fun fetchData() {
         viewModelScope.launch {
             isLoading.value = true
             try {
@@ -104,7 +129,7 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
-    fun selectPreviousSemester() {
+    override fun selectPreviousSemester() {
         val semestersList = timetableUseCase.semesters.value
         val currentIndex = timetableUseCase.selectedSemesterID.value?.let { id ->
             semestersList.indexOfFirst { it.id == id }
@@ -118,7 +143,7 @@ class TimetableViewModel @Inject constructor(
         defaultTableId?.let { selectTimetable(it) }
     }
 
-    fun selectNextSemester() {
+    override fun selectNextSemester() {
         val semestersList = timetableUseCase.semesters.value
         val currentIndex = timetableUseCase.selectedSemesterID.value?.let { id ->
             semestersList.indexOfFirst { it.id == id }
@@ -132,11 +157,11 @@ class TimetableViewModel @Inject constructor(
         defaultTableId?.let { selectTimetable(it) }
     }
 
-    fun selectTimetable(id: String) {
+    override fun selectTimetable(id: String) {
         timetableUseCase.selectTimetable(id)
     }
 
-    fun createTable() {
+    override fun createTable() {
         viewModelScope.launch {
             try {
                 timetableUseCase.createTable()
@@ -147,7 +172,7 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
-    fun deleteTable() {
+    override fun deleteTable() {
         viewModelScope.launch {
             try {
                 timetableUseCase.deleteTable()
@@ -158,7 +183,7 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
-    fun addLecture(lecture: Lecture) {
+    override fun addLecture(lecture: Lecture) {
         viewModelScope.launch {
             try {
                 timetableUseCase.addLecture(lecture)
@@ -169,7 +194,7 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
-    fun deleteLecture(lecture: Lecture) {
+    override fun deleteLecture(lecture: Lecture) {
         viewModelScope.launch {
             try {
                 timetableUseCase.deleteLecture(lecture)
@@ -180,7 +205,7 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
-    fun removeOverlappingLectures(newLecture: Lecture) {
+    override fun removeOverlappingLectures(newLecture: Lecture) {
         val timetable = timetableUseCase.selectedTimetable.value ?: return
         val toRemove = timetable.lectures.firstOrNull {
             timetable.hasCollision(it) && timetable.hasCollision(newLecture)
@@ -189,16 +214,20 @@ class TimetableViewModel @Inject constructor(
         deleteLecture(toRemove)
     }
 
-    fun handleException(error: Throwable, type: ErrorType) {
+    override fun handleException(error: Throwable, type: ErrorType) {
         val alertMessage: String = when (type) {
             ErrorType.AddLecture ->
                 "An unexpected error occurred while adding a lecture. Please try again later."
+
             ErrorType.CreateTable ->
                 "An unexpected error occurred while creating a new timetable. Please try again later."
+
             ErrorType.DeleteLecture ->
                 "An unexpected error occurred while removing a lecture. Please try again later."
+
             ErrorType.DeleteTable ->
                 "An unexpected error occurred while deleting a timetable. Please try again later."
+
             ErrorType.FetchData ->
                 "An unexpected error occurred while loading timetables. Please try again later."
         }

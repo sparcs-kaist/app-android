@@ -76,7 +76,7 @@ import com.sparcs.soap.Features.PostCompose.Components.PostComposeNavigationBar
 import com.sparcs.soap.Features.PostCompose.Components.TopicSelector
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.noRippleClickable
-import com.sparcs.soap.Shared.ViewModelMocks.MockPostComposeViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Ara.MockPostComposeViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import kotlinx.coroutines.launch
@@ -135,6 +135,9 @@ fun PostComposeView(
                             viewModel.writePost()
                         } finally {
                             isUploading = false
+                            navController.previousBackStackEntry
+                                ?.savedStateHandle
+                                ?.set("listNeedsRefresh", true)
                             navController.popBackStack()
                         }
                     }

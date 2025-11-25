@@ -83,7 +83,9 @@ import com.sparcs.soap.Features.Post.Components.PostVoteButton
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.formattedString
 import com.sparcs.soap.Shared.Mocks.board
+import com.sparcs.soap.Shared.ViewModelMocks.Ara.MockPostViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
+import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import com.sparcs.soap.ui.theme.lightGray0
 import kotlinx.coroutines.CoroutineScope
@@ -136,7 +138,7 @@ fun PostView(
     val post = viewModel.post.collectAsState().value
 
     if (post == null) {
-        PostViewSkeleton()
+        PostViewSkeleton(navController)
         return
     }
 
@@ -292,6 +294,9 @@ fun PostView(
                             try {
                                 viewModel.deletePost()
                                 showDeleteConfirmation = false
+                                navController.previousBackStackEntry
+                                    ?.savedStateHandle
+                                    ?.set("listNeedsRefresh", true)
                                 navController.popBackStack()
                             } catch (e: Exception) {
                                 Log.e("PostView", "Failed to delete post", e)
@@ -357,7 +362,7 @@ private fun Header(
                 color = MaterialTheme.colorScheme.grayBB
             )
             Text(
-                text = stringResource(R.string.reviews, post.views),
+                text = stringResource(R.string.views, post.views),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.grayBB
             )
@@ -749,10 +754,16 @@ data class CommentUpdate(
     val comment: String = "",
 )
 
-@Preview
+/* ____________________________________________________________________*/
+
 @Composable
-private fun PreviewPostView() {
-    val vm = remember { MockPostViewModel() }
-    val navController = rememberNavController()
-    PostView(vm, navController = navController)
+private fun MockView(state: PostViewModel.ViewState) {
+    val mockViewModel = remember { MockPostViewModel(initialState = state) }
+    PostView(viewModel = mockViewModel, navController = rememberNavController())
+}
+
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(PostViewModel.ViewState.Loaded) }
 }

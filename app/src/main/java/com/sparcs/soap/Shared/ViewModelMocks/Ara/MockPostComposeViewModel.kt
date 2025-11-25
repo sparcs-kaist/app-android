@@ -1,4 +1,4 @@
-package com.sparcs.soap.Shared.ViewModelMocks
+package com.sparcs.soap.Shared.ViewModelMocks.Ara
 
 import android.content.Context
 import android.graphics.Bitmap

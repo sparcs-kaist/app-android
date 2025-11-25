@@ -1,4 +1,4 @@
-package com.sparcs.soap.Shared.ViewModelMocks
+package com.sparcs.soap.Shared.ViewModelMocks.Taxi
 
 import com.sparcs.soap.Domain.Models.Taxi.TaxiUser
 import com.sparcs.soap.Features.TaxiChatList.TaxiChatListViewModel

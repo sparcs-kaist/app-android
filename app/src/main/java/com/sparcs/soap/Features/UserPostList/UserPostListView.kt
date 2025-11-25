@@ -22,15 +22,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
+import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.PostList.Components.PostList.PostList
 import com.sparcs.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.sparcs.soap.Features.UserPostList.Components.UserPostNavigationBar
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.Mocks.mockList
+import com.sparcs.soap.Shared.ViewModelMocks.Ara.MockUserPostListViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.sparcs.soap.ui.theme.Theme
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 @Composable
@@ -120,11 +123,28 @@ fun UserPostListView(
     }
 }
 
+/* ____________________________________________________________________*/
+
+@Composable
+private fun MockView(state: UserPostListViewModel.ViewState) {
+    val mockViewModel = remember { MockUserPostListViewModel(initialState = state) }
+    UserPostListView(viewModel = mockViewModel, navController = rememberNavController())
+}
 
 @Composable
 @Preview
-private fun Preview() {
-    Theme {
-        UserPostListView(navController = rememberNavController())
-    }
+private fun LoadingPreview() {
+    Theme { MockView(UserPostListViewModel.ViewState.Loading) }
+}
+
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(UserPostListViewModel.ViewState.Loaded(AraPost.mockList())) }
+}
+
+@Composable
+@Preview
+private fun ErrorPreview() {
+    Theme { MockView(UserPostListViewModel.ViewState.Error("Error Message")) }
 }

@@ -30,6 +30,8 @@ import com.sparcs.soap.Domain.Repositories.OTL.OTLTimetableRepository
 import com.sparcs.soap.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.OTL.OTLUserRepository
 import com.sparcs.soap.Domain.Repositories.OTL.OTLUserRepositoryProtocol
+import com.sparcs.soap.Domain.Repositories.Taxi.TaxiChatRepository
+import com.sparcs.soap.Domain.Repositories.Taxi.TaxiChatRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiReportRepository
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiRoomRepository
@@ -455,6 +457,12 @@ abstract class RepositoryModule {
     abstract fun bindOTLLectureRepository(
         impl: OTLLectureRepository
     ): OTLLectureRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTaxiChatRepository(
+        impl: TaxiChatRepository
+    ): TaxiChatRepositoryProtocol
 }
 
 @Module

@@ -52,7 +52,7 @@ import com.sparcs.soap.Features.Settings.Components.TaxiReportDetailSkeletonRow
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Mocks.mock
 import com.sparcs.soap.Shared.Mocks.mockList
-import com.sparcs.soap.Shared.ViewModelMocks.MockTaxiReportListViewModel
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiReportListViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.ui.theme.Theme

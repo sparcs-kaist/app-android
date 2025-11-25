@@ -24,7 +24,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sparcs.soap.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import com.sparcs.soap.Features.NavigationBar.Components.DismissButton
 import com.sparcs.soap.Features.TaxiList.TaxiListViewModelProtocol
-import com.sparcs.soap.Features.TaxiRoomCreation.TaxiRoomCreationViewModel
+import com.sparcs.soap.Features.TaxiRoomCreation.TaxiRoomCreationViewModelProtocol
 import com.sparcs.soap.R
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
@@ -36,7 +36,7 @@ fun TaxiRoomCreationNavigationBar(
     onDismiss: () -> Unit,
     isEnabled: Boolean,
     viewModel: TaxiListViewModelProtocol,
-    taxiRoomCreationViewModel: TaxiRoomCreationViewModel,
+    taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol,
     title: String
     ) {
     var showAlert by remember { mutableStateOf(false) }
