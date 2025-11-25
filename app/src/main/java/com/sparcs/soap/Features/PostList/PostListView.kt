@@ -181,10 +181,8 @@ fun PostListView(
                             errorMessage = error,
                             onRetry = {
                                 coroutineScope.launch {
-//                                    if (!loadedInitialPost) {
                                     viewModel.fetchInitialPosts()
                                     viewModel.bind()
-//                                    }
                                 }
                             }
                         )
