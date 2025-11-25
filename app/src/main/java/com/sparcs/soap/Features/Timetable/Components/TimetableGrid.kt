@@ -19,8 +19,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
@@ -30,21 +28,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.Domain.Enums.OTL.DayType
-import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Helpers.TimetableConstructor
 import com.sparcs.soap.Domain.Models.OTL.Lecture
-import com.sparcs.soap.Domain.Usecases.MockTimetableUseCase
-import com.sparcs.soap.Features.Timetable.TimetableViewModel
+import com.sparcs.soap.Features.Timetable.TimetableViewModelProtocol
+import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 
 @Composable
 fun TimetableGrid(
-    viewModel: TimetableViewModel,
+    viewModel: TimetableViewModelProtocol,
     onLectureSelected: (Lecture) -> Unit = {},
     showDeleteDialog: (Lecture) -> Unit,
 ) {
-    val timetable = viewModel.timetableUseCase.selectedTimetable.collectAsState().value
+    val timetable = viewModel.selectedTimetable.collectAsState().value
     val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
     val candidateLecture by viewModel.candidateLecture.collectAsState()
 
@@ -221,8 +218,7 @@ object TimetableDefaults {
 @Preview
 @Composable
 private fun Preview() {
-    val vm by remember { mutableStateOf(TimetableViewModel(MockTimetableUseCase(), CrashlyticsHelper())) }
     Theme {
-        TimetableGrid(viewModel = vm, onLectureSelected = {}, showDeleteDialog = {})
+        TimetableGrid(viewModel = MockTimetableViewModel(), onLectureSelected = {}, showDeleteDialog = {})
     }
 }

@@ -34,8 +34,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -54,6 +56,7 @@ import com.sparcs.soap.Features.TaxiPreview.Components.RouteHeaderView
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.formattedString
 import com.sparcs.soap.Shared.Mocks.mockList
+import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiPreviewViewModel
 import com.sparcs.soap.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
@@ -69,13 +72,14 @@ import org.osmdroid.views.overlay.Polyline
 @Composable
 fun TaxiPreviewView(
     room: TaxiRoom,
-    viewModel: TaxiPreviewViewModel = hiltViewModel(),
+    viewModel: TaxiPreviewViewModelProtocol = hiltViewModel(),
     onDismiss: () -> Unit,
     navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
+    val isPreview = LocalInspectionMode.current
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var pathPoints by remember { mutableStateOf<List<GeoPoint>>(emptyList()) }
@@ -89,15 +93,17 @@ fun TaxiPreviewView(
                 blockStatus != TaxiRoomBlockStatus.Allow)
 
     val mapView = remember {
-        Configuration.getInstance().userAgentValue = context.packageName
-        MapView(context).apply {
-            setTileSource(TileSourceFactory.MAPNIK)
-            setMultiTouchControls(false)
-            isClickable = false
-            setBuiltInZoomControls(false)
-            controller.setZoom(15.0)
-            controller.setCenter(GeoPoint(room.source.latitude, room.source.longitude))
-        }
+        if (!isPreview) {
+            Configuration.getInstance().userAgentValue = context.packageName
+            MapView(context).apply {
+                setTileSource(TileSourceFactory.MAPNIK)
+                setMultiTouchControls(false)
+                isClickable = false
+                setBuiltInZoomControls(false)
+                controller.setZoom(15.0)
+                controller.setCenter(GeoPoint(room.source.latitude, room.source.longitude))
+            }
+        } else null
     }
 
     val shareUrl = "${Constants.taxiInviteURL}${room.id}"
@@ -124,10 +130,10 @@ fun TaxiPreviewView(
     }
 
     DisposableEffect(mapView) {
-        mapView.onResume()
+        mapView?.onResume()
         onDispose {
-            mapView.onPause()
-            mapView.onDetach()
+            mapView?.onPause()
+            mapView?.onDetach()
         }
     }
 
@@ -143,50 +149,65 @@ fun TaxiPreviewView(
                 .clipToBounds()
         ) {
             //MAP
-            AndroidView(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .matchParentSize(),
-                factory = { mapView },
-                update = { mapView ->
-                    mapView.overlays.clear()
+            if (!isPreview) {
+                AndroidView(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .matchParentSize(),
+                    factory = { mapView!! },
+                    update = { mapView ->
+                        mapView.overlays.clear()
 
-                    val startMarker = Marker(mapView).apply {
-                        position = GeoPoint(room.source.latitude, room.source.longitude)
-                        title = room.source.title.localized()
-                        icon =
-                            ContextCompat.getDrawable(mapView.context, R.drawable.round_location_on)
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    }
-
-                    val endMarker = Marker(mapView).apply {
-                        position = GeoPoint(room.destination.latitude, room.destination.longitude)
-                        title = room.destination.title.localized()
-                        icon = ContextCompat.getDrawable(mapView.context, R.drawable.arrival_point)
-                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                    }
-
-                    mapView.overlays.add(startMarker)
-                    mapView.overlays.add(endMarker)
-
-                    if (pathPoints.isNotEmpty()) {
-                        val bounds = BoundingBox.fromGeoPoints(pathPoints)
-
-                        val polyline = Polyline().apply {
-                            setPoints(pathPoints)
-                            outlinePaint.color = routeColor
-                            outlinePaint.strokeWidth = 8f
+                        val startMarker = Marker(mapView).apply {
+                            position = GeoPoint(room.source.latitude, room.source.longitude)
+                            title = room.source.title.localized()
+                            icon =
+                                ContextCompat.getDrawable(
+                                    mapView.context,
+                                    R.drawable.round_location_on
+                                )
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                         }
-                        mapView.overlays.add(polyline)
 
-                        val padding = 50
-                        mapView.zoomToBoundingBox(bounds, true, padding)
+                        val endMarker = Marker(mapView).apply {
+                            position =
+                                GeoPoint(room.destination.latitude, room.destination.longitude)
+                            title = room.destination.title.localized()
+                            icon =
+                                ContextCompat.getDrawable(mapView.context, R.drawable.arrival_point)
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        }
+
+                        mapView.overlays.add(startMarker)
+                        mapView.overlays.add(endMarker)
+
+                        if (pathPoints.isNotEmpty()) {
+                            val bounds = BoundingBox.fromGeoPoints(pathPoints)
+
+                            val polyline = Polyline().apply {
+                                setPoints(pathPoints)
+                                outlinePaint.color = routeColor
+                                outlinePaint.strokeWidth = 8f
+                            }
+                            mapView.overlays.add(polyline)
+
+                            val padding = 50
+                            mapView.zoomToBoundingBox(bounds, true, padding)
+                        }
                     }
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .background(Color.Gray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Map Preview")
                 }
-            )
+            }
         }
-        //______________________________________________________
-
         Column(modifier = Modifier.padding(16.dp)) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -211,7 +232,10 @@ fun TaxiPreviewView(
 
             Spacer(Modifier.padding(8.dp))
 
-            InfoRow(label = stringResource(R.string.depart_at), value = room.departAt.formattedString())
+            InfoRow(
+                label = stringResource(R.string.depart_at),
+                value = room.departAt.formattedString()
+            )
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 IconButton(onClick = {
@@ -272,12 +296,15 @@ fun TaxiPreviewView(
     }
 }
 
+//______________________________________________________
+
 @Preview
 @Composable
 private fun Preview() {
     Theme {
         TaxiPreviewView(
             room = TaxiRoom.mockList()[1],
+            viewModel = MockTaxiPreviewViewModel(),
             onDismiss = {},
             navController = rememberNavController()
         )

@@ -33,7 +33,7 @@ fun TaxiChatGeneralMessage(
         }
         TaxiChat.ChatType.OUT -> {
             Text(
-                text = stringResource(R.string.has_left),
+                text = stringResource(R.string.has_left, displayName),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.bodyMedium,

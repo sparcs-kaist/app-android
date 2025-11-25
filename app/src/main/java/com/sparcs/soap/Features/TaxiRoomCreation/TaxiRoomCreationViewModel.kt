@@ -10,17 +10,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface TaxiRoomCreationViewModelProtocol{
+    val blockStatus: StateFlow<TaxiRoomBlockStatus>
+    fun fetchBlockStatus()
+}
+
 @HiltViewModel
 class TaxiRoomCreationViewModel @Inject constructor(
     private val taxiRoomUseCase: TaxiRoomUseCaseProtocol
-) : ViewModel() {
+) : ViewModel(), TaxiRoomCreationViewModelProtocol {
 
     // MARK: - Properties
     private val _blockStatus = MutableStateFlow<TaxiRoomBlockStatus>(TaxiRoomBlockStatus.Allow)
-    val blockStatus: StateFlow<TaxiRoomBlockStatus> = _blockStatus
+    override val blockStatus: StateFlow<TaxiRoomBlockStatus> = _blockStatus
 
     // MARK: - Functions
-    fun fetchBlockStatus() {
+    override fun fetchBlockStatus() {
         viewModelScope.launch {
             _blockStatus.value = taxiRoomUseCase.isBlocked()
         }

@@ -36,21 +36,24 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
+import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.PostList.Components.PostList.PostList
 import com.sparcs.soap.Features.PostList.Components.PostListRow.BoardNavigationBar
 import com.sparcs.soap.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.Mocks.mockList
+import com.sparcs.soap.Shared.ViewModelMocks.Ara.MockPostListViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.sparcs.soap.ui.theme.Theme
@@ -76,11 +79,18 @@ fun PostListView(
     val state = viewModel.state.collectAsState().value
 
     val board = viewModel.board
-    val backStackEntry = navController.currentBackStackEntry!!
+
+    val isPreview = LocalInspectionMode.current
+    val backStackEntry = if (!isPreview) navController.currentBackStackEntry else null
+
+    val stateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val listNeedsRefresh = stateHandle
+        ?.getStateFlow("listNeedsRefresh", false)
+        ?.collectAsState()
 
     LaunchedEffect(Unit) {
         val json = Gson().toJson(board)
-        backStackEntry.savedStateHandle["board_json"] = json
+        backStackEntry?.savedStateHandle?.set("board_json", json)
         if (!loadedInitialPost) {
             loadedInitialPost = true
             viewModel.board = board
@@ -88,6 +98,12 @@ fun PostListView(
         }
     }
 
+    LaunchedEffect(listNeedsRefresh?.value) {
+        if (listNeedsRefresh?.value == true) {
+            viewModel.fetchInitialPosts()
+            stateHandle["listNeedsRefresh"] = false
+        }
+    }
     Scaffold(
         topBar = {
             BoardNavigationBar(
@@ -166,8 +182,8 @@ fun PostListView(
                             onRetry = {
                                 coroutineScope.launch {
 //                                    if (!loadedInitialPost) {
-                                        viewModel.fetchInitialPosts()
-                                        viewModel.bind()
+                                    viewModel.fetchInitialPosts()
+                                    viewModel.bind()
 //                                    }
                                 }
                             }
@@ -266,10 +282,28 @@ private fun ComposeButton(onClick: () -> Unit) {
         )
     }
 }
+/* ____________________________________________________________________*/
+
+@Composable
+private fun MockView(state: PostListViewModel.ViewState) {
+    val mockViewModel = remember { MockPostListViewModel(initialState = state) }
+    PostListView(viewModel = mockViewModel, navController = rememberNavController())
+}
 
 @Composable
 @Preview
-private fun Preview() {
-    Theme { PostListView(viewModel(), rememberNavController()) }
+private fun LoadingPreview() {
+    Theme { MockView(PostListViewModel.ViewState.Loading) }
+}
 
+@Composable
+@Preview
+private fun LoadedPreview() {
+    Theme { MockView(PostListViewModel.ViewState.Loaded(AraPost.mockList())) }
+}
+
+@Composable
+@Preview
+private fun ErrorPreview() {
+    Theme { MockView(PostListViewModel.ViewState.Error("Error Message")) }
 }

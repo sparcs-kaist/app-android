@@ -1,4 +1,4 @@
-package com.sparcs.soap.Shared.ViewModelMocks
+package com.sparcs.soap.Shared.ViewModelMocks.Taxi
 
 import android.graphics.Bitmap
 import com.sparcs.soap.Domain.Models.Taxi.TaxiChat

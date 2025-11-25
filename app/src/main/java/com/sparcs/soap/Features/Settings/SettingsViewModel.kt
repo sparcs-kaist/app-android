@@ -13,14 +13,22 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+interface SettingsViewModelProtocol {
+    val darkModeSetting: StateFlow<Boolean?>
+
+    fun setTheme(mode: String)
+    fun signOut()
+    fun handleException(error: Throwable)
+}
+
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val crashlyticsHelper: CrashlyticsHelper,
     private val authUseCase: AuthUseCase
-) : ViewModel() {
+) : ViewModel(), SettingsViewModelProtocol{
 
-    val darkModeSetting: StateFlow<Boolean?> = settingsRepository.themeMode
+    override val darkModeSetting: StateFlow<Boolean?> = settingsRepository.themeMode
         .map { mode ->
             when (mode) {
                 "light" -> false
@@ -34,17 +42,17 @@ class SettingsViewModel @Inject constructor(
             initialValue = null
         )
 
-    fun setTheme(mode: String) {
+    override fun setTheme(mode: String) {
         viewModelScope.launch {
             settingsRepository.setThemeMode(mode)
         }
     }
 
-    fun signOut(){
+    override fun signOut(){
         viewModelScope.launch{ authUseCase.signOut() }
     }
 
-    fun handleException(error: Throwable) {
+    override fun handleException(error: Throwable) {
         crashlyticsHelper.recordException(error)
     }
 }

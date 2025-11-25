@@ -128,7 +128,7 @@ fun Header(
         Spacer(Modifier.width(8.dp))
         Text(authorName, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(8.dp))
-        Text(// onPostDeleted == nil here means FeedPostRow is in the FeedPostView.
+        Text(// onPostDeleted == null here means FeedPostRow is in the FeedPostView.
             text = if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
             color = MaterialTheme.colorScheme.grayBB,
             style = MaterialTheme.typography.bodySmall

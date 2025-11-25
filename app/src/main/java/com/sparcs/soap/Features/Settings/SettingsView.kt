@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -52,20 +53,21 @@ import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.ViewModelMocks.MockSettingsViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 
 @Composable
 fun SettingsView(
     navController: NavHostController,
-    settingsViewModel: SettingsViewModel = hiltViewModel(),
+    settingsViewModel: SettingsViewModelProtocol = hiltViewModel(),
 ) {
     val context = LocalContext.current
     var showLogoutError by remember { mutableStateOf(false) }
+    val isPreview = LocalInspectionMode.current
+
     var isCrashlyticsEnabled by remember {
-        mutableStateOf(
-            FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled
-        )
+        mutableStateOf(if (!isPreview) FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled else false)
     }
 
     LaunchedEffect(isCrashlyticsEnabled) {
@@ -413,7 +415,7 @@ private fun SignOutButton(onClick: () -> Unit) {
 
 @Composable
 private fun ThemeSwitcherButton(
-    settingsViewModel: SettingsViewModel,
+    settingsViewModel: SettingsViewModelProtocol,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val darkMode by settingsViewModel.darkModeSetting.collectAsState(initial = null)
@@ -547,7 +549,7 @@ private fun VersionRow() {
 @Preview
 private fun Preview() {
     Theme {
-        SettingsView(rememberNavController())
+        SettingsView(rememberNavController(), MockSettingsViewModel())
     }
 }
 

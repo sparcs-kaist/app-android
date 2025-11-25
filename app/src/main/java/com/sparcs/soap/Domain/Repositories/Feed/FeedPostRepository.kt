@@ -9,6 +9,7 @@ import com.sparcs.soap.Domain.Models.Feed.FeedPostPage
 import com.sparcs.soap.Networking.RequestDTO.Feed.FeedPostRequestDTO
 import com.sparcs.soap.Networking.ResponseDTO.handleApiError
 import com.sparcs.soap.Networking.RetrofitAPI.Feed.FeedPostApi
+import com.sparcs.soap.Shared.Mocks.mock
 import javax.inject.Inject
 
 interface FeedPostRepositoryProtocol {
@@ -70,4 +71,22 @@ class FeedPostRepository @Inject constructor(
     } catch (e: Exception) {
         handleApiError(gson, e)
     }
+}
+
+class FakeFeedPostRepository: FeedPostRepositoryProtocol {
+    override suspend fun fetchPost(postID: String): FeedPost {
+       return FeedPost.mock()
+    }
+    override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage {
+      return FeedPostPage(
+          items = listOf(),
+          nextCursor = null,
+          hasNext = false
+      )
+    }
+    override suspend fun writePost(request: FeedCreatePost) {}
+    override suspend fun deletePost(postID: String) {}
+    override suspend fun vote(postID: String, type: FeedVoteType) {}
+    override suspend fun deleteVote(postID: String) {}
+    override suspend fun reportPost(postID: String, reason: FeedReportType) {}
 }

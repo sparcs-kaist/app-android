@@ -1,4 +1,4 @@
-package com.sparcs.soap.Shared.ViewModelMocks
+package com.sparcs.soap.Shared.ViewModelMocks.Ara
 
 import com.sparcs.soap.Domain.Models.Ara.AraBoard
 import com.sparcs.soap.Domain.Models.Ara.AraPost

@@ -22,20 +22,29 @@ import org.json.JSONObject
 import org.osmdroid.util.GeoPoint
 import javax.inject.Inject
 
+interface TaxiPreviewViewModelProtocol {
+    val taxiUser: StateFlow<TaxiUser?>
+    val blockStatus: StateFlow<TaxiRoomBlockStatus>
+
+    fun isJoined(participants: List<TaxiParticipant>): Boolean
+    suspend fun calculateRoutePoints(source: GeoPoint, destination: GeoPoint): List<GeoPoint>
+    fun joinRoom(id: String)
+}
+
 
 @HiltViewModel
 class TaxiPreviewViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepository,
     private val userUseCase: UserUseCase,
     private val taxiRoomUseCase: TaxiRoomUseCaseProtocol,
-) : ViewModel() {
+) : ViewModel(), TaxiPreviewViewModelProtocol {
 
     // MARK: - Properties
     private val _taxiUser = MutableStateFlow<TaxiUser?>(null)
-    val taxiUser: StateFlow<TaxiUser?> = _taxiUser
+    override val taxiUser: StateFlow<TaxiUser?> = _taxiUser
 
     private val _blockStatus = MutableStateFlow<TaxiRoomBlockStatus>(TaxiRoomBlockStatus.Allow)
-    val blockStatus: StateFlow<TaxiRoomBlockStatus> = _blockStatus
+    override val blockStatus: StateFlow<TaxiRoomBlockStatus> = _blockStatus
 
     // MARK: - Init
     init {
@@ -44,11 +53,11 @@ class TaxiPreviewViewModel @Inject constructor(
     }
 
     // MARK: - Logic
-    fun isJoined(participants: List<TaxiParticipant>): Boolean {
+    override fun isJoined(participants: List<TaxiParticipant>): Boolean {
         return participants.any { it.id == _taxiUser.value?.oid }
     }
 
-    suspend fun calculateRoutePoints(
+    override suspend fun calculateRoutePoints(
         source: GeoPoint,
         destination: GeoPoint,
     ): List<GeoPoint> = withContext(Dispatchers.IO) {
@@ -102,7 +111,7 @@ class TaxiPreviewViewModel @Inject constructor(
     }
 
 
-    fun joinRoom(id: String) {
+    override fun joinRoom(id: String) {
         viewModelScope.launch {
             try {
                 taxiRoomRepository.joinRoom(id)

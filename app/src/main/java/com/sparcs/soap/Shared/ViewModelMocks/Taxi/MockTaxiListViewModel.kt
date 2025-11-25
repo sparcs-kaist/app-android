@@ -1,4 +1,4 @@
-package com.sparcs.soap.Shared.ViewModel
+package com.sparcs.soap.Shared.ViewModelMocks.Taxi
 
 import com.sparcs.soap.Domain.Models.Taxi.TaxiLocation
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom

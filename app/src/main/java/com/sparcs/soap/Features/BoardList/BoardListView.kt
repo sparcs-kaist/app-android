@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Helpers.LocalizedString
 import com.sparcs.soap.Domain.Models.Ara.AraBoard
 import com.sparcs.soap.Domain.Models.Ara.AraBoardGroup
@@ -37,7 +38,6 @@ import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 @Composable
@@ -56,8 +56,7 @@ fun BoardListView(
     Scaffold(
         topBar = {
             BoardListNavigationBar(
-                scrollState = scrollState,
-                navController = navController
+                scrollState = scrollState
             )
         },
 
