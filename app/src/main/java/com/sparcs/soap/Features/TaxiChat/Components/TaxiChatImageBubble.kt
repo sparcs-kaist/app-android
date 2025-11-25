@@ -47,7 +47,7 @@ fun TaxiChatImageBubble(
                 Image(
                     painter = painter,
                     contentDescription = "Chat Image",
-                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .heightIn(max = 360.dp)
                         .fillMaxWidth()

@@ -69,34 +69,36 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
             onDismissRequest = { showDialog = false },
             title = { Text(stringResource(R.string.call_taxi)) },
             text = {
-                Text(stringResource(
-                    R.string.taxi_launch_info,
-                    room.source.title,
-                    room.destination.title
+                Text(
+                    stringResource(
+                        R.string.taxi_launch_info,
+                        room.source.title,
+                        room.destination.title
                     )
                 )
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    openKakaoT(context, room)
-                    showDialog = false
-                }) {
-                    Text(stringResource(R.string.open_kakao_t))
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
                 }
             },
-            dismissButton = {
+            confirmButton = {
                 Row {
+                    TextButton(onClick = {
+                        openKakaoT(context, room)
+                        showDialog = false
+                    }) {
+                        Text(stringResource(R.string.open_kakao_t))
+                    }
+
                     TextButton(onClick = {
                         openUber(context, room)
                         showDialog = false
                     }) {
                         Text(stringResource(R.string.open_uber))
                     }
-                    TextButton(onClick = { showDialog = false }) {
-                        Text(stringResource(R.string.cancel))
-                    }
                 }
-            }
+            },
         )
     }
 }

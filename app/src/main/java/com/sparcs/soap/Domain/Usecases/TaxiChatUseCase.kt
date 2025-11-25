@@ -6,8 +6,8 @@ import com.sparcs.soap.Domain.Models.Taxi.TaxiChat
 import com.sparcs.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.sparcs.soap.Domain.Models.Taxi.TaxiChatRequest
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
-import com.sparcs.soap.Domain.Repositories.Taxi.TaxiChatRepository
-import com.sparcs.soap.Domain.Repositories.Taxi.TaxiRoomRepository
+import com.sparcs.soap.Domain.Repositories.Taxi.TaxiChatRepositoryProtocol
+import com.sparcs.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import com.sparcs.soap.Domain.Services.TaxiChatService
 import com.sparcs.soap.Shared.Extensions.toByteArray
 import com.sparcs.soap.Shared.Extensions.toISO8601
@@ -41,9 +41,9 @@ interface TaxiChatUseCaseProtocol {
 
 class TaxiChatUseCase @Inject constructor(
     private val taxiChatService: TaxiChatService,
-    private val userUseCase: UserUseCase,
-    private val taxiChatRepository: TaxiChatRepository,
-    private val taxiRoomRepository: TaxiRoomRepository
+    private val userUseCase: UserUseCaseProtocol,
+    private val taxiChatRepository: TaxiChatRepositoryProtocol,
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol
 ): TaxiChatUseCaseProtocol {
 
     private lateinit var room: TaxiRoom
