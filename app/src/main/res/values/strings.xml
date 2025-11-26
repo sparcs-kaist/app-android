@@ -334,4 +334,8 @@
     <string name="change_applied">The changes have been successfully applied.</string>
     <string name="no_past_groups">No previously joined rooms.</string>
     <string name="no_active_groups">No active rooms.</string>
+    <string name="spring">Spring</string>
+    <string name="summer">Summer</string>
+    <string name="autumn">Autumn</string>
+    <string name="winter">Winter</string>
 </resources>
