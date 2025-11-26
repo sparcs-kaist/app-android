@@ -8,5 +8,5 @@ class MockSignInViewModel : SignInViewModelProtocol {
     override var isLoading: Boolean = false
     override var errorMessage: String? = ""
 
-    override fun signIn(activity: Activity) {}
+    override suspend fun signIn(activity: Activity) {}
 }
