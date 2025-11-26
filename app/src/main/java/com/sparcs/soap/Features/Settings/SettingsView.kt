@@ -128,6 +128,7 @@ fun SettingsView(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
                 )
+
                 ServiceNavButton(
                     stringResource(R.string.privacy_policy),
                     painterResource(R.drawable.outline_policy),
