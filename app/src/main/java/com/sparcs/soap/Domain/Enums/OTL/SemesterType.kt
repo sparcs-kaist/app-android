@@ -1,10 +1,12 @@
 package com.sparcs.soap.Domain.Enums.OTL
 
-enum class SemesterType(val rawValue: String, val shortCode: String) {
-    SPRING("Spring", "S"),
-    SUMMER("Summer", "U"),
-    AUTUMN("Autumn", "F"),
-    WINTER("Winter", "W");
+import com.sparcs.soap.R
+
+enum class SemesterType(val rawValue: Int, val shortCode: String) {
+    SPRING(R.string.spring, "S"),
+    SUMMER(R.string.summer, "U"),
+    AUTUMN(R.string.autumn, "F"),
+    WINTER(R.string.winter, "W");
 
     val intValue: Int
         get() = when (this) {
@@ -21,8 +23,5 @@ enum class SemesterType(val rawValue: String, val shortCode: String) {
             4 -> WINTER
             else -> SPRING
         }
-
-        fun fromRawString(raw: String): SemesterType =
-            entries.firstOrNull { it.rawValue == raw } ?: SPRING
     }
 }
