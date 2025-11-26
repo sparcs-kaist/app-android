@@ -2,6 +2,7 @@ package com.sparcs.soap.Domain.Usecases
 
 import android.app.Activity
 import android.util.Log
+import androidx.activity.ComponentActivity
 import com.sparcs.soap.Domain.Enums.Auth.AuthUseCaseError
 import com.sparcs.soap.Domain.Helpers.TokenStorageProtocol
 import com.sparcs.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
@@ -126,7 +127,7 @@ class AuthUseCase @Inject constructor(
 
     override suspend fun signIn(activity: Activity) {
         try {
-            val tokenResponse = (authenticationService as AuthenticationService).authenticate(activity)
+            val tokenResponse = (authenticationService as AuthenticationService).authenticate(activity as ComponentActivity)
 
             tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
 
