@@ -324,7 +324,6 @@
     <string name="today_at">Today at %1$s</string>
     <string name="tomorrow_at">Tomorrow at %1$s</string>
     <string name="weekday_at">%1$s at %2$s</string>
-    <string name="date_time_fallback_pattern">MMM d at h:mm a</string>
     <string name="has_joined">%1$s has joined</string>
     <string name="has_left">%1$s has left</string>
     <string name="notification">Notification</string>
@@ -334,4 +333,10 @@
     <string name="change_applied">The changes have been successfully applied.</string>
     <string name="no_past_groups">No previously joined rooms.</string>
     <string name="no_active_groups">No active rooms.</string>
+    <string name="spring">Spring</string>
+    <string name="summer">Summer</string>
+    <string name="autumn">Autumn</string>
+    <string name="winter">Winter</string>
+    <string name="credit_people">Credit</string>
+    <string name="members_with_this_badge">Members with this badge can resolve issues through SPARCS mediation when they arise.</string>
 </resources>

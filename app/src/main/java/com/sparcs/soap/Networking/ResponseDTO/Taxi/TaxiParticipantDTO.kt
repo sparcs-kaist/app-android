@@ -1,8 +1,8 @@
 package com.sparcs.soap.Networking.ResponseDTO.Taxi
 
+import com.google.gson.annotations.SerializedName
 import com.sparcs.soap.Domain.Models.Taxi.TaxiParticipant
 import com.sparcs.soap.Shared.Extensions.toDate
-import com.google.gson.annotations.SerializedName
 import java.net.URL
 import java.util.Date
 
@@ -22,6 +22,9 @@ data class TaxiParticipantDTO(
     @SerializedName("withdraw")
     val withdraw: Boolean,
 
+    @SerializedName("badge")
+    val badge: Boolean?,
+
     @SerializedName("isSettlement")
     val isSettlement: String?,
 
@@ -35,6 +38,7 @@ data class TaxiParticipantDTO(
             nickname = nickname,
             profileImageURL = URL(profileImageURL),
             withdraw = withdraw,
+            badge = badge ?: false,//treat as false when null
             isSettlement = isSettlement?.let { TaxiParticipant.SettlementType.from(it) },
             readAt = readAt.toDate() ?: Date()
         )

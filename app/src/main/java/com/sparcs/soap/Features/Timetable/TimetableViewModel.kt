@@ -187,6 +187,10 @@ class TimetableViewModel @Inject constructor(
     override fun addLecture(lecture: Lecture) {
         viewModelScope.launch {
             try {
+                val timetable = timetableUseCase.selectedTimetable.value
+                if (timetable != null && timetable.hasCollision(lecture)) {
+                    removeOverlappingLectures(lecture)
+                }
                 timetableUseCase.addLecture(lecture)
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "Error adding lecture", e)
@@ -208,11 +212,20 @@ class TimetableViewModel @Inject constructor(
 
     override fun removeOverlappingLectures(newLecture: Lecture) {
         val timetable = timetableUseCase.selectedTimetable.value ?: return
-        val toRemove = timetable.lectures.firstOrNull {
-            timetable.hasCollision(it) && timetable.hasCollision(newLecture)
-        } ?: return
 
-        deleteLecture(toRemove)
+        val collisions = timetable.lectures.filter { existing ->
+            timetable.hasCollisions(newLecture, existing)
+        }
+
+        viewModelScope.launch {
+            collisions.forEach { lecture ->
+                try {
+                    timetableUseCase.deleteLecture(lecture)
+                } catch (e: Exception) {
+                    handleException(e, ErrorType.DeleteLecture)
+                }
+            }
+        }
     }
 
     override fun handleException(error: Throwable, type: ErrorType) {

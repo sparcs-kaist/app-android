@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -29,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -128,6 +130,16 @@ fun Header(
         Spacer(Modifier.width(8.dp))
         Text(authorName, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(8.dp))
+        if(post.isKaistIP){
+            Icon(
+                painter = painterResource(R.drawable.checkmark_seal_fill),
+                contentDescription = null,
+                tint = Color(0xFF2196F3),
+                modifier = Modifier.size(15.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+        }
+
         Text(// onPostDeleted == null here means FeedPostRow is in the FeedPostView.
             text = if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
             color = MaterialTheme.colorScheme.grayBB,

@@ -243,7 +243,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             type = NavType.StringType
                             nullable = false
                         }
-                    )
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: CourseViewModel = hiltViewModel(backStackEntry)
                     CourseView(navController = navController, viewModel = viewModel)
@@ -333,7 +337,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             type = NavType.StringType
                             nullable = false
                         }
-                    )
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiChatViewModel = hiltViewModel(backStackEntry)
                     TaxiChatView(
@@ -343,7 +351,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
-                    route = Channel.TaxiChatListView.name
+                    route = Channel.TaxiChatListView.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiChatListViewModel = hiltViewModel(backStackEntry)
 
@@ -357,7 +369,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             type = NavType.StringType
                             nullable = false
                         }
-                    )
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiReportViewModel = hiltViewModel(backStackEntry)
                     TaxiReportView(viewModel, navController)
@@ -377,7 +393,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
-
                     route = Channel.BoardList.name + "?board_json={board_json}",
                     arguments = listOf(
                         navArgument("board_json") {
@@ -403,7 +418,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             uriPattern = Constants.araShareURL + "{postId}"
                             action = Intent.ACTION_VIEW
                         }
-                    )
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: PostViewModel = hiltViewModel(backStackEntry)
                     PostView(viewModel = viewModel, navController = navController)
@@ -472,14 +491,22 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = "SettingsGraph"
             ) {
                 composable(
-                    route = Channel.Settings.name
+                    route = Channel.Settings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: SettingsViewModel = hiltViewModel(backStackEntry)
                     SettingsView(navController = navController, settingsViewModel = viewModel)
                 }
 
                 composable(
-                    route = Channel.AraSettings.name
+                    route = Channel.AraSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: AraSettingsViewModel = hiltViewModel(backStackEntry)
 
@@ -493,7 +520,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             type = NavType.StringType
                             nullable = false
                         }
-                    )
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: AraMyPostViewModel = hiltViewModel(backStackEntry)
 
@@ -504,7 +535,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
-                    route = Channel.TaxiSettings.name
+                    route = Channel.TaxiSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiSettingsViewModel = hiltViewModel(backStackEntry)
 
@@ -515,7 +550,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
-                    route = Channel.TaxiReportSettings.name
+                    route = Channel.TaxiReportSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = trendingPopEnterTransition(),
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiReportListViewModel = hiltViewModel(backStackEntry)
 
@@ -579,7 +618,7 @@ fun AppDownBar(
 @Composable
 private fun Preview() {
     Theme {
-        MainTabBar()
+        MainTabBar(rememberNavController())
     }
 }
 

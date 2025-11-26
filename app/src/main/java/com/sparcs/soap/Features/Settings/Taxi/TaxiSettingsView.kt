@@ -38,6 +38,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -138,10 +139,25 @@ private fun LoadedView(
     val changeApplied = stringResource(R.string.change_applied)
     var showErrorDialog by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var showPopOver by remember { mutableStateOf(false) }
 
     Column {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+
+                Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
+
+                if (viewModel.user?.badge == true) {
+                    Spacer(Modifier.width(4.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.phone_circle_fill),
+                        contentDescription = "Badge",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(15.dp).clickable { showPopOver = true }
+                    )
+                }
+            }
 
             RowElementView(
                 title = stringResource(R.string.nickname),
@@ -269,6 +285,21 @@ private fun LoadedView(
                 },
                 title = { Text(stringResource(R.string.error)) },
                 text = { Text(errorMessage) }
+            )
+        }
+
+        if(showPopOver){
+            AlertDialog(
+                onDismissRequest = { showPopOver = false },
+                title = null,
+                text = {
+                    Text(stringResource(R.string.members_with_this_badge))
+                },
+                confirmButton = {
+                    TextButton(onClick = { showPopOver = false }) {
+                        Text(stringResource(R.string.ok))
+                    }
+                }
             )
         }
     }

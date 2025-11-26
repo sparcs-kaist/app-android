@@ -1,9 +1,9 @@
 package com.sparcs.soap.Networking.ResponseDTO.Feed
 
+import com.google.gson.annotations.SerializedName
 import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
 import com.sparcs.soap.Shared.Extensions.toDate
-import com.google.gson.annotations.SerializedName
 import java.util.Date
 
 data class FeedPostDTO (
@@ -15,6 +15,9 @@ data class FeedPostDTO (
 
     @SerializedName("is_anonymous")
     val isAnonymous: Boolean,
+
+    @SerializedName("is_kaist_ip")
+    val isKaistIP: Boolean,
 
     @SerializedName("author_name")
     val authorName: String,
@@ -51,6 +54,7 @@ data class FeedPostDTO (
             id = id,
             content = content,
             isAnonymous = isAnonymous,
+            isKaistIP = isKaistIP,
             authorName = authorName,
             nickname = nickname,
             profileImageURL = profileImageURL,

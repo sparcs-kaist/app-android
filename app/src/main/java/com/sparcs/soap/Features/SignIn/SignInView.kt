@@ -36,19 +36,21 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.sparcs.soap.Domain.Enums.Auth.AuthUseCaseError
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.ViewModelMocks.MockSignInViewModel
 import com.sparcs.soap.ui.theme.Theme
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 @Composable
 fun SignInView(
-    viewModel: SignInViewModelProtocol = hiltViewModel<SignInViewModel>()
+    viewModel: SignInViewModelProtocol = hiltViewModel<SignInViewModel>(),
 ) {
     val isLoading = viewModel.isLoading
     var showErrorDialog by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
+    var errorMessage = viewModel.errorMessage ?: "Unknown Error"
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -76,14 +78,18 @@ fun SignInView(
                 coroutineScope.launch {
                     try {
                         viewModel.signIn(context as Activity)
+                    } catch (e: CancellationException) {
+                        errorMessage = "User cancelled"
+                        showErrorDialog = true
+                    } catch (e: AuthUseCaseError) {
+                        errorMessage = e.message ?: "Unknown error"
+                        showErrorDialog = true
                     } catch (e: Exception) {
                         errorMessage = e.message ?: "Unknown error"
                         showErrorDialog = true
                     }
                 }
-            },
-            enabled = !isLoading,
-            modifier = Modifier
+            }, enabled = !isLoading, modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)
         ) {
@@ -99,16 +105,11 @@ fun SignInView(
         }
 
         if (showErrorDialog) {
-            AlertDialog(
-                onDismissRequest = { showErrorDialog = false },
-                confirmButton = {
-                    TextButton(onClick = { showErrorDialog = false }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                title = { Text(stringResource(R.string.error)) },
-                text = { Text(errorMessage) }
-            )
+            AlertDialog(onDismissRequest = { showErrorDialog = false }, confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text(stringResource(R.string.ok))
+                }
+            }, title = { Text(stringResource(R.string.error)) }, text = { Text(errorMessage) })
         }
     }
 }
@@ -125,11 +126,11 @@ private fun TermsAndPrivacyText(context: Context) {
         }
         pop()
 
-        append(stringResource(R.string.and_text) +" ")
+        append(stringResource(R.string.and_text) + " ")
 
         pushStringAnnotation(tag = "PRIVACY", annotation = Constants.privacyPolicyURL)
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-            append(stringResource(R.string.privacy_policy)+ " ")
+            append(stringResource(R.string.privacy_policy) + " ")
         }
         pop()
 
@@ -137,12 +138,9 @@ private fun TermsAndPrivacyText(context: Context) {
     }
 
     ClickableText(
-        text = annotatedString,
-        style = MaterialTheme.typography.bodySmall.copy(
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        ),
-        onClick = { offset ->
+        text = annotatedString, style = MaterialTheme.typography.bodySmall.copy(
+            color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
+        ), onClick = { offset ->
             annotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
                 .firstOrNull()?.let { uri ->
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri.item))
@@ -153,8 +151,7 @@ private fun TermsAndPrivacyText(context: Context) {
                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri.item))
                     context.startActivity(intent)
                 }
-        },
-        modifier = Modifier.fillMaxWidth()
+        }, modifier = Modifier.fillMaxWidth()
     )
 }
 

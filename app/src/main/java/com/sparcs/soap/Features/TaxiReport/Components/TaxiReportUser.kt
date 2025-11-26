@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -42,12 +43,23 @@ fun TaxiReportUser(
             .clickable { onClick() }
     ) {
         UserProfileImage(user = user)
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(Modifier.width(8.dp))
         Column {
-            Text(
-                text = user.nickname,
-                style = MaterialTheme.typography.bodyMedium
-            )
+            Row(verticalAlignment = Alignment.CenterVertically){
+                Text(
+                    text = user.nickname,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(Modifier.width(4.dp))
+                if(user.badge){
+                    Icon(
+                        painter = painterResource(R.drawable.phone_circle_fill),
+                        contentDescription = "Badge",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(15.dp)
+                    )
+                }
+            }
             if (user.isSettlement != TaxiParticipant.SettlementType.NotDeparted) {
                 val statusText = when (user.isSettlement) {
                     TaxiParticipant.SettlementType.RequestedSettlement -> stringResource(R.string.request_settlement)
@@ -108,6 +120,7 @@ private fun Preview(){
             nickname = "nickname",
             profileImageURL = null,
             withdraw = false,
+            badge = true,
             isSettlement = TaxiParticipant.SettlementType.PaymentRequired,
             readAt = Date()
         ), {}, false

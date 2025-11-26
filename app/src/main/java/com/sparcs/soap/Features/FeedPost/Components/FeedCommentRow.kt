@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -42,13 +43,13 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sparcs.soap.Domain.Enums.Feed.FeedReportType
 import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
 import com.sparcs.soap.Domain.Repositories.Feed.FakeFeedCommentRepository
 import com.sparcs.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
+import com.sparcs.soap.Features.FeedPost.FeedPostViewModel
 import com.sparcs.soap.Features.FeedPost.FeedPostViewModelProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
 import com.sparcs.soap.Features.Post.Components.PostVoteButton
@@ -57,6 +58,7 @@ import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.timeAgoDisplay
 import com.sparcs.soap.Shared.Mocks.mock
 import com.sparcs.soap.Shared.Mocks.mockList
+import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
 import com.sparcs.soap.ui.theme.grayF8
@@ -167,12 +169,20 @@ private fun Header(
             style = MaterialTheme.typography.bodyMedium,
             color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.scrim
         )
-
+        Spacer(Modifier.width(8.dp))
+        if(comment.isKaistIP){
+            Icon(
+                painter = painterResource(R.drawable.checkmark_seal_fill),
+                contentDescription = null,
+                tint = Color(0xFF2196F3),
+                modifier = Modifier.size(15.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+        }
         Text(
             text = comment.createdAt.timeAgoDisplay(),
             color = MaterialTheme.colorScheme.grayBB,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(start = 8.dp)
+            style = MaterialTheme.typography.bodyMedium
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -373,7 +383,7 @@ suspend fun handleVote(
 private fun Preview() {
     Theme {
         FeedCommentRow(
-            viewModel = hiltViewModel(),
+            viewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded),
             comment = FeedComment.mock(),
             isMine = true,
             isReply = false,
@@ -389,7 +399,7 @@ private fun Preview() {
 private fun Preview2() {
     Theme {
         FeedCommentRow(
-            viewModel = hiltViewModel(),
+            viewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded),
             comment = FeedComment.mockList()[0],
             isMine = false,
             isReply = true,

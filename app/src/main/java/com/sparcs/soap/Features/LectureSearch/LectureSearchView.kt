@@ -222,7 +222,6 @@ fun LectureSearchView(
                             showCannotAddLectureAlert = false
 
                             pendingLectureToAdd?.let { lecture ->
-                                timetableViewModel.removeOverlappingLectures(lecture)
                                 timetableViewModel.addLecture(lecture)
                                 pendingLectureToAdd = null
                             }
