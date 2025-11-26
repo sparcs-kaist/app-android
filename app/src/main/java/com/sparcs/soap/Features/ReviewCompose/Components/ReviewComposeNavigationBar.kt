@@ -61,31 +61,12 @@ fun ReviewComposeNavigationBar(
         navigationIcon = {
             IconButton(
                 onClick = {
-                    expanded = true
+                    navController.popBackStack()
                 }) {
                 Icon(
                     painter = painterResource(R.drawable.arrow_back_ios),
                     contentDescription = "Back",
                     tint = MaterialTheme.colorScheme.darkGray
-                )
-            }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                shape = RoundedCornerShape(16.dp),
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = stringResource(R.string.discard_this_review),
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    },
-                    onClick = {
-                        expanded = false
-                        navController.popBackStack()
-                    }
                 )
             }
         }
