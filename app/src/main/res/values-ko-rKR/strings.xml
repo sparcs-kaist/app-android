@@ -317,6 +317,7 @@
     <string name="autumn">가을</string>
     <string name="winter">겨울</string>
     <string name="credit_people">만든 사람들</string>
+    <string name="members_with_this_badge">이 배지가 있는 회원분들은 문제가 생길 시 SPARCS의 중재를 통해 문제를 해결할 수 있습니다.</string>
 
 
 </resources>

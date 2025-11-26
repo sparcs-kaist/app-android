@@ -97,7 +97,8 @@ private fun Preview() {
         date = Date(),
         isMe = false,
         isGeneral = false,
-        isWithdrawn = false
+        isWithdrawn = false,
+        badge = true
     ) {
         TaxiChatShareBubble(room = TaxiRoom.mock())
     }
