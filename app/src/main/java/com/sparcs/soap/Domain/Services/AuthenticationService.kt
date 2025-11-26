@@ -70,9 +70,16 @@ class AuthenticationService @Inject constructor(
             val codeChallenge = generateCodeChallenge(codeVerifier)
             val authURL = Constants.authorizationURL + codeChallenge
 
+            var isAuthProcessing = false
+            var isBrowserLaunched = false
+
             val observer = object : DefaultLifecycleObserver {
-                override fun onStop(owner: LifecycleOwner) {
-                    if (continuation.isActive) {
+                override fun onPause(owner: LifecycleOwner) {
+                    isBrowserLaunched = true
+                }
+
+                override fun onResume(owner: LifecycleOwner) {
+                    if (isBrowserLaunched && continuation.isActive && !isAuthProcessing) {
                         continuation.cancel(AuthenticationServiceError.UserCancelled)
                         AuthenticationCallbackHandler.clearCallback()
                     }
@@ -87,6 +94,7 @@ class AuthenticationService @Inject constructor(
 
                 AuthenticationCallbackHandler.setCallback { uri ->
                     if (!continuation.isActive) return@setCallback
+                    isAuthProcessing = true
 
                     val session = uri.getQueryParameter("session")
                     if (!session.isNullOrEmpty()) {
@@ -96,7 +104,11 @@ class AuthenticationService @Inject constructor(
                                 continuation.resume(tokenResponse)
                             } catch (e: Exception) {
                                 Log.e("AuthWebView", "Token exchange failed", e)
-                                continuation.resumeWithException(AuthenticationServiceError.TokenExchangeFailed(e))
+                                continuation.resumeWithException(
+                                    AuthenticationServiceError.TokenExchangeFailed(
+                                        e
+                                    )
+                                )
                             } finally {
                                 AuthenticationCallbackHandler.clearCallback()
                             }
