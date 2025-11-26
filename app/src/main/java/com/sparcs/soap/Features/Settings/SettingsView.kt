@@ -82,8 +82,9 @@ fun SettingsView(
             )
         }) { innerPadding ->
         LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(16.dp)
+                .padding(innerPadding)
         ) {
             item {
                 Text(

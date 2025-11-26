@@ -43,7 +43,15 @@ fun TimetableGrid(
 ) {
     val timetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
     val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
+
     val candidateLecture by viewModel.candidateLecture.collectAsState()
+    val times = buildList {
+        timetable?.lectures?.forEach { addAll(it.classTimes) }
+        candidateLecture?.let { addAll(it.classTimes) }
+    }
+
+    val minMinutes = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: timetable?.minMinutes ?:  TimetableDefaults.defaultMinMinutes
+    val maxMinutes = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: timetable?.maxMinutes ?:  TimetableDefaults.defaultMaxMinutes
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
@@ -53,8 +61,8 @@ fun TimetableGrid(
         DaysColumnHeader(visibleDays = visibleDays)
 
         TimesRowHeader(
-            minMinutes = timetable?.minMinutes ?: TimetableDefaults.defaultMinMinutes,
-            maxMinutes = timetable?.maxMinutes ?: TimetableDefaults.defaultMaxMinutes
+            minMinutes = minMinutes,
+            maxMinutes = maxMinutes
         )
         Row(
             modifier = Modifier
@@ -69,8 +77,8 @@ fun TimetableGrid(
                         .fillMaxHeight()
                 ) {
                     GridHorizontalLines(
-                        minMinutes = timetable?.minMinutes ?: TimetableDefaults.defaultMinMinutes,
-                        maxMinutes = timetable?.maxMinutes ?: TimetableDefaults.defaultMaxMinutes
+                        minMinutes = minMinutes,
+                        maxMinutes = maxMinutes
                     )
 
                     timetable?.getLectures(day, candidateLecture)?.forEach { item ->
@@ -82,7 +90,7 @@ fun TimetableGrid(
                             TimetableConstructor.getCellHeightPx(
                                 item,
                                 containerHeightPx,
-                                timetable.duration,
+                                maxMinutes - minMinutes,
                                 daysHeightPx + 24
                             ).toDp()
                         }
@@ -90,8 +98,8 @@ fun TimetableGrid(
                             TimetableConstructor.getCellOffsetPx(
                                 item,
                                 containerHeightPx,
-                                timetable.minMinutes,
-                                timetable.duration,
+                                minMinutes,
+                                maxMinutes - minMinutes,
                                 daysHeightPx + 24
                             ).toDp()
                         }//+24하면 딱 맞는 이유가 뭐지...
