@@ -399,6 +399,12 @@ fun ContentView(
                 TaxiChatDayMessage(date = currentDate)
                 previousDate = currentDate
             }
+
+            val badge = viewModel.room.value.participants
+                .firstOrNull { it.id == group.authorID }
+                ?.badge
+                ?: false
+
             TaxiChatUserWrapper(
                 authorID = group.authorID,
                 authorName = group.authorName,
@@ -406,7 +412,8 @@ fun ContentView(
                 date = group.time,
                 isMe = group.isMe,
                 isGeneral = group.isGeneral,
-                isWithdrawn = group.authorIsWithdrew ?: false
+                isWithdrawn = group.authorIsWithdrew ?: false,
+                badge = badge
             ) {
                 group.chats.forEach { chat ->
                     val showTimeLabel = group.lastChatID == chat.id
@@ -522,7 +529,8 @@ private fun LoadingView() {
                 date = groupedChat.time,
                 isMe = false,
                 isGeneral = groupedChat.isGeneral,
-                isWithdrawn = groupedChat.authorIsWithdrew ?: false
+                isWithdrawn = groupedChat.authorIsWithdrew ?: false,
+                badge = false
             ) {
                 groupedChat.chats.forEach { chat ->
                     val showTimeLabel = groupedChat.lastChatID == chat.id
