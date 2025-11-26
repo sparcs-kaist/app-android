@@ -132,9 +132,10 @@ fun Header(
         Spacer(Modifier.width(8.dp))
         if(post.isKaistIP){
             Icon(
-                painter = painterResource(R.drawable.round_check),
+                painter = painterResource(R.drawable.checkmark_seal_fill),
                 contentDescription = null,
-                tint = Color(0xFF03A9F4)
+                tint = Color(0xFF2196F3),
+                modifier = Modifier.size(15.dp)
             )
             Spacer(Modifier.width(8.dp))
         }
