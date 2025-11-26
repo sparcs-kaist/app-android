@@ -1,12 +1,13 @@
 package com.sparcs.soap.Features.Post.Components
 
-import android.graphics.Color
 import android.view.ViewGroup
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 
@@ -19,6 +20,17 @@ fun DynamicHeightWebView(
 ) {
     val context = LocalContext.current
 
+    val bgColor = MaterialTheme.colorScheme.background.toArgb()
+    val textColor = MaterialTheme.colorScheme.onBackground.toArgb()
+    val linkColor = MaterialTheme.colorScheme.primary.toArgb()
+
+    fun Int.toHex(): String =
+        String.format("#%06X", 0xFFFFFF and this)
+
+    val bgHex = bgColor.toHex()
+    val textHex = textColor.toHex()
+    val linkHex = linkColor.toHex()
+
     AndroidView(
         factory = {
             WebView(context).apply {
@@ -27,11 +39,12 @@ fun DynamicHeightWebView(
                     ViewGroup.LayoutParams.WRAP_CONTENT
                 )
                 settings.javaScriptEnabled = true
-                setBackgroundColor(Color.TRANSPARENT)
+                setBackgroundColor(bgColor)
 
                 webViewClient = object : WebViewClient() {
                     override fun onPageFinished(view: WebView?, url: String?) {
                         super.onPageFinished(view, url)
+
                         evaluateJavascript(
                             "(document.body.scrollHeight) || (document.documentElement.scrollHeight)"
                         ) { result ->
@@ -55,26 +68,23 @@ fun DynamicHeightWebView(
             }
         },
         update = { webView ->
+
             val fullHTML = """
                 <html>
                 <head>
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
                   <style>
                     html, body {
                       margin: 0;
                       padding: 0;
                       width: 100%;
                       font-family: sans-serif;
-                      background-color: #fff;
-                      color: #000;
+                      background-color: $bgHex;
+                      color: $textHex;
                     }
-                    
-                    @media (prefers-color-scheme: dark) {
-                      html, body {
-                        background-color: #000;
-                        color: #fff;
-                      }
-                      a { color: #80bfff; }
+
+                    a {
+                      color: $linkHex;
                     }
 
                     img {
@@ -93,6 +103,8 @@ fun DynamicHeightWebView(
                 </body>
                 </html>
             """.trimIndent()
+
+            webView.setBackgroundColor(bgColor)
 
             webView.loadDataWithBaseURL(
                 null,
