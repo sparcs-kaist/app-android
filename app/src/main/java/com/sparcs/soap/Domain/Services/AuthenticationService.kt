@@ -1,9 +1,11 @@
 package com.sparcs.soap.Domain.Services
 
-import android.app.Activity
 import android.net.Uri
 import android.util.Log
+import androidx.activity.ComponentActivity
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import com.sparcs.soap.Domain.Enums.Auth.AuthenticationServiceError
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Helpers.TokenStorageProtocol
@@ -38,6 +40,10 @@ object AuthenticationCallbackHandler {
         callback?.invoke(uri)
         callback = null
     }
+
+    fun clearCallback() {
+        callback = null
+    }
 }
 
 class AuthenticationService @Inject constructor(
@@ -57,18 +63,39 @@ class AuthenticationService @Inject constructor(
     }
 
 
-    override suspend fun authenticate(activity: Activity): SignInResponseDTO =
+    override suspend fun authenticate(activity: ComponentActivity): SignInResponseDTO =
         suspendCancellableCoroutine { continuation ->
 
             val codeVerifier = generateCodeVerifier()
             val codeChallenge = generateCodeChallenge(codeVerifier)
             val authURL = Constants.authorizationURL + codeChallenge
 
+            var isAuthProcessing = false
+            var isBrowserLaunched = false
+
+            val observer = object : DefaultLifecycleObserver {
+                override fun onPause(owner: LifecycleOwner) {
+                    isBrowserLaunched = true
+                }
+
+                override fun onResume(owner: LifecycleOwner) {
+                    if (isBrowserLaunched && continuation.isActive && !isAuthProcessing) {
+                        continuation.cancel(AuthenticationServiceError.UserCancelled)
+                        AuthenticationCallbackHandler.clearCallback()
+                    }
+                }
+            }
+
             try {
+                activity.lifecycle.addObserver(observer)
+
                 val customTabsIntent = CustomTabsIntent.Builder().build()
                 customTabsIntent.launchUrl(activity, Uri.parse(authURL))
 
                 AuthenticationCallbackHandler.setCallback { uri ->
+                    if (!continuation.isActive) return@setCallback
+                    isAuthProcessing = true
+
                     val session = uri.getQueryParameter("session")
                     if (!session.isNullOrEmpty()) {
                         CoroutineScope(Dispatchers.IO).launch {
@@ -78,20 +105,29 @@ class AuthenticationService @Inject constructor(
                             } catch (e: Exception) {
                                 Log.e("AuthWebView", "Token exchange failed", e)
                                 continuation.resumeWithException(
-                                    AuthenticationServiceError.TokenExchangeFailed(e)
+                                    AuthenticationServiceError.TokenExchangeFailed(
+                                        e
+                                    )
                                 )
+                            } finally {
+                                AuthenticationCallbackHandler.clearCallback()
                             }
                         }
                     } else {
                         continuation.resumeWithException(AuthenticationServiceError.InvalidCallbackURL)
+                        AuthenticationCallbackHandler.clearCallback()
                     }
                 }
 
                 continuation.invokeOnCancellation {
-                    continuation.resumeWithException(AuthenticationServiceError.UserCancelled)
+                    AuthenticationCallbackHandler.clearCallback()
+                    activity.lifecycle.removeObserver(observer)
                 }
+
             } catch (e: Exception) {
-                continuation.resumeWithException(AuthenticationServiceError.Unknown)
+                if (continuation.isActive) {
+                    continuation.resumeWithException(AuthenticationServiceError.Unknown)
+                }
             }
         }
 

@@ -30,10 +30,6 @@ data class Timetable(
             .flatMap { it.classTimes }.maxOfOrNull { it.end }
             ?.let { ((it / 60) + 1) * 60 } ?: defaultMaxMinutes
 
-    // Return the maximum duration of the total timetable.
-    val duration: Int
-        get() = maxMinutes - minMinutes
-
     // Return visible days. Return all weekdays by default, and check for the need of weekends inclusion.
     val visibleDays: List<DayType>
         get() {
@@ -123,6 +119,19 @@ data class Timetable(
                         if (newTime.begin < existingTime.end && newTime.end > existingTime.begin) {
                             return true
                         }
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    fun hasCollisions(a: Lecture, b: Lecture): Boolean {
+        for (existingTime in b.classTimes) {
+            for (newTime in a.classTimes) {
+                if (existingTime.day == newTime.day) {
+                    if (newTime.begin < existingTime.end && newTime.end > existingTime.begin) {
+                        return true
                     }
                 }
             }

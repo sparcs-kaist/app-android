@@ -82,8 +82,9 @@ fun SettingsView(
             )
         }) { innerPadding ->
         LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .padding(16.dp)
+                .padding(innerPadding)
         ) {
             item {
                 Text(
@@ -127,6 +128,7 @@ fun SettingsView(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
                 )
+
                 ServiceNavButton(
                     stringResource(R.string.privacy_policy),
                     painterResource(R.drawable.outline_policy),

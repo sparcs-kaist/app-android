@@ -412,9 +412,7 @@ private fun EmptyView(navController: NavController) {
 
         Button(
             onClick = {
-                navController.navigate(Channel.TaxiRoomCreation.name) {
-                    launchSingleTop = true
-                }
+                navController.navigate(Channel.TaxiRoomCreation.name)
             },
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -465,9 +463,7 @@ private fun EmptyResultView(
         Column {
             Button(
                 onClick = {
-                    navController.navigate(Channel.TaxiRoomCreation.name) {
-                        launchSingleTop = true
-                    }
+                    navController.navigate(Channel.TaxiRoomCreation.name)
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {

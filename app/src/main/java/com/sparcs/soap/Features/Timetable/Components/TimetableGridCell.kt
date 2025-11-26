@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,14 +42,17 @@ fun TimetableGridCell(
             LocalizedText(
                 text = lecture.title,
                 color = lecture.textColor,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 overflow = TextOverflow.Ellipsis,
-                maxLines = 2
+                maxLines = 3
             )
             LocalizedText(
                 text = lecture.classTimes[0].classroomNameShort,
                 color = if(isCandidate) MaterialTheme.colorScheme.onPrimary else lecture.textColor,
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.labelSmall,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 2,
+                fontWeight = FontWeight.Light
             )
         }
     }
