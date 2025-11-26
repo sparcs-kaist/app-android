@@ -67,6 +67,7 @@ fun SignInView(
         Text(
             text = "SPARCS APP INTERNAL",
             style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -100,7 +101,9 @@ fun SignInView(
                     modifier = Modifier.size(24.dp)
                 )
             } else {
-                Text(stringResource(R.string.sign_in_sso))
+                Text(
+                    text = stringResource(R.string.sign_in_sso)
+                )
             }
         }
 
