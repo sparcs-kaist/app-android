@@ -7,6 +7,7 @@ data class FeedPost(
     val id: String,
     val content: String,
     val isAnonymous: Boolean,
+    val isKaistIP: Boolean,
     val authorName: String,
     val nickname: String?,
     val profileImageURL: String?,

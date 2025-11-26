@@ -10,6 +10,7 @@ data class FeedComment(
     val content: String,
     val isDeleted: Boolean,
     val isAnonymous: Boolean,
+    val isKaistIP: Boolean,
     val authorName: String,
     val isAuthor: Boolean,
     val isMyComment: Boolean,

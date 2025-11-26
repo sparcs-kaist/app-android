@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -167,7 +168,14 @@ private fun Header(
             style = MaterialTheme.typography.bodyMedium,
             color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.scrim
         )
-
+        if(comment.isKaistIP){
+            Icon(
+                painter = painterResource(R.drawable.round_check),
+                contentDescription = null,
+                tint = Color(0xFF03A9F4)
+            )
+            Spacer(Modifier.width(8.dp))
+        }
         Text(
             text = comment.createdAt.timeAgoDisplay(),
             color = MaterialTheme.colorScheme.grayBB,
