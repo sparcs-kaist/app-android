@@ -100,25 +100,28 @@ private val LightColorScheme = lightColorScheme(
     surfaceDim = theme_light_surfaceDim,
 )
 
+@Composable
+fun ColorScheme.isDark() = this === DarkColorScheme
+
 val ColorScheme.lightGray0: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) theme_dark_lightGray0 else theme_light_lightGray0
+    get() = if (isDark()) theme_dark_lightGray0 else theme_light_lightGray0
 
 val ColorScheme.gray64: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) theme_dark_gray64 else theme_light_gray64
+    get() = if (isDark()) theme_dark_gray64 else theme_light_gray64
 
 val ColorScheme.grayBB: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) theme_dark_grayBB else theme_light_grayBB
+    get() = if (isDark()) theme_dark_grayBB else theme_light_grayBB
 
 val ColorScheme.grayF8: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) theme_dark_grayF8 else theme_light_grayF8
+    get() = if (isDark()) theme_dark_grayF8 else theme_light_grayF8
 
 val ColorScheme.darkGray: Color
     @Composable
-    get() = if (isSystemInDarkTheme()) theme_dark_darkGray else theme_light_darkGray
+    get() = if (isDark()) theme_dark_darkGray else theme_light_darkGray
 
 
 
