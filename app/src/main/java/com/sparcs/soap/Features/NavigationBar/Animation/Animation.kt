@@ -35,8 +35,7 @@ fun trendingEnterTransition(): (AnimatedContentTransitionScope<NavBackStackEntry
     {
         slideInHorizontally(
             animationSpec = spring(
-                stiffness = Spring.StiffnessLow,
-                dampingRatio = Spring.DampingRatioLowBouncy
+                stiffness = Spring.StiffnessMedium,
             ),
             initialOffsetX = { it }
         )
@@ -46,8 +45,7 @@ fun trendingExitTransition(): (AnimatedContentTransitionScope<NavBackStackEntry>
     {
         slideOutHorizontally(
             animationSpec = spring(
-                stiffness = Spring.StiffnessLow,
-                dampingRatio = Spring.DampingRatioLowBouncy
+                stiffness = Spring.StiffnessMedium,
             ),
             targetOffsetX = { it }
         )
@@ -57,8 +55,7 @@ fun trendingPopEnterTransition(): (AnimatedContentTransitionScope<NavBackStackEn
     {
         slideInHorizontally(
             animationSpec = spring(
-                stiffness = Spring.StiffnessLow,
-                dampingRatio = Spring.DampingRatioLowBouncy
+                stiffness = Spring.StiffnessMedium,
             ),
             initialOffsetX = { it }
         )
@@ -68,8 +65,7 @@ fun trendingPopExitTransition(): (AnimatedContentTransitionScope<NavBackStackEnt
     {
         slideOutHorizontally(
             animationSpec = spring(
-                stiffness = Spring.StiffnessLow,
-                dampingRatio = Spring.DampingRatioLowBouncy
+                stiffness = Spring.StiffnessMedium,
             ),
             targetOffsetX = { it }
         )
