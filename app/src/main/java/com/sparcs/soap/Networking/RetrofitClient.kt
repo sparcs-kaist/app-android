@@ -1,6 +1,7 @@
 package com.sparcs.soap.Networking
 
 import com.google.gson.Gson
+import com.sparcs.soap.BuildConfig
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Helpers.TaxiLocationStorage
 import com.sparcs.soap.Domain.Helpers.TaxiLocationStorageProtocol
@@ -234,9 +235,12 @@ object NetworkModule {
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val newRequest = original.newBuilder()
-                    .header("Origin", "sparcsapp")
-                    .header("Content-Type", "application/json")
                     .apply {
+                        header("Origin", "sparcsapp")
+                        header("Content-Type", "application/json")
+                        if (BuildConfig.DEBUG) {
+                            addHeader("X-SID-AUTH-TOKEN", BuildConfig.OTL_SID_AUTH_TOKEN)
+                        }
                         accessToken?.let {
                             header("Authorization", "Bearer $it")
                         }
