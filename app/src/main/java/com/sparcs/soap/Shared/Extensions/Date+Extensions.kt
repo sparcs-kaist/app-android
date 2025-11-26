@@ -103,8 +103,15 @@ fun Date.relativeTimeString(): String {
             if (weekday != null) {
                 stringResource(R.string.weekday_at, weekday, time)
             } else {
-                val pattern = stringResource(R.string.date_time_fallback_pattern)
-                val formatter = DateTimeFormatter.ofPattern(pattern, Locale.getDefault())
+                val locale = Locale.getDefault()
+                val pattern = if (locale.language == "ko") {
+                    "M월 d일 a h:mm"
+                } else {
+                    "MMM d 'at' h:mm a"
+                }
+
+                val formatter = DateTimeFormatter.ofPattern(pattern, locale)
+
                 val localDateTime = LocalDateTime.ofInstant(
                     this.toInstant(),
                     ZoneId.systemDefault()
