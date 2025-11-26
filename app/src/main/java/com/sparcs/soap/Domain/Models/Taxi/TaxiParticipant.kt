@@ -9,6 +9,7 @@ data class TaxiParticipant(
     val nickname: String,
     val profileImageURL: URL?,
     val withdraw: Boolean,
+    val badge: Boolean,
     val isSettlement: SettlementType?,
     val readAt: Date
 ) {
