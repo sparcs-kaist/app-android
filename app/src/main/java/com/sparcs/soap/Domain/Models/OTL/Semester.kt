@@ -1,5 +1,7 @@
 package com.sparcs.soap.Domain.Models.OTL
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.sparcs.soap.Domain.Enums.OTL.SemesterType
 import java.util.Date
 
@@ -15,7 +17,8 @@ data class Semester(
         get() = "$year-${semesterType}"
 
     val description: String
-        get() = "$year ${semesterType.rawValue}"
+        @Composable
+        get() = "$year ${stringResource(semesterType.rawValue)}"
 
     override fun compareTo(other: Semester): Int {
         return if (this.year != other.year) {

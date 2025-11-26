@@ -20,6 +20,7 @@ fun TaxiRoom.Companion.mockList(): List<TaxiRoom>{
                 nickname = "tuesday-nickname",
                 profileImageURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
                 withdraw = false,
+                badge = true,
                 isSettlement = null,
                 readAt = Date()
             ),
@@ -29,6 +30,7 @@ fun TaxiRoom.Companion.mockList(): List<TaxiRoom>{
                 nickname = "wednesday-nickname",
                 profileImageURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
                 withdraw = false,
+                badge = true,
                 isSettlement = null,
                 readAt = Date()
             )

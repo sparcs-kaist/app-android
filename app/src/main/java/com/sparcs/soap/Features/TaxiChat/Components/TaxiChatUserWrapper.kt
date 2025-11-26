@@ -2,6 +2,7 @@ package com.sparcs.soap.Features.TaxiChat.Components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,13 +13,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,8 +48,11 @@ fun TaxiChatUserWrapper(
     isMe: Boolean,
     isGeneral: Boolean,
     isWithdrawn: Boolean,
+    badge: Boolean,
     content: @Composable () -> Unit
 ) {
+    var showPopOver by remember { mutableStateOf(false) }
+
     if (isGeneral) {
         content()
     } else {
@@ -67,16 +80,31 @@ fun TaxiChatUserWrapper(
             ) {
                 // nickname label
                 if (!isMe) {
-                    Text(
-                        text = when {
-                            isWithdrawn -> stringResource(R.string.unknown)
-                            authorName != null -> authorName
-                            authorID == null -> stringResource(R.string.taxi_bot)
-                            else -> stringResource(R.string.unknown)
-                        },
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically){
+                        Text(
+                            text = when {
+                                isWithdrawn -> stringResource(R.string.unknown)
+                                authorName != null -> authorName
+                                authorID == null -> stringResource(R.string.taxi_bot)
+                                else -> stringResource(R.string.unknown)
+                            },
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium
+                        )
+                        if (badge) {
+                            Spacer(Modifier.width(4.dp))
+                            Icon(
+                                painter = painterResource(R.drawable.phone_circle_fill),
+                                contentDescription = "Badge",
+                                tint = Color.Unspecified,
+                                modifier = Modifier
+                                    .size(15.dp)
+                                    .clickable {
+                                        showPopOver = true
+                                    }
+                            )
+                        }
+                    }
                 }
                 // chat bubbles
                 Column(
@@ -93,6 +121,20 @@ fun TaxiChatUserWrapper(
                 Spacer(modifier = Modifier.width(60.dp))
             }
         }
+    }
+    if(showPopOver){
+        AlertDialog(
+            onDismissRequest = { showPopOver = false },
+            title = null,
+            text = {
+                Text(stringResource(R.string.members_with_this_badge))
+            },
+            confirmButton = {
+                TextButton(onClick = { showPopOver = false }) {
+                    Text(stringResource(R.string.ok))
+                }
+            }
+        )
     }
 }
 
@@ -156,7 +198,8 @@ private fun Preview() {
                 date = Date(),
                 isMe = false,
                 isGeneral = false,
-                isWithdrawn = false
+                isWithdrawn = false,
+                badge = true
             ) {
                 TaxiChatBubble(content = "hey", showTip = true, isMe = false)
             }
@@ -168,7 +211,8 @@ private fun Preview() {
                 date = Date(),
                 isMe = true,
                 isGeneral = false,
-                isWithdrawn = false
+                isWithdrawn = false,
+                badge = true
             ) {
                 TaxiChatBubble(content = "hey alex!", showTip = true, isMe = true)
             }
@@ -180,7 +224,8 @@ private fun Preview() {
                 date = Date(),
                 isMe = false,
                 isGeneral = false,
-                isWithdrawn = false
+                isWithdrawn = false,
+                badge = true
             ) {
                 TaxiChatBubble(content = "yo everyone", showTip = false, isMe = false)
                 TaxiChatBubble(content = "what's up", showTip = true, isMe = false)
@@ -193,7 +238,8 @@ private fun Preview() {
                 date = Date(),
                 isMe = false,
                 isGeneral = false,
-                isWithdrawn = false
+                isWithdrawn = false,
+                badge = true
             ) {
                 TaxiChatBubble(content = "how's your day going?", showTip = true, isMe = false)
             }
@@ -205,7 +251,8 @@ private fun Preview() {
                 date = Date(),
                 isMe = false,
                 isGeneral = false,
-                isWithdrawn = false
+                isWithdrawn = false,
+                badge = true
             ) {
                 TaxiChatBubble(content = "pretty chill", showTip = false, isMe = false)
                 TaxiChatBubble(content = "so far", showTip = false, isMe = false)
@@ -219,7 +266,8 @@ private fun Preview() {
                 date = Date(),
                 isMe = true,
                 isGeneral = false,
-                isWithdrawn = false
+                isWithdrawn = false,
+                badge = true
             ) {
                 TaxiChatBubble(content = "same here", showTip = false, isMe = true)
                 TaxiChatBubble(content = "just working through emails", showTip = true, isMe = true)
