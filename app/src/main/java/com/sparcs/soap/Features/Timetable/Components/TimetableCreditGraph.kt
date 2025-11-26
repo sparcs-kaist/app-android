@@ -143,7 +143,7 @@ fun TimetableCreditGraph(
                                 )
                         )
                         Spacer(modifier = Modifier.width(3.dp))
-                        Text(text = element.lectureType.name + "(${element.credits})", style = MaterialTheme.typography.bodySmall)
+                        Text(text = element.lectureType.code.localized() + "(${element.credits})", style = MaterialTheme.typography.bodySmall)
 
                     }
                 }

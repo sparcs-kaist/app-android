@@ -7,7 +7,7 @@ data class LectureCreditData(
     val credits: Int
 ) {
     val id: String
-        get() = lectureType.code
+        get() = lectureType.code.localized("en")
 
     companion object {
         val mockList = listOf(
