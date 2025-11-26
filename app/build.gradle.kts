@@ -13,8 +13,8 @@ plugins {
 val properties = Properties().apply {
     load(rootProject.file("local.properties").inputStream())
 }
-val mapKey = properties.getProperty("map_api_key")
-
+val mapKey: String = properties.getProperty("map_api_key")
+val sidAuthToken: String = properties.getProperty("otl_sid_auth_token")
 
 android {
     namespace = "com.sparcs.soap"
@@ -22,6 +22,7 @@ android {
 
     defaultConfig {
         manifestPlaceholders += mapOf("mapKey" to mapKey)
+        manifestPlaceholders += mapOf("sidAuthToken" to sidAuthToken)
         applicationId = "com.sparcs.soap"
         minSdk = 31
         targetSdk = 35
@@ -31,6 +32,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
         buildConfigField("String", "MAPS_API_KEY", "\"$mapKey\"")
+        buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
     }
 
     buildTypes {
