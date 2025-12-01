@@ -78,7 +78,7 @@ fun SettingsView(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.settings),
-                onDismiss = { navController.navigate(Channel.Start.name) }
+                onDismiss = { navController.popBackStack() }
             )
         }) { innerPadding ->
         LazyColumn(
