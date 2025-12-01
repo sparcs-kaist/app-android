@@ -121,11 +121,10 @@ class TimetableViewModel @Inject constructor(
             isLoading.value = true
             try {
                 timetableUseCase.load()
+                isLoading.value = false
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "failed to fetch Timetable Data")
                 handleException(e, ErrorType.FetchData)
-            } finally {
-                isLoading.value = false
             }
         }
     }

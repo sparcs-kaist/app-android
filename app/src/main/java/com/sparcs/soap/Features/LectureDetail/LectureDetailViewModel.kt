@@ -11,6 +11,7 @@ import com.sparcs.soap.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.OTL.OTLLectureRepository
 import com.sparcs.soap.Domain.Usecases.TimetableUseCaseProtocol
 import com.sparcs.soap.Domain.Usecases.UserUseCaseProtocol
+import com.sparcs.soap.Shared.Extensions.unescapeHash
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +25,7 @@ interface LectureDetailViewModelProtocol{
     val reviews: StateFlow<List<LectureReview>>
     val isInCurrentTimetable: Boolean
     fun fetchReviews(lectureID: Int)
-    fun writeReview(review: LectureReview)
+    fun writeReview(lectureID: Int,review: LectureReview)
 }
 
 @HiltViewModel
@@ -43,7 +44,7 @@ class LectureDetailViewModel @Inject constructor(
     }
 
     private val initialLecture: Lecture by lazy {
-        val json = savedStateHandle.get<String>("lecture_json")
+        val json = savedStateHandle.get<String>("lecture_json")?.unescapeHash()
             ?: throw IllegalStateException("lecture_json is null. LectureDetailViewModel requires a lecture_json to initialize.")
         Gson().fromJson(json, Lecture::class.java)
     }
@@ -74,17 +75,17 @@ class LectureDetailViewModel @Inject constructor(
         }
     }
 
-    override fun writeReview(review: LectureReview){
+    override fun writeReview(lectureID: Int,review: LectureReview){
         viewModelScope.launch {
             try {
                 val result = otlLectureRepository.writeReview(
-                    lectureID = review.id,
+                    lectureID = lectureID,
                     content = review.content,
                     grade = review.grade,
                     load = review.load,
                     speech = review.speech
                 )
-                _reviews.value = _reviews.value + result
+                _reviews.value += result
             } catch (e: Exception) {
                 Log.e("LectureDetailVM", "writeReview failed", e)
             }

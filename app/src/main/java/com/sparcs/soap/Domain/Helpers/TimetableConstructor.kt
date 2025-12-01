@@ -8,7 +8,7 @@ object TimetableConstructor {
     val daysHeight = 16.dp
 
     private const val TOP_EXTRA_PX = 14f
-    private const val CELL_OVERLAP_ADJUST_PX = 4f
+    private const val CELL_OVERLAP_ADJUST_PX = 9f
 
     fun getCellHeightPx(
         item: LectureItem,

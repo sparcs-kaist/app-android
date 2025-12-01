@@ -15,7 +15,7 @@ class MockTimetableViewModel: TimetableViewModelProtocol {
     override val timetableUseCase: TimetableUseCase? = null
     override val isLoading = MutableStateFlow(false)
     override val semesters = MutableStateFlow(Semester.mockList())
-    override val selectedSemester = MutableStateFlow(Semester.mockList()[0])
+    override val selectedSemester = MutableStateFlow(Semester.mockList()[32])
     override val selectedTimetable = MutableStateFlow(Timetable.mock())
     override val selectedTimetableDisplayName = MutableStateFlow("")
     override val isEditable = MutableStateFlow(true)
