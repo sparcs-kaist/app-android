@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,7 +42,6 @@ interface TimetableUseCaseProtocol {
     suspend fun addLecture(lecture: Lecture)
     suspend fun deleteLecture(lecture: Lecture)
 
-    fun selectSemester(id: String)
     fun selectTimetable(id: String)
     fun setSelectedSemesterID(id: String?)
 }
@@ -116,6 +116,7 @@ class TimetableUseCase @Inject constructor(
         }
 
     // MARK: - API
+    // MARK: - API
     override suspend fun load() {
         if (_store.value.isNotEmpty() && semesters.value.isNotEmpty()) return
 
@@ -125,20 +126,14 @@ class TimetableUseCase @Inject constructor(
             userUseCase.fetchOTLUser()
             userUseCase.otlUser!!
         }
-        val newStore = fetchedSemesters.associate { semester ->
-            val myTable = makeMyTable(semester, user)
 
-            val serverTables = otlTimetableRepository.getTables(
-                user.id, semester.year, semester.semesterType
-            )
-
-            semester.id to mergeKeepingMyTableFirst(listOf(myTable), serverTables)
-        }
         // Persist semesters
         _semesters.value = fetchedSemesters
         // Seed each semester with a local "My Table" derived from user lectures
+        _store.value = fetchedSemesters.associate { semester ->
+            semester.id to listOf(makeMyTable(semester, user))
+        }
 
-        _store.value = newStore
         // Select the current semester if it exists; otherwise last
         _selectedSemesterID.value =
             fetchedSemesters.find { it.year == currentSemester.year && it.semesterType == currentSemester.semesterType }?.id
@@ -226,17 +221,15 @@ class TimetableUseCase @Inject constructor(
         _selectedTimetableID.value = updatedTable.id
     }
 
-    override fun selectSemester(id: String) {
-        _selectedSemesterID.value = id
-        _selectedTimetableID.value = "$id-myTable"
-    }
-
     override fun selectTimetable(id: String) {
         _selectedTimetableID.value = id
     }
 
     override fun setSelectedSemesterID(id: String?) {
         _selectedSemesterID.value = id
+        CoroutineScope(Dispatchers.IO).launch {
+            refreshTablesForSelectedSemester()
+        }
     }
 
     // MARK: - Helpers
@@ -344,7 +337,6 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
     override suspend fun addLecture(lecture: Lecture) {}
     override suspend fun deleteLecture(lecture: Lecture) {}
 
-    override fun selectSemester(id: String) {}
     override fun selectTimetable(id: String) {}
     override fun setSelectedSemesterID(id: String?) {}
 }
