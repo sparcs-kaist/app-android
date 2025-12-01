@@ -106,6 +106,6 @@ dependencies {
     implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.firebase.analytics)
 
-    implementation("com.google.android.play:app-update:2.1.0")
+    implementation(libs.app.update)
     implementation(libs.app.update.ktx)
 }
