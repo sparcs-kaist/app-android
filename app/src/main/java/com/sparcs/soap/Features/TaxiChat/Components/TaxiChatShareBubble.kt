@@ -28,6 +28,7 @@ import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.formattedString
 import com.sparcs.soap.Shared.Mocks.mock
+import com.sparcs.soap.ui.theme.Theme
 import java.util.Date
 
 @Composable
@@ -56,7 +57,8 @@ fun TaxiChatShareBubble(
     ) {
         Text(
             text = stringResource(R.string.share_now_prompt),
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Button(
             onClick = {
@@ -76,12 +78,14 @@ fun TaxiChatShareBubble(
         ) {
             Icon(
                 imageVector = Icons.Filled.Share,
-                contentDescription = "Share"
+                contentDescription = "Share",
+                tint = MaterialTheme.colorScheme.background
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(R.string.share),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.background
             )
         }
     }
@@ -90,16 +94,18 @@ fun TaxiChatShareBubble(
 @Preview
 @Composable
 private fun Preview() {
-    TaxiChatUserWrapper(
-        authorID = null,
-        authorName = null,
-        authorProfileImageURL = null,
-        date = Date(),
-        isMe = false,
-        isGeneral = false,
-        isWithdrawn = false,
-        badge = true
-    ) {
-        TaxiChatShareBubble(room = TaxiRoom.mock())
+    Theme {
+        TaxiChatUserWrapper(
+            authorID = null,
+            authorName = null,
+            authorProfileImageURL = null,
+            date = Date(),
+            isMe = false,
+            isGeneral = false,
+            isWithdrawn = false,
+            badge = true
+        ) {
+            TaxiChatShareBubble(room = TaxiRoom.mock())
+        }
     }
 }

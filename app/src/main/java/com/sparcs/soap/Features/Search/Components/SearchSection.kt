@@ -147,8 +147,7 @@ fun PostSection(
                 PostListRow(
                     post = post,
                     modifier = Modifier.clickable(enabled = !post.isHidden) {
-                        val json = Uri.encode(Gson().toJson(post))
-                        navController.navigate(Channel.PostView.name + "?post_json=$json")
+                        navController.navigate(Channel.PostView.name + "?postId=${post.id}")
                     }
                 )
             }

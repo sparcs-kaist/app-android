@@ -13,11 +13,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.R
+import com.sparcs.soap.ui.theme.Theme
 import java.util.Date
 
 @Composable
@@ -39,7 +39,7 @@ fun TaxiChatPaymentBubble() {
     ) {
         Text(
             text = stringResource(R.string.i_sent_the_money),
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             style = MaterialTheme.typography.bodyMedium
         )
         Icon(
@@ -53,16 +53,18 @@ fun TaxiChatPaymentBubble() {
 @Preview
 @Composable
 private fun Preview() {
-    TaxiChatUserWrapper(
-        authorID = null,
-        authorName = null,
-        authorProfileImageURL = null,
-        date = Date(),
-        isMe = false,
-        isGeneral = false,
-        isWithdrawn = false,
-        badge = true
-    ) {
-        TaxiChatPaymentBubble()
+    Theme {
+        TaxiChatUserWrapper(
+            authorID = null,
+            authorName = null,
+            authorProfileImageURL = null,
+            date = Date(),
+            isMe = false,
+            isGeneral = false,
+            isWithdrawn = false,
+            badge = true
+        ) {
+            TaxiChatPaymentBubble()
+        }
     }
 }
