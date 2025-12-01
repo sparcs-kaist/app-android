@@ -67,3 +67,10 @@ fun String.postfixEuroRo(): String {
     }
 }
 
+fun String.escapeHash(): String {
+    return this.replace("#", "%23")
+}
+
+fun String.unescapeHash(): String {
+    return this.replace("%23", "#")
+}

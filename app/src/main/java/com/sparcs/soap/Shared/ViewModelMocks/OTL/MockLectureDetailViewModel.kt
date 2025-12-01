@@ -23,5 +23,5 @@ class MockLectureDetailViewModel(initialState: LectureDetailViewModel.ViewState)
 
     override var isInCurrentTimetable: Boolean = false
     override fun fetchReviews(lectureID: Int) {}
-    override fun writeReview(review: LectureReview) {}
+    override fun writeReview(lectureID: Int, review: LectureReview) {}
 }

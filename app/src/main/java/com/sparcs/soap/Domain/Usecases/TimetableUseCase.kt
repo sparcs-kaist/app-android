@@ -125,14 +125,20 @@ class TimetableUseCase @Inject constructor(
             userUseCase.fetchOTLUser()
             userUseCase.otlUser!!
         }
+        val newStore = fetchedSemesters.associate { semester ->
+            val myTable = makeMyTable(semester, user)
 
+            val serverTables = otlTimetableRepository.getTables(
+                user.id, semester.year, semester.semesterType
+            )
+
+            semester.id to mergeKeepingMyTableFirst(listOf(myTable), serverTables)
+        }
         // Persist semesters
         _semesters.value = fetchedSemesters
         // Seed each semester with a local "My Table" derived from user lectures
-        _store.value = fetchedSemesters.associate { semester ->
-            semester.id to listOf(makeMyTable(semester, user))
-        }
 
+        _store.value = newStore
         // Select the current semester if it exists; otherwise last
         _selectedSemesterID.value =
             fetchedSemesters.find { it.year == currentSemester.year && it.semesterType == currentSemester.semesterType }?.id
