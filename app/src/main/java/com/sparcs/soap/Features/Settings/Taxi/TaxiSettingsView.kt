@@ -80,7 +80,7 @@ fun TaxiSettingsView(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.taxi_settings),
-                onDismiss = { navController.navigate(Channel.Settings.name) }
+                onDismiss = { navController.popBackStack() }
             )
         }) { innerPadding ->
 

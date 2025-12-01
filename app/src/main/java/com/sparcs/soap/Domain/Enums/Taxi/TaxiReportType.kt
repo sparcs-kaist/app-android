@@ -1,10 +1,11 @@
 package com.sparcs.soap.Domain.Enums.Taxi
 
 import com.sparcs.soap.Domain.Models.Taxi.TaxiReport
+import com.sparcs.soap.R
 
-enum class TaxiReportType(val value: String) {
-    INCOMING("Received"),
-    OUTGOING("Submitted")
+enum class TaxiReportType(val value: Int) {
+    INCOMING(R.string.received),
+    OUTGOING(R.string.submitted)
 }
 
 data class TaxiReports(

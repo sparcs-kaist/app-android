@@ -45,7 +45,6 @@ import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Enums.Taxi.TaxiReportType
 import com.sparcs.soap.Domain.Enums.Taxi.TaxiReports
 import com.sparcs.soap.Domain.Models.Taxi.TaxiReport
-import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.sparcs.soap.Features.Settings.Components.TaxiReportDetailRow
 import com.sparcs.soap.Features.Settings.Components.TaxiReportDetailSkeletonRow
@@ -77,7 +76,7 @@ fun TaxiReportListView(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.taxi_reports),
-                onDismiss = { navController.navigate(Channel.TaxiSettings.name) }
+                onDismiss = { navController.popBackStack() }
             )
         }
     ) { innerPadding ->
@@ -90,7 +89,7 @@ fun TaxiReportListView(
                 .padding(horizontal = 16.dp)
         ) {
             AnimatedSegmentedPicker(
-                options = TaxiReportType.entries.map { it.name },
+                options = TaxiReportType.entries.map { stringResource(it.value) },
                 selectedIndex = TaxiReportType.entries.indexOf(taxiReportType),
                 onSelected = { index ->
                     taxiReportType = TaxiReportType.entries[index]
