@@ -107,7 +107,7 @@ fun TimetableGrid(
                         val isCandidate =
                             item.lecture.id == candidateLecture?.id
                         val animatedAlpha by animateFloatAsState(
-                            targetValue = if (viewModel.isLoading.value) 0.5f else 1f,
+                            targetValue = if (viewModel.isLoading.collectAsState().value) 0.5f else 1f,
                             label = "LectureAlpha"
                         )
 

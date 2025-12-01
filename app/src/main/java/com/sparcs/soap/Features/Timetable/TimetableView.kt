@@ -48,6 +48,7 @@ import com.sparcs.soap.Features.Timetable.Components.TimetableGrid
 import com.sparcs.soap.Features.Timetable.Components.TimetableSummary
 import com.sparcs.soap.Features.Timetable.Components.TimetableViewNavigationBar
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.Extensions.escapeHash
 import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
 import com.sparcs.soap.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import com.sparcs.soap.ui.theme.Theme
@@ -105,7 +106,7 @@ fun TimetableView(
                     .padding(innerPadding)
                     .verticalScroll(scrollState)
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(28.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 CompactTimetableSelector(viewModel)
 
@@ -121,7 +122,7 @@ fun TimetableView(
                         viewModel = viewModel,
                         onLectureSelected = { lecture ->
                             selectedLecture = lecture
-                            val json = Gson().toJson(lecture)
+                            val json = Gson().toJson(lecture).escapeHash()
                             navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                         },
                         showDeleteDialog = { lecture ->
