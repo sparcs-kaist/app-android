@@ -156,7 +156,7 @@ fun TaxiChatView(
         topBar = {
             TaxiChatViewNavigationBar(
                 room = room,
-                onDismiss = { navController.navigate(Channel.TaxiChatListView.name) },
+                onDismiss = { navController.popBackStack() },
                 onClickCallTaxi = { showCallTaxiAlert = true },
                 onClickLeave = {
                     coroutineScope.launch {

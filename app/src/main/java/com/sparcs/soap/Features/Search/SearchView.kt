@@ -1,5 +1,6 @@
 package com.sparcs.soap.Features.Search
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -75,6 +76,15 @@ fun SearchView(
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
+    val backStackEvent = {
+        navController.navigate(Channel.Start.name) {
+            popUpTo(0) { inclusive = true }
+        }
+    }
+
+    BackHandler {
+        backStackEvent()
+    }
     LaunchedEffect(searchScope) {
         if (searchScope == SearchScope.All) {
             if (searchText.isNotEmpty()) {

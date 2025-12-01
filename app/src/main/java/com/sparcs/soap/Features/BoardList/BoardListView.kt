@@ -1,6 +1,7 @@
 package com.sparcs.soap.Features.BoardList
 
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,12 +44,21 @@ import kotlinx.coroutines.launch
 @Composable
 fun BoardListView(
     viewModel: BoardListViewModel = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
 
+    val backStackEvent = {
+        navController.navigate(Channel.Start.name) {
+            popUpTo(0) { inclusive = true }
+        }
+    }
+
+    BackHandler {
+        backStackEvent()
+    }
     LaunchedEffect(Unit) {
         scope.launch { viewModel.fetchBoards() }
     }
@@ -81,36 +91,36 @@ fun BoardListView(
 
                 is BoardListViewModel.ViewState.Loaded -> {
                     val loadedState = state as BoardListViewModel.ViewState.Loaded
-                        LoadedView(
-                            boards = loadedState.boards,
-                            groups = loadedState.groups,
-                            onBoardClick = { board ->
-                                val json = Uri.encode(Gson().toJson(board))
-                                navController.navigate(Channel.BoardList.name + "?board_json=$json")
-                            }
-                        )
+                    LoadedView(
+                        boards = loadedState.boards,
+                        groups = loadedState.groups,
+                        onBoardClick = { board ->
+                            val json = Uri.encode(Gson().toJson(board))
+                            navController.navigate(Channel.BoardList.name + "?board_json=$json")
+                        }
+                    )
                 }
 
                 is BoardListViewModel.ViewState.Error -> {
                     val message = (state as BoardListViewModel.ViewState.Error).message
 
-                        ErrorView(
-                            icon = Icons.Default.Warning,
-                            errorMessage = message,
-                            onRetry = { scope.launch { viewModel.fetchBoards() } }
-                        )
-                    }
+                    ErrorView(
+                        icon = Icons.Default.Warning,
+                        errorMessage = message,
+                        onRetry = { scope.launch { viewModel.fetchBoards() } }
+                    )
                 }
             }
+        }
     }
 }
 
 @Composable
-private fun LoadingView(){
+private fun LoadingView() {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp)
-    ){
+    ) {
         BoardListSkeleton(4)
         BoardListSkeleton(1)
         BoardListSkeleton(2)
@@ -122,7 +132,7 @@ private fun LoadingView(){
 private fun LoadedView(
     boards: List<AraBoard>,
     groups: List<AraBoardGroup>,
-    onBoardClick: (AraBoard) -> Unit
+    onBoardClick: (AraBoard) -> Unit,
 ) {
     groups.forEach { group ->
         val boardsInGroup = boards.filter { it.group.id == group.id }
@@ -157,12 +167,16 @@ fun systemImage(slug: String): Painter {
 @Composable
 @Preview
 private fun Preview() {
-    Theme{
+    Theme {
         LoadedView(
             boards = AraBoard.mockList(),
             groups = listOf(
-                AraBoardGroup(id = 123, slug = "slug", name = LocalizedString(mapOf("en" to "Group Name", "ko" to "그룹"))),
+                AraBoardGroup(
+                    id = 123,
+                    slug = "slug",
+                    name = LocalizedString(mapOf("en" to "Group Name", "ko" to "그룹"))
                 ),
+            ),
             onBoardClick = {}
         )
     }

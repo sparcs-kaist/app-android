@@ -34,7 +34,8 @@ fun TaxiArrivalBubble() {
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(24.dp)
             )
-            .padding(12.dp)
+            .padding(12.dp),
+        color = MaterialTheme.colorScheme.onSurface
     )
 }
 

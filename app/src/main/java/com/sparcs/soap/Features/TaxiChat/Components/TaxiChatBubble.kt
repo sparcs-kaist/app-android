@@ -36,7 +36,7 @@ fun TaxiChatBubble(
     var selectedUrl by remember { mutableStateOf<String?>(null) }
 
     val backgroundColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.scrim
+    val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     val urlColor = if (isMe) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primary
 
     val annotatedString = buildAnnotatedString {
