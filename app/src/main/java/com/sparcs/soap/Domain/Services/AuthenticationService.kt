@@ -1,9 +1,9 @@
 package com.sparcs.soap.Domain.Services
 
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.browser.customtabs.CustomTabsIntent
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sparcs.soap.Domain.Enums.Auth.AuthenticationServiceError
@@ -89,8 +89,8 @@ class AuthenticationService @Inject constructor(
             try {
                 activity.lifecycle.addObserver(observer)
 
-                val customTabsIntent = CustomTabsIntent.Builder().build()
-                customTabsIntent.launchUrl(activity, Uri.parse(authURL))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(authURL))
+                activity.startActivity(intent)
 
                 AuthenticationCallbackHandler.setCallback { uri ->
                     if (!continuation.isActive) return@setCallback
