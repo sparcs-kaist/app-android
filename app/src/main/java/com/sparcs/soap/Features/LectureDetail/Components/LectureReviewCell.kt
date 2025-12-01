@@ -24,7 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -111,27 +110,27 @@ fun LectureReviewCell(
                         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.translate)) },
-                            onClick = { /* TODO */ },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.baseline_translate),
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.summarise)) },
-                            onClick = { /* TODO */ },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.baseline_summarize),
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                        HorizontalDivider()
+//                        DropdownMenuItem(
+//                            text = { Text(stringResource(R.string.translate)) },
+//                            onClick = { // },
+//                            leadingIcon = {
+//                                Icon(
+//                                    painter = painterResource(R.drawable.baseline_translate),
+//                                    contentDescription = null
+//                                )
+//                            }
+//                        )
+//                        DropdownMenuItem(
+//                            text = { Text(stringResource(R.string.summarise)) },
+//                            onClick = { // },
+//                            leadingIcon = {
+//                                Icon(
+//                                    painter = painterResource(R.drawable.baseline_summarize),
+//                                    contentDescription = null
+//                                )
+//                            }
+//                        )
+//                        HorizontalDivider() - TODO REVIEW TRANSLATE AND SUMMARIZE
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.report)) },
                             onClick = { report(review, context, unknown) },
