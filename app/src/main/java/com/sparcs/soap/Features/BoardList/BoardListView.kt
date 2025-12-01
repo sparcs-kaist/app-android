@@ -59,10 +59,10 @@ fun BoardListView(
     BackHandler {
         backStackEvent()
     }
+
     LaunchedEffect(Unit) {
         scope.launch { viewModel.fetchBoards() }
     }
-
     Scaffold(
         topBar = {
             BoardListNavigationBar(
@@ -165,7 +165,7 @@ fun systemImage(slug: String): Painter {
 
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview() {
     Theme {
         LoadedView(

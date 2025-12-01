@@ -56,11 +56,11 @@ fun TaxiRoomCreationView(
     var title by remember { mutableStateOf("") }
 
     val locations by taxiListViewModel.locations.collectAsState()
-    val isEnabled = remember(
+    val (isEnabled, validationMessage) = remember(
         title,
         taxiListViewModel.source,
         taxiListViewModel.destination,
-        taxiListViewModel.roomDepartureTime
+        taxiListViewModel.roomDepartureTime,
     ) {
         isValid(taxiListViewModel, taxiRoomCreationViewModel, title)
     }
@@ -159,6 +159,23 @@ fun TaxiRoomCreationView(
                     )
                 }
             }
+
+            Spacer(Modifier.padding(16.dp))
+
+            if(!isEnabled && validationMessage !== null) {
+                Card(
+                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = stringResource(validationMessage),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+            }
         }
     }
 }
@@ -172,16 +189,19 @@ private fun isValid(
     viewModel: TaxiListViewModelProtocol,
     roomCreationViewModel: TaxiRoomCreationViewModelProtocol,
     title: String,
-): Boolean {
+): Pair<Boolean, Int?> {
     val source = viewModel.source
     val destination = viewModel.destination
-    return source != null &&
-            destination != null &&
-            source != destination &&
-            title.isNotBlank() &&
-            isTitleValid(title) &&
-            viewModel.roomDepartureTime > Date() &&
-            roomCreationViewModel.blockStatus.value == TaxiRoomBlockStatus.Allow
+
+    if (source == null) return false to null
+    if (destination == null) return false to null
+    if (source == destination) return false to R.string.error_source_equals_destination
+    if (title.isBlank()) return false to null
+    if (!isTitleValid(title)) return false to R.string.error_invalid_title
+    if (viewModel.roomDepartureTime <= Date()) return false to R.string.error_departure_in_past
+    if (roomCreationViewModel.blockStatus.value != TaxiRoomBlockStatus.Allow) return false to R.string.error_unsettled_room
+
+    return true to null
 }
 
 @Preview
