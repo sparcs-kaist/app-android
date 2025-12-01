@@ -339,4 +339,8 @@
     <string name="winter">Winter</string>
     <string name="credit_people">Credit</string>
     <string name="members_with_this_badge">Members with this badge can resolve issues through SPARCS mediation when they arise.</string>
+    <string name="error_source_equals_destination">Departure and destination cannot be the same.</string>
+    <string name="error_invalid_title">The room title contains invalid characters.</string>
+    <string name="error_departure_in_past">Departure time must be later than the current time.</string>
+    <string name="error_unsettled_room">Please check if there are any unsettled rooms.</string>
 </resources>

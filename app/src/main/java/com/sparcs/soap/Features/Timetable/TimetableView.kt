@@ -77,6 +77,7 @@ fun TimetableView(
     BackHandler {
         backStackEvent()
     }
+
     LaunchedEffect(Unit) {
         viewModel.fetchData()
     }

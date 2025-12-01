@@ -304,9 +304,9 @@ fun <T> PostCommentActionsMenu(
 //                    )
 //                }
 //            ) TODO - TRANSLATE(API)
+//            HorizontalDivider()
 
             if (isMine == true) {
-                HorizontalDivider()
                 DropdownMenuItem(
                     text = {
                         Text(

@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sparcs.soap.R
+import com.sparcs.soap.ui.theme.Theme
 import java.util.Date
 
 @Composable
@@ -37,7 +38,7 @@ fun TaxiChatSettlementBubble() {
     ) {
         Text(
             text = stringResource(R.string.i_paid_for_the_taxi),
-            color = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.surface,
             style = MaterialTheme.typography.bodyMedium
         )
         Icon(
@@ -51,16 +52,18 @@ fun TaxiChatSettlementBubble() {
 @Preview
 @Composable
 private fun Preview() {
-    TaxiChatUserWrapper(
-        authorID = null,
-        authorName = null,
-        authorProfileImageURL = null,
-        date = Date(),
-        isMe = false,
-        isGeneral = false,
-        isWithdrawn = false,
-        badge = true
-    ) {
-        TaxiChatSettlementBubble()
+    Theme {
+        TaxiChatUserWrapper(
+            authorID = null,
+            authorName = null,
+            authorProfileImageURL = null,
+            date = Date(),
+            isMe = false,
+            isGeneral = false,
+            isWithdrawn = false,
+            badge = true
+        ) {
+            TaxiChatSettlementBubble()
+        }
     }
 }

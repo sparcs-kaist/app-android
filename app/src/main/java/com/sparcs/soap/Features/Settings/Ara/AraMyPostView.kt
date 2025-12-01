@@ -1,6 +1,5 @@
 package com.sparcs.soap.Features.Settings.Ara
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -34,7 +33,6 @@ import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.SearchCustomBar
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.ui.theme.lightGray0
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 @Composable
@@ -209,8 +207,7 @@ private fun LoadedView(
         onRefresh = onRefresh,
         onLoadMore = onLoadMore,
         onPostClick = { post ->
-            val json = Uri.encode(Gson().toJson(post))
-            navController.navigate(Channel.PostView.name + "?post_json=$json")
+            navController.navigate(Channel.PostView.name + "?postId=${post.id}")
         },
         onPostDisappear = onPostDisappear,
         isRefreshing = false

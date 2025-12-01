@@ -359,6 +359,8 @@ fun ContentView(
     val previousFirstVisibleIndex = remember { mutableStateOf(0) }
     val previousFirstVisibleOffset = remember { mutableStateOf(0) }
 
+    var previousDate by remember { mutableStateOf<LocalDate?>(null) }
+
     LaunchedEffect(groupedChats) {
         val flattenedChats = groupedChats.flatMap { it.chats }
 
@@ -388,8 +390,6 @@ fun ContentView(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         state = listState
     ) {
-
-        var previousDate: LocalDate? = null
 
         items(groupedChats, key = { it.id }) { group ->
 
