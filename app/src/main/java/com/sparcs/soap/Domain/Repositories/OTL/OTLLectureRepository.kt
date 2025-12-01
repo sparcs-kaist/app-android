@@ -64,13 +64,14 @@ class OTLLectureRepository @Inject constructor(
     ): LectureReview {
         try {
             val request = WriteReviewRequest(
+                lectureID = lectureID,
                 content = content,
                 grade = grade,
                 load = load,
                 speech = speech
             )
 
-            val response = api.writeReview(lectureID = lectureID, request)
+            val response = api.writeReview(request)
             return response.toModel()
         } catch (e: Exception) {
             handleApiError(gson, e)

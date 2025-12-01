@@ -124,7 +124,7 @@ fun ReviewComposeView(
                                 load = load,
                                 speech = speech
                             )
-                            lectureDetailViewModel.writeReview(review)
+                            lectureDetailViewModel.writeReview(lecture.id, review)
                             navController.popBackStack()
                         } catch (e: Exception) {
                             showErrorDialog = true
