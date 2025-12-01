@@ -1,5 +1,6 @@
 package com.sparcs.soap.Features.Timetable
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -66,6 +67,16 @@ fun TimetableView(
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val selectedTimetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
+
+    val backStackEvent = {
+        navController.navigate(Channel.Start.name) {
+            popUpTo(0) { inclusive = true }
+        }
+    }
+
+    BackHandler {
+        backStackEvent()
+    }
 
     LaunchedEffect(Unit) {
         viewModel.fetchData()

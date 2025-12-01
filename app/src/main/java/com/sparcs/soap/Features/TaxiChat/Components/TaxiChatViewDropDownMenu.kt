@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -90,7 +91,7 @@ fun TaxiChatViewDropDownMenu(
     }
 
     if (showLeaveDialog) {
-        androidx.compose.material3.AlertDialog(
+        AlertDialog(
             onDismissRequest = { showLeaveDialog = false },
             title = { Text(stringResource(R.string.leave_room_confirmation)) },
             text = { Text(stringResource(R.string.leave_room_warning)) },
@@ -104,7 +105,7 @@ fun TaxiChatViewDropDownMenu(
                 ) {
                     Text(
                         text= stringResource(R.string.yes),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             },
@@ -115,7 +116,7 @@ fun TaxiChatViewDropDownMenu(
                     ) {
                     Text(
                         text = stringResource(R.string.no),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -245,7 +246,7 @@ private fun BottomDropDownItems(
         text = {
             Text(
                 text = stringResource(R.string.leave),
-                color = MaterialTheme.colorScheme.gray64
+                color = MaterialTheme.colorScheme.error
             ) },
         onClick = { onClickLeave() },
         enabled = isEnabled,
@@ -253,7 +254,7 @@ private fun BottomDropDownItems(
             Icon(
                 painter = painterResource(R.drawable.round_logout),
                 contentDescription = "Leave Room",
-                tint = MaterialTheme.colorScheme.gray64
+                tint = MaterialTheme.colorScheme.error
             )
         }
     )

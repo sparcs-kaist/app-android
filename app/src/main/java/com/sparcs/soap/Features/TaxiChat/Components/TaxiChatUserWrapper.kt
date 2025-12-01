@@ -89,7 +89,8 @@ fun TaxiChatUserWrapper(
                                 else -> stringResource(R.string.unknown)
                             },
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         if (badge) {
                             Spacer(Modifier.width(4.dp))
