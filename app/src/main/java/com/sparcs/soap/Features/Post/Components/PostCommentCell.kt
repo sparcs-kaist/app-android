@@ -293,17 +293,17 @@ fun <T> PostCommentActionsMenu(
                     HorizontalDivider()
                 }
             }
-
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.translate)) },
-                onClick = { onTranslate(); expanded = false },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(R.drawable.baseline_translate),
-                        contentDescription = null
-                    )
-                }
-            )
+//
+//            DropdownMenuItem(
+//                text = { Text(stringResource(R.string.translate)) },
+//                onClick = { onTranslate(); expanded = false },
+//                leadingIcon = {
+//                    Icon(
+//                        painter = painterResource(R.drawable.baseline_translate),
+//                        contentDescription = null
+//                    )
+//                }
+//            ) TODO - TRANSLATE(API)
 
             if (isMine == true) {
                 HorizontalDivider()

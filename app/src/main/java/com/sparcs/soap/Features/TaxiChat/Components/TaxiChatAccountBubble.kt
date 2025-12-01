@@ -34,7 +34,7 @@ import java.util.Date
 fun TaxiChatAccountBubble(
     content: String,
     isCommitPaymentAvailable: Boolean,
-    markAsSent: () -> Unit
+    markAsSent: () -> Unit,
 ) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
     Column(
@@ -62,39 +62,60 @@ fun TaxiChatAccountBubble(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.combinedClickable (
+                modifier = Modifier.combinedClickable(
                     onClick = { clipboardManager.setText(AnnotatedString("$bank $accountNumber")) },
                     onLongClick = {
                         clipboardManager.setText(AnnotatedString("$bank $accountNumber"))
                     }
                 )) {
-                Icon(Icons.Default.Check, contentDescription = null)
-                Text(bank, fontWeight = FontWeight.SemiBold)
-                Text(accountNumber)
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = bank, fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    accountNumber,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
         } else {
-            Text(stringResource(R.string.account_parse_failed))
+            Text(
+                stringResource(R.string.account_parse_failed),
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
 
-        Button (
+        Button(
             onClick = { markAsSent() },
             enabled = isCommitPaymentAvailable,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if(isCommitPaymentAvailable){
-                Icon(painterResource(R.drawable.round_payment), contentDescription = null)
+            if (isCommitPaymentAvailable) {
+                Icon(
+                    painterResource(R.drawable.round_payment), contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.send_payment),
                     fontWeight = FontWeight.Medium,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             } else {
-                Icon(painterResource(R.drawable.round_check), contentDescription = null)
+                Icon(
+                    painterResource(R.drawable.round_check), contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.already_sent),
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
 

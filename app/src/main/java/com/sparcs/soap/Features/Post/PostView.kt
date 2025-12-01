@@ -82,6 +82,7 @@ import com.sparcs.soap.Features.Post.Components.PostViewSkeleton
 import com.sparcs.soap.Features.Post.Components.PostVoteButton
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.formattedString
+import com.sparcs.soap.Shared.Extensions.postfixEuroRo
 import com.sparcs.soap.Shared.Mocks.board
 import com.sparcs.soap.Shared.ViewModelMocks.Ara.MockPostViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
@@ -742,7 +743,7 @@ fun placeholder(
             val anonymousName = stringResource(R.string.anonymous)
             stringResource(
                 R.string.reply_as,
-                viewModel.post.value?.myCommentProfile?.profile?.nickname ?: anonymousName
+                viewModel.post.value?.myCommentProfile?.profile?.nickname?.postfixEuroRo() ?: anonymousName.postfixEuroRo()
             )
         }
     }
