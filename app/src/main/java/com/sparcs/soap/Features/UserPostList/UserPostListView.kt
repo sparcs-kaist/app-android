@@ -1,6 +1,5 @@
 package com.sparcs.soap.Features.UserPostList
 
-import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -22,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.google.gson.Gson
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Features.NavigationBar.Channel
 import com.sparcs.soap.Features.PostList.Components.PostList.PostList
@@ -93,8 +91,7 @@ fun UserPostListView(
                         PostList(
                             posts = posts,
                             onPostClick = { post ->
-                                val json = Uri.encode(Gson().toJson(post))
-                                navController.navigate(Channel.PostView.name + "?post_json=$json")
+                                navController.navigate(Channel.PostView.name + "?postId=${post.id}")
                             },
                             onRefresh = {
                                 coroutineScope.launch { viewModel.fetchInitialPosts() }

@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import java.util.Collections
 import java.util.Date
 import javax.inject.Inject
 
@@ -64,7 +65,8 @@ class TaxiChatUseCase @Inject constructor(
 
     private var isSocketConnected: Boolean = false
 
-    private val _accumulatedChats = mutableListOf<TaxiChat>()
+//    private val _accumulatedChats = mutableListOf<TaxiChat>()
+private val _accumulatedChats = Collections.synchronizedList(mutableListOf<TaxiChat>())
 
     // MARK: - Computed Properties
     override var accountChats: List<TaxiChat> = emptyList()
