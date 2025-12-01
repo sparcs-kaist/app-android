@@ -606,7 +606,10 @@ fun AppDownBar(
                         )
                     },
                     label = { Text(label) },
-                    colors = NavigationBarItemDefaults.colors(MaterialTheme.colorScheme.primary)
+                    colors = NavigationBarItemDefaults.colors(
+                        MaterialTheme.colorScheme.primary,
+                        indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 )
             }
         }

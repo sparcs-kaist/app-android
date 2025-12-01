@@ -44,7 +44,7 @@ interface AuthUseCaseProtocol {
 
 @Singleton
 class AuthUseCase @Inject constructor(
-    val authenticationService: AuthenticationServiceProtocol,
+    private val authenticationService: AuthenticationServiceProtocol,
     val tokenStorage: TokenStorageProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,

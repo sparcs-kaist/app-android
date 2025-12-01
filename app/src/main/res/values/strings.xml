@@ -343,4 +343,6 @@
     <string name="error_invalid_title">The room title contains invalid characters.</string>
     <string name="error_departure_in_past">Departure time must be later than the current time.</string>
     <string name="error_unsettled_room">Please check if there are any unsettled rooms.</string>
+    <string name="received">Received</string>
+    <string name="submitted">Submitted</string>
 </resources>

@@ -106,7 +106,7 @@ fun TimetableView(
                     .padding(innerPadding)
                     .verticalScroll(scrollState)
                     .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 CompactTimetableSelector(viewModel)
 
