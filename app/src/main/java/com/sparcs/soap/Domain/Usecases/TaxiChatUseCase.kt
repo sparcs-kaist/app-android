@@ -65,8 +65,7 @@ class TaxiChatUseCase @Inject constructor(
 
     private var isSocketConnected: Boolean = false
 
-//    private val _accumulatedChats = mutableListOf<TaxiChat>()
-private val _accumulatedChats = Collections.synchronizedList(mutableListOf<TaxiChat>())
+    private val _accumulatedChats = Collections.synchronizedList(mutableListOf<TaxiChat>())
 
     // MARK: - Computed Properties
     override var accountChats: List<TaxiChat> = emptyList()
