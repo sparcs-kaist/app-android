@@ -69,10 +69,12 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
+
     implementation(libs.retrofit)
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
     implementation(libs.hilt.android)
+    implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.androidx.hilt.navigation.fragment)
     implementation(libs.androidx.hilt.work)
     implementation(libs.converter.gson.v290)
@@ -80,6 +82,7 @@ dependencies {
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+
     implementation(libs.androidx.compiler)
     implementation(libs.coil.compose)
     implementation(libs.androidx.browser)
@@ -90,15 +93,19 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation(libs.androidx.hilt.navigation.compose)
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.security.crypto)
     implementation(libs.socket.io.client)
     implementation (libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
+
     implementation (libs.osmdroid.android)
     implementation(libs.osmdroid.android)
+
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.firebase.analytics)
+
+    implementation("com.google.android.play:app-update:2.1.0")
+    implementation(libs.app.update.ktx)
 }

@@ -1,6 +1,8 @@
 package com.sparcs.soap.Shared.Extensions
 
 import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalConfiguration
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -45,3 +47,23 @@ class AndroidStringProvider @Inject constructor(
         return context.getString(id, *args)
     }
 }
+
+@Composable
+fun String.postfixEuroRo(): String {
+    if (this.isEmpty()) return this
+
+    val isEn = LocalConfiguration.current.locales[0].language
+    if(isEn == "en") return this
+
+    val lastChar = this.last()
+    val code = lastChar.code
+    val base = code - 0xAC00
+    val jong = base % 28
+
+    return this + when (jong) {
+        0 -> "로"
+        8 -> "로"
+        else -> "으로"
+    }
+}
+

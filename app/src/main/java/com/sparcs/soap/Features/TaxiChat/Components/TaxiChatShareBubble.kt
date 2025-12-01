@@ -56,7 +56,8 @@ fun TaxiChatShareBubble(
     ) {
         Text(
             text = stringResource(R.string.share_now_prompt),
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Button(
             onClick = {
@@ -76,12 +77,14 @@ fun TaxiChatShareBubble(
         ) {
             Icon(
                 imageVector = Icons.Filled.Share,
-                contentDescription = "Share"
+                contentDescription = "Share",
+                tint = MaterialTheme.colorScheme.background
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = stringResource(R.string.share),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.background
             )
         }
     }

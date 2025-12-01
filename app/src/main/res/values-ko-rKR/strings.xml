@@ -134,7 +134,7 @@
     <string name="be_the_first_one_to_share_your_thoughts">가장 먼저 당신의 생각을 나눠보세요.</string>
     <string name="editing">수정 중</string>
     <string name="untitled">무제</string>
-    <string name="reply_as">%1$s으로 댓글 작성</string>
+    <string name="reply_as">%1$s 댓글 작성</string>
     <string name="no_topic">말머리 없음</string>
     <string name="views">조회 %1$s</string>
     <string name="this_post_contains_nsfw_content">NSFW 내용의 게시글입니다.</string>
