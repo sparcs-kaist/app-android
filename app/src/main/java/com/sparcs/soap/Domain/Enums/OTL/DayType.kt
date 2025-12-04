@@ -1,15 +1,17 @@
 package com.sparcs.soap.Domain.Enums.OTL
 
-enum class DayType(val value: Int, val stringValue: String) : Comparable<DayType> {
-    SUN(6, "Sun"),
-    MON(0, "Mon"),
-    TUE(1, "Tue"),
-    WED(2, "Wed"),
-    THU(3, "Thu"),
-    FRI(4, "Fri"),
-    SAT(5, "Sat");
+import com.sparcs.soap.R
 
-    val id: String get() = stringValue
+enum class DayType(val value: Int, val stringValue: Int) : Comparable<DayType> {
+    SUN(6, R.string.sun),
+    MON(0, R.string.mon),
+    TUE(1, R.string.tue),
+    WED(2, R.string.wed),
+    THU(3, R.string.thu),
+    FRI(4, R.string.fri),
+    SAT(5, R.string.sat);
+
+    val id: Int get() = stringValue
 
 
     companion object {

@@ -24,6 +24,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -75,6 +76,7 @@ fun TimetableGrid(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
+                        .padding(start = 2.dp, end = 2.dp)
                 ) {
                     GridHorizontalLines(
                         minMinutes = minMinutes,
@@ -114,6 +116,7 @@ fun TimetableGrid(
                         TimetableGridCell(
                             lecture = item.lecture,
                             isCandidate = isCandidate,
+                            cellHeight = cellHeight,
                             modifier = Modifier
                                 .offset(y = cellOffsetY)
                                 .height(cellHeight)
@@ -146,7 +149,7 @@ private fun DaysColumnHeader(visibleDays: List<DayType>) {
     ) {
         visibleDays.forEach { day ->
             Text(
-                text = day.stringValue,
+                text = stringResource(day.stringValue),
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.weight(1f),
                 color = MaterialTheme.colorScheme.onSurface,
@@ -179,7 +182,6 @@ private fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
                     .width(TimetableConstructor.hoursWidth)
                     .offset(y = spacing * index)
                     .padding(top = 6.dp),
-
                 )
         }
     }
