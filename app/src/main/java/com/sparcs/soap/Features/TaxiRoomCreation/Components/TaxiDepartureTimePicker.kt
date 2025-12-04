@@ -330,7 +330,7 @@ fun CustomDatePicker(
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             DayType.entries.forEach { dayType ->
                 Text(
-                    text = dayType.stringValue,
+                    text = stringResource(dayType.stringValue),
                     style = MaterialTheme.typography.bodySmall,
                     color = when (dayType) {
                         DayType.SUN -> Color.Red
