@@ -5,6 +5,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import com.sparcs.soap.R
 import java.text.SimpleDateFormat
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -194,4 +195,17 @@ fun Date.formattedDate(): String {
 fun Date.weekdaySymbol(): String{
     val weekdaySymbols = SimpleDateFormat("EEEE", Locale.getDefault())
     return weekdaySymbols.format(this)
+}
+
+@Composable
+fun DayOfWeek.toShortString(): String {
+    return when (this) {
+        DayOfWeek.MONDAY    -> stringResource(R.string.mon)
+        DayOfWeek.TUESDAY   -> stringResource(R.string.tue)
+        DayOfWeek.WEDNESDAY -> stringResource(R.string.wed)
+        DayOfWeek.THURSDAY  -> stringResource(R.string.thu)
+        DayOfWeek.FRIDAY    -> stringResource(R.string.fri)
+        DayOfWeek.SATURDAY  -> stringResource(R.string.sat)
+        DayOfWeek.SUNDAY    -> stringResource(R.string.sun)
+    }
 }

@@ -38,6 +38,7 @@ import com.sparcs.soap.Features.TaxiList.TaxiListViewModel
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.toDate
 import com.sparcs.soap.Shared.Extensions.toLocalDate
+import com.sparcs.soap.Shared.Extensions.toShortString
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.gray64
 import java.time.DayOfWeek
@@ -157,7 +158,7 @@ fun WeekDaySelector(
                     )
 
                     Text(
-                        text = day.dayOfWeek.name.take(3).uppercase(),
+                        text = day.dayOfWeek.toShortString().uppercase(),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
                         color = if (isSelected) MaterialTheme.colorScheme.surface else textColor
                     )

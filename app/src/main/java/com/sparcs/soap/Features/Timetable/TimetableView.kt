@@ -113,7 +113,7 @@ fun TimetableView(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(screenHeight * 0.65f)
+                        .height(screenHeight * 0.66f)
                         .clip(RoundedCornerShape(28.dp))
                         .background(MaterialTheme.colorScheme.surface)
                         .padding(8.dp)
@@ -131,7 +131,6 @@ fun TimetableView(
                         }
                     )
                 }
-
                 selectedTimetable?.let { TimetableCreditGraph(it) }
 
                 TimetableSummary(viewModel)
