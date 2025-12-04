@@ -1,5 +1,6 @@
 package com.sparcs.soap.Networking
 
+import android.util.Log
 import com.google.gson.Gson
 import com.sparcs.soap.BuildConfig
 import com.sparcs.soap.Domain.Helpers.Constants
@@ -77,13 +78,45 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
+import okhttp3.Authenticator
 import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Inject
 import javax.inject.Named
+import javax.inject.Provider
 import javax.inject.Singleton
 
+class TokenAuthenticator @Inject constructor(
+    private val authUseCaseProvider: Provider<AuthUseCase>
+) : Authenticator {
+    override fun authenticate(route: Route?, response: Response): Request? {
+        if (responseCount(response) >= 2) {
+            return null
+        }
+        Log.d("AUTH", "we need provider right?")
+        val authUseCase = authUseCaseProvider.get()
+        val newToken = runBlocking { authUseCase.getValidAccessToken() }
+        return newToken.let {
+            response.request.newBuilder()
+                .header("Authorization", "Bearer $it")
+                .build()
+        }
+    }
+    private fun responseCount(response: Response): Int {
+        var result = 1
+        var prior = response.priorResponse
+        while (prior != null) {
+            result++
+            prior = prior.priorResponse
+        }
+        return result
+    }
+}
 
 /**
  * NetworkModule
@@ -160,23 +193,21 @@ object NetworkModule {
     @Named("AraBackend")
     fun araBackEndURL(
         gson: Gson,
-        tokenStorage: TokenStorageProtocol
+        tokenStorage: TokenStorageProtocol,
+        tokenAuthenticator: TokenAuthenticator
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
-                val accessToken = runBlocking { tokenStorage.getAccessToken() }
+                val accessToken = runBlocking { tokenStorage.getAccessToken() } // 단순 토큰
                 val newRequest = original.newBuilder()
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
-                    .apply {
-                        accessToken?.let {
-                            header("Authorization", "Bearer $it")
-                        }
-                    }
+                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
                     .build()
                 chain.proceed(newRequest)
             }
+            .authenticator(tokenAuthenticator)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
@@ -188,6 +219,7 @@ object NetworkModule {
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }
+
 
     @Provides
     @Singleton

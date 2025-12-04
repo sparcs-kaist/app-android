@@ -62,7 +62,6 @@ class AuthenticationService @Inject constructor(
         return codeVerifier.toByteArray(StandardCharsets.UTF_8).sha256().base64UrlEncodedString()
     }
 
-
     override suspend fun authenticate(activity: ComponentActivity): SignInResponseDTO =
         suspendCancellableCoroutine { continuation ->
 
@@ -132,11 +131,15 @@ class AuthenticationService @Inject constructor(
         }
 
 
-    private suspend fun exchangeCodeForTokens(sessionCode: String, codeVerifier: String): SignInResponseDTO {
+    private suspend fun exchangeCodeForTokens(
+        sessionCode: String,
+        codeVerifier: String
+    ): SignInResponseDTO {
         val encodedSessionCode = withContext(Dispatchers.IO) {
             URLEncoder.encode(sessionCode, "UTF-8")
         }
-        val encodedVerifier = codeVerifier.toByteArray(StandardCharsets.UTF_8).base64UrlEncodedString()
+        val encodedVerifier =
+            codeVerifier.toByteArray(StandardCharsets.UTF_8).base64UrlEncodedString()
         val response = authApi.requestTokens(
             cookie = "connect.sid=$encodedSessionCode",
             body = mapOf("codeVerifier" to encodedVerifier)
@@ -153,6 +156,17 @@ class AuthenticationService @Inject constructor(
             tokenStorage.save(response.accessToken, response.refreshToken)
             response
         } catch (e: Exception) {
+
+            if (e is java.net.UnknownHostException || e is java.net.SocketTimeoutException) {
+                Log.w("AuthService", "Network error during token refresh: keep existing session")
+
+                val currentAccessToken = tokenStorage.getAccessToken()
+                return if (!currentAccessToken.isNullOrEmpty()) {
+                    TokenResponseDTO(currentAccessToken, refreshToken)
+                } else {
+                    throw AuthenticationServiceError.TokenRefreshFailed(e)
+                }
+            }
             Log.e("AuthService", "Failed to refresh access token", e)
             throw AuthenticationServiceError.TokenRefreshFailed(e)
         }
