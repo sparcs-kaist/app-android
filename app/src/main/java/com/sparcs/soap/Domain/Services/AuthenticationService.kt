@@ -144,7 +144,6 @@ class AuthenticationService @Inject constructor(
             cookie = "connect.sid=$encodedSessionCode",
             body = mapOf("codeVerifier" to encodedVerifier)
         )
-        tokenStorage.save(response.accessToken, response.refreshToken)
         return response
     }
 
@@ -153,7 +152,7 @@ class AuthenticationService @Inject constructor(
         return try {
             val body = mapOf("refreshToken" to refreshToken)
             val response = authApi.refreshTokens(body = body)
-            tokenStorage.save(response.accessToken, response.refreshToken)
+
             response
         } catch (e: Exception) {
 

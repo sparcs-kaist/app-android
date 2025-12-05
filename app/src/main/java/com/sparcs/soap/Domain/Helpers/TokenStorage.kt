@@ -92,9 +92,11 @@ class TokenStorage @Inject constructor(
 
     override fun save(accessToken: String, refreshToken: String) {
         val expiration = extractExpirationDate(accessToken)?.time ?: 0L
+        val a = encrypt(accessToken)
+        val r = encrypt(refreshToken)
         prefs.edit().apply {
-            putString(ACCESS_TOKEN_KEY, encrypt(accessToken))
-            putString(REFRESH_TOKEN_KEY, encrypt(refreshToken))
+            putString(ACCESS_TOKEN_KEY, a)
+            putString(REFRESH_TOKEN_KEY, r)
             putLong(TOKEN_EXPIRATION_KEY, expiration)
             apply()
         }

@@ -25,14 +25,12 @@ class MainViewModel @Inject constructor(
     val isAuthenticated: StateFlow<Boolean?> = authUseCase.isAuthenticatedFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-
     init {
         viewModelScope.launch {
             authUseCase.isAuthenticatedFlow.collect { authed ->
+                _isLoading.value = false
                 if (authed) {
                     refreshAccessTokenIfNeeded()
-                } else {
-                    _isLoading.value = false
                 }
             }
         }
