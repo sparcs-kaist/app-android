@@ -121,11 +121,17 @@ fun FeedCommentRow(
                     coroutineScope.launch {
                         try {
                             feedCommentRepository.reportComment(localComment.id, it)
-                            showAlert(title = R.string.report_submitted, message= R.string.reported_successfully)
+                            showAlert(
+                                title = R.string.report_submitted,
+                                message = R.string.reported_successfully
+                            )
                         } catch (e: Exception) {
                             viewModel.handleException(error = e)
                             showAlert = true
-                            showAlert(title= R.string.error, message= R.string.unexpected_error_reporting_comment)
+                            showAlert(
+                                title = R.string.error,
+                                message = R.string.unexpected_error_reporting_comment
+                            )
                         }
                     }
                 }
@@ -160,17 +166,25 @@ private fun Header(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
+    val author =
+        if (comment.isAnonymous) {
+            val number = comment.authorName.substringAfter("Anonymous", "").trim()
+            "${stringResource(R.string.anonymous)} $number"
+        } else {
+            comment.authorName
+        }
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         ProfileImage(comment)
         Spacer(Modifier.width(8.dp))
         Text(
-            text = if (comment.isAuthor) comment.authorName + " (${stringResource(R.string.author)})" else comment.authorName,
+            text = if (comment.isAuthor) "$author (${stringResource(R.string.author)})" else author,
             fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.bodyMedium,
             color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.scrim
         )
         Spacer(Modifier.width(8.dp))
-        if(comment.isKaistIP){
+        if (comment.isKaistIP) {
             Icon(
                 painter = painterResource(R.drawable.checkmark_seal_fill),
                 contentDescription = null,
