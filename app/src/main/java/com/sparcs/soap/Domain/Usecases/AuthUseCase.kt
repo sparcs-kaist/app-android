@@ -39,7 +39,7 @@ interface AuthUseCaseProtocol {
     suspend fun getValidAccessToken(): String
 
     @Throws(Exception::class)
-    suspend fun refreshAccessTokenIfNeeded()
+    suspend fun refreshAccessTokenIfNeeded(force: Boolean = false)
 }
 
 @Singleton
@@ -66,15 +66,18 @@ class AuthUseCase @Inject constructor(
 
     private fun scheduleRefreshToken() {
         refreshJob?.cancel()
+
         val expirationDate = tokenStorage.getTokenExpirationDate() ?: return
         val bufferMillis = TimeUnit.MINUTES.toMillis(5)
-        val delayMillis = (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
-        if (delayMillis > 0) {
-            refreshJob = coroutineScope.launch {
-                delay(delayMillis)
-                try {
-                    refreshAccessTokenIfNeeded()
-                } catch (_: Exception) { }
+        val delayMillis =
+            (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
+
+        refreshJob = coroutineScope.launch {
+            if (delayMillis > 0) delay(delayMillis)
+            try {
+                refreshAccessTokenIfNeeded(force = true)
+            } catch (e: Exception) {
+                Log.e("AuthUseCase", "Token refresh failed in scheduled job", e)
             }
         }
     }
@@ -90,16 +93,31 @@ class AuthUseCase @Inject constructor(
     }
 
     override suspend fun getValidAccessToken(): String {
-        if (tokenStorage.isTokenExpired()) {
-            refreshAccessTokenIfNeeded()
+        return try {
+            if (tokenStorage.isTokenExpired()) {
+                refreshAccessTokenIfNeeded()
+            }
+            tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken
+        } catch (e: Exception) {
+            _isAuthenticated.value = false
+            throw e
         }
-        return tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken
     }
 
-    override suspend fun refreshAccessTokenIfNeeded() {
+    override suspend fun refreshAccessTokenIfNeeded(force: Boolean) {
 
         if (isRefreshing) return
         isRefreshing = true
+
+        val accessToken = tokenStorage.getAccessToken()
+        val isExpired = tokenStorage.isTokenExpired()
+
+        if (accessToken != null && !isExpired && !force) {
+            Log.d("AuthUseCase", "Access token still valid. No refresh needed.")
+            scheduleRefreshToken()
+            isRefreshing = false
+            return
+        }
 
         val refreshToken = tokenStorage.getRefreshToken()
         if (refreshToken == null) {
@@ -113,6 +131,9 @@ class AuthUseCase @Inject constructor(
         try {
             val tokenResponse = authenticationService.refreshAccessToken(refreshToken)
             tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
+
+            Log.d("asasdasdUSECASEREFRESHIF", tokenResponse.toString())
+
             _isAuthenticated.value = true
             scheduleRefreshToken()
         } catch (e: Exception) {
