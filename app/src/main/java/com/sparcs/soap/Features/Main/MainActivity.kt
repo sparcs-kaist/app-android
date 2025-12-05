@@ -12,6 +12,7 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.sparcs.soap.Domain.Helpers.TokenStorageProtocol
 import com.sparcs.soap.Domain.Services.AuthenticationCallbackHandler
 import com.sparcs.soap.Features.NavigationBar.MainTabBar
 import com.sparcs.soap.Features.Settings.SettingsViewModel
@@ -19,6 +20,7 @@ import com.sparcs.soap.Features.SignIn.SignInView
 import com.sparcs.soap.InAppUpdateHelper
 import com.sparcs.soap.ui.theme.Theme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 
 @AndroidEntryPoint
@@ -26,7 +28,8 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
-
+    @Inject
+    lateinit var tokenStorage: TokenStorageProtocol
     private lateinit var helper: InAppUpdateHelper
 
     private val launcher = registerForActivityResult(

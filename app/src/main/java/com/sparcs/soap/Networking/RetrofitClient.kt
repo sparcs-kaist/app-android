@@ -2,7 +2,6 @@ package com.sparcs.soap.Networking
 
 import android.util.Log
 import com.google.gson.Gson
-import com.sparcs.soap.BuildConfig
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Helpers.TaxiLocationStorage
 import com.sparcs.soap.Domain.Helpers.TaxiLocationStorageProtocol
@@ -134,7 +133,8 @@ object NetworkModule {
     @Named("TaxiBackend")
     fun taxiBackEndURL(
         gson: Gson,
-        tokenStorage: TokenStorageProtocol
+        tokenStorage: TokenStorageProtocol,
+        tokenAuthenticator: TokenAuthenticator
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -143,14 +143,11 @@ object NetworkModule {
                 val newRequest = original.newBuilder()
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
-                    .apply {
-                        accessToken?.let {
-                            header("Authorization", "Bearer $it")
-                        }
-                    }
+                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
                     .build()
                 chain.proceed(newRequest)
             }
+            .authenticator(tokenAuthenticator)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
@@ -199,7 +196,7 @@ object NetworkModule {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
-                val accessToken = runBlocking { tokenStorage.getAccessToken() } // 단순 토큰
+                val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val newRequest = original.newBuilder()
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
@@ -226,7 +223,8 @@ object NetworkModule {
     @Named("FeedBackend")
     fun feedBackEndURL(
         gson: Gson,
-        tokenStorage: TokenStorageProtocol
+        tokenStorage: TokenStorageProtocol,
+        tokenAuthenticator: TokenAuthenticator
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -235,14 +233,11 @@ object NetworkModule {
                 val newRequest = original.newBuilder()
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
-                    .apply {
-                        accessToken?.let {
-                            header("Authorization", "Bearer $it")
-                        }
-                    }
+                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
                     .build()
                 chain.proceed(newRequest)
             }
+            .authenticator(tokenAuthenticator)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
@@ -260,26 +255,21 @@ object NetworkModule {
     @Named("OTLBackend")
     fun otlBackEndURL(
         gson: Gson,
-        tokenStorage: TokenStorageProtocol
+        tokenStorage: TokenStorageProtocol,
+        tokenAuthenticator: TokenAuthenticator
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val newRequest = original.newBuilder()
-                    .apply {
-                        header("Origin", "sparcsapp")
-                        header("Content-Type", "application/json")
-                        if (BuildConfig.DEBUG) {
-                            addHeader("X-SID-AUTH-TOKEN", BuildConfig.OTL_SID_AUTH_TOKEN)
-                        }
-                        accessToken?.let {
-                            header("Authorization", "Bearer $it")
-                        }
-                    }
+                    .header("Origin", "sparcsapp")
+                    .header("Content-Type", "application/json")
+                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
                     .build()
                 chain.proceed(newRequest)
             }
+            .authenticator(tokenAuthenticator)
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
