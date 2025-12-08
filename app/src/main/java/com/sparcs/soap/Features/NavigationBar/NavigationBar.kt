@@ -52,7 +52,6 @@ import com.sparcs.soap.Features.LectureDetail.LectureDetailViewModel
 import com.sparcs.soap.Features.LectureSearch.LectureSearchViewModel
 import com.sparcs.soap.Features.NavigationBar.Animation.trendingEnterTransition
 import com.sparcs.soap.Features.NavigationBar.Animation.trendingExitTransition
-import com.sparcs.soap.Features.NavigationBar.Animation.trendingPopEnterTransition
 import com.sparcs.soap.Features.NavigationBar.Animation.trendingPopExitTransition
 import com.sparcs.soap.Features.Post.PostView
 import com.sparcs.soap.Features.Post.PostViewModel
@@ -175,7 +174,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 ),
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
+                popEnterTransition = null,
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
                 val viewModel: FeedPostViewModel = hiltViewModel(backStackEntry)
@@ -186,7 +185,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = Channel.FeedPostCompose.name,
                 enterTransition = trendingEnterTransition(),
                 exitTransition = trendingExitTransition(),
-                popEnterTransition = trendingPopEnterTransition(),
+                popEnterTransition = null,
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
                 val viewModel: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
@@ -221,7 +220,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
 
@@ -246,7 +245,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: CourseViewModel = hiltViewModel(backStackEntry)
@@ -257,7 +256,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}",
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: ReviewComposeViewModel = hiltViewModel(backStackEntry)
@@ -312,7 +311,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     route = Channel.TaxiRoomCreation.name,
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val parentEntry = remember(backStackEntry) {
@@ -340,7 +339,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiChatViewModel = hiltViewModel(backStackEntry)
@@ -354,7 +353,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     route = Channel.TaxiChatListView.name,
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiChatListViewModel = hiltViewModel(backStackEntry)
@@ -372,7 +371,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiReportViewModel = hiltViewModel(backStackEntry)
@@ -399,7 +398,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             type = NavType.StringType
                             nullable = false
                         }
-                    )
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: PostListViewModel = hiltViewModel(backStackEntry)
                     PostListView(
@@ -421,7 +424,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: PostViewModel = hiltViewModel(backStackEntry)
@@ -438,7 +441,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: PostComposeViewModel = hiltViewModel(backStackEntry)
@@ -458,7 +461,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: UserPostListViewModel = hiltViewModel(backStackEntry)
@@ -494,7 +497,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     route = Channel.Settings.name,
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: SettingsViewModel = hiltViewModel(backStackEntry)
@@ -505,7 +508,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     route = Channel.AraSettings.name,
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: AraSettingsViewModel = hiltViewModel(backStackEntry)
@@ -523,7 +526,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: AraMyPostViewModel = hiltViewModel(backStackEntry)
@@ -538,7 +541,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     route = Channel.TaxiSettings.name,
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiSettingsViewModel = hiltViewModel(backStackEntry)
@@ -553,7 +556,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     route = Channel.TaxiReportSettings.name,
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
-                    popEnterTransition = trendingPopEnterTransition(),
+                    popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiReportListViewModel = hiltViewModel(backStackEntry)
