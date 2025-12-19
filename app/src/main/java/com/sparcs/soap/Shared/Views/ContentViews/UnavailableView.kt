@@ -14,8 +14,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sparcs.soap.R
+import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.gray64
 
 @Composable
@@ -53,6 +57,18 @@ fun UnavailableView(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.gray64.copy(alpha = 0.3f),
             textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+@Preview
+private fun Preview(){
+    Theme {
+        UnavailableView(
+            icon = painterResource(id = R.drawable.round_check),
+            title = "title",
+            description = "description"
         )
     }
 }
