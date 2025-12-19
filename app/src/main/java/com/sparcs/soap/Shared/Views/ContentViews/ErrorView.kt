@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -62,8 +61,7 @@ fun ErrorView(icon: ImageVector,  errorMessage: String, onRetry: () -> Unit) {
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { onRetry() },
-            modifier = Modifier.fillMaxWidth()
+            onClick = { onRetry() }
         ) {
             Text(stringResource(R.string.error_try_again))
         }
