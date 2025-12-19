@@ -132,8 +132,6 @@ class AuthUseCase @Inject constructor(
             val tokenResponse = authenticationService.refreshAccessToken(refreshToken)
             tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
 
-            Log.d("asasdasdUSECASEREFRESHIF", tokenResponse.toString())
-
             _isAuthenticated.value = true
             scheduleRefreshToken()
         } catch (e: Exception) {
