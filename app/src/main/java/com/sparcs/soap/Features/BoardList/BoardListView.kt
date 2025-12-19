@@ -63,6 +63,7 @@ fun BoardListView(
     LaunchedEffect(Unit) {
         scope.launch { viewModel.fetchBoards() }
     }
+
     Scaffold(
         topBar = {
             BoardListNavigationBar(
