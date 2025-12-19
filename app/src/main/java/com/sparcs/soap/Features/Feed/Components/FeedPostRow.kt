@@ -1,5 +1,8 @@
 package com.sparcs.soap.Features.Feed.Components
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,11 +35,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,7 +48,7 @@ import coil.compose.AsyncImage
 import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
-import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import com.sparcs.soap.Features.Feed.FeedViewModelProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
 import com.sparcs.soap.Features.Post.Components.PostShareButton
 import com.sparcs.soap.Features.Post.Components.PostVoteButton
@@ -63,10 +66,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedPostRow(
     post: FeedPost,
+    viewModel: FeedViewModelProtocol,
     onPostDeleted: (String) -> Unit,
     onComment: () -> Unit, //post 또는 comment click
     singleLine: Boolean,
-    feedPostRepository: FeedPostRepositoryProtocol,
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -81,7 +84,7 @@ fun FeedPostRow(
             showDeleteConfirmation,
         ) { showDeleteConfirmation = it }
         Content(post, singleLine, onComment)
-        Footer(post, onComment, onPostDeleted, feedPostRepository, !singleLine, coroutineScope)
+        Footer(post, viewModel, onComment, onPostDeleted, !singleLine, coroutineScope)
     }
 }
 
@@ -175,30 +178,66 @@ fun Content(
     var isOverflowing by remember { mutableStateOf(false) }
     var hasMeasured by remember { mutableStateOf(false) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+
+    val context = LocalContext.current
     val moreColor = MaterialTheme.colorScheme.grayBB
     val moreText = stringResource(R.string.more)
-    val displayText = remember(post.content, expanded, isOverflowing) {
-        if (expanded || !isOverflowing) {
-            AnnotatedString(post.content)
+    val linkColor = MaterialTheme.colorScheme.primary
+
+    val displayText = remember(post.content, expanded, isOverflowing, textLayoutResult) {
+        val baseText = if (expanded || !isOverflowing) {
+            post.content
         } else {
             val visibleEnd =
                 textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
-            val safeEnd = visibleEnd.coerceAtMost(post.content.length)
-            val visibleText = post.content.substring(0, safeEnd).trimEnd()
+            post.content.substring(0, visibleEnd.coerceAtMost(post.content.length)).trimEnd()
+        }
 
-            buildAnnotatedString {
-                append(visibleText)
-                pushStringAnnotation(tag = "MORE", annotation = "expand")
+        buildAnnotatedString {
+            val regex = Patterns.WEB_URL.toRegex()
+            var lastIndex = 0
+
+            regex.findAll(baseText).forEach { match ->
+                append(baseText.substring(lastIndex, match.range.first))
+                val url = match.value
+                pushStringAnnotation("URL", url)
+                withStyle(
+                    SpanStyle(
+                        color = linkColor,
+                        textDecoration = TextDecoration.Underline
+                    )
+                ) {
+                    append(url)
+                }
+                pop()
+                lastIndex = match.range.last + 1
+            }
+
+            if (lastIndex < baseText.length) {
+                append(baseText.substring(lastIndex))
+            }
+
+            if (!expanded && isOverflowing) {
+                pushStringAnnotation("MORE", "expand")
                 append("… ")
-                withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
+                withStyle(
+                    SpanStyle(
+                        color = moreColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                ) {
                     append(moreText)
                 }
+                pop()
             }
         }
     }
+
     ClickableText(
         text = displayText,
-        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+        style = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.onSurface
+        ),
         maxLines = if (singleLine && !expanded) 2 else Int.MAX_VALUE,
         overflow = TextOverflow.Ellipsis,
         onTextLayout = { layoutResult ->
@@ -209,16 +248,24 @@ fun Content(
             }
         },
         onClick = { offset ->
-            val moreAnnotation =
-                displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()
-            if (moreAnnotation != null) {
-                if (!expanded && isOverflowing) expanded = true
-            } else {
-                onComment()
-            }
+            displayText.getStringAnnotations("URL", offset, offset)
+                .firstOrNull()
+                ?.let {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item))
+                    context.startActivity(intent)
+                    return@ClickableText
+                }
+
+            displayText.getStringAnnotations("MORE", offset, offset)
+                .firstOrNull()
+                ?.let {
+                    if (!expanded && isOverflowing) expanded = true
+                    return@ClickableText
+                }
+
+            onComment()
         },
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
+        modifier = Modifier.padding(horizontal = 16.dp)
     )
 
     if (post.images.isNotEmpty()) {
@@ -229,14 +276,13 @@ fun Content(
 @Composable
 fun Footer(
     post: FeedPost,
+    viewModel: FeedViewModelProtocol,
     onComment: () -> Unit,
     onPostDeleted: ((String) -> Unit)?,
-    feedPostRepository: FeedPostRepositoryProtocol,
     isDetailedView: Boolean,
     coroutineScope: CoroutineScope,
 ) {
     val context = LocalContext.current
-    var postState by remember { mutableStateOf(post) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -244,100 +290,32 @@ fun Footer(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         PostVoteButton(
-            myVote = when (postState.myVote) {
+            myVote = when (post.myVote) {
                 FeedVoteType.UP -> true
                 FeedVoteType.DOWN -> false
                 else -> null
             },
-            votes = postState.upVotes - postState.downVotes,
+            votes = post.upVotes - post.downVotes,
             onUpVote = {
                 coroutineScope.launch {
-                    upVote(
-                        postState,
-                        feedPostRepository,
-                        update = { postState = it })
+                    viewModel.upVote(post.id)
                 }
             },
             onDownVote = {
                 coroutineScope.launch {
-                    downVote(
-                        postState,
-                        feedPostRepository,
-                        update = { postState = it })
+                    viewModel.downVote(post.id)
                 }
             },
             enabled = true
         )
 
         Spacer(Modifier.width(8.dp))
-        PostCommentButton(commentCount = postState.commentCount) { onComment() }
+        PostCommentButton(commentCount = post.commentCount) { onComment() }
         Spacer(Modifier.weight(1f))
         if (onPostDeleted != null && isDetailedView) PostShareButton(
             url = Constants.feedShareURL + post.id,
             context = context
         )
-    }
-}
-
-// MARK: - Functions
-suspend fun upVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (FeedPost) -> Unit) {
-    val prev = post.copy()
-
-    val updated = when (post.myVote) {
-        // cancel upvote
-        FeedVoteType.UP -> post.copy(myVote = null, upVotes = post.upVotes - 1)
-
-        // upvote
-        FeedVoteType.DOWN -> post.copy(
-            myVote = FeedVoteType.UP,
-            upVotes = post.upVotes + 1,
-            // remove downvote if there was
-            downVotes = post.downVotes - 1
-        )
-
-        else -> post.copy(myVote = FeedVoteType.UP, upVotes = post.upVotes + 1)
-    }
-
-    update(updated)
-
-    try {
-        if (prev.myVote == FeedVoteType.UP) {
-            repo.deleteVote(prev.id)
-        } else {
-            repo.vote(prev.id, FeedVoteType.UP)
-        }
-    } catch (e: Exception) {
-        update(prev)
-    }
-}
-
-suspend fun downVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (FeedPost) -> Unit) {
-    val prev = post.copy()
-
-    val updated = when (post.myVote) {
-        //cancel upvote
-        FeedVoteType.DOWN -> post.copy(myVote = null, downVotes = post.downVotes - 1)
-        //upvote
-        FeedVoteType.UP -> post.copy(
-            myVote = FeedVoteType.DOWN,
-            upVotes = post.upVotes - 1,
-            // remove downvote if there was
-            downVotes = post.downVotes + 1
-        )
-
-        else -> post.copy(myVote = FeedVoteType.DOWN, downVotes = post.downVotes + 1)
-    }
-
-    update(updated)
-
-    try {
-        if (prev.myVote == FeedVoteType.DOWN) {
-            repo.deleteVote(prev.id)
-        } else {
-            repo.vote(prev.id, FeedVoteType.DOWN)
-        }
-    } catch (e: Exception) {
-        update(prev)
     }
 }
 
