@@ -45,7 +45,7 @@ import coil.compose.AsyncImage
 import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
-import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import com.sparcs.soap.Features.Feed.FeedViewModelProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
 import com.sparcs.soap.Features.Post.Components.PostShareButton
 import com.sparcs.soap.Features.Post.Components.PostVoteButton
@@ -63,10 +63,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedPostRow(
     post: FeedPost,
+    viewModel: FeedViewModelProtocol,
     onPostDeleted: (String) -> Unit,
     onComment: () -> Unit, //post 또는 comment click
     singleLine: Boolean,
-    feedPostRepository: FeedPostRepositoryProtocol,
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
@@ -81,7 +81,7 @@ fun FeedPostRow(
             showDeleteConfirmation,
         ) { showDeleteConfirmation = it }
         Content(post, singleLine, onComment)
-        Footer(post, onComment, onPostDeleted, feedPostRepository, !singleLine, coroutineScope)
+        Footer(post, viewModel, onComment, onPostDeleted, !singleLine, coroutineScope)
     }
 }
 
@@ -229,14 +229,13 @@ fun Content(
 @Composable
 fun Footer(
     post: FeedPost,
+    viewModel: FeedViewModelProtocol,
     onComment: () -> Unit,
     onPostDeleted: ((String) -> Unit)?,
-    feedPostRepository: FeedPostRepositoryProtocol,
     isDetailedView: Boolean,
     coroutineScope: CoroutineScope,
 ) {
     val context = LocalContext.current
-    var postState by remember { mutableStateOf(post) }
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -244,100 +243,32 @@ fun Footer(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         PostVoteButton(
-            myVote = when (postState.myVote) {
+            myVote = when (post.myVote) {
                 FeedVoteType.UP -> true
                 FeedVoteType.DOWN -> false
                 else -> null
             },
-            votes = postState.upVotes - postState.downVotes,
+            votes = post.upVotes - post.downVotes,
             onUpVote = {
                 coroutineScope.launch {
-                    upVote(
-                        postState,
-                        feedPostRepository,
-                        update = { postState = it })
+                    viewModel.upVote(post.id)
                 }
             },
             onDownVote = {
                 coroutineScope.launch {
-                    downVote(
-                        postState,
-                        feedPostRepository,
-                        update = { postState = it })
+                    viewModel.downVote(post.id)
                 }
             },
             enabled = true
         )
 
         Spacer(Modifier.width(8.dp))
-        PostCommentButton(commentCount = postState.commentCount) { onComment() }
+        PostCommentButton(commentCount = post.commentCount) { onComment() }
         Spacer(Modifier.weight(1f))
         if (onPostDeleted != null && isDetailedView) PostShareButton(
             url = Constants.feedShareURL + post.id,
             context = context
         )
-    }
-}
-
-// MARK: - Functions
-suspend fun upVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (FeedPost) -> Unit) {
-    val prev = post.copy()
-
-    val updated = when (post.myVote) {
-        // cancel upvote
-        FeedVoteType.UP -> post.copy(myVote = null, upVotes = post.upVotes - 1)
-
-        // upvote
-        FeedVoteType.DOWN -> post.copy(
-            myVote = FeedVoteType.UP,
-            upVotes = post.upVotes + 1,
-            // remove downvote if there was
-            downVotes = post.downVotes - 1
-        )
-
-        else -> post.copy(myVote = FeedVoteType.UP, upVotes = post.upVotes + 1)
-    }
-
-    update(updated)
-
-    try {
-        if (prev.myVote == FeedVoteType.UP) {
-            repo.deleteVote(prev.id)
-        } else {
-            repo.vote(prev.id, FeedVoteType.UP)
-        }
-    } catch (e: Exception) {
-        update(prev)
-    }
-}
-
-suspend fun downVote(post: FeedPost, repo: FeedPostRepositoryProtocol, update: (FeedPost) -> Unit) {
-    val prev = post.copy()
-
-    val updated = when (post.myVote) {
-        //cancel upvote
-        FeedVoteType.DOWN -> post.copy(myVote = null, downVotes = post.downVotes - 1)
-        //upvote
-        FeedVoteType.UP -> post.copy(
-            myVote = FeedVoteType.DOWN,
-            upVotes = post.upVotes - 1,
-            // remove downvote if there was
-            downVotes = post.downVotes + 1
-        )
-
-        else -> post.copy(myVote = FeedVoteType.DOWN, downVotes = post.downVotes + 1)
-    }
-
-    update(updated)
-
-    try {
-        if (prev.myVote == FeedVoteType.DOWN) {
-            repo.deleteVote(prev.id)
-        } else {
-            repo.vote(prev.id, FeedVoteType.DOWN)
-        }
-    } catch (e: Exception) {
-        update(prev)
     }
 }
 

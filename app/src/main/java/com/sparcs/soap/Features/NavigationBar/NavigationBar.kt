@@ -178,7 +178,9 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
                 val viewModel: FeedPostViewModel = hiltViewModel(backStackEntry)
-                FeedPostView(navController = navController, viewModel = viewModel)
+                val feedViewModel: FeedViewModel = hiltViewModel(backStackEntry)
+
+                FeedPostView(navController = navController, viewModel = viewModel, feedViewModel = feedViewModel)
             }
 
             composable(
