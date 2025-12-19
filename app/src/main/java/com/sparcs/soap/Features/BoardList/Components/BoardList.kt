@@ -68,7 +68,7 @@ fun BoardList(
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                sections.forEachIndexed { index, section ->
+                sections.forEach { section ->
                     section()
                 }
             }
@@ -134,7 +134,6 @@ fun BoardListSkeleton(num: Int) {
             }
         }
     }
-
 }
 
 @Composable
