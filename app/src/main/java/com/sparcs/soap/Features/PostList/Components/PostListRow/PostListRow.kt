@@ -60,6 +60,7 @@ fun PostListRow(
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f, fill = false),
                 color = if (post.isHidden) MaterialTheme.colorScheme.gray64 else MaterialTheme.colorScheme.onSurface
             )
 
