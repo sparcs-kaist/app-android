@@ -80,14 +80,14 @@ fun FeedView(
             .distinctUntilChanged()
             .collect { lastVisibleIndex ->
                 val totalItems = listState.layoutInfo.totalItemsCount
-                if (!isRefreshing && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
-                    isRefreshing = true
+                if (!viewModel.isLoadingMore && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
+                    viewModel.isLoadingMore = true
                     try {
                         coroutineScope.launch {
                             viewModel.loadNextPage()
                         }
                     } finally {
-                        isRefreshing = false
+                        viewModel.isLoadingMore = false
                     }
                 }
             }

@@ -74,7 +74,7 @@ class FeedViewModel @Inject constructor(
             isLoadingMore = false
 
         } catch (e: Exception) {
-            Log.e("FeedListViewModel", "Error loading next page: $e")
+            Log.e("FeedViewModel", "Error loading next page: $e")
             isLoadingMore = false
         }
     }

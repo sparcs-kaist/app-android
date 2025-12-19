@@ -1,5 +1,6 @@
 package com.sparcs.soap.Features.TaxiChat.Components
 
+import android.util.Patterns
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -40,7 +41,7 @@ fun TaxiChatBubble(
     val urlColor = if (isMe) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primary
 
     val annotatedString = buildAnnotatedString {
-        val regex = "(https?://[\\w./?=&-]+)".toRegex()
+        val regex = Patterns.WEB_URL.toRegex()
         var lastIndex = 0
         regex.findAll(content).forEach { matchResult ->
             val range = matchResult.range
