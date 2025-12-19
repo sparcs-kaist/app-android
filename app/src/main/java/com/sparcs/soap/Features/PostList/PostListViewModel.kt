@@ -5,12 +5,12 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Enums.Ara.PostListType
 import com.sparcs.soap.Domain.Enums.Ara.PostOrigin
 import com.sparcs.soap.Domain.Models.Ara.AraBoard
 import com.sparcs.soap.Domain.Models.Ara.AraPost
 import com.sparcs.soap.Domain.Repositories.Ara.AraBoardRepositoryProtocol
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,17 +26,15 @@ interface PostListViewModelProtocol {
     var state: StateFlow<PostListViewModel.ViewState>
     var board: AraBoard
     var posts: List<AraPost>
-    val searchKeyword: StateFlow<String>
-
     var isLoadingMore: Boolean
     var hasMorePages: Boolean
-
-    fun onSearchTextChange(text: String)
+    val searchKeyword: StateFlow<String>
 
     suspend fun fetchInitialPosts()
     suspend fun loadNextPage()
     fun refreshItem(postID: Int)
     fun removePost(postID: Int)
+    fun onSearchTextChange(text: String)
     fun bind()
 }
 
@@ -75,7 +73,7 @@ class PostListViewModel @Inject constructor(
 
     //Infinite Scroll Properties
     override var isLoadingMore: Boolean = false
-    override var hasMorePages: Boolean = true
+    override var hasMorePages: Boolean = false
     private var currentPage: Int = 1
     private var totalPages: Int = 0
     private var pageSize: Int = 30
@@ -121,7 +119,7 @@ class PostListViewModel @Inject constructor(
                 type = PostListType.Board(boardID = board.id),
                 page = nextPage,
                 pageSize = pageSize,
-                searchKeyword = if (_searchKeyword.value.isBlank()) null else _searchKeyword.value
+                searchKeyword = _searchKeyword.value.ifBlank { null }
             )
             currentPage = page.currentPage
             posts = posts + page.results

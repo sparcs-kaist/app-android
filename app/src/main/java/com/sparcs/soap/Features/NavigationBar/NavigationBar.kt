@@ -16,7 +16,6 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -31,7 +30,6 @@ import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
@@ -138,13 +136,6 @@ enum class Channel(@StringRes val title: Int) {
 
 @Composable
 fun MainTabBar(navController: NavHostController = rememberNavController()) {
-
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = backStackEntry?.destination?.route
-    val currentScreen = Channel.entries.find { screen ->
-        currentRoute?.startsWith(screen.name) == true
-    } ?: Channel.Start
-
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -178,7 +169,9 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 popExitTransition = trendingPopExitTransition()
             ) { backStackEntry ->
                 val viewModel: FeedPostViewModel = hiltViewModel(backStackEntry)
-                FeedPostView(navController = navController, viewModel = viewModel)
+                val feedViewModel: FeedViewModel = hiltViewModel(backStackEntry)
+
+                FeedPostView(navController = navController, viewModel = viewModel, feedViewModel = feedViewModel)
             }
 
             composable(
