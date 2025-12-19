@@ -64,10 +64,12 @@ import com.sparcs.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import com.sparcs.soap.Features.Feed.Components.FeedPostRow
 import com.sparcs.soap.Features.Feed.FeedViewModel
+import com.sparcs.soap.Features.Feed.FeedViewModelProtocol
 import com.sparcs.soap.Features.FeedPost.Components.FeedCommentRow
 import com.sparcs.soap.Features.FeedPost.Components.FeedPostNavigationBar
 import com.sparcs.soap.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
@@ -79,6 +81,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun FeedPostView(
     viewModel: FeedPostViewModelProtocol = hiltViewModel(),
+    feedViewModel: FeedViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -94,7 +97,7 @@ fun FeedPostView(
     val isPreview = LocalInspectionMode.current
     val repo: FeedPostRepositoryProtocol = if (!isPreview) hiltViewModel<FeedViewModel>().feedPostRepository else FakeFeedPostRepository()
     val repo1: FeedCommentRepositoryProtocol = if(!isPreview) hiltViewModel<FeedPostViewModel>().feedCommentRepository else FakeFeedCommentRepository()
-    val vm = if(!isPreview) hiltViewModel<FeedViewModel>() else MockFeedViewModel(initialState = FeedViewModel.ViewState.Loaded)
+    val vm = if(!isPreview) hiltViewModel<FeedViewModel>() else MockFeedViewModel(initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList()))
 
     val post = viewModel.post.collectAsState().value
 
@@ -206,13 +209,13 @@ fun FeedPostView(
                 item {
                     FeedPostRow(
                         post = post,
+                        viewModel = feedViewModel,
                         singleLine = false,
                         onPostDeleted = {},
                         onComment = {
                             targetComment = null
                             isWritingCommentFocusState = true
-                        },
-                        feedPostRepository = repo
+                        }
                     )
                 }
 
@@ -481,7 +484,8 @@ private fun LoadingView(
 @Composable
 private fun MockView(state: FeedPostViewModel.ViewState) {
     val mockViewModel = remember { MockFeedPostViewModel(initialState = state) }
-    FeedPostView(viewModel = mockViewModel, navController = rememberNavController())
+    val mockFeedViewModel = remember { MockFeedViewModel(initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList()))}
+    FeedPostView(viewModel = mockViewModel, feedViewModel = mockFeedViewModel, navController = rememberNavController())
 }
 
 @Composable

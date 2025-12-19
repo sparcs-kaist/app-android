@@ -21,23 +21,24 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.sparcs.soap.Domain.Repositories.Feed.FakeFeedPostRepository
-import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import com.sparcs.soap.Domain.Models.Feed.FeedPost
 import com.sparcs.soap.Features.Feed.Components.FeedPostRow
 import com.sparcs.soap.Features.Feed.Components.FeedPostRowSkeleton
 import com.sparcs.soap.Features.Feed.Components.FeedViewNavigationBar
 import com.sparcs.soap.Features.NavigationBar.AppDownBar
 import com.sparcs.soap.Features.NavigationBar.Channel
+import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,11 +47,8 @@ fun FeedView(
     viewModel: FeedViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val isPreview = LocalInspectionMode.current
-    val repo: FeedPostRepositoryProtocol = if (!isPreview) hiltViewModel<FeedViewModel>().feedPostRepository else FakeFeedPostRepository()
-
-    val state by viewModel.state.collectAsState()
-    val posts by viewModel.posts.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val state = viewModel.state.collectAsState().value
     var isRefreshing by remember { mutableStateOf(false) }
     var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
 
@@ -61,7 +59,6 @@ fun FeedView(
         ?.getStateFlow("listNeedsRefresh", false)
         ?.collectAsState()
 
-    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         if (!loadedInitialPost.value) {
@@ -75,6 +72,25 @@ fun FeedView(
             viewModel.fetchInitialData()
             stateHandle["listNeedsRefresh"] = false
         }
+    }
+
+    //LoadMore
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+            .distinctUntilChanged()
+            .collect { lastVisibleIndex ->
+                val totalItems = listState.layoutInfo.totalItemsCount
+                if (!viewModel.isLoadingMore && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
+                    viewModel.isLoadingMore = true
+                    try {
+                        coroutineScope.launch {
+                            viewModel.loadNextPage()
+                        }
+                    } finally {
+                        viewModel.isLoadingMore = false
+                    }
+                }
+            }
     }
 
     Scaffold(
@@ -117,9 +133,10 @@ fun FeedView(
                             .padding(innerPadding),
                         state = listState
                     ) {
-                        items(posts) { post ->
+                        items(state.posts) { post ->
                             FeedPostRow(
                                 post = post,
+                                viewModel = viewModel,
                                 singleLine = true,
                                 onPostDeleted = { postID ->
                                     coroutineScope.launch {
@@ -129,8 +146,7 @@ fun FeedView(
                                 },
                                 onComment = {
                                     navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
-                                },
-                                feedPostRepository = repo
+                                }
                             )
                             HorizontalDivider(Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                         }
@@ -138,7 +154,7 @@ fun FeedView(
                 }
 
                 is FeedViewModel.ViewState.Error -> {
-                    val message = (state as FeedViewModel.ViewState.Error).message
+                    val message = state.message
                     ErrorView(
                         icon = Icons.Default.Warning,
                         errorMessage = message,
@@ -170,7 +186,7 @@ private fun LoadingPreview() {
 @Composable
 @Preview
 private fun LoadedPreview() {
-    Theme { MockView(FeedViewModel.ViewState.Loaded) }
+    Theme { MockView(FeedViewModel.ViewState.Loaded(FeedPost.mockList())) }
 }
 
 @Composable

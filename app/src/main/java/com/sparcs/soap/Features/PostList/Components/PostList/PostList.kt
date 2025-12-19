@@ -86,7 +86,6 @@ private fun LoadedView(
     var isLoadingMore by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
-
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
             .distinctUntilChanged()
