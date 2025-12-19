@@ -1,5 +1,7 @@
 package com.sparcs.soap.Features.Feed.Components
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,11 +34,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -175,30 +177,66 @@ fun Content(
     var isOverflowing by remember { mutableStateOf(false) }
     var hasMeasured by remember { mutableStateOf(false) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+
+    val context = LocalContext.current
     val moreColor = MaterialTheme.colorScheme.grayBB
     val moreText = stringResource(R.string.more)
-    val displayText = remember(post.content, expanded, isOverflowing) {
-        if (expanded || !isOverflowing) {
-            AnnotatedString(post.content)
+    val linkColor = MaterialTheme.colorScheme.primary
+
+    val displayText = remember(post.content, expanded, isOverflowing, textLayoutResult) {
+        val baseText = if (expanded || !isOverflowing) {
+            post.content
         } else {
             val visibleEnd =
                 textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
-            val safeEnd = visibleEnd.coerceAtMost(post.content.length)
-            val visibleText = post.content.substring(0, safeEnd).trimEnd()
+            post.content.substring(0, visibleEnd.coerceAtMost(post.content.length)).trimEnd()
+        }
 
-            buildAnnotatedString {
-                append(visibleText)
-                pushStringAnnotation(tag = "MORE", annotation = "expand")
+        buildAnnotatedString {
+            val regex = "(https?://[\\w./?=&%-]+)".toRegex()
+            var lastIndex = 0
+
+            regex.findAll(baseText).forEach { match ->
+                append(baseText.substring(lastIndex, match.range.first))
+                val url = match.value
+                pushStringAnnotation("URL", url)
+                withStyle(
+                    SpanStyle(
+                        color = linkColor,
+                        textDecoration = TextDecoration.Underline
+                    )
+                ) {
+                    append(url)
+                }
+                pop()
+                lastIndex = match.range.last + 1
+            }
+
+            if (lastIndex < baseText.length) {
+                append(baseText.substring(lastIndex))
+            }
+
+            if (!expanded && isOverflowing) {
+                pushStringAnnotation("MORE", "expand")
                 append("… ")
-                withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
+                withStyle(
+                    SpanStyle(
+                        color = moreColor,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                ) {
                     append(moreText)
                 }
+                pop()
             }
         }
     }
+
     ClickableText(
         text = displayText,
-        style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+        style = MaterialTheme.typography.bodyMedium.copy(
+            color = MaterialTheme.colorScheme.onSurface
+        ),
         maxLines = if (singleLine && !expanded) 2 else Int.MAX_VALUE,
         overflow = TextOverflow.Ellipsis,
         onTextLayout = { layoutResult ->
@@ -209,16 +247,24 @@ fun Content(
             }
         },
         onClick = { offset ->
-            val moreAnnotation =
-                displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()
-            if (moreAnnotation != null) {
-                if (!expanded && isOverflowing) expanded = true
-            } else {
-                onComment()
-            }
+            displayText.getStringAnnotations("URL", offset, offset)
+                .firstOrNull()
+                ?.let {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item))
+                    context.startActivity(intent)
+                    return@ClickableText
+                }
+
+            displayText.getStringAnnotations("MORE", offset, offset)
+                .firstOrNull()
+                ?.let {
+                    if (!expanded && isOverflowing) expanded = true
+                    return@ClickableText
+                }
+
+            onComment()
         },
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
+        modifier = Modifier.padding(horizontal = 16.dp)
     )
 
     if (post.images.isNotEmpty()) {
