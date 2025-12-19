@@ -2,77 +2,172 @@ package com.sparcs.soap.Features.Feed
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedPost
 import com.sparcs.soap.Domain.Repositories.Feed.FeedPostRepositoryProtocol
-import com.sparcs.soap.Domain.Usecases.AuthUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 interface FeedViewModelProtocol {
     val state: StateFlow<FeedViewModel.ViewState>
-    val posts: StateFlow<List<FeedPost>>
+    val posts: List<FeedPost>
+    var isLoadingMore: Boolean
+    var hasNext: Boolean
 
-    suspend fun signOut()
     suspend fun fetchInitialData()
+    suspend fun loadNextPage()
     suspend fun deletePost(postID: String)
+
+    suspend fun upVote(postId: String)
+    suspend fun downVote(postId: String)
 }
 
 @HiltViewModel
 class FeedViewModel @Inject constructor(
-    private val authUseCase: AuthUseCaseProtocol,
     val feedPostRepository: FeedPostRepositoryProtocol,
 ) : ViewModel(), FeedViewModelProtocol {
 
     sealed interface ViewState {
         data object Loading : ViewState
-        data object Loaded : ViewState
+        data class Loaded(val posts: List<FeedPost>) : ViewState
         data class Error(val message: String) : ViewState
     }
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    private val _posts = MutableStateFlow<List<FeedPost>>(emptyList())
-    override val posts: StateFlow<List<FeedPost>> = _posts.asStateFlow()
+    override var posts: List<FeedPost> = emptyList()
 
     private var nextCursor: String? = null
-    private var hasNext: Boolean = false
 
-    override suspend fun signOut() {
-        viewModelScope.launch {
-            try {
-                authUseCase.signOut()
-            } catch (e: Exception) {
-                Log.e("FeedViewModel", "failed to signOut")
-            }
-        }
-    }
+    //Infinite Scroll Properties
+    override var isLoadingMore: Boolean = false
+    override var hasNext: Boolean = false
+    private var pageSize: Int = 20
 
     override suspend fun fetchInitialData() {
         _state.value = ViewState.Loading
         try {
-            val page = feedPostRepository.fetchPosts(cursor = null, page = 20)
-            _posts.value = page.items
+            val page = feedPostRepository.fetchPosts(cursor = null, page = pageSize)
+            posts = page.items
             nextCursor = page.nextCursor
             hasNext = page.hasNext
-            _state.value = ViewState.Loaded
+            _state.value = ViewState.Loaded(posts)
         } catch (e: Exception) {
-            Log.e("FeedViewModel", "failed to fetch initial data", e)
+            Log.e("FeedViewModel", "failed to fetch data", e)
             _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+        }
+    }
+
+    override suspend fun loadNextPage() {
+        if (isLoadingMore || !hasNext) return
+        isLoadingMore = true
+        try {
+            val page = feedPostRepository.fetchPosts(cursor = nextCursor, page = pageSize)
+            posts = posts + page.items
+            nextCursor = page.nextCursor
+            hasNext = page.hasNext
+            _state.value = ViewState.Loaded(posts)
+            isLoadingMore = false
+
+        } catch (e: Exception) {
+            Log.e("FeedListViewModel", "Error loading next page: $e")
+            isLoadingMore = false
         }
     }
 
     override suspend fun deletePost(postID: String) {
         try {
             feedPostRepository.deletePost(postID)
-            _posts.value = _posts.value.filterNot { it.id == postID }
+            posts = posts.filterNot { it.id == postID }
         } catch (e: Exception) {
             Log.e("FeedViewModel", "failed to delete post", e)
+        }
+    }
+
+    // MARK: - Functions
+    override suspend fun upVote(postId: String) {
+        val currentState = _state.value
+        if (currentState !is ViewState.Loaded) return
+
+        val prevPosts = currentState.posts
+        val current = prevPosts.firstOrNull { it.id == postId } ?: return
+
+        val updatedPost = when (current.myVote) {
+            FeedVoteType.UP ->
+                current.copy(myVote = null, upVotes = current.upVotes - 1)
+
+            FeedVoteType.DOWN ->
+                current.copy(
+                    myVote = FeedVoteType.UP,
+                    upVotes = current.upVotes + 1,
+                    downVotes = current.downVotes - 1
+                )
+
+            null ->
+                current.copy(myVote = FeedVoteType.UP, upVotes = current.upVotes + 1)
+        }
+
+        val updatedPosts = prevPosts.map {
+            if (it.id == postId) updatedPost else it
+        }
+
+        posts = updatedPosts
+        _state.value = ViewState.Loaded(updatedPosts)
+
+        try {
+            if (current.myVote == FeedVoteType.UP) {
+                feedPostRepository.deleteVote(postId)
+            } else {
+                feedPostRepository.vote(postId, FeedVoteType.UP)
+            }
+        } catch (e: Exception) {
+            posts = prevPosts
+            _state.value = ViewState.Loaded(prevPosts)
+        }
+    }
+
+    override suspend fun downVote(postId: String) {
+        val currentState = _state.value
+        if (currentState !is ViewState.Loaded) return
+
+        val prevPosts = currentState.posts
+        val current = prevPosts.firstOrNull { it.id == postId } ?: return
+
+        val updatedPost = when (current.myVote) {
+            FeedVoteType.DOWN ->
+                current.copy(myVote = null, downVotes = current.downVotes - 1)
+
+            FeedVoteType.UP ->
+                current.copy(
+                    myVote = FeedVoteType.DOWN,
+                    upVotes = current.upVotes - 1,
+                    downVotes = current.downVotes + 1
+                )
+
+            null ->
+                current.copy(myVote = FeedVoteType.DOWN, downVotes = current.downVotes + 1)
+        }
+
+        val updatedPosts = prevPosts.map {
+            if (it.id == postId) updatedPost else it
+        }
+
+        posts = updatedPosts
+        _state.value = ViewState.Loaded(updatedPosts)
+
+        try {
+            if (current.myVote == FeedVoteType.DOWN) {
+                feedPostRepository.deleteVote(postId)
+            } else {
+                feedPostRepository.vote(postId, FeedVoteType.DOWN)
+            }
+        } catch (e: Exception) {
+            posts = prevPosts
+            _state.value = ViewState.Loaded(prevPosts)
         }
     }
 }
