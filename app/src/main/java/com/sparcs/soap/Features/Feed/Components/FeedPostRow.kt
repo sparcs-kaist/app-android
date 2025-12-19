@@ -2,6 +2,7 @@ package com.sparcs.soap.Features.Feed.Components
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -193,7 +194,7 @@ fun Content(
         }
 
         buildAnnotatedString {
-            val regex = "(https?://[\\w./?=&%-]+)".toRegex()
+            val regex = Patterns.WEB_URL.toRegex()
             var lastIndex = 0
 
             regex.findAll(baseText).forEach { match ->
