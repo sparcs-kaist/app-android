@@ -59,13 +59,12 @@ class MainActivity : ComponentActivity() {
                 val isAuthenticated by viewModel.isAuthenticated.collectAsState()
                 val isLoading by viewModel.isLoading.collectAsState()
 
-
-                when {
-                    isAuthenticated == true -> {
+                if (isLoading) {
+                    // MARK: THIS PLAYS CRUCIAL ROLE HIDING SIGN IN VIEW ON LOADING
+                } else {
+                    if (isAuthenticated == true) {
                         MainTabBar()
-                    }
-                    isLoading -> {/*TODO 아이콘 로딩 화면*/}
-                    else -> {
+                    } else {
                         SignInView()
                     }
                 }

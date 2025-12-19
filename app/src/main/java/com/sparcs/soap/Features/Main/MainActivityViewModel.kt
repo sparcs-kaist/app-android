@@ -23,7 +23,7 @@ class MainViewModel @Inject constructor(
     val isLoading: StateFlow<Boolean> = _isLoading
 
     val isAuthenticated: StateFlow<Boolean?> = authUseCase.isAuthenticatedFlow
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     init {
         viewModelScope.launch {
