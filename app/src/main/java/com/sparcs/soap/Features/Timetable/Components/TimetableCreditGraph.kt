@@ -37,9 +37,9 @@ import com.sparcs.soap.ui.theme.Theme
 val lectureColors = mapOf(
     LectureType.BR to Color(0xFF298DFF),
     LectureType.BE to Color(0xFF3EB74A),
-    LectureType.MR to Color(0xFFD2833B),
-    LectureType.ME to Color(0xFFBB4ECE),
-    LectureType.HSE to Color(0xFFD75050),
+    LectureType.MR to Color(0xFFFD8D02),
+    LectureType.ME to Color(0xFFA765A3),
+    LectureType.HSE to Color(0xFFE2455C),
     LectureType.ETC to Color(0xFF47D0BA)
 )
 
