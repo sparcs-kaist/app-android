@@ -139,7 +139,7 @@ fun PostView(
     val post = viewModel.post.collectAsState().value
 
     if (post == null) {
-        PostViewSkeleton(navController)
+        PostViewSkeleton()
         return
     }
 
@@ -151,7 +151,12 @@ fun PostView(
         topBar = {
             PostNavigationBar(
                 boardGroup = board.group.name.localized(),
-                navController = navController,
+                onClick = {
+                    navController.previousBackStackEntry
+                        ?.savedStateHandle
+                        ?.set("refreshedPostId", viewModel.post.value?.id)
+                    navController.popBackStack()
+                },
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { type ->
                     scope.launch {
