@@ -16,8 +16,7 @@ class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPos
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<FeedPostViewModel.ViewState> = _state.asStateFlow()
 
-    private val _post = MutableStateFlow(FeedPost.mock())
-    override val post: StateFlow<FeedPost?> = _post.asStateFlow()
+    override val post: FeedPost = FeedPost.mock()
 
     override var comments: List<FeedComment> = FeedComment.mockList()
     override var text: String = ""

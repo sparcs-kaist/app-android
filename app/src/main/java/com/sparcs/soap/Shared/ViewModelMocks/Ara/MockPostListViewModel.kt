@@ -14,6 +14,7 @@ class MockPostListViewModel(initialState: PostListViewModel.ViewState) : PostLis
     override var board: AraBoard = AraBoard.mock()
     override var posts: List<AraPost> = emptyList()
 
+    override var lastClickedPostId: Int? = null
     private val _searchKeyword = MutableStateFlow("")
     override val searchKeyword: StateFlow<String> = _searchKeyword
 

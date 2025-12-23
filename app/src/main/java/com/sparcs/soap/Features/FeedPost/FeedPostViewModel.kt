@@ -24,7 +24,7 @@ import javax.inject.Inject
 
 interface FeedPostViewModelProtocol {
     val state: StateFlow<FeedPostViewModel.ViewState>
-    val post: StateFlow<FeedPost?>
+    val post: FeedPost?
     var comments: List<FeedComment>
     var text: String
     var image: Bitmap?
@@ -47,7 +47,10 @@ class FeedPostViewModel @Inject constructor(
 
     sealed interface ViewState {
         data object Loading : ViewState
-        data object Loaded : ViewState
+        data class Loaded(
+            val post: FeedPost,
+            val comments: List<FeedComment>
+        ) : ViewState
         data class Error(val message: String) : ViewState
     }
 
@@ -58,21 +61,16 @@ class FeedPostViewModel @Inject constructor(
     private val feedId: String =
         savedStateHandle["feedId"] ?: throw IllegalArgumentException("feedId is missing")
 
-    private val _post = MutableStateFlow<FeedPost?>(null)
-    override val post: StateFlow<FeedPost?> = _post.asStateFlow()
+    override val post: FeedPost?
+        get() = (state.value as? ViewState.Loaded)?.post
 
     // MARK: - Initializer
     init {
         viewModelScope.launch {
-            userUseCase.fetchFeedUser()
-        }
-
-        viewModelScope.launch {
             _state.value = ViewState.Loading
             try {
                 val data = feedPostRepository.fetchPost(feedId)
-                _post.value = data
-                _state.value = ViewState.Loaded
+                _state.value = ViewState.Loaded(data, emptyList())
             } catch (e: Exception) {
                 _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
             }
@@ -92,11 +90,11 @@ class FeedPostViewModel @Inject constructor(
 
     // MARK: - Functions
     override suspend fun fetchComments(postID: String) {
-        _state.value = ViewState.Loading
+        val currentPost = post ?: return
         try {
             val fetchedComments = feedCommentRepository.fetchComments(postID)
             _comments.value = fetchedComments
-            _state.value = ViewState.Loaded
+            _state.value = ViewState.Loaded(currentPost, fetchedComments)
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
         }

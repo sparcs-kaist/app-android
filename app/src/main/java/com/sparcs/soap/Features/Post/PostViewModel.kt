@@ -3,7 +3,6 @@ package com.sparcs.soap.Features.Post
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.sparcs.soap.Domain.Enums.Ara.AraContentReportType
 import com.sparcs.soap.Domain.Enums.Ara.PostOrigin
 import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
@@ -15,7 +14,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 interface PostViewModelProtocol {
@@ -61,20 +59,6 @@ class PostViewModel @Inject constructor(
     private val _post = MutableStateFlow<AraPost?>(null)
     override val post: StateFlow<AraPost?> = _post.asStateFlow()
 
-    // MARK: - Initialiser
-    init {
-        viewModelScope.launch {
-            _state.value = ViewState.Loading
-            try {
-                val data = araBoardRepository.fetchPost(PostOrigin.All, postID = postId)
-                _post.value = data
-                _state.value = ViewState.Loaded
-            } catch (e: Exception) {
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
-            }
-        }
-    }
-
     override val isFoundationModelsAvailable: Boolean
         get() = false // TODO: foundationModelsUseCase.isAvailable
 
@@ -94,13 +78,18 @@ class PostViewModel @Inject constructor(
 
     // MARK: - Functions
     override suspend fun fetchPost() {
-        val current = _post.value ?: return
+        val isFirstTime = _post.value == null // Case: Deep link entry (PostOrigin.All)
+        val origin = if (isFirstTime) PostOrigin.All else PostOrigin.Board
+
+        if (isFirstTime) _state.value = ViewState.Loading
+
         try {
-            val fetchedPost =
-                araBoardRepository.fetchPost(origin = PostOrigin.Board, postID = current.id)
+            val fetchedPost = araBoardRepository.fetchPost(origin = origin, postID = postId)
             _post.value = fetchedPost
+            if (isFirstTime) _state.value = ViewState.Loaded
         } catch (e: Exception) {
-            Log.e("PostViewModel", "fetchPost error", e)
+            if (isFirstTime) _state.value = ViewState.Error(e.localizedMessage ?: "Error")
+            Log.e("PostViewModel", "Error fetching post", e)
         }
     }
 

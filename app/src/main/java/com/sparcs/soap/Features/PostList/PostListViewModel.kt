@@ -30,6 +30,8 @@ interface PostListViewModelProtocol {
     var hasMorePages: Boolean
     val searchKeyword: StateFlow<String>
 
+    var lastClickedPostId: Int?
+
     suspend fun fetchInitialPosts()
     suspend fun loadNextPage()
     fun refreshItem(postID: Int)
@@ -63,6 +65,7 @@ class PostListViewModel @Inject constructor(
 
     override var posts: List<AraPost> = emptyList()
 
+    override var lastClickedPostId: Int? = null
     //Search Properties
     private val _searchKeyword = MutableStateFlow("")
     override val searchKeyword: StateFlow<String> = _searchKeyword

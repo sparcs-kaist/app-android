@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -83,8 +84,8 @@ import com.sparcs.soap.Features.Post.Components.PostVoteButton
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.formattedString
 import com.sparcs.soap.Shared.Extensions.postfixEuroRo
-import com.sparcs.soap.Shared.Mocks.board
 import com.sparcs.soap.Shared.ViewModelMocks.Ara.MockPostViewModel
+import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.Shared.Views.ContentViews.UnavailableView
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
@@ -98,6 +99,7 @@ fun PostView(
     viewModel: PostViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
+    val state = viewModel.state.collectAsState().value
     val scope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
 
@@ -121,7 +123,7 @@ fun PostView(
     var showAlert by remember { mutableStateOf(false) }
     @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
     @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-    var errorMessage : String by remember { mutableStateOf("") }
+    var errorMessage: String by remember { mutableStateOf("") }
 
     fun showAlert(@StringRes title: Int, @StringRes message: Int) {
         alertTitle = title
@@ -136,27 +138,17 @@ fun PostView(
     }
 
     val reportErrorMessage = stringResource(R.string.unexpected_error_reporting_comment)
-    val post = viewModel.post.collectAsState().value
-
-    if (post == null) {
-        PostViewSkeleton()
-        return
-    }
 
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
     }
+    val post = viewModel.post.collectAsState().value
 
     Scaffold(
         topBar = {
             PostNavigationBar(
-                boardGroup = board.group.name.localized(),
-                onClick = {
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("refreshedPostId", viewModel.post.value?.id)
-                    navController.popBackStack()
-                },
+                boardGroup = post?.board?.group?.name?.localized() ?: "",
+                onClick = { navController.popBackStack() },
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { type ->
                     scope.launch {
@@ -165,7 +157,7 @@ fun PostView(
                         } catch (e: Exception) {
                             Log.e("PostView", "Failed to report post", e)
                             viewModel.handleException(e)
-                            showMessage(R.string.error, e.message?: reportErrorMessage)
+                            showMessage(R.string.error, e.message ?: reportErrorMessage)
                         }
                     }
                 },
@@ -173,7 +165,7 @@ fun PostView(
                     showTranslationView = true
                     //TODO-Translate
                 },
-                isMine = post.isMine
+                isMine = post?.isMine
             )
         },
         bottomBar = {
@@ -233,117 +225,145 @@ fun PostView(
             )
         }
     ) { innerPadding ->
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                scope.launch {
-                    viewModel.fetchPost()
-                }
-                isRefreshing = false
+        when (state) {
+            is PostViewModel.ViewState.Loading -> {
+                PostViewSkeleton()
             }
-        ) {
-            LazyColumn(
-                Modifier
-                    .padding(innerPadding)
-                    .padding(16.dp),
-                state = proxy
-            ) {
-                item {
-                    Header(
-                        post = post,
-                        onAuthorClick = {
-                            val json = Uri.encode(Gson().toJson(post.author))
-                            navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
+
+            is PostViewModel.ViewState.Error -> {
+                ErrorView(
+                    icon = Icons.Default.Warning,
+                    errorMessage = state.message,
+                    onRetry = { scope.launch { viewModel.fetchPost() } }
+                )
+            }
+
+            is PostViewModel.ViewState.Loaded -> {
+                if (post == null) {
+                    PostViewSkeleton()
+                    return@Scaffold
+                }
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        isRefreshing = true
+                        scope.launch {
+                            viewModel.fetchPost()
                         }
-                    )
-                }
-                item {
-                    Content(
-                        summarisedContent = summarisedContent,
-                        htmlHeight = htmlHeight,
-                        onHtmlHeightChange = { htmlHeight = it },
-                        onLinkTapped = { tappedURL = Uri.parse(it) },
-                        post = post
-                    )
-                }
-                item {
-                    Footer(viewModel, scope = scope, post = post) {
-                        targetComment = null
-                        isWritingComment = true
-                        focusRequester.requestFocus()
-                        keyboardController?.show()
+                        isRefreshing = false
                     }
-                }
-                item {
-                    Comments(
-                        post = post
+                ) {
+                    LazyColumn(
+                        Modifier
+                            .padding(innerPadding)
+                            .padding(16.dp),
+                        state = proxy
                     ) {
-                        commentOnEdit = it.commentOnEdit
-                        targetComment = it.targetComment
-                        comment = it.comment
-                        focusRequester.requestFocus()
-                        keyboardController?.show()
+                        item {
+                            Header(
+                                post = post,
+                                onAuthorClick = {
+                                    val json = Uri.encode(Gson().toJson(post.author))
+                                    navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
+                                }
+                            )
+                        }
+                        item {
+                            Content(
+                                summarisedContent = summarisedContent,
+                                htmlHeight = htmlHeight,
+                                onHtmlHeightChange = { htmlHeight = it },
+                                onLinkTapped = { tappedURL = Uri.parse(it) },
+                                post = post
+                            )
+                        }
+                        item {
+                            Footer(viewModel, scope = scope, post = post) {
+                                targetComment = null
+                                isWritingComment = true
+                                focusRequester.requestFocus()
+                                keyboardController?.show()
+                            }
+                        }
+                        item {
+                            Comments(
+                                post = post
+                            ) {
+                                commentOnEdit = it.commentOnEdit
+                                targetComment = it.targetComment
+                                comment = it.comment
+                                focusRequester.requestFocus()
+                                keyboardController?.show()
+                            }
+                        }
                     }
                 }
             }
         }
-    }
 
-    if (showDeleteConfirmation) {
-        AlertDialog(
-            onDismissRequest = { showDeleteConfirmation = false },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            try {
-                                viewModel.deletePost()
-                                showDeleteConfirmation = false
-                                navController.previousBackStackEntry
-                                    ?.savedStateHandle
-                                    ?.set("listNeedsRefresh", true)
-                                navController.popBackStack()
-                            } catch (e: Exception) {
-                                Log.e("PostView", "Failed to delete post", e)
-                                viewModel.handleException(e)
-                                showAlert = true
-                                showAlert(R.string.error, R.string.unexpected_error_deleting_post)
+        if (showDeleteConfirmation) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirmation = false },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                try {
+                                    viewModel.deletePost()
+                                    showDeleteConfirmation = false
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("listNeedsRefresh", true)
+                                    navController.popBackStack()
+                                } catch (e: Exception) {
+                                    Log.e("PostView", "Failed to delete post", e)
+                                    viewModel.handleException(e)
+                                    showAlert = true
+                                    showAlert(
+                                        R.string.error,
+                                        R.string.unexpected_error_deleting_post
+                                    )
+                                }
                             }
-                        }
 
-                    },
-                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
-                )
-                {
-                    Text(
-                        text = stringResource(R.string.delete),
-                        color = MaterialTheme.colorScheme.error
+                        },
+                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
                     )
-                }
-            },
-            title = { Text(text = stringResource(R.string.delete_post), fontWeight = FontWeight.Bold) },
-            text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
-        )
-    }
+                    {
+                        Text(
+                            text = stringResource(R.string.delete),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                title = {
+                    Text(
+                        text = stringResource(R.string.delete_post),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
+            )
+        }
 
-    if (showAlert) {
-        AlertDialog(
-            onDismissRequest = { showAlert = false },
-            confirmButton = {
-                Button(onClick = { showAlert = false }) {
-                    Text(stringResource(R.string.ok))
+        if (showAlert) {
+            AlertDialog(
+                onDismissRequest = { showAlert = false },
+                confirmButton = {
+                    Button(onClick = { showAlert = false }) {
+                        Text(stringResource(R.string.ok))
+                    }
+                },
+                title = { Text(stringResource(alertTitle)) },
+                text = {
+                    if (alertMessage != 0) {
+                        Text(stringResource(alertMessage))
+                    } else {
+                        Text(errorMessage)
+                    }
                 }
-            },
-            title = { Text(stringResource(alertTitle)) },
-            text = {
-                if (alertMessage != 0) {
-                    Text(stringResource(alertMessage))
-                } else {
-                    Text(errorMessage)
-                }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -679,9 +699,10 @@ private fun InputBar(
 
 @Composable
 private fun ProfilePicture(
-    post: AraPost,
+    post: AraPost?,
     isMe: Boolean,
 ) {
+    if (post == null) return
     val profileUrl =
         if (isMe) post.myCommentProfile?.profile?.profilePictureURL else post.author.profile.profilePictureURL
     if (profileUrl != null) {
@@ -748,7 +769,8 @@ fun placeholder(
             val anonymousName = stringResource(R.string.anonymous)
             stringResource(
                 R.string.reply_as,
-                viewModel.post.value?.myCommentProfile?.profile?.nickname?.postfixEuroRo() ?: anonymousName.postfixEuroRo()
+                viewModel.post.value?.myCommentProfile?.profile?.nickname?.postfixEuroRo()
+                    ?: anonymousName.postfixEuroRo()
             )
         }
     }
