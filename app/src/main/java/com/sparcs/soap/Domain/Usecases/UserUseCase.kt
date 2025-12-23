@@ -10,10 +10,6 @@ import com.sparcs.soap.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
-import com.sparcs.soap.Shared.Mocks.mock
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -36,7 +32,8 @@ interface UserUseCaseProtocol {
     @Throws(Exception::class)
     suspend fun fetchFeedUser()
 
-    suspend fun fetchTaxiUser(): TaxiUser
+    @Throws(Exception::class)
+    suspend fun fetchTaxiUser()
 
     @Throws(Exception::class)
     suspend fun fetchOTLUser()
@@ -50,14 +47,6 @@ class UserUseCase @Inject constructor(
     private val otlUserRepository: OTLUserRepositoryProtocol,
     private val userStorage: UserStorageProtocol,
 ) : UserUseCaseProtocol {
-
-    init {
-        Log.d("UserUseCase", "Fetching Users")
-
-        CoroutineScope(Dispatchers.IO).launch {
-            fetchUsers()
-        }
-    }
 
     override val araUser: AraUser?
         get() = runBlocking { userStorage.getAraUser() }
@@ -102,12 +91,11 @@ class UserUseCase @Inject constructor(
         fetchAraUser()
     }
 
-    override suspend fun fetchTaxiUser(): TaxiUser {
+    override suspend fun fetchTaxiUser() {
         Log.d("UserUseCase", "Fetching Taxi User")
         val user = taxiUserRepository.fetchUser()
         userStorage.setTaxiUser(user)
         Log.d("UserUseCase", user.toString())
-        return user
     }
 
     override suspend fun fetchFeedUser() {
@@ -135,9 +123,7 @@ class MockUserUseCase: UserUseCaseProtocol {
     override suspend fun fetchAraUser() {}
     override suspend fun updateAraUser(params: Map<String, Any>) { }
     override suspend fun fetchFeedUser() {}
-    override suspend fun fetchTaxiUser(): TaxiUser {
-        return taxiUser ?: TaxiUser.mock()
-    }
+    override suspend fun fetchTaxiUser() {}
 
     override suspend fun fetchOTLUser() {}
 }

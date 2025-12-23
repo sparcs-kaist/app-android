@@ -69,6 +69,7 @@ import com.sparcs.soap.Features.FeedPost.Components.FeedCommentRow
 import com.sparcs.soap.Features.FeedPost.Components.FeedPostNavigationBar
 import com.sparcs.soap.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import com.sparcs.soap.R
+import com.sparcs.soap.Shared.Mocks.mock
 import com.sparcs.soap.Shared.Mocks.mockList
 import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import com.sparcs.soap.Shared.ViewModelMocks.Feed.MockFeedViewModel
@@ -84,6 +85,9 @@ fun FeedPostView(
     feedViewModel: FeedViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
+    val postState by viewModel.state.collectAsState()
+    val feedState by feedViewModel.state.collectAsState()
+
     val coroutineScope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
 
@@ -95,11 +99,13 @@ fun FeedPostView(
     var isUploadingComment by remember { mutableStateOf(false) }
 
     val isPreview = LocalInspectionMode.current
-    val repo: FeedPostRepositoryProtocol = if (!isPreview) hiltViewModel<FeedViewModel>().feedPostRepository else FakeFeedPostRepository()
-    val repo1: FeedCommentRepositoryProtocol = if(!isPreview) hiltViewModel<FeedPostViewModel>().feedCommentRepository else FakeFeedCommentRepository()
-    val vm = if(!isPreview) hiltViewModel<FeedViewModel>() else MockFeedViewModel(initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList()))
-
-    val post = viewModel.post.collectAsState().value
+    val repo: FeedPostRepositoryProtocol =
+        if (!isPreview) hiltViewModel<FeedViewModel>().feedPostRepository else FakeFeedPostRepository()
+    val repo1: FeedCommentRepositoryProtocol =
+        if (!isPreview) hiltViewModel<FeedPostViewModel>().feedCommentRepository else FakeFeedCommentRepository()
+    val vm = if (!isPreview) hiltViewModel<FeedViewModel>() else MockFeedViewModel(
+        initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList())
+    )
 
     var showAlert by remember { mutableStateOf(false) }
     @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
@@ -111,171 +117,195 @@ fun FeedPostView(
         showAlert = true
     }
 
-    if (post == null) {
-        LoadingView(navController)
-        return
-    }
+    when (val state = postState) {
+        is FeedPostViewModel.ViewState.Loading -> {
+            LoadingView(navController)
+        }
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchComments(postID = post.id)
-    }
-
-    Scaffold(
-        topBar = {
-            FeedPostNavigationBar(
-                navController = navController,
-                onDelete = { showDeleteConfirmation = true },
-                onReport = {
+        is FeedPostViewModel.ViewState.Error -> {
+            ErrorView(
+                icon = Icons.Default.Warning,
+                errorMessage = state.message,
+                onRetry = {
                     coroutineScope.launch {
-                        try {
-                            repo.reportPost(post.id, it)
-                            showAlert(
-                                title = R.string.report_submitted,
-                                message = R.string.reported_successfully
-                            )
-                        } catch (e: Exception) {
-                            viewModel.handleException(error = e)
-                            showAlert = true
-                            showAlert(
-                                title = R.string.error,
-                                message = R.string.unexpected_error_reporting_comment
-                            )
-                        }
+                        viewModel.post?.let { viewModel.fetchComments(it.id) }
                     }
-                },
-                onTranslate = {/*Todo - translate*/ },
-                isMine = post.isAuthor
+                }
             )
-        },
-        bottomBar = {
-            InputBar(
-                viewModel = viewModel,
-                targetComment = targetComment,
-                isWritingCommentFocusState = isWritingCommentFocusState,
-                onCommentUploaded = {
-                    if (viewModel.text.isEmpty()) return@InputBar
-                    isUploadingComment = true
-                    coroutineScope.launch {
-                        val uploadedComment: FeedComment?
-                        try {
-                            uploadedComment = if (targetComment != null) {
-                                viewModel.writeReply(targetComment!!.id)
-                            } else {
-                                viewModel.writeComment(post.id)
-                            }
+        }
 
-                            uploadedComment.let { comment ->
-                                post.commentCount += 1
-                                targetComment = null
-                                viewModel.text = ""
-                                isWritingCommentFocusState = false
+        is FeedPostViewModel.ViewState.Loaded -> {
+            val post = if (feedState is FeedViewModel.ViewState.Loaded) {
+                (feedState as FeedViewModel.ViewState.Loaded).posts.find { it.id == state.post.id } ?: state.post
+            } else {
+                state.post
+            }
 
-                                val index = viewModel.comments.indexOfFirst { it.id == comment.id }
-                                if (index != -1) {
-                                    proxy.animateScrollToItem(index)
+            LaunchedEffect(Unit) {
+                viewModel.fetchComments(postID = post.id)
+            }
+
+            Scaffold(
+                topBar = {
+                    FeedPostNavigationBar(
+                        navController = navController,
+                        onDelete = { showDeleteConfirmation = true },
+                        onReport = {
+                            coroutineScope.launch {
+                                try {
+                                    repo.reportPost(post.id, it)
+                                    showAlert(
+                                        title = R.string.report_submitted,
+                                        message = R.string.reported_successfully
+                                    )
+                                } catch (e: Exception) {
+                                    viewModel.handleException(error = e)
+                                    showAlert = true
+                                    showAlert(
+                                        title = R.string.error,
+                                        message = R.string.unexpected_error_reporting_comment
+                                    )
                                 }
                             }
-                        } catch (e: Exception) {
-                            Log.e("FeedPostView", "Failed to upload comment", e)
-                            viewModel.handleException(e)
-                            showAlert(
-                                title = R.string.error,
-                                message = R.string.unexpected_error_uploading_comment
-                            )
-                        } finally {
-                            isUploadingComment = false
-                        }
-                    }
-                },
-                focusRequester = focusRequester,
-                isUploadingComment = isUploadingComment
-            )
-        }
-    ) { innerPadding ->
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                coroutineScope.launch {
-                    viewModel.fetchComments(postID = post.id)
-                }
-                isRefreshing = false
-            }
-        ) {
-            LazyColumn(
-                Modifier.padding(innerPadding),
-                state = proxy
-            ) {
-                item {
-                    FeedPostRow(
-                        post = post,
-                        viewModel = feedViewModel,
-                        singleLine = false,
-                        onPostDeleted = {},
-                        onComment = {
-                            targetComment = null
-                            isWritingCommentFocusState = true
-                        }
-                    )
-                }
-
-                item {
-                    Comments(
-                        viewModel = viewModel,
-                        post = post,
-                        isMine = post.isAuthor,
-                        feedCommentRepository = repo1,
-                        onReply = { c ->
-                            targetComment = c
-                            isWritingCommentFocusState = true
-                        }
-                    )
-                }
-            }
-        }
-
-        if (showDeleteConfirmation) {
-            AlertDialog(
-                onDismissRequest = { showDeleteConfirmation = false },
-                title = {
-                    Text(
-                        text = stringResource(R.string.delete_post),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            coroutineScope.launch { vm.deletePost(post.id) }
-                            showDeleteConfirmation = false
-                            navController.previousBackStackEntry
-                                ?.savedStateHandle
-                                ?.set("listNeedsRefresh", true)
-                            navController.popBackStack()
                         },
-                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
+                        onTranslate = {/*Todo - translate*/ },
+                        isMine = post.isAuthor
+                    )
+                },
+                bottomBar = {
+                    InputBar(
+                        viewModel = viewModel,
+                        targetComment = targetComment,
+                        isWritingCommentFocusState = isWritingCommentFocusState,
+                        onCommentUploaded = {
+                            if (viewModel.text.isEmpty()) return@InputBar
+                            isUploadingComment = true
+                            coroutineScope.launch {
+                                val uploadedComment: FeedComment?
+                                try {
+                                    uploadedComment = if (targetComment != null) {
+                                        viewModel.writeReply(targetComment!!.id)
+                                    } else {
+                                        viewModel.writeComment(post.id)
+                                    }
+
+                                    uploadedComment.let { comment ->
+                                        post.commentCount += 1
+                                        targetComment = null
+                                        viewModel.text = ""
+                                        isWritingCommentFocusState = false
+
+                                        val index =
+                                            viewModel.comments.indexOfFirst { it.id == comment.id }
+                                        if (index != -1) {
+                                            proxy.animateScrollToItem(index)
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    Log.e("FeedPostView", "Failed to upload comment", e)
+                                    viewModel.handleException(e)
+                                    showAlert(
+                                        title = R.string.error,
+                                        message = R.string.unexpected_error_uploading_comment
+                                    )
+                                } finally {
+                                    isUploadingComment = false
+                                }
+                            }
+                        },
+                        focusRequester = focusRequester,
+                        isUploadingComment = isUploadingComment
+                    )
+                }
+            ) { innerPadding ->
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        isRefreshing = true
+                        coroutineScope.launch {
+                            viewModel.fetchComments(postID = post.id)
+                        }
+                        isRefreshing = false
+                    }
+                ) {
+                    LazyColumn(
+                        Modifier.padding(innerPadding),
+                        state = proxy
                     ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            color = MaterialTheme.colorScheme.error
-                        )
+                        item {
+                            FeedPostRow(
+                                post = post,
+                                viewModel = feedViewModel,
+                                singleLine = false,
+                                onPostDeleted = {},
+                                onComment = {
+                                    targetComment = null
+                                    isWritingCommentFocusState = true
+                                }
+                            )
+                        }
+
+                        item {
+                            Comments(
+                                viewModel = viewModel,
+                                post = post,
+                                isMine = post.isAuthor,
+                                feedCommentRepository = repo1,
+                                onReply = { c ->
+                                    targetComment = c
+                                    isWritingCommentFocusState = true
+                                }
+                            )
+                        }
                     }
                 }
-            )
-        }
-        if (showAlert) {
-            AlertDialog(
-                onDismissRequest = { showAlert = false },
-                confirmButton = {
-                    Button(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
-                },
-                title = { Text(stringResource(alertTitle)) },
-                text = { Text(stringResource(alertMessage)) }
-            )
+
+                if (showDeleteConfirmation) {
+                    AlertDialog(
+                        onDismissRequest = { showDeleteConfirmation = false },
+                        title = {
+                            Text(
+                                text = stringResource(R.string.delete_post),
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
+                        text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
+                        confirmButton = {
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch { vm.deletePost(post.id) }
+                                    showDeleteConfirmation = false
+                                    navController.previousBackStackEntry
+                                        ?.savedStateHandle
+                                        ?.set("listNeedsRefresh", true)
+                                    navController.popBackStack()
+                                },
+                                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.delete),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    )
+                }
+            }
         }
     }
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { showAlert = false },
+            confirmButton = {
+                Button(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
+            },
+            title = { Text(stringResource(alertTitle)) },
+            text = { Text(stringResource(alertMessage)) }
+        )
+    }
+
 }
+
 
 @Composable
 private fun InputBar(
@@ -484,8 +514,13 @@ private fun LoadingView(
 @Composable
 private fun MockView(state: FeedPostViewModel.ViewState) {
     val mockViewModel = remember { MockFeedPostViewModel(initialState = state) }
-    val mockFeedViewModel = remember { MockFeedViewModel(initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList()))}
-    FeedPostView(viewModel = mockViewModel, feedViewModel = mockFeedViewModel, navController = rememberNavController())
+    val mockFeedViewModel =
+        remember { MockFeedViewModel(initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList())) }
+    FeedPostView(
+        viewModel = mockViewModel,
+        feedViewModel = mockFeedViewModel,
+        navController = rememberNavController()
+    )
 }
 
 @Composable
@@ -497,7 +532,7 @@ private fun LoadingPreview() {
 @Composable
 @Preview
 private fun LoadedPreview() {
-    Theme { MockView(FeedPostViewModel.ViewState.Loaded) }
+    Theme { MockView(FeedPostViewModel.ViewState.Loaded(FeedPost.mock(), emptyList())) }
 }
 
 @Composable
