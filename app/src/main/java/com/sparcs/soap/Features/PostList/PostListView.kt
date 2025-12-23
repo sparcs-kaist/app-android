@@ -83,10 +83,17 @@ fun PostListView(
     val isPreview = LocalInspectionMode.current
     val backStackEntry = if (!isPreview) navController.currentBackStackEntry else null
 
-    val stateHandle = navController.currentBackStackEntry?.savedStateHandle
-    val listNeedsRefresh = stateHandle
-        ?.getStateFlow("listNeedsRefresh", false)
-        ?.collectAsState()
+    val refreshedPostId by navController.currentBackStackEntry
+        ?.savedStateHandle
+        ?.getStateFlow<Int?>("refreshedPostId", null)
+        ?.collectAsState() ?: remember { mutableStateOf(null) }
+
+    LaunchedEffect(refreshedPostId) {
+        refreshedPostId?.let { id ->
+            viewModel.refreshItem(id)
+            navController.currentBackStackEntry?.savedStateHandle?.remove<Int>("refreshedPostId")
+        }
+    }
 
     LaunchedEffect(Unit) {
         val json = Gson().toJson(board)
@@ -98,12 +105,6 @@ fun PostListView(
         }
     }
 
-    LaunchedEffect(listNeedsRefresh?.value) {
-        if (listNeedsRefresh?.value == true) {
-            viewModel.fetchInitialPosts()
-            stateHandle["listNeedsRefresh"] = false
-        }
-    }
     Scaffold(
         topBar = {
             BoardNavigationBar(

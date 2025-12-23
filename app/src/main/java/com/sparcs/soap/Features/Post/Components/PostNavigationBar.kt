@@ -17,8 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Enums.Ara.AraContentReportType
 import com.sparcs.soap.Features.Post.PostCommentActionsMenu
 import com.sparcs.soap.R
@@ -29,7 +27,7 @@ import com.sparcs.soap.ui.theme.darkGray
 @Composable
 fun PostNavigationBar(
     boardGroup: String,
-    navController : NavController,
+    onClick: () -> Unit,
     onDelete: () -> Unit,
     onReport: (AraContentReportType) -> Unit,
     onTranslate: () -> Unit,
@@ -38,12 +36,7 @@ fun PostNavigationBar(
     TopAppBar(
         navigationIcon = {
             Row(
-                modifier = Modifier.clickable {
-                    navController.previousBackStackEntry
-                        ?.savedStateHandle
-                        ?.set("listNeedsRefresh", true)
-                    navController.popBackStack()
-                                              },
+                modifier = Modifier.clickable { onClick() },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -82,5 +75,5 @@ fun PostNavigationBar(
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ PostNavigationBar("Board", rememberNavController(), {}, {}, {}, false) }
+    Theme{ PostNavigationBar("Board", {}, {}, {}, {}, false) }
 }

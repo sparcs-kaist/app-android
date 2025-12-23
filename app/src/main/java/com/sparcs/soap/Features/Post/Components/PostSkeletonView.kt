@@ -22,16 +22,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 
 @Composable
-fun PostViewSkeleton(navController: NavController) {
+fun PostViewSkeleton() {
     Scaffold(
         topBar = {
             PostNavigationBar(
                 boardGroup = "",
-                navController = navController,
+                onClick = {},
                 onDelete = {},
                 onReport = {},
                 onTranslate = {},
@@ -175,5 +173,5 @@ private fun CommentSkeleton() {
 @Preview(showBackground = true)
 @Composable
 private fun PreviewSkeleton() {
-    PostViewSkeleton(rememberNavController())
+    PostViewSkeleton()
 }
