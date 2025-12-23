@@ -43,6 +43,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
@@ -83,15 +85,22 @@ fun PostListView(
     val isPreview = LocalInspectionMode.current
     val backStackEntry = if (!isPreview) navController.currentBackStackEntry else null
 
-    val refreshedPostId by navController.currentBackStackEntry
-        ?.savedStateHandle
-        ?.getStateFlow<Int?>("refreshedPostId", null)
-        ?.collectAsState() ?: remember { mutableStateOf(null) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
 
-    LaunchedEffect(refreshedPostId) {
-        refreshedPostId?.let { id ->
-            viewModel.refreshItem(id)
-            navController.currentBackStackEntry?.savedStateHandle?.remove<Int>("refreshedPostId")
+    LaunchedEffect(lifecycleState) {
+        if (lifecycleState == Lifecycle.State.RESUMED) {
+
+            viewModel.lastClickedPostId?.let { id ->
+                viewModel.refreshItem(id)
+                viewModel.lastClickedPostId = null
+            }
+
+            val needsRefresh = navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("listNeedsRefresh") ?: false
+            if (needsRefresh) {
+                viewModel.fetchInitialPosts()
+                navController.currentBackStackEntry?.savedStateHandle?.set("listNeedsRefresh", false)
+            }
         }
     }
 
@@ -167,6 +176,7 @@ fun PostListView(
                                 }
                             },
                             onPostClick = { post ->
+                                viewModel.lastClickedPostId = post.id
                                 navController.navigate(Channel.PostView.name + "?postId=${post.id}")
                             },
                             onPostDisappear = { postID -> viewModel.refreshItem(postID) },

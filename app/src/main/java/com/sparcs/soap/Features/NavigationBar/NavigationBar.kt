@@ -43,6 +43,7 @@ import com.sparcs.soap.Features.Feed.FeedView
 import com.sparcs.soap.Features.Feed.FeedViewModel
 import com.sparcs.soap.Features.FeedPost.FeedPostView
 import com.sparcs.soap.Features.FeedPost.FeedPostViewModel
+import com.sparcs.soap.Features.FeedPost.FeedPostViewModelProtocol
 import com.sparcs.soap.Features.FeedPostCompose.FeedPostComposeView
 import com.sparcs.soap.Features.FeedPostCompose.FeedPostComposeViewModel
 import com.sparcs.soap.Features.LectureDetail.LectureDetailView
@@ -141,48 +142,62 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     ) {
         NavHost(
             navController = navController,
-            startDestination = Channel.Start.name,
+            startDestination = "FeedGraph",
             enterTransition = { fadeIn(animationSpec = tween(500)) },
             exitTransition = { fadeOut(animationSpec = tween(500)) }
         ) {
-            composable(
-                route = Channel.Start.name,
-            ) { backStackEntry ->
-                val viewModel: FeedViewModel = hiltViewModel(backStackEntry)
-                FeedView(navController = navController, viewModel = viewModel)
-            }
-
-            composable(
-                route = Channel.FeedPost.name + "?feedId={feedId}",
-                arguments = listOf(
-                    navArgument("feedId") { type = NavType.StringType }
-                ),
-                deepLinks = listOf(
-                    navDeepLink {
-                        uriPattern = Constants.feedShareURL + "{feedId}"
-                        action = Intent.ACTION_VIEW
+            navigation(
+                startDestination = Channel.Start.name,
+                route = "FeedGraph"
+            ) {
+                composable(
+                    route = Channel.Start.name,
+                ) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("FeedGraph")
                     }
-                ),
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = null,
-                popExitTransition = trendingPopExitTransition()
-            ) { backStackEntry ->
-                val viewModel: FeedPostViewModel = hiltViewModel(backStackEntry)
-                val feedViewModel: FeedViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: FeedViewModel = hiltViewModel(parentEntry)
+                    FeedView(navController = navController, viewModel = viewModel)
+                }
 
-                FeedPostView(navController = navController, viewModel = viewModel, feedViewModel = feedViewModel)
-            }
+                composable(
+                    route = Channel.FeedPost.name + "?feedId={feedId}",
+                    arguments = listOf(
+                        navArgument("feedId") { type = NavType.StringType }
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = Constants.feedShareURL + "{feedId}"
+                            action = Intent.ACTION_VIEW
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: FeedPostViewModelProtocol = hiltViewModel<FeedPostViewModel>(backStackEntry)
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("FeedGraph")
+                    }
+                    val feedViewModel: FeedViewModel = hiltViewModel(parentEntry)
+                    FeedPostView(
+                        navController = navController,
+                        viewModel = viewModel,
+                        feedViewModel = feedViewModel
+                    )
+                }
 
-            composable(
-                route = Channel.FeedPostCompose.name,
-                enterTransition = trendingEnterTransition(),
-                exitTransition = trendingExitTransition(),
-                popEnterTransition = null,
-                popExitTransition = trendingPopExitTransition()
-            ) { backStackEntry ->
-                val viewModel: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
-                FeedPostComposeView(navController = navController, viewModel = viewModel)
+                composable(
+                    route = Channel.FeedPostCompose.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
+                    FeedPostComposeView(navController = navController, viewModel = viewModel)
+                }
             }
 
             /*___________OTL___________*/
@@ -193,7 +208,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 composable(
                     route = Channel.TimeTable.name
                 ) { backStackEntry ->
-                    val viewModel: TimetableViewModel = hiltViewModel(backStackEntry)
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("OTLGraph")
+                    }
+                    val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
                     val lectureSearchViewModel: LectureSearchViewModel =
                         hiltViewModel(backStackEntry)
                     TimetableView(
@@ -216,10 +234,14 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("OTLGraph")
+                    }
 
+                    val timetableViewModel: TimetableViewModel = hiltViewModel(parentEntry)
                     val lectureDetailViewModel: LectureDetailViewModel =
                         hiltViewModel(backStackEntry)
-                    val timetableViewModel: TimetableViewModel = hiltViewModel(backStackEntry)
+//                    val timetableViewModel: TimetableViewModel = hiltViewModel(backStackEntry)
 
                     LectureDetailView(
                         lectureDetailViewModel = lectureDetailViewModel,
@@ -350,7 +372,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiChatListViewModel = hiltViewModel(backStackEntry)
-
                     TaxiChatListView(viewModel, navController)
                 }
 
@@ -505,7 +526,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: AraSettingsViewModel = hiltViewModel(backStackEntry)
-
                     AraSettingsView(viewModel = viewModel, navController = navController)
                 }
 
@@ -523,7 +543,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: AraMyPostViewModel = hiltViewModel(backStackEntry)
-
                     AraMyPostView(
                         viewModel = viewModel,
                         navController = navController
@@ -538,7 +557,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiSettingsViewModel = hiltViewModel(backStackEntry)
-
                     TaxiSettingsView(
                         viewModel = viewModel,
                         navController = navController
@@ -553,7 +571,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: TaxiReportListViewModel = hiltViewModel(backStackEntry)
-
                     TaxiReportListView(
                         viewModel = viewModel,
                         navController = navController

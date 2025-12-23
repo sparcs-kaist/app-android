@@ -47,6 +47,7 @@ import coil.compose.AsyncImage
 import com.sparcs.soap.Domain.Enums.Feed.FeedReportType
 import com.sparcs.soap.Domain.Enums.Feed.FeedVoteType
 import com.sparcs.soap.Domain.Models.Feed.FeedComment
+import com.sparcs.soap.Domain.Models.Feed.FeedPost
 import com.sparcs.soap.Domain.Repositories.Feed.FakeFeedCommentRepository
 import com.sparcs.soap.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
 import com.sparcs.soap.Features.FeedPost.FeedPostViewModel
@@ -397,7 +398,9 @@ suspend fun handleVote(
 private fun Preview() {
     Theme {
         FeedCommentRow(
-            viewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded),
+            viewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(
+                FeedPost.mock(), emptyList())
+            ),
             comment = FeedComment.mock(),
             isMine = true,
             isReply = false,
@@ -413,7 +416,7 @@ private fun Preview() {
 private fun Preview2() {
     Theme {
         FeedCommentRow(
-            viewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded),
+            viewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(FeedPost.mock(), emptyList())),
             comment = FeedComment.mockList()[0],
             isMine = false,
             isReply = true,

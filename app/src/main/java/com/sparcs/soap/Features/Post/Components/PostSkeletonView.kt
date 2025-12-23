@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,28 +24,14 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun PostViewSkeleton() {
-    Scaffold(
-        topBar = {
-            PostNavigationBar(
-                boardGroup = "",
-                onClick = {},
-                onDelete = {},
-                onReport = {},
-                onTranslate = {},
-                isMine = false
-            )
-        }
-    ) { innerPadding ->
-        LazyColumn(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(16.dp)
-        ) {
-            item { HeaderSkeleton() }
-            item { ContentSkeleton() }
-            item { FooterSkeleton() }
-            items(2) { CommentSkeleton() }
-        }
+    LazyColumn(
+        modifier = Modifier
+            .padding(16.dp)
+    ) {
+        item { HeaderSkeleton() }
+        item { ContentSkeleton() }
+        item { FooterSkeleton() }
+        items(2) { CommentSkeleton() }
     }
 }
 
@@ -55,9 +40,30 @@ private fun HeaderSkeleton() {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(
             Modifier
+                .height(14.dp)
+                .width(80.dp)
+                .background(
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                    RoundedCornerShape(4.dp)
+                )
+        )
+        Box(
+            Modifier
+                .height(14.dp)
+                .width(60.dp)
+                .background(
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                    RoundedCornerShape(4.dp)
+                )
+        )
+        Box(
+            Modifier
                 .height(22.dp)
                 .fillMaxWidth(0.8f)
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                .background(
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                    RoundedCornerShape(4.dp)
+                )
         )
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -65,13 +71,19 @@ private fun HeaderSkeleton() {
                 Modifier
                     .height(14.dp)
                     .width(80.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
             Box(
                 Modifier
                     .height(14.dp)
                     .width(60.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
         }
 
@@ -86,7 +98,10 @@ private fun HeaderSkeleton() {
                 Modifier
                     .height(16.dp)
                     .width(100.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
         }
 
@@ -102,7 +117,10 @@ private fun ContentSkeleton() {
                 Modifier
                     .fillMaxWidth()
                     .height(18.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
         }
         Spacer(Modifier.height(8.dp))
@@ -152,7 +170,10 @@ private fun CommentSkeleton() {
                 Modifier
                     .height(16.dp)
                     .width(120.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
         }
 
@@ -163,7 +184,10 @@ private fun CommentSkeleton() {
                 Modifier
                     .fillMaxWidth()
                     .height(16.dp)
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
             )
             Spacer(Modifier.height(4.dp))
         }
