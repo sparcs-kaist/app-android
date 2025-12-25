@@ -146,6 +146,8 @@ private fun LoadedView(
         //profile
         Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
 
+        Spacer(Modifier.height(16.dp))
+
         OutlinedTextField(
             value = viewModel.nickname,
             onValueChange = { viewModel.nickname = it },
@@ -189,13 +191,15 @@ private fun LoadedView(
             style = MaterialTheme.typography.titleMedium
         )
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.padding(horizontal = 8.dp)) {
             Text(stringResource(R.string.allow_nsfw))
             Spacer(Modifier.weight(1f))
             Switch(checked = viewModel.allowNSFW, onCheckedChange = { viewModel.allowNSFW = it })
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp)) {
             Text(stringResource(R.string.allow_political))
             Spacer(Modifier.weight(1f))
             Switch(

@@ -132,8 +132,7 @@ fun TaxiChatView(
 
     LaunchedEffect(room.id) {
         try {
-            viewModel.switchRoom(room)
-            viewModel.fetchInitialChats()
+            viewModel.setup()
         } catch (e: Exception) {
             errorMessage = e.message ?: "Failed to load chats"
             showErrorAlert = true
@@ -330,7 +329,7 @@ fun TaxiChatView(
 
 // MARK: - Views
 @Composable
-fun ContentView(
+private fun ContentView(
     groupedChats: List<TaxiChatGroup>,
     viewModel: TaxiChatViewModelProtocol,
     onImageClick: (String) -> Unit,
@@ -384,7 +383,12 @@ fun ContentView(
             previousFirstVisibleOffset.value = firstVisibleOffset
         }
     }
-
+    val badgeMap = remember(viewModel.room.collectAsState().value.participants) {
+        viewModel.room.value.participants.associateBy(
+            keySelector = { it.id },
+            valueTransform = { it.badge }
+        )
+    }
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -400,10 +404,7 @@ fun ContentView(
                 previousDate = currentDate
             }
 
-            val badge = viewModel.room.value.participants
-                .firstOrNull { it.id == group.authorID }
-                ?.badge
-                ?: false
+            val badge = badgeMap[group.authorID] ?: false
 
             TaxiChatUserWrapper(
                 authorID = group.authorID,
