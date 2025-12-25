@@ -330,4 +330,12 @@
     <string name="thu">목</string>
     <string name="fri">금</string>
     <string name="sat">토</string>
+    <string name="kaist_ip_verified">KAIST IP 인증됨</string>
+    <string name="phone_number">전화번호</string>
+    <string name="edit_message_phone_number">전화번호는 최초 1회만 등록 가능합니다. 입력하신 번호로 설정하시겠습니까?</string>
+    <string name="show_badge">배지 표시</string>
+    <string name="are_you_sure">정말이신가요?</string>
+    <string name="discard_this_settings">수정 중인 변경 사항이 있습니다. 저장하지 않고 나가시겠습니까?</string>
+    <string name="exit">나가기</string>
+    <string name="keep_editing">계속 수정</string>
 </resources>

@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.sparcs.soap.Domain.Models.Taxi.TaxiRoom
 import com.sparcs.soap.Domain.Models.Taxi.TaxiUser
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
-import com.sparcs.soap.Domain.Usecases.UserUseCaseProtocol
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,8 +23,7 @@ interface TaxiChatListViewModelProtocol {
 
 @HiltViewModel
 class TaxiChatListViewModel @Inject constructor(
-    private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
-    private val userUseCase: UserUseCaseProtocol
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol
 ): ViewModel(), TaxiChatListViewModelProtocol{
 
     sealed class ViewState{
@@ -40,9 +38,6 @@ class TaxiChatListViewModel @Inject constructor(
     //MARK: - viewModel Properties
     override var taxiUser: TaxiUser? = null
 
-    init {
-        fetchTaxiUser()
-    }
     //MARK: - Functions
     override suspend fun fetchData(){
         viewModelScope.launch {
@@ -58,9 +53,5 @@ class TaxiChatListViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    private fun fetchTaxiUser(){
-        viewModelScope.launch { taxiUser = userUseCase.fetchTaxiUser() }
     }
 }
