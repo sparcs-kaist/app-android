@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -52,6 +51,7 @@ import com.sparcs.soap.Features.Feed.FeedViewModelProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
 import com.sparcs.soap.Features.Post.Components.PostShareButton
 import com.sparcs.soap.Features.Post.Components.PostVoteButton
+import com.sparcs.soap.Features.Settings.Components.InfoTooltip
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.noRippleClickable
 import com.sparcs.soap.Shared.Extensions.relativeTimeString
@@ -134,11 +134,11 @@ fun Header(
         Text(authorName, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(8.dp))
         if(post.isKaistIP){
-            Icon(
-                painter = painterResource(R.drawable.checkmark_seal_fill),
-                contentDescription = null,
+            InfoTooltip(
+                tooltipText = stringResource(R.string.kaist_ip_verified),
+                icon = painterResource(R.drawable.checkmark_seal_fill),
                 tint = Color(0xFF2196F3),
-                modifier = Modifier.size(15.dp)
+                iconSize = 15.dp
             )
             Spacer(Modifier.width(8.dp))
         }

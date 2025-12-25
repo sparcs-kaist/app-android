@@ -12,6 +12,7 @@ class MockTaxiSettingsViewModel(initialState: TaxiSettingsViewModel.ViewState): 
     override var bankName: String? = "카카오뱅크"
     override var bankNumber: String = "3333-01-1234567"
     override var phoneNumber: String = "010-0000-0000"
+    override var showBadge: Boolean = true
     override var residence: String = "기숙사"
 
     override var user: TaxiUser? = TaxiUser.mock()
@@ -19,8 +20,5 @@ class MockTaxiSettingsViewModel(initialState: TaxiSettingsViewModel.ViewState): 
     override val state = MutableStateFlow(initialState)
 
     override suspend fun fetchUser() {}
-
-    override suspend fun editBankAccount(account: String) {}
-    override suspend fun registerPhoneNumber(phoneNumber: String) {}
-    override suspend fun registerResidence(residence: String) {}
+    override suspend fun editInformation() {}
 }

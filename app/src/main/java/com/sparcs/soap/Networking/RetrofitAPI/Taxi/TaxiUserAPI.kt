@@ -1,6 +1,5 @@
 package com.sparcs.soap.Networking.RetrofitAPI.Taxi
 
-import com.sparcs.soap.Networking.ResponseDTO.Taxi.TaxiMyReportsResponseDTO
 import com.sparcs.soap.Networking.ResponseDTO.Taxi.TaxiUserDTO
 import retrofit2.Response
 import retrofit2.http.Body
@@ -11,6 +10,11 @@ interface TaxiUserApi {
 
     @GET("logininfo")
     suspend fun fetchUserInfo(): Response<TaxiUserDTO>
+
+    @POST("users/editBadge")
+    suspend fun editBadge(
+        @Body request: Map<String, String> //badge: ~~
+    ): Response<Unit>
 
     @POST("users/editAccount")
     suspend fun editBankAccount(
@@ -29,7 +33,4 @@ interface TaxiUserApi {
 
     @POST("users/deleteResidence")
     suspend fun deleteResidence(): Response<Unit>
-
-    @GET("reports/searchByUser")
-    suspend fun fetchReports(): TaxiMyReportsResponseDTO
 }

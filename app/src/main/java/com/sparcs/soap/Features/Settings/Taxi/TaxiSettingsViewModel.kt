@@ -1,37 +1,37 @@
 package com.sparcs.soap.Features.Settings.Taxi
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import com.sparcs.soap.Domain.Helpers.CrashlyticsHelper
 import com.sparcs.soap.Domain.Models.Taxi.TaxiUser
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiUserRepository
 import com.sparcs.soap.Domain.Usecases.UserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 interface TaxiSettingsViewModelProtocol {
     var bankName: String?
     var bankNumber: String
     var phoneNumber: String
+    var showBadge: Boolean
     var residence: String
     val user: TaxiUser?
     val state: StateFlow<TaxiSettingsViewModel.ViewState>
 
     suspend fun fetchUser()
-    suspend fun editBankAccount(account: String)
-    suspend fun registerPhoneNumber(phoneNumber: String)
-    suspend fun registerResidence(residence: String)
+    suspend fun editInformation()
 }
 
 @HiltViewModel
 class TaxiSettingsViewModel @Inject constructor(
     private val userUseCase: UserUseCase,
     private val taxiUserRepository: TaxiUserRepository,
+    private val crashlyticsHelper: CrashlyticsHelper
 ) : ViewModel(), TaxiSettingsViewModelProtocol {
 
     sealed class ViewState {
@@ -44,43 +44,54 @@ class TaxiSettingsViewModel @Inject constructor(
     override var bankNumber by mutableStateOf("")
 
     override var phoneNumber by mutableStateOf("")
+    override var showBadge by mutableStateOf(false)
     override var residence by mutableStateOf("")
-
-    override var user: TaxiUser? = null
+    override var user by mutableStateOf<TaxiUser?>(null)
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state
 
     override suspend fun fetchUser() {
         _state.value = ViewState.Loading
-        viewModelScope.launch {
+        try {
             val fetchedUser = userUseCase.taxiUser
             if (fetchedUser == null) {
                 _state.value = ViewState.Error("Taxi User Information Not Found.")
-                return@launch
+                return
             }
             user = fetchedUser
             val parts = fetchedUser.account.split(" ")
             bankName = parts.firstOrNull()
             bankNumber = parts.getOrNull(1) ?: ""
             phoneNumber = fetchedUser.phoneNumber ?: ""
+            showBadge = fetchedUser.badge ?: false
             residence = fetchedUser.residence ?: ""
             _state.value = ViewState.Loaded
+        } catch (e: Exception){
+            _state.value = ViewState.Error(e.message ?: "Unknown Error")
         }
     }
 
-    override suspend fun editBankAccount(account: String) {
-        taxiUserRepository.editBankAccount(account)
-        userUseCase.fetchTaxiUser()
-    }
 
-    override suspend fun registerPhoneNumber(phoneNumber: String) {
-        taxiUserRepository.registerPhoneNumber(phoneNumber)
-        userUseCase.fetchTaxiUser()
-    }
 
-    override suspend fun registerResidence(residence: String) {
-        taxiUserRepository.registerResidence(residence)
-        userUseCase.fetchTaxiUser()
+    override suspend fun editInformation() {
+        try {
+            if (!bankName.isNullOrEmpty() && bankNumber.isNotEmpty()) {
+                taxiUserRepository.editBankAccount("$bankName $bankNumber")
+            }
+            if (phoneNumber.isNotEmpty() && user?.phoneNumber != phoneNumber) {
+                taxiUserRepository.registerPhoneNumber(phoneNumber)
+            }
+            if (user?.badge != showBadge) {
+                taxiUserRepository.editBadge(showBadge)
+            }
+            if (user?.residence != residence) {
+                taxiUserRepository.registerResidence(residence)
+            }
+            userUseCase.fetchTaxiUser()
+        } catch (e: Exception) {
+            Log.d("TaxiSettingsViewModel", "Error editing information: $e")
+            crashlyticsHelper.recordException(e)
+        }
     }
 }

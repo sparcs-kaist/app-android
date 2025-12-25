@@ -280,17 +280,17 @@ fun <T> PostCommentActionsMenu(
                 }
             } else {
                 if (isComment) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.edit)) },
-                        onClick = { onEdit(); expanded = false },
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(R.drawable.outline_edit),
-                                contentDescription = null
-                            )
-                        }
-                    )
-                    HorizontalDivider()
+//                    DropdownMenuItem(
+//                        text = { Text(stringResource(R.string.edit)) },
+//                        onClick = { onEdit(); expanded = false },
+//                        leadingIcon = {
+//                            Icon(
+//                                painter = painterResource(R.drawable.outline_edit),
+//                                contentDescription = null
+//                            )
+//                        }
+//                    )
+//                    HorizontalDivider()//TODO EDIT?
                 }
             }
 //

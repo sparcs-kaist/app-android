@@ -1,7 +1,5 @@
 package com.sparcs.soap.Features.Settings.Taxi
 
-import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,11 +24,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,12 +38,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -52,6 +53,7 @@ import androidx.navigation.compose.rememberNavController
 import com.sparcs.soap.Domain.Helpers.Constants
 import com.sparcs.soap.Domain.Models.Taxi.TaxiUser
 import com.sparcs.soap.Features.NavigationBar.Channel
+import com.sparcs.soap.Features.Settings.Components.InfoTooltip
 import com.sparcs.soap.Features.Settings.Components.RowElementView
 import com.sparcs.soap.Features.Settings.Components.SettingsViewNavigationBar
 import com.sparcs.soap.R
@@ -61,7 +63,6 @@ import com.sparcs.soap.Shared.ViewModelMocks.Taxi.MockTaxiSettingsViewModel
 import com.sparcs.soap.Shared.Views.ContentViews.ErrorView
 import com.sparcs.soap.ui.theme.Theme
 import com.sparcs.soap.ui.theme.grayBB
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -69,18 +70,95 @@ fun TaxiSettingsView(
     viewModel: TaxiSettingsViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
+    val hasNumberRegistered by remember {
+        derivedStateOf { viewModel.user?.phoneNumber?.isEmpty() == false }
+    }
+
+    val isBankAccountValid by remember {
+        derivedStateOf { !viewModel.bankName.isNullOrEmpty() && viewModel.bankNumber.isNotEmpty() }
+    }
+
+    val isPhoneNumberValid by remember {
+        derivedStateOf { viewModel.phoneNumber.isEmpty() || viewModel.phoneNumber.length == 11 } // Assuming a valid phone number has 11 digits(except "-")
+    }
+
+    val hasNumberChanged by remember {
+        derivedStateOf { viewModel.user?.phoneNumber == null && viewModel.phoneNumber.isNotEmpty() }
+    }
+
+    val hasBadgeChanged by remember {
+        derivedStateOf { viewModel.user?.badge != viewModel.showBadge }
+    }
+
+    val hasBankAccountChanged by remember {
+        derivedStateOf {
+            val currentAccount = viewModel.user?.account
+            if (currentAccount != null) {
+                val parts = currentAccount.split(" ")
+                val firstName = parts.getOrNull(0)
+                val lastNumber = parts.getOrNull(1)
+
+                (firstName != viewModel.bankName) || (lastNumber != viewModel.bankNumber)
+            } else {
+                isBankAccountValid // account was not set before
+            }
+        }
+    }
+
+    val hasResidenceChanged by remember {
+        derivedStateOf { viewModel.user?.residence != viewModel.residence }
+    }
+
+    val isValid by remember {
+        derivedStateOf {
+            val basicValid = isBankAccountValid && isPhoneNumberValid
+            val dataChanged =
+                hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged
+
+            basicValid && dataChanged
+        }
+    }
+
     val coroutineScope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
 
+    var showAlert by remember { mutableStateOf(false) }
+    var showToggle by remember { mutableStateOf(false) }
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var showDiscardDialog by remember { mutableStateOf(false) }
+
+    var errorMessage by remember { mutableStateOf("") }
+
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
+        showToggle = viewModel.phoneNumber.isNotEmpty()
     }
 
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.taxi_settings),
-                onDismiss = { navController.popBackStack() }
+                onDismiss = {
+                    if (isValid) {
+                        showDiscardDialog = true
+                    } else { navController.popBackStack()} },
+                isEditable = true,
+                isDoneEnabled = isValid,
+                onClickDone = {
+                    if (hasNumberChanged) {
+                        showAlert = true
+                    } else {
+                    coroutineScope.launch {
+                        try {
+                            viewModel.editInformation()
+                            navController.popBackStack()
+                        } catch (e: Exception) {
+                            errorMessage = e.message ?: "Unknown error"
+                            showErrorDialog = true
+                        }
+                    }
+                }
+                }
             )
         }) { innerPadding ->
 
@@ -97,7 +175,8 @@ fun TaxiSettingsView(
                 TaxiSettingsViewModel.ViewState.Loaded -> LoadedView(
                     viewModel,
                     navController,
-                    coroutineScope
+                    hasNumberRegistered,
+                    onShowToggleChanged = { showToggle = it }
                 )
 
                 is TaxiSettingsViewModel.ViewState.Error -> {
@@ -107,10 +186,70 @@ fun TaxiSettingsView(
                         errorMessage = message,
                         onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
                     )
-                    Log.e("TaxiSettingsView", message)
                 }
             }
         }
+    }
+
+    if (showErrorDialog) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            title = { Text(stringResource(R.string.error)) },
+            text = { Text(errorMessage) }
+        )
+    }
+
+    if(showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            confirmButton = {
+                TextButton(onClick = { showDiscardDialog = false; navController.popBackStack() }) {
+                    Text(stringResource(R.string.exit))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.keep_editing))
+                }
+            },
+            title = { Text(stringResource(R.string.are_you_sure)) },
+            text = { Text(stringResource(R.string.discard_this_settings)) }
+        )
+    }
+
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { showAlert = false },
+            title = { Text(stringResource(R.string.warning)) },
+            text = {
+                Text(stringResource(R.string.edit_message_phone_number) + "\n\n${viewModel.phoneNumber}")
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    coroutineScope.launch {
+                        try {
+                            viewModel.editInformation()
+                            navController.popBackStack()
+                        } catch (e: Exception) {
+                            errorMessage = e.message ?: "Unknown error"
+                            showErrorDialog = true
+                        }
+                    }
+                }) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAlert = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 
@@ -125,6 +264,10 @@ private fun LoadingView() {
             title = stringResource(R.string.bank_name),
             content = stringResource(R.string.unknown)
         )
+        RowElementView(
+            title = stringResource(R.string.phone_number),
+            content = stringResource(R.string.unknown)
+        )
     }
 }
 
@@ -132,14 +275,10 @@ private fun LoadingView() {
 private fun LoadedView(
     viewModel: TaxiSettingsViewModelProtocol,
     navController: NavController,
-    coroutineScope: CoroutineScope,
+    hasNumberRegistered: Boolean,
+    onShowToggleChanged: (Boolean) -> Unit,
 ) {
-    val context = LocalContext.current
-    val invalidBankNumber = stringResource(R.string.invalid_bank_number)
-    val changeApplied = stringResource(R.string.change_applied)
-    var showErrorDialog by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
-    var showPopOver by remember { mutableStateOf(false) }
+    val focusManager = LocalFocusManager.current
 
     Column {
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -148,13 +287,11 @@ private fun LoadedView(
 
                 Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
 
-                if (viewModel.user?.badge == true) {
+                if (viewModel.showBadge) {
                     Spacer(Modifier.width(4.dp))
-                    Icon(
-                        painter = painterResource(R.drawable.phone_circle_fill),
-                        contentDescription = "Badge",
-                        tint = Color.Unspecified,
-                        modifier = Modifier.size(15.dp).clickable { showPopOver = true }
+                    InfoTooltip(
+                        tooltipText = stringResource(R.string.members_with_this_badge),
+                        icon = painterResource(R.drawable.phone_circle_fill),
                     )
                 }
             }
@@ -180,26 +317,8 @@ private fun LoadedView(
                         color = MaterialTheme.colorScheme.grayBB
                     )
                 },
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        coroutineScope.launch {
-                            try {
-                                if (isValid(viewModel)) {
-                                    viewModel.editBankAccount("${viewModel.bankName} ${viewModel.bankNumber}")
-                                    Toast.makeText(context, changeApplied, Toast.LENGTH_SHORT)
-                                        .show()
-                                } else {
-                                    Toast.makeText(context, invalidBankNumber, Toast.LENGTH_SHORT)
-                                        .show()
-                                }
-                            } catch (e: Exception) {
-                                errorMessage = e.message ?: "Unknown error"
-                                showErrorDialog = true
-                            }
-                        }
-                    }
-                ),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -208,7 +327,9 @@ private fun LoadedView(
             OutlinedTextField(
                 value = viewModel.phoneNumber,
                 onValueChange = { input ->
-                    viewModel.phoneNumber = input.filter { it.isDigit() }
+                    val filtered = input.filter { it.isDigit() }
+                    viewModel.phoneNumber = filtered
+                    onShowToggleChanged(filtered.isNotEmpty())
                 },
                 label = {
                     Text(
@@ -216,24 +337,19 @@ private fun LoadedView(
                         color = MaterialTheme.colorScheme.grayBB
                     )
                 },
+                enabled = !hasNumberRegistered,
                 visualTransformation = PhoneNumberVisualTransformation(),
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        coroutineScope.launch {
-                            try {
-                                viewModel.registerPhoneNumber(viewModel.phoneNumber)
-                                Toast.makeText(context, changeApplied, Toast.LENGTH_SHORT).show()
-                            } catch (e: Exception) {
-                                errorMessage = e.message ?: "Unknown error"
-                                showErrorDialog = true
-                            }
-                        }
-                    }
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Phone,
+                    imeAction = ImeAction.Next
                 ),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            //Badge
+            if(hasNumberRegistered){ BadgeToggle(viewModel) }
 
             // Residence
             OutlinedTextField(
@@ -247,23 +363,11 @@ private fun LoadedView(
                 },
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
-                    onDone = {
-                        coroutineScope.launch {
-                            try {
-                                viewModel.registerResidence(viewModel.residence)
-                                Toast.makeText(context, changeApplied, Toast.LENGTH_SHORT).show()
-                            } catch (e: Exception) {
-                                errorMessage = e.message ?: "Unknown error"
-                                showErrorDialog = true
-                            }
-                        }
-                    }
+                    onDone = { focusManager.clearFocus() }
                 ),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
-
-
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -274,34 +378,6 @@ private fun LoadedView(
             stringResource(R.string.report_details),
             painterResource(R.drawable.outline_sms_failed)
         )
-
-        if (showErrorDialog) {
-            AlertDialog(
-                onDismissRequest = { showErrorDialog = false },
-                confirmButton = {
-                    TextButton(onClick = { showErrorDialog = false }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                title = { Text(stringResource(R.string.error)) },
-                text = { Text(errorMessage) }
-            )
-        }
-
-        if(showPopOver){
-            AlertDialog(
-                onDismissRequest = { showPopOver = false },
-                title = null,
-                text = {
-                    Text(stringResource(R.string.members_with_this_badge))
-                },
-                confirmButton = {
-                    TextButton(onClick = { showPopOver = false }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                }
-            )
-        }
     }
 }
 
@@ -310,7 +386,7 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 4.dp)
+            .padding(8.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -337,17 +413,33 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
     }
 }
 
-fun isValid(viewModel: TaxiSettingsViewModelProtocol): Boolean {
-    val bankName = viewModel.bankName
-    val bankNumber = viewModel.bankNumber
-
-    return bankName != null &&
-            bankNumber.isNotEmpty() &&
-            (viewModel.user?.account != "$bankName ${bankNumber}")
+@Composable
+private fun BadgeToggle(
+    viewModel: TaxiSettingsViewModelProtocol
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(stringResource(R.string.show_badge))
+        Spacer(Modifier.width(4.dp))
+        InfoTooltip(
+            tooltipText = stringResource(R.string.members_with_this_badge),
+            icon = painterResource(R.drawable.round_help_outline),
+            tint = MaterialTheme.colorScheme.grayBB
+        )
+        Spacer(Modifier.weight(1f))
+        Switch(
+            checked = viewModel.showBadge,
+            onCheckedChange = { viewModel.showBadge = it }
+        )
+    }
 }
 
 @Composable
-fun BankPicker(
+private fun BankPicker(
     selected: String?,
     options: List<String>,
     onSelected: (String) -> Unit,
@@ -357,14 +449,13 @@ fun BankPicker(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .clickable { expanded = !expanded },
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(stringResource(R.string.bank_name))
         Spacer(Modifier.weight(1f))
         Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-            Row {
+            Row(Modifier.clickable { expanded = !expanded }) {
                 Text(
                     text = selected ?: stringResource(R.string.select_bank),
                     color = if (selected == null)
