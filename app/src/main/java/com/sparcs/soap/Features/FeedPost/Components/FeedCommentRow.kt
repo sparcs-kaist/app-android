@@ -55,6 +55,7 @@ import com.sparcs.soap.Features.FeedPost.FeedPostViewModelProtocol
 import com.sparcs.soap.Features.Post.Components.PostCommentButton
 import com.sparcs.soap.Features.Post.Components.PostVoteButton
 import com.sparcs.soap.Features.Post.PostCommentActionsMenu
+import com.sparcs.soap.Features.Settings.Components.InfoTooltip
 import com.sparcs.soap.R
 import com.sparcs.soap.Shared.Extensions.timeAgoDisplay
 import com.sparcs.soap.Shared.Mocks.mock
@@ -186,11 +187,11 @@ private fun Header(
         )
         Spacer(Modifier.width(8.dp))
         if (comment.isKaistIP) {
-            Icon(
-                painter = painterResource(R.drawable.checkmark_seal_fill),
-                contentDescription = null,
+            InfoTooltip(
+                tooltipText = stringResource(R.string.kaist_ip_verified),
+                icon = painterResource(R.drawable.checkmark_seal_fill),
                 tint = Color(0xFF2196F3),
-                modifier = Modifier.size(15.dp)
+                iconSize = 15.dp
             )
             Spacer(Modifier.width(8.dp))
         }
@@ -398,8 +399,10 @@ suspend fun handleVote(
 private fun Preview() {
     Theme {
         FeedCommentRow(
-            viewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(
-                FeedPost.mock(), emptyList())
+            viewModel = MockFeedPostViewModel(
+                initialState = FeedPostViewModel.ViewState.Loaded(
+                    FeedPost.mock(), emptyList()
+                )
             ),
             comment = FeedComment.mock(),
             isMine = true,
@@ -416,7 +419,12 @@ private fun Preview() {
 private fun Preview2() {
     Theme {
         FeedCommentRow(
-            viewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(FeedPost.mock(), emptyList())),
+            viewModel = MockFeedPostViewModel(
+                initialState = FeedPostViewModel.ViewState.Loaded(
+                    FeedPost.mock(),
+                    emptyList()
+                )
+            ),
             comment = FeedComment.mockList()[0],
             isMine = false,
             isReply = true,
