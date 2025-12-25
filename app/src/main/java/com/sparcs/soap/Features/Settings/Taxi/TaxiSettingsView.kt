@@ -111,7 +111,7 @@ fun TaxiSettingsView(
 
     val isValid by remember {
         derivedStateOf {
-            val basicValid = isBankAccountValid || isPhoneNumberValid
+            val basicValid = isBankAccountValid && isPhoneNumberValid
             val dataChanged =
                 hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged
 
@@ -131,10 +131,6 @@ fun TaxiSettingsView(
 
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
-        if (!hasNumberRegistered) {
-            viewModel.showBadge =
-                true  // showBadge defaults to true for users without a registered phone number
-        }
         showToggle = viewModel.phoneNumber.isNotEmpty()
     }
 
@@ -353,7 +349,7 @@ private fun LoadedView(
             )
 
             //Badge
-            BadgeToggle(viewModel)
+            if(hasNumberRegistered){ BadgeToggle(viewModel) }
 
             // Residence
             OutlinedTextField(
@@ -390,7 +386,7 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 4.dp)
+            .padding(8.dp)
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -424,7 +420,7 @@ private fun BadgeToggle(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(stringResource(R.string.show_badge))
@@ -453,7 +449,7 @@ private fun BankPicker(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(stringResource(R.string.bank_name))
