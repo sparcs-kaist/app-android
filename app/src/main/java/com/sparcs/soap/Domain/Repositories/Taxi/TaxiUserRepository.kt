@@ -8,6 +8,7 @@ import javax.inject.Inject
 
 interface TaxiUserRepositoryProtocol {
     suspend fun fetchUser(): TaxiUser
+    suspend fun editBadge(showBadge: Boolean)
     suspend fun editBankAccount(account: String)
     suspend fun registerPhoneNumber(phoneNumber: String)
     suspend fun registerResidence(residence: String)
@@ -15,8 +16,9 @@ interface TaxiUserRepositoryProtocol {
 
 enum class TaxiUserErrorCode(val code: Int) {
     EDIT_BANK_ACCOUNT_FAILED(2001),
-    REGISTER_PHONE_NUMBER_FAILED(2002),
-    REGISTER_RESIDENCE_FAILED(2003)
+    EDIT_BADGE_FAILED(2002),
+    REGISTER_PHONE_NUMBER_FAILED(2003),
+    REGISTER_RESIDENCE_FAILED(2004)
 }
 
 class TaxiUserRepository @Inject constructor(
@@ -30,6 +32,14 @@ class TaxiUserRepository @Inject constructor(
             return dto.toModel()
         } catch (e: Exception) {
             handleApiError(gson, e)
+        }
+    }
+
+    override suspend fun editBadge(showBadge: Boolean) {
+        val response = api.editBadge(mapOf("badge" to showBadge.toString()))
+
+        if (!response.isSuccessful) {
+            throw Exception("Failed to edit badge (code=${TaxiUserErrorCode.EDIT_BADGE_FAILED.code})")
         }
     }
 

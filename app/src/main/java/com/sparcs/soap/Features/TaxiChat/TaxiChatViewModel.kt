@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.gson.Gson
 import com.sparcs.soap.Domain.Models.Taxi.TaxiChat
 import com.sparcs.soap.Domain.Models.Taxi.TaxiChatGroup
 import com.sparcs.soap.Domain.Models.Taxi.TaxiParticipant
@@ -14,7 +15,6 @@ import com.sparcs.soap.Domain.Models.Taxi.TaxiUser
 import com.sparcs.soap.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import com.sparcs.soap.Domain.Usecases.TaxiChatUseCaseProtocol
 import com.sparcs.soap.Domain.Usecases.UserUseCaseProtocol
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -98,15 +98,10 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Setup
     override suspend fun setup() {
+        taxiChatUseCase.setRoom(room.value)
         fetchTaxiUser()
         bind()
-    }
-
-    init {
-        taxiChatUseCase.setRoom(initialRoom)
-        viewModelScope.launch {
-        setup()
-        }
+        fetchInitialChats()
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
@@ -179,8 +174,7 @@ class TaxiChatViewModel @Inject constructor(
 
             val me = newRoom.participants.firstOrNull { it.id == taxiUser.value?.oid }
             if (me?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement) {
-                val latestUser = userUseCase.fetchTaxiUser()
-                val myAccount = latestUser.account
+                val myAccount = _taxiUser.value?.account
                 taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
             }
         } catch (e: Exception) {

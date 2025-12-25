@@ -23,7 +23,7 @@ data class TaxiUserDTO(
     val phoneNumber: String?,
 
     @SerializedName("badge")
-    val badge: Boolean,
+    val badge: Boolean?,
 
     @SerializedName("residence")
     val residence: String,
@@ -56,7 +56,7 @@ data class TaxiUserDTO(
             name = name,
             nickname = nickname,
             phoneNumber = phoneNumber,
-            badge = badge,
+            badge = badge ?: false,
             residence = residence,
             email = email,
             withdraw = withdraw,
