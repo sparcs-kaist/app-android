@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:3200102353:android:b24a3bba3782b949f23af0",
         "android_client_info": {
-          "package_name": "com.sparcs.soap"
+          "package_name": "org.sparcs"
         }
       },
       "oauth_client": [],

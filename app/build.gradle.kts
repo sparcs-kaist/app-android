@@ -17,13 +17,13 @@ val mapKey: String = properties.getProperty("map_api_key")
 val sidAuthToken: String = properties.getProperty("otl_sid_auth_token")
 
 android {
-    namespace = "com.sparcs.soap"
+    namespace = "org.sparcs"
     compileSdk = 35
 
     defaultConfig {
         manifestPlaceholders += mapOf("mapKey" to mapKey)
         manifestPlaceholders += mapOf("sidAuthToken" to sidAuthToken)
-        applicationId = "com.sparcs.soap"
+        applicationId = "org.sparcs"
         minSdk = 31
         targetSdk = 35
         versionCode = 1
