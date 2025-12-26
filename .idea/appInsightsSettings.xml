@@ -9,7 +9,7 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="com.sparcs.soap" />
+                  <option name="appId" value="org.sparcs" />
                   <option name="mobileSdkAppId" value="1:3200102353:android:b24a3bba3782b949f23af0" />
                   <option name="projectId" value="sparcs-app" />
                   <option name="projectNumber" value="3200102353" />
