@@ -1,4 +1,4 @@
-package com.sparcs.soap
+package org.sparcs.soap
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -17,6 +17,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("com.sparcs.soap", appContext.packageName)
+        assertEquals("org.sparcs.soap", appContext.packageName)
     }
 }
