@@ -75,7 +75,15 @@ fun TaxiSettingsView(
     }
 
     val isBankAccountValid by remember {
-        derivedStateOf { (!viewModel.bankName.isNullOrEmpty() && viewModel.bankNumber.isNotEmpty() || viewModel.bankName.isNullOrEmpty() && viewModel.bankNumber.isEmpty()) }
+        derivedStateOf {
+            val nameNotEmpty = !viewModel.bankName.isNullOrEmpty()
+            val numberNotEmpty = viewModel.bankNumber.isNotEmpty()
+
+            val isFull = nameNotEmpty && numberNotEmpty
+            val isEmpty = !nameNotEmpty && !numberNotEmpty
+
+            isFull || isEmpty
+        }
     }
 
     val isPhoneNumberValid by remember {
@@ -122,7 +130,7 @@ fun TaxiSettingsView(
     val coroutineScope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
     var showAlert by remember { mutableStateOf(false) }
-    var showToggle by remember { mutableStateOf(viewModel.phoneNumber.isNotEmpty()) }
+    var showToggle by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
 
@@ -130,6 +138,7 @@ fun TaxiSettingsView(
 
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
+        showToggle = viewModel.phoneNumber.isNotEmpty()
     }
 
     Scaffold(
