@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import org.sparcs.Domain.Helpers.Constants
 import org.sparcs.Domain.Models.Taxi.TaxiUser
 import org.sparcs.Features.NavigationBar.Channel
@@ -63,7 +64,6 @@ import org.sparcs.Shared.ViewModelMocks.Taxi.MockTaxiSettingsViewModel
 import org.sparcs.Shared.Views.ContentViews.ErrorView
 import org.sparcs.ui.theme.Theme
 import org.sparcs.ui.theme.grayBB
-import kotlinx.coroutines.launch
 
 @Composable
 fun TaxiSettingsView(
@@ -75,11 +75,19 @@ fun TaxiSettingsView(
     }
 
     val isBankAccountValid by remember {
-        derivedStateOf { !viewModel.bankName.isNullOrEmpty() && viewModel.bankNumber.isNotEmpty() }
+        derivedStateOf {
+            val nameNotEmpty = !viewModel.bankName.isNullOrEmpty()
+            val numberNotEmpty = viewModel.bankNumber.isNotEmpty()
+
+            val isFull = nameNotEmpty && numberNotEmpty
+            val isEmpty = !nameNotEmpty && !numberNotEmpty
+
+            isFull || isEmpty
+        }
     }
 
     val isPhoneNumberValid by remember {
-        derivedStateOf { viewModel.phoneNumber.isEmpty() || viewModel.phoneNumber.length == 11 } // Assuming a valid phone number has 11 digits(except "-")
+        derivedStateOf { viewModel.phoneNumber.isEmpty() || viewModel.phoneNumber.length == Constants.formattedPhoneNumberLength }
     }
 
     val hasNumberChanged by remember {
@@ -93,18 +101,18 @@ fun TaxiSettingsView(
     val hasBankAccountChanged by remember {
         derivedStateOf {
             val currentAccount = viewModel.user?.account
-            if (currentAccount != null) {
+
+            if (currentAccount.isNullOrEmpty()) {
+                !viewModel.bankName.isNullOrEmpty() || viewModel.bankNumber.isNotEmpty()
+            } else {
                 val parts = currentAccount.split(" ")
                 val firstName = parts.getOrNull(0)
                 val lastNumber = parts.getOrNull(1)
 
                 (firstName != viewModel.bankName) || (lastNumber != viewModel.bankNumber)
-            } else {
-                isBankAccountValid // account was not set before
             }
         }
     }
-
     val hasResidenceChanged by remember {
         derivedStateOf { viewModel.user?.residence != viewModel.residence }
     }
@@ -121,7 +129,6 @@ fun TaxiSettingsView(
 
     val coroutineScope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
-
     var showAlert by remember { mutableStateOf(false) }
     var showToggle by remember { mutableStateOf(false) }
     var showErrorDialog by remember { mutableStateOf(false) }
