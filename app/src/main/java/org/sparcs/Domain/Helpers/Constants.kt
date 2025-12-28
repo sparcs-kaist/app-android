@@ -112,4 +112,6 @@ object Constants {
     // MARK: MAPS
     val mapsURL = "https://api.openrouteservice.org/v2/directions/driving-car?"
 
+    val formattedPhoneNumberLength = 11 // Assuming a valid phone number has 11 digits(except "-")
+
 }
