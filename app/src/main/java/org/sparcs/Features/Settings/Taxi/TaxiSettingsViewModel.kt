@@ -5,13 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.sparcs.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.Domain.Models.Taxi.TaxiUser
 import org.sparcs.Domain.Repositories.Taxi.TaxiUserRepository
 import org.sparcs.Domain.Usecases.UserUseCase
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import javax.inject.Inject
 
 interface TaxiSettingsViewModelProtocol {
@@ -67,30 +67,67 @@ class TaxiSettingsViewModel @Inject constructor(
             showBadge = fetchedUser.badge ?: false
             residence = fetchedUser.residence ?: ""
             _state.value = ViewState.Loaded
-        } catch (e: Exception){
+        } catch (e: Exception) {
             _state.value = ViewState.Error(e.message ?: "Unknown Error")
         }
     }
 
 
-
     override suspend fun editInformation() {
         try {
-            if (!bankName.isNullOrEmpty() && bankNumber.isNotEmpty()) {
-                taxiUserRepository.editBankAccount("$bankName $bankNumber")
+            bankName?.let { name ->
+                if (name.isNotEmpty() && bankNumber.isNotEmpty()) {
+                    editBankAccount(name, bankNumber)
+                }
             }
             if (phoneNumber.isNotEmpty() && user?.phoneNumber != phoneNumber) {
-                taxiUserRepository.registerPhoneNumber(phoneNumber)
+                registerPhoneNumber(phoneNumber)
             }
             if (user?.badge != showBadge) {
-                taxiUserRepository.editBadge(showBadge)
+                editBadge(showBadge)
             }
             if (user?.residence != residence) {
-                taxiUserRepository.registerResidence(residence)
+                registerResidence(residence)
             }
             userUseCase.fetchTaxiUser()
         } catch (e: Exception) {
             Log.d("TaxiSettingsViewModel", "Error editing information: $e")
+            crashlyticsHelper.recordException(e)
+        }
+    }
+
+    private suspend fun editBankAccount(bankName: String, bankNumber: String) {
+        try {
+            taxiUserRepository.editBankAccount(account = "$bankName $bankNumber")
+        } catch (e: Exception) {
+            Log.d("TaxiSettingsViewModel", "Failed to edit bank account: ${e.message}")
+            crashlyticsHelper.recordException(e)
+        }
+    }
+
+    private suspend fun registerPhoneNumber(phoneNumber: String) {
+        try {
+            taxiUserRepository.registerPhoneNumber(phoneNumber = phoneNumber)
+        } catch (e: Exception) {
+            Log.d("TaxiSettingsViewModel", "Failed to register phone number: ${e.message}")
+            crashlyticsHelper.recordException(e)
+        }
+    }
+
+    private suspend fun editBadge(showBadge: Boolean) {
+        try {
+            taxiUserRepository.editBadge(showBadge = showBadge)
+        } catch (e: Exception) {
+            Log.d("TaxiSettingsViewModel", "Failed to edit badge: ${e.message}")
+            crashlyticsHelper.recordException(e)
+        }
+    }
+
+    private suspend fun registerResidence(residence: String) {
+        try {
+            taxiUserRepository.registerResidence(residence = residence)
+        } catch (e: Exception) {
+            Log.d("TaxiSettingsViewModel", "Failed to register residence: ${e.message}")
             crashlyticsHelper.recordException(e)
         }
     }
