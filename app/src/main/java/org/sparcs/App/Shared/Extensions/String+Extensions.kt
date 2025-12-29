@@ -74,3 +74,17 @@ fun String.escapeHash(): String {
 fun String.unescapeHash(): String {
     return this.replace("%23", "#")
 }
+
+fun String.toPhoneNumberFormat(): String {
+    val digits = this.filter { it.isDigit() }
+    return buildString {
+        digits.forEachIndexed { index, c ->
+            append(c)
+            if (digits.length <= 10) {
+                if (index == 2 || index == 5) append('-')
+            } else {
+                if (index == 2 || index == 6) append('-')
+            }
+        }
+    }.trimEnd('-')
+}

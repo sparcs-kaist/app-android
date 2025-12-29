@@ -58,6 +58,7 @@ import org.sparcs.App.Features.Settings.Components.InfoTooltip
 import org.sparcs.App.Features.Settings.Components.RowElementView
 import org.sparcs.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.App.Shared.Extensions.PhoneNumberVisualTransformation
+import org.sparcs.App.Shared.Extensions.toPhoneNumberFormat
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.ViewModelMocks.Taxi.MockTaxiSettingsViewModel
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
@@ -148,23 +149,26 @@ fun TaxiSettingsView(
                 onDismiss = {
                     if (isValid) {
                         showDiscardDialog = true
-                    } else { navController.popBackStack()} },
+                    } else {
+                        navController.popBackStack()
+                    }
+                },
                 isEditable = true,
                 isDoneEnabled = isValid,
                 onClickDone = {
                     if (hasNumberChanged) {
                         showAlert = true
                     } else {
-                    coroutineScope.launch {
-                        try {
-                            viewModel.editInformation()
-                            navController.popBackStack()
-                        } catch (e: Exception) {
-                            errorMessage = e.message ?: "Unknown error"
-                            showErrorDialog = true
+                        coroutineScope.launch {
+                            try {
+                                viewModel.editInformation()
+                                navController.popBackStack()
+                            } catch (e: Exception) {
+                                errorMessage = e.message ?: "Unknown error"
+                                showErrorDialog = true
+                            }
                         }
                     }
-                }
                 }
             )
         }) { innerPadding ->
@@ -211,7 +215,7 @@ fun TaxiSettingsView(
         )
     }
 
-    if(showDiscardDialog) {
+    if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
             confirmButton = {
@@ -234,7 +238,7 @@ fun TaxiSettingsView(
             onDismissRequest = { showAlert = false },
             title = { Text(stringResource(R.string.warning)) },
             text = {
-                Text(stringResource(R.string.edit_message_phone_number) + "\n\n${viewModel.phoneNumber}")
+                Text(stringResource(R.string.edit_message_phone_number) + "\n\n${viewModel.phoneNumber.toPhoneNumberFormat()}")
             },
             confirmButton = {
                 TextButton(onClick = {
@@ -317,14 +321,20 @@ private fun LoadedView(
             //Bank Number
             OutlinedTextField(
                 value = viewModel.bankNumber,
-                onValueChange = { viewModel.bankNumber = it },
+                onValueChange = { input ->
+                    val onlyNumbers = input.filter { it.isDigit() }
+                    viewModel.bankNumber = onlyNumbers
+                },
                 label = {
                     Text(
                         stringResource(R.string.enter_bank_number),
                         color = MaterialTheme.colorScheme.grayBB
                     )
                 },
-                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Next
+                ),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
@@ -356,7 +366,9 @@ private fun LoadedView(
             )
 
             //Badge
-            if(hasNumberRegistered){ BadgeToggle(viewModel) }
+            if (hasNumberRegistered) {
+                BadgeToggle(viewModel)
+            }
 
             // Residence
             OutlinedTextField(
@@ -422,7 +434,7 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
 
 @Composable
 private fun BadgeToggle(
-    viewModel: TaxiSettingsViewModelProtocol
+    viewModel: TaxiSettingsViewModelProtocol,
 ) {
     Row(
         modifier = Modifier

@@ -383,18 +383,12 @@ private fun ContentView(
             previousFirstVisibleOffset.value = firstVisibleOffset
         }
     }
-    val badgeMap = remember(viewModel.room.collectAsState().value.participants) {
-        viewModel.room.value.participants.associateBy(
-            keySelector = { it.id },
-            valueTransform = { it.badge }
-        )
-    }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
         state = listState
     ) {
-
         items(groupedChats, key = { it.id }) { group ->
 
             val currentDate = group.time.toLocalDate()
@@ -404,8 +398,6 @@ private fun ContentView(
                 previousDate = currentDate
             }
 
-            val badge = badgeMap[group.authorID] ?: false
-
             TaxiChatUserWrapper(
                 authorID = group.authorID,
                 authorName = group.authorName,
@@ -414,7 +406,7 @@ private fun ContentView(
                 isMe = group.isMe,
                 isGeneral = group.isGeneral,
                 isWithdrawn = group.authorIsWithdrew ?: false,
-                badge = badge
+                badge = viewModel.hasBadge(group.authorID)
             ) {
                 group.chats.forEach { chat ->
                     val showTimeLabel = group.lastChatID == chat.id
