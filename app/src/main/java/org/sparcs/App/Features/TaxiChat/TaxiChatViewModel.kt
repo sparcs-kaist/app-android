@@ -10,9 +10,12 @@ import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.sparcs.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.App.Domain.Models.Taxi.TaxiChatGroup
@@ -52,6 +55,8 @@ interface TaxiChatViewModelProtocol {
     suspend fun commitSettlement()
     suspend fun commitPayment()
     suspend fun sendImage(image: Bitmap)
+    fun hasBadge(authorID: String?): Boolean
+
     fun switchRoom(newRoom: TaxiRoom)
 }
 
@@ -95,6 +100,11 @@ class TaxiChatViewModel @Inject constructor(
 
     private var isFetching = false
     private var isInitialFetching = false
+
+    private val badgeByAuthorID : StateFlow<Map<String, Boolean>> = room
+        .map { room -> room.participants.associate { it.id to it.badge } }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
+
 
     // MARK: - Setup
     override suspend fun setup() {
@@ -214,12 +224,15 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Image upload
     override suspend fun sendImage(image: Bitmap) {
-
         _isUploading.value = true
         try {
             taxiChatUseCase.sendImage(image)
         } finally {
             _isUploading.value = false
         }
+    }
+
+    override fun hasBadge(authorID: String?): Boolean {
+        return authorID?.let { badgeByAuthorID.value[it] } ?: false
     }
 }
