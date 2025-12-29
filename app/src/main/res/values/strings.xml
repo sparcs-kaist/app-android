@@ -352,7 +352,7 @@
     <string name="thu">Thu</string>
     <string name="fri">Fri</string>
     <string name="sat">Sat</string>
-    <string name="kaist_ip_verified">KAIST IP verified</string>
+    <string name="kaist_ip_verified">KAIST IP Verified</string>
     <string name="phone_number">Phone Number</string>
     <string name="edit_message_phone_number">Phone number can be set only once. Is the number you want to use correct?</string>
     <string name="show_badge">Show Badge</string>
