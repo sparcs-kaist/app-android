@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
-        android:name="org.sparcs.MyApplication"
+        android:name="org.sparcs.App.MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -19,7 +19,7 @@
         android:localeConfig="@xml/locales_config"
         tools:targetApi="31">
         <activity
-            android:name="org.sparcs.Features.Main.MainActivity"
+            android:name="org.sparcs.App.Features.Main.MainActivity"
             android:launchMode="singleTop"
             android:exported="true"
             android:label="@string/app_name"
