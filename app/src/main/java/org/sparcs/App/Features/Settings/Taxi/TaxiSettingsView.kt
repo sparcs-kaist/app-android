@@ -238,7 +238,7 @@ fun TaxiSettingsView(
             onDismissRequest = { showAlert = false },
             title = { Text(stringResource(R.string.warning)) },
             text = {
-                Text(stringResource(R.string.edit_message_phone_number) + "\n\n${viewModel.phoneNumber.toPhoneNumberFormat()}")
+                Text("${stringResource(R.string.edit_message_phone_number)}\n\n${viewModel.phoneNumber.toPhoneNumberFormat()}")
             },
             confirmButton = {
                 TextButton(onClick = {
