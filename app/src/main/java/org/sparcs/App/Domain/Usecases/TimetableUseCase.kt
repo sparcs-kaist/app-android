@@ -116,7 +116,6 @@ class TimetableUseCase @Inject constructor(
         }
 
     // MARK: - API
-    // MARK: - API
     override suspend fun load() {
         if (_store.value.isNotEmpty() && semesters.value.isNotEmpty()) return
 
