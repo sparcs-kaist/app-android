@@ -3,11 +3,6 @@ package org.sparcs.App.Features.Timetable
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import org.sparcs.App.Domain.Helpers.CrashlyticsHelper
-import org.sparcs.App.Domain.Models.OTL.Lecture
-import org.sparcs.App.Domain.Models.OTL.Semester
-import org.sparcs.App.Domain.Models.OTL.Timetable
-import org.sparcs.App.Domain.Usecases.TimetableUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,6 +12,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.sparcs.App.Domain.Helpers.CrashlyticsHelper
+import org.sparcs.App.Domain.Models.OTL.Lecture
+import org.sparcs.App.Domain.Models.OTL.Semester
+import org.sparcs.App.Domain.Models.OTL.Timetable
+import org.sparcs.App.Domain.Usecases.TimetableUseCase
+import org.sparcs.Widgets.WidgetSyncManager
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
@@ -49,6 +50,7 @@ interface TimetableViewModelProtocol {
 class TimetableViewModel @Inject constructor(
     override val timetableUseCase: TimetableUseCase,
     private val crashlyticsHelper: CrashlyticsHelper,
+    private val widgetSyncManager: WidgetSyncManager
 ) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
@@ -121,6 +123,14 @@ class TimetableViewModel @Inject constructor(
             isLoading.value = true
             try {
                 timetableUseCase.load()
+
+                val currentSid = timetableUseCase.selectedSemesterID.value
+                val currentTable = currentSid?.let { sid ->
+                    timetableUseCase.store.value[sid]?.firstOrNull { it.id.endsWith("-myTable") }
+                }
+
+                currentTable?.let { widgetSyncManager.sync(it) }
+
                 isLoading.value = false
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "failed to fetch Timetable Data")

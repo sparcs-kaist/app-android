@@ -167,7 +167,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             section = "A",
             year = 2025,
             semester = SemesterType.AUTUMN,
-            title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            title = LocalizedString(mapOf("ko" to "프로그래밍기초1", "en" to "Introduction to Programming")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -208,8 +208,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
                     ),
                     roomName = "(304호)강의실",
                     day = DayType.MON,
-                    begin = 630,
-                    end = 750
+                    begin = 540,
+                    end = 615
                 ),
                 ClassTime(
                     buildingCode = "E11",
@@ -240,7 +240,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             section = "B",
             year = 2025,
             semester = SemesterType.AUTUMN,
-            title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            title = LocalizedString(mapOf("ko" to "프로그래밍기초2", "en" to "Introduction to Programming")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -270,7 +270,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
                     classroomName = LocalizedString(mapOf("ko" to "(E11) 창의학습관 (308호)강의실", "en" to "(E11) Creative Learning B/D (308호)강의실")),
                     classroomNameShort = LocalizedString(mapOf("ko" to "(E11) (308호)강의실", "en" to "(E11) (308호)강의실")),
                     roomName = "(308호)강의실",
-                    day = DayType.MON,
+                    day = DayType.FRI,
                     begin = 780,
                     end = 960
                 ),
@@ -280,8 +280,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
                     classroomNameShort = LocalizedString(mapOf("ko" to "(E11) (304호)강의실", "en" to "(E11) (304호)강의실")),
                     roomName = "(304호)강의실",
                     day = DayType.MON,
-                    begin = 630,
-                    end = 750
+                    begin = 1005,
+                    end = 1080
                 )
             ),
             examTimes = emptyList()
