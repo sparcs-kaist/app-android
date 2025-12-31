@@ -1,7 +1,11 @@
 package org.sparcs.Widgets
 
+import androidx.compose.ui.graphics.toArgb
 import kotlinx.serialization.Serializable
 import org.sparcs.App.Domain.Enums.OTL.DayType
+import org.sparcs.App.Domain.Models.OTL.Timetable
+import org.sparcs.App.Domain.Models.OTL.backgroundColor
+import org.sparcs.App.Domain.Models.OTL.textColor
 
 @Serializable
 data class WidgetTimetable(
@@ -33,6 +37,40 @@ data class TimetableUiState(
     val timetable: WidgetTimetable? = null,
     val lastUpdated: Long = 0L
 )
+
+fun Timetable.toWidgetUiState(): TimetableUiState {
+    val times = this.lectures.flatMap { it.classTimes }
+    val calculatedMin = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 }
+        ?: this.minMinutes
+    val calculatedMax = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 }
+        ?: this.gappedMaxMinutes
+
+    val widgetItems = this.lectures.flatMap { lecture ->
+        lecture.classTimes.map { ct ->
+            WidgetLectureEntry(
+                title = lecture.title.localized(),
+                classroom = ct.classroomNameShort.localized(),
+                day = ct.day,
+                startMinutes = ct.begin,
+                durationMinutes = ct.end - ct.begin,
+                bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb()).uppercase(),
+                textColor = "#" + Integer.toHexString(lecture.textColor.toArgb()).uppercase(),
+            )
+        }
+    }
+    val lecturesByDay = widgetItems.groupBy { it.day }
+
+    return TimetableUiState(
+        signInRequired = false,
+        timetable = WidgetTimetable(
+            lecturesByDay = lecturesByDay,
+            visibleDays = this.visibleDays,
+            minMinutes = calculatedMin,
+            maxMinutes = calculatedMax
+        ),
+        lastUpdated = System.currentTimeMillis()
+    )
+}
 
 fun WidgetTimetable.Companion.mock(): WidgetTimetable {
     val mondayLectures = listOf(
