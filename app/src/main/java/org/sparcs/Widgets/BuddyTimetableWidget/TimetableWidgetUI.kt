@@ -46,6 +46,8 @@ private fun TimetableGridCell(
     height: Int,
     modifier: GlanceModifier = GlanceModifier,
 ) {
+    if (lecture.title == null || lecture.classroom == null || lecture.startMinutes == null || lecture.durationMinutes == null) return
+
     val backgroundColor = Color(parseColor(lecture.bgColor))
     val textColor = Color(parseColor(lecture.textColor))
     Box(
@@ -147,8 +149,8 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
                 visibleDays.forEach { day ->
                     Box(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
                         timetable?.getLectures(day)?.forEach { lecture ->
-                            val topOffset = (lecture.startMinutes - minMin) * minuteHeight
-                            val lHeight = lecture.durationMinutes * minuteHeight
+                            val topOffset = (lecture.startMinutes!! - minMin) * minuteHeight
+                            val lHeight = lecture.durationMinutes!! * minuteHeight
 
                             Box(
                                 modifier = GlanceModifier.padding(top = topOffset.dp)
