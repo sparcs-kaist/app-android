@@ -98,7 +98,11 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetable?) {
     val minuteHeight = dynamicHourHeight.value / 60f
     val totalHeight = totalHoursCount * dynamicHourHeight.value
 
-    Column(modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.surface)) {
+    Column(
+        modifier = GlanceModifier
+            .fillMaxSize()
+            .background(GlanceTheme.colors.surface)
+    ) {
             DaysColumnHeader(visibleDays)
 
             Box(modifier = GlanceModifier.fillMaxWidth().height(totalHeight.dp)) {
