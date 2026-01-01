@@ -137,7 +137,7 @@ fun Header(
             InfoTooltip(
                 tooltipText = stringResource(R.string.kaist_ip_verified),
                 icon = painterResource(R.drawable.checkmark_seal_fill),
-                tint = Color(0xFF2196F3),
+                tint = MaterialTheme.colorScheme.primary,
                 iconSize = 15.dp
             )
             Spacer(Modifier.width(8.dp))
