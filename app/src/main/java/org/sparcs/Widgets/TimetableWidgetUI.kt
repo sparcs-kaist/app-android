@@ -89,8 +89,8 @@ private fun TimetableGridCell(
 @Composable
 fun TimetableLargeWidgetView(timetable: WidgetTimetable?) {
     val size = LocalSize.current
-    val minMin = timetable?.minMinutes ?: 540
-    val maxMin = timetable?.maxMinutes ?: 1260
+    val minMin = timetable?.minMinutes ?: 540 // 8:00 AM
+    val maxMin = timetable?.maxMinutes ?: 1080 // 6:00 PM
     val visibleDays = timetable?.visibleDays ?: emptyList()
 
     val totalHoursCount = (maxMin - minMin) / 60f + 1
@@ -103,8 +103,9 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetable?) {
 
             Box(modifier = GlanceModifier.fillMaxWidth().height(totalHeight.dp)) {
                 LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-                    for (hour in (minMin / 60)..(maxMin / 60)) {
+                    for (hour in (minMin / 60)until(maxMin / 60)) {
                         item {
+                            //TimeRow
                             Row(modifier = GlanceModifier.fillMaxWidth().height(dynamicHourHeight)) {
                                 Box(
                                     modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight(),
