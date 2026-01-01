@@ -363,4 +363,10 @@
     <string name="login_required">Login required.</string>
     <string name="loading_data">Fetching data…</string>
     <string name="wait_moment">Please wait a moment.</string>
+    <string name="up_next">Up Next</string>
+    <string name="login_required_long">Sign in to see upcoming classes.</string>
+    <string name="no_more_classes">No more classes</string>
+    <string name="enjoy_day">Enjoy your day</string>
+    <string name="open_app_prompt">Open the app to continue.</string>
+    <string name="zero_left">0 left</string>
 </resources>
