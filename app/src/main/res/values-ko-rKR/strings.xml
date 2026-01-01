@@ -341,4 +341,10 @@
     <string name="login_required">로그인이 필요합니다.</string>
     <string name="loading_data">데이터를 가져오는 중…</string>
     <string name="wait_moment">잠시만 기다려주세요.</string>
+    <string name="up_next">다음 수업</string>
+    <string name="login_required_long">다가오는 수업을 확인하려면\n로그인하세요.</string>
+    <string name="no_more_classes">오늘 수업 끝!</string>
+    <string name="enjoy_day">즐거운 하루 되세요</string>
+    <string name="open_app_prompt">계속하려면 앱을 열어주세요.</string>
+    <string name="zero_left">수업 없음</string>
 </resources>
