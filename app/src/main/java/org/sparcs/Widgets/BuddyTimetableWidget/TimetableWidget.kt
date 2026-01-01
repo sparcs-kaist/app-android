@@ -1,4 +1,4 @@
-package org.sparcs.Widgets
+package org.sparcs.Widgets.BuddyTimetableWidget
 
 import android.content.Context
 import android.content.Intent
@@ -46,6 +46,7 @@ import org.sparcs.App.Domain.Helpers.Constants
 import org.sparcs.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.App.Domain.Usecases.TimetableUseCaseProtocol
+import org.sparcs.R
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -54,7 +55,8 @@ class TimetableWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val appContext = context.applicationContext
-        val entryPoint = EntryPointAccessors.fromApplication(appContext, WidgetEntryPoint::class.java)
+        val entryPoint =
+            EntryPointAccessors.fromApplication(appContext, WidgetEntryPoint::class.java)
         val tokenStorage = entryPoint.tokenStorage()
 
         provideContent {
@@ -76,18 +78,37 @@ class TimetableWidget : GlanceAppWidget() {
                     .background(GlanceTheme.colors.surface)
             ) {
                 if (state.signInRequired) {
-                    Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("로그인이 필요합니다.", style = TextStyle(color = ColorProvider(Color.Black)))
+                    Box(
+                        modifier = GlanceModifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            context.getString(R.string.login_required),
+                            style = TextStyle(color = ColorProvider(Color.Black))
+                        )
                     }
                 } else if (state.timetable == null) {
-                    Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        modifier = GlanceModifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("데이터를 가져오는 중...", style = TextStyle(color = ColorProvider(Color.Black)))
-                            Text("잠시만 기다려주세요.", style = TextStyle(fontSize = 12.sp, color = ColorProvider(Color.Gray)))
+                            Text(
+                                context.getString(R.string.loading_data),
+                                style = TextStyle(color = ColorProvider(Color.Black))
+                            )
+                            Text(
+                                context.getString(R.string.wait_moment),
+                                style = TextStyle(
+                                    fontSize = 12.sp,
+                                    color = ColorProvider(Color.Gray)
+                                )
+                            )
                         }
                     }
                 } else {
-                    Column(modifier = GlanceModifier.fillMaxSize()
+                    Column(
+                        modifier = GlanceModifier.fillMaxSize()
                     ) {
                         TimetableLargeWidgetView(timetable = state.timetable!!)
                     }
@@ -102,7 +123,7 @@ class TimetableWidget : GlanceAppWidget() {
                                     ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                 )
                             )
-                    ){}
+                    ) {}
                 }
             }
         }
@@ -111,7 +132,7 @@ class TimetableWidget : GlanceAppWidget() {
 
 @Singleton
 class WidgetSyncManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) {
     suspend fun sync(timetable: Timetable) {
         try {
@@ -133,9 +154,12 @@ class WidgetSyncManager @Inject constructor(
         }
     }
 }
-class TimetableUpdateWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
+
+class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
-        val entryPoint = EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
+        val entryPoint =
+            EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
         val syncManager = entryPoint.syncManager()
         val tokenStorage = entryPoint.tokenStorage()
         val timetableUseCase = entryPoint.timetableUseCase()
@@ -145,7 +169,6 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) : Corout
             if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
 
             timetableUseCase.load()
-            Log.d("AASASD", "loaded")
             val timetable = timetableUseCase.selectedTimetable
                 .filterNotNull()
                 .first()
