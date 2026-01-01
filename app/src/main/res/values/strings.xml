@@ -360,4 +360,7 @@
     <string name="discard_this_settings">You have unsaved changes. Are you sure you want to discard them and leave?</string>
     <string name="exit">Discard</string>
     <string name="keep_editing">Keep Editing</string>
+    <string name="login_required">Login required.</string>
+    <string name="loading_data">Fetching data…</string>
+    <string name="wait_moment">Please wait a moment.</string>
 </resources>
