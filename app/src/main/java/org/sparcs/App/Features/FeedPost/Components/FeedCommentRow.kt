@@ -28,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -190,7 +189,7 @@ private fun Header(
             InfoTooltip(
                 tooltipText = stringResource(R.string.kaist_ip_verified),
                 icon = painterResource(R.drawable.checkmark_seal_fill),
-                tint = Color(0xFF2196F3),
+                tint = MaterialTheme.colorScheme.primary,
                 iconSize = 15.dp
             )
             Spacer(Modifier.width(8.dp))
