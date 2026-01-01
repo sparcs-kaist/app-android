@@ -31,6 +31,7 @@ fun Timetable.toWidgetUiState(): TimetableUiState {
                 durationMinutes = ct.end - ct.begin,
                 bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb()).uppercase(),
                 textColor = "#" + Integer.toHexString(lecture.textColor.toArgb()).uppercase(),
+                signInRequired = false
             )
         }
     }

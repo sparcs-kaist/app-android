@@ -6,7 +6,7 @@ import org.sparcs.Widgets.BuddyUpcomingClassWidget.WidgetLectureEntry
 
 @Serializable
 data class WidgetTimetableEntry(
-    val lecturesByDay: Map<DayType, List<WidgetLectureEntry>>,
+    val lecturesByDay: Map<DayType?, List<WidgetLectureEntry>>,
     val visibleDays: List<DayType>,
     val minMinutes: Int,
     val maxMinutes: Int,
@@ -27,7 +27,8 @@ fun WidgetTimetableEntry.Companion.mock(): WidgetTimetableEntry {
             startMinutes = 540,
             durationMinutes = 75,
             bgColor = "#4A90E2",
-            textColor = "#FFFFFF"
+            textColor = "#FFFFFF",
+            signInRequired = false
         ),
         WidgetLectureEntry(
             title = "운영체제",
@@ -36,7 +37,8 @@ fun WidgetTimetableEntry.Companion.mock(): WidgetTimetableEntry {
             startMinutes = 650,
             durationMinutes = 105,
             bgColor = "#F5A623",
-            textColor = "#FFFFFF"
+            textColor = "#FFFFFF",
+            signInRequired = false
         )
     )
 
