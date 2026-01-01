@@ -1,6 +1,8 @@
 package org.sparcs.Widgets
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
@@ -8,8 +10,11 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
@@ -37,6 +42,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.sparcs.App.Domain.Helpers.Constants
 import org.sparcs.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.App.Domain.Usecases.TimetableUseCaseProtocol
@@ -67,7 +73,15 @@ class TimetableWidget : GlanceAppWidget() {
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
-                    .background(Color.White)
+                    .background(GlanceTheme.colors.surface)
+                    .clickable(
+                        onClick = actionStartActivity(
+                            Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(Constants.otlShareURL)
+                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        )
+                    )
             ) {
                 if (state.signInRequired) {
                     Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -81,7 +95,8 @@ class TimetableWidget : GlanceAppWidget() {
                         }
                     }
                 } else {
-                    Column(modifier = GlanceModifier.fillMaxSize()) {
+                    Column(modifier = GlanceModifier.fillMaxSize()
+                    ) {
                         TimetableLargeWidgetView(timetable = state.timetable!!)
                     }
                 }
