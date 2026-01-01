@@ -1,4 +1,4 @@
-package org.sparcs.Widgets
+package org.sparcs.Widgets.BuddyTimetableWidget
 
 import android.graphics.Color.parseColor
 import androidx.compose.runtime.Composable
@@ -37,13 +37,14 @@ import androidx.glance.unit.ColorProvider
 import org.sparcs.App.Domain.Enums.OTL.DayType
 import org.sparcs.App.Domain.Helpers.TimetableConstructor.hoursWidth
 import org.sparcs.R
+import org.sparcs.Widgets.BuddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.Widgets.theme.ui.TimetableWidgetTheme.grayBB
 
 @Composable
 private fun TimetableGridCell(
     lecture: WidgetLectureEntry,
     height: Int,
-    modifier: GlanceModifier = GlanceModifier
+    modifier: GlanceModifier = GlanceModifier,
 ) {
     val backgroundColor = Color(parseColor(lecture.bgColor))
     val textColor = Color(parseColor(lecture.textColor))
@@ -86,8 +87,9 @@ private fun TimetableGridCell(
         }
     }
 }
+
 @Composable
-fun TimetableLargeWidgetView(timetable: WidgetTimetable?) {
+fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
     val size = LocalSize.current
     val minMin = timetable?.minMinutes ?: 540 // 8:00 AM
     val maxMin = timetable?.maxMinutes ?: 1080 // 6:00 PM
@@ -103,30 +105,32 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetable?) {
             .fillMaxSize()
             .background(GlanceTheme.colors.surface)
     ) {
-            DaysColumnHeader(visibleDays)
+        DaysColumnHeader(visibleDays)
 
-            Box(modifier = GlanceModifier.fillMaxWidth().height(totalHeight.dp)) {
-                LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-                    for (hour in (minMin / 60)until(maxMin / 60)) {
-                        item {
-                            //TimeRow
-                            Row(modifier = GlanceModifier.fillMaxWidth().height(dynamicHourHeight)) {
-                                Box(
-                                    modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight(),
-                                    contentAlignment = Alignment.TopCenter
-                                ) {
-                                    Text(text = hour.toString(), style = TextStyle(fontSize = 12.sp))
-                                }
+        Box(modifier = GlanceModifier.fillMaxWidth().height(totalHeight.dp)) {
+            LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
+                for (hour in (minMin / 60) until (maxMin / 60)) {
+                    item {
+                        //TimeRow
+                        Row(modifier = GlanceModifier.fillMaxWidth().height(dynamicHourHeight)) {
+                            Box(
+                                modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight(),
+                                contentAlignment = Alignment.TopCenter
+                            ) {
+                                Text(text = hour.toString(), style = TextStyle(fontSize = 12.sp))
+                            }
 
-                                Row(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
-                                    visibleDays.forEach { _ ->
-                                        Box(modifier = GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = 2.dp).padding(top = 8.dp)) {
-                                            Column(modifier = GlanceModifier.fillMaxSize()) {
-                                                HorizontalLine(alpha = 0.2f)
-                                                Spacer(modifier = GlanceModifier.defaultWeight())
-                                                DashedHorizontalLine()
-                                                Spacer(modifier = GlanceModifier.defaultWeight())
-                                            }
+                            Row(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
+                                visibleDays.forEach { _ ->
+                                    Box(
+                                        modifier = GlanceModifier.defaultWeight().fillMaxHeight()
+                                            .padding(horizontal = 2.dp).padding(top = 8.dp)
+                                    ) {
+                                        Column(modifier = GlanceModifier.fillMaxSize()) {
+                                            HorizontalLine(alpha = 0.2f)
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
+                                            DashedHorizontalLine()
+                                            Spacer(modifier = GlanceModifier.defaultWeight())
                                         }
                                     }
                                 }
@@ -134,27 +138,35 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetable?) {
                         }
                     }
                 }
+            }
 
-                Row(modifier = GlanceModifier.fillMaxSize().padding(start = hoursWidth + 8.dp, top = 8.dp)) {
-                    visibleDays.forEach { day ->
-                        Box(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
-                            timetable?.getLectures(day)?.forEach { lecture ->
-                                val topOffset = (lecture.startMinutes - minMin) * minuteHeight
-                                val lHeight = lecture.durationMinutes * minuteHeight
+            Row(
+                modifier = GlanceModifier.fillMaxSize()
+                    .padding(start = hoursWidth + 8.dp, top = 8.dp)
+            ) {
+                visibleDays.forEach { day ->
+                    Box(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
+                        timetable?.getLectures(day)?.forEach { lecture ->
+                            val topOffset = (lecture.startMinutes - minMin) * minuteHeight
+                            val lHeight = lecture.durationMinutes * minuteHeight
 
-                                Box(modifier = GlanceModifier.padding(top = topOffset.dp).padding(horizontal = 4.dp)) {
-                                    TimetableGridCell(
-                                        lecture = lecture,
-                                        height = lHeight.toInt()
-                                    )
-                                }
+                            Box(
+                                modifier = GlanceModifier.padding(top = topOffset.dp)
+                                    .padding(horizontal = 4.dp)
+                            ) {
+                                TimetableGridCell(
+                                    lecture = lecture,
+                                    height = lHeight.toInt()
+                                )
                             }
                         }
                     }
                 }
             }
+        }
     }
 }
+
 @Composable
 private fun DaysColumnHeader(visibleDays: List<DayType>) {
     val context = LocalContext.current
@@ -181,7 +193,7 @@ private fun DaysColumnHeader(visibleDays: List<DayType>) {
 private fun HorizontalLine(
     modifier: GlanceModifier = GlanceModifier,
     color: ColorProvider = GlanceTheme.colors.grayBB,
-    alpha: Float = 1f
+    alpha: Float = 1f,
 ) {
     val context = LocalContext.current
     Box(
@@ -190,12 +202,12 @@ private fun HorizontalLine(
             .padding(1.dp)
             .height(1.dp)
             .background(ColorProvider(color.getColor(context).copy(alpha)))
-    ){}
+    ) {}
 }
 
 @Composable
 private fun DashedHorizontalLine(
-    color: ColorProvider = GlanceTheme.colors.grayBB
+    color: ColorProvider = GlanceTheme.colors.grayBB,
 ) {
     Image(
         provider = ImageProvider(R.drawable.dash_line),
@@ -213,7 +225,7 @@ private fun DashedHorizontalLine(
 private fun TimetableGridPreview() {
     Column(modifier = GlanceModifier.fillMaxSize().background(ColorProvider(Color.White))) {
         TimetableLargeWidgetView(
-            timetable = WidgetTimetable.mock()
+            timetable = WidgetTimetableEntry.mock()
         )
     }
 }

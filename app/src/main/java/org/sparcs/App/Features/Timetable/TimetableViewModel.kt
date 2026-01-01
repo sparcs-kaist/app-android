@@ -17,7 +17,7 @@ import org.sparcs.App.Domain.Models.OTL.Lecture
 import org.sparcs.App.Domain.Models.OTL.Semester
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.App.Domain.Usecases.TimetableUseCase
-import org.sparcs.Widgets.WidgetSyncManager
+import org.sparcs.Widgets.BuddyTimetableWidget.WidgetSyncManager
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
