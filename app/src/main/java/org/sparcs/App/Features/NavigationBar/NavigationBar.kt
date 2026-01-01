@@ -206,7 +206,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 route = "OTLGraph"
             ) {
                 composable(
-                    route = Channel.TimeTable.name
+                    route = Channel.TimeTable.name,
+                    deepLinks = listOf(navDeepLink {
+                        uriPattern = Constants.otlShareURL
+                        action = Intent.ACTION_VIEW
+                    })
                 ) { backStackEntry ->
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("OTLGraph")
@@ -241,7 +245,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     val timetableViewModel: TimetableViewModel = hiltViewModel(parentEntry)
                     val lectureDetailViewModel: LectureDetailViewModel =
                         hiltViewModel(backStackEntry)
-//                    val timetableViewModel: TimetableViewModel = hiltViewModel(backStackEntry)
 
                     LectureDetailView(
                         lectureDetailViewModel = lectureDetailViewModel,
