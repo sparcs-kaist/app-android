@@ -74,14 +74,6 @@ class TimetableWidget : GlanceAppWidget() {
                 modifier = GlanceModifier
                     .fillMaxSize()
                     .background(GlanceTheme.colors.surface)
-                    .clickable(
-                        onClick = actionStartActivity(
-                            Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse(Constants.otlShareURL)
-                            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        )
-                    )
             ) {
                 if (state.signInRequired) {
                     Box(modifier = GlanceModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -99,6 +91,18 @@ class TimetableWidget : GlanceAppWidget() {
                     ) {
                         TimetableLargeWidgetView(timetable = state.timetable!!)
                     }
+                    Box(
+                        modifier = GlanceModifier
+                            .fillMaxSize()
+                            .clickable(
+                                onClick = actionStartActivity(
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(Constants.otlShareURL)
+                                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            )
+                    ){}
                 }
             }
         }
