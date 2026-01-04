@@ -39,6 +39,9 @@ import org.sparcs.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.App.Domain.Models.OTL.backgroundColor
 import org.sparcs.App.Domain.Models.OTL.textColor
 import org.sparcs.Widgets.BuddyTimetableWidget.WidgetEntryPoint
+import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassCircularWidgetView
+import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassRectangleWidgetView
+import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassSmallWidgetView
 import java.util.Calendar
 
 class BuddyUpcomingClassWidget : GlanceAppWidget() {
