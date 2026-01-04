@@ -20,7 +20,8 @@ fun UpcomingClassInlineWidgetView(entry: WidgetLectureEntry) {
 
     Row(
         modifier = GlanceModifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (entry.signInRequired) {
             Text(
