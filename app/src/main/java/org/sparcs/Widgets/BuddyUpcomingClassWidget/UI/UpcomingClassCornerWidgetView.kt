@@ -1,4 +1,4 @@
-package org.sparcs.Widgets.BuddyUpcomingClassWidget
+package org.sparcs.Widgets.BuddyUpcomingClassWidget.UI
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -16,6 +16,8 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import org.sparcs.R
+import org.sparcs.Widgets.BuddyUpcomingClassWidget.WidgetLectureEntry
+import org.sparcs.Widgets.BuddyUpcomingClassWidget.mock
 
 @Composable
 fun UpcomingClassCornerWidgetView(entry: WidgetLectureEntry) {
