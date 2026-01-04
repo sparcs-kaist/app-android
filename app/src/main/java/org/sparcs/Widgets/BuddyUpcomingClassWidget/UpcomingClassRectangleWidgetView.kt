@@ -97,7 +97,7 @@ fun UpcomingClassRectangleWidgetView(entry: WidgetLectureEntry) {
 @Composable
 private fun RectangleStatusView(title: String, description: String) {
     Column(
-        modifier = GlanceModifier.padding(2.dp),
+        modifier = GlanceModifier.fillMaxSize().padding(2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

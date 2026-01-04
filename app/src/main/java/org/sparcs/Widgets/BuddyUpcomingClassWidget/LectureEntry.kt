@@ -11,8 +11,8 @@ data class WidgetLectureEntry(
     val signInRequired: Boolean,
     val startMinutes: Int?,
     val durationMinutes: Int?,
-    val bgColor: String,
-    val textColor: String
+    val bgColor: String = "#000000",
+    val textColor: String = "#000000"
 ) {
     companion object
 
@@ -40,3 +40,12 @@ fun WidgetLectureEntry.Companion.mock(): WidgetLectureEntry {
         signInRequired = false
     )
 }
+
+fun WidgetLectureEntry.Companion.empty(signInRequired: Boolean) = WidgetLectureEntry(
+    title = null,
+    classroom = null,
+    day = null,
+    startMinutes = null,
+    durationMinutes = null,
+    signInRequired = signInRequired
+)
