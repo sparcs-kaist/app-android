@@ -1,4 +1,4 @@
-package org.sparcs.Widgets.BuddyUpcomingClassWidget
+package org.sparcs.Widgets.BuddyUpcomingClassWidget.UI
 
 import android.graphics.Color.parseColor
 import androidx.compose.runtime.Composable
@@ -22,6 +22,8 @@ import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import org.sparcs.R
+import org.sparcs.Widgets.BuddyUpcomingClassWidget.WidgetLectureEntry
+import org.sparcs.Widgets.BuddyUpcomingClassWidget.mock
 import java.time.LocalDate
 import java.util.Locale
 
