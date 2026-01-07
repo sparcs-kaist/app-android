@@ -35,7 +35,7 @@ enum class LectureType(val code: LocalizedString, val displayName: LocalizedStri
                 "Basic Elective" -> BE
                 "Major Required" -> MR
                 "Major Elective" -> ME
-                "Humanities and Social Elective" -> HSE
+                "Humanities & Social Elective(Social-General)" -> HSE
                 else -> ETC
             }
         }
