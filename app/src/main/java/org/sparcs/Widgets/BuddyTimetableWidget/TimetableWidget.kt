@@ -33,11 +33,8 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
@@ -45,8 +42,8 @@ import kotlinx.serialization.json.Json
 import org.sparcs.App.Domain.Helpers.Constants
 import org.sparcs.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.App.Domain.Models.OTL.Timetable
-import org.sparcs.App.Domain.Usecases.TimetableUseCaseProtocol
 import org.sparcs.R
+import org.sparcs.Widgets.WidgetEntryPoint
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -131,7 +128,7 @@ class TimetableWidget : GlanceAppWidget() {
 }
 
 @Singleton
-class WidgetSyncManager @Inject constructor(
+class TimetableWidgetSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     suspend fun sync(timetable: Timetable) {
@@ -158,9 +155,17 @@ class WidgetSyncManager @Inject constructor(
 class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
+        val glanceManager = GlanceAppWidgetManager(applicationContext)
+        val glanceIds = glanceManager.getGlanceIds(TimetableWidget::class.java)
+
+        if (glanceIds.isEmpty()) {
+            Log.d("TimetableWorker", "설치된 시간표 위젯이 없어 워커를 종료합니다.")
+            return Result.success()
+        }
+
         val entryPoint =
             EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
-        val syncManager = entryPoint.syncManager()
+        val syncManager = entryPoint.timetableSyncManager()
         val tokenStorage = entryPoint.tokenStorage()
         val timetableUseCase = entryPoint.timetableUseCase()
 
@@ -168,7 +173,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             val token = tokenStorage.getAccessToken()
             if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
 
-            timetableUseCase.load()
+            runCatching { timetableUseCase.load() }
             val timetable = timetableUseCase.selectedTimetable
                 .filterNotNull()
                 .first()
@@ -180,14 +185,6 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             Result.retry()
         }
     }
-}
-
-@EntryPoint
-@InstallIn(SingletonComponent::class)
-interface WidgetEntryPoint {
-    fun tokenStorage(): TokenStorageProtocol
-    fun syncManager(): WidgetSyncManager
-    fun timetableUseCase(): TimetableUseCaseProtocol
 }
 
 object TimetableStateParser {
