@@ -3,6 +3,7 @@ package org.sparcs.Widgets.BuddyUpcomingClassWidget
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -24,12 +25,14 @@ import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
@@ -38,11 +41,13 @@ import org.sparcs.App.Domain.Helpers.Constants
 import org.sparcs.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.App.Domain.Models.OTL.backgroundColor
 import org.sparcs.App.Domain.Models.OTL.textColor
-import org.sparcs.Widgets.BuddyTimetableWidget.WidgetEntryPoint
 import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassCircularWidgetView
 import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassRectangleWidgetView
 import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassSmallWidgetView
+import org.sparcs.Widgets.WidgetEntryPoint
 import java.util.Calendar
+import javax.inject.Inject
+import javax.inject.Singleton
 
 class BuddyUpcomingClassWidget : GlanceAppWidget() {
 
@@ -75,7 +80,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             GlanceTheme {
                 Box(modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.surface)) {
                     val entry = state.entry ?: WidgetLectureEntry.empty(state.signInRequired)
-
+                    Log.d("WIDGETENTRY", entry.toString())
                     val size = LocalSize.current
                     when {
                         size.height < 100.dp && size.width >= 110.dp -> {
@@ -107,36 +112,44 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val entryPoint = EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
-        val timetableUseCase = entryPoint.timetableUseCase()
+        val glanceManager = GlanceAppWidgetManager(applicationContext)
+        val glanceIds = glanceManager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
+
+        if (glanceIds.isEmpty()) {
+            Log.d("BuddyUpcomingClassWidgetWorker", "설치된 위젯이 없어 워커를 종료합니다.")
+            return Result.success()
+        }
+        val entryPoint =
+            EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
+        val syncManager = entryPoint.upComingSyncManager()
         val tokenStorage = entryPoint.tokenStorage()
+        val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            if (tokenStorage.getAccessToken() == null) return Result.failure()
+            val token = tokenStorage.getAccessToken()
 
-            timetableUseCase.load()
+            if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
+
+            runCatching { timetableUseCase.load() }
             val timetable = timetableUseCase.selectedTimetable.filterNotNull().first()
 
             val now = Calendar.getInstance()
-            val calendarDay = now.get(Calendar.DAY_OF_WEEK)
-
-            val domainDayOfWeek = when (calendarDay) {
-                Calendar.MONDAY -> 0
-                Calendar.TUESDAY -> 1
-                Calendar.WEDNESDAY -> 2
-                Calendar.THURSDAY -> 3
-                Calendar.FRIDAY -> 4
-                Calendar.SATURDAY -> 5
-                Calendar.SUNDAY -> 6
-                else -> 0
+            val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> "MON"
+                Calendar.TUESDAY -> "TUE"
+                Calendar.WEDNESDAY -> "WED"
+                Calendar.THURSDAY -> "THU"
+                Calendar.FRIDAY -> "FRI"
+                else -> ""
             }
+
             val currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
 
             val nextLecture = timetable.lectures
                 .flatMap { lecture ->
                     lecture.classTimes.map { time -> lecture to time }
                 }
-                .filter { (lecture, time) -> time.day.value == domainDayOfWeek }
+                .filter { (lecture, time) -> time.day.name == dayOfWeekString }
                 .filter { (lecture, time) -> time.end > currentMinutes }
                 .minByOrNull { (lecture, time) -> time.begin }
 
@@ -148,33 +161,44 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
                     day = time.day,
                     startMinutes = time.begin,
                     durationMinutes = time.duration,
-                    bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb()).uppercase(),
+                    bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb())
+                        .uppercase(),
                     textColor = "#" + Integer.toHexString(lecture.textColor.toArgb()).uppercase(),
                     signInRequired = false
                 )
             } else {
                 WidgetLectureEntry.empty(false)
             }
-            sync(widgetEntry)
+            syncManager.sync(widgetEntry)
             Result.success()
         } catch (e: Exception) {
             Result.retry()
         }
     }
+}
 
-    private suspend fun sync(entry: WidgetLectureEntry) {
-        val jsonString = Json.encodeToString(UpcomingClassUiState(entry = entry))
-        val manager = GlanceAppWidgetManager(applicationContext)
-        val glanceIds = manager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
+@Singleton
+class UpComingWidgetSyncManager @Inject constructor(
+    @ApplicationContext private val context: Context,
+) {
+    suspend fun sync(entry: WidgetLectureEntry) {
+        try {
+            val newState = entry.toUpcomingWidgetUiState()
+            val jsonString = Json.encodeToString(newState)
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
 
-        glanceIds.forEach { id ->
-            updateAppWidgetState(applicationContext, id) { prefs ->
-                prefs.toMutablePreferences().apply {
-                    this[stringPreferencesKey("upcoming_class_state")] = jsonString
+            glanceIds.forEach { id ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[stringPreferencesKey("upcoming_class_state")] = jsonString
+                    }
                 }
             }
+            BuddyUpcomingClassWidget().updateAll(context)
+        } catch (e: Exception) {
+            Log.e("WidgetSync", "${e.message}")
         }
-        BuddyUpcomingClassWidget().updateAll(applicationContext)
     }
 }
 
