@@ -17,7 +17,7 @@ import org.sparcs.App.Domain.Models.OTL.Lecture
 import org.sparcs.App.Domain.Models.OTL.Semester
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.App.Domain.Usecases.TimetableUseCase
-import org.sparcs.Widgets.BuddyTimetableWidget.WidgetSyncManager
+import org.sparcs.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
@@ -50,7 +50,7 @@ interface TimetableViewModelProtocol {
 class TimetableViewModel @Inject constructor(
     override val timetableUseCase: TimetableUseCase,
     private val crashlyticsHelper: CrashlyticsHelper,
-    private val widgetSyncManager: WidgetSyncManager
+    private val timetableWidgetSyncManager: TimetableWidgetSyncManager
 ) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
@@ -129,7 +129,7 @@ class TimetableViewModel @Inject constructor(
                     timetableUseCase.store.value[sid]?.firstOrNull { it.id.endsWith("-myTable") }
                 }
 
-                currentTable?.let { widgetSyncManager.sync(it) }
+                currentTable?.let { timetableWidgetSyncManager.sync(it) }
 
                 isLoading.value = false
             } catch (e: Exception) {
