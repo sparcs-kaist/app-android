@@ -91,7 +91,7 @@ class TaxiSettingsViewModel @Inject constructor(
             }
             userUseCase.fetchTaxiUser()
         } catch (e: Exception) {
-            Log.d("TaxiSettingsViewModel", "Error editing information: $e")
+            Log.e("TaxiSettingsViewModel", "Error editing information: $e")
             crashlyticsHelper.recordException(e)
         }
     }
@@ -100,7 +100,7 @@ class TaxiSettingsViewModel @Inject constructor(
         try {
             taxiUserRepository.editBankAccount(account = "$bankName $bankNumber")
         } catch (e: Exception) {
-            Log.d("TaxiSettingsViewModel", "Failed to edit bank account: ${e.message}")
+            Log.e("TaxiSettingsViewModel", "Failed to edit bank account: ${e.message}")
             crashlyticsHelper.recordException(e)
         }
     }
@@ -109,7 +109,7 @@ class TaxiSettingsViewModel @Inject constructor(
         try {
             taxiUserRepository.registerPhoneNumber(phoneNumber = phoneNumber)
         } catch (e: Exception) {
-            Log.d("TaxiSettingsViewModel", "Failed to register phone number: ${e.message}")
+            Log.e("TaxiSettingsViewModel", "Failed to register phone number: ${e.message}")
             crashlyticsHelper.recordException(e)
         }
     }
@@ -118,7 +118,7 @@ class TaxiSettingsViewModel @Inject constructor(
         try {
             taxiUserRepository.editBadge(showBadge = showBadge)
         } catch (e: Exception) {
-            Log.d("TaxiSettingsViewModel", "Failed to edit badge: ${e.message}")
+            Log.e("TaxiSettingsViewModel", "Failed to edit badge: ${e.message}")
             crashlyticsHelper.recordException(e)
         }
     }
@@ -127,7 +127,7 @@ class TaxiSettingsViewModel @Inject constructor(
         try {
             taxiUserRepository.registerResidence(residence = residence)
         } catch (e: Exception) {
-            Log.d("TaxiSettingsViewModel", "Failed to register residence: ${e.message}")
+            Log.e("TaxiSettingsViewModel", "Failed to register residence: ${e.message}")
             crashlyticsHelper.recordException(e)
         }
     }

@@ -113,7 +113,6 @@ enum class Channel(@StringRes val title: Int) {
     Boards(title = R.string.boards),
     PostView(title = R.string.postview),
     PostCompose(title = R.string.postcompose),
-    AraChatView(title = R.string.ara_chat_view), //임시
     UserPostListView(title = R.string.user_post_list_view),
 
     //Taxi
@@ -129,10 +128,11 @@ enum class Channel(@StringRes val title: Int) {
     //Setting
     SignOut(title = R.string.sign_out),
     Settings(title = R.string.settings),
-    TaxiSettings(title = R.string.taxi_settings),
-    TaxiReportSettings(title = R.string.taxi_report_settings),
+    FeedSettings(title = R.string.feed_settings),
     AraSettings(title = R.string.ara_settings),
-    AraMyPostSettings(title = R.string.ara_my_post_settings)
+    AraMyPostSettings(title = R.string.ara_my_post_settings),
+    TaxiSettings(title = R.string.taxi_settings),
+    TaxiReportSettings(title = R.string.taxi_report_settings)
 }
 
 @Composable
