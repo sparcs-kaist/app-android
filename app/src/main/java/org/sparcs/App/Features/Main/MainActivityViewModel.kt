@@ -9,12 +9,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.sparcs.App.Domain.Repositories.AppVersionRepository
 import org.sparcs.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.App.Shared.Extensions.isUpdateRequired
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    private val appVersionRepository: AppVersionRepository,
     private val authUseCase: AuthUseCaseProtocol,
     private val userUseCase: UserUseCaseProtocol
 ) : ViewModel() {
@@ -22,30 +25,54 @@ class MainViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _mustUpdate = MutableStateFlow(false)
+    val mustUpdate: StateFlow<Boolean> = _mustUpdate
+
     val isAuthenticated: StateFlow<Boolean?> = authUseCase.isAuthenticatedFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {
+        observeAuthStatus()
+    }
+
+    private fun observeAuthStatus() {
         viewModelScope.launch {
             authUseCase.isAuthenticatedFlow.collect { authed ->
-                _isLoading.value = false
                 if (authed) {
-                    refreshAccessTokenIfNeeded()
+                    _isLoading.value = true
+                    launch {
+                        refreshAccessTokenIfNeeded()
+                    }
+                } else {
+                    _isLoading.value = false
                 }
             }
         }
     }
 
-    private fun refreshAccessTokenIfNeeded() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                authUseCase.refreshAccessTokenIfNeeded()
-                userUseCase.fetchUsers()
-            } catch (e: Exception) {
-                Log.e("MainViewModel", "Token refresh failed", e)
-            }
+    private suspend fun refreshAccessTokenIfNeeded() {
+        try {
+            authUseCase.refreshAccessTokenIfNeeded()
+            userUseCase.fetchUsers()
+        } catch (e: Exception) {
+            Log.e("MainViewModel", "Data fetch failed", e)
+        } finally {
             _isLoading.value = false
+        }
+    }
+
+    fun checkAuthOnResume() {
+        viewModelScope.launch {
+            authUseCase.refreshAccessTokenIfNeeded(force = false)
+        }
+    }
+
+    fun checkVersion(currentVersion: String) {
+        viewModelScope.launch {
+            val versionInfo = appVersionRepository.fetchMinimumVersion()
+            versionInfo.android?.let { minVersion ->
+                _mustUpdate.value = currentVersion.isUpdateRequired(minVersion)
+            }
         }
     }
 }
