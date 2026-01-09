@@ -109,6 +109,8 @@ data class LectureDTO(
         year = year,
         semester = SemesterType.fromRawValue(semester),
         title = LocalizedString(mapOf("ko" to title, "en" to enTitle)),
+        commonTitle = LocalizedString(mapOf("ko" to commonTitle, "en" to commonEnTitle)),
+        classTitle = LocalizedString(mapOf("ko" to classTitle, "en" to classEnTitle)),
         department = Department(
             id = department,
             name = LocalizedString(mapOf("ko" to departmentName, "en" to departmentEnName)),

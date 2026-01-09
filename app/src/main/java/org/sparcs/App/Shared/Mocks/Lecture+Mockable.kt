@@ -18,6 +18,8 @@ fun Lecture.Companion.mock(): Lecture {
         year = 2025,
         semester = SemesterType.AUTUMN,
         title = LocalizedString(mapOf("ko" to "인공지능을 위한 프로그래밍", "en" to "Programming for AI")),
+        commonTitle = LocalizedString(mapOf("ko" to "인공지능을 위한 프로그래밍", "en" to "Programming for AI")),
+        classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
         department = Department(
             id = 19525,
             name = LocalizedString(mapOf("ko" to "김재철AI대학원", "en" to "Kim Jaechul Graduate School of AI")),
@@ -95,6 +97,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "인공지능을 위한 프로그래밍", "en" to "Programming for AI")),
+            commonTitle = LocalizedString(mapOf("ko" to "인공지능을 위한 프로그래밍", "en" to "Programming for AI")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 19525,
                 name = LocalizedString(mapOf("ko" to "김재철AI대학원", "en" to "Kim Jaechul Graduate School of AI")),
@@ -168,6 +172,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -241,6 +247,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -295,6 +303,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -348,6 +358,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -402,6 +414,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -455,6 +469,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -509,6 +525,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -562,6 +580,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -616,6 +636,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -669,6 +691,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍기초", "en" to "Introduction to Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -723,6 +747,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍 실습", "en" to "Programming Practice")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍 실습", "en" to "Programming Practice")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -777,6 +803,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "시스템프로그래밍", "en" to "System Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "시스템프로그래밍", "en" to "System Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -830,6 +858,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍언어", "en" to "Programming Language")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍언어", "en" to "Programming Language")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -884,6 +914,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍언어이론", "en" to "Theory of Programming Language")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍언어이론", "en" to "Theory of Programming Language")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9945,
                 name = LocalizedString(mapOf("ko" to "전산학부", "en" to "School of Computing")),
@@ -938,6 +970,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "공학생물학 프로그래밍", "en" to "Programming for Engineering Biology")),
+            commonTitle = LocalizedString(mapOf("ko" to "공학생물학 프로그래밍", "en" to "Programming for Engineering Biology")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 22265,
                 name = LocalizedString(mapOf("ko" to "공학생물학대학원", "en" to "Graduate School of  Engineering Biology")),
@@ -1001,6 +1035,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "프로그래밍 및 컴퓨터시스템 개론", "en" to "Introduction to  Programming and  Computer  Systems")),
+            commonTitle = LocalizedString(mapOf("ko" to "프로그래밍 및 컴퓨터시스템 개론", "en" to "Introduction to  Programming and  Computer  Systems")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9947,
                 name = LocalizedString(mapOf("ko" to "전기및전자공학부", "en" to "School of Electrical Engineering")),
@@ -1054,6 +1090,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "전기공학을 위한 고급 프로그래밍 기술", "en" to "Advanced Programming Techniques for Electrical Engineering")),
+            commonTitle = LocalizedString(mapOf("ko" to "전기공학을 위한 고급 프로그래밍 기술", "en" to "Advanced Programming Techniques for Electrical Engineering")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9947,
                 name = LocalizedString(mapOf("ko" to "전기및전자공학부", "en" to "School of Electrical Engineering")),
@@ -1108,6 +1146,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "전자공학을 위한 운영체제 및 시스템 프로그래밍", "en" to "Operating Systems and System Programming for Electrical Engineering")),
+            commonTitle = LocalizedString(mapOf("ko" to "전자공학을 위한 운영체제 및 시스템 프로그래밍", "en" to "Operating Systems and System Programming for Electrical Engineering")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9947,
                 name = LocalizedString(mapOf("ko" to "전기및전자공학부", "en" to "School of Electrical Engineering")),
@@ -1161,6 +1201,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "인문사회과학연구를 위한 프로그래밍", "en" to "Programming for the Humanities and Social Sciences")),
+            commonTitle = LocalizedString(mapOf("ko" to "인문사회과학연구를 위한 프로그래밍", "en" to "Programming for the Humanities and Social Sciences")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 20686,
                 name = LocalizedString(mapOf("ko" to "디지털인문사회과학부", "en" to "School of Digital Humanities and Computational Social Sciences")),
@@ -1215,6 +1257,8 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             year = 2025,
             semester = SemesterType.AUTUMN,
             title = LocalizedString(mapOf("ko" to "자율모바일시스템 프로그래밍", "en" to "Autonomous Mobile System Programming")),
+            commonTitle = LocalizedString(mapOf("ko" to "자율모바일시스템 프로그래밍", "en" to "Autonomous Mobile System Programming")),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9942,
                 name = LocalizedString(mapOf("ko" to "기계공학과", "en" to "Department of Mechanical Engineering")),
