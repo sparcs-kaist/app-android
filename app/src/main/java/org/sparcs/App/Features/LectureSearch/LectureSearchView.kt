@@ -151,7 +151,7 @@ fun LectureSearchView(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = firstItem.title.localized(),
+                                            text = firstItem.commonTitle.localized(),
                                             style = MaterialTheme.typography.titleSmall,
                                             modifier = Modifier.weight(1f)
                                         )
@@ -280,18 +280,33 @@ fun LectureRow(
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = lecture.section ?: "A",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = lecture.professors.firstOrNull()?.name?.localized() ?: stringResource(R.string.unknown),
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = lecture.section ?: "A",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            if (lecture.classTitle.localized() != lecture.section) {
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = lecture.classTitle.localized(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = lecture.professors.firstOrNull()?.name?.localized()
+                    ?: stringResource(R.string.unknown),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 
-        Spacer(Modifier.weight(1f))
+        Spacer(Modifier.width(12.dp))
 
         Icon(
             painter = painterResource(R.drawable.round_info),
