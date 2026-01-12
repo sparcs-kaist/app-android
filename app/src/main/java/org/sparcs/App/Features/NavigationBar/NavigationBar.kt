@@ -66,6 +66,8 @@ import org.sparcs.App.Features.Settings.Ara.AraMyPostView
 import org.sparcs.App.Features.Settings.Ara.AraMyPostViewModel
 import org.sparcs.App.Features.Settings.Ara.AraSettingsView
 import org.sparcs.App.Features.Settings.Ara.AraSettingsViewModel
+import org.sparcs.App.Features.Settings.Feed.FeedSettingsView
+import org.sparcs.App.Features.Settings.Feed.FeedSettingsViewModel
 import org.sparcs.App.Features.Settings.SettingsView
 import org.sparcs.App.Features.Settings.SettingsViewModel
 import org.sparcs.App.Features.Settings.Taxi.TaxiReportListView
@@ -527,6 +529,20 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 ) { backStackEntry ->
                     val viewModel: AraSettingsViewModel = hiltViewModel(backStackEntry)
                     AraSettingsView(viewModel = viewModel, navController = navController)
+                }
+
+                composable(
+                    route = Channel.FeedSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: FeedSettingsViewModel = hiltViewModel(backStackEntry)
+                    FeedSettingsView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
                 }
 
                 composable(

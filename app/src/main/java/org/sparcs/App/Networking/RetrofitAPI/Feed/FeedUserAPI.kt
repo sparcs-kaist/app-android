@@ -31,7 +31,7 @@ interface FeedUserApi {
     suspend fun getKarma(): KarmaResponse
 
     @Multipart
-    @POST("v1/me/profile-image")
+    @POST("me/profile-image")
     suspend fun uploadProfileImage(
         @Part file: MultipartBody.Part
     ): ProfileImageUpdateResponse
