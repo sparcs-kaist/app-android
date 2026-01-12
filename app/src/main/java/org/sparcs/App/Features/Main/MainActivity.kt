@@ -51,9 +51,6 @@ class MainActivity : ComponentActivity() {
             AuthenticationCallbackHandler.handleUri(uri)
         }
 
-        val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
-        viewModel.checkVersion(currentVersion)
-
         setContent {
             val darkMode by settingsViewModel.darkModeSetting.collectAsState(initial = null)
             val useDarkTheme = darkMode ?: isSystemInDarkTheme()
@@ -62,6 +59,11 @@ class MainActivity : ComponentActivity() {
                 val mustUpdate by viewModel.mustUpdate.collectAsState()
                 val isAuthenticated by viewModel.isAuthenticated.collectAsState()
                 val isLoading by viewModel.isLoading.collectAsState()
+
+                LaunchedEffect(Unit) {
+                    val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
+                    viewModel.checkVersion(currentVersion)
+                }
 
                 LaunchedEffect(mustUpdate) {
                     if (mustUpdate) {

@@ -14,18 +14,22 @@ import org.sparcs.App.Features.Settings.Feed.FeedSettingsViewModelProtocol
 class MockFeedSettingsViewModel(initialState: FeedSettingsViewModel.ViewState) :
     FeedSettingsViewModelProtocol {
 
+    private val DEFAULT_TEST_NICKNAME = "Test User"
+
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<FeedSettingsViewModel.ViewState> = _state
 
-    override var nickname by mutableStateOf("테스트유저")
+    override var nickname by mutableStateOf(DEFAULT_TEST_NICKNAME)
     override var nicknameError by mutableStateOf<Int?>(null)
 
-    private val _user = MutableStateFlow<FeedUser?>( FeedUser(
-        id = "test-id",
-        nickname = "테스트유저",
-        profileImageURL = null,
-        karma = 100
-    ))
+    private val _user = MutableStateFlow<FeedUser?>(
+        FeedUser(
+            id = "test-id",
+            nickname = DEFAULT_TEST_NICKNAME,
+            profileImageURL = null,
+            karma = 100
+        )
+    )
     override var user: StateFlow<FeedUser?> = _user
 
     override var karma by mutableIntStateOf(100)
