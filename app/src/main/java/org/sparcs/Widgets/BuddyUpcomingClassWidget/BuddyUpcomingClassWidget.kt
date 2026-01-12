@@ -45,6 +45,7 @@ import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassCircularWidge
 import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassRectangleWidgetView
 import org.sparcs.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassSmallWidgetView
 import org.sparcs.Widgets.WidgetEntryPoint
+import org.sparcs.Widgets.theme.ui.WidgetTheme
 import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -77,7 +78,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
                 )
             }
 
-            GlanceTheme {
+            WidgetTheme {
                 Box(modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.surface)) {
                     val entry = state.entry ?: WidgetLectureEntry.empty(state.signInRequired)
                     Log.d("WIDGETENTRY", entry.toString())
