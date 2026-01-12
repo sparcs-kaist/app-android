@@ -44,6 +44,7 @@ import org.sparcs.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.R
 import org.sparcs.Widgets.WidgetEntryPoint
+import org.sparcs.Widgets.theme.ui.WidgetTheme
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -69,58 +70,60 @@ class TimetableWidget : GlanceAppWidget() {
                 )
             }
 
-            Box(
-                modifier = GlanceModifier
-                    .fillMaxSize()
-                    .background(GlanceTheme.colors.surface)
-            ) {
-                if (state.signInRequired) {
-                    Box(
-                        modifier = GlanceModifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            context.getString(R.string.login_required),
-                            style = TextStyle(color = ColorProvider(Color.Black))
-                        )
-                    }
-                } else if (state.timetable == null) {
-                    Box(
-                        modifier = GlanceModifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            WidgetTheme {
+                Box(
+                    modifier = GlanceModifier
+                        .fillMaxSize()
+                        .background(GlanceTheme.colors.surface)
+                ) {
+                    if (state.signInRequired) {
+                        Box(
+                            modifier = GlanceModifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
                             Text(
-                                context.getString(R.string.loading_data),
+                                context.getString(R.string.login_required),
                                 style = TextStyle(color = ColorProvider(Color.Black))
                             )
-                            Text(
-                                context.getString(R.string.wait_moment),
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                    color = ColorProvider(Color.Gray)
-                                )
-                            )
                         }
-                    }
-                } else {
-                    Column(
-                        modifier = GlanceModifier.fillMaxSize()
-                    ) {
-                        TimetableLargeWidgetView(timetable = state.timetable!!)
-                    }
-                    Box(
-                        modifier = GlanceModifier
-                            .fillMaxSize()
-                            .clickable(
-                                onClick = actionStartActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        Uri.parse(Constants.otlShareURL)
-                                    ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    } else if (state.timetable == null) {
+                        Box(
+                            modifier = GlanceModifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text(
+                                    context.getString(R.string.loading_data),
+                                    style = TextStyle(color = ColorProvider(Color.Black))
                                 )
-                            )
-                    ) {}
+                                Text(
+                                    context.getString(R.string.wait_moment),
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        color = ColorProvider(Color.Gray)
+                                    )
+                                )
+                            }
+                        }
+                    } else {
+                        Column(
+                            modifier = GlanceModifier.fillMaxSize()
+                        ) {
+                            TimetableLargeWidgetView(timetable = state.timetable!!)
+                        }
+                        Box(
+                            modifier = GlanceModifier
+                                .fillMaxSize()
+                                .clickable(
+                                    onClick = actionStartActivity(
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(Constants.otlShareURL)
+                                        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                    )
+                                )
+                        ) {}
+                    }
                 }
             }
         }
