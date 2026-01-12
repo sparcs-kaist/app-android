@@ -9,10 +9,11 @@ import okhttp3.RequestBody.Companion.toRequestBody
 fun Uri.toMultipartBody(context: Context): MultipartBody.Part? {
     return try {
         val contentResolver = context.contentResolver
+        val mimeType = contentResolver.getType(this) ?: "image/jpeg"
         val inputStream = contentResolver.openInputStream(this)
-        val bytes = inputStream?.readBytes() ?: return null
+        val bytes = inputStream?.use { it.readBytes() } ?: return null
 
-        val requestFile = bytes.toRequestBody("image/jpeg".toMediaTypeOrNull())
+        val requestFile = bytes.toRequestBody(mimeType.toMediaTypeOrNull())
         MultipartBody.Part.createFormData("file", "profile_image.jpg", requestFile)
     } catch (e: Exception) {
         e.printStackTrace()

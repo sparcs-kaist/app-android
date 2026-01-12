@@ -95,7 +95,6 @@ fun FeedSettingsView(
                         errorMessage = message,
                         onRetry = { scope.launch { viewModel.fetchUser() } }
                     )
-                    Text("Error: $message", color = MaterialTheme.colorScheme.error)
                 }
             }
         }
