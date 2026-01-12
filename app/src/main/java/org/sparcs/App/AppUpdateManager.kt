@@ -80,6 +80,7 @@ class InAppUpdateHelper(
                 start(info)
             } else {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${activity.packageName}"))
+                //TODO - Check Link URL
                 activity.startActivity(intent)
             }
         }
