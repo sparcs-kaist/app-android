@@ -18,20 +18,23 @@ class MockFeedSettingsViewModel(initialState: FeedSettingsViewModel.ViewState) :
     override val state: StateFlow<FeedSettingsViewModel.ViewState> = _state
 
     override var nickname by mutableStateOf("테스트유저")
-    override var user by mutableStateOf<FeedUser?>(
-        FeedUser(
-            id = "test-id",
-            nickname = "테스트유저",
-            profileImageURL = null,
-            karma = 100
-        )
-    )
+    override var nicknameError by mutableStateOf<Int?>(null)
+
+    private val _user = MutableStateFlow<FeedUser?>( FeedUser(
+        id = "test-id",
+        nickname = "테스트유저",
+        profileImageURL = null,
+        karma = 100
+    ))
+    override var user: StateFlow<FeedUser?> = _user
 
     override var karma by mutableIntStateOf(100)
 
     override suspend fun fetchUser() {}
 
-    override fun editInformation(imagePart: MultipartBody.Part?) {}
+    override fun updateNickname() {}
+
+    override fun uploadProfileImage(imagePart: MultipartBody.Part) {}
 
     override fun resetProfileImage() {}
 }

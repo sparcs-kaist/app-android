@@ -17,16 +17,19 @@ import org.sparcs.App.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.App.Domain.Models.Feed.FeedUser
 import org.sparcs.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import org.sparcs.App.Domain.Usecases.UserUseCase
+import org.sparcs.R
 import javax.inject.Inject
 
 interface FeedSettingsViewModelProtocol {
     var nickname: String
-    val user: FeedUser?
+    var nicknameError: Int?
+    var user: StateFlow<FeedUser?>
     val karma: Int
     val state: StateFlow<FeedSettingsViewModel.ViewState>
 
     suspend fun fetchUser()
-    fun editInformation(imagePart: MultipartBody.Part?)
+    fun updateNickname()
+    fun uploadProfileImage(imagePart: MultipartBody.Part)
     fun resetProfileImage()
 }
 
@@ -44,7 +47,11 @@ class FeedSettingsViewModel @Inject constructor(
     }
 
     override var nickname by mutableStateOf("")
-    override var user by mutableStateOf<FeedUser?>(null)
+    override var nicknameError by mutableStateOf<Int?>(null)
+
+    private val _user = MutableStateFlow<FeedUser?>(null)
+    override var user: StateFlow<FeedUser?> = _user
+
     override var karma by mutableIntStateOf(0)
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -58,7 +65,7 @@ class FeedSettingsViewModel @Inject constructor(
                 _state.value = ViewState.Error("Feed User Information Not Found.")
                 return
             }
-            user = fetchedUser
+            _user.value = fetchedUser
             nickname = fetchedUser.nickname
             karma = fetchedUser.karma
             _state.value = ViewState.Loaded
@@ -67,18 +74,34 @@ class FeedSettingsViewModel @Inject constructor(
         }
     }
 
-    override fun editInformation(imagePart: MultipartBody.Part?) {
+    override fun updateNickname() {
+        if (nickname == _user.value?.nickname) return
+
         viewModelScope.launch {
             try {
-                if (nickname.isNotEmpty() && nickname != user?.nickname) {
-                    feedUserRepository.updateNickname(nickname)
-                }
-                imagePart?.let {
-                    feedUserRepository.uploadProfileImage(it)
-                }
+                nicknameError = null
+                feedUserRepository.updateNickname(nickname)
                 userUseCase.fetchFeedUser()
             } catch (e: Exception) {
-                Log.e("FeedSettingsViewModel", "Error editing information: $e")
+                nicknameError = if (e.message?.contains("409") == true) {
+                    R.string.nickname_error_conflict
+                } else {
+                    R.string.nickname_error_update_failed
+                }
+                Log.e("FeedSettingsViewModel", "Nickname update failed: $e")
+                crashlyticsHelper.recordException(e)
+            }
+        }
+    }
+
+    override fun uploadProfileImage(imagePart: MultipartBody.Part) {
+        viewModelScope.launch {
+            try {
+                feedUserRepository.uploadProfileImage(imagePart)
+                userUseCase.fetchFeedUser()
+                _user.value = userUseCase.feedUser
+            } catch (e: Exception) {
+                Log.e("FeedSettingsViewModel", "Image upload failed: $e")
                 crashlyticsHelper.recordException(e)
             }
         }
@@ -88,7 +111,8 @@ class FeedSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 feedUserRepository.resetProfileImage()
-                fetchUser()
+                userUseCase.fetchFeedUser()
+                _user.value = userUseCase.feedUser
             } catch (e: Exception) {
                 Log.e("FeedSettingsViewModel", "Reset failed: $e")
                 crashlyticsHelper.recordException(e)
