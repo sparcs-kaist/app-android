@@ -18,6 +18,7 @@ import org.sparcs.App.Domain.Models.Feed.FeedUser
 import org.sparcs.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import org.sparcs.App.Domain.Usecases.UserUseCase
 import org.sparcs.R
+import retrofit2.HttpException
 import javax.inject.Inject
 
 interface FeedSettingsViewModelProtocol {
@@ -81,12 +82,16 @@ class FeedSettingsViewModel @Inject constructor(
             try {
                 nicknameError = null
                 feedUserRepository.updateNickname(nickname)
-                userUseCase.fetchFeedUser()
             } catch (e: Exception) {
-                nicknameError = if (e.message?.contains("409") == true) {
-                    R.string.nickname_error_conflict
-                } else {
-                    R.string.nickname_error_update_failed
+                nicknameError = when (e) {
+                    is HttpException -> {
+                        if (e.code() == 409) {
+                            R.string.nickname_error_conflict
+                        } else {
+                            R.string.nickname_error_update_failed
+                        }
+                    }
+                    else -> R.string.nickname_error_update_failed
                 }
                 Log.e("FeedSettingsViewModel", "Nickname update failed: $e")
                 crashlyticsHelper.recordException(e)
