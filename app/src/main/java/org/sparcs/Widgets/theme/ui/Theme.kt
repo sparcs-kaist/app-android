@@ -2,6 +2,8 @@ package org.sparcs.Widgets.theme.ui
 
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.Composable
+import androidx.glance.GlanceTheme
 import androidx.glance.color.ColorProvider
 import androidx.glance.color.ColorProviders
 import androidx.glance.material3.ColorProviders
@@ -81,4 +83,9 @@ object TimetableWidgetTheme {
 
     val ColorProviders.darkGray: ColorProvider
         get() = TimetableWidgetTheme.darkGray
+}
+
+@Composable
+fun WidgetTheme(content: @Composable () -> Unit) {
+    GlanceTheme(colors = TimetableWidgetTheme.colors, content = content)
 }
