@@ -360,4 +360,9 @@
     <string name="discard_this_settings">You have unsaved changes. Are you sure you want to discard them and leave?</string>
     <string name="exit">Discard</string>
     <string name="keep_editing">Keep Editing</string>
+    <string name="feed_settings">Feed Settings</string>
+    <string name="karma">Karma</string>
+    <string name="reset">Reset</string>
+    <string name="nickname_error_conflict">This nickname is already taken.</string>
+    <string name="nickname_error_update_failed">Failed to update nickname. Please try again.</string>
 </resources>
