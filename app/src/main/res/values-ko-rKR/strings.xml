@@ -338,4 +338,9 @@
     <string name="discard_this_settings">수정 중인 변경 사항이 있습니다. 저장하지 않고 나가시겠습니까?</string>
     <string name="exit">나가기</string>
     <string name="keep_editing">계속 수정</string>
+    <string name="feed_settings">피드 설정</string>
+    <string name="karma">카르마</string>
+    <string name="reset">리셋</string>
+    <string name="nickname_error_conflict">이미 사용 중인 닉네임입니다.</string>
+    <string name="nickname_error_update_failed">닉네임 수정에 실패했습니다. 다시 시도해주세요.</string>
 </resources>
