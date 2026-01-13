@@ -332,7 +332,8 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
             ) {
                 AnimatedAlphabetText(
                     from = previousText,
-                    to = displayText
+                    to = displayText,
+                    singleLine = true
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(

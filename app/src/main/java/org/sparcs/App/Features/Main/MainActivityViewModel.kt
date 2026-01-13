@@ -39,7 +39,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             authUseCase.isAuthenticatedFlow.collect { authed ->
                 if (authed) {
-                    _isLoading.value = true
                     launch {
                         refreshAccessTokenIfNeeded()
                     }

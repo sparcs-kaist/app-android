@@ -7,7 +7,7 @@ import org.sparcs.App.Domain.Models.OTL.Timetable
 fun Timetable.Companion.mock(): Timetable {
     return Timetable(
         id = "0",
-        lectures = Lecture.mockList().shuffled().take((1..5).random())
+        lectures = Lecture.mockList().take(3)
     )
 }
 
