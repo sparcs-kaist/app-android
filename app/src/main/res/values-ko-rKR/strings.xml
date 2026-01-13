@@ -347,4 +347,9 @@
     <string name="enjoy_day">즐거운 하루 되세요</string>
     <string name="open_app_prompt">계속하려면 앱을 열어주세요.</string>
     <string name="zero_left">수업 없음</string>
+    <string name="feed_settings">피드 설정</string>
+    <string name="karma">카르마</string>
+    <string name="reset">리셋</string>
+    <string name="nickname_error_conflict">이미 사용 중인 닉네임입니다.</string>
+    <string name="nickname_error_update_failed">닉네임 수정에 실패했습니다. 다시 시도해주세요.</string>
 </resources>

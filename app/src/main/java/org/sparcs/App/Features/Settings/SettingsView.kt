@@ -109,6 +109,11 @@ fun SettingsView(
                 )
 
                 ServiceNavButton(
+                    stringResource(R.string.feed),
+                    painterResource(R.drawable.sparcs_logo)
+                ) { navController.navigate(Channel.FeedSettings.name) }
+
+                ServiceNavButton(
                     stringResource(R.string.ara),
                     painterResource(R.drawable.ara_logo)
                 ) { navController.navigate(Channel.AraSettings.name) }
