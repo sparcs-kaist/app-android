@@ -88,3 +88,16 @@ fun String.toPhoneNumberFormat(): String {
         }
     }.trimEnd('-')
 }
+fun String.isUpdateRequired(min: String): Boolean {
+    val currentParts = this.split(".").map { it.toIntOrNull() ?: 0 }
+    val minParts = min.split(".").map { it.toIntOrNull() ?: 0 }
+
+    val length = maxOf(currentParts.size, minParts.size)
+    for (i in 0 until length) {
+        val c = currentParts.getOrElse(i) { 0 }
+        val m = minParts.getOrElse(i) { 0 }
+        if (c < m) return true
+        if (c > m) return false
+    }
+    return false
+}

@@ -10,6 +10,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import dagger.hilt.android.AndroidEntryPoint
@@ -55,11 +56,22 @@ class MainActivity : ComponentActivity() {
             val useDarkTheme = darkMode ?: isSystemInDarkTheme()
 
             Theme(darkTheme = useDarkTheme) {
-
+                val mustUpdate by viewModel.mustUpdate.collectAsState()
                 val isAuthenticated by viewModel.isAuthenticated.collectAsState()
                 val isLoading by viewModel.isLoading.collectAsState()
 
-                if (isLoading) {
+                LaunchedEffect(Unit) {
+                    val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
+                    viewModel.checkVersion(currentVersion)
+                }
+
+                LaunchedEffect(mustUpdate) {
+                    if (mustUpdate) {
+                        helper.forceStart()
+                    }
+                }
+
+                if (isLoading || isAuthenticated == null) {
                     // MARK: THIS PLAYS CRUCIAL ROLE HIDING SIGN IN VIEW ON LOADING
                 } else {
                     if (isAuthenticated == true) {
@@ -81,5 +93,6 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         helper.resumeCheck()
+        viewModel.checkAuthOnResume()
     }
 }

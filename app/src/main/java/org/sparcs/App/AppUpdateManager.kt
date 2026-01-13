@@ -2,6 +2,8 @@ package org.sparcs.App
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
@@ -68,6 +70,18 @@ class InAppUpdateHelper(
             }
             if (info.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
                 start(info)
+            }
+        }
+    }
+
+    fun forceStart() {
+        manager.appUpdateInfo.addOnSuccessListener { info ->
+            if (info.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                start(info)
+            } else {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${activity.packageName}"))
+                //TODO - Check Link URL
+                activity.startActivity(intent)
             }
         }
     }
