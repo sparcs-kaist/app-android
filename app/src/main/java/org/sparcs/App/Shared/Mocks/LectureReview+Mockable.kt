@@ -24,6 +24,13 @@ fun LectureReview.Companion.mock(): LectureReview {
                     "en" to "Aerospace Engineering LaboratoryⅡ"
                 )
             ),
+            commonTitle = LocalizedString(
+                mapOf(
+                    "ko" to "항공우주공학 실험Ⅱ",
+                    "en" to "Aerospace Engineering LaboratoryⅡ"
+                )
+            ),
+            classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
             department = Department(
                 id = 9944,
                 name = LocalizedString(
@@ -107,6 +114,10 @@ fun LectureReview.Companion.mockList(): List<LectureReview> {
                 title = LocalizedString(
                     mapOf("ko" to "항공우주공학 실험Ⅱ", "en" to "Aerospace Engineering LaboratoryⅡ")
                 ),
+                commonTitle = LocalizedString(
+                    mapOf("ko" to "항공우주공학 실험Ⅱ", "en" to "Aerospace Engineering LaboratoryⅡ")
+                ),
+                classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
                 department = Department(
                     id = 9944,
                     name = LocalizedString(
@@ -170,6 +181,10 @@ fun LectureReview.Companion.mockList(): List<LectureReview> {
                 title = LocalizedString(
                     mapOf("ko" to "항공우주공학 실험Ⅱ", "en" to "Aerospace Engineering LaboratoryⅡ")
                 ),
+                commonTitle = LocalizedString(
+                    mapOf("ko" to "항공우주공학 실험Ⅱ", "en" to "Aerospace Engineering LaboratoryⅡ")
+                ),
+                classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
                 department = Department(
                     id = 9944,
                     name = LocalizedString(
@@ -227,6 +242,10 @@ fun LectureReview.Companion.mockList(): List<LectureReview> {
                 title = LocalizedString(
                     mapOf("ko" to "항공우주공학 실험Ⅱ", "en" to "Aerospace Engineering LaboratoryⅡ")
                 ),
+                commonTitle = LocalizedString(
+                    mapOf("ko" to "항공우주공학 실험Ⅱ", "en" to "Aerospace Engineering LaboratoryⅡ")
+                ),
+                classTitle = LocalizedString(mapOf("ko" to "", "en" to "")),
                 department = Department(
                     id = 9944,
                     name = LocalizedString(

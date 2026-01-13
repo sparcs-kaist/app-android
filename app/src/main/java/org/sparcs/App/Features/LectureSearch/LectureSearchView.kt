@@ -2,6 +2,7 @@ package org.sparcs.App.Features.LectureSearch
 
 import android.net.Uri
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -105,7 +106,7 @@ fun LectureSearchView(
                 value = searchText,
                 onValueChange = { value ->
                     lectureSearchViewModel.onSearchTextChange(value)
-                                },
+                },
                 onValueClear = {
                     lectureSearchViewModel.onSearchTextChange("")
                 },
@@ -151,7 +152,7 @@ fun LectureSearchView(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = firstItem.title.localized(),
+                                            text = firstItem.commonTitle.localized(),
                                             style = MaterialTheme.typography.titleSmall,
                                             modifier = Modifier.weight(1f)
                                         )
@@ -192,8 +193,11 @@ fun LectureSearchView(
                                                 } else {
                                                     try {
                                                         timetableViewModel.addLecture(lecture)
-                                                    }catch (e:Exception){
-                                                        timetableViewModel.handleException(e, TimetableViewModel.ErrorType.AddLecture)
+                                                    } catch (e: Exception) {
+                                                        timetableViewModel.handleException(
+                                                            e,
+                                                            TimetableViewModel.ErrorType.AddLecture
+                                                        )
                                                     }
                                                 }
                                             },
@@ -240,8 +244,10 @@ fun LectureSearchView(
                     title = { Text(stringResource(R.string.add_overlapping_lecture)) },
                     text = {
                         val currentName =
-                            overlappingLecture?.title?.localized() ?: stringResource(R.string.the_existing_lecture)
-                        val newName = pendingLectureToAdd?.title?.localized() ?: stringResource(R.string.the_new_lecture)
+                            overlappingLecture?.title?.localized()
+                                ?: stringResource(R.string.the_existing_lecture)
+                        val newName = pendingLectureToAdd?.title?.localized()
+                            ?: stringResource(R.string.the_new_lecture)
                         Text(
                             text = stringResource(
                                 id = R.string.lecture_overlap,
@@ -280,18 +286,33 @@ fun LectureRow(
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = lecture.section ?: "A",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = lecture.professors.firstOrNull()?.name?.localized() ?: stringResource(R.string.unknown),
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.weight(1f, fill = false)) {
+                val displayTitle = if (lecture.classTitle.localized() != (lecture.section ?: "A")) {
+                    lecture.classTitle.localized()
+                } else {
+                    lecture.section ?: "A"
+                }
 
-        Spacer(Modifier.weight(1f))
+                Text(
+                    text = displayTitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    softWrap = true
+                )
+            }
+            Spacer(modifier = Modifier.width(12.dp))
+            Text(
+                text = lecture.professors.firstOrNull()?.name?.localized()
+                    ?: stringResource(R.string.unknown),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
+
+        Spacer(Modifier.width(12.dp))
 
         Icon(
             painter = painterResource(R.drawable.round_info),

@@ -94,7 +94,7 @@ fun AraSettingsView(
                     ErrorView(
                         icon = Icons.Default.Warning,
                         errorMessage = message,
-                        onRetry = {}
+                        onRetry = { scope.launch { viewModel.fetchUser() }}
                     )
                     Text("Error: $message", color = MaterialTheme.colorScheme.error)
                 }
