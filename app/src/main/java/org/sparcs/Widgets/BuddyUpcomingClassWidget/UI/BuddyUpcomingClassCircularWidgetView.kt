@@ -46,13 +46,13 @@ fun UpcomingClassCircularWidgetView(entry: WidgetLectureEntry) {
                 )
             )
         } else if (entry.title != null) {
+            val startTime = entry.formattedTimeRange.substringBefore("-").trim()
             Image(
                 provider = ImageProvider(R.drawable.baseline_calendar_month),
                 contentDescription = null,
                 modifier = GlanceModifier.size(20.dp)
             )
 
-            val startTime = entry.formattedTimeRange.split("-")[0].trim()
             Text(
                 text = startTime,
                 style = TextStyle(
