@@ -32,7 +32,7 @@ fun UpcomingClassCornerWidgetView(entry: WidgetLectureEntry) {
             CornerStatusView(context.getString(R.string.login_required))
 
         } else if (entry.title != null && entry.classroom != null) {
-            val startTime = entry.formattedTimeRange.split("-")[0].trim()
+            val startTime = entry.formattedTimeRange.substringBefore("-").trim()
 
             Text(
                 text = startTime,

@@ -162,7 +162,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
         val glanceIds = glanceManager.getGlanceIds(TimetableWidget::class.java)
 
         if (glanceIds.isEmpty()) {
-            Log.d("TimetableWorker", "설치된 시간표 위젯이 없어 워커를 종료합니다.")
+            Log.d("TimetableWidgetWorker", "No installed widgets found. Stopping worker.")
             return Result.success()
         }
 
@@ -184,7 +184,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             syncManager.sync(timetable)
             Result.success()
         } catch (e: Exception) {
-            Log.e("TimetableWorker", "에러 발생: ${e.message}")
+            Log.e("TimetableWorker", "TimetableUpdateWorker Error: ${e.message}")
             Result.retry()
         }
     }

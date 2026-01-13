@@ -9,7 +9,7 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 
-class TimetableWidgetReceiver : GlanceAppWidgetReceiver() {
+class BuddyTimetableWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = TimetableWidget()
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
