@@ -30,14 +30,11 @@ enum class LectureType(val code: LocalizedString, val displayName: LocalizedStri
 
     companion object {
         fun fromRawValue(rawValue: String): LectureType {
-            return when (rawValue) {
-                "Basic Required" -> BR
-                "Basic Elective" -> BE
-                "Major Required" -> MR
-                "Major Elective" -> ME
-                "Humanities and Social Elective" -> HSE
-                else -> ETC
-            }
+            return entries.find { type ->
+                val englishName = type.displayName.localized("en")
+                val normalizedRaw = rawValue.replace("&", "and")
+                englishName.isNotEmpty() && normalizedRaw.startsWith(englishName, ignoreCase = true)
+            } ?: ETC
         }
     }
 }
