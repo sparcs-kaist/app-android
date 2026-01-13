@@ -352,4 +352,12 @@
     <string name="reset">리셋</string>
     <string name="nickname_error_conflict">이미 사용 중인 닉네임입니다.</string>
     <string name="nickname_error_update_failed">닉네임 수정에 실패했습니다. 다시 시도해주세요.</string>
+    <string name="widget_settings">위젯 설정</string>
+    <string name="theme_mode">테마 모드</string>
+    <string name="transparency">투명도</string>
+    <string name="save_configuration">설정 저장</string>
+    <string name="preview_lecture_title">데이타 구조</string>
+    <string name="preview_lecture_time">10:30 – 11:00</string>
+    <string name="preview_lecture_location">(E3–1) #1501</string>
+    <string name="preview">미리보기</string>
 </resources>

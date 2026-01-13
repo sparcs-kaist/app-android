@@ -4,9 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -44,6 +44,7 @@ import org.sparcs.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.R
 import org.sparcs.Widgets.WidgetEntryPoint
+import org.sparcs.Widgets.theme.ui.TimetableWidgetTheme.grayBB
 import org.sparcs.Widgets.theme.ui.WidgetTheme
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -61,6 +62,9 @@ class TimetableWidget : GlanceAppWidget() {
             val prefs = currentState<Preferences>()
             val state = TimetableStateParser.parse(prefs, tokenStorage)
 
+            val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
+            val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
+
             if (state.timetable == null && !state.signInRequired) {
                 val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>().build()
                 WorkManager.getInstance(appContext).enqueueUniqueWork(
@@ -70,11 +74,11 @@ class TimetableWidget : GlanceAppWidget() {
                 )
             }
 
-            WidgetTheme {
+            WidgetTheme(themeMode = themeMode) {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
-                        .background(GlanceTheme.colors.surface)
+                        .background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
                 ) {
                     if (state.signInRequired) {
                         Box(
@@ -83,7 +87,7 @@ class TimetableWidget : GlanceAppWidget() {
                         ) {
                             Text(
                                 context.getString(R.string.login_required),
-                                style = TextStyle(color = ColorProvider(Color.Black))
+                                style = TextStyle(color = ColorProvider(GlanceTheme.colors.onSurface.getColor(context)))
                             )
                         }
                     } else if (state.timetable == null) {
@@ -94,13 +98,13 @@ class TimetableWidget : GlanceAppWidget() {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     context.getString(R.string.loading_data),
-                                    style = TextStyle(color = ColorProvider(Color.Black))
+                                    style = TextStyle(color = ColorProvider(GlanceTheme.colors.onSurface.getColor(context)))
                                 )
                                 Text(
                                     context.getString(R.string.wait_moment),
                                     style = TextStyle(
                                         fontSize = 12.sp,
-                                        color = ColorProvider(Color.Gray)
+                                        color = ColorProvider(GlanceTheme.colors.grayBB.getColor(context))
                                     )
                                 )
                             }
@@ -109,7 +113,7 @@ class TimetableWidget : GlanceAppWidget() {
                         Column(
                             modifier = GlanceModifier.fillMaxSize()
                         ) {
-                            TimetableLargeWidgetView(timetable = state.timetable!!)
+                            TimetableLargeWidgetView(timetable = state.timetable)
                         }
                         Box(
                             modifier = GlanceModifier

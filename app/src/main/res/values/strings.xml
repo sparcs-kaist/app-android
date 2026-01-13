@@ -374,4 +374,12 @@
     <string name="reset">Reset</string>
     <string name="nickname_error_conflict">This nickname is already taken.</string>
     <string name="nickname_error_update_failed">Failed to update nickname. Please try again.</string>
+    <string name="widget_settings">Widget Settings</string>
+    <string name="theme_mode">Theme Mode</string>
+    <string name="transparency">Transparency</string>
+    <string name="save_configuration">Save Configuration</string>
+    <string name="preview_lecture_title">Data Structure</string>
+    <string name="preview_lecture_time">10:30 – 11:00</string>
+    <string name="preview_lecture_location">(E3–1) #1501</string>
+    <string name="preview">Preview</string>
 </resources>

@@ -3,6 +3,7 @@ package org.sparcs.Widgets.BuddyUpcomingClassWidget.UI
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.Image
@@ -36,12 +37,14 @@ fun UpcomingClassCircularWidgetView(entry: WidgetLectureEntry) {
             Image(
                 provider = ImageProvider(R.drawable.round_login),
                 contentDescription = null,
-                modifier = GlanceModifier.size(20.dp)
+                modifier = GlanceModifier.size(20.dp),
+                colorFilter = ColorFilter.tint(GlanceTheme.colors.onSurface)
             )
             Text(
                 text = context.getString(R.string.login_required),
                 style = TextStyle(
-                    fontSize = 11.sp, color = GlanceTheme.colors.onSurface,
+                    fontSize = 11.sp,
+                    color = GlanceTheme.colors.onSurface,
                     textAlign = TextAlign.Center
                 )
             )
@@ -50,7 +53,8 @@ fun UpcomingClassCircularWidgetView(entry: WidgetLectureEntry) {
             Image(
                 provider = ImageProvider(R.drawable.baseline_calendar_month),
                 contentDescription = null,
-                modifier = GlanceModifier.size(20.dp)
+                modifier = GlanceModifier.size(20.dp),
+                colorFilter = ColorFilter.tint(GlanceTheme.colors.onSurface)
             )
 
             Text(
@@ -65,7 +69,8 @@ fun UpcomingClassCircularWidgetView(entry: WidgetLectureEntry) {
             Image(
                 provider = ImageProvider(R.drawable.round_school),
                 contentDescription = null,
-                modifier = GlanceModifier.size(20.dp)
+                modifier = GlanceModifier.size(20.dp),
+                colorFilter = ColorFilter.tint(GlanceTheme.colors.onSurface)
             )
             Text(
                 text = context.getString(R.string.zero_left),

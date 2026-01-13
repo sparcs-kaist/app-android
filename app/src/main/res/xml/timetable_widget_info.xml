@@ -5,6 +5,8 @@
     android:minHeight="100dp"
     android:minResizeWidth="100dp"
     android:minResizeHeight="100dp"
+    android:configure="org.sparcs.Widgets.BuddyTimetableWidget.TimetableWidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
     android:previewImage="@drawable/timetable_widget_preview"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="1800000"

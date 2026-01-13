@@ -105,7 +105,6 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
     Column(
         modifier = GlanceModifier
             .fillMaxSize()
-            .background(GlanceTheme.colors.surface)
     ) {
         DaysColumnHeader(visibleDays)
 
@@ -119,7 +118,13 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
                                 modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight(),
                                 contentAlignment = Alignment.TopCenter
                             ) {
-                                Text(text = hour.toString(), style = TextStyle(fontSize = 12.sp))
+                                Text(
+                                    text = hour.toString(),
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                        color = GlanceTheme.colors.onSurface
+                                    )
+                                )
                             }
 
                             Row(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
@@ -183,7 +188,8 @@ private fun DaysColumnHeader(visibleDays: List<DayType>) {
                 style = TextStyle(
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    color = GlanceTheme.colors.onSurface
                 ),
                 modifier = GlanceModifier.defaultWeight()
             )

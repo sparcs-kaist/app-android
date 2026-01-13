@@ -38,8 +38,7 @@ import org.sparcs.App.theme.ui.theme_light_surface
 import org.sparcs.App.theme.ui.theme_light_tertiary
 
 object TimetableWidgetTheme {
-    val colors = ColorProviders(
-        light = lightColorScheme(
+    private val lightScheme = lightColorScheme(
             primary = theme_light_primary,
             secondary = theme_light_secondary,
             tertiary = theme_light_tertiary,
@@ -49,8 +48,8 @@ object TimetableWidgetTheme {
             onBackground = theme_light_onBackground,
             onSurface = theme_light_onSurface,
             outline = theme_light_outline
-        ),
-        dark = darkColorScheme(
+        )
+    private val darkScheme = darkColorScheme(
             primary = theme_dark_primary,
             secondary = theme_dark_secondary,
             tertiary = theme_dark_tertiary,
@@ -61,7 +60,7 @@ object TimetableWidgetTheme {
             onSurface = theme_dark_onSurface,
             outline = theme_dark_outline
         )
-    )
+
 
     val lightGray0 = ColorProvider(day = theme_light_lightGray0, night = theme_dark_lightGray0)
     val gray64 = ColorProvider(day = theme_light_gray64, night = theme_dark_gray64)
@@ -83,9 +82,17 @@ object TimetableWidgetTheme {
 
     val ColorProviders.darkGray: ColorProvider
         get() = TimetableWidgetTheme.darkGray
+
+    val colors = ColorProviders(light = lightScheme, dark = darkScheme)
+
+    fun getColors(themeMode: String): ColorProviders = when (themeMode) {
+        "Light" -> ColorProviders(light = lightScheme, dark = lightScheme)
+        "Dark" -> ColorProviders(light = darkScheme, dark = darkScheme)
+        else -> colors
+    }
 }
 
 @Composable
-fun WidgetTheme(content: @Composable () -> Unit) {
-    GlanceTheme(colors = TimetableWidgetTheme.colors, content = content)
+fun WidgetTheme(themeMode: String = "System", content: @Composable () -> Unit) {
+    GlanceTheme(colors = TimetableWidgetTheme.getColors(themeMode), content = content)
 }
