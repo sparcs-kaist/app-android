@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -62,12 +63,16 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val appContext = context.applicationContext
-        val entryPoint = EntryPointAccessors.fromApplication(appContext, WidgetEntryPoint::class.java)
+        val entryPoint =
+            EntryPointAccessors.fromApplication(appContext, WidgetEntryPoint::class.java)
         val tokenStorage = entryPoint.tokenStorage()
 
         provideContent {
             val prefs = currentState<Preferences>()
             val state = UpcomingClassStateParser.parse(prefs, tokenStorage)
+
+            val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
+            val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
             if (state.entry == null && !state.signInRequired) {
                 val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>().build()
@@ -78,17 +83,21 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
                 )
             }
 
-            WidgetTheme {
-                Box(modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.surface)) {
+            WidgetTheme(themeMode = themeMode) {
+                Box(
+                    modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
+                ) {
                     val entry = state.entry ?: WidgetLectureEntry.empty(state.signInRequired)
                     val size = LocalSize.current
                     when {
-                        size.height < 100.dp && size.width >= 110.dp -> {
+                        size.width >= 110.dp && size.height < 110.dp -> {
                             UpcomingClassRectangleWidgetView(entry)
                         }
+
                         size.width >= 110.dp && size.height >= 110.dp -> {
                             UpcomingClassSmallWidgetView(entry)
                         }
+
                         else -> UpcomingClassCircularWidgetView(entry)
                     }
                 }
@@ -108,6 +117,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
         }
     }
 }
+
 class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 

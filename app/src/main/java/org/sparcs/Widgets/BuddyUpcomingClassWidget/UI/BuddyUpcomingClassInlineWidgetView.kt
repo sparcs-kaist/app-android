@@ -29,7 +29,8 @@ fun UpcomingClassInlineWidgetView(entry: WidgetLectureEntry) {
             Text(
                 text = context.getString(R.string.login_required),
                 maxLines = 1,
-                style = TextStyle(fontSize = 12.sp, color = GlanceTheme.colors.onSurface)
+                style = TextStyle(fontSize = 12.sp,
+                    color = GlanceTheme.colors.onSurface)
             )
         } else if (entry.title != null) {
             val startTime = entry.formattedTimeRange.substringBefore("-").trim()

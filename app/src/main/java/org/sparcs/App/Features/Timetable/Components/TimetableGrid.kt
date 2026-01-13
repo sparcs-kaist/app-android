@@ -178,6 +178,7 @@ private fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
                 text = hour.toString(),
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .width(TimetableConstructor.hoursWidth)
                     .offset(y = spacing * index)

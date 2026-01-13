@@ -113,7 +113,22 @@
                     android:path="/timetable" />
             </intent-filter>
         </activity>
-
+        <activity
+            android:name="org.sparcs.Widgets.BuddyTimetableWidget.TimetableWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Soap">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.sparcs.Widgets.BuddyUpcomingClassWidget.BuddyUpcomingClassConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Soap">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

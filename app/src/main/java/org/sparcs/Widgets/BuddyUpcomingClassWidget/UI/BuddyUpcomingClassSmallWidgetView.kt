@@ -39,7 +39,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
         ) {
             Text(
                 text = context.getString(R.string.login_required_long),
-                style = TextStyle(textAlign = TextAlign.Center, fontSize = 13.sp)
+                style = TextStyle(textAlign = TextAlign.Center, fontSize = 13.sp, color = GlanceTheme.colors.onSurface)
             )
         }
     } else if (entry.title != null && entry.classroom != null) {
