@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.hilt.gradle.plugin)
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id ("org.jetbrains.kotlin.plugin.serialization")
 }
 
 val properties = Properties().apply {
@@ -56,6 +57,7 @@ android {
         compose = true
         buildConfig = true
     }
+
 }
 
 dependencies {
@@ -86,6 +88,7 @@ dependencies {
     implementation(libs.androidx.compiler)
     implementation(libs.coil.compose)
     implementation(libs.androidx.browser)
+    implementation(libs.androidx.glance.preview)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -109,6 +112,7 @@ dependencies {
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
 
+    implementation (libs.androidx.glance)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
     debugImplementation(libs.androidx.glance.appwidget.preview)

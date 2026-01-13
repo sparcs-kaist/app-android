@@ -109,6 +109,9 @@ object Constants {
             "https://otl.sparcs.org/"
         }
 
+    val otlShareURL: String //Widget deeplink
+        get() = "sparcsapp://otl/timetable"
+
     // MARK: MAPS
     val mapsURL = "https://api.openrouteservice.org/v2/directions/driving-car?"
 

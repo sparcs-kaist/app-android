@@ -18,6 +18,35 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:localeConfig="@xml/locales_config"
         tools:targetApi="31">
+
+        <receiver android:name="org.sparcs.Widgets.BuddyTimetableWidget.BuddyTimetableWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/timetable_widget_info" />
+        </receiver>
+        <receiver
+            android:name="org.sparcs.Widgets.BuddyUpcomingClassWidget.BuddyUpcomingClassWidgetReceiver"
+            android:exported="true"
+            android:label="Buddy Upcoming Class"> <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/buddy_upcoming_class_widget_info" />
+        </receiver>
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            android:exported="false"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup" />
+        </provider>
         <activity
             android:name="org.sparcs.App.Features.Main.MainActivity"
             android:launchMode="singleTop"
@@ -72,8 +101,34 @@
                     android:host="sparcs.org"
                     android:pathPrefix="/feed/"/>
             </intent-filter>
-        </activity>
 
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="sparcsapp"
+                    android:host="otl"
+                    android:path="/timetable" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.sparcs.Widgets.BuddyTimetableWidget.TimetableWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Soap">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.sparcs.Widgets.BuddyUpcomingClassWidget.BuddyUpcomingClassConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Soap">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
