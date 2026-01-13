@@ -81,7 +81,6 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             WidgetTheme {
                 Box(modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.surface)) {
                     val entry = state.entry ?: WidgetLectureEntry.empty(state.signInRequired)
-                    Log.d("WIDGETENTRY", entry.toString())
                     val size = LocalSize.current
                     when {
                         size.height < 100.dp && size.width >= 110.dp -> {
@@ -117,7 +116,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val glanceIds = glanceManager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
 
         if (glanceIds.isEmpty()) {
-            Log.d("BuddyUpcomingClassWidgetWorker", "설치된 위젯이 없어 워커를 종료합니다.")
+            Log.d("BuddyUpcomingClassWidgetWorker", "No installed widgets found. Stopping worker.")
             return Result.success()
         }
         val entryPoint =
