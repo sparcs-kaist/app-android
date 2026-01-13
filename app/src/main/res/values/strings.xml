@@ -369,4 +369,9 @@
     <string name="enjoy_day">Enjoy your day</string>
     <string name="open_app_prompt">Open the app to continue.</string>
     <string name="zero_left">0 left</string>
+    <string name="feed_settings">Feed Settings</string>
+    <string name="karma">Karma</string>
+    <string name="reset">Reset</string>
+    <string name="nickname_error_conflict">This nickname is already taken.</string>
+    <string name="nickname_error_update_failed">Failed to update nickname. Please try again.</string>
 </resources>
