@@ -1,6 +1,5 @@
 package org.sparcs.App.Networking
 
-import android.util.Log
 import com.google.gson.Gson
 import dagger.Binds
 import dagger.Module
@@ -65,6 +64,7 @@ import org.sparcs.App.Domain.Usecases.TimetableUseCase
 import org.sparcs.App.Domain.Usecases.TimetableUseCaseProtocol
 import org.sparcs.App.Domain.Usecases.UserUseCase
 import org.sparcs.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.App.Networking.RetrofitAPI.AppVersionApi
 import org.sparcs.App.Networking.RetrofitAPI.Ara.AraBoardApi
 import org.sparcs.App.Networking.RetrofitAPI.Ara.AraCommentApi
 import org.sparcs.App.Networking.RetrofitAPI.Ara.AraUserApi
@@ -97,7 +97,6 @@ class TokenAuthenticator @Inject constructor(
         if (responseCount(response) >= 2) {
             return null
         }
-        Log.d("AUTH", "we need provider right?")
         val authUseCase = authUseCaseProvider.get()
         val newToken = runBlocking { authUseCase.getValidAccessToken() }
         return newToken.let {
@@ -376,6 +375,12 @@ object NetworkModule {
     @Singleton
     fun provideOTLLectureApi(@Named("OTLBackend") retrofit: Retrofit): OTLLectureApi {
         return retrofit.create(OTLLectureApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppVersionApi(@Named("FeedBackend") retrofit: Retrofit): AppVersionApi {
+        return retrofit.create(AppVersionApi::class.java)
     }
 }
 
