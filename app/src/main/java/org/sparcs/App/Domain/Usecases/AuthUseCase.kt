@@ -51,17 +51,22 @@ class AuthUseCase @Inject constructor(
     private val otlUserRepository: OTLUserRepositoryProtocol
 ) : AuthUseCaseProtocol {
 
-    private val _isAuthenticated = MutableStateFlow(false)
+    private val _isAuthenticated = MutableStateFlow(
+        tokenStorage.getRefreshToken() != null    )
     override val isAuthenticatedFlow: Flow<Boolean> = _isAuthenticated.asStateFlow()
-
     private var refreshJob: Job? = null
     private var isRefreshing = false
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
-        _isAuthenticated.value =
-            tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()
-        scheduleRefreshToken()
+        val hasAccess = tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()
+        val hasRefresh = tokenStorage.getRefreshToken() != null
+
+        _isAuthenticated.value = hasAccess || hasRefresh
+
+        if (hasRefresh) {
+            scheduleRefreshToken()
+        }
     }
 
     private fun scheduleRefreshToken() {
@@ -105,7 +110,6 @@ class AuthUseCase @Inject constructor(
     }
 
     override suspend fun refreshAccessTokenIfNeeded(force: Boolean) {
-
         if (isRefreshing) return
         isRefreshing = true
 

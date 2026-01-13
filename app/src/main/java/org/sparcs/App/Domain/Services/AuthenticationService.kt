@@ -151,22 +151,13 @@ class AuthenticationService @Inject constructor(
     override suspend fun refreshAccessToken(refreshToken: String): TokenResponseDTO {
         return try {
             val body = mapOf("refreshToken" to refreshToken)
-            val response = authApi.refreshTokens(body = body)
-
-            response
+            authApi.refreshTokens(body = body)
         } catch (e: Exception) {
-
             if (e is java.net.UnknownHostException || e is java.net.SocketTimeoutException) {
-                Log.w("AuthService", "Network error during token refresh: keep existing session")
-
-                val currentAccessToken = tokenStorage.getAccessToken()
-                return if (!currentAccessToken.isNullOrEmpty()) {
-                    TokenResponseDTO(currentAccessToken, refreshToken)
-                } else {
-                    throw AuthenticationServiceError.TokenRefreshFailed(e)
-                }
+                Log.w("AuthService", "Network error during token refresh. Stopping retry.")
+            } else {
+                Log.e("AuthService", "Failed to refresh access token", e)
             }
-            Log.e("AuthService", "Failed to refresh access token", e)
             throw AuthenticationServiceError.TokenRefreshFailed(e)
         }
     }

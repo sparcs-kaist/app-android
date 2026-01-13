@@ -115,7 +115,11 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
 }
 
 @Composable
-fun AnimatedAlphabetText(from: String, to: String) {
+fun AnimatedAlphabetText(
+    from: String,
+    to: String,
+    singleLine: Boolean? = false
+) {
     val maxLength = maxOf(from.length, to.length)
     var displayed by remember { mutableStateOf(from.padEnd(maxLength)) }
     var previous by remember { mutableStateOf(from.padEnd(maxLength)) }
@@ -157,7 +161,8 @@ fun AnimatedAlphabetText(from: String, to: String) {
                     text = char.toString(),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = color
+                    color = color,
+                    maxLines = if (singleLine == true) 1 else Int.MAX_VALUE
                 )
             }
         }
