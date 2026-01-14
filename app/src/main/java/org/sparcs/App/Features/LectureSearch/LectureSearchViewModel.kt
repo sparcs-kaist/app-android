@@ -86,7 +86,6 @@ class LectureSearchViewModel @Inject constructor(
 
 
     override fun fetchLectures() {
-        Log.d("Asdasd", timetableUseCase.selectedSemester.value.toString())
         val selectedSemester = timetableUseCase.selectedSemester.value ?: return
         if (isLastPage) return
 

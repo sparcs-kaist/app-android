@@ -59,14 +59,15 @@ data class Timetable(
         }.toMutableList()
 
         selectedLecture?.let { sel ->
-            val ctIndex = sel.classTimes.indexOfFirst { it.day == day }
-            if (ctIndex != -1) {
-                if (lectureItems.none { it.lecture.id == sel.id }) {
-                    lectureItems.add(LectureItem(lecture = sel, index = ctIndex))
+            val candidateBlocks = sel.classTimes.mapIndexedNotNull { index, ct ->
+                if (ct.day == day) LectureItem(lecture = sel, index = index) else null
+            }
+            candidateBlocks.forEach { block ->
+                if (lectureItems.none { it.lecture.id == sel.id && it.index == block.index }) {
+                    lectureItems.add(block)
                 }
             }
         }
-
         return lectureItems
     }
 
