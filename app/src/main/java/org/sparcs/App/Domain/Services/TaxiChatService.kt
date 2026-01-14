@@ -1,5 +1,6 @@
 package org.sparcs.App.Domain.Services
 
+import android.util.Log
 import com.google.gson.Gson
 import io.socket.client.Ack
 import io.socket.client.IO
@@ -24,7 +25,7 @@ import javax.inject.Inject
 
 class TaxiChatService @Inject constructor(
     private val tokenStorage: TokenStorageProtocol,
-    private val authUseCase: AuthUseCaseProtocol
+    private val authUseCase: AuthUseCaseProtocol,
 ) : TaxiChatServiceProtocol {
     private val roomChats = mutableMapOf<String, MutableList<TaxiChat>>()
 
@@ -49,7 +50,9 @@ class TaxiChatService @Inject constructor(
 
     private var isConnected: Boolean
         get() = _isConnectedFlow.value
-        set(value) { _isConnectedFlow.value = value }
+        set(value) {
+            _isConnectedFlow.value = value
+        }
 
     private var socket: Socket? = null
     private var currentRoomId: String? = null
@@ -74,7 +77,11 @@ class TaxiChatService @Inject constructor(
     private fun reconnectSocketWithToken(token: String?) {
         if (token == null) return
 
-        try { socket?.disconnect() } catch (_: Exception) {}
+        try {
+            socket?.disconnect()
+        } catch (e: Exception) {
+            Log.e("TaxiChatService", "Error during socket disconnect: ${e.message}")
+        }
 
         val opts = IO.Options().apply {
             forceNew = true
@@ -92,22 +99,19 @@ class TaxiChatService @Inject constructor(
 
 
     fun setRoom(roomId: String) {
+        serviceScope.launch { _chatsFlow.emit(emptyList()) }
         currentRoomId?.let { prev ->
             socket?.emit("leaveRoom", JSONObject().put("roomId", prev))
         }
 
         currentRoomId = roomId
 
-        val chatsForRoom = mutableListOf<TaxiChat>()
-        roomChats[roomId] = chatsForRoom
-
-        serviceScope.launch {
-            _chatsFlow.emit(chatsForRoom)
+        roomChats[roomId] = mutableListOf()
+        if (socket?.connected() == true) {
+            socket?.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
+                socket?.emit("request_chat_init", JSONObject().put("roomId", roomId))
+            })
         }
-
-        socket?.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
-            socket?.emit("request_chat_init", JSONObject().put("roomId", roomId))
-        })
     }
 
     private fun setupSocketEvents() {
@@ -136,13 +140,11 @@ class TaxiChatService @Inject constructor(
                 }
             }
 
-            val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }.apply {
-                clear()
-                addAll(newChats)
-            }
+            val uniqueChats = newChats.distinctBy { it.id }.toMutableList()
+            roomChats[roomId] = uniqueChats
 
             if (roomId == currentRoomId) {
-                serviceScope.launch { _chatsFlow.emit(chatsForRoom) }
+                serviceScope.launch { _chatsFlow.emit(uniqueChats.toList()) }
             }
         }
 
@@ -156,7 +158,9 @@ class TaxiChatService @Inject constructor(
             val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
 
             chatsForRoom.addAll(0, newChats)
-            serviceScope.launch { _chatsFlow.emit(chatsForRoom) }
+            if (roomId == currentRoomId) {
+                serviceScope.launch { _chatsFlow.emit(chatsForRoom.toList()) }
+            }
         }
 
         socket?.on("chat_push_back") { args ->
@@ -169,14 +173,12 @@ class TaxiChatService @Inject constructor(
             val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
 
             val existingIds = chatsForRoom.map { it.id }.toSet()
-            val filteredChats = newChats.filter { newChat ->
-                !existingIds.contains(newChat.id)
-            }
+            val filteredChats = newChats.filter { !existingIds.contains(it.id) }
 
             chatsForRoom.addAll(filteredChats)
 
             if (roomId == currentRoomId) {
-                serviceScope.launch { _chatsFlow.emit(chatsForRoom) }
+                serviceScope.launch { _chatsFlow.emit(chatsForRoom.toList()) }
             }
         }
 
@@ -189,13 +191,19 @@ class TaxiChatService @Inject constructor(
 
     private fun parseChatArray(chatList: List<Map<*, *>>): List<TaxiChat> {
         return chatList.mapNotNull {
-            try { Gson().fromJson(Gson().toJson(it), TaxiChatDTO::class.java).toModel() }
-            catch (e: Exception) { null }
+            try {
+                Gson().fromJson(Gson().toJson(it), TaxiChatDTO::class.java).toModel()
+            } catch (e: Exception) {
+                null
+            }
         }
     }
+
     private fun parseChatObject(chatMap: Map<*, *>): TaxiChat? {
         return try {
             Gson().fromJson(Gson().toJson(chatMap), TaxiChatDTO::class.java).toModel()
-        } catch (e: Exception) { null }
+        } catch (e: Exception) {
+            null
+        }
     }
 }
