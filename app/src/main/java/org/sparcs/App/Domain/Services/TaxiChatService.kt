@@ -99,18 +99,22 @@ class TaxiChatService @Inject constructor(
 
 
     fun setRoom(roomId: String) {
-        serviceScope.launch { _chatsFlow.emit(emptyList()) }
-        currentRoomId?.let { prev ->
-            socket?.emit("leaveRoom", JSONObject().put("roomId", prev))
-        }
+        serviceScope.launch {
+            _chatsFlow.emit(emptyList())
 
-        currentRoomId = roomId
+            currentRoomId?.let { prev ->
+                socket?.emit("leaveRoom", JSONObject().put("roomId", prev))
+            }
 
-        roomChats[roomId] = mutableListOf()
-        if (socket?.connected() == true) {
-            socket?.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
-                socket?.emit("request_chat_init", JSONObject().put("roomId", roomId))
-            })
+            currentRoomId = roomId
+
+            roomChats[roomId] = mutableListOf()
+
+            if (socket?.connected() == true) {
+                socket?.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
+                    socket?.emit("request_chat_init", JSONObject().put("roomId", roomId))
+                })
+            }
         }
     }
 
