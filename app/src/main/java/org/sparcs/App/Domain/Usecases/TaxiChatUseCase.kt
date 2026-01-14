@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -73,6 +75,7 @@ class TaxiChatUseCase @Inject constructor(
     override suspend fun fetchInitialChats() {
         bind()
         try {
+            taxiChatService.isConnectedPublisher.filter { it }.first()
             taxiChatRepository.fetchChats(room.id)
         } catch (e: Exception) {
             Log.e("TaxiChatUseCase", "Failed to fetch initial chats", e)
