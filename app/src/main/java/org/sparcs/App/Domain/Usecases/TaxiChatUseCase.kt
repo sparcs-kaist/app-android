@@ -46,13 +46,16 @@ class TaxiChatUseCase @Inject constructor(
     private val taxiChatService: TaxiChatService,
     private val userUseCase: UserUseCaseProtocol,
     private val taxiChatRepository: TaxiChatRepositoryProtocol,
-    private val taxiRoomRepository: TaxiRoomRepositoryProtocol
-): TaxiChatUseCaseProtocol {
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
+) : TaxiChatUseCaseProtocol {
 
     private lateinit var room: TaxiRoom
 
     override fun setRoom(room: TaxiRoom) {
         this.room = room
+        _accumulatedChats.clear()
+        _groupedChatsFlow.value = emptyList()
+
         taxiChatService.setRoom(room.id)
     }
 
@@ -127,7 +130,7 @@ class TaxiChatUseCase @Inject constructor(
                 val filtered = newChats.filter { it.roomID == room.id }
                 if (filtered.isEmpty()) return@onEach
 
-                val merged = ( filtered + _accumulatedChats )
+                val merged = (filtered + _accumulatedChats)
                     .distinctBy { it.id }
 
                 _accumulatedChats.clear()
