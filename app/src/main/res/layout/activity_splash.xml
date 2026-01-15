@@ -6,25 +6,47 @@
     android:background="@color/splash_background">
 
     <ImageView
-    android:id="@+id/logo_main"
-    android:layout_width="190dp"
-    android:layout_height="168dp"
-    android:adjustViewBounds="true"
-    android:src="@mipmap/ic_launcher_foreground"
-    app:layout_constraintBottom_toTopOf="@+id/logo_sponsor"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
-    app:layout_constraintVertical_chainStyle="packed" />
+        android:id="@+id/logo_main"
+        android:layout_width="129dp"
+        android:layout_height="114dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/ic_buddy_icon"
+        android:contentDescription="@string/app_name"
+        app:layout_constraintBottom_toTopOf="@+id/logo_sponsor"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/sponsored_by"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:alpha="0.8"
+        android:fontFamily="sans-serif-medium"
+        android:letterSpacing="0.1"
+        android:text="@string/sponsored_by"
+        android:textColor="@color/logo_tint"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toTopOf="@+id/logo_sponsor"
+        app:layout_constraintEnd_toEndOf="@+id/logo_sponsor"
+        app:layout_constraintHorizontal_bias="0.454"
+        app:layout_constraintStart_toStartOf="@+id/logo_sponsor"
+        app:layout_constraintTop_toBottomOf="@+id/logo_main"
+        app:layout_constraintVertical_bias="1.0" />
 
     <ImageView
         android:id="@+id/logo_sponsor"
-        android:layout_width="66dp"
-        android:layout_height="61dp"
-        android:layout_marginBottom="48dp"
+        android:layout_width="113dp"
+        android:layout_height="44dp"
+        android:layout_marginBottom="64dp"
         android:adjustViewBounds="true"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_mobis_logo"
+        android:contentDescription="@string/hyundai_mobis_icon"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="H, 2.5:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:tint="@color/logo_tint" />
