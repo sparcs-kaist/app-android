@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">soap</string>
+    <string name="app_name">Buddy</string>
 
 
     <string name="start">Feed</string>
@@ -352,7 +352,7 @@
     <string name="thu">Thu</string>
     <string name="fri">Fri</string>
     <string name="sat">Sat</string>
-    <string name="kaist_ip_verified">KAIST IP Verified</string>
+    <string name="kaist_ip_verified">This post was created from within the KAIST network.</string>
     <string name="phone_number">Phone Number</string>
     <string name="edit_message_phone_number">Phone number can be set only once. Is the number you want to use correct?</string>
     <string name="show_badge">Show Badge</string>
@@ -382,4 +382,8 @@
     <string name="preview_lecture_time">10:30 – 11:00</string>
     <string name="preview_lecture_location">(E3–1) #1501</string>
     <string name="preview">Preview</string>
+    <string name="upcoming_class_widget_title">Buddy Upcoming Class</string>
+    <string name="timetable_widget_title">Buddy Timetable</string>
+    <string name="upcoming_class_widget_desc">Check your next class time and location at a glance.</string>
+    <string name="timetable_widget_desc">View your timetable on your home screen.</string>
 </resources>
