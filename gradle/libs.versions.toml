@@ -4,6 +4,7 @@ appUpdateKtx = "2.1.0"
 coilCompose = "2.4.0"
 compiler = "1.5.15"
 converterGson = "2.9.0"
+coreSplashscreen = "1.2.0"
 datastorePreferences = "1.1.7"
 glanceAppwidget = "1.1.1"
 gsonVersion = "2.10.1"
@@ -31,10 +32,13 @@ browser = "1.8.0"
 androidx-security-crypto = "1.1.0"
 firebaseBom = "34.5.0"
 glancePreview = "1.1.1"
+appcompat = "1.7.1"
+constraintlayout = "2.2.1"
 
 [libraries]
 androidx-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "compiler" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
 androidx-glance = { module = "androidx.glance:glance", version.ref = "glanceAppwidget" }
 androidx-glance-appwidget = { module = "androidx.glance:glance-appwidget", version.ref = "glanceAppwidget" }
@@ -82,6 +86,8 @@ firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-crashlytics-ndk = { module = "com.google.firebase:firebase-crashlytics-ndk" }
 androidx-glance-preview = { group = "androidx.glance", name = "glance-preview", version.ref = "glancePreview" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
