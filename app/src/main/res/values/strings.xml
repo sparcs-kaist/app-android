@@ -386,4 +386,5 @@
     <string name="timetable_widget_title">Buddy Timetable</string>
     <string name="upcoming_class_widget_desc">Check your next class time and location at a glance.</string>
     <string name="timetable_widget_desc">View your timetable on your home screen.</string>
+    <string name="never_show_again">Don\'t show again</string>
 </resources>

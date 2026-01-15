@@ -9,17 +9,44 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.VerticalDivider
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import dagger.hilt.android.AndroidEntryPoint
+import org.sparcs.App.Domain.Helpers.PopupManager
 import org.sparcs.App.Domain.Services.AuthenticationCallbackHandler
 import org.sparcs.App.Features.NavigationBar.MainTabBar
 import org.sparcs.App.Features.Settings.SettingsViewModel
 import org.sparcs.App.Features.SignIn.SignInView
 import org.sparcs.App.InAppUpdateHelper
 import org.sparcs.App.theme.ui.Theme
+import org.sparcs.R
 
 
 @AndroidEntryPoint
@@ -30,7 +57,7 @@ class MainActivity : ComponentActivity() {
     private lateinit var helper: InAppUpdateHelper
 
     private val launcher = registerForActivityResult(
-       ActivityResultContracts.StartIntentSenderForResult()
+        ActivityResultContracts.StartIntentSenderForResult()
     ) { result: ActivityResult ->
         if (result.resultCode == RESULT_CANCELED) {
             Log.d("MainActivity", "CANCELED")
@@ -60,8 +87,13 @@ class MainActivity : ComponentActivity() {
                 val isAuthenticated by viewModel.isAuthenticated.collectAsState()
                 val isLoading by viewModel.isLoading.collectAsState()
 
+                var showNotice by remember {
+                    mutableStateOf(PopupManager.shouldShowPopup(this@MainActivity, 7))
+                }
+
                 LaunchedEffect(Unit) {
-                    val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
+                    val currentVersion =
+                        packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
                     viewModel.checkVersion(currentVersion)
                 }
 
@@ -75,6 +107,15 @@ class MainActivity : ComponentActivity() {
                     // MARK: THIS PLAYS CRUCIAL ROLE HIDING SIGN IN VIEW ON LOADING
                 } else {
                     if (isAuthenticated == true) {
+                        if (showNotice) {
+                            NoticeDialog(
+                                onDismiss = { showNotice = false },
+                                onDoNotShowAgain = {
+                                    PopupManager.saveIgnoreTimestamp(this@MainActivity)
+                                    showNotice = false
+                                }
+                            )
+                        }
                         MainTabBar()
                     } else {
                         SignInView()
@@ -84,15 +125,73 @@ class MainActivity : ComponentActivity() {
         }
 
     }
+
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         intent.data?.let { uri ->
             AuthenticationCallbackHandler.handleUri(uri)
         }
     }
+
     override fun onResume() {
         super.onResume()
         helper.resumeCheck()
         viewModel.checkAuthOnResume()
+    }
+}
+
+@Composable
+fun NoticeDialog(
+    onDismiss: () -> Unit,
+    onDoNotShowAgain: () -> Unit,
+) {
+    Dialog(onDismissRequest = { onDismiss() }) {
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.width(300.dp)
+        ) {
+            Column {
+                Image(
+                    painter = painterResource(R.drawable.search), //TODO 팝업 임시 이미지
+                    contentDescription = "Popup Image",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(350.dp),
+                    contentScale = ContentScale.Crop
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = { onDismiss() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.close),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    VerticalDivider(modifier = Modifier.height(20.dp), thickness = 1.dp)
+
+                    TextButton(
+                        onClick = { onDoNotShowAgain() },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.never_show_again),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+            }
+        }
     }
 }
