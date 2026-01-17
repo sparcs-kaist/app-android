@@ -34,8 +34,6 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.App.Domain.Helpers.Constants
@@ -141,7 +139,8 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
             if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
 
             runCatching { timetableUseCase.load() }
-            val timetable = timetableUseCase.selectedTimetable.filterNotNull().first()
+            val currentSemester = timetableUseCase.currentSemester ?: return Result.failure()
+            val timetable = timetableUseCase.getMyTable(currentSemester.id)
 
             val now = Calendar.getInstance()
             val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {

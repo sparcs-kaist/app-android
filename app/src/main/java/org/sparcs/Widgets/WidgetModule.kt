@@ -8,7 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.sparcs.App.Domain.Helpers.TokenStorageProtocol
-import org.sparcs.App.Domain.Usecases.TimetableUseCaseProtocol
+import org.sparcs.App.Domain.Usecases.TimetableUseCaseBackgroundProtocol
 import org.sparcs.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
 import org.sparcs.Widgets.BuddyUpcomingClassWidget.UpComingWidgetSyncManager
 import javax.inject.Qualifier
@@ -30,7 +30,7 @@ interface WidgetEntryPoint {
 
     @TimetableWidget
     fun timetableSyncManager(): TimetableWidgetSyncManager
-    fun timetableUseCase(): TimetableUseCaseProtocol
+    fun timetableUseCase(): TimetableUseCaseBackgroundProtocol
 }
 
 @Module
