@@ -37,7 +37,7 @@ interface FeedPostComposeViewModelProtocol {
     var selectedItems: List<Uri>
     var selectedImages: List<FeedPostPhotoItem>
 
-    suspend fun fetchFeedUser()
+    fun fetchFeedUser()
     suspend fun writePost()
     suspend fun loadImagesAndReconcile(context: Context)
     fun removeImage(index: Int)
@@ -73,10 +73,14 @@ class FeedPostComposeViewModel @Inject constructor(
     override var selectedImages by mutableStateOf(listOf<FeedPostPhotoItem>())
 
     // MARK: - Functions
-    override suspend fun fetchFeedUser() {
+    override fun fetchFeedUser() {
         viewModelScope.launch {
-            userUseCase.fetchFeedUser()
-            feedUser = userUseCase.feedUser
+            try {
+                userUseCase.fetchFeedUser()
+                feedUser = userUseCase.feedUser
+            } catch (e: Exception) {
+                Log.e("FeedViewModel", "Fetch failed", e)
+            }
         }
     }
 
