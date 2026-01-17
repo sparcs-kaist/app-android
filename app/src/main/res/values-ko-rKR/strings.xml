@@ -383,4 +383,6 @@
     <string name="error_fetch_data">시간표를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="unexpected_error">알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</string>
     <string name="error_fetch_boards">게시판 목록을 불러오지 못했습니다.</string>
+    <string name="error_comment_has_replies">대댓글이 있는 댓글은 삭제할 수 없습니다.</string>
+    <string name="unexpected_error_deleting_comment">댓글을 삭제하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
 </resources>

@@ -27,7 +27,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -56,7 +55,6 @@ fun FeedView(
     viewModel: FeedViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val state = viewModel.state.collectAsState().value
     var isRefreshing by remember { mutableStateOf(false) }

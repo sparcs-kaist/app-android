@@ -404,4 +404,6 @@
     <string name="error_fetch_data">An unexpected error occurred while loading timetables. Please try again later.</string>
     <string name="unexpected_error">An unexpected error occurred. Please try again later.</string>
     <string name="error_fetch_boards">Failed to load boards.</string>
+    <string name="error_comment_has_replies">Comments with replies cannot be deleted.</string>
+    <string name="unexpected_error_deleting_comment">An unexpected error occurred while deleting a comment. Please try again later.</string>
 </resources>
