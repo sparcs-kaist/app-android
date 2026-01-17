@@ -17,7 +17,7 @@ class MockFeedPostComposeViewModel : FeedPostComposeViewModelProtocol {
     override var selectedItems: List<Uri> = emptyList()
     override var selectedImages: List<FeedPostPhotoItem> = emptyList()
 
-    override suspend fun fetchFeedUser() {}
+    override fun fetchFeedUser() {}
     override suspend fun writePost() {}
     override suspend fun loadImagesAndReconcile(context: Context) {}
     override fun removeImage(index: Int) {}
