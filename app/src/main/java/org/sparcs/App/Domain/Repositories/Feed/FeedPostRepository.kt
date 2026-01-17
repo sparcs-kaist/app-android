@@ -11,6 +11,7 @@ import org.sparcs.App.Networking.RequestDTO.Feed.FeedPostRequestDTO
 import org.sparcs.App.Networking.ResponseDTO.handleApiError
 import org.sparcs.App.Networking.RetrofitAPI.Feed.FeedPostApi
 import org.sparcs.App.Shared.Mocks.mock
+import retrofit2.HttpException
 import javax.inject.Inject
 
 interface FeedPostRepositoryProtocol {
@@ -53,7 +54,7 @@ class FeedPostRepository @Inject constructor(
         try {
             api.deletePost(postID)
         } catch (e: Exception) {
-            if (e is retrofit2.HttpException) {
+            if (e is HttpException) {
                 when (e.code()) {
                     409 -> throw FeedDeletionError.HasComments()
                 }

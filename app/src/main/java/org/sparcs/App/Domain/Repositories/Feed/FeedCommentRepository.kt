@@ -1,6 +1,7 @@
 package org.sparcs.App.Domain.Repositories.Feed
 
 import com.google.gson.Gson
+import org.sparcs.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.App.Domain.Models.Feed.FeedComment
@@ -10,6 +11,7 @@ import org.sparcs.App.Networking.ResponseDTO.handleApiError
 import org.sparcs.App.Networking.RetrofitAPI.Feed.FeedCommentApi
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.Mocks.mockList
+import retrofit2.HttpException
 import javax.inject.Inject
 
 interface FeedCommentRepositoryProtocol {
@@ -52,10 +54,19 @@ class FeedCommentRepository @Inject constructor(
         }
     }
 
-    override suspend fun deleteComment(commentId: String) = try {
-        api.deleteComment(commentId)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun deleteComment(commentId: String) {
+        try {
+            val response = api.deleteComment(commentId)
+            if (response.isSuccessful) {
+                return
+            } else {
+                if (response.code() == 409) throw FeedDeletionError.HasReplies()
+                throw HttpException(response)
+            }
+        } catch (e: Exception) {
+            if (e is FeedDeletionError || e is HttpException) throw e
+            handleApiError(gson, e)
+        }
     }
 
     override suspend fun vote(commentId: String, type: FeedVoteType) = try {

@@ -9,6 +9,10 @@ sealed class FeedDeletionError(@StringRes val messageResId: Int) : Exception() {
         messageResId = R.string.error_post_has_comments
     )
 
+    class HasReplies : FeedDeletionError(
+        messageResId = R.string.error_comment_has_replies
+    )
+
     @StringRes
     fun errorDescription(): Int {
         return this.messageResId
