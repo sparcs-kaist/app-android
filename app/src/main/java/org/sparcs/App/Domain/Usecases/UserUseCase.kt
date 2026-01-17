@@ -1,6 +1,11 @@
 package org.sparcs.App.Domain.Usecases
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.sparcs.App.Domain.Helpers.UserStorageProtocol
 import org.sparcs.App.Domain.Models.Ara.AraUser
 import org.sparcs.App.Domain.Models.Feed.FeedUser
@@ -10,7 +15,6 @@ import org.sparcs.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import org.sparcs.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import org.sparcs.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.App.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,26 +52,29 @@ class UserUseCase @Inject constructor(
     private val userStorage: UserStorageProtocol,
 ) : UserUseCaseProtocol {
 
-    override val araUser: AraUser?
-        get() = runBlocking { userStorage.getAraUser() }
+    override var araUser: AraUser? by mutableStateOf(null)
+        private set
+    override var taxiUser: TaxiUser? by mutableStateOf(null)
+        private set
+    override var feedUser: FeedUser? by mutableStateOf(null)
+        private set
+    override var otlUser: OTLUser? by mutableStateOf(null)
+        private set
 
-    override val feedUser: FeedUser?
-        get() = runBlocking { userStorage.getFeedUser() }
-
-    override val taxiUser: TaxiUser?
-        get() = runBlocking { userStorage.getTaxiUser() }
-
-    override val otlUser: OTLUser?
-        get() = runBlocking { userStorage.getOTLUser() }
-
-    override suspend fun fetchUsers() {
+    override suspend fun fetchUsers() = coroutineScope {
         try {
-            fetchTaxiUser()
-            fetchAraUser()
-            fetchFeedUser()
-            fetchOTLUser()
+            val taxi = async { fetchTaxiUser() }
+            val ara = async { fetchAraUser() }
+            val feed = async { fetchFeedUser() }
+            val otl = async { fetchOTLUser() }
+
+            taxi.await()
+            ara.await()
+            feed.await()
+            otl.await()
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("UserUseCase", "Failed to fetch users", e)
+            throw e
         }
     }
 
@@ -75,40 +82,32 @@ class UserUseCase @Inject constructor(
         Log.d("UserUseCase", "Fetching Ara User")
         val user = araUserRepository.fetchUser()
         userStorage.setAraUser(user)
+        araUser = user
         Log.d("UserUseCase", user.toString())
     }
 
     override suspend fun updateAraUser(params: Map<String, Any>) {
-        Log.d("UserUseCase", "Updating Ara User Information: $params")
-
-        val araUser = araUser
-        if (araUser == null) {
-            Log.e("UserUseCase", "Ara User Not Found")
-            return
-        }
-
-        araUserRepository.updateMe(id = araUser.id, params = params)
+        val currentId = araUser?.id ?: return
+        araUserRepository.updateMe(id = currentId, params = params)
         fetchAraUser()
     }
 
     override suspend fun fetchTaxiUser() {
-        Log.d("UserUseCase", "Fetching Taxi User")
         val user = taxiUserRepository.fetchUser()
         userStorage.setTaxiUser(user)
-        Log.d("UserUseCase", user.toString())
+        taxiUser = user
     }
 
     override suspend fun fetchFeedUser() {
-        Log.d("UserUseCase", "Fetching Feed User")
         val user = feedUserRepository.getUser()
         userStorage.setFeedUser(user)
-        Log.d("UserUseCase", user.toString())
+        feedUser = user
     }
 
     override suspend fun fetchOTLUser() {
-        Log.d("UserUseCase", "Fetching OTL User")
         val user = otlUserRepository.fetchUser()
         userStorage.setOTLUser(user)
+        otlUser = user
     }
 }
 
