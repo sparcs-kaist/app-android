@@ -20,10 +20,8 @@ import org.sparcs.App.Domain.Models.OTL.Lecture
 import org.sparcs.App.Domain.Models.OTL.Semester
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.App.Domain.Usecases.TimetableUseCase
-import org.sparcs.App.Features.Settings.Taxi.TaxiSettingsViewModel.ErrorType
 import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.R
-import org.sparcs.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
@@ -58,7 +56,6 @@ interface TimetableViewModelProtocol {
 class TimetableViewModel @Inject constructor(
     override val timetableUseCase: TimetableUseCase,
     private val crashlyticsHelper: CrashlyticsHelper,
-    private val timetableWidgetSyncManager: TimetableWidgetSyncManager
 ) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
@@ -134,14 +131,6 @@ class TimetableViewModel @Inject constructor(
             isLoading.value = true
             try {
                 timetableUseCase.load()
-
-                val currentSid = timetableUseCase.selectedSemesterID.value
-                val currentTable = currentSid?.let { sid ->
-                    timetableUseCase.store.value[sid]?.firstOrNull { it.id.endsWith("-myTable") }
-                }
-
-                currentTable?.let { timetableWidgetSyncManager.sync(it) }
-
                 isLoading.value = false
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "failed to fetch Timetable Data")
