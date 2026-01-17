@@ -93,7 +93,7 @@ fun TaxiChatListView(
                 val error = state as TaxiChatListViewModel.ViewState.Error
                 ErrorView(
                     icon = Icons.Default.Warning,
-                    errorMessage = error.message,
+                    message = error.message,
                     onRetry = {
                         CoroutineScope(Dispatchers.IO).launch {
                             viewModel.fetchData()

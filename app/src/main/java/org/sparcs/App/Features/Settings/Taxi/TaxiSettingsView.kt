@@ -132,10 +132,7 @@ fun TaxiSettingsView(
     val state by viewModel.state.collectAsState()
     var showAlert by remember { mutableStateOf(false) }
     var showToggle by remember { mutableStateOf(false) }
-    var showErrorDialog by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
-
-    var errorMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
@@ -160,12 +157,9 @@ fun TaxiSettingsView(
                         showAlert = true
                     } else {
                         coroutineScope.launch {
-                            try {
-                                viewModel.editInformation()
+                            viewModel.editInformation()
+                            if (!viewModel.showAlert) {
                                 navController.popBackStack()
-                            } catch (e: Exception) {
-                                errorMessage = e.message ?: "Unknown error"
-                                showErrorDialog = true
                             }
                         }
                     }
@@ -181,7 +175,7 @@ fun TaxiSettingsView(
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
-            when (viewModel.state.collectAsState().value) {
+            when (state) {
                 TaxiSettingsViewModel.ViewState.Loading -> LoadingView()
                 TaxiSettingsViewModel.ViewState.Loaded -> LoadedView(
                     viewModel,
@@ -191,27 +185,28 @@ fun TaxiSettingsView(
                 )
 
                 is TaxiSettingsViewModel.ViewState.Error -> {
-                    val message = (state as TaxiSettingsViewModel.ViewState.Error).message
+                    val message = (state as TaxiSettingsViewModel.ViewState.Error).messageRes
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = message,
+                        message = stringResource(message),
                         onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
                     )
                 }
             }
         }
     }
-
-    if (showErrorDialog) {
+    if (viewModel.showAlert) {
         AlertDialog(
-            onDismissRequest = { showErrorDialog = false },
+            onDismissRequest = { viewModel.showAlert = false },
             confirmButton = {
-                TextButton(onClick = { showErrorDialog = false }) {
+                TextButton(onClick = { viewModel.showAlert = false }) {
                     Text(stringResource(R.string.ok))
                 }
             },
             title = { Text(stringResource(R.string.error)) },
-            text = { Text(errorMessage) }
+            text = {
+                viewModel.alertMessageRes?.let { Text(stringResource(it)) }
+            }
         )
     }
 
@@ -243,12 +238,9 @@ fun TaxiSettingsView(
             confirmButton = {
                 TextButton(onClick = {
                     coroutineScope.launch {
-                        try {
-                            viewModel.editInformation()
+                        viewModel.editInformation()
+                        if (!viewModel.showAlert) {
                             navController.popBackStack()
-                        } catch (e: Exception) {
-                            errorMessage = e.message ?: "Unknown error"
-                            showErrorDialog = true
                         }
                     }
                 }) {

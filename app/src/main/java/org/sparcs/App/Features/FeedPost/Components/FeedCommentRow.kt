@@ -1,6 +1,5 @@
 package org.sparcs.App.Features.FeedPost.Components
 
-import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -29,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -57,6 +55,7 @@ import org.sparcs.App.Features.FeedPost.FeedPostViewModelProtocol
 import org.sparcs.App.Features.Post.Components.PostCommentButton
 import org.sparcs.App.Features.Post.Components.PostVoteButton
 import org.sparcs.App.Features.Settings.Components.InfoTooltip
+import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.App.Shared.Extensions.timeAgoDisplay
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.Mocks.mockList
@@ -78,8 +77,6 @@ fun FeedCommentRow(
 ) {
     var localComment by remember { mutableStateOf(comment) }
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val deleteSuccessText = stringResource(R.string.deleted_successfully)
 
     var showAlert by remember { mutableStateOf(false) }
     @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
@@ -116,7 +113,10 @@ fun FeedCommentRow(
                         localComment = localComment.copy(isDeleted = true)
                         feedCommentRepository.deleteComment(localComment.id)
                     }
-                    Toast.makeText(context, deleteSuccessText, Toast.LENGTH_SHORT).show()
+                    showAlert(
+                        title = R.string.delete,
+                        message = R.string.deleted_successfully
+                    )
                 },
                 onReport = {
                     coroutineScope.launch {
@@ -127,11 +127,14 @@ fun FeedCommentRow(
                                 message = R.string.reported_successfully
                             )
                         } catch (e: Exception) {
-                            viewModel.handleException(error = e)
-                            showAlert = true
+                            val message = if (e.isNetworkError()) {
+                                R.string.network_connection_error
+                            } else {
+                                R.string.unexpected_error_reporting_comment
+                            }
                             showAlert(
                                 title = R.string.error,
-                                message = R.string.unexpected_error_reporting_comment
+                                message = message
                             )
                         }
                     }

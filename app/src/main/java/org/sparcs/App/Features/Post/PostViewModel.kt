@@ -249,9 +249,6 @@ class PostViewModel @Inject constructor(
     }
     override fun handleException(error: Throwable) {
         Log.e("FeedPostViewModel","failed to create a report: $error")
-        crashlyticsHelper.recordException(
-            error = error,
-            alertMessage = "An unexpected error occurred while reporting a user. Please try again later."
-        )
+        crashlyticsHelper.recordException(error)
     }
 }

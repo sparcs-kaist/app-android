@@ -92,7 +92,7 @@ fun FeedSettingsView(
                     val message = (state as FeedSettingsViewModel.ViewState.Error).message
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = message,
+                        message = message,
                         onRetry = { scope.launch { viewModel.fetchUser() } }
                     )
                 }

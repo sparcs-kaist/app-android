@@ -16,6 +16,9 @@ class MockTaxiSettingsViewModel(initialState: TaxiSettingsViewModel.ViewState):
     override var showBadge: Boolean = true
     override var residence: String = "기숙사"
 
+    override var showAlert: Boolean = false
+    override var alertMessageRes: Int? = 0
+
     override var user: TaxiUser? = TaxiUser.mock()
 
     override val state = MutableStateFlow(initialState)

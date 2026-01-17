@@ -50,7 +50,7 @@ fun PostList(
         //그냥 empty한 경우 (keyword == null)
         ErrorView(
             icon = Icons.Default.Clear,
-            errorMessage = stringResource(R.string.nothing_here) + "\n" + stringResource(R.string.no_posts),
+            message = stringResource(R.string.nothing_here) + "\n" + stringResource(R.string.no_posts),
             onRetry = { onRefresh() }//TODO - 번역?
         )
     }

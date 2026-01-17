@@ -189,7 +189,7 @@ fun PostListView(
                         val error = (state).message
                         ErrorView(
                             icon = Icons.Default.Warning,
-                            errorMessage = error,
+                            message = error,
                             onRetry = {
                                 coroutineScope.launch {
                                     viewModel.fetchInitialPosts()
