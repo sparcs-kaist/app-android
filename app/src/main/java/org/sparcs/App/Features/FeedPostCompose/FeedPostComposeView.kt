@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,6 +30,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -73,6 +76,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.App.Features.FeedPostCompose.Components.FeedPostComposeNavigationBar
 import org.sparcs.App.Features.PostCompose.Components.AnimatedAlphabetText
 import org.sparcs.App.Features.PostCompose.TermsOfUseButton
+import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.App.Shared.Extensions.noRippleClickable
 import org.sparcs.App.Shared.ViewModelMocks.Feed.MockFeedPostComposeViewModel
 import org.sparcs.App.theme.ui.Theme
@@ -96,6 +100,16 @@ fun FeedPostComposeView(
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val cursorLine by remember { derivedStateOf { textLayoutResult?.getLineForOffset(contentField.selection.start) } }
     val keyboardPaddingPx = with(LocalDensity.current) { 250.dp.toPx() }
+
+    var showAlert by remember { mutableStateOf(false) }
+    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
+    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
+
+    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
+    }
 
     LaunchedEffect(cursorLine) {
         val layout = textLayoutResult ?: return@LaunchedEffect
@@ -128,12 +142,25 @@ fun FeedPostComposeView(
                         isUploading = true
                         try {
                             viewModel.writePost()
-                        } finally {
-                            isUploading = false
+
                             navController.previousBackStackEntry
                                 ?.savedStateHandle
                                 ?.set("listNeedsRefresh", true)
                             navController.popBackStack()
+
+                        } catch (e: Exception) {
+                            val message = if (e.isNetworkError()) {
+                                R.string.network_connection_error
+                            } else {
+                                viewModel.handleException(e)
+                                R.string.unexpected_error_uploading_post
+                            }
+                            showAlert(
+                                title = R.string.error,
+                                message = message
+                            )
+                        } finally {
+                            isUploading = false
                         }
                     }
                 },
@@ -256,6 +283,16 @@ fun FeedPostComposeView(
             )
             showPhotosPicker = false
         }
+    }
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { showAlert = false },
+            confirmButton = {
+                Button(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
+            },
+            title = { Text(stringResource(alertTitle)) },
+            text = { Text(stringResource(alertMessage)) }
+        )
     }
 }
 
@@ -405,6 +442,9 @@ private fun FeedPostOptionsRow(
 @Preview
 private fun Preview() {
     Theme {
-        FeedPostComposeView(navController = rememberNavController(), viewModel = MockFeedPostComposeViewModel())
+        FeedPostComposeView(
+            navController = rememberNavController(),
+            viewModel = MockFeedPostComposeViewModel()
+        )
     }
 }

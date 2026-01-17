@@ -1,5 +1,6 @@
 package org.sparcs.App.Features.Feed
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,9 +9,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -23,6 +27,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -30,16 +36,19 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import org.sparcs.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.App.Domain.Models.Feed.FeedPost
 import org.sparcs.App.Features.Feed.Components.FeedPostRow
 import org.sparcs.App.Features.Feed.Components.FeedPostRowSkeleton
 import org.sparcs.App.Features.Feed.Components.FeedViewNavigationBar
 import org.sparcs.App.Features.NavigationBar.AppDownBar
 import org.sparcs.App.Features.NavigationBar.Channel
+import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.App.Shared.Mocks.mockList
 import org.sparcs.App.Shared.ViewModelMocks.Feed.MockFeedViewModel
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.App.theme.ui.Theme
+import org.sparcs.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,10 +56,21 @@ fun FeedView(
     viewModel: FeedViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
+    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val state = viewModel.state.collectAsState().value
     var isRefreshing by remember { mutableStateOf(false) }
     var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
+
+    var showAlert by remember { mutableStateOf(false) }
+    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
+    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
+
+    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
+    }
 
     val scrollState = rememberScrollState()
     val listState = rememberLazyListState()
@@ -59,6 +79,27 @@ fun FeedView(
         ?.getStateFlow("listNeedsRefresh", false)
         ?.collectAsState()
 
+    val deletePost: (String) -> Unit = { postID ->
+        coroutineScope.launch {
+            try {
+                viewModel.deletePost(postID)
+                viewModel.fetchInitialData()
+            } catch (e: Exception) {
+                val message = if (e.isNetworkError()) {
+                    R.string.network_connection_error
+                } else if (e is FeedDeletionError) {
+                    e.errorDescription()
+                } else {
+                    R.string.unexpected_error_deleting_post
+                }
+
+                showAlert(
+                    title = R.string.error,
+                    message = message
+                )
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         if (!loadedInitialPost.value) {
@@ -139,10 +180,7 @@ fun FeedView(
                                 viewModel = viewModel,
                                 singleLine = true,
                                 onPostDeleted = { postID ->
-                                    coroutineScope.launch {
-                                        viewModel.deletePost(postID)
-                                        viewModel.fetchInitialData()
-                                    }
+                                    deletePost(postID)
                                 },
                                 onComment = {
                                     navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
@@ -154,10 +192,9 @@ fun FeedView(
                 }
 
                 is FeedViewModel.ViewState.Error -> {
-                    val message = state.message
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = message,
+                        message = state.message,
                         onRetry = {
                             coroutineScope.launch {
                                 viewModel.fetchInitialData()
@@ -168,7 +205,20 @@ fun FeedView(
             }
         }
     }
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { showAlert = false },
+            confirmButton = {
+                TextButton(onClick = { showAlert = false }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            title = { Text(stringResource(alertTitle)) },
+            text = { Text(stringResource(alertMessage)) }
+        )
+    }
 }
+
 /* ____________________________________________________________________*/
 
 @Composable

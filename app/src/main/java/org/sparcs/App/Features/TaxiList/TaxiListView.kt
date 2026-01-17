@@ -189,7 +189,7 @@ fun TaxiListView(
                     is TaxiListViewModel.ViewState.Error -> {
                         ErrorView(
                             icon = Icons.Default.Warning,
-                            errorMessage = (uiState as TaxiListViewModel.ViewState.Error).message,
+                            message = (uiState as TaxiListViewModel.ViewState.Error).message,
                             onRetry = {
                                 coroutineScope.launch {
                                     viewModel.fetchData()

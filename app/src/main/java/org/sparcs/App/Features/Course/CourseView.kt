@@ -88,7 +88,7 @@ fun CourseView(
                     val message = (state as CourseViewModel.ViewState.Error).message
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = "Error: $message",
+                        message = "Error: $message",
                         onRetry = { viewModel.fetchReviews(courseId = course.id) }
                     )
                 }

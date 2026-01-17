@@ -140,7 +140,7 @@ fun SearchView(
                 state is SearchViewModel.ViewState.Error -> {
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = (state as SearchViewModel.ViewState.Error).message,
+                        message = (state as SearchViewModel.ViewState.Error).message,
                         onRetry = { coroutineScope.launch { viewModel.bind() } }
                     )
                 }

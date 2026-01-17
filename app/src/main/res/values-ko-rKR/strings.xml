@@ -148,9 +148,9 @@
     <string name="send_crash_reports">오류 보고서 전송</string>
     <string name="report_submitted">신고 접수</string>
     <string name="error">에러</string>
-    <string name="unexpected_error_reporting_comment">신고 과정에서 예기치 못한 에러가 발생했습니다. 다시 시도해주세요.</string>
-    <string name="unexpected_error_uploading_comment">댓글 작성 과정에서 예기치 못한 에러가 발생했습니다. 다시 시도해주세요.</string>
-    <string name="unexpected_error_deleting_post">포스트 삭제 과정에서 예기치 못한 에러가 발생했습니다. 다시 시도해주세요.</string>
+    <string name="unexpected_error_reporting_comment">댓글을 신고하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요</string>
+    <string name="unexpected_error_uploading_comment">댓글을 업로드하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="unexpected_error_deleting_post">게시글 삭제하는 중 오류가 발생했습니다. 나중에 다시 시도해주세요.</string>
     <string name="hours">수업</string>
     <string name="lab">실험</string>
     <string name="no_reviews">리뷰 없음</string>
@@ -170,7 +170,7 @@
     <string name="discard_this_review">리뷰 삭제</string>
     <string name="review_submitted">리뷰가 제출되었습니다.</string>
     <string name="share_lecture_thoughts">%1$s에 대한 생각을 공유해 보세요…</string>
-    <string name="error_try_again">오류가 발생했습니다. 잠시 후 다시 시도해주세요.</string>
+    <string name="error_try_again">재시도</string>
     <string name="rides">택시</string>
     <string name="courses">강의</string>
     <string name="search_anything">무엇이든 검색하세요</string>
@@ -365,4 +365,22 @@
     <string name="timetable_widget_title">시간표</string>
     <string name="upcoming_class_widget_desc">다음 수업 시간과 강의실 정보를 바로 확인합니다.</string>
     <string name="timetable_widget_desc">시간표를 홈 화면에서 확인합니다.</string>
+    <string name="error_post_has_comments">댓글이 달린 게시글은 삭제할 수 없습니다.</string>
+    <string name="network_connection_error">인터넷 연결이 원활하지 않습니다.</string>
+    <string name="unexpected_error_uploading_post">게시글을 업로드하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="unexpected_error_reporting_post">게시글을 신고하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="badge_information_error">뱃지 표시 여부를 업데이트하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="fetch_user_error">사용자 정보를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="phone_verification_error">전화 번호를 등록하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="bank_account_error">계좌 정보를 업데이트하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="residence_information_error">승하차 선호 장소를 업데이트하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="error_taxi_user_not_found">택시 사용자 정보를 불러올 수 없습니다.</string>
+    <string name="unexpected_error_reporting_user">유저를 신고하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="error_add_lecture">수업을 추가하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="error_create_table">시간표를 추가하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="error_delete_lecture">수업을 삭제하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="error_delete_table">시간표를 삭제하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="error_fetch_data">시간표를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="unexpected_error">알 수 없는 오류가 발생했습니다. 잠시 후 다시 시도해주세요.</string>
+    <string name="error_fetch_boards">게시판 목록을 불러오지 못했습니다.</string>
 </resources>

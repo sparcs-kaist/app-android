@@ -1,6 +1,7 @@
 package org.sparcs.App.Domain.Repositories.Feed
 
 import com.google.gson.Gson
+import org.sparcs.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.App.Domain.Models.Feed.FeedCreatePost
@@ -48,10 +49,17 @@ class FeedPostRepository @Inject constructor(
         }
     }
 
-    override suspend fun deletePost(postID: String) = try {
-        api.deletePost(postID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun deletePost(postID: String) {
+        try {
+            api.deletePost(postID)
+        } catch (e: Exception) {
+            if (e is retrofit2.HttpException) {
+                when (e.code()) {
+                    409 -> throw FeedDeletionError.HasComments()
+                }
+            }
+            handleApiError(gson, e)
+        }
     }
 
     override suspend fun vote(postID: String, type: FeedVoteType) = try {

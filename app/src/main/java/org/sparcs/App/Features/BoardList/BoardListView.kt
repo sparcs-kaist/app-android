@@ -21,6 +21,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -103,11 +104,11 @@ fun BoardListView(
                 }
 
                 is BoardListViewModel.ViewState.Error -> {
-                    val message = (state as BoardListViewModel.ViewState.Error).message
+                    val messageResId = (state as BoardListViewModel.ViewState.Error).message
 
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = message,
+                        message = stringResource(messageResId),
                         onRetry = { scope.launch { viewModel.fetchBoards() } }
                     )
                 }
