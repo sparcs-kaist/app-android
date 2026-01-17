@@ -93,7 +93,7 @@ fun AraSettingsView(
                     val message = (state as AraSettingsViewModel.ViewState.Error).message
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = message,
+                        message = message,
                         onRetry = { scope.launch { viewModel.fetchUser() }}
                     )
                     Text("Error: $message", color = MaterialTheme.colorScheme.error)

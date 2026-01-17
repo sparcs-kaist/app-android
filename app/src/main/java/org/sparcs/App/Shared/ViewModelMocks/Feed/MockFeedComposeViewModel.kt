@@ -21,4 +21,5 @@ class MockFeedPostComposeViewModel : FeedPostComposeViewModelProtocol {
     override suspend fun writePost() {}
     override suspend fun loadImagesAndReconcile(context: Context) {}
     override fun removeImage(index: Int) {}
+    override fun handleException(error: Throwable) {}
 }

@@ -109,6 +109,7 @@ fun ReviewComposeView(
         val scrollOffset = maxOf(lineTopPx - keyboardPaddingPx, 0f)
         coroutineScope.launch { scrollState.animateScrollTo(scrollOffset.toInt()) }
     }
+
     Scaffold(
         topBar = {
             ReviewComposeNavigationBar(

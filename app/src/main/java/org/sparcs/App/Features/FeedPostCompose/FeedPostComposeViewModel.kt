@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,6 +20,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.App.Domain.Enums.Feed.FeedPostPhotoItem
+import org.sparcs.App.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.App.Domain.Models.Feed.FeedCreatePost
 import org.sparcs.App.Domain.Models.Feed.FeedUser
 import org.sparcs.App.Domain.Repositories.Feed.FeedImageRepositoryProtocol
@@ -39,6 +41,7 @@ interface FeedPostComposeViewModelProtocol {
     suspend fun writePost()
     suspend fun loadImagesAndReconcile(context: Context)
     fun removeImage(index: Int)
+    fun handleException(error: Throwable)
 }
 
 @HiltViewModel
@@ -46,6 +49,7 @@ class FeedPostComposeViewModel @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
     private val feedImageRepository: FeedImageRepositoryProtocol,
     private val feedPostRepository: FeedPostRepositoryProtocol,
+    private val crashlyticsHelper: CrashlyticsHelper
 ) : ViewModel(), FeedPostComposeViewModelProtocol {
 
     sealed class ComposeType(val value: Int) {
@@ -156,5 +160,10 @@ class FeedPostComposeViewModel @Inject constructor(
         mutable.removeAt(index)
         selectedImages = mutable.toList()
         _selectedItems = _selectedItems.toMutableList().apply { removeAt(index) }
+    }
+
+    override fun handleException(error: Throwable) {
+        Log.e("FeedPostComposeViewModel","failed to post a feed: $error")
+        crashlyticsHelper.recordException(error)
     }
 }
