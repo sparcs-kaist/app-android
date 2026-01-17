@@ -44,6 +44,7 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.sparcs.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.App.Domain.Models.Feed.FeedComment
@@ -111,12 +112,22 @@ fun FeedCommentRow(
                 onDelete = {
                     coroutineScope.launch {
                         localComment = localComment.copy(isDeleted = true)
-                        feedCommentRepository.deleteComment(localComment.id)
+                        try {
+                            feedCommentRepository.deleteComment(localComment.id)
+                        } catch (e: Exception) {
+                            val message = if (e.isNetworkError()) {
+                                R.string.network_connection_error
+                            } else if (e is FeedDeletionError) {
+                                e.errorDescription()
+                            } else {
+                                R.string.unexpected_error_deleting_comment
+                            }
+                            showAlert(
+                                title = R.string.error,
+                                message = message
+                            )
+                        }
                     }
-                    showAlert(
-                        title = R.string.delete,
-                        message = R.string.deleted_successfully
-                    )
                 },
                 onReport = {
                     coroutineScope.launch {
