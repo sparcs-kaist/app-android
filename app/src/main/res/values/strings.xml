@@ -189,7 +189,7 @@
     <string name="discard_this_review">Discard Review</string>
     <string name="review_submitted">Review submitted</string>
     <string name="share_lecture_thoughts">Share your thoughts on %1$s…</string>
-    <string name="error_try_again">There was an error. Please try again later.</string>
+    <string name="error_try_again">Retry</string>
     <string name="rides">Rides</string>
     <string name="courses">Courses</string>
     <string name="search_anything">Search Anything</string>
@@ -392,4 +392,24 @@
     <string name="acknowledgements">Acknowledgements</string>
     <string name="sponsored_by">Sponsored By</string>
     <string name="legal_notices">Legal Notices</string>
+    <string name="error_post_has_comments">Posts with comments cannot be deleted.</string>
+    <string name="network_connection_error">You are not connected to the Internet.</string>
+    <string name="unexpected_error_uploading_post">An unexpected error occurred while uploading a post. Please try again later.</string>
+    <string name="unexpected_error_reporting_post">An unexpected error occurred while reporting a post. Please try again later.</string>
+    <string name="badge_information_error">An unexpected error occurred while updating badge information. Please try again later.</string>
+    <string name="fetch_user_error">An unexpected error occurred while fetching user information. Please try again later.</string>
+    <string name="phone_verification_error">An unexpected error occurred while updating phone number information. Please try again later.</string>
+    <string name="bank_account_error">An unexpected error occurred while updating bank account information. Please try again later.</string>
+    <string name="residence_information_error">An unexpected error occurred while updating residence information. Please try again later.</string>
+    <string name="error_taxi_user_not_found">Taxi User Information Not Found.</string>
+    <string name="unexpected_error_reporting_user">An unexpected error occurred while reporting a user. Please try again later.</string>
+    <string name="error_add_lecture">An unexpected error occurred while adding a lecture. Please try again later.</string>
+    <string name="error_create_table">An unexpected error occurred while creating a new timetable. Please try again later.</string>
+    <string name="error_delete_lecture">An unexpected error occurred while removing a lecture. Please try again later.</string>
+    <string name="error_delete_table">An unexpected error occurred while deleting a timetable. Please try again later.</string>
+    <string name="error_fetch_data">An unexpected error occurred while loading timetables. Please try again later.</string>
+    <string name="unexpected_error">An unexpected error occurred. Please try again later.</string>
+    <string name="error_fetch_boards">Failed to load boards.</string>
+    <string name="error_comment_has_replies">Comments with replies cannot be deleted.</string>
+    <string name="unexpected_error_deleting_comment">An unexpected error occurred while deleting a comment. Please try again later.</string>
 </resources>

@@ -19,6 +19,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +60,7 @@ fun SemesterSelector(
         viewModel.semesters.collectAsState().value.firstOrNull() != selectedSemester
     val isEnabledNextButton =
         viewModel.semesters.collectAsState().value.lastOrNull() != selectedSemester
+    val haptic = LocalHapticFeedback.current
 
     Row(
         modifier = Modifier
@@ -75,6 +78,7 @@ fun SemesterSelector(
                 .padding(horizontal = 4.dp)
                 .then(
                     if (isEnabledPreviousButton) Modifier.clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                         viewModel.selectPreviousSemester()
                     } else Modifier
                 )
@@ -95,6 +99,7 @@ fun SemesterSelector(
                 .padding(horizontal = 4.dp)
                 .then(
                     if (isEnabledNextButton) Modifier.clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                         viewModel.selectNextSemester()
                     } else Modifier
                 )

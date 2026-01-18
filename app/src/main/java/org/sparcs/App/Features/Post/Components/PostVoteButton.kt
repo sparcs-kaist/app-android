@@ -17,6 +17,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,7 +31,7 @@ fun PostVoteButton(
     votes: Int,
     onDownVote: () -> Unit,
     onUpVote: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
 ) {
     val upvoteImage =
         if (myVote == true) R.drawable.icon_arrowup else R.drawable.icon_arrowup //filled, outlined
@@ -46,6 +48,7 @@ fun PostVoteButton(
     }
 
     var isRunning = false
+    val haptic = LocalHapticFeedback.current
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -62,11 +65,14 @@ fun PostVoteButton(
                 modifier = Modifier
                     .size(20.dp)
                     .clickable {
-                        if (isRunning) return@clickable
-                        if (enabled) {
-                            isRunning = true
-                            onUpVote()
-                            isRunning = false
+                        if (enabled && !isRunning) {
+                            try {
+                                isRunning = true
+                                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                onUpVote()
+                            } finally {
+                                isRunning = false
+                            }
                         }
                     }
             )
@@ -96,11 +102,14 @@ fun PostVoteButton(
             modifier = Modifier
                 .size(20.dp)
                 .clickable {
-                    if (isRunning) return@clickable
-                    if (enabled) {
-                        isRunning = true
-                        onDownVote()
-                        isRunning = false
+                    if (enabled && !isRunning) {
+                        try {
+                            isRunning = true
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                            onDownVote()
+                        } finally {
+                            isRunning = false
+                        }
                     }
                 }
         )
@@ -110,6 +119,6 @@ fun PostVoteButton(
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme { PostVoteButton(true, 2, {}, {}, true) }
 }

@@ -134,7 +134,7 @@ fun LectureReviews(
                     val message = (state as LectureDetailViewModel.ViewState.Error).message
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = message
+                        message = message
                     ) {
                         viewModel.fetchReviews(lecture.id)
                     }
