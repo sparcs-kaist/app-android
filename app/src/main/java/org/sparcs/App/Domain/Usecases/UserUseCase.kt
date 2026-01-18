@@ -5,7 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.supervisorScope
 import org.sparcs.App.Domain.Helpers.UserStorageProtocol
 import org.sparcs.App.Domain.Models.Ara.AraUser
 import org.sparcs.App.Domain.Models.Feed.FeedUser
@@ -61,20 +61,28 @@ class UserUseCase @Inject constructor(
     override var otlUser: OTLUser? by mutableStateOf(null)
         private set
 
-    override suspend fun fetchUsers() = coroutineScope {
-        try {
-            val taxi = async { fetchTaxiUser() }
-            val ara = async { fetchAraUser() }
-            val feed = async { fetchFeedUser() }
-            val otl = async { fetchOTLUser() }
+    override suspend fun fetchUsers() {
+        supervisorScope {
+            val taxi = async { runCatching { fetchTaxiUser() } }
+            val ara = async { runCatching { fetchAraUser() } }
+            val feed = async { runCatching { fetchFeedUser() } }
+            val otl = async { runCatching { fetchOTLUser() } }
 
-            taxi.await()
-            ara.await()
-            feed.await()
-            otl.await()
-        } catch (e: Exception) {
-            Log.e("UserUseCase", "Failed to fetch users", e)
-            throw e
+            val results = listOf(taxi.await(), ara.await(), feed.await(), otl.await())
+
+            if (results.all { it.isFailure }) {
+                val firstError = results.firstNotNullOfOrNull { it.exceptionOrNull() }
+                Log.e("UserUseCase", "All fetches failed", firstError)
+            } else {
+                results.forEachIndexed { index, result ->
+                    if (result.isFailure) {
+                        Log.w(
+                            "UserUseCase",
+                            "Fetch task $index failed: ${result.exceptionOrNull()?.message}"
+                        )
+                    }
+                }
+            }
         }
     }
 
@@ -83,7 +91,6 @@ class UserUseCase @Inject constructor(
         val user = araUserRepository.fetchUser()
         userStorage.setAraUser(user)
         araUser = user
-        Log.d("UserUseCase", user.toString())
     }
 
     override suspend fun updateAraUser(params: Map<String, Any>) {
