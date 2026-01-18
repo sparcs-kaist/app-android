@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -53,6 +52,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.sparcs.App.Domain.Helpers.Constants
 import org.sparcs.App.Features.NavigationBar.Channel
 import org.sparcs.App.Features.Settings.Components.SettingsViewNavigationBar
+import org.sparcs.App.Shared.Extensions.toggle
 import org.sparcs.App.Shared.ViewModelMocks.MockSettingsViewModel
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.App.theme.ui.grayBB
@@ -99,13 +99,9 @@ fun SettingsView(
                 AppSettings(context)
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
-                SendCrashReportsButton(isCrashlyticsEnabled) { isChecked ->
-                    if (isChecked) {
-                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                    } else {
-                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                    }
-                    isCrashlyticsEnabled = isChecked
+                SendCrashReportsButton(isCrashlyticsEnabled) {
+                    haptic.toggle(it)
+                    isCrashlyticsEnabled = it
                 }
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
