@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,6 +48,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -70,7 +72,9 @@ import org.sparcs.App.Features.Feed.FeedViewModelProtocol
 import org.sparcs.App.Features.FeedPost.Components.FeedCommentRow
 import org.sparcs.App.Features.FeedPost.Components.FeedPostNavigationBar
 import org.sparcs.App.Features.NavigationBar.Animation.MoveToLeftFadeIn
+import org.sparcs.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.App.Shared.Extensions.isNetworkError
+import org.sparcs.App.Shared.Extensions.toggle
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.Mocks.mockList
 import org.sparcs.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
@@ -99,6 +103,9 @@ fun FeedPostView(
     var targetComment by remember { mutableStateOf<FeedComment?>(null) }
     var isRefreshing by remember { mutableStateOf(false) }
     var isUploadingComment by remember { mutableStateOf(false) }
+    val pullState = rememberPullToRefreshState()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
 
     val isPreview = LocalInspectionMode.current
     val repo: FeedPostRepositoryProtocol =
@@ -232,7 +239,8 @@ fun FeedPostView(
                             viewModel.fetchComments(postID = post.id, initial = false)
                         }
                         isRefreshing = false
-                    }
+                    },
+                    state = pullState
                 ) {
                     LazyColumn(
                         Modifier.padding(innerPadding),
@@ -336,6 +344,8 @@ private fun InputBar(
     isUploadingComment: Boolean,
 ) {
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
+    val haptic = LocalHapticFeedback.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -351,7 +361,10 @@ private fun InputBar(
                     Spacer(modifier = Modifier.weight(1f))
                     Switch(
                         checked = viewModel.isAnonymous,
-                        onCheckedChange = { viewModel.isAnonymous = it },
+                        onCheckedChange = {
+                            haptic.toggle(it)
+                            viewModel.isAnonymous = it
+                        },
                     )
                 }
             }
@@ -496,7 +509,14 @@ private fun Comments(
             ErrorView(
                 icon = Icons.Default.Warning,
                 message = state.message,
-                onRetry = { coroutineScope.launch { viewModel.fetchComments(post.id, initial = true) } }
+                onRetry = {
+                    coroutineScope.launch {
+                        viewModel.fetchComments(
+                            post.id,
+                            initial = true
+                        )
+                    }
+                }
             )
         }
     }

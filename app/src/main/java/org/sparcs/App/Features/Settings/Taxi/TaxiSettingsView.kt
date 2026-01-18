@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -59,6 +60,7 @@ import org.sparcs.App.Features.Settings.Components.RowElementView
 import org.sparcs.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.App.Shared.Extensions.PhoneNumberVisualTransformation
 import org.sparcs.App.Shared.Extensions.toPhoneNumberFormat
+import org.sparcs.App.Shared.Extensions.toggle
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.ViewModelMocks.Taxi.MockTaxiSettingsViewModel
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
@@ -428,6 +430,7 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
 private fun BadgeToggle(
     viewModel: TaxiSettingsViewModelProtocol,
 ) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -444,7 +447,10 @@ private fun BadgeToggle(
         Spacer(Modifier.weight(1f))
         Switch(
             checked = viewModel.showBadge,
-            onCheckedChange = { viewModel.showBadge = it }
+            onCheckedChange = {
+                haptic.toggle(it)
+                viewModel.showBadge = it
+            }
         )
     }
 }

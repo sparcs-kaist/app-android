@@ -16,6 +16,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -42,6 +43,7 @@ import org.sparcs.App.Features.Feed.Components.FeedPostRowSkeleton
 import org.sparcs.App.Features.Feed.Components.FeedViewNavigationBar
 import org.sparcs.App.Features.NavigationBar.AppDownBar
 import org.sparcs.App.Features.NavigationBar.Channel
+import org.sparcs.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.App.Shared.Mocks.mockList
 import org.sparcs.App.Shared.ViewModelMocks.Feed.MockFeedViewModel
@@ -98,6 +100,9 @@ fun FeedView(
             }
         }
     }
+    val pullState = rememberPullToRefreshState()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
 
     LaunchedEffect(Unit) {
         if (!loadedInitialPost.value) {
@@ -154,7 +159,8 @@ fun FeedView(
                     viewModel.fetchInitialData()
                     isRefreshing = false
                 }
-            }
+            },
+            state = pullState
         ) {
             when (state) {
                 is FeedViewModel.ViewState.Loading -> {
