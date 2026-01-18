@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -33,7 +34,10 @@ import org.sparcs.R
 
 @Composable
 fun ErrorView(icon: ImageVector = Icons.Default.Warning, message: String, onRetry: () -> Unit) {
-    val isNetworkError = message == stringResource(R.string.network_connection_error) ||
+    val context = LocalContext.current
+    val networkErrorText = context.getString(R.string.network_connection_error)
+
+    val isNetworkError = message == networkErrorText ||
                 message.contains("host", ignoreCase = true) ||
                 message.contains("connection", ignoreCase = true)
 

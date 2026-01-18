@@ -148,7 +148,7 @@
     <string name="send_crash_reports">오류 보고서 전송</string>
     <string name="report_submitted">신고 접수</string>
     <string name="error">에러</string>
-    <string name="unexpected_error_reporting_comment">댓글을 신고하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요</string>
+    <string name="unexpected_error_reporting_comment">댓글을 신고하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="unexpected_error_uploading_comment">댓글을 업로드하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="unexpected_error_deleting_post">게시글 삭제하는 중 오류가 발생했습니다. 나중에 다시 시도해주세요.</string>
     <string name="hours">수업</string>
