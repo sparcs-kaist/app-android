@@ -43,7 +43,6 @@ import com.google.gson.Gson
 import org.sparcs.App.Domain.Models.OTL.Lecture
 import org.sparcs.App.Features.LectureSearch.Components.LectureSearchViewNavigationBar
 import org.sparcs.App.Features.NavigationBar.Channel
-import org.sparcs.App.Features.Timetable.TimetableViewModel
 import org.sparcs.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
@@ -191,14 +190,7 @@ fun LectureSearchView(
                                                     pendingLectureToAdd = lecture
                                                     timetableViewModel.setCandidateLecture(null)
                                                 } else {
-                                                    try {
-                                                        timetableViewModel.addLecture(lecture)
-                                                    } catch (e: Exception) {
-                                                        timetableViewModel.handleException(
-                                                            e,
-                                                            TimetableViewModel.ErrorType.AddLecture
-                                                        )
-                                                    }
+                                                    timetableViewModel.addLecture(lecture)
                                                 }
                                             },
                                             onInfoClick = {

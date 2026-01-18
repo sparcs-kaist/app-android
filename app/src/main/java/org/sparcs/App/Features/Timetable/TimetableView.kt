@@ -47,11 +47,11 @@ import org.sparcs.App.Features.Timetable.Components.TimetableCreditGraph
 import org.sparcs.App.Features.Timetable.Components.TimetableGrid
 import org.sparcs.App.Features.Timetable.Components.TimetableSummary
 import org.sparcs.App.Features.Timetable.Components.TimetableViewNavigationBar
-import org.sparcs.R
 import org.sparcs.App.Shared.Extensions.escapeHash
 import org.sparcs.App.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
 import org.sparcs.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.App.theme.ui.Theme
+import org.sparcs.R
 
 @Composable
 fun TimetableView(
@@ -169,6 +169,21 @@ fun TimetableView(
                 },
                 title = { Text(stringResource(R.string.delete)) },
                 text = { Text(stringResource(R.string.do_you_really_want_to_delete_this_table,lectureToDelete!!.title.localized())) }
+            )
+        }
+
+        if (viewModel.showAlert) {
+            AlertDialog(
+                onDismissRequest = { viewModel.showAlert = false },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.showAlert = false }) {
+                        Text(stringResource(R.string.ok))
+                    }
+                },
+                title = { Text(stringResource(R.string.error)) },
+                text = {
+                    viewModel.alertMessageRes?.let { Text(stringResource(it)) }
+                }
             )
         }
     }

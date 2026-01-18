@@ -1,6 +1,9 @@
 package org.sparcs.App.Features.Timetable
 
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +20,8 @@ import org.sparcs.App.Domain.Models.OTL.Lecture
 import org.sparcs.App.Domain.Models.OTL.Semester
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.App.Domain.Usecases.TimetableUseCase
-import org.sparcs.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
+import org.sparcs.App.Shared.Extensions.isNetworkError
+import org.sparcs.R
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
@@ -33,6 +37,9 @@ interface TimetableViewModelProtocol {
     val isCandidateOverlapping: StateFlow<Boolean>
     val overlappingLecture: StateFlow<Lecture?>
 
+    var showAlert: Boolean
+    var alertMessageRes: Int?
+
     fun setCandidateLecture(lecture: Lecture?)
     fun fetchData()
     fun selectPreviousSemester()
@@ -43,14 +50,12 @@ interface TimetableViewModelProtocol {
     fun addLecture(lecture: Lecture)
     fun deleteLecture(lecture: Lecture)
     fun removeOverlappingLectures(newLecture: Lecture)
-    fun handleException(error: Throwable, type: TimetableViewModel.ErrorType)
 }
 
 @HiltViewModel
 class TimetableViewModel @Inject constructor(
     override val timetableUseCase: TimetableUseCase,
     private val crashlyticsHelper: CrashlyticsHelper,
-    private val timetableWidgetSyncManager: TimetableWidgetSyncManager
 ) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
@@ -60,6 +65,9 @@ class TimetableViewModel @Inject constructor(
         DeleteLecture,
         FetchData
     }
+
+    override var showAlert by mutableStateOf(false)
+    override var alertMessageRes by mutableStateOf<Int?>(null)
 
     override val isLoading = MutableStateFlow(false)
 
@@ -123,14 +131,6 @@ class TimetableViewModel @Inject constructor(
             isLoading.value = true
             try {
                 timetableUseCase.load()
-
-                val currentSid = timetableUseCase.selectedSemesterID.value
-                val currentTable = currentSid?.let { sid ->
-                    timetableUseCase.store.value[sid]?.firstOrNull { it.id.endsWith("-myTable") }
-                }
-
-                currentTable?.let { timetableWidgetSyncManager.sync(it) }
-
                 isLoading.value = false
             } catch (e: Exception) {
                 Log.e("TimetableViewModel", "failed to fetch Timetable Data")
@@ -237,24 +237,21 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
-    override fun handleException(error: Throwable, type: ErrorType) {
-        val alertMessage: String = when (type) {
-            ErrorType.AddLecture ->
-                "An unexpected error occurred while adding a lecture. Please try again later."
-
-            ErrorType.CreateTable ->
-                "An unexpected error occurred while creating a new timetable. Please try again later."
-
-            ErrorType.DeleteLecture ->
-                "An unexpected error occurred while removing a lecture. Please try again later."
-
-            ErrorType.DeleteTable ->
-                "An unexpected error occurred while deleting a timetable. Please try again later."
-
-            ErrorType.FetchData ->
-                "An unexpected error occurred while loading timetables. Please try again later."
+    private fun handleException(error: Exception, type: ErrorType) {
+        val messageRes = if (error.isNetworkError()) {
+            R.string.network_connection_error
+        } else {
+            crashlyticsHelper.recordException(error)
+            when (type) {
+                ErrorType.AddLecture -> R.string.error_add_lecture
+                ErrorType.CreateTable -> R.string.error_create_table
+                ErrorType.DeleteLecture -> R.string.error_delete_lecture
+                ErrorType.DeleteTable -> R.string.error_delete_table
+                ErrorType.FetchData -> R.string.error_fetch_data
+            }
         }
 
-        crashlyticsHelper.recordException(error = error, alertMessage = alertMessage)
+        alertMessageRes = messageRes
+        showAlert = true
     }
 }

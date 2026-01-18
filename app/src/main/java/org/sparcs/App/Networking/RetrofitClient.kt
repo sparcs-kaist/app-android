@@ -61,6 +61,8 @@ import org.sparcs.App.Domain.Usecases.TaxiLocationUseCaseProtocol
 import org.sparcs.App.Domain.Usecases.TaxiRoomUseCase
 import org.sparcs.App.Domain.Usecases.TaxiRoomUseCaseProtocol
 import org.sparcs.App.Domain.Usecases.TimetableUseCase
+import org.sparcs.App.Domain.Usecases.TimetableUseCaseBackground
+import org.sparcs.App.Domain.Usecases.TimetableUseCaseBackgroundProtocol
 import org.sparcs.App.Domain.Usecases.TimetableUseCaseProtocol
 import org.sparcs.App.Domain.Usecases.UserUseCase
 import org.sparcs.App.Domain.Usecases.UserUseCaseProtocol
@@ -523,6 +525,10 @@ abstract class UseCaseModule {
     @Binds
     @Singleton
     abstract fun bindTimetableUseCase(impl: TimetableUseCase): TimetableUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTimetableUseCaseBackground(impl: TimetableUseCaseBackground): TimetableUseCaseBackgroundProtocol
 
     @Binds
     @Singleton

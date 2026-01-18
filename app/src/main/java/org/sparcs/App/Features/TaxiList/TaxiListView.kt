@@ -27,6 +27,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,6 +40,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -58,6 +61,7 @@ import org.sparcs.App.Features.TaxiList.Components.WeekDaySelector
 import org.sparcs.App.Features.TaxiPreview.TaxiPreviewView
 import org.sparcs.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.App.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
+import org.sparcs.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.App.Shared.Extensions.isDateInSameDay
 import org.sparcs.App.Shared.Extensions.weekdaySymbol
 import org.sparcs.App.Shared.Mocks.mockList
@@ -79,6 +83,7 @@ fun TaxiListView(
     taxiPreviewViewModel: TaxiPreviewViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
+    val haptic = LocalHapticFeedback.current
     val uiState by viewModel.state.collectAsState()
     var selectedDate = viewModel.selectedDate
 
@@ -90,6 +95,9 @@ fun TaxiListView(
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
+    val pullState = rememberPullToRefreshState()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
 
     Scaffold(
         topBar = {
@@ -115,7 +123,8 @@ fun TaxiListView(
                     viewModel.fetchData()
                     isRefreshing = false
                 }
-            }
+            },
+            state = pullState
         ) {
             Column(
                 modifier = Modifier
@@ -154,6 +163,7 @@ fun TaxiListView(
                         onSelect = { newDate ->
                             selectedDate = newDate
                             viewModel.selectedDate = selectedDate
+                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                         }
                     )
                 }
@@ -176,7 +186,10 @@ fun TaxiListView(
                             selectedDate = selectedDate,
                             source = viewModel.source,
                             destination = viewModel.destination,
-                            onRoomSelected = { selectedRoom = it },
+                            onRoomSelected = {
+                                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                selectedRoom = it
+                                             },
                             viewModel = viewModel,
                             navController = navController
                         )
@@ -189,7 +202,7 @@ fun TaxiListView(
                     is TaxiListViewModel.ViewState.Error -> {
                         ErrorView(
                             icon = Icons.Default.Warning,
-                            errorMessage = (uiState as TaxiListViewModel.ViewState.Error).message,
+                            message = (uiState as TaxiListViewModel.ViewState.Error).message,
                             onRetry = {
                                 coroutineScope.launch {
                                     viewModel.fetchData()

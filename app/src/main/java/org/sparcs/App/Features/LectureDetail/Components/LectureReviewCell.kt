@@ -35,7 +35,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,12 +61,13 @@ fun LectureReviewCell(
     review: LectureReview,
     repo: OTLCourseRepositoryProtocol,
 ) {
+
     var expanded by remember { mutableStateOf(false) }
     var isLikeButtonRunning = false
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     var reviewChange by remember { mutableStateOf(review) }
-
+    val haptic = LocalHapticFeedback.current
     val unknown = stringResource(R.string.unknown)
 
     Box(
@@ -180,6 +183,7 @@ fun LectureReviewCell(
                         tint = if (reviewChange.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.clickable {
                             if (isLikeButtonRunning) return@clickable
+                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                             isLikeButtonRunning = true
                             toggleLike(reviewChange, repo, scope, context) { updated ->
                                 reviewChange = updated

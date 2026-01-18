@@ -225,7 +225,7 @@ fun TaxiChatView(
                 is TaxiChatViewModel.ViewState.Loading -> LoadingView()
                 is TaxiChatViewModel.ViewState.Error -> ErrorView(
                     icon = Icons.Default.Warning,
-                    errorMessage = (state as TaxiChatViewModel.ViewState.Error).message,
+                    message = (state as TaxiChatViewModel.ViewState.Error).message,
                     onRetry = { coroutineScope.launch { viewModel.fetchInitialChats() } }
                 )
 

@@ -62,6 +62,8 @@ class PostViewModel @Inject constructor(
     override val isFoundationModelsAvailable: Boolean
         get() = false // TODO: foundationModelsUseCase.isAvailable
 
+    private var isToggling = false
+
     private fun insertThreadedComment(
         comments: MutableList<AraPostComment>,
         comment: AraPostComment,
@@ -228,30 +230,36 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun toggleBookmark() {
-        var current = _post.value ?: return
+        if (isToggling) return
+        val current = _post.value ?: return
         val previous = current.myScrap
+        val originalScrapId = current.scrapID
+        isToggling = true
 
-        current = current.copy(myScrap = !previous)
+        _post.value = current.copy(myScrap = !previous)
 
         try {
             if (previous) {
-                val scrapId = current.scrapID ?: return
+                val scrapId = originalScrapId ?: return
                 araBoardRepository.removeBookmark(scrapId)
-                current = current.copy(scrapID = null)
-                _post.value = current
+                _post.value = _post.value?.copy(scrapID = null)
             } else {
-                araBoardRepository.addBookmark(current.id)
+                val newScrapId = araBoardRepository.addBookmark(current.id)
+                _post.value = _post.value?.copy(scrapID = newScrapId)
             }
         } catch (e: Exception) {
             Log.e("PostViewModel", "toggleBookmark error", e)
-            _post.value = current
+            _post.value = current.copy(
+                myScrap = previous,
+                scrapID = originalScrapId
+            )
+        } finally {
+            isToggling = false
         }
     }
+
     override fun handleException(error: Throwable) {
         Log.e("FeedPostViewModel","failed to create a report: $error")
-        crashlyticsHelper.recordException(
-            error = error,
-            alertMessage = "An unexpected error occurred while reporting a user. Please try again later."
-        )
+        crashlyticsHelper.recordException(error)
     }
 }
