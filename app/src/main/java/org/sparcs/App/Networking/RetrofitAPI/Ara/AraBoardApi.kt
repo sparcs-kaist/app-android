@@ -8,6 +8,7 @@ import org.sparcs.App.Networking.ResponseDTO.Ara.AraBoardDTO
 import org.sparcs.App.Networking.ResponseDTO.Ara.AraBookmarkDTO
 import org.sparcs.App.Networking.ResponseDTO.Ara.AraPostDTO
 import org.sparcs.App.Networking.ResponseDTO.Ara.AraPostPageDTO
+import org.sparcs.App.Networking.ResponseDTO.Ara.AraScrapDTO
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -47,10 +48,10 @@ interface AraBoardApi {
     ): AraBookmarkDTO
 
     @POST("scraps/")
-    suspend fun addBookmark(@Body body: Map<String, Int>)
+    suspend fun addBookmark(@Body body: Map<String, Int>): AraScrapDTO
 
     @DELETE("scraps/{scrapId}/")
-    suspend fun removeBookmark(@Path("scrapId") scrapId: Int)
+    suspend fun removeBookmark(@Path("scrapId") scrapId: Int): Response<Unit>
 
     @Multipart
     @POST("attachments/")

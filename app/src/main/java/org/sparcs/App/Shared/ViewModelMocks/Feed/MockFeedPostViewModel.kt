@@ -23,12 +23,11 @@ class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPos
     override var image: Bitmap? = null
     override var isAnonymous: Boolean = false
 
-    override suspend fun fetchComments(postID: String) {}
+    override suspend fun fetchComments(postID: String, initial: Boolean) {}
     override suspend fun writeComment(postID: String): FeedComment {
         return FeedComment.mock()
     }
     override suspend fun writeReply(commentID: String): FeedComment {
         return FeedComment.mock()
     }
-    override fun handleException(error: Throwable) {}
 }

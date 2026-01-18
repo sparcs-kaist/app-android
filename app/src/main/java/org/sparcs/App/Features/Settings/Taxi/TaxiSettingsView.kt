@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -59,6 +60,7 @@ import org.sparcs.App.Features.Settings.Components.RowElementView
 import org.sparcs.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.App.Shared.Extensions.PhoneNumberVisualTransformation
 import org.sparcs.App.Shared.Extensions.toPhoneNumberFormat
+import org.sparcs.App.Shared.Extensions.toggle
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.ViewModelMocks.Taxi.MockTaxiSettingsViewModel
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
@@ -132,10 +134,7 @@ fun TaxiSettingsView(
     val state by viewModel.state.collectAsState()
     var showAlert by remember { mutableStateOf(false) }
     var showToggle by remember { mutableStateOf(false) }
-    var showErrorDialog by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
-
-    var errorMessage by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
@@ -160,12 +159,9 @@ fun TaxiSettingsView(
                         showAlert = true
                     } else {
                         coroutineScope.launch {
-                            try {
-                                viewModel.editInformation()
+                            viewModel.editInformation()
+                            if (!viewModel.showAlert) {
                                 navController.popBackStack()
-                            } catch (e: Exception) {
-                                errorMessage = e.message ?: "Unknown error"
-                                showErrorDialog = true
                             }
                         }
                     }
@@ -181,7 +177,7 @@ fun TaxiSettingsView(
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
-            when (viewModel.state.collectAsState().value) {
+            when (state) {
                 TaxiSettingsViewModel.ViewState.Loading -> LoadingView()
                 TaxiSettingsViewModel.ViewState.Loaded -> LoadedView(
                     viewModel,
@@ -191,27 +187,28 @@ fun TaxiSettingsView(
                 )
 
                 is TaxiSettingsViewModel.ViewState.Error -> {
-                    val message = (state as TaxiSettingsViewModel.ViewState.Error).message
+                    val message = (state as TaxiSettingsViewModel.ViewState.Error).messageRes
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = message,
+                        message = stringResource(message),
                         onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
                     )
                 }
             }
         }
     }
-
-    if (showErrorDialog) {
+    if (viewModel.showAlert) {
         AlertDialog(
-            onDismissRequest = { showErrorDialog = false },
+            onDismissRequest = { viewModel.showAlert = false },
             confirmButton = {
-                TextButton(onClick = { showErrorDialog = false }) {
+                TextButton(onClick = { viewModel.showAlert = false }) {
                     Text(stringResource(R.string.ok))
                 }
             },
             title = { Text(stringResource(R.string.error)) },
-            text = { Text(errorMessage) }
+            text = {
+                viewModel.alertMessageRes?.let { Text(stringResource(it)) }
+            }
         )
     }
 
@@ -243,12 +240,9 @@ fun TaxiSettingsView(
             confirmButton = {
                 TextButton(onClick = {
                     coroutineScope.launch {
-                        try {
-                            viewModel.editInformation()
+                        viewModel.editInformation()
+                        if (!viewModel.showAlert) {
                             navController.popBackStack()
-                        } catch (e: Exception) {
-                            errorMessage = e.message ?: "Unknown error"
-                            showErrorDialog = true
                         }
                     }
                 }) {
@@ -436,6 +430,7 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
 private fun BadgeToggle(
     viewModel: TaxiSettingsViewModelProtocol,
 ) {
+    val haptic = LocalHapticFeedback.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -452,7 +447,10 @@ private fun BadgeToggle(
         Spacer(Modifier.weight(1f))
         Switch(
             checked = viewModel.showBadge,
-            onCheckedChange = { viewModel.showBadge = it }
+            onCheckedChange = {
+                haptic.toggle(it)
+                viewModel.showBadge = it
+            }
         )
     }
 }

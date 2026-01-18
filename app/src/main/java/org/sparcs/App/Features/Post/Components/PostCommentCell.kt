@@ -1,5 +1,6 @@
 package org.sparcs.soap.Features.Post
 
+import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -51,6 +52,7 @@ import org.sparcs.App.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import org.sparcs.App.Domain.Repositories.Ara.FakeAraCommentRepository
 import org.sparcs.App.Features.Post.Components.PostCommentButton
 import org.sparcs.App.Features.Post.Components.PostVoteButton
+import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.App.Shared.Extensions.timeAgoDisplay
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.theme.ui.grayBB
@@ -70,10 +72,41 @@ fun PostCommentCell(
     araCommentRepository: AraCommentRepositoryProtocol,
 ) {
     val scope = rememberCoroutineScope()
-    var showReportDialog by remember { mutableStateOf(false) }
     var showTranslateSheet by remember { mutableStateOf(false) }
     var commentState by remember { mutableStateOf(comment) }
     val isDeleted = commentState.content == null
+
+    var showAlert by remember { mutableStateOf(false) }
+    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
+    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
+
+    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
+    }
+
+    val handleReport: (AraContentReportType) -> Unit = { type ->
+        scope.launch {
+            try {
+                araCommentRepository.reportComment(comment.id, type)
+                showAlert(
+                    title = R.string.report_submitted,
+                    message = R.string.reported_successfully
+                )
+            } catch (e: Exception) {
+                val message = if (e.isNetworkError()) {
+                    R.string.network_connection_error
+                } else {
+                    R.string.unexpected_error_reporting_comment
+                }
+                showAlert(
+                    title = R.string.error,
+                    message = message
+                )
+            }
+        }
+    }
 
     Row(modifier = Modifier.fillMaxWidth()) {
         if (isThreaded) {
@@ -107,10 +140,7 @@ fun PostCommentCell(
                     }
                 },
                 onReport = { type ->
-                    scope.launch {
-                        araCommentRepository.reportComment(commentState.id, type)
-                        showReportDialog = true
-                    }
+                    handleReport(type)
                 },
                 onTranslate = {
                     commentState.content?.let { text ->
@@ -134,21 +164,6 @@ fun PostCommentCell(
         }
     }
 
-    if (showReportDialog) {
-        AlertDialog(
-            onDismissRequest = { showReportDialog = false },
-            confirmButton = {
-                TextButton(onClick = { showReportDialog = false }) {
-                    Text(
-                        stringResource(R.string.ok)
-                    )
-                }
-            },
-            title = { Text(stringResource(R.string.report_submitted)) },
-            text = { Text(stringResource(R.string.reported_successfully)) }
-        )
-    }
-
     if (showTranslateSheet) {
         ModalBottomSheet(onDismissRequest = { showTranslateSheet = false }) {
             Text(
@@ -156,6 +171,19 @@ fun PostCommentCell(
                 modifier = Modifier.padding(16.dp)
             )
         }
+    }
+
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { showAlert = false },
+            confirmButton = {
+                TextButton(onClick = { showAlert = false }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            title = { Text(stringResource(alertTitle)) },
+            text = { Text(stringResource(alertMessage)) }
+        )
     }
 }
 

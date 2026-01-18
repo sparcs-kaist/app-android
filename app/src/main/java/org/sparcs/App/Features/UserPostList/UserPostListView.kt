@@ -21,18 +21,18 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 import org.sparcs.App.Domain.Models.Ara.AraPost
 import org.sparcs.App.Features.NavigationBar.Channel
 import org.sparcs.App.Features.PostList.Components.PostList.PostList
 import org.sparcs.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import org.sparcs.App.Features.UserPostList.Components.UserPostNavigationBar
-import org.sparcs.R
 import org.sparcs.App.Shared.Mocks.mockList
 import org.sparcs.App.Shared.ViewModelMocks.Ara.MockUserPostListViewModel
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.App.Shared.Views.ContentViews.SearchCustomBar
 import org.sparcs.App.theme.ui.Theme
-import kotlinx.coroutines.launch
+import org.sparcs.R
 
 @Composable
 fun UserPostListView(
@@ -108,7 +108,7 @@ fun UserPostListView(
                         val message = (state as UserPostListViewModel.ViewState.Error).message
                         ErrorView(
                             icon = Icons.Default.Warning,
-                            errorMessage = message,
+                            message = message,
                             onRetry = {
                                 coroutineScope.launch { viewModel.fetchInitialPosts() }
                             }
