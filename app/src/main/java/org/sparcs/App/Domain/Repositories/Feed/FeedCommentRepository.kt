@@ -63,8 +63,11 @@ class FeedCommentRepository @Inject constructor(
                 if (response.code() == 409) throw FeedDeletionError.HasReplies()
                 throw HttpException(response)
             }
+        } catch (e: FeedDeletionError) {
+            throw e
+        } catch (e: HttpException) {
+            throw e
         } catch (e: Exception) {
-            if (e is FeedDeletionError || e is HttpException) throw e
             handleApiError(gson, e)
         }
     }
