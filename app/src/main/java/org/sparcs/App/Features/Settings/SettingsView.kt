@@ -37,7 +37,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -65,6 +67,7 @@ fun SettingsView(
     val context = LocalContext.current
     var showLogoutError by remember { mutableStateOf(false) }
     val isPreview = LocalInspectionMode.current
+    val haptic = LocalHapticFeedback.current
 
     var isCrashlyticsEnabled by remember {
         mutableStateOf(if (!isPreview) FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled else false)
@@ -96,7 +99,14 @@ fun SettingsView(
                 AppSettings(context)
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
-                SendCrashReportsButton(isCrashlyticsEnabled, { isCrashlyticsEnabled = it })
+                SendCrashReportsButton(isCrashlyticsEnabled) { isChecked ->
+                    if (isChecked) {
+                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
+                    } else {
+                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
+                    }
+                    isCrashlyticsEnabled = isChecked
+                }
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
 

@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -83,6 +84,7 @@ import org.sparcs.App.Features.Post.Components.PostNavigationBar
 import org.sparcs.App.Features.Post.Components.PostShareButton
 import org.sparcs.App.Features.Post.Components.PostViewSkeleton
 import org.sparcs.App.Features.Post.Components.PostVoteButton
+import org.sparcs.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.App.Shared.Extensions.formattedString
 import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.App.Shared.Extensions.postfixEuroRo
@@ -136,6 +138,9 @@ fun PostView(
         viewModel.fetchPost()
     }
     val post = viewModel.post.collectAsState().value
+    val pullState = rememberPullToRefreshState()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
 
     Scaffold(
         topBar = {
@@ -260,7 +265,8 @@ fun PostView(
                             viewModel.fetchPost()
                         }
                         isRefreshing = false
-                    }
+                    },
+                    state = pullState
                 ) {
                     LazyColumn(
                         Modifier
