@@ -1,9 +1,7 @@
 package org.sparcs.App.Shared.Extensions
 
 import android.content.Context
-import android.os.Build
 import android.os.VibrationEffect
-import android.os.Vibrator
 import android.os.VibratorManager
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
@@ -25,13 +23,8 @@ fun PullToRefreshHapticHandler(
 ) {
     val context = LocalContext.current
     val vibrator = remember {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-            vibratorManager.defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
+        val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+        vibratorManager.defaultVibrator
     }
     var hasVibrated by remember { mutableStateOf(false) }
 
