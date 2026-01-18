@@ -1,7 +1,6 @@
 package org.sparcs.App.Features.FeedPost
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -30,10 +29,9 @@ interface FeedPostViewModelProtocol {
     var image: Bitmap?
     var isAnonymous: Boolean
 
-    suspend fun fetchComments(postID: String)
+    suspend fun fetchComments(postID: String, initial: Boolean)
     suspend fun writeComment(postID: String): FeedComment
     suspend fun writeReply(commentID: String): FeedComment
-    fun handleException(error: Throwable)
 }
 
 @HiltViewModel
@@ -89,7 +87,8 @@ class FeedPostViewModel @Inject constructor(
     override var isAnonymous by mutableStateOf(true)
 
     // MARK: - Functions
-    override suspend fun fetchComments(postID: String) {
+    override suspend fun fetchComments(postID: String, initial: Boolean) {
+        if (_state.value is ViewState.Loading && !initial) return
         val currentPost = post ?: return
         try {
             val fetchedComments = feedCommentRepository.fetchComments(postID)
@@ -134,13 +133,5 @@ class FeedPostViewModel @Inject constructor(
         val comment = feedCommentRepository.writeReply(commentID, request)
         _comments.value = insertReply(_comments.value, comment)
         return comment
-    }
-
-    override fun handleException(error: Throwable) {
-        Log.e("FeedPostViewModel","failed to create a report: $error")
-        crashlyticsHelper.recordException(
-            error = error,
-            alertMessage = "An unexpected error occurred while reporting a user. Please try again later."
-        )
     }
 }

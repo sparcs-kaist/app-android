@@ -15,6 +15,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import org.sparcs.App.Domain.Models.Ara.AraPost
 import org.sparcs.App.Features.PostList.Components.PostListRow.PostListRow
 import org.sparcs.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
+import org.sparcs.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.App.Shared.Mocks.mockList
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.App.theme.ui.Theme
@@ -50,7 +52,7 @@ fun PostList(
         //그냥 empty한 경우 (keyword == null)
         ErrorView(
             icon = Icons.Default.Clear,
-            errorMessage = stringResource(R.string.nothing_here) + "\n" + stringResource(R.string.no_posts),
+            message = stringResource(R.string.nothing_here) + "\n" + stringResource(R.string.no_posts),
             onRetry = { onRefresh() }//TODO - 번역?
         )
     }
@@ -85,6 +87,9 @@ private fun LoadedView(
 
     var isLoadingMore by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val pullState = rememberPullToRefreshState()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
@@ -104,7 +109,8 @@ private fun LoadedView(
 
     PullToRefreshBox(
         isRefreshing = isRefreshing,
-        onRefresh = onRefresh
+        onRefresh = onRefresh,
+        state = pullState
     ) {
         LazyColumn(state = listState) {
             itemsIndexed(posts) { index, post ->

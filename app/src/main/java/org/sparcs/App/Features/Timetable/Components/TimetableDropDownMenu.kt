@@ -1,6 +1,5 @@
 package org.sparcs.App.Features.Timetable.Components
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.sparcs.App.Features.Timetable.TimetableViewModel
 import org.sparcs.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.App.theme.ui.Theme
@@ -120,7 +118,10 @@ fun MyTableDropDownItems(
     Column {
         viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
             val displayName =
-                if (id.contains("myTable")) stringResource(R.string.my_table) else stringResource(R.string.table_label, index)
+                if (id.contains("myTable")) stringResource(R.string.my_table) else stringResource(
+                    R.string.table_label,
+                    index
+                )
             val isSelected = id == selectedTimetable?.id
 
             DropdownMenuItem(
@@ -149,12 +150,7 @@ private fun BottomMenuDropDownItems(
         text = { Text(stringResource(R.string.timetable_add)) },
         onClick = {
             scope.launch {
-                try {
-                    viewModel.createTable()
-                } catch (e: Exception) {
-                    Log.e("TimetableViewModel", "Error creating table: ${e.message}")
-                    viewModel.handleException(e, TimetableViewModel.ErrorType.CreateTable)
-                }
+                viewModel.createTable()
             }
             onDismiss()
         },
@@ -176,11 +172,7 @@ private fun BottomMenuDropDownItems(
         onClick = {
             onDismiss()
             if (viewModel.isEditable.value) {
-                try {
-                    viewModel.deleteTable()
-                } catch (e: Exception) {
-                    viewModel.handleException(e, TimetableViewModel.ErrorType.DeleteTable)
-                }
+                viewModel.deleteTable()
             }
         },
         leadingIcon = {

@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -42,6 +43,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.App.Features.NavigationBar.Channel
 import org.sparcs.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.App.Features.Settings.Taxi.NavigationLinkWithIcon
+import org.sparcs.App.Shared.Extensions.toggle
 import org.sparcs.App.Shared.ViewModelMocks.Ara.MockAraSettingsViewModel
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.App.theme.ui.Theme
@@ -72,7 +74,7 @@ fun AraSettingsView(
             SettingsViewNavigationBar(
                 title = stringResource(R.string.ara_settings),
                 onDismiss = { navController.popBackStack() },
-                )
+            )
         }
     ) { innerPadding ->
 
@@ -93,10 +95,9 @@ fun AraSettingsView(
                     val message = (state as AraSettingsViewModel.ViewState.Error).message
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        errorMessage = message,
-                        onRetry = { scope.launch { viewModel.fetchUser() }}
+                        message = message,
+                        onRetry = { scope.launch { viewModel.fetchUser() } }
                     )
-                    Text("Error: $message", color = MaterialTheme.colorScheme.error)
                 }
             }
         }
@@ -111,10 +112,19 @@ fun AraSettingsView(
                     }) { Text(stringResource(R.string.confirm)) }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showNicknameDialog = false }) { Text(stringResource(R.string.cancel)) }
+                    TextButton(onClick = {
+                        showNicknameDialog = false
+                    }) { Text(stringResource(R.string.cancel)) }
                 },
                 title = { Text(stringResource(R.string.warning)) },
-                text = { Text(stringResource(R.string.nickname_change_confirmation, viewModel.nickname)) }
+                text = {
+                    Text(
+                        stringResource(
+                            R.string.nickname_change_confirmation,
+                            viewModel.nickname
+                        )
+                    )
+                }
             )
         }
     }
@@ -124,7 +134,11 @@ fun AraSettingsView(
 private fun LoadingView() {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
-        OutlinedTextField(value = stringResource(R.string.unknown), onValueChange = {}, enabled = false)
+        OutlinedTextField(
+            value = stringResource(R.string.unknown),
+            onValueChange = {},
+            enabled = false
+        )
         Spacer(Modifier.height(16.dp))
         Text(stringResource(R.string.posts), style = MaterialTheme.typography.titleMedium)
         Switch(checked = true, onCheckedChange = {})
@@ -141,6 +155,7 @@ private fun LoadedView(
     val nicknameUpdatable = viewModel.nicknameUpdatable
     val nicknameUpdatableFrom = viewModel.nicknameUpdatableFrom
     val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val haptic = LocalHapticFeedback.current
 
     Column {
         //profile
@@ -191,20 +206,34 @@ private fun LoadedView(
             style = MaterialTheme.typography.titleMedium
         )
 
-        Row(verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 8.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
             Text(stringResource(R.string.allow_nsfw))
             Spacer(Modifier.weight(1f))
-            Switch(checked = viewModel.allowNSFW, onCheckedChange = { viewModel.allowNSFW = it })
+            Switch(
+                checked = viewModel.allowNSFW,
+                onCheckedChange = {
+                    haptic.toggle(it)
+                    viewModel.allowNSFW = it
+                }
+            )
         }
 
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 8.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
             Text(stringResource(R.string.allow_political))
             Spacer(Modifier.weight(1f))
             Switch(
                 checked = viewModel.allowPolitical,
-                onCheckedChange = { viewModel.allowPolitical = it })
+                onCheckedChange = {
+                    haptic.toggle(it)
+                    viewModel.allowPolitical = it
+                }
+            )
         }
 
         Spacer(Modifier.height(16.dp))
@@ -231,7 +260,6 @@ private fun LoadedView(
         )
     }
 }
-
 
 @Preview
 @Composable

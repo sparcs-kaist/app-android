@@ -5,7 +5,6 @@ import org.sparcs.App.Domain.Models.OTL.Lecture
 import org.sparcs.App.Domain.Models.OTL.Semester
 import org.sparcs.App.Domain.Models.OTL.Timetable
 import org.sparcs.App.Domain.Usecases.TimetableUseCase
-import org.sparcs.App.Features.Timetable.TimetableViewModel
 import org.sparcs.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.Mocks.mockList
@@ -24,6 +23,9 @@ class MockTimetableViewModel: TimetableViewModelProtocol {
     override val isCandidateOverlapping = MutableStateFlow(false)
     override val overlappingLecture = MutableStateFlow<Lecture?>(null)
 
+    override var showAlert: Boolean = false
+    override var alertMessageRes: Int? = null
+
     override fun setCandidateLecture(lecture: Lecture?) {
         candidateLecture.value = lecture
     }
@@ -38,5 +40,4 @@ class MockTimetableViewModel: TimetableViewModelProtocol {
     override fun addLecture(lecture: Lecture) {}
     override fun deleteLecture(lecture: Lecture) {}
     override fun removeOverlappingLectures(newLecture: Lecture) {}
-    override fun handleException(error: Throwable, type: TimetableViewModel.ErrorType) {}
 }

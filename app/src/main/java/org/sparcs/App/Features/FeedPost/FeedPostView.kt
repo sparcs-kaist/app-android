@@ -32,6 +32,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,6 +48,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -57,6 +59,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import org.sparcs.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.App.Domain.Models.Feed.FeedComment
 import org.sparcs.App.Domain.Models.Feed.FeedPost
 import org.sparcs.App.Domain.Repositories.Feed.FakeFeedCommentRepository
@@ -69,6 +72,9 @@ import org.sparcs.App.Features.Feed.FeedViewModelProtocol
 import org.sparcs.App.Features.FeedPost.Components.FeedCommentRow
 import org.sparcs.App.Features.FeedPost.Components.FeedPostNavigationBar
 import org.sparcs.App.Features.NavigationBar.Animation.MoveToLeftFadeIn
+import org.sparcs.App.Shared.Extensions.PullToRefreshHapticHandler
+import org.sparcs.App.Shared.Extensions.isNetworkError
+import org.sparcs.App.Shared.Extensions.toggle
 import org.sparcs.App.Shared.Mocks.mock
 import org.sparcs.App.Shared.Mocks.mockList
 import org.sparcs.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
@@ -97,6 +103,9 @@ fun FeedPostView(
     var targetComment by remember { mutableStateOf<FeedComment?>(null) }
     var isRefreshing by remember { mutableStateOf(false) }
     var isUploadingComment by remember { mutableStateOf(false) }
+    val pullState = rememberPullToRefreshState()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
 
     val isPreview = LocalInspectionMode.current
     val repo: FeedPostRepositoryProtocol =
@@ -125,10 +134,10 @@ fun FeedPostView(
         is FeedPostViewModel.ViewState.Error -> {
             ErrorView(
                 icon = Icons.Default.Warning,
-                errorMessage = state.message,
+                message = state.message,
                 onRetry = {
                     coroutineScope.launch {
-                        viewModel.post?.let { viewModel.fetchComments(it.id) }
+                        viewModel.post?.let { viewModel.fetchComments(it.id, initial = true) }
                     }
                 }
             )
@@ -136,13 +145,14 @@ fun FeedPostView(
 
         is FeedPostViewModel.ViewState.Loaded -> {
             val post = if (feedState is FeedViewModel.ViewState.Loaded) {
-                (feedState as FeedViewModel.ViewState.Loaded).posts.find { it.id == state.post.id } ?: state.post
+                (feedState as FeedViewModel.ViewState.Loaded).posts.find { it.id == state.post.id }
+                    ?: state.post
             } else {
                 state.post
             }
 
             LaunchedEffect(Unit) {
-                viewModel.fetchComments(postID = post.id)
+                viewModel.fetchComments(postID = post.id, initial = true)
             }
 
             Scaffold(
@@ -159,11 +169,15 @@ fun FeedPostView(
                                         message = R.string.reported_successfully
                                     )
                                 } catch (e: Exception) {
-                                    viewModel.handleException(error = e)
-                                    showAlert = true
+                                    val message = if (e.isNetworkError()) {
+                                        R.string.network_connection_error
+                                    } else {
+                                        R.string.unexpected_error_reporting_post
+                                    }
+
                                     showAlert(
                                         title = R.string.error,
-                                        message = R.string.unexpected_error_reporting_comment
+                                        message = message
                                     )
                                 }
                             }
@@ -203,7 +217,6 @@ fun FeedPostView(
                                     }
                                 } catch (e: Exception) {
                                     Log.e("FeedPostView", "Failed to upload comment", e)
-                                    viewModel.handleException(e)
                                     showAlert(
                                         title = R.string.error,
                                         message = R.string.unexpected_error_uploading_comment
@@ -223,10 +236,11 @@ fun FeedPostView(
                     onRefresh = {
                         isRefreshing = true
                         coroutineScope.launch {
-                            viewModel.fetchComments(postID = post.id)
+                            viewModel.fetchComments(postID = post.id, initial = false)
                         }
                         isRefreshing = false
-                    }
+                    },
+                    state = pullState
                 ) {
                     LazyColumn(
                         Modifier.padding(innerPadding),
@@ -273,12 +287,25 @@ fun FeedPostView(
                         confirmButton = {
                             Button(
                                 onClick = {
-                                    coroutineScope.launch { vm.deletePost(post.id) }
-                                    showDeleteConfirmation = false
-                                    navController.previousBackStackEntry
-                                        ?.savedStateHandle
-                                        ?.set("listNeedsRefresh", true)
-                                    navController.popBackStack()
+                                    coroutineScope.launch {
+                                        try {
+                                            vm.deletePost(post.id)
+                                            showDeleteConfirmation = false
+                                            navController.previousBackStackEntry
+                                                ?.savedStateHandle
+                                                ?.set("listNeedsRefresh", true)
+                                            navController.popBackStack()
+                                        } catch (e: Exception) {
+                                            showDeleteConfirmation = false
+
+                                            val resId = when (e) {
+                                                is FeedDeletionError -> e.errorDescription()
+                                                else -> R.string.unexpected_error_deleting_post
+                                            }
+
+                                            showAlert(R.string.error, resId)
+                                        }
+                                    }
                                 },
                                 colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
                             ) {
@@ -317,6 +344,8 @@ private fun InputBar(
     isUploadingComment: Boolean,
 ) {
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
+    val haptic = LocalHapticFeedback.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -332,7 +361,10 @@ private fun InputBar(
                     Spacer(modifier = Modifier.weight(1f))
                     Switch(
                         checked = viewModel.isAnonymous,
-                        onCheckedChange = { viewModel.isAnonymous = it },
+                        onCheckedChange = {
+                            haptic.toggle(it)
+                            viewModel.isAnonymous = it
+                        },
                     )
                 }
             }
@@ -476,8 +508,15 @@ private fun Comments(
             val coroutineScope = rememberCoroutineScope()
             ErrorView(
                 icon = Icons.Default.Warning,
-                errorMessage = state.message,
-                onRetry = { coroutineScope.launch { viewModel.fetchComments(post.id) } }
+                message = state.message,
+                onRetry = {
+                    coroutineScope.launch {
+                        viewModel.fetchComments(
+                            post.id,
+                            initial = true
+                        )
+                    }
+                }
             )
         }
     }

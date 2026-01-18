@@ -25,6 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -36,12 +38,16 @@ fun PostCommentButton(
     commentCount: Int,
     onClick: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
     Card(
         shape = CircleShape,
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.surface
         ),
-        modifier = Modifier.clickable { onClick() }
+        modifier = Modifier.clickable {
+            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+            onClick()
+        }
     ) {
         Row(
             modifier = Modifier.padding(8.dp),
@@ -76,7 +82,7 @@ fun PostCommentButton(
                 )
             }
         }
-        }
+    }
 }
 
 @Composable
