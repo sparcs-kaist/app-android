@@ -175,12 +175,12 @@ class AraBoardRepository @Inject constructor(
     }
 
     override suspend fun addBookmark(postID: Int): Int {
-        return try {
-            val scrap = api.addBookmark(mapOf("parent_article" to postID))
-            scrap.id
+        val scrap = try {
+            api.addBookmark(mapOf("parent_article" to postID))
         } catch (e: Exception) {
             handleApiError(gson, e)
         }
+        return scrap.id
     }
 
     override suspend fun removeBookmark(bookmarkID: Int) {
