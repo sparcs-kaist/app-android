@@ -367,7 +367,7 @@ private fun Term(context: Context, navController: NavHostController){
         color = MaterialTheme.colorScheme.onSurface
     ) {
         navController.navigate(Channel.LicenseView.name)
-       }
+    }
 
     ServiceNavButton(
         stringResource(R.string.acknowledgements),
