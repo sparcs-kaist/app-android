@@ -62,6 +62,8 @@ class PostViewModel @Inject constructor(
     override val isFoundationModelsAvailable: Boolean
         get() = false // TODO: foundationModelsUseCase.isAvailable
 
+    private var isToggling = false
+
     private fun insertThreadedComment(
         comments: MutableList<AraPostComment>,
         comment: AraPostComment,
@@ -228,9 +230,11 @@ class PostViewModel @Inject constructor(
     }
 
     override suspend fun toggleBookmark() {
+        if (isToggling) return
         val current = _post.value ?: return
         val previous = current.myScrap
         val originalScrapId = current.scrapID
+        isToggling = true
 
         _post.value = current.copy(myScrap = !previous)
 
@@ -249,6 +253,8 @@ class PostViewModel @Inject constructor(
                 myScrap = previous,
                 scrapID = originalScrapId
             )
+        } finally {
+            isToggling = false
         }
     }
 
