@@ -366,4 +366,7 @@
     <string name="upcoming_class_widget_desc">다음 수업 시간과 강의실 정보를 바로 확인합니다.</string>
     <string name="timetable_widget_desc">시간표를 홈 화면에서 확인합니다.</string>
     <string name="never_show_again">다시 보지 않기</string>
+    <string name="acknowledgements">만든 사람들</string>
+    <string name="sponsored_by">후원사</string>
+    <string name="legal_notices">오픈소스 고지</string>
 </resources>
