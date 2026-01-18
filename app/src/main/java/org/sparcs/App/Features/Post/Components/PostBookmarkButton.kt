@@ -14,6 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -28,6 +30,7 @@ fun PostBookmarkButton(
     isBookmarked: Boolean,
     onToggleBookmark: () -> Unit
 ){
+    val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
 
     Card(
@@ -36,6 +39,7 @@ fun PostBookmarkButton(
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         modifier = Modifier.clickable {
             scope.launch {
+                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                 onToggleBookmark()
             }
         }

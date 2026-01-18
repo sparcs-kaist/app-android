@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,6 +56,7 @@ fun TaxiDestinationPicker(
         targetValue = if (isFlipped) 180f else 0f,
         animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
     )
+    val haptic = LocalHapticFeedback.current
 
     Row(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -90,6 +93,7 @@ fun TaxiDestinationPicker(
                 }
                 .animateContentSize()
                 .clickable {
+                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                     isFlipped = !isFlipped
                     onSourceChange(destination)
                     onDestinationChange(source)
