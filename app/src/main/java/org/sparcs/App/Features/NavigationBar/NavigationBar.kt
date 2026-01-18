@@ -40,6 +40,7 @@ import org.sparcs.App.Features.BoardList.BoardListViewModel
 import org.sparcs.App.Features.Course.CourseView
 import org.sparcs.App.Features.Course.CourseViewModel
 import org.sparcs.App.Features.Credit.CreditView
+import org.sparcs.App.Features.Credit.LicenseView
 import org.sparcs.App.Features.Feed.FeedView
 import org.sparcs.App.Features.Feed.FeedViewModel
 import org.sparcs.App.Features.FeedPost.FeedPostView
@@ -132,6 +133,7 @@ enum class Channel(@StringRes val title: Int) {
     SignOut(title = R.string.sign_out),
     Settings(title = R.string.settings),
     CreditView(title = R.string.acknowledgements),
+    LicenseView(title = R.string.legal_notices),
     FeedSettings(title = R.string.feed_settings),
     AraSettings(title = R.string.ara_settings),
     AraMyPostSettings(title = R.string.ara_my_post_settings),
@@ -533,6 +535,16 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popExitTransition = trendingPopExitTransition()
                 ) {
                     CreditView(navController = navController)
+                }
+
+                composable(
+                    route = Channel.LicenseView.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) {
+                    LicenseView(navController = navController)
                 }
 
                 composable(

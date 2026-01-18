@@ -1,4 +1,5 @@
 [versions]
+aboutlibrariesComposeM3 = "11.2.3"
 agp = "8.8.2"
 appUpdateKtx = "2.1.0"
 coilCompose = "2.4.0"
@@ -37,6 +38,7 @@ appcompat = "1.7.1"
 constraintlayout = "2.2.1"
 
 [libraries]
+aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibrariesComposeM3" }
 androidx-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "compiler" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
