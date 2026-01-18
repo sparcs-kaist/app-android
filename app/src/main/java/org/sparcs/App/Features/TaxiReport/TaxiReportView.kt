@@ -1,6 +1,6 @@
 package org.sparcs.App.Features.TaxiReport
 
-import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,6 +28,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -62,6 +63,7 @@ import org.sparcs.App.Domain.Usecases.MockUserUseCase
 import org.sparcs.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.App.Features.TaxiChat.TaxiChatViewModel
 import org.sparcs.App.Features.TaxiReport.Components.TaxiReportUser
+import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.App.Shared.ViewModelMocks.Taxi.MockTaxiReportViewModel
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.App.theme.ui.grayBB
@@ -81,14 +83,22 @@ fun TaxiReportView(
         if (!isPreview) hiltViewModel<TaxiChatViewModel>().userUseCase else MockUserUseCase()
     val room by viewModel.room.collectAsState()
 
-    val reportSubmitted = stringResource(R.string.reported_successfully)
+    var showAlert by remember { mutableStateOf(false) }
+    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
+    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
+
+    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
+        alertTitle = title
+        alertMessage = message
+        showAlert = true
+    }
+
     LaunchedEffect(Unit) {
         taxiUser = userUseCase.taxiUser
     }
 
     val selectedUser by viewModel.selectedUser.collectAsState()
     val selectedReason by viewModel.selectedReason.collectAsState()
-    val context = LocalContext.current
     val isValid = selectedUser != null && selectedReason != null &&
             (selectedReason != TaxiReport.Reason.ETC_REASON ||
                     (viewModel.etcDetails.length in 1..viewModel.maxEtcDetailsLength))
@@ -144,17 +154,28 @@ fun TaxiReportView(
             ) {
                 Button(
                     onClick = {
-                        try {
-                            scope.launch { viewModel.createReport(room.id) }
-                            Toast.makeText(context, reportSubmitted, Toast.LENGTH_SHORT).show()
-                            navController.popBackStack()
-                        } catch (e: Exception) {
-                            viewModel.handleException(e)
-                            Toast.makeText(
-                                context,
-                                "Failed to send report: ${e.message}",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        scope.launch {
+                            try {
+                                viewModel.createReport(room.id)
+
+                                showAlert(
+                                    title = R.string.report_submitted,
+                                    message = R.string.reported_successfully
+                                )
+                                navController.popBackStack()
+
+                            } catch (e: Exception) {
+                                val message = if (e.isNetworkError()) {
+                                    R.string.network_connection_error
+                                } else {
+                                    R.string.unexpected_error_reporting_user
+                                }
+
+                                showAlert(
+                                    title = R.string.error,
+                                    message = message
+                                )
+                            }
                         }
                     },
                     enabled = isValid
@@ -167,6 +188,16 @@ fun TaxiReportView(
                 }
             }
         }
+    }
+    if (showAlert) {
+        AlertDialog(
+            onDismissRequest = { showAlert = false },
+            confirmButton = {
+                TextButton(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
+            },
+            title = { Text(stringResource(alertTitle)) },
+            text = { Text(stringResource(alertMessage)) }
+        )
     }
 }
 

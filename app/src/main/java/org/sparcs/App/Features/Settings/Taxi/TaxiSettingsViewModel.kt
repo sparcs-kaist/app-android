@@ -12,6 +12,8 @@ import org.sparcs.App.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.App.Domain.Repositories.Taxi.TaxiUserRepository
 import org.sparcs.App.Domain.Usecases.UserUseCase
+import org.sparcs.App.Shared.Extensions.isNetworkError
+import org.sparcs.R
 import javax.inject.Inject
 
 interface TaxiSettingsViewModelProtocol {
@@ -20,6 +22,9 @@ interface TaxiSettingsViewModelProtocol {
     var phoneNumber: String
     var showBadge: Boolean
     var residence: String
+    var showAlert: Boolean
+    var alertMessageRes: Int?
+
     val user: TaxiUser?
     val state: StateFlow<TaxiSettingsViewModel.ViewState>
 
@@ -37,7 +42,11 @@ class TaxiSettingsViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val messageRes: Int) : ViewState()
+    }
+
+    enum class ErrorType {
+        FETCH, BANK, BADGE, PHONE, RESIDENCE
     }
 
     override var bankName by mutableStateOf<String?>(null)
@@ -46,6 +55,10 @@ class TaxiSettingsViewModel @Inject constructor(
     override var phoneNumber by mutableStateOf("")
     override var showBadge by mutableStateOf(false)
     override var residence by mutableStateOf("")
+
+    override var showAlert by mutableStateOf(false)
+    override var alertMessageRes by mutableStateOf<Int?>(null)
+
     override var user by mutableStateOf<TaxiUser?>(null)
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -53,10 +66,9 @@ class TaxiSettingsViewModel @Inject constructor(
 
     override suspend fun fetchUser() {
         _state.value = ViewState.Loading
-        try {
             val fetchedUser = userUseCase.taxiUser
             if (fetchedUser == null) {
-                _state.value = ViewState.Error("Taxi User Information Not Found.")
+                _state.value = ViewState.Error(R.string.error_taxi_user_not_found)
                 return
             }
             user = fetchedUser
@@ -67,9 +79,6 @@ class TaxiSettingsViewModel @Inject constructor(
             showBadge = fetchedUser.badge ?: false
             residence = fetchedUser.residence ?: ""
             _state.value = ViewState.Loaded
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e.message ?: "Unknown Error")
-        }
     }
 
 
@@ -91,8 +100,8 @@ class TaxiSettingsViewModel @Inject constructor(
             }
             userUseCase.fetchTaxiUser()
         } catch (e: Exception) {
-            Log.e("TaxiSettingsViewModel", "Error editing information: $e")
-            crashlyticsHelper.recordException(e)
+            Log.e("TaxiSettingsViewModel", "Failed to fetch user: ${e.message}")
+            handleException(e, ErrorType.FETCH)
         }
     }
 
@@ -101,7 +110,7 @@ class TaxiSettingsViewModel @Inject constructor(
             taxiUserRepository.editBankAccount(account = "$bankName $bankNumber")
         } catch (e: Exception) {
             Log.e("TaxiSettingsViewModel", "Failed to edit bank account: ${e.message}")
-            crashlyticsHelper.recordException(e)
+            handleException(e, ErrorType.BANK)
         }
     }
 
@@ -110,7 +119,7 @@ class TaxiSettingsViewModel @Inject constructor(
             taxiUserRepository.registerPhoneNumber(phoneNumber = phoneNumber)
         } catch (e: Exception) {
             Log.e("TaxiSettingsViewModel", "Failed to register phone number: ${e.message}")
-            crashlyticsHelper.recordException(e)
+            handleException(e, ErrorType.PHONE)
         }
     }
 
@@ -119,7 +128,7 @@ class TaxiSettingsViewModel @Inject constructor(
             taxiUserRepository.editBadge(showBadge = showBadge)
         } catch (e: Exception) {
             Log.e("TaxiSettingsViewModel", "Failed to edit badge: ${e.message}")
-            crashlyticsHelper.recordException(e)
+            handleException(e, ErrorType.BADGE)
         }
     }
 
@@ -128,7 +137,29 @@ class TaxiSettingsViewModel @Inject constructor(
             taxiUserRepository.registerResidence(residence = residence)
         } catch (e: Exception) {
             Log.e("TaxiSettingsViewModel", "Failed to register residence: ${e.message}")
-            crashlyticsHelper.recordException(e)
+            handleException(e, ErrorType.RESIDENCE)
+        }
+    }
+
+    private fun handleException(error: Exception, type: ErrorType) {
+        val messageRes = if (error.isNetworkError()) {
+            R.string.network_connection_error
+        } else {
+            crashlyticsHelper.recordException(error)
+            when (type) {
+                ErrorType.BADGE -> R.string.badge_information_error
+                ErrorType.BANK -> R.string.bank_account_error
+                ErrorType.PHONE -> R.string.phone_verification_error
+                ErrorType.FETCH -> R.string.fetch_user_error
+                ErrorType.RESIDENCE -> R.string.residence_information_error
+            }
+        }
+
+        if (type == ErrorType.FETCH) {
+            _state.value = ViewState.Error(messageRes)
+        } else {
+            alertMessageRes = messageRes
+            showAlert = true
         }
     }
 }

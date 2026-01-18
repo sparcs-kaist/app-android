@@ -85,6 +85,7 @@ class FeedViewModel @Inject constructor(
             posts = posts.filterNot { it.id == postID }
         } catch (e: Exception) {
             Log.e("FeedViewModel", "failed to delete post", e)
+            throw e
         }
     }
 

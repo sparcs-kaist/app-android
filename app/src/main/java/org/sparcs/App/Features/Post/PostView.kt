@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -83,7 +84,9 @@ import org.sparcs.App.Features.Post.Components.PostNavigationBar
 import org.sparcs.App.Features.Post.Components.PostShareButton
 import org.sparcs.App.Features.Post.Components.PostViewSkeleton
 import org.sparcs.App.Features.Post.Components.PostVoteButton
+import org.sparcs.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.App.Shared.Extensions.formattedString
+import org.sparcs.App.Shared.Extensions.isNetworkError
 import org.sparcs.App.Shared.Extensions.postfixEuroRo
 import org.sparcs.App.Shared.ViewModelMocks.Ara.MockPostViewModel
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
@@ -124,7 +127,6 @@ fun PostView(
     var showAlert by remember { mutableStateOf(false) }
     @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
     @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-    var errorMessage: String by remember { mutableStateOf("") }
 
     fun showAlert(@StringRes title: Int, @StringRes message: Int) {
         alertTitle = title
@@ -132,18 +134,13 @@ fun PostView(
         showAlert = true
     }
 
-    fun showMessage(@StringRes title: Int, message: String) {
-        alertTitle = title
-        errorMessage = message
-        showAlert = true
-    }
-
-    val reportErrorMessage = stringResource(R.string.unexpected_error_reporting_comment)
-
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
     }
     val post = viewModel.post.collectAsState().value
+    val pullState = rememberPullToRefreshState()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
 
     Scaffold(
         topBar = {
@@ -157,8 +154,16 @@ fun PostView(
                             viewModel.report(type)
                         } catch (e: Exception) {
                             Log.e("PostView", "Failed to report post", e)
-                            viewModel.handleException(e)
-                            showMessage(R.string.error, e.message ?: reportErrorMessage)
+                            val message = if (e.isNetworkError()) {
+                                R.string.network_connection_error
+                            } else {
+                                R.string.unexpected_error_reporting_post
+                            }
+
+                            showAlert(
+                                title = R.string.error,
+                                message = message
+                            )
                         }
                     }
                 },
@@ -212,9 +217,17 @@ fun PostView(
 
                         } catch (e: Exception) {
                             Log.e("PostView", "Failed to upload comment", e)
-                            viewModel.handleException(e)
-                            showAlert = true
-                            showAlert(R.string.error, R.string.unexpected_error_uploading_comment)
+                            val message = if (e.isNetworkError()) {
+                                R.string.network_connection_error
+                            } else {
+                                viewModel.handleException(e)
+                                R.string.unexpected_error_uploading_comment
+                            }
+                            showAlert(
+                                title = R.string.error,
+                                message = message
+                            )
+
                         } finally {
                             isUploadingComment = false
                         }
@@ -234,7 +247,7 @@ fun PostView(
             is PostViewModel.ViewState.Error -> {
                 ErrorView(
                     icon = Icons.Default.Warning,
-                    errorMessage = state.message,
+                    message = state.message,
                     onRetry = { scope.launch { viewModel.fetchPost() } }
                 )
             }
@@ -252,7 +265,8 @@ fun PostView(
                             viewModel.fetchPost()
                         }
                         isRefreshing = false
-                    }
+                    },
+                    state = pullState
                 ) {
                     LazyColumn(
                         Modifier
@@ -357,11 +371,7 @@ fun PostView(
                 },
                 title = { Text(stringResource(alertTitle)) },
                 text = {
-                    if (alertMessage != 0) {
-                        Text(stringResource(alertMessage))
-                    } else {
-                        Text(errorMessage)
-                    }
+                    Text(stringResource(alertMessage))
                 }
             )
         }

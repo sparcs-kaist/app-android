@@ -35,8 +35,6 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.App.Domain.Helpers.Constants
@@ -169,7 +167,6 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             Log.d("TimetableWidgetWorker", "No installed widgets found. Stopping worker.")
             return Result.success()
         }
-
         val entryPoint =
             EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
         val syncManager = entryPoint.timetableSyncManager()
@@ -181,9 +178,8 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
 
             runCatching { timetableUseCase.load() }
-            val timetable = timetableUseCase.selectedTimetable
-                .filterNotNull()
-                .first()
+            val current = timetableUseCase.currentSemester ?: return Result.failure()
+            val timetable = timetableUseCase.getMyTable(current.id)
 
             syncManager.sync(timetable)
             Result.success()
