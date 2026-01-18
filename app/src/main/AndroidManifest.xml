@@ -67,12 +67,12 @@
             android:windowSoftInputMode="adjustNothing">
 
             <intent-filter>
-            <action android:name="android.intent.action.VIEW" />
-            <category android:name="android.intent.category.DEFAULT" />
-            <category android:name="android.intent.category.BROWSABLE" />
-            <data
-                android:scheme="sparcsapp"
-                android:host="authorize" />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="sparcsapp"
+                    android:host="authorize" />
 
             </intent-filter>
 
