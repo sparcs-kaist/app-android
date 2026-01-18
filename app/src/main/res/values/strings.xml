@@ -387,6 +387,9 @@
     <string name="upcoming_class_widget_desc">Check your next class time and location at a glance.</string>
     <string name="timetable_widget_desc">View your timetable on your home screen.</string>
     <string name="never_show_again">Don\'t show again</string>
-    <string name="sponsored_by" translatable="false">SPONSORED BY</string>
+    <string name="sponsored_by_splash_screen" translatable="false">SPONSORED BY</string>
     <string name="hyundai_mobis_icon" translatable="false">Hyundai Mobis Icon</string>
+    <string name="acknowledgements">Acknowledgements</string>
+    <string name="sponsored_by">Sponsored By</string>
+    <string name="legal_notices">Legal Notices</string>
 </resources>

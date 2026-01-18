@@ -26,7 +26,7 @@
         android:alpha="0.8"
         android:fontFamily="sans-serif-medium"
         android:letterSpacing="0.1"
-        android:text="@string/sponsored_by"
+        android:text="@string/sponsored_by_splash_screen"
         android:textColor="@color/logo_tint"
         android:textSize="12sp"
         app:layout_constraintBottom_toTopOf="@+id/logo_sponsor"

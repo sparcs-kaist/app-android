@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.sparcs.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.App.theme.ui.darkGray
 import org.sparcs.R
@@ -38,13 +39,7 @@ fun LectureDetailNavigationBar(
 
     CenterAlignedTopAppBar(
         navigationIcon = {
-            IconButton(onClick = { navController.popBackStack() }) {
-                Icon(
-                    painter = painterResource(R.drawable.arrow_back_ios),
-                    contentDescription = "Back",
-                    tint = MaterialTheme.colorScheme.darkGray
-                )
-            }
+            DismissButton { navController.popBackStack() }
         },
         title = {
             Text(
