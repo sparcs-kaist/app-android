@@ -40,7 +40,7 @@ interface AraBoardRepositoryProtocol {
     suspend fun cancelVote(postID: Int)
     suspend fun reportPost(postID: Int, type: AraContentReportType)
     suspend fun deletePost(postID: Int)
-    suspend fun addBookmark(postID: Int)
+    suspend fun addBookmark(postID: Int): Int
     suspend fun removeBookmark(bookmarkID: Int)
 }
 
@@ -174,17 +174,24 @@ class AraBoardRepository @Inject constructor(
         }
     }
 
-
-    override suspend fun addBookmark(postID: Int) = try {
-        api.addBookmark(mapOf("parent_article" to postID))
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun addBookmark(postID: Int): Int {
+        val scrap = try {
+            api.addBookmark(mapOf("parent_article" to postID))
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
+        return scrap.id
     }
 
-    override suspend fun removeBookmark(bookmarkID: Int) = try {
-        api.removeBookmark(bookmarkID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun removeBookmark(bookmarkID: Int) {
+        try {
+            val response = api.removeBookmark(bookmarkID)
+            if (!response.isSuccessful) {
+                throw Exception("Failed to remove bookmark: ${response.code()}")
+            }
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
     }
 }
 
