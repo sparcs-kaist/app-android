@@ -1,5 +1,7 @@
 package org.sparcs.App.Domain.Usecases
 
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.sparcs.App.Domain.Models.OTL.OTLUser
 import org.sparcs.App.Domain.Models.OTL.Semester
 import org.sparcs.App.Domain.Models.OTL.Timetable
@@ -24,26 +26,32 @@ class TimetableUseCaseBackground @Inject constructor(
     override var semesters: List<Semester> = emptyList()
     override var currentSemester: Semester? = null
 
+    private val loadMutex = Mutex()
+
     override suspend fun load() {
         if (store.isNotEmpty() || semesters.isNotEmpty()) return
 
-        try {
-            val fetchedSemesters = otlTimetableRepository.getSemesters()
-            val fetchedCurrent = otlTimetableRepository.getCurrentSemester()
+        loadMutex.withLock {
+            if (store.isNotEmpty() || semesters.isNotEmpty()) return
 
-            this.semesters = fetchedSemesters
-            this.currentSemester = fetchedCurrent
+            try {
+                val fetchedSemesters = otlTimetableRepository.getSemesters()
+                val fetchedCurrent = otlTimetableRepository.getCurrentSemester()
 
-            val user = userUseCase.otlUser ?: run {
-                userUseCase.fetchOTLUser()
-                userUseCase.otlUser
+                this.semesters = fetchedSemesters
+                this.currentSemester = fetchedCurrent
+
+                val user = userUseCase.otlUser ?: run {
+                    userUseCase.fetchOTLUser()
+                    userUseCase.otlUser
+                }
+
+                this.store = semesters.associate { semester ->
+                    semester.id to listOf(makeMyTable(semester, user))
+                }
+            } catch (e: Exception) {
+                throw e
             }
-
-            this.store = semesters.associate { semester ->
-                semester.id to listOf(makeMyTable(semester, user))
-            }
-        } catch (e: Exception) {
-            throw e
         }
     }
 
