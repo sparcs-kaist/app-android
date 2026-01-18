@@ -29,7 +29,7 @@ fun PostVoteButton(
     votes: Int,
     onDownVote: () -> Unit,
     onUpVote: () -> Unit,
-    enabled: Boolean
+    enabled: Boolean,
 ) {
     val upvoteImage =
         if (myVote == true) R.drawable.icon_arrowup else R.drawable.icon_arrowup //filled, outlined
@@ -62,11 +62,13 @@ fun PostVoteButton(
                 modifier = Modifier
                     .size(20.dp)
                     .clickable {
-                        if (isRunning) return@clickable
-                        if (enabled) {
-                            isRunning = true
-                            onUpVote()
-                            isRunning = false
+                        if (enabled && !isRunning) {
+                            try {
+                                isRunning = true
+                                onUpVote()
+                            } finally {
+                                isRunning = false
+                            }
                         }
                     }
             )
@@ -96,11 +98,13 @@ fun PostVoteButton(
             modifier = Modifier
                 .size(20.dp)
                 .clickable {
-                    if (isRunning) return@clickable
-                    if (enabled) {
-                        isRunning = true
-                        onDownVote()
-                        isRunning = false
+                    if (enabled && !isRunning) {
+                        try {
+                            isRunning = true
+                            onDownVote()
+                        } finally {
+                            isRunning = false
+                        }
                     }
                 }
         )
@@ -110,6 +114,6 @@ fun PostVoteButton(
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme { PostVoteButton(true, 2, {}, {}, true) }
 }
