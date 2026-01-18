@@ -65,7 +65,6 @@ fun SettingsView(
     val context = LocalContext.current
     var showLogoutError by remember { mutableStateOf(false) }
     val isPreview = LocalInspectionMode.current
-
     var isCrashlyticsEnabled by remember {
         mutableStateOf(if (!isPreview) FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled else false)
     }
@@ -134,29 +133,10 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
 
-                ServiceNavButton(
-                    stringResource(R.string.privacy_policy),
-                    painterResource(R.drawable.outline_policy),
-                    color = MaterialTheme.colorScheme.onSurface
-                ) {
-                    val intent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(Constants.privacyPolicyURL)
-                    ); context.startActivity(intent)
-                }
-
-                ServiceNavButton(
-                    stringResource(R.string.terms_of_use),
-                    painterResource(R.drawable.outline_description),
-                    color = MaterialTheme.colorScheme.onSurface
-                ) {
-                    val intent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(Constants.termsOfUseURL)
-                    ); context.startActivity(intent)
-                }
-
-                VersionRow()
+                Term(
+                    context = context,
+                    navController = navController
+                )
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
@@ -352,6 +332,49 @@ private fun SendCrashReportsButton(
             onCheckedChange = onCheckedChange
         )
     }
+}
+
+@Composable
+private fun Term(context: Context, navController: NavHostController){
+    ServiceNavButton(
+        stringResource(R.string.privacy_policy),
+        painterResource(R.drawable.outline_policy),
+        color = MaterialTheme.colorScheme.onSurface
+    ) {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(Constants.privacyPolicyURL)
+        ); context.startActivity(intent)
+    }
+
+    ServiceNavButton(
+        stringResource(R.string.terms_of_use),
+        painterResource(R.drawable.outline_description),
+        color = MaterialTheme.colorScheme.onSurface
+    ) {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(Constants.termsOfUseURL)
+        ); context.startActivity(intent)
+    }
+
+    ServiceNavButton(
+        stringResource(R.string.legal_notices),
+        painterResource(R.drawable.outline_balance),
+        color = MaterialTheme.colorScheme.onSurface
+    ) {
+        navController.navigate(Channel.LicenseView.name)
+       }
+
+    ServiceNavButton(
+        stringResource(R.string.acknowledgements),
+        painterResource(R.drawable.outline_volunteer_activism),
+        color = MaterialTheme.colorScheme.onSurface
+    ) {
+        navController.navigate(Channel.CreditView.name)
+    }
+
+    VersionRow()
 }
 
 @Composable

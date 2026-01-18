@@ -9,7 +9,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id ("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.android.gms.oss-licenses-plugin")
+    id("com.mikepenz.aboutlibraries.plugin")
 }
 
 val properties = Properties().apply {
@@ -121,5 +121,5 @@ dependencies {
     debugImplementation(libs.androidx.glance.appwidget.preview)
 
     implementation (libs.androidx.core.splashscreen)
-    implementation(libs.play.services.oss.licenses)
+    implementation(libs.aboutlibraries.compose.m3)
 }
