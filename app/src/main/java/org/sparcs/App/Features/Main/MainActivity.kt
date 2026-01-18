@@ -153,7 +153,7 @@ fun NoticeDialog(
         ) {
             Column {
                 Image(
-                    painter = painterResource(R.drawable.search), //TODO 팝업 임시 이미지
+                    painter = painterResource(R.drawable.search), //TODO A팝업 임시 이미지
                     contentDescription = "Popup Image",
                     modifier = Modifier
                         .fillMaxWidth()
