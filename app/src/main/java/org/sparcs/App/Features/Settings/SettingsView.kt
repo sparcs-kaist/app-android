@@ -204,12 +204,8 @@ fun SettingsView(
 
 @Composable
 private fun AppSettings(context: Context) {
-    val currentLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+    val currentLocale =
         context.resources.configuration.locales[0]
-    } else {
-        @Suppress("DEPRECATION")
-        context.resources.configuration.locale
-    }
 
     val languageDisplayName = currentLocale.displayLanguage
     val onClick = {
