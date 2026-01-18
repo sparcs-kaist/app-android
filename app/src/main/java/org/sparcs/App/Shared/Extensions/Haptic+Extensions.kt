@@ -37,7 +37,9 @@ fun PullToRefreshHapticHandler(
 
     LaunchedEffect(state.distanceFraction) {
         if (state.distanceFraction >= 1f && !hasVibrated && !isRefreshing) {
-            vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+            if (vibrator.hasVibrator()) {
+                vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+            }
             hasVibrated = true
         }
     }
