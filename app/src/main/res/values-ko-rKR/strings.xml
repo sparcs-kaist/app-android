@@ -331,7 +331,7 @@
     <string name="thu">목</string>
     <string name="fri">금</string>
     <string name="sat">토</string>
-    <string name="kaist_ip_verified">본 게시물은 KAIST 내부 네트워크를 통해 작성되었습니다.</string>
+    <string name="kaist_ip_verified">KAIST 네트워크 접속 환경에서 작성된 게시글입니다.</string>
     <string name="phone_number">전화번호</string>
     <string name="edit_message_phone_number">전화번호는 최초 1회만 등록 가능합니다. 입력하신 번호로 설정하시겠습니까?</string>
     <string name="show_badge">배지 표시</string>
