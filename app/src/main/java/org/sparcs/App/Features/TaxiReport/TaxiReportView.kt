@@ -24,7 +24,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -61,6 +60,7 @@ import org.sparcs.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.App.Domain.Usecases.MockUserUseCase
 import org.sparcs.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.App.Features.TaxiChat.TaxiChatViewModel
 import org.sparcs.App.Features.TaxiReport.Components.TaxiReportUser
 import org.sparcs.App.Shared.Extensions.isNetworkError
@@ -108,12 +108,7 @@ fun TaxiReportView(
             CenterAlignedTopAppBar(
                 title = { Text(stringResource(R.string.report)) },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            painterResource(R.drawable.arrow_back_ios),
-                            contentDescription = "Cancel"
-                        )
-                    }
+                    DismissButton { navController.popBackStack() }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.background)
             )
