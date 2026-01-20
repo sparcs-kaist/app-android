@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.sparcs.App.Domain.Repositories.Settings.SettingsRepository
@@ -65,6 +66,7 @@ class SplashActivity : ComponentActivity() {
                 }
 
                 LaunchedEffect(Unit) {
+                    delay(1000)
                     startActivity(Intent(this@SplashActivity, MainActivity::class.java))
                     finish()
                 }

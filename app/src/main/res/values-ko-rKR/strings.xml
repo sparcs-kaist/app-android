@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">버디</string>
     <string name="start">타임라인</string>
     <string name="timetable">시간표</string>
     <string name="taxi">택시</string>

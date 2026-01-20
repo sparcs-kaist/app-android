@@ -107,15 +107,15 @@ class MainActivity : ComponentActivity() {
                     // MARK: THIS PLAYS CRUCIAL ROLE HIDING SIGN IN VIEW ON LOADING
                 } else {
                     if (isAuthenticated == true) {
-                        if (showNotice) {
-                            NoticeDialog(
-                                onDismiss = { showNotice = false },
-                                onDoNotShowAgain = {
-                                    PopupManager.saveIgnoreTimestamp(this@MainActivity)
-                                    showNotice = false
-                                }
-                            )
-                        }
+//                        if (showNotice) {
+//                            NoticeDialog(
+//                                onDismiss = { showNotice = false },
+//                                onDoNotShowAgain = {
+//                                    PopupManager.saveIgnoreTimestamp(this@MainActivity)
+//                                    showNotice = false
+//                                }
+//                            )
+//                        }
                         MainTabBar()
                     } else {
                         SignInView()
