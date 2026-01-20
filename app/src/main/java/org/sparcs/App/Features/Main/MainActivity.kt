@@ -107,15 +107,17 @@ class MainActivity : ComponentActivity() {
                     // MARK: THIS PLAYS CRUCIAL ROLE HIDING SIGN IN VIEW ON LOADING
                 } else {
                     if (isAuthenticated == true) {
-//                        if (showNotice) {
-//                            NoticeDialog(
-//                                onDismiss = { showNotice = false },
-//                                onDoNotShowAgain = {
-//                                    PopupManager.saveIgnoreTimestamp(this@MainActivity)
-//                                    showNotice = false
-//                                }
-//                            )
-//                        }
+                        /* TODO: 공지사항 팝업 기능 활성화 시 주석 해제
+                        if (showNotice) {
+                            NoticeDialog(
+                                onDismiss = { showNotice = false },
+                                onDoNotShowAgain = {
+                                    PopupManager.saveIgnoreTimestamp(this@MainActivity)
+                                    showNotice = false
+                                }
+                            )
+                        }
+                        */
                         MainTabBar()
                     } else {
                         SignInView()
@@ -153,7 +155,7 @@ fun NoticeDialog(
         ) {
             Column {
                 Image(
-                    painter = painterResource(R.drawable.search), //TODO A팝업 임시 이미지
+                    painter = painterResource(R.drawable.search), //TODO: 팝업 임시 이미지
                     contentDescription = "Popup Image",
                     modifier = Modifier
                         .fillMaxWidth()

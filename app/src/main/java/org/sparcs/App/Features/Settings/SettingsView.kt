@@ -338,7 +338,7 @@ private fun SendCrashReportsButton(
 }
 
 @Composable
-private fun Term(context: Context, navController: NavHostController){
+private fun Term(context: Context, navController: NavHostController) {
     ServiceNavButton(
         stringResource(R.string.privacy_policy),
         painterResource(R.drawable.outline_policy),
