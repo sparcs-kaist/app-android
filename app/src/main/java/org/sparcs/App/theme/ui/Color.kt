@@ -127,3 +127,6 @@ val theme_dark_gray64 = Color(0xFF9A9A9A)
 val theme_dark_grayBB = Color(0xFFB6B6B6)
 val theme_dark_grayF8 = Color(0xFF1E1E1E)
 val theme_dark_darkGray = Color(0xFFE8E8E8)
+
+var upvote = Color(0xFFFF4500)
+var downvote = Color(0xFF047DFF)
