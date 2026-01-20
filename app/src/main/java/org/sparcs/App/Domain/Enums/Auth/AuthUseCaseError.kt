@@ -1,6 +1,9 @@
 package org.sparcs.App.Domain.Enums.Auth
 
-sealed class AuthUseCaseError : Throwable() {
+import android.content.Context
+import org.sparcs.R
+
+sealed class AuthUseCaseError : Exception() {
     data class SignInFailed(val error: Throwable) : AuthUseCaseError()
 
     data object SignOutFailed : AuthUseCaseError() {
@@ -13,11 +16,25 @@ sealed class AuthUseCaseError : Throwable() {
         private fun readResolve(): Any = NoAccessToken
     }
 
-    override val message: String?
-        get() = when (this) {
-            is SignInFailed -> "Sign in failed: ${error.localizedMessage}"
-            is SignOutFailed -> "Sign out failed."
-            is RefreshFailed -> "Token refresh failed: ${error.localizedMessage}"
-            is NoAccessToken -> "No access token."
+    fun message(context: Context): String {
+        return when (this) {
+            is SignInFailed -> {
+                error.asServiceError()?.message(context)
+                    ?: context.getString(R.string.error_sign_in_failed, error.localizedMessage)
+            }
+
+            is SignOutFailed -> context.getString(R.string.error_sign_out_failed)
+            is RefreshFailed -> {
+                error.asServiceError()?.message(context)
+                    ?: context.getString(
+                        R.string.error_token_refresh_failed,
+                        error.localizedMessage
+                    )
+            }
+
+            is NoAccessToken -> context.getString(R.string.error_no_access_token)
         }
+    }
 }
+
+private fun Throwable.asServiceError() = this as? AuthenticationServiceError

@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -42,7 +44,6 @@ import org.sparcs.App.Domain.Helpers.Constants
 import org.sparcs.App.Shared.ViewModelMocks.MockSignInViewModel
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.R
-import kotlin.coroutines.cancellation.CancellationException
 
 @Composable
 fun SignInView(
@@ -50,7 +51,7 @@ fun SignInView(
 ) {
     val isLoading = viewModel.isLoading
     var showErrorDialog by remember { mutableStateOf(false) }
-    var errorMessage = viewModel.errorMessage ?: "Unknown Error"
+    var errorMessage by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -64,10 +65,10 @@ fun SignInView(
     ) {
         Spacer(modifier = Modifier.weight(1f))
 
-        Text(
-            text = "SPARCS APP INTERNAL",
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface
+        Image(
+            painter = painterResource(id = R.drawable.ic_buddy_icon),
+            modifier = Modifier.size(100.dp),
+            contentDescription = null
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -79,14 +80,11 @@ fun SignInView(
                 coroutineScope.launch {
                     try {
                         viewModel.signIn(context as Activity)
-                    } catch (e: CancellationException) {
-                        errorMessage = "User cancelled"
-                        showErrorDialog = true
-                    } catch (e: AuthUseCaseError) {
-                        errorMessage = e.message ?: "Unknown error"
-                        showErrorDialog = true
                     } catch (e: Exception) {
-                        errorMessage = e.message ?: "Unknown error"
+                        errorMessage = when (e) {
+                            is AuthUseCaseError -> e.message(context)
+                            else -> e.localizedMessage ?: "Unknown error"
+                        }
                         showErrorDialog = true
                     }
                 }
