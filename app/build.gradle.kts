@@ -9,6 +9,7 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id ("org.jetbrains.kotlin.plugin.serialization")
+    id("com.mikepenz.aboutlibraries.plugin")
 }
 
 val properties = Properties().apply {
@@ -89,6 +90,8 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.androidx.browser)
     implementation(libs.androidx.glance.preview)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -116,4 +119,7 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
     debugImplementation(libs.androidx.glance.appwidget.preview)
+
+    implementation (libs.androidx.core.splashscreen)
+    implementation(libs.aboutlibraries.compose.m3)
 }

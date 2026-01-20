@@ -37,7 +37,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -53,6 +52,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.sparcs.App.Domain.Helpers.Constants
 import org.sparcs.App.Features.NavigationBar.Channel
 import org.sparcs.App.Features.Settings.Components.SettingsViewNavigationBar
+import org.sparcs.App.Shared.Extensions.toggle
 import org.sparcs.App.Shared.ViewModelMocks.MockSettingsViewModel
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.App.theme.ui.grayBB
@@ -99,13 +99,9 @@ fun SettingsView(
                 AppSettings(context)
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
-                SendCrashReportsButton(isCrashlyticsEnabled) { isChecked ->
-                    if (isChecked) {
-                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOn)
-                    } else {
-                        haptic.performHapticFeedback(HapticFeedbackType.ToggleOff)
-                    }
-                    isCrashlyticsEnabled = isChecked
+                SendCrashReportsButton(isCrashlyticsEnabled) {
+                    haptic.toggle(it)
+                    isCrashlyticsEnabled = it
                 }
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
@@ -144,29 +140,10 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
 
-                ServiceNavButton(
-                    stringResource(R.string.privacy_policy),
-                    painterResource(R.drawable.outline_policy),
-                    color = MaterialTheme.colorScheme.onSurface
-                ) {
-                    val intent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(Constants.privacyPolicyURL)
-                    ); context.startActivity(intent)
-                }
-
-                ServiceNavButton(
-                    stringResource(R.string.terms_of_use),
-                    painterResource(R.drawable.outline_description),
-                    color = MaterialTheme.colorScheme.onSurface
-                ) {
-                    val intent = Intent(
-                        Intent.ACTION_VIEW,
-                        Uri.parse(Constants.termsOfUseURL)
-                    ); context.startActivity(intent)
-                }
-
-                VersionRow()
+                Term(
+                    context = context,
+                    navController = navController
+                )
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
             }
@@ -227,12 +204,8 @@ fun SettingsView(
 
 @Composable
 private fun AppSettings(context: Context) {
-    val currentLocale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+    val currentLocale =
         context.resources.configuration.locales[0]
-    } else {
-        @Suppress("DEPRECATION")
-        context.resources.configuration.locale
-    }
 
     val languageDisplayName = currentLocale.displayLanguage
     val onClick = {
@@ -362,6 +335,49 @@ private fun SendCrashReportsButton(
             onCheckedChange = onCheckedChange
         )
     }
+}
+
+@Composable
+private fun Term(context: Context, navController: NavHostController) {
+    ServiceNavButton(
+        stringResource(R.string.privacy_policy),
+        painterResource(R.drawable.outline_policy),
+        color = MaterialTheme.colorScheme.onSurface
+    ) {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(Constants.privacyPolicyURL)
+        ); context.startActivity(intent)
+    }
+
+    ServiceNavButton(
+        stringResource(R.string.terms_of_use),
+        painterResource(R.drawable.outline_description),
+        color = MaterialTheme.colorScheme.onSurface
+    ) {
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse(Constants.termsOfUseURL)
+        ); context.startActivity(intent)
+    }
+
+    ServiceNavButton(
+        stringResource(R.string.legal_notices),
+        painterResource(R.drawable.outline_balance),
+        color = MaterialTheme.colorScheme.onSurface
+    ) {
+        navController.navigate(Channel.LicenseView.name)
+    }
+
+    ServiceNavButton(
+        stringResource(R.string.acknowledgements),
+        painterResource(R.drawable.outline_volunteer_activism),
+        color = MaterialTheme.colorScheme.onSurface
+    ) {
+        navController.navigate(Channel.CreditView.name)
+    }
+
+    VersionRow()
 }
 
 @Composable
