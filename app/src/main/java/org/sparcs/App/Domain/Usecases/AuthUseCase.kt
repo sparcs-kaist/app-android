@@ -20,6 +20,7 @@ import org.sparcs.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.App.Domain.Services.AuthenticationService
 import org.sparcs.App.Domain.Services.AuthenticationServiceProtocol
 import org.sparcs.App.Networking.ResponseDTO.Ara.AraSignInResponseDTO
+import org.sparcs.App.Shared.Extensions.isNetworkError
 import retrofit2.HttpException
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -141,7 +142,8 @@ class AuthUseCase @Inject constructor(
             scheduleRefreshToken()
         } catch (e: Exception) {
             Log.d("AuthUseCase", "Failed to refresh token, marking as unauthenticated", e)
-            val isAuthError = if (e is HttpException) e.code() == 401 else true
+
+            val isAuthError = !e.isNetworkError() && (e as? HttpException)?.code() == 401
 
             if (isAuthError) {
                 tokenStorage.clearTokens()
