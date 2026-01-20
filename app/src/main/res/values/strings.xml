@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Buddy</string>
+    <string name="app_name" translatable="false">Buddy</string>
 
 
     <string name="start">Feed</string>
@@ -201,7 +201,7 @@
     </string>
     <string name="select_bank">Select Bank</string>
     <string name="unexpected_error_signing_out">An error occurred while signing out. Please try again later.</string>
-    <string name="sign_in_sso">Sign In with SPARCS SSO</string>
+    <string name="sign_in_sso">Continue with SPARCS SSO</string>
     <string name="terms_and_privacy_prefix">By continuing, you agree to our </string>
     <string name="and_text"> and </string>
     <string name="terms_and_privacy_suffix">.</string>
@@ -386,6 +386,12 @@
     <string name="timetable_widget_title">Buddy Timetable</string>
     <string name="upcoming_class_widget_desc">Check your next class time and location at a glance.</string>
     <string name="timetable_widget_desc">View your timetable on your home screen.</string>
+    <string name="never_show_again">Don\'t show again</string>
+    <string name="sponsored_by_splash_screen" translatable="false">SPONSORED BY</string>
+    <string name="hyundai_mobis_icon" translatable="false">Hyundai Mobis Icon</string>
+    <string name="acknowledgements">Acknowledgements</string>
+    <string name="sponsored_by">Sponsored By</string>
+    <string name="legal_notices">Legal Notices</string>
     <string name="error_post_has_comments">Posts with comments cannot be deleted.</string>
     <string name="network_connection_error">You are not connected to the Internet.</string>
     <string name="unexpected_error_uploading_post">An unexpected error occurred while uploading a post. Please try again later.</string>
@@ -406,4 +412,14 @@
     <string name="error_fetch_boards">Failed to load boards.</string>
     <string name="error_comment_has_replies">Comments with replies cannot be deleted.</string>
     <string name="unexpected_error_deleting_comment">An unexpected error occurred while deleting a comment. Please try again later.</string>
+    <string name="error_sign_in_failed">Sign in failed: %s</string>
+    <string name="error_sign_out_failed">Sign out failed.</string>
+    <string name="error_refresh_failed">Token refresh failed: %s</string>
+    <string name="error_no_access_token">No access token found. Please sign in again.</string>
+    <string name="error_user_cancelled">Authentication was cancelled by the user.</string>
+    <string name="error_invalid_callback_url">Invalid callback URL received.</string>
+    <string name="error_token_exchange_failed">Failed to exchange code for tokens: %s</string>
+    <string name="error_token_refresh_failed">Failed to refresh access token: %s</string>
+    <string name="error_no_refresh_token">No refresh token available.</string>
+    <string name="error_unknown">An unknown authentication error occurred.</string>
 </resources>

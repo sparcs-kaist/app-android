@@ -110,8 +110,8 @@ fun DismissButton(onClick: () -> Unit) {
     ) {
         Icon(
             painter = painterResource(R.drawable.arrow_back_ios),
-            contentDescription = "Cancel",
-            tint = MaterialTheme.colorScheme.darkGray
+            contentDescription = "Back",
+            tint = MaterialTheme.colorScheme.darkGray,
         )
     }
 }
