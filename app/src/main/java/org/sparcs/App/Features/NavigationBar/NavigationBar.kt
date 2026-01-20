@@ -98,8 +98,6 @@ import org.sparcs.App.theme.ui.Theme
 import org.sparcs.R
 
 enum class Channel(@StringRes val title: Int) {
-    Appname(title = R.string.app_name),
-
     //Feed
     Start(title = R.string.start),
     FeedPost(title = R.string.feed_post_view),

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Buddy</string>
+    <string name="app_name" translatable="false">Buddy</string>
 
 
     <string name="start">Feed</string>
