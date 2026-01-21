@@ -16,6 +16,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.outlined.Balance
+import androidx.compose.material.icons.outlined.DarkMode
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.Feedback
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Policy
+import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -36,7 +48,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -115,18 +126,18 @@ fun SettingsView(
                 )
 
                 ServiceNavButton(
-                    stringResource(R.string.feed),
-                    painterResource(R.drawable.sparcs_logo)
+                    text = stringResource(R.string.feed),
+                    icon = { Icon(painterResource(R.drawable.sparcs_logo), null, tint = Color.Unspecified) }
                 ) { navController.navigate(Channel.FeedSettings.name) }
 
                 ServiceNavButton(
-                    stringResource(R.string.ara),
-                    painterResource(R.drawable.ara_logo)
+                    text = stringResource(R.string.ara),
+                    icon = { Icon(painterResource(R.drawable.ara_logo), null, tint = Color.Unspecified) }
                 ) { navController.navigate(Channel.AraSettings.name) }
 
                 ServiceNavButton(
-                    stringResource(R.string.taxi),
-                    painterResource(R.drawable.taxi_logo)
+                    text = stringResource(R.string.taxi),
+                    icon = { Icon(painterResource(R.drawable.taxi_logo), null, tint = Color.Unspecified) }
                 ) { navController.navigate(Channel.TaxiSettings.name) }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -242,7 +253,7 @@ private fun AppSettings(context: Context) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.outline_language),
+            imageVector = Icons.Outlined.Language,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface
         )
@@ -287,7 +298,7 @@ private fun FeedbackButton(context: Context) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.outline_feedback),
+            imageVector = Icons.Outlined.Feedback,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface
         )
@@ -315,7 +326,7 @@ private fun SendCrashReportsButton(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.round_lightbulb_outline),
+            imageVector = Icons.Outlined.Lightbulb,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface
         )
@@ -340,9 +351,8 @@ private fun SendCrashReportsButton(
 @Composable
 private fun Term(context: Context, navController: NavHostController) {
     ServiceNavButton(
-        stringResource(R.string.privacy_policy),
-        painterResource(R.drawable.outline_policy),
-        color = MaterialTheme.colorScheme.onSurface
+        text = stringResource(R.string.privacy_policy),
+        icon = { Icon(Icons.Outlined.Policy, null, tint = MaterialTheme.colorScheme.onSurface) }
     ) {
         val intent = Intent(
             Intent.ACTION_VIEW,
@@ -351,9 +361,8 @@ private fun Term(context: Context, navController: NavHostController) {
     }
 
     ServiceNavButton(
-        stringResource(R.string.terms_of_use),
-        painterResource(R.drawable.outline_description),
-        color = MaterialTheme.colorScheme.onSurface
+        text = stringResource(R.string.terms_of_use),
+        icon = { Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.onSurface) }
     ) {
         val intent = Intent(
             Intent.ACTION_VIEW,
@@ -362,17 +371,15 @@ private fun Term(context: Context, navController: NavHostController) {
     }
 
     ServiceNavButton(
-        stringResource(R.string.legal_notices),
-        painterResource(R.drawable.outline_balance),
-        color = MaterialTheme.colorScheme.onSurface
+        text = stringResource(R.string.legal_notices),
+        icon = { Icon(Icons.Outlined.Balance, null, tint = MaterialTheme.colorScheme.onSurface) }
     ) {
         navController.navigate(Channel.LicenseView.name)
     }
 
     ServiceNavButton(
-        stringResource(R.string.acknowledgements),
-        painterResource(R.drawable.outline_volunteer_activism),
-        color = MaterialTheme.colorScheme.onSurface
+        text = stringResource(R.string.acknowledgements),
+        icon = { Icon(Icons.Outlined.VolunteerActivism, null, tint = MaterialTheme.colorScheme.onSurface) }
     ) {
         navController.navigate(Channel.CreditView.name)
     }
@@ -383,8 +390,7 @@ private fun Term(context: Context, navController: NavHostController) {
 @Composable
 private fun ServiceNavButton(
     text: String,
-    painter: Painter,
-    color: Color = Color.Unspecified,
+    icon: @Composable () -> Unit,
     onClick: () -> Unit,
 ) {
     Row(
@@ -394,11 +400,7 @@ private fun ServiceNavButton(
             .clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
-            painter = painter,
-            contentDescription = null,
-            tint = color
-        )
+        icon()
 
         Spacer(Modifier.width(8.dp))
 
@@ -412,7 +414,7 @@ private fun ServiceNavButton(
         Spacer(Modifier.weight(1f))
 
         Icon(
-            painter = painterResource(R.drawable.arrow_forward_ios),
+            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
             contentDescription = text,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(15.dp)
@@ -430,7 +432,7 @@ private fun SignOutButton(onClick: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.round_logout),
+            imageVector = Icons.AutoMirrored.Rounded.Logout,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.error
         )
@@ -465,7 +467,7 @@ private fun ThemeSwitcherButton(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.outline_dark_mode),
+            imageVector = Icons.Outlined.DarkMode,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface
         )
@@ -555,7 +557,7 @@ private fun VersionRow() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.round_error_outline),
+            imageVector = Icons.Outlined.ErrorOutline,
             contentDescription = null
         )
 

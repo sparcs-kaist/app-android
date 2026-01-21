@@ -33,6 +33,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.rounded.Payment
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -631,7 +634,7 @@ private fun InputBar(
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.outline_photo_library),
+                            imageVector = Icons.Outlined.PhotoLibrary,
                             contentDescription = null
                         )
                     }
@@ -651,7 +654,7 @@ private fun InputBar(
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.outline_edit),
+                            imageVector = Icons.Outlined.Edit,
                             contentDescription = null
                         )
                     }
@@ -671,7 +674,7 @@ private fun InputBar(
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.round_payment),
+                            imageVector = Icons.Rounded.Payment,
                             contentDescription = null
                         )
                     }
@@ -766,7 +769,7 @@ private fun InputBar(
                 )
             } else {
                 Icon(
-                    painter = painterResource(R.drawable.paperplane),
+                    painter = painterResource(R.drawable.outline_send),
                     contentDescription = "Send",
                     modifier = Modifier.size(20.dp),
                     tint = if (text.isNotBlank() || selectedImage != null) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -19,9 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,9 +41,9 @@ fun ErrorView(icon: ImageVector = Icons.Default.Warning, message: String, onRetr
                 message.contains("connection", ignoreCase = true)
 
     val iconPainter = if (isNetworkError) {
-        painterResource(id = R.drawable.outline_wifi_off_24)
+        Icons.Rounded.WifiOff
     } else {
-        rememberVectorPainter(image = icon)
+        icon
     }
 
     Column(
@@ -55,7 +54,7 @@ fun ErrorView(icon: ImageVector = Icons.Default.Warning, message: String, onRetr
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            painter = iconPainter,
+            imageVector = iconPainter,
             contentDescription = "Error",
             modifier = Modifier.size(if (isNetworkError) 80.dp else 48.dp),
             tint = if (isNetworkError) MaterialTheme.colorScheme.grayBB else MaterialTheme.colorScheme.error

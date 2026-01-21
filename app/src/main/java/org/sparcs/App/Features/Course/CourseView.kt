@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -21,7 +22,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -170,7 +170,7 @@ fun CourseReviewSection(
             if (state == CourseViewModel.ViewState.Loaded) {
                 if (reviews.isEmpty()) {
                     UnavailableView(
-                        icon = painterResource(R.drawable.rounded_book_2),
+                        Icons.AutoMirrored.Outlined.LibraryBooks,
                         title = stringResource(R.string.no_reviews),
                         description = stringResource(R.string.there_are_no_reviews_yet)
                     )

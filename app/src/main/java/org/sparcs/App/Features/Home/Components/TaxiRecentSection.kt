@@ -13,6 +13,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.filled.WhereToVote
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.NearMe
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -23,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -61,7 +65,7 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
             Spacer(Modifier.padding(4.dp))
 
             Icon(
-                painter = painterResource(R.drawable.arrow_forward_ios),
+                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                 contentDescription = "Go to Taxi Board",
                 modifier = Modifier.size(20.dp),
                 tint = MaterialTheme.colorScheme.darkGray
@@ -96,7 +100,7 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.round_near_me),
+                                    imageVector = Icons.Rounded.NearMe,
                                     contentDescription = null,
                                     modifier = Modifier.padding(horizontal = 4.dp)
                                 )
@@ -116,7 +120,7 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.arrival_point),
+                                    imageVector = Icons.Default.WhereToVote,
                                     contentDescription = null,
                                     modifier = Modifier.padding(horizontal = 4.dp)
                                 )
@@ -148,7 +152,7 @@ fun TaxiRecentSection(roomList: List<TaxiRoom>) {
                                 color = Color(0xFF4CAF50)
                             )
                             Icon(
-                                painter = painterResource(R.drawable.group),
+                                imageVector = Icons.Rounded.Group,
                                 contentDescription = null,
                                 tint = Color(0xFF4CAF50),
                                 modifier = Modifier
