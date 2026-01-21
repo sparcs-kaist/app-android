@@ -27,11 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.App.theme.ui.Theme
-import org.sparcs.R
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Comment
 
 @Composable
 fun PostCommentButton(
@@ -54,7 +54,7 @@ fun PostCommentButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                painter = painterResource(R.drawable.rounded_chat),
+                imageVector = Icons.Outlined.Comment,
                 contentDescription = "Comments",
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp)
