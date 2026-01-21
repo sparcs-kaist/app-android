@@ -30,6 +30,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Visibility
+import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -61,7 +65,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
@@ -265,9 +268,7 @@ fun FeedPostComposeView(
                                     .size(24.dp)
                             ) {
                                 Icon(
-                                    if (isSpoiler) painterResource(R.drawable.baseline_visibility_off) else painterResource(
-                                        R.drawable.baseline_visibility
-                                    ),
+                                    if (isSpoiler) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
                                     contentDescription = stringResource(R.string.show_spoiler),
                                     tint = Color.White
                                 )
@@ -374,7 +375,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
-                    painter = painterResource(R.drawable.baseline_arrow_drop_down),
+                    imageVector = Icons.Rounded.ArrowDropDown,
                     contentDescription = stringResource(R.string.change_type)
                 )
             }
@@ -429,7 +430,7 @@ private fun FeedPostOptionsRow(
                 enabled = !isUploading
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.outline_photo_library),
+                    imageVector = Icons.Outlined.PhotoLibrary,
                     contentDescription = stringResource(R.string.add_photo),
                     modifier = Modifier.size(28.dp)
                 )

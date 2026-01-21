@@ -18,6 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.SmsFailed
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -38,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -111,7 +117,7 @@ fun PostCommentCell(
     Row(modifier = Modifier.fillMaxWidth()) {
         if (isThreaded) {
             Icon(
-                painter = painterResource(R.drawable.round_subdirectory_arrow_right),
+                imageVector = Icons.Rounded.SubdirectoryArrowRight,
                 contentDescription = null,
                 modifier = Modifier.padding(top = 8.dp, end = 4.dp)
             )
@@ -247,7 +253,7 @@ fun <T> PostCommentActionsMenu(
 
     Box {
         Icon(
-            painter = painterResource(R.drawable.more_horiz),
+            imageVector = Icons.Rounded.MoreHoriz,
             contentDescription = stringResource(R.string.more),
             modifier = modifier
                 .clickable { expanded = true },
@@ -270,13 +276,13 @@ fun <T> PostCommentActionsMenu(
                     },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.outline_sms_failed),
+                            imageVector = Icons.Outlined.SmsFailed,
                             contentDescription = null
                         )
                     },
                     trailingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.arrow_forward_ios),
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                             contentDescription = "show Report",
                             modifier = Modifier
                                 .size(18.dp)
@@ -307,18 +313,19 @@ fun <T> PostCommentActionsMenu(
                     }
                 }
             } else {
-                if (isComment) {
-//                    DropdownMenuItem(
-//                        text = { Text(stringResource(R.string.edit)) },
-//                        onClick = { onEdit(); expanded = false },
-//                        leadingIcon = {
-//                            Icon(
-//                                painter = painterResource(R.drawable.outline_edit),
-//                                contentDescription = null
-//                            )
-//                        }
-//                    )
-//                    HorizontalDivider()//TODO EDIT?
+                if (isComment && enumClass == AraContentReportType::class) {
+                    //Only for Ara comments
+                    DropdownMenuItem(
+                    text = { Text(stringResource(R.string.edit)) },
+                    onClick = { onEdit(); expanded = false },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = null
+                        )
+                    }
+                    )
+                    HorizontalDivider()
                 }
             }
 //
@@ -345,7 +352,7 @@ fun <T> PostCommentActionsMenu(
                     onClick = { onDelete(); expanded = false },
                     leadingIcon = {
                         Icon(
-                            painter = painterResource(R.drawable.outline_delete),
+                            imageVector = Icons.Outlined.Delete,
                             contentDescription = null
                         )
                     }

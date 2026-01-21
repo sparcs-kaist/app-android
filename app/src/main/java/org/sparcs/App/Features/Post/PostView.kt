@@ -23,8 +23,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -422,7 +424,7 @@ private fun Header(
             )
             if (post.author.username != stringResource(R.string.anonymous)) {
                 Icon(
-                    painter = painterResource(R.drawable.arrow_forward_ios),
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                     contentDescription = null,
                     modifier = Modifier.size(15.dp)
                 )
@@ -515,7 +517,7 @@ private fun Comments(
             )
 
             UnavailableView(
-                icon = painterResource(R.drawable.chat_bubble_outline),
+                icon = Icons.Outlined.ChatBubbleOutline,
                 title = stringResource(R.string.no_one_has_commented_yet),
                 description = stringResource(R.string.be_the_first_one_to_share_your_thoughts)
             )
@@ -696,7 +698,7 @@ private fun InputBar(
                         )
                     } else {
                         Icon(
-                            painter = painterResource(id = R.drawable.paperplane),
+                            painter = painterResource(id = R.drawable.outline_send),
                             modifier = Modifier.size(20.dp),
                             tint = MaterialTheme.colorScheme.onPrimary,
                             contentDescription = "Send"

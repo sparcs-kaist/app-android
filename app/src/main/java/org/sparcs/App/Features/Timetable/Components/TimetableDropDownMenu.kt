@@ -11,6 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.TableChart
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -24,8 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -66,17 +70,17 @@ private fun TopDropDownItems() { //지도, 시험 시간표(바꿀 수 있도록
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconWithText(
-            icon = painterResource(R.drawable.outline_timetable),
+            icon = Icons.Outlined.TableChart,
             text = stringResource(R.string.timetable)
         )//기본
 
         IconWithText(
-            icon = painterResource(R.drawable.outline_description),
+            icon = Icons.Outlined.Description,
             text = stringResource(R.string.timetable)
         )//시험
 
         IconWithText(
-            icon = painterResource(R.drawable.rounded_location_on),
+            icon = Icons.Outlined.LocationOn,
             text = stringResource(R.string.timetable)
         )//지도
     }
@@ -89,7 +93,7 @@ private fun TopDropDownItems() { //지도, 시험 시간표(바꿀 수 있도록
 
 @Composable
 private fun IconWithText(
-    icon: Painter,
+    icon: ImageVector,
     text: String,
 ) {
     Column(
@@ -98,7 +102,7 @@ private fun IconWithText(
         modifier = Modifier.padding(8.dp)
     ) {
         Icon(
-            painter = icon,
+            imageVector = icon,
             contentDescription = text
         )
         Text(
@@ -156,7 +160,7 @@ private fun BottomMenuDropDownItems(
         },
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.round_add),
+                imageVector = Icons.Rounded.Add,
                 contentDescription = null
             )
         }
@@ -177,7 +181,7 @@ private fun BottomMenuDropDownItems(
         },
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.outline_delete),
+                imageVector = Icons.Outlined.Delete,
                 contentDescription = null,
                 tint = deleteColor
             )

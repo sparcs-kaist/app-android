@@ -1,17 +1,19 @@
 package org.sparcs.App.Domain.Enums.Taxi
 
+import androidx.compose.ui.graphics.vector.ImageVector
+
 sealed class TaxiInfoItem {
     abstract val label: String
     val id: String get() = label
 
-    data class plain(
+    data class Plain(
         override val label: String,
         val value: String
     ) : TaxiInfoItem()
 
-    data class withIcon(
+    data class WithIcon(
         override val label: String,
         val value: String,
-        val systemImage: Int
+        val systemImage: ImageVector
     ) : TaxiInfoItem()
 }

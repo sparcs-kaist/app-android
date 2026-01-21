@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -70,7 +73,7 @@ fun SemesterSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            painter = painterResource(R.drawable.arrow_back_ios),
+            imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
             contentDescription = "Select Previous Semester",
             tint = if (isEnabledPreviousButton) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.grayBB,
@@ -91,7 +94,7 @@ fun SemesterSelector(
         )
 
         Icon(
-            painter = painterResource(R.drawable.arrow_forward_ios),
+            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
             contentDescription = "Select Next Semester",
             tint = if (isEnabledNextButton) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.grayBB,
@@ -127,7 +130,7 @@ fun TableSelector(viewModel: TimetableViewModelProtocol) {
         )
 
         Icon(
-            painter = painterResource(R.drawable.more_horiz),
+            imageVector = Icons.Rounded.MoreHoriz,
             contentDescription = "Menu",
             tint = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier

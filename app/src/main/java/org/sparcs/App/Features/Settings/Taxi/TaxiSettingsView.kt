@@ -16,7 +16,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.SmsFailed
+import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -39,7 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -389,13 +393,13 @@ private fun LoadedView(
         NavigationLinkWithIcon(
             { navController.navigate(Channel.TaxiReportSettings.name) },
             stringResource(R.string.report_details),
-            painterResource(R.drawable.outline_sms_failed)
+            Icons.Outlined.SmsFailed
         )
     }
 }
 
 @Composable
-fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
+fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: ImageVector) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -418,7 +422,7 @@ fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: Painter) {
         Spacer(Modifier.weight(1f))
 
         Icon(
-            painter = painterResource(R.drawable.arrow_forward_ios),
+            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
             contentDescription = text,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(15.dp)
@@ -441,7 +445,7 @@ private fun BadgeToggle(
         Spacer(Modifier.width(4.dp))
         InfoTooltip(
             tooltipText = stringResource(R.string.members_with_this_badge),
-            icon = painterResource(R.drawable.round_help_outline),
+            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
             tint = MaterialTheme.colorScheme.grayBB
         )
         Spacer(Modifier.weight(1f))
@@ -481,7 +485,7 @@ private fun BankPicker(
                         MaterialTheme.colorScheme.onSurface
                 )
                 Icon(
-                    painterResource(R.drawable.baseline_arrow_drop_down),
+                    Icons.Rounded.ArrowDropDown,
                     contentDescription = null
                 )
             }

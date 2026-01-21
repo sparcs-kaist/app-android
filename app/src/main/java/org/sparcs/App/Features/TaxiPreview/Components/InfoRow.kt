@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,13 +14,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.App.theme.ui.darkGray
 import org.sparcs.App.theme.ui.grayBB
-import org.sparcs.R
 
 @Composable
 fun InfoRow(
@@ -26,7 +27,7 @@ fun InfoRow(
     value: String,
     labelColor: Color = MaterialTheme.colorScheme.grayBB,
     valueColor: Color = MaterialTheme.colorScheme.onSurface,
-    trailingIcon: Int? = null
+    trailingIcon: ImageVector? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -49,7 +50,7 @@ fun InfoRow(
 
             trailingIcon?.let { iconName ->
                 Image(
-                    painter = painterResource(trailingIcon),
+                    imageVector = trailingIcon,
                     contentDescription = null,
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.darkGray),
                     modifier = Modifier.size(15.dp)
@@ -63,5 +64,5 @@ fun InfoRow(
 @Composable
 @Preview
 private fun Preview() {
-    Theme { InfoRow(label = "label", value = "value",  trailingIcon= R.drawable.arrow_forward_ios) }
+    Theme { InfoRow(label = "label", value = "value",  trailingIcon= Icons.Default.Add) }
 }

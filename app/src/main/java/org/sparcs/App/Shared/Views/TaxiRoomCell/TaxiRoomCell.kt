@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -22,8 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,7 +39,6 @@ import org.sparcs.App.Shared.Mocks.mockList
 import org.sparcs.App.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import org.sparcs.App.Shared.Views.TaxiRoomCell.Components.TaxiRoomStatusIndicator
 import org.sparcs.App.theme.ui.Theme
-import org.sparcs.R
 
 @Composable
 fun TaxiRoomCell(
@@ -149,7 +149,7 @@ fun TaxiRoomSkeletonCell() {
                             .background(Color(0xFF4CAF50).copy(alpha = 0.2f), RoundedCornerShape(4.dp))
                     )
                     Icon(
-                        painter = painterResource(R.drawable.group),
+                        imageVector = Icons.Rounded.Group,
                         contentDescription = "Participants",
                         tint = Color(0xFF4CAF50),
                         modifier = Modifier.size(16.dp)
@@ -186,10 +186,10 @@ fun TaxiRoomSkeletonCell() {
 
 
 @Composable
-fun IconText(icon: Painter, text: String) {
+fun IconText(icon: ImageVector, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
-            painter = icon,
+            imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurface
         )
