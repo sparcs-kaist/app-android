@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
@@ -312,18 +313,19 @@ fun <T> PostCommentActionsMenu(
                     }
                 }
             } else {
-                if (isComment) {
-//                    DropdownMenuItem(
-//                        text = { Text(stringResource(R.string.edit)) },
-//                        onClick = { onEdit(); expanded = false },
-//                        leadingIcon = {
-//                            Icon(
-//                                painter = painterResource(R.drawable.outline_edit),
-//                                contentDescription = null
-//                            )
-//                        }
-//                    )
-//                    HorizontalDivider()//TODO EDIT?
+                if (isComment && enumClass == AraContentReportType::class) {
+                    //Only for Ara comments
+                    DropdownMenuItem(
+                    text = { Text(stringResource(R.string.edit)) },
+                    onClick = { onEdit(); expanded = false },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = null
+                        )
+                    }
+                    )
+                    HorizontalDivider()
                 }
             }
 //
