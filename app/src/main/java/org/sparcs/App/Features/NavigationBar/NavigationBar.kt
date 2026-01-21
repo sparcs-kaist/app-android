@@ -9,6 +9,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Feed
+import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
+import androidx.compose.material.icons.rounded.LocalTaxi
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.TableChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -20,7 +26,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -628,15 +633,15 @@ fun AppDownBar(
     currentScreen: Channel,
 ) {
     val items = listOf(
-        Triple(Channel.Start, stringResource(Channel.Start.title), R.drawable.round_feed),
+        Triple(Channel.Start, stringResource(Channel.Start.title), Icons.AutoMirrored.Rounded.Feed),
         Triple(
             Channel.Boards,
             stringResource(Channel.Boards.title),
-            R.drawable.round_format_list_bulleted
+            Icons.AutoMirrored.Rounded.FormatListBulleted
         ),
-        Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), R.drawable.timetable),
-        Triple(Channel.Taxi, stringResource(Channel.Taxi.title), R.drawable.taxi),
-        Triple(Channel.SearchView, stringResource(R.string.search), R.drawable.search)
+        Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), Icons.Rounded.TableChart),
+        Triple(Channel.Taxi, stringResource(Channel.Taxi.title), Icons.Rounded.LocalTaxi),
+        Triple(Channel.SearchView, stringResource(R.string.search), Icons.Rounded.Search)
     )
     Box(
         Modifier
@@ -649,13 +654,13 @@ fun AppDownBar(
         NavigationBar(
             containerColor = MaterialTheme.colorScheme.surface
         ) {
-            items.forEach { (channel, label, iconRes) ->
+            items.forEach { (channel, label, icon) ->
                 NavigationBarItem(
                     selected = currentScreen == channel,
                     onClick = { navController.navigate(channel.name) },
                     icon = {
                         Icon(
-                            painter = painterResource(id = iconRes),
+                            imageVector = icon,
                             contentDescription = label
                         )
                     },

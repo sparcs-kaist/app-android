@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Payment
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -21,7 +23,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -96,7 +97,8 @@ fun TaxiChatAccountBubble(
         ) {
             if (isCommitPaymentAvailable) {
                 Icon(
-                    painterResource(R.drawable.round_payment), contentDescription = null,
+                    imageVector = Icons.Rounded.Payment,
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.width(8.dp))
@@ -108,7 +110,8 @@ fun TaxiChatAccountBubble(
                 )
             } else {
                 Icon(
-                    painterResource(R.drawable.round_check), contentDescription = null,
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(Modifier.width(8.dp))

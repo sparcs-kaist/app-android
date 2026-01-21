@@ -1,12 +1,13 @@
 package org.sparcs.App.Features.TaxiPreview.Components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.WhereToVote
+import androidx.compose.material.icons.rounded.NearMe
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import org.sparcs.App.Shared.Views.TaxiRoomCell.IconText
 import org.sparcs.App.theme.ui.Theme
-import org.sparcs.R
 
 @Composable
 fun RouteHeaderView(
@@ -15,11 +16,11 @@ fun RouteHeaderView(
 ) {
     Column{
         IconText(
-            icon = painterResource(R.drawable.round_near_me),
+            icon = Icons.Rounded.NearMe,
             text = source
         )
         IconText(
-            icon = painterResource(R.drawable.arrival_point),
+            icon = Icons.Default.WhereToVote,
             text = destination
         )
     }

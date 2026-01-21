@@ -16,6 +16,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.LocalTaxi
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.ReportProblem
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -34,8 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -63,7 +71,7 @@ fun TaxiChatViewDropDownMenu(
 
     IconButton(onClick = { expanded = !expanded }) {
         Icon(
-            painter = painterResource(R.drawable.more_horiz),
+            imageVector = Icons.Rounded.MoreHoriz,
             contentDescription = "Menu",
             tint = MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(30.dp)
@@ -137,17 +145,17 @@ private fun TopDropDownItems(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconWithText(
-            icon = painterResource(R.drawable.share),
+            icon = Icons.Rounded.Share,
             text = stringResource(R.string.share),
             onClick = { onClickShare() }
         )
         IconWithText(
-            icon = painterResource(R.drawable.taxi),
+            icon = Icons.Rounded.LocalTaxi,
             text = stringResource(R.string.call_taxi),
             onClick = { onClickCallTaxi() }
         )
         IconWithText(
-            icon = painterResource(R.drawable.round_report_problem),
+            icon = Icons.Rounded.ReportProblem,
             text = stringResource(R.string.report),
             onClick = { onClickReport() }
         )
@@ -174,7 +182,7 @@ private fun MiddleDropDownItems(room: TaxiRoom) {
             enabled = false,
             leadingIcon = {
                 Icon(
-                    painter = painterResource(R.drawable.baseline_calendar_month),
+                    imageVector = Icons.Outlined.CalendarMonth,
                     contentDescription = "Depart Time",
                     tint = MaterialTheme.colorScheme.darkGray,
                 )
@@ -195,14 +203,14 @@ private fun MiddleDropDownItems(room: TaxiRoom) {
             onClick = { showParticipants = !showParticipants },
             leadingIcon = {
                 Icon(
-                    painter = painterResource(R.drawable.group),
+                    imageVector = Icons.Rounded.Group,
                     contentDescription = "Participants",
                     tint = MaterialTheme.colorScheme.darkGray,
                 )
             },
             trailingIcon = {
                 Icon(
-                    painter = painterResource(R.drawable.arrow_forward_ios),
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                     contentDescription = "Toggle participants",
                     tint = MaterialTheme.colorScheme.darkGray,
                     modifier = Modifier
@@ -252,7 +260,7 @@ private fun BottomDropDownItems(
         enabled = isEnabled,
         leadingIcon = {
             Icon(
-                painter = painterResource(R.drawable.round_logout),
+                imageVector = Icons.AutoMirrored.Rounded.Logout,
                 contentDescription = "Leave Room",
                 tint = MaterialTheme.colorScheme.error
             )
@@ -263,7 +271,7 @@ private fun BottomDropDownItems(
 
 @Composable
 private fun IconWithText(
-    icon: Painter,
+    icon: ImageVector,
     text: String,
     onClick: () -> Unit
 ) {
@@ -275,7 +283,7 @@ private fun IconWithText(
             .clickable { onClick() }
     ) {
         Icon(
-            painter = icon,
+            imageVector = icon,
             contentDescription = text
         )
         Text(

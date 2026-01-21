@@ -7,6 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -23,7 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,7 +48,7 @@ fun FeedViewDropDownMenu(
         colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
     ) {
         Icon(
-            painter = painterResource(R.drawable.more_horiz),
+            imageVector = Icons.Rounded.MoreHoriz,
             contentDescription = "Menu",
             tint = MaterialTheme.colorScheme.darkGray,
             modifier = Modifier.size(30.dp)
@@ -60,7 +64,7 @@ fun FeedViewDropDownMenu(
         Column {
             DropDownItems(
                 text = stringResource(R.string.notification),
-                icon = R.drawable.baseline_notifications
+                icon = Icons.Rounded.Notifications
             ) { onClickNotification() }
 
             HorizontalDivider(
@@ -70,7 +74,7 @@ fun FeedViewDropDownMenu(
 
             DropDownItems(
                 text = stringResource(R.string.settings),
-                icon = R.drawable.round_settings
+                icon = Icons.Rounded.Settings
             ) { onClickSettings() }
         }
     }
@@ -79,7 +83,7 @@ fun FeedViewDropDownMenu(
 @Composable
 private fun DropDownItems(
     text: String,
-    icon: Int,
+    icon: ImageVector,
     color: Color = MaterialTheme.colorScheme.onSurface,
     onClick: () -> Unit,
 ) {
@@ -93,7 +97,7 @@ private fun DropDownItems(
         onClick = { onClick() },
         leadingIcon = {
             Icon(
-                painter = painterResource(icon),
+                imageVector = icon,
                 contentDescription = text,
                 tint = color
             )
