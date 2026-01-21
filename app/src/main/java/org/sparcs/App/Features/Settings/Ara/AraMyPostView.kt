@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -18,7 +19,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -130,7 +130,7 @@ private fun MyPostView(
 ) {
     if (searchKeyword.isNotEmpty() && posts.isEmpty()) {
         UnavailableView(
-            icon = painterResource(R.drawable.search),
+            icon = Icons.Rounded.Search,
             title = stringResource(R.string.no_results),
             description = stringResource(
                 id = R.string.no_results_for,

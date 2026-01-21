@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -22,7 +23,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -181,7 +181,7 @@ fun LoadedView(
         item {
             if(onGoing.isEmpty()){
                 UnavailableView(
-                    icon = painterResource(R.drawable.round_error_outline),
+                    icon = Icons.Outlined.ErrorOutline,
                     title = stringResource(R.string.no_result),
                     description = stringResource(R.string.no_active_groups)
                 )
@@ -213,7 +213,7 @@ fun LoadedView(
         item{
             if(done.isEmpty()){
                 UnavailableView(
-                    icon = painterResource(R.drawable.round_error_outline),
+                    icon = Icons.Outlined.ErrorOutline,
                     title = stringResource(R.string.no_result),
                     description = stringResource(R.string.no_past_groups)
                 )

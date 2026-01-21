@@ -5,18 +5,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.App.theme.ui.darkGray
-import org.sparcs.R
 
 
 @Composable
@@ -26,7 +26,7 @@ fun PostListRowCommentLabel(commentCount: Int){
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(R.drawable.chat_bubble_outline),
+                imageVector = Icons.Outlined.ChatBubbleOutline,
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.darkGray),
                 modifier = Modifier.size(15.dp)

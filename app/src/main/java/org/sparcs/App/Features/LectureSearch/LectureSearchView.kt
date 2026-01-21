@@ -13,6 +13,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -32,7 +36,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -119,7 +122,7 @@ fun LectureSearchView(
                 if (searchText.isEmpty()) {
                     item {
                         UnavailableView(
-                            icon = painterResource(R.drawable.search),
+                            icon = Icons.Rounded.Search,
                             title = stringResource(R.string.search),
                             description = stringResource(R.string.search_by_course)
                         )
@@ -127,7 +130,7 @@ fun LectureSearchView(
                 } else if (orderedCourses.isEmpty()) {
                     item {
                         UnavailableView(
-                            icon = painterResource(R.drawable.search),
+                            icon = Icons.Rounded.Search,
                             title = stringResource(R.string.no_results_for, searchText),
                             description = stringResource(R.string.check_the_spelling)
                         )
@@ -307,7 +310,7 @@ fun LectureRow(
         Spacer(Modifier.width(12.dp))
 
         Icon(
-            painter = painterResource(R.drawable.round_info),
+            imageVector = Icons.Outlined.Info,
             contentDescription = "info",
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.clickable { onInfoClick() }
@@ -316,7 +319,7 @@ fun LectureRow(
         Spacer(Modifier.width(12.dp))
 
         Icon(
-            painter = painterResource(R.drawable.round_add),
+            imageVector = Icons.Rounded.Add,
             contentDescription = "add lecture",
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.clickable { onAddClick() }

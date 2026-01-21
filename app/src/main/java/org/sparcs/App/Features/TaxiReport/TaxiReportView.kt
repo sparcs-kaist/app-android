@@ -15,6 +15,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -43,7 +46,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
@@ -176,7 +178,7 @@ fun TaxiReportView(
                     enabled = isValid
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.round_check),
+                        imageVector = Icons.Rounded.Check,
                         contentDescription = null
                     )
                     Text(stringResource(R.string.done))
@@ -258,7 +260,7 @@ fun ReasonCard(
                     color = MaterialTheme.colorScheme.grayBB
                 )
                 Icon(
-                    painter = painterResource(R.drawable.baseline_arrow_drop_down),
+                    imageVector = Icons.Rounded.ArrowDropDown,
                     contentDescription = null
                 )
             }
