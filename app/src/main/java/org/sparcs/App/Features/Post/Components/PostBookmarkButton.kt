@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -34,7 +34,7 @@ fun PostBookmarkButton(
 ){
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
-
+    println("isBookmarked: $isBookmarked")
     Card(
         shape = CircleShape,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.lightGray0),
@@ -51,7 +51,7 @@ fun PostBookmarkButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = if(isBookmarked) Icons.Default.Bookmark else Icons.Outlined.Bookmark,
+                imageVector = if(isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
                 contentDescription = stringResource(R.string.to_bookmark),
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp)
