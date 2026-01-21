@@ -345,8 +345,12 @@ private fun InputBar(
 ) {
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
     val haptic = LocalHapticFeedback.current
-    val authorName =
-        if (targetComment?.authorName == "Anonymous") stringResource(R.string.anonymous) else targetComment?.authorName
+    val rawName = targetComment?.authorName ?: ""
+    val authorName = if (rawName.contains("Anonymous")) {
+        rawName.replace("Anonymous", stringResource(R.string.anonymous))
+    } else {
+        rawName
+    }//TODO: 백엔드에서 번역 지원하면 삭제
 
     Row(
         modifier = Modifier
@@ -402,7 +406,7 @@ private fun InputBar(
                                         text = if (targetComment != null)
                                             stringResource(
                                                 R.string.write_a_reply_to,
-                                                authorName ?: stringResource(R.string.anonymous)
+                                                authorName
                                             )
                                         else
                                             stringResource(R.string.write_a_comment),
