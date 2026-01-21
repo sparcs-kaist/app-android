@@ -176,8 +176,8 @@ fun LectureReviewCell(
                     }
                     Spacer(modifier = Modifier.padding(4.dp))
                     Icon(
-                        painter = if (reviewChange.isLiked) painterResource(R.drawable.icon_arrowup) else painterResource(
-                            R.drawable.icon_arrowup
+                        painter = if (reviewChange.isLiked) painterResource(R.drawable.baseline_arrow_up_bold) else painterResource(
+                            R.drawable.outline_arrow_up
                         ),
                         contentDescription = "Vote",
                         tint = if (reviewChange.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
