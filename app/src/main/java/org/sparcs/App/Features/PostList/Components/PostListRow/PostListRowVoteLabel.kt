@@ -11,12 +11,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.App.theme.ui.Theme
+import org.sparcs.App.theme.ui.downvote
+import org.sparcs.App.theme.ui.upvote
 import org.sparcs.R
 
 @Composable
@@ -26,16 +27,16 @@ fun PostListRowVoteLabel(voteCount: Int){
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(R.drawable.icon_arrowup),
+                painter = painterResource(R.drawable.outline_arrow_up),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(Color(0xFFFF4500)),
+                colorFilter = ColorFilter.tint(upvote),
                 modifier = Modifier.size(15.dp)
             )
             Spacer(Modifier.padding(2.dp))
 
             Text(
                 text = "$voteCount",
-                color = Color(0xFFFF4500),
+                color = upvote,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -46,16 +47,16 @@ fun PostListRowVoteLabel(voteCount: Int){
         //down voted
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(R.drawable.icon_arrowdown),
+                painter = painterResource(R.drawable.outline_arrow_down),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(Color(0xFF047DFF)),
+                colorFilter = ColorFilter.tint(downvote),
                 modifier = Modifier.size(15.dp)
             )
             Spacer(Modifier.padding(2.dp))
 
             Text(
                 text = "$voteCount",
-                color = Color(0xFF047DFF),
+                color = downvote,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall
             )

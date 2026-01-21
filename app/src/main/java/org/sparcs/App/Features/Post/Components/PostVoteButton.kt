@@ -1,8 +1,5 @@
 package org.sparcs.App.Features.Post.Components
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowUpward
-import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,14 +16,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.App.theme.ui.Theme
-import org.sparcs.App.theme.ui.upvote
 import org.sparcs.App.theme.ui.downvote
+import org.sparcs.App.theme.ui.upvote
+import org.sparcs.R
 
 @Composable
 fun PostVoteButton(
@@ -38,6 +36,10 @@ fun PostVoteButton(
 ) {
     val upVoteColor = upvote
     val downVoteColor = downvote
+    val upvoteImage =
+        if (myVote == true) R.drawable.baseline_arrow_up_bold else R.drawable.outline_arrow_up
+    val downvoteImage =
+        if (myVote == false) R.drawable.baseline_arrow_down_bold else R.drawable.outline_arrow_down
 
     val tintColor = when (myVote) {
         true -> upVoteColor
@@ -57,7 +59,7 @@ fun PostVoteButton(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
-                imageVector = Icons.Outlined.ArrowUpward,
+                painter = painterResource(upvoteImage),
                 contentDescription = "UpVote",
                 tint = if (myVote == true) upVoteColor else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
@@ -94,7 +96,7 @@ fun PostVoteButton(
                 .height(20.dp)
         )
         Icon(
-            imageVector = Icons.Outlined.ArrowDownward,
+            painter = painterResource(downvoteImage),
             contentDescription = "DownVote",
             tint = if (myVote == false) downVoteColor else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
