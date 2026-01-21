@@ -16,13 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.App.theme.ui.Theme
+import org.sparcs.App.theme.ui.downvote
+import org.sparcs.App.theme.ui.upvote
 import org.sparcs.R
 
 @Composable
@@ -33,13 +34,12 @@ fun PostVoteButton(
     onUpVote: () -> Unit,
     enabled: Boolean,
 ) {
+    val upVoteColor = upvote
+    val downVoteColor = downvote
     val upvoteImage =
-        if (myVote == true) R.drawable.icon_arrowup else R.drawable.icon_arrowup //filled, outlined
+        if (myVote == true) R.drawable.baseline_arrow_up_bold else R.drawable.outline_arrow_up
     val downvoteImage =
-        if (myVote == false) R.drawable.icon_arrowdown else R.drawable.icon_arrowdown //filled, outlined
-
-    val upVoteColor = Color(0xFF4CAF50)
-    val downVoteColor = Color(0xFFF44336)
+        if (myVote == false) R.drawable.baseline_arrow_down_bold else R.drawable.outline_arrow_down
 
     val tintColor = when (myVote) {
         true -> upVoteColor
