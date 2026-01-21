@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -19,7 +21,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -93,7 +94,7 @@ fun LectureReviews(
                 ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.rounded_rate_review),
+                    imageVector = Icons.Outlined.RateReview,
                     contentDescription = null,
                     tint = textColor
                 )
@@ -120,7 +121,7 @@ fun LectureReviews(
                 is LectureDetailViewModel.ViewState.Loaded -> {
                     if(reviews.isEmpty()) {
                         UnavailableView(
-                            icon = painterResource(R.drawable.rounded_book_2),
+                            icon = Icons.AutoMirrored.Outlined.LibraryBooks,
                             title = stringResource(R.string.no_reviews),
                             description = stringResource(R.string.there_are_no_reviews_yet)
                         )

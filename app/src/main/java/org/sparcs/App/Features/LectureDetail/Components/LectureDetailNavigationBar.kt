@@ -1,5 +1,8 @@
 package org.sparcs.App.Features.LectureDetail.Components
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -14,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
@@ -22,7 +24,6 @@ import androidx.navigation.compose.rememberNavController
 import org.sparcs.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.App.theme.ui.darkGray
-import org.sparcs.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -68,7 +69,7 @@ fun LectureDetailNavigationBar(
                     colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.round_add),
+                        imageVector = Icons.Rounded.Add,
                         contentDescription = "Plus",
                         tint = MaterialTheme.colorScheme.darkGray
                     )
@@ -82,7 +83,7 @@ fun LectureDetailNavigationBar(
                     colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.outline_delete),
+                        imageVector = Icons.Outlined.Delete,
                         contentDescription = "Delete",
                         tint = MaterialTheme.colorScheme.darkGray
                     )
