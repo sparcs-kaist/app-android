@@ -345,6 +345,8 @@ private fun InputBar(
 ) {
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
     val haptic = LocalHapticFeedback.current
+    val authorName =
+        if (targetComment?.authorName == "Anonymous") stringResource(R.string.anonymous) else targetComment?.authorName
 
     Row(
         modifier = Modifier
@@ -400,7 +402,7 @@ private fun InputBar(
                                         text = if (targetComment != null)
                                             stringResource(
                                                 R.string.write_a_reply_to,
-                                                targetComment.authorName
+                                                authorName ?: stringResource(R.string.anonymous)
                                             )
                                         else
                                             stringResource(R.string.write_a_comment),
