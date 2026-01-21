@@ -13,7 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -257,7 +257,7 @@ private fun LoadedView(
                 navController.navigate(Channel.AraMyPostSettings.name + "?type_json=$json")
             },
             text = stringResource(R.string.bookmarked_posts),
-            icon = Icons.Outlined.Bookmark
+            icon = Icons.Outlined.BookmarkBorder
         )
     }
 }
