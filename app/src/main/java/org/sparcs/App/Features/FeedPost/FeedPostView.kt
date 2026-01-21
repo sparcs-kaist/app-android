@@ -430,7 +430,7 @@ private fun InputBar(
                             )
                         } else {
                             Icon(
-                                painter = painterResource(id = R.drawable.paperplane),
+                                painter = painterResource(id = R.drawable.outline_send),
                                 modifier = Modifier.size(20.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary,
                                 contentDescription = stringResource(R.string.send)

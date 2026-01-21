@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -230,7 +231,7 @@ private fun EmptyView(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            painter = painterResource(R.drawable.round_error_outline),
+            imageVector = Icons.Outlined.ErrorOutline,
             contentDescription = stringResource(R.string.no_result),
             modifier = Modifier.size(48.dp),
             tint = MaterialTheme.colorScheme.grayBB
@@ -285,7 +286,7 @@ private fun ComposeButton(onClick: () -> Unit) {
         contentPadding = PaddingValues(horizontal = 5.dp, vertical = 15.dp)
     ) {
         Icon(
-            painter = painterResource(R.drawable.outline_edit),
+            imageVector = Icons.Outlined.Edit,
             contentDescription = "Write Button",
             tint = MaterialTheme.colorScheme.surface
         )

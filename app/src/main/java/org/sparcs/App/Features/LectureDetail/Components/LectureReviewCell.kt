@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -103,7 +104,7 @@ fun LectureReviewCell(
 
                 Box {
                     Icon(
-                        painter = painterResource(R.drawable.more_horiz),
+                        imageVector = Icons.Rounded.MoreHoriz,
                         contentDescription = "More",
                         modifier = Modifier.clickable { expanded = true }
                     )

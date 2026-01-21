@@ -10,7 +10,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Chat
+import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Drafts
+import androidx.compose.material.icons.rounded.Group
+import androidx.compose.material.icons.rounded.LocalOffer
+import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -19,8 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,7 +45,6 @@ import org.sparcs.App.Features.NavigationBar.Channel
 import org.sparcs.App.Shared.Mocks.mockList
 import org.sparcs.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.App.theme.ui.Theme
-import org.sparcs.R
 
 @Composable
 fun BoardListView(
@@ -154,14 +158,14 @@ private fun LoadedView(
 }
 
 @Composable
-fun systemImage(slug: String): Painter {
+fun systemImage(slug: String): ImageVector {
     return when (slug) {
-        "notice" -> painterResource(R.drawable.round_notifications_active)
-        "talk" -> painterResource(R.drawable.round_chat)
-        "club" -> painterResource(R.drawable.group)
-        "trade" -> painterResource(R.drawable.baseline_local_offer)
-        "communication" -> painterResource(R.drawable.baseline_drafts)
-        else -> painterResource(R.drawable.round_format_list_bulleted)
+        "notice" -> Icons.Rounded.NotificationsActive
+        "talk" -> Icons.AutoMirrored.Rounded.Chat
+        "club" -> Icons.Rounded.Group
+        "trade" -> Icons.Rounded.LocalOffer
+        "communication" -> Icons.Rounded.Drafts
+        else -> Icons.AutoMirrored.Rounded.FormatListBulleted
     }
 }
 

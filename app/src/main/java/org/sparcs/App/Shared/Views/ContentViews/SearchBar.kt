@@ -15,6 +15,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,13 +25,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.App.theme.ui.Theme
 import org.sparcs.App.theme.ui.grayBB
-import org.sparcs.R
 
 
 @Composable
@@ -58,7 +57,7 @@ fun SearchCustomBar(
             Row(verticalAlignment = Alignment.CenterVertically) {
 
                 Icon(
-                    painter = painterResource(R.drawable.search),
+                    imageVector = Icons.Rounded.Search,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.grayBB
                 )
