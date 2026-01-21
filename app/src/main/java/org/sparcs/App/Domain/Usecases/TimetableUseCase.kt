@@ -325,7 +325,7 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
 
     override val isEditable: StateFlow<Boolean> = MutableStateFlow(true)
     override val hasLectureInCurrentTable: (Lecture) -> Boolean
-        get() = TODO("Not yet implemented")
+        get() = { true }
 
     override val timetableIDsForSelectedSemester: List<String>
         get() = listOf("${_selectedSemesterID.value}-myTable")
