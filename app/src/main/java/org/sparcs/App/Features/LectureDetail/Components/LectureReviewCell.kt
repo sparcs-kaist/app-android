@@ -191,7 +191,7 @@ fun LectureReviewCell(
                             }
                             isLikeButtonRunning = false
                         }
-                    )//TODO - icon 이미지 받아서 fill / outlined로 수정
+                    )
                 }
             }
         }
