@@ -23,7 +23,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,6 +55,8 @@ fun TimetableGrid(
 
     val minMinutes = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: timetable?.minMinutes ?: TimetableDefaults.defaultMinMinutes
     val maxMinutes = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: timetable?.gappedMaxMinutes ?: TimetableDefaults.defaultMaxMinutes
+
+    val haptic = LocalHapticFeedback.current
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
@@ -123,9 +127,11 @@ fun TimetableGrid(
                                 .fillMaxWidth()
                                 .combinedClickable(
                                     onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         onLectureSelected(item.lecture)
                                     },
                                     onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         showDeleteDialog(item.lecture)
                                     }
                                 )
