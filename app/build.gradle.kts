@@ -9,7 +9,6 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id ("org.jetbrains.kotlin.plugin.serialization")
-    id("com.mikepenz.aboutlibraries.plugin")
 }
 
 val properties = Properties().apply {

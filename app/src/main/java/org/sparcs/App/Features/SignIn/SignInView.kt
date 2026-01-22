@@ -7,12 +7,15 @@ import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -33,16 +36,19 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import org.sparcs.App.Domain.Enums.Auth.AuthUseCaseError
 import org.sparcs.App.Domain.Helpers.Constants
 import org.sparcs.App.Shared.ViewModelMocks.MockSignInViewModel
 import org.sparcs.App.theme.ui.Theme
+import org.sparcs.App.theme.ui.isDark
 import org.sparcs.R
 
 @Composable
@@ -54,6 +60,12 @@ fun SignInView(
     var errorMessage by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val mobisInlineLogoRes = if (MaterialTheme.colorScheme.isDark()) {
+        R.drawable.ic_mobis_inline_logo_night
+    } else {
+        R.drawable.ic_mobis_inline_logo
+    }
 
     Column(
         modifier = Modifier
@@ -72,6 +84,27 @@ fun SignInView(
         )
 
         Spacer(modifier = Modifier.weight(1f))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Sponsored by",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Image(
+                painter = painterResource(mobisInlineLogoRes),
+                contentDescription = null,
+                modifier = Modifier.height(24.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
         TermsAndPrivacyText(context)
 
