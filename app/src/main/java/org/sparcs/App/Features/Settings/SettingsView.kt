@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.outlined.Balance
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -368,13 +367,6 @@ private fun Term(context: Context, navController: NavHostController) {
             Intent.ACTION_VIEW,
             Uri.parse(Constants.termsOfUseURL)
         ); context.startActivity(intent)
-    }
-
-    ServiceNavButton(
-        text = stringResource(R.string.legal_notices),
-        icon = { Icon(Icons.Outlined.Balance, null, tint = MaterialTheme.colorScheme.onSurface) }
-    ) {
-        navController.navigate(Channel.LicenseView.name)
     }
 
     ServiceNavButton(
