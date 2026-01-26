@@ -28,12 +28,13 @@ android {
         minSdk = 31
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.9.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
         buildConfigField("String", "MAPS_API_KEY", "\"$mapKey\"")
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
+        versionNameSuffix = "-beta1"
     }
 
     buildTypes {
