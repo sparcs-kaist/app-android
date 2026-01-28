@@ -27,14 +27,13 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.9.0"
+        versionCode = 3
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
         buildConfigField("String", "MAPS_API_KEY", "\"$mapKey\"")
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
-        versionNameSuffix = "-beta1"
     }
 
     buildTypes {
