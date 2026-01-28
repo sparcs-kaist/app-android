@@ -75,6 +75,8 @@ class TaxiChatUseCase @Inject constructor(
     // MARK: - Computed Properties
     override var accountChats: List<TaxiChat> = emptyList()
 
+    private var isBound = false
+
     override suspend fun fetchInitialChats() {
         bind()
         try {
@@ -114,6 +116,8 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     private fun bind() {
+        if (isBound) return
+        isBound = true
         // is socket(TaxiChatService) connected
         taxiChatService.isConnectedPublisher
             .onEach { isConnected ->
