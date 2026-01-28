@@ -100,6 +100,7 @@ class TaxiChatViewModel @Inject constructor(
 
     private var isFetching = false
     private var isInitialFetching = false
+    private var isLoaded = false
 
     private val badgeByAuthorID : StateFlow<Map<String, Boolean>> = room
         .map { room -> room.participants.associate { it.id to it.badge } }
@@ -108,10 +109,13 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Setup
     override suspend fun setup() {
+        if (isLoaded) return
         taxiChatUseCase.setRoom(room.value)
         fetchTaxiUser()
         bind()
         fetchInitialChats()
+
+        isLoaded = true
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
