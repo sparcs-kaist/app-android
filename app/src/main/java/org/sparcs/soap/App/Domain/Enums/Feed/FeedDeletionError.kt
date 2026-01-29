@@ -20,7 +20,9 @@ sealed class FeedDeletionError(@StringRes val messageResId: Int) : Exception() {
         private fun readResolve(): Any = CommentHasVotes
     }
 
-    data class Unknown(val rawMessage: String) : FeedDeletionError(R.string.error_unknown_conflict)
+    data object Unknown : FeedDeletionError(R.string.error_unknown_conflict) {
+        private fun readResolve(): Any = Unknown
+    }
 
     @StringRes
     fun errorDescription(): Int {

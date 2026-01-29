@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Domain.Repositories.Feed
 
+import android.util.Log
 import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
@@ -61,14 +62,17 @@ class FeedCommentRepository @Inject constructor(
 
             if (response.code() == 409) {
                 val body = response.errorBody()?.string() ?: ""
+                val bodyLower = body.lowercase()
                 val deletionError = when {
-                    body.contains("replies") -> FeedDeletionError.CommentHasReplies
-                    body.contains("votes") -> FeedDeletionError.CommentHasVotes
-                    else -> null
+                    bodyLower.contains("replies") -> FeedDeletionError.CommentHasReplies
+                    bodyLower.contains("votes") -> FeedDeletionError.CommentHasVotes
+                    else -> {
+                        Log.e("FeedCommentRepository", body)
+                        FeedDeletionError.Unknown
+                    }
                 }
 
-                if (deletionError != null) throw deletionError
-                else throw HttpException(response)
+               throw deletionError
             }
 
             throw HttpException(response)
