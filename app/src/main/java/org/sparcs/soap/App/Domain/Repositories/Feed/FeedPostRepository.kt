@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Domain.Repositories.Feed
 
+import android.util.Log
 import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
@@ -52,13 +53,28 @@ class FeedPostRepository @Inject constructor(
 
     override suspend fun deletePost(postID: String) {
         try {
-            api.deletePost(postID)
-        } catch (e: Exception) {
-            if (e is HttpException) {
-                when (e.code()) {
-                    409 -> throw FeedDeletionError.HasComments()
+            val response = api.deletePost(postID)
+            if (response.isSuccessful) return
+
+            if (response.code() == 409) {
+                val body = response.errorBody()?.string() ?: ""
+                val bodyLower = body.lowercase()
+                val deletionError = when {
+                    bodyLower.contains("comments") -> FeedDeletionError.PostHasComments
+                    bodyLower.contains("vote") -> FeedDeletionError.PostHasVotes
+                    else -> {
+                        Log.e("FeedCommentRepository", body)
+                        FeedDeletionError.Unknown
+                    }
                 }
+
+                throw deletionError
             }
+
+            throw HttpException(response)
+
+        } catch (e: Exception) {
+            if (e is FeedDeletionError) throw e
             handleApiError(gson, e)
         }
     }

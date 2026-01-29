@@ -50,11 +50,8 @@ import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
-import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Domain.Repositories.Feed.FakeFeedCommentRepository
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
-import org.sparcs.soap.App.Features.FeedPost.FeedPostViewModel
-import org.sparcs.soap.App.Features.FeedPost.FeedPostViewModelProtocol
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
@@ -62,7 +59,6 @@ import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.grayF8
@@ -71,9 +67,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun FeedCommentRow(
-    viewModel: FeedPostViewModelProtocol,
     comment: FeedComment,
-    isMine: Boolean? = null,
     isReply: Boolean,
     onReply: () -> Unit,
     feedCommentRepository: FeedCommentRepositoryProtocol,
@@ -110,12 +104,11 @@ fun FeedCommentRow(
             ) //TODO - 추가할지 말지 고민
             Header(
                 comment = localComment,
-                isMine = isMine,
                 onDelete = {
                     coroutineScope.launch {
-                        localComment = localComment.copy(isDeleted = true)
                         try {
                             feedCommentRepository.deleteComment(localComment.id)
+                            localComment = localComment.copy(isDeleted = true)
                         } catch (e: Exception) {
                             val message = if (e.isNetworkError()) {
                                 R.string.network_connection_error
@@ -177,7 +170,6 @@ fun FeedCommentRow(
 @Composable
 private fun Header(
     comment: FeedComment,
-    isMine: Boolean?,
     onDelete: () -> Unit,
     onReport: (FeedReportType) -> Unit,
 ) {
@@ -221,7 +213,7 @@ private fun Header(
         if (!comment.isDeleted) {
             PostCommentActionsMenu(
                 enumClass = FeedReportType::class,
-                isMine = isMine,
+                isMine = comment.isMyComment,
                 onEdit = {/*Todo - edit*/ },
                 onDelete = {
                     expanded = false
@@ -414,13 +406,7 @@ suspend fun handleVote(
 private fun Preview() {
     Theme {
         FeedCommentRow(
-            viewModel = MockFeedPostViewModel(
-                initialState = FeedPostViewModel.ViewState.Loaded(
-                    FeedPost.mock(), emptyList()
-                )
-            ),
             comment = FeedComment.mock(),
-            isMine = true,
             isReply = false,
             onReply = {},
             feedCommentRepository = FakeFeedCommentRepository(),
@@ -434,14 +420,7 @@ private fun Preview() {
 private fun Preview2() {
     Theme {
         FeedCommentRow(
-            viewModel = MockFeedPostViewModel(
-                initialState = FeedPostViewModel.ViewState.Loaded(
-                    FeedPost.mock(),
-                    emptyList()
-                )
-            ),
             comment = FeedComment.mockList()[0],
-            isMine = false,
             isReply = true,
             onReply = {},
             feedCommentRepository = FakeFeedCommentRepository(),
