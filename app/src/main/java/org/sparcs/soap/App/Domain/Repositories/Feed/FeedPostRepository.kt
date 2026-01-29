@@ -52,13 +52,25 @@ class FeedPostRepository @Inject constructor(
 
     override suspend fun deletePost(postID: String) {
         try {
-            api.deletePost(postID)
-        } catch (e: Exception) {
-            if (e is HttpException) {
-                when (e.code()) {
-                    409 -> throw FeedDeletionError.HasComments()
+            val response = api.deletePost(postID)
+            if (response.isSuccessful) return
+
+            if (response.code() == 409) {
+                val body = response.errorBody()?.string() ?: ""
+                val deletionError = when {
+                    body.contains("comments") -> FeedDeletionError.PostHasComments
+                    body.contains("vote") -> FeedDeletionError.PostHasVotes
+                    else -> null
                 }
+
+                if (deletionError != null) throw deletionError
+                else throw HttpException(response)
             }
+
+            throw HttpException(response)
+
+        } catch (e: Exception) {
+            if (e is FeedDeletionError) throw e
             handleApiError(gson, e)
         }
     }

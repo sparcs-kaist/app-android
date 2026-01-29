@@ -392,7 +392,6 @@
     <string name="acknowledgements">Acknowledgements</string>
     <string name="sponsored_by">Sponsored By</string>
     <string name="legal_notices">Legal Notices</string>
-    <string name="error_post_has_comments">Posts with comments cannot be deleted.</string>
     <string name="network_connection_error">You are not connected to the Internet.</string>
     <string name="unexpected_error_uploading_post">An unexpected error occurred while uploading a post. Please try again later.</string>
     <string name="unexpected_error_reporting_post">An unexpected error occurred while reporting a post. Please try again later.</string>
@@ -410,7 +409,6 @@
     <string name="error_fetch_data">An unexpected error occurred while loading timetables. Please try again later.</string>
     <string name="unexpected_error">An unexpected error occurred. Please try again later.</string>
     <string name="error_fetch_boards">Failed to load boards.</string>
-    <string name="error_comment_has_replies">Comments with replies cannot be deleted.</string>
     <string name="unexpected_error_deleting_comment">An unexpected error occurred while deleting a comment. Please try again later.</string>
     <string name="error_sign_in_failed">Sign in failed: %s</string>
     <string name="error_sign_out_failed">Sign out failed.</string>
@@ -422,4 +420,9 @@
     <string name="error_token_refresh_failed">Failed to refresh access token: %s</string>
     <string name="error_no_refresh_token">No refresh token available.</string>
     <string name="error_unknown">An unknown authentication error occurred.</string>
+    <string name="error_post_has_comments">Posts with comments cannot be deleted.</string>
+    <string name="error_post_has_votes">Posts with vote records cannot be deleted.</string>
+    <string name="error_comment_has_replies">Comments with replies cannot be deleted.</string>
+    <string name="error_comment_has_votes">Comments with existing votes cannot be deleted.</string>
+    <string name="error_unknown_conflict">This item cannot be deleted at this time.</string>
 </resources>
