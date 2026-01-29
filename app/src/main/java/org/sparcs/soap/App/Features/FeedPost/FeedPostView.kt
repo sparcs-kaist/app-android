@@ -263,7 +263,6 @@ fun FeedPostView(
                             Comments(
                                 viewModel = viewModel,
                                 post = post,
-                                isMine = post.isAuthor,
                                 feedCommentRepository = repo1,
                                 onReply = { c ->
                                     targetComment = c
@@ -453,7 +452,6 @@ private fun InputBar(
 private fun Comments(
     viewModel: FeedPostViewModelProtocol,
     post: FeedPost,
-    isMine: Boolean,
     feedCommentRepository: FeedCommentRepositoryProtocol,
     onReply: (FeedComment) -> Unit,
 ) {
@@ -485,18 +483,14 @@ private fun Comments(
                 )
                 viewModel.comments.forEach { comment ->
                     FeedCommentRow(
-                        viewModel = viewModel,
                         comment = comment,
-                        isMine = isMine,
                         isReply = false,
                         onReply = { onReply(comment) },
                         feedCommentRepository = feedCommentRepository,
                     )
                     comment.replies.forEach { reply ->
                         FeedCommentRow(
-                            viewModel = viewModel,
                             comment = reply,
-                            isMine = isMine,
                             isReply = true,
                             onReply = {},
                             feedCommentRepository = feedCommentRepository,
