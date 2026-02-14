@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
@@ -157,10 +158,12 @@ fun FeedView(
                 isRefreshing = true
                 coroutineScope.launch {
                     viewModel.fetchInitialData()
+                    delay(500)
                     isRefreshing = false
                 }
             },
-            state = pullState
+            state = pullState,
+            modifier = Modifier.padding(innerPadding)
         ) {
             when (state) {
                 is FeedViewModel.ViewState.Loading -> {
@@ -173,11 +176,7 @@ fun FeedView(
                 }
 
                 is FeedViewModel.ViewState.Loaded -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(innerPadding),
-                        state = listState
-                    ) {
+                    LazyColumn(state = listState) {
                         items(state.posts) { post ->
                             FeedPostRow(
                                 post = post,

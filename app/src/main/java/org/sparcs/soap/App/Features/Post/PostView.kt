@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Features.Post
 
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.StringRes
@@ -71,6 +72,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
@@ -105,6 +107,7 @@ fun PostView(
     viewModel: PostViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
+    val context = LocalContext.current
     val state = viewModel.state.collectAsState().value
     val scope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
@@ -141,6 +144,26 @@ fun PostView(
     }
     val post = viewModel.post.collectAsState().value
     val pullState = rememberPullToRefreshState()
+
+    LaunchedEffect(tappedURL) {
+        tappedURL?.let { uri ->
+            try {
+                val urlString = uri.toString()
+                val finalUri = if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
+                    Uri.parse("http://$urlString")
+                } else {
+                    uri
+                }
+
+                val intent = Intent(Intent.ACTION_VIEW, finalUri)
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("PostView", "Failed to open URL: $tappedURL", e)
+            } finally {
+                tappedURL = null
+            }
+        }
+    }
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
@@ -265,17 +288,16 @@ fun PostView(
                         isRefreshing = true
                         scope.launch {
                             viewModel.fetchPost()
+                            delay(500)
+                            isRefreshing = false
                         }
-                        isRefreshing = false
                     },
-                    state = pullState
+                    state = pullState,
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(16.dp)
                 ) {
-                    LazyColumn(
-                        Modifier
-                            .padding(innerPadding)
-                            .padding(16.dp),
-                        state = proxy
-                    ) {
+                    LazyColumn(state = proxy) {
                         item {
                             Header(
                                 post = post,
