@@ -1,7 +1,6 @@
 package org.sparcs.soap.App
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
@@ -26,7 +25,6 @@ class InAppUpdateHelper(
     private val activity: Activity,
     private val launcher: ActivityResultLauncher<IntentSenderRequest>,
     private val priorityThreshold: Int = 4, //중요도. 이거 이상이면 강제 업데이트 창 띄움
-    private val exitIfDeclined: Boolean = true,
     private val snackbarHostState: SnackbarHostState,
     private val scope: CoroutineScope
 ) {
@@ -52,7 +50,7 @@ class InAppUpdateHelper(
             val priority = info.updatePriority()
             
             if (available && immediateAllowed && priority >= priorityThreshold) {
-                promptImmediate(info)
+                start(info, AppUpdateType.IMMEDIATE)
             } else if (available && flexibleAllowed) {
                 start(info, AppUpdateType.FLEXIBLE)
             }
@@ -63,20 +61,6 @@ class InAppUpdateHelper(
         }.addOnFailureListener {
             Log.w("InAppUpdateHelper", it.message ?: "")
         }
-    }
-
-    private fun promptImmediate(info: AppUpdateInfo) {
-        AlertDialog.Builder(activity)
-            .setTitle("UPDATE")
-            .setMessage("REQUIRED")
-            .setCancelable(!exitIfDeclined)
-            .setPositiveButton("OK") { _, _ -> start(info, AppUpdateType.IMMEDIATE) }
-            .apply {
-                if (exitIfDeclined) {
-                    setNegativeButton("EXIT") { _, _ -> activity.finishAffinity() }
-                }
-            }
-            .show()
     }
 
     private fun start(info: AppUpdateInfo, type: Int) {
@@ -98,7 +82,7 @@ class InAppUpdateHelper(
         if (resultCode != Activity.RESULT_OK) {
             Log.d("InAppUpdateHelper", "Update flow failed! Result code: $resultCode")
             // 강제 업데이트(IMMEDIATE)였는데 취소/실패했다면 앱 종료
-            if (currentUpdateType == AppUpdateType.IMMEDIATE && exitIfDeclined) {
+            if (currentUpdateType == AppUpdateType.IMMEDIATE) {
                 activity.finishAffinity()
             }
         }
