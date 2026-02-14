@@ -146,8 +146,7 @@ enum class Channel(@StringRes val title: Int) {
 }
 
 @Composable
-fun MainTabBar(navController: NavHostController = rememberNavController(),
-               snackbarHostState: SnackbarHostState? = null) {
+fun MainTabBar(navController: NavHostController = rememberNavController()) {
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -615,13 +614,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController(),
                     )
                 }
             }
-        }
-
-        snackbarHostState?.let {
-            SnackbarHost(
-                hostState = it,
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
         }
     }
 }
