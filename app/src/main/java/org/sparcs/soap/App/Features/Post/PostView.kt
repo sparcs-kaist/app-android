@@ -71,6 +71,7 @@ import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
@@ -265,17 +266,16 @@ fun PostView(
                         isRefreshing = true
                         scope.launch {
                             viewModel.fetchPost()
+                            delay(500)
+                            isRefreshing = false
                         }
-                        isRefreshing = false
                     },
-                    state = pullState
+                    state = pullState,
+                    modifier = Modifier
+                        .padding(innerPadding)
+                        .padding(16.dp)
                 ) {
-                    LazyColumn(
-                        Modifier
-                            .padding(innerPadding)
-                            .padding(16.dp),
-                        state = proxy
-                    ) {
+                    LazyColumn(state = proxy) {
                         item {
                             Header(
                                 post = post,

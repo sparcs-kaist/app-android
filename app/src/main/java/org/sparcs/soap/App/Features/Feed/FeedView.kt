@@ -160,7 +160,8 @@ fun FeedView(
                     isRefreshing = false
                 }
             },
-            state = pullState
+            state = pullState,
+            modifier = Modifier.padding(innerPadding)
         ) {
             when (state) {
                 is FeedViewModel.ViewState.Loading -> {
@@ -173,11 +174,7 @@ fun FeedView(
                 }
 
                 is FeedViewModel.ViewState.Loaded -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(innerPadding),
-                        state = listState
-                    ) {
+                    LazyColumn(state = listState) {
                         items(state.posts) { post ->
                             FeedPostRow(
                                 post = post,

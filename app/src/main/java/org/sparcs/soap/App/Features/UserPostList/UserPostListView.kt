@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Features.NavigationBar.Channel
@@ -43,6 +44,7 @@ fun UserPostListView(
     val state by viewModel.state.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 
+    var isRefreshing by remember { mutableStateOf(false) }
     val searchKeyword by viewModel.searchKeyword.collectAsState()
     var showSearchBar by remember { mutableStateOf(false) }
 
@@ -94,13 +96,18 @@ fun UserPostListView(
                                 navController.navigate(Channel.PostView.name + "?postId=${post.id}")
                             },
                             onRefresh = {
-                                coroutineScope.launch { viewModel.fetchInitialPosts() }
+                                isRefreshing = true
+                                coroutineScope.launch {
+                                    viewModel.fetchInitialPosts()
+                                    delay(500)
+                                    isRefreshing = false
+                                }
                             },
                             onLoadMore = {
                                 coroutineScope.launch { viewModel.loadNextPage() }
                             },
                             onPostDisappear = { postID -> viewModel.refreshItem(postID) },
-                            isRefreshing = false
+                            isRefreshing = isRefreshing
                         )
                     }
 

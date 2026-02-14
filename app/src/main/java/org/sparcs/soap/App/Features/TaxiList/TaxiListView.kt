@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
@@ -121,17 +122,18 @@ fun TaxiListView(
                 isRefreshing = true
                 coroutineScope.launch {
                     viewModel.fetchData()
+                    delay(500)
                     isRefreshing = false
                 }
             },
-            state = pullState
+            state = pullState,
+            modifier = Modifier.padding(innerPadding)
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
                     .verticalScroll(scrollState)
-                    .padding(innerPadding)
             ) {
                 Column(
                     Modifier
