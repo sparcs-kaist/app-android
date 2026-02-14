@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
@@ -157,6 +158,7 @@ fun FeedView(
                 isRefreshing = true
                 coroutineScope.launch {
                     viewModel.fetchInitialData()
+                    delay(500)
                     isRefreshing = false
                 }
             },
