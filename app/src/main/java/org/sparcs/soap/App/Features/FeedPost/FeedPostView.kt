@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
@@ -237,13 +238,14 @@ fun FeedPostView(
                         isRefreshing = true
                         coroutineScope.launch {
                             viewModel.fetchComments(postID = post.id, initial = false)
+                            delay(500)
+                            isRefreshing = false
                         }
-                        isRefreshing = false
                     },
-                    state = pullState
+                    state = pullState,
+                    modifier = Modifier.padding(innerPadding)
                 ) {
                     LazyColumn(
-                        Modifier.padding(innerPadding),
                         state = proxy
                     ) {
                         item {
