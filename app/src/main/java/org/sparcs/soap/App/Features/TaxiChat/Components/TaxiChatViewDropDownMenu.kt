@@ -113,7 +113,7 @@ fun TaxiChatViewDropDownMenu(
                 ) {
                     Text(
                         text= stringResource(R.string.yes),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             },
@@ -124,7 +124,7 @@ fun TaxiChatViewDropDownMenu(
                     ) {
                     Text(
                         text = stringResource(R.string.no),
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
