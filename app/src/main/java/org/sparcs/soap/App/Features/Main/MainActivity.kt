@@ -2,7 +2,6 @@ package org.sparcs.soap.App.Features.Main
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -20,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,6 +39,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import org.sparcs.soap.App.Domain.Helpers.PopupManager
 import org.sparcs.soap.App.Domain.Services.AuthenticationCallbackHandler
@@ -56,23 +57,19 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
     private lateinit var helper: InAppUpdateHelper
+    private val snackbarHostState = SnackbarHostState() // 유연한 인앱 업데이트용 스낵 바
 
-    private val launcher = registerForActivityResult(
+    // 인앱 업데이트 결과 처리 런처
+    private val appUpdateLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
-    ) { result: ActivityResult ->
-        if (result.resultCode == RESULT_CANCELED) {
-            Log.d("MainActivity", "CANCELED")
-        }
-        if (result.resultCode != RESULT_OK) {
-            Log.w("MainActivity", "FAILED")
-        }
-    }
+    ) { result: ActivityResult -> helper.onActivityResult(result.resultCode) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        helper = InAppUpdateHelper(this, launcher, 4, true)
+        helper = InAppUpdateHelper(this, appUpdateLauncher, 4,
+            true, snackbarHostState, lifecycleScope)
         helper.check()
 
         intent?.data?.let { uri ->
@@ -119,7 +116,7 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         */
-                        MainTabBar()
+                        MainTabBar(snackbarHostState = snackbarHostState)
                     } else {
                         SignInView()
                     }
@@ -140,6 +137,11 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         helper.resumeCheck()
         viewModel.checkAuthOnResume()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        helper.onDestroy()
     }
 }
 
