@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -190,7 +191,7 @@ private fun Header(
             text = if (comment.isAuthor) "$author (${stringResource(R.string.author)})" else author,
             fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.bodyMedium,
-            color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.scrim
+            color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else Color.Unspecified
         )
         Spacer(Modifier.width(8.dp))
         if (comment.isKaistIP) {
