@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Features.Post
 
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.annotation.StringRes
@@ -106,6 +107,7 @@ fun PostView(
     viewModel: PostViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
+    val context = LocalContext.current
     val state = viewModel.state.collectAsState().value
     val scope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
@@ -142,6 +144,26 @@ fun PostView(
     }
     val post = viewModel.post.collectAsState().value
     val pullState = rememberPullToRefreshState()
+
+    LaunchedEffect(tappedURL) {
+        tappedURL?.let { uri ->
+            try {
+                val urlString = uri.toString()
+                val finalUri = if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
+                    Uri.parse("http://$urlString")
+                } else {
+                    uri
+                }
+
+                val intent = Intent(Intent.ACTION_VIEW, finalUri)
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                Log.e("PostView", "Failed to open URL: $tappedURL", e)
+            } finally {
+                tappedURL = null
+            }
+        }
+    }
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 

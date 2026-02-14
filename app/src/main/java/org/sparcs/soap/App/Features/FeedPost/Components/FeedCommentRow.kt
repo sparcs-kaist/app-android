@@ -1,5 +1,8 @@
 package org.sparcs.soap.App.Features.FeedPost.Components
 
+import android.content.Intent
+import android.net.Uri
+import android.util.Patterns
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -31,13 +34,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
@@ -254,31 +258,52 @@ private fun ProfileImage(comment: FeedComment) {
 
 @Composable
 private fun Content(comment: FeedComment) {
-    val text =
-        if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
-    val color =
-        if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+    val context = LocalContext.current
+    val text = if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
+    val color = if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+
     var expanded by remember { mutableStateOf(false) }
     var isOverflowing by remember { mutableStateOf(false) }
     var hasMeasured by remember { mutableStateOf(false) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+
     val moreText = stringResource(R.string.more)
     val moreColor = MaterialTheme.colorScheme.grayBB
+    val linkColor = MaterialTheme.colorScheme.primary
 
-    val displayText = remember(text, expanded, isOverflowing) {
-        if (expanded || !isOverflowing) {
-            AnnotatedString(text)
+    val displayText = remember(text, expanded, isOverflowing, textLayoutResult) {
+        val baseText = if (expanded || !isOverflowing) {
+            text
         } else {
-            val visibleEnd =
-                textLayoutResult?.getLineEnd(2, visibleEnd = true) ?: text.length
-            val safeEnd = visibleEnd.coerceAtMost(text.length)
-            val visibleText = text.substring(0, safeEnd).trimEnd()
-            buildAnnotatedString {
-                append(visibleText)
-                pushStringAnnotation(tag = "MORE", annotation = "expand")
-                append("… ")
-                withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
-                    append(moreText)
+            val visibleEnd = textLayoutResult?.getLineEnd(2, visibleEnd = true) ?: text.length
+            text.substring(0, visibleEnd.coerceAtMost(text.length)).trimEnd()
+        }
+
+        buildAnnotatedString {
+            if (comment.isDeleted) {
+                append(baseText)
+            } else {
+                val regex = Patterns.WEB_URL.toRegex()
+                var lastIndex = 0
+                regex.findAll(baseText).forEach { match ->
+                    append(baseText.substring(lastIndex, match.range.first))
+                    val url = match.value
+                    pushStringAnnotation("URL", url)
+                    withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
+                        append(url)
+                    }
+                    pop()
+                    lastIndex = match.range.last + 1
+                }
+                if (lastIndex < baseText.length) append(baseText.substring(lastIndex))
+
+                if (!expanded && isOverflowing) {
+                    pushStringAnnotation("MORE", "expand")
+                    append("… ")
+                    withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
+                        append(moreText)
+                    }
+                    pop()
                 }
             }
         }
@@ -297,10 +322,22 @@ private fun Content(comment: FeedComment) {
             }
         },
         onClick = { offset ->
-            displayText.getStringAnnotations("MORE", offset, offset)
-                .firstOrNull()?.let {
-                    if (!comment.isDeleted) expanded = true
+            if (comment.isDeleted) return@ClickableText
+
+            displayText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { annotation ->
+                val url = annotation.item
+                val formattedUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) "http://$url" else url
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl)))
+                } catch (e: Exception) {
+                    android.util.Log.e("CommentContent", "Failed to open URL", e)
                 }
+                return@ClickableText
+            }
+
+            displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()?.let {
+                expanded = true
+            }
         },
         modifier = Modifier.padding(vertical = 8.dp)
     )
