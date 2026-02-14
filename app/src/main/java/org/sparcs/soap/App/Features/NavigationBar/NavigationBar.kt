@@ -9,7 +9,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Feed
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
@@ -21,12 +20,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
@@ -149,364 +148,188 @@ enum class Channel(@StringRes val title: Int) {
 @Composable
 fun MainTabBar(navController: NavHostController = rememberNavController(),
                snackbarHostState: SnackbarHostState? = null) {
-    Scaffold(
-        snackbarHost = { snackbarHostState?.let { SnackbarHost(it) } }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        NavHost(
+            navController = navController,
+            startDestination = "FeedGraph",
+            enterTransition = { fadeIn(animationSpec = tween(500)) },
+            exitTransition = { fadeOut(animationSpec = tween(500)) }
         ) {
-            NavHost(
-                navController = navController,
-                startDestination = "FeedGraph",
-                enterTransition = { fadeIn(animationSpec = tween(500)) },
-                exitTransition = { fadeOut(animationSpec = tween(500)) }
+            navigation(
+                startDestination = Channel.Start.name,
+                route = "FeedGraph"
             ) {
-                navigation(
-                    startDestination = Channel.Start.name,
-                    route = "FeedGraph"
-                ) {
-                    composable(
-                        route = Channel.Start.name,
-                    ) { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) {
-                            navController.getBackStackEntry("FeedGraph")
-                        }
-                        val viewModel: FeedViewModel = hiltViewModel(parentEntry)
-                        FeedView(navController = navController, viewModel = viewModel)
+                composable(
+                    route = Channel.Start.name,
+                ) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("FeedGraph")
                     }
-
-                    composable(
-                        route = Channel.FeedPost.name + "?feedId={feedId}",
-                        arguments = listOf(
-                            navArgument("feedId") { type = NavType.StringType }
-                        ),
-                        deepLinks = listOf(
-                            navDeepLink {
-                                uriPattern = Constants.feedShareURL + "{feedId}"
-                                action = Intent.ACTION_VIEW
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: FeedPostViewModelProtocol = hiltViewModel<FeedPostViewModel>(backStackEntry)
-                        val parentEntry = remember(backStackEntry) {
-                            navController.getBackStackEntry("FeedGraph")
-                        }
-                        val feedViewModel: FeedViewModel = hiltViewModel(parentEntry)
-                        FeedPostView(
-                            navController = navController,
-                            viewModel = viewModel,
-                            feedViewModel = feedViewModel
-                        )
-                    }
-
-                    composable(
-                        route = Channel.FeedPostCompose.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
-                        FeedPostComposeView(navController = navController, viewModel = viewModel)
-                    }
-                }
-
-                /*___________OTL___________*/
-                navigation(
-                    startDestination = Channel.TimeTable.name,
-                    route = "OTLGraph"
-                ) {
-                    composable(
-                        route = Channel.TimeTable.name,
-                        deepLinks = listOf(navDeepLink {
-                            uriPattern = Constants.otlShareURL
-                            action = Intent.ACTION_VIEW
-                        })
-                    ) { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) {
-                            navController.getBackStackEntry("OTLGraph")
-                        }
-                        val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
-                        val lectureSearchViewModel: LectureSearchViewModel =
-                            hiltViewModel(backStackEntry)
-                        TimetableView(
-                            viewModel = viewModel,
-                            navController = navController,
-                            lectureSearchViewModel = lectureSearchViewModel
-                        )
-                    }
-
-                    composable(
-                        route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",
-                        arguments = listOf(
-                            navArgument("lecture_json") {
-                                type = NavType.StringType
-                                nullable = false
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) {
-                            navController.getBackStackEntry("OTLGraph")
-                        }
-
-                        val timetableViewModel: TimetableViewModel = hiltViewModel(parentEntry)
-                        val lectureDetailViewModel: LectureDetailViewModel =
-                            hiltViewModel(backStackEntry)
-
-                        LectureDetailView(
-                            lectureDetailViewModel = lectureDetailViewModel,
-                            timetableViewModel = timetableViewModel,
-                            navController = navController
-                        )
-                    }
-
-                    composable(
-                        route = Channel.CourseView.name + "?course_json={course_json}",
-                        arguments = listOf(
-                            navArgument("course_json") {
-                                type = NavType.StringType
-                                nullable = false
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: CourseViewModel = hiltViewModel(backStackEntry)
-                        CourseView(navController = navController, viewModel = viewModel)
-                    }
-
-                    composable(
-                        route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}",
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: ReviewComposeViewModel = hiltViewModel(backStackEntry)
-                        val lectureDetailViewModel: LectureDetailViewModel =
-                            hiltViewModel(backStackEntry)
-
-                        ReviewComposeView(
-                            reviewComposeViewModel = viewModel,
-                            lectureDetailViewModel = lectureDetailViewModel,
-                            navController = navController
-                        )
-                    }
-                }
-
-                /*___________Taxi___________*/
-                navigation(
-                    startDestination = Channel.Taxi.name,
-                    route = "TaxiGraph"
-                ) {
-                    composable(
-                        route = Channel.Taxi.name + "?roomId={roomId}",
-                        arguments = listOf(
-                            navArgument("roomId") {
-                                nullable = true
-                                type = NavType.StringType
-                            }
-                        ),
-                        deepLinks = listOf(
-                            navDeepLink {
-                                uriPattern = Constants.taxiInviteURL + "{roomId}"
-                                action = Intent.ACTION_VIEW
-                            }
-                        )
-                    )
-                    { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) {
-                            navController.getBackStackEntry("TaxiGraph")
-                        }
-                        val viewModel: TaxiListViewModelProtocol =
-                            hiltViewModel<TaxiListViewModel>(parentEntry)
-
-                        val taxiPreviewViewModel: TaxiPreviewViewModel = hiltViewModel(backStackEntry)
-
-                        TaxiListView(
-                            viewModel = viewModel,
-                            taxiPreviewViewModel = taxiPreviewViewModel,
-                            navController = navController
-                        )
-                    }
-
-                    composable(
-                        route = Channel.TaxiRoomCreation.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) {
-                            navController.getBackStackEntry("TaxiGraph")
-                        }
-                        val taxiListViewModel: TaxiListViewModelProtocol =
-                            hiltViewModel<TaxiListViewModel>(parentEntry)
-                        val taxiRoomCreationViewModel: TaxiRoomCreationViewModel =
-                            hiltViewModel(backStackEntry)
-
-                        TaxiRoomCreationView(
-                            navController = navController,
-                            taxiListViewModel = taxiListViewModel,
-                            taxiRoomCreationViewModel = taxiRoomCreationViewModel
-                        )
-                    }
-
-                    composable(
-                        route = Channel.TaxiChatView.name + "?room_json={room_json}",
-                        arguments = listOf(
-                            navArgument("room_json") {
-                                type = NavType.StringType
-                                nullable = false
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: TaxiChatViewModel = hiltViewModel(backStackEntry)
-                        TaxiChatView(
-                            viewModel,
-                            navController = navController
-                        )
-                    }
-
-                    composable(
-                        route = Channel.TaxiChatListView.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: TaxiChatListViewModel = hiltViewModel(backStackEntry)
-                        TaxiChatListView(viewModel, navController)
-                    }
-
-                    composable(
-                        route = Channel.TaxiReportView.name + "?room_json={room_json}",
-                        arguments = listOf(
-                            navArgument("room_json") {
-                                type = NavType.StringType
-                                nullable = false
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: TaxiReportViewModel = hiltViewModel(backStackEntry)
-                        TaxiReportView(viewModel, navController)
-                    }
-                }
-
-                /*___________Ara___________*/
-                navigation(
-                    startDestination = Channel.Boards.name,
-                    route = "AraGraph"
-                ) {
-                    composable(
-                        route = Channel.Boards.name
-                    ) { backStackEntry ->
-                        val viewModel: BoardListViewModel = hiltViewModel(backStackEntry)
-                        BoardListView(viewModel = viewModel, navController = navController)
-                    }
-
-                    composable(
-                        route = Channel.BoardList.name + "?board_json={board_json}",
-                        arguments = listOf(
-                            navArgument("board_json") {
-                                type = NavType.StringType
-                                nullable = false
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: PostListViewModel = hiltViewModel(backStackEntry)
-                        PostListView(
-                            viewModel = viewModel,
-                            navController = navController
-                        )
-                    }
-
-                    composable(
-                        route = Channel.PostView.name + "?postId={postId}",
-                        arguments = listOf(
-                            navArgument("postId") { type = NavType.IntType }
-                        ),
-                        deepLinks = listOf(
-                            navDeepLink {
-                                uriPattern = Constants.araShareURL + "{postId}"
-                                action = Intent.ACTION_VIEW
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: PostViewModel = hiltViewModel(backStackEntry)
-                        PostView(viewModel = viewModel, navController = navController)
-                    }
-
-                    composable(
-                        route = Channel.PostCompose.name + "?board_json={board_json}",
-                        arguments = listOf(
-                            navArgument("board_json") {
-                                type = NavType.StringType
-                                nullable = false
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: PostComposeViewModel = hiltViewModel(backStackEntry)
-                        PostComposeView(
-                            viewModel = viewModel,
-                            navController = navController
-                        )
-                    }
-
-                    composable(
-                        route = Channel.UserPostListView.name + "?author_json={author_json}",
-                        arguments = listOf(
-                            navArgument("author_json") {
-                                type = NavType.StringType
-                                nullable = false
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: UserPostListViewModel = hiltViewModel(backStackEntry)
-                        UserPostListView(viewModel = viewModel, navController = navController)
-                    }
+                    val viewModel: FeedViewModel = hiltViewModel(parentEntry)
+                    FeedView(navController = navController, viewModel = viewModel)
                 }
 
                 composable(
-                    route = Channel.SearchView.name
+                    route = Channel.FeedPost.name + "?feedId={feedId}",
+                    arguments = listOf(
+                        navArgument("feedId") { type = NavType.StringType }
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = Constants.feedShareURL + "{feedId}"
+                            action = Intent.ACTION_VIEW
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
-                    val viewModel: SearchViewModel = hiltViewModel(backStackEntry)
+                    val viewModel: FeedPostViewModelProtocol = hiltViewModel<FeedPostViewModel>(backStackEntry)
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("FeedGraph")
+                    }
+                    val feedViewModel: FeedViewModel = hiltViewModel(parentEntry)
+                    FeedPostView(
+                        navController = navController,
+                        viewModel = viewModel,
+                        feedViewModel = feedViewModel
+                    )
+                }
+
+                composable(
+                    route = Channel.FeedPostCompose.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: FeedPostComposeViewModel = hiltViewModel(backStackEntry)
+                    FeedPostComposeView(navController = navController, viewModel = viewModel)
+                }
+            }
+
+            /*___________OTL___________*/
+            navigation(
+                startDestination = Channel.TimeTable.name,
+                route = "OTLGraph"
+            ) {
+                composable(
+                    route = Channel.TimeTable.name,
+                    deepLinks = listOf(navDeepLink {
+                        uriPattern = Constants.otlShareURL
+                        action = Intent.ACTION_VIEW
+                    })
+                ) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("OTLGraph")
+                    }
+                    val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
+                    val lectureSearchViewModel: LectureSearchViewModel =
+                        hiltViewModel(backStackEntry)
+                    TimetableView(
+                        viewModel = viewModel,
+                        navController = navController,
+                        lectureSearchViewModel = lectureSearchViewModel
+                    )
+                }
+
+                composable(
+                    route = Channel.LectureDetail.name + "?lecture_json={lecture_json}",
+                    arguments = listOf(
+                        navArgument("lecture_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("OTLGraph")
+                    }
+
+                    val timetableViewModel: TimetableViewModel = hiltViewModel(parentEntry)
+                    val lectureDetailViewModel: LectureDetailViewModel =
+                        hiltViewModel(backStackEntry)
+
+                    LectureDetailView(
+                        lectureDetailViewModel = lectureDetailViewModel,
+                        timetableViewModel = timetableViewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.CourseView.name + "?course_json={course_json}",
+                    arguments = listOf(
+                        navArgument("course_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: CourseViewModel = hiltViewModel(backStackEntry)
+                    CourseView(navController = navController, viewModel = viewModel)
+                }
+
+                composable(
+                    route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}",
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: ReviewComposeViewModel = hiltViewModel(backStackEntry)
+                    val lectureDetailViewModel: LectureDetailViewModel =
+                        hiltViewModel(backStackEntry)
+
+                    ReviewComposeView(
+                        reviewComposeViewModel = viewModel,
+                        lectureDetailViewModel = lectureDetailViewModel,
+                        navController = navController
+                    )
+                }
+            }
+
+            /*___________Taxi___________*/
+            navigation(
+                startDestination = Channel.Taxi.name,
+                route = "TaxiGraph"
+            ) {
+                composable(
+                    route = Channel.Taxi.name + "?roomId={roomId}",
+                    arguments = listOf(
+                        navArgument("roomId") {
+                            nullable = true
+                            type = NavType.StringType
+                        }
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = Constants.taxiInviteURL + "{roomId}"
+                            action = Intent.ACTION_VIEW
+                        }
+                    )
+                )
+                { backStackEntry ->
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("TaxiGraph")
+                    }
+                    val viewModel: TaxiListViewModelProtocol =
+                        hiltViewModel<TaxiListViewModel>(parentEntry)
+
                     val taxiPreviewViewModel: TaxiPreviewViewModel = hiltViewModel(backStackEntry)
-                    SearchView(
+
+                    TaxiListView(
                         viewModel = viewModel,
                         taxiPreviewViewModel = taxiPreviewViewModel,
                         navController = navController
@@ -514,112 +337,291 @@ fun MainTabBar(navController: NavHostController = rememberNavController(),
                 }
 
                 composable(
-                    route = Channel.SignOut.name
+                    route = Channel.TaxiRoomCreation.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
-                    val viewModel: SignInViewModel = hiltViewModel(backStackEntry)
-                    SignInView(viewModel = viewModel)
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry("TaxiGraph")
+                    }
+                    val taxiListViewModel: TaxiListViewModelProtocol =
+                        hiltViewModel<TaxiListViewModel>(parentEntry)
+                    val taxiRoomCreationViewModel: TaxiRoomCreationViewModel =
+                        hiltViewModel(backStackEntry)
+
+                    TaxiRoomCreationView(
+                        navController = navController,
+                        taxiListViewModel = taxiListViewModel,
+                        taxiRoomCreationViewModel = taxiRoomCreationViewModel
+                    )
                 }
 
-                /*___________Settings___________*/
-                navigation(
-                    startDestination = Channel.Settings.name,
-                    route = "SettingsGraph"
-                ) {
-                    composable(
-                        route = Channel.Settings.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: SettingsViewModel = hiltViewModel(backStackEntry)
-                        SettingsView(navController = navController, settingsViewModel = viewModel)
-                    }
+                composable(
+                    route = Channel.TaxiChatView.name + "?room_json={room_json}",
+                    arguments = listOf(
+                        navArgument("room_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: TaxiChatViewModel = hiltViewModel(backStackEntry)
+                    TaxiChatView(
+                        viewModel,
+                        navController = navController
+                    )
+                }
 
-                    composable(
-                        route = Channel.CreditView.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) {
-                        CreditView(navController = navController)
-                    }
+                composable(
+                    route = Channel.TaxiChatListView.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: TaxiChatListViewModel = hiltViewModel(backStackEntry)
+                    TaxiChatListView(viewModel, navController)
+                }
 
-                    composable(
-                        route = Channel.AraSettings.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: AraSettingsViewModel = hiltViewModel(backStackEntry)
-                        AraSettingsView(viewModel = viewModel, navController = navController)
-                    }
-
-                    composable(
-                        route = Channel.FeedSettings.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: FeedSettingsViewModel = hiltViewModel(backStackEntry)
-                        FeedSettingsView(
-                            viewModel = viewModel,
-                            navController = navController
-                        )
-                    }
-
-                    composable(
-                        route = Channel.AraMyPostSettings.name + "?type_json={type_json}",
-                        arguments = listOf(
-                            navArgument("type_json") {
-                                type = NavType.StringType
-                                nullable = false
-                            }
-                        ),
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: AraMyPostViewModel = hiltViewModel(backStackEntry)
-                        AraMyPostView(
-                            viewModel = viewModel,
-                            navController = navController
-                        )
-                    }
-
-                    composable(
-                        route = Channel.TaxiSettings.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: TaxiSettingsViewModel = hiltViewModel(backStackEntry)
-                        TaxiSettingsView(
-                            viewModel = viewModel,
-                            navController = navController
-                        )
-                    }
-
-                    composable(
-                        route = Channel.TaxiReportSettings.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val viewModel: TaxiReportListViewModel = hiltViewModel(backStackEntry)
-                        TaxiReportListView(
-                            viewModel = viewModel,
-                            navController = navController
-                        )
-                    }
+                composable(
+                    route = Channel.TaxiReportView.name + "?room_json={room_json}",
+                    arguments = listOf(
+                        navArgument("room_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: TaxiReportViewModel = hiltViewModel(backStackEntry)
+                    TaxiReportView(viewModel, navController)
                 }
             }
+
+            /*___________Ara___________*/
+            navigation(
+                startDestination = Channel.Boards.name,
+                route = "AraGraph"
+            ) {
+                composable(
+                    route = Channel.Boards.name
+                ) { backStackEntry ->
+                    val viewModel: BoardListViewModel = hiltViewModel(backStackEntry)
+                    BoardListView(viewModel = viewModel, navController = navController)
+                }
+
+                composable(
+                    route = Channel.BoardList.name + "?board_json={board_json}",
+                    arguments = listOf(
+                        navArgument("board_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: PostListViewModel = hiltViewModel(backStackEntry)
+                    PostListView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.PostView.name + "?postId={postId}",
+                    arguments = listOf(
+                        navArgument("postId") { type = NavType.IntType }
+                    ),
+                    deepLinks = listOf(
+                        navDeepLink {
+                            uriPattern = Constants.araShareURL + "{postId}"
+                            action = Intent.ACTION_VIEW
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: PostViewModel = hiltViewModel(backStackEntry)
+                    PostView(viewModel = viewModel, navController = navController)
+                }
+
+                composable(
+                    route = Channel.PostCompose.name + "?board_json={board_json}",
+                    arguments = listOf(
+                        navArgument("board_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: PostComposeViewModel = hiltViewModel(backStackEntry)
+                    PostComposeView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.UserPostListView.name + "?author_json={author_json}",
+                    arguments = listOf(
+                        navArgument("author_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: UserPostListViewModel = hiltViewModel(backStackEntry)
+                    UserPostListView(viewModel = viewModel, navController = navController)
+                }
+            }
+
+            composable(
+                route = Channel.SearchView.name
+            ) { backStackEntry ->
+                val viewModel: SearchViewModel = hiltViewModel(backStackEntry)
+                val taxiPreviewViewModel: TaxiPreviewViewModel = hiltViewModel(backStackEntry)
+                SearchView(
+                    viewModel = viewModel,
+                    taxiPreviewViewModel = taxiPreviewViewModel,
+                    navController = navController
+                )
+            }
+
+            composable(
+                route = Channel.SignOut.name
+            ) { backStackEntry ->
+                val viewModel: SignInViewModel = hiltViewModel(backStackEntry)
+                SignInView(viewModel = viewModel)
+            }
+
+            /*___________Settings___________*/
+            navigation(
+                startDestination = Channel.Settings.name,
+                route = "SettingsGraph"
+            ) {
+                composable(
+                    route = Channel.Settings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: SettingsViewModel = hiltViewModel(backStackEntry)
+                    SettingsView(navController = navController, settingsViewModel = viewModel)
+                }
+
+                composable(
+                    route = Channel.CreditView.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) {
+                    CreditView(navController = navController)
+                }
+
+                composable(
+                    route = Channel.AraSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: AraSettingsViewModel = hiltViewModel(backStackEntry)
+                    AraSettingsView(viewModel = viewModel, navController = navController)
+                }
+
+                composable(
+                    route = Channel.FeedSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: FeedSettingsViewModel = hiltViewModel(backStackEntry)
+                    FeedSettingsView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.AraMyPostSettings.name + "?type_json={type_json}",
+                    arguments = listOf(
+                        navArgument("type_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        }
+                    ),
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: AraMyPostViewModel = hiltViewModel(backStackEntry)
+                    AraMyPostView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.TaxiSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: TaxiSettingsViewModel = hiltViewModel(backStackEntry)
+                    TaxiSettingsView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+
+                composable(
+                    route = Channel.TaxiReportSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: TaxiReportListViewModel = hiltViewModel(backStackEntry)
+                    TaxiReportListView(
+                        viewModel = viewModel,
+                        navController = navController
+                    )
+                }
+            }
+        }
+
+        snackbarHostState?.let {
+            SnackbarHost(
+                hostState = it,
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
         }
     }
 }
