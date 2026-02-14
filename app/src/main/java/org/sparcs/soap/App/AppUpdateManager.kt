@@ -20,6 +20,7 @@ import com.google.android.play.core.install.model.InstallStatus
 import com.google.android.play.core.install.model.UpdateAvailability
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 
 class InAppUpdateHelper(
     private val activity: Activity,
@@ -107,8 +108,8 @@ class InAppUpdateHelper(
     private fun showUpdateSnackbar() {
         scope.launch {
             val result = snackbarHostState.showSnackbar(
-                message = "Update downloaded. Restart to apply.",
-                actionLabel = "Restart",
+                message = activity.getString(R.string.inapp_snackbar_explanation),
+                actionLabel = activity.getString(R.string.restart),
                 withDismissAction = true,
                 duration = SnackbarDuration.Indefinite
             )
