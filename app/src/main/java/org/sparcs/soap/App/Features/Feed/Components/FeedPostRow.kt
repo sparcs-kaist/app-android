@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -39,7 +40,6 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -186,8 +186,7 @@ fun Content(
         val baseText = if (expanded || !isOverflowing) {
             post.content
         } else {
-            val visibleEnd =
-                textLayoutResult?.getLineEnd(0, visibleEnd = true) ?: post.content.length
+            val visibleEnd = textLayoutResult?.getLineEnd(1, visibleEnd = true) ?: post.content.length
             post.content.substring(0, visibleEnd.coerceAtMost(post.content.length)).trimEnd()
         }
 
@@ -199,31 +198,18 @@ fun Content(
                 append(baseText.substring(lastIndex, match.range.first))
                 val url = match.value
                 pushStringAnnotation("URL", url)
-                withStyle(
-                    SpanStyle(
-                        color = linkColor,
-                        textDecoration = TextDecoration.Underline
-                    )
-                ) {
+                withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
                     append(url)
                 }
                 pop()
                 lastIndex = match.range.last + 1
             }
-
-            if (lastIndex < baseText.length) {
-                append(baseText.substring(lastIndex))
-            }
+            if (lastIndex < baseText.length) append(baseText.substring(lastIndex))
 
             if (!expanded && isOverflowing) {
                 pushStringAnnotation("MORE", "expand")
                 append("… ")
-                withStyle(
-                    SpanStyle(
-                        color = moreColor,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                ) {
+                withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
                     append(moreText)
                 }
                 pop()
@@ -231,40 +217,47 @@ fun Content(
         }
     }
 
-    ClickableText(
-        text = displayText,
-        style = MaterialTheme.typography.bodyMedium.copy(
-            color = MaterialTheme.colorScheme.onSurface
-        ),
-        maxLines = if (singleLine && !expanded) 2 else Int.MAX_VALUE,
-        overflow = TextOverflow.Ellipsis,
-        onTextLayout = { layoutResult ->
-            if (!hasMeasured && !expanded) {
-                hasMeasured = true
-                isOverflowing = layoutResult.hasVisualOverflow
-                textLayoutResult = layoutResult
-            }
-        },
-        onClick = { offset ->
-            displayText.getStringAnnotations("URL", offset, offset)
-                .firstOrNull()
-                ?.let {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(it.item))
-                    context.startActivity(intent)
+    SelectionContainer {
+        ClickableText(
+            text = displayText,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = MaterialTheme.colorScheme.onSurface
+            ),
+            maxLines = if (!expanded && singleLine) 2 else Int.MAX_VALUE,
+            onTextLayout = { layoutResult ->
+                if (!hasMeasured) {
+                    hasMeasured = true
+                    isOverflowing = layoutResult.hasVisualOverflow
+                    textLayoutResult = layoutResult
+                }
+            },
+            onClick = { offset ->
+                displayText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { annotation ->
+                    val url = annotation.item
+                    val formattedUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                        "http://$url"
+                    } else {
+                        url
+                    }
+
+                    try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
+                        context.startActivity(intent)
+                    } catch (e: Exception) {
+                        android.util.Log.e("FeedPostRow", "Failed to open URL: $formattedUrl", e)
+                    }
                     return@ClickableText
                 }
 
-            displayText.getStringAnnotations("MORE", offset, offset)
-                .firstOrNull()
-                ?.let {
-                    if (!expanded && isOverflowing) expanded = true
+                displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()?.let {
+                    expanded = true
                     return@ClickableText
                 }
-
-            onComment()
-        },
-        modifier = Modifier.padding(horizontal = 16.dp)
-    )
+                onComment()
+            },
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+    }
 
     if (post.images.isNotEmpty()) {
         PostImagesStrip(images = post.images, onComment)
@@ -280,7 +273,6 @@ fun Footer(
     isDetailedView: Boolean,
     coroutineScope: CoroutineScope,
 ) {
-    val context = LocalContext.current
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
