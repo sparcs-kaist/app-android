@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
@@ -56,7 +57,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.sparcs.soap.App.Domain.Helpers.Constants
@@ -71,7 +72,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun SettingsView(
-    navController: NavHostController,
+    navController: NavController,
     settingsViewModel: SettingsViewModelProtocol = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -106,7 +107,7 @@ fun SettingsView(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
                 )
-                AppSettings(context)
+                AppSettings(context, navController)
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
                 SendCrashReportsButton(isCrashlyticsEnabled) {
@@ -213,7 +214,10 @@ fun SettingsView(
 }
 
 @Composable
-private fun AppSettings(context: Context) {
+private fun AppSettings(
+    context: Context,
+    navController: NavController
+) {
     val currentLocale =
         context.resources.configuration.locales[0]
 
@@ -258,6 +262,12 @@ private fun AppSettings(context: Context) {
         )
 
         Spacer(Modifier.width(8.dp))
+
+        ServiceNavButton(
+            text = stringResource(R.string.notifications_title),
+            icon = { Icon(Icons.Outlined.Notifications, null) }
+        ) { navController.navigate(Channel.NotificationSettings.name) }
+
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
                 text = stringResource(R.string.change_language),
@@ -348,7 +358,7 @@ private fun SendCrashReportsButton(
 }
 
 @Composable
-private fun Term(context: Context, navController: NavHostController) {
+private fun Term(context: Context, navController: NavController) {
     ServiceNavButton(
         text = stringResource(R.string.privacy_policy),
         icon = { Icon(Icons.Outlined.Policy, null, tint = MaterialTheme.colorScheme.onSurface) }
