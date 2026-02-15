@@ -405,4 +405,6 @@
     <string name="error_update_failed_title">상태 업데이트를 실패했습니다.</string>
     <string name="error_save_failed_title">설정 저장을 실패했습니다.</string>
     <string name="error_encode_failed_message">설정 인코딩에 실패했습니다.</string>
+    <string name="inapp_snackbar_explanation">업데이트가 준비되었습니다. 적용하려면 앱을 재시작하세요.</string>
+    <string name="restart">재시작</string>
 </resources>
