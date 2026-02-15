@@ -53,8 +53,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        helper = InAppUpdateHelper(this, appUpdateLauncher, 4,
-            true, snackbarHostState, lifecycleScope)
+        helper = InAppUpdateHelper(this, appUpdateLauncher, 4, snackbarHostState, lifecycleScope)
         helper.check()
 
         intent?.data?.let { uri ->
