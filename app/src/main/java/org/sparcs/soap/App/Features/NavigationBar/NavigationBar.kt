@@ -74,6 +74,7 @@ import org.sparcs.soap.App.Features.Settings.Ara.AraSettingsView
 import org.sparcs.soap.App.Features.Settings.Ara.AraSettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Feed.FeedSettingsView
 import org.sparcs.soap.App.Features.Settings.Feed.FeedSettingsViewModel
+import org.sparcs.soap.App.Features.Settings.Notification.NotificationSettingsView
 import org.sparcs.soap.App.Features.Settings.SettingsView
 import org.sparcs.soap.App.Features.Settings.SettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Taxi.TaxiReportListView
@@ -98,6 +99,7 @@ import org.sparcs.soap.App.Features.Timetable.TimetableView
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModel
 import org.sparcs.soap.App.Features.UserPostList.UserPostListView
 import org.sparcs.soap.App.Features.UserPostList.UserPostListViewModel
+import org.sparcs.soap.App.Presentation.Settings.NotificationSettingsViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
@@ -134,6 +136,7 @@ enum class Channel(@StringRes val title: Int) {
     //Setting
     SignOut(title = R.string.sign_out),
     Settings(title = R.string.settings),
+    NotificationSettings(title = R.string.notifications_title),
     CreditView(title = R.string.acknowledgements),
     FeedSettings(title = R.string.feed_settings),
     AraSettings(title = R.string.ara_settings),
@@ -526,6 +529,17 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 ) { backStackEntry ->
                     val viewModel: SettingsViewModel = hiltViewModel(backStackEntry)
                     SettingsView(navController = navController, settingsViewModel = viewModel)
+                }
+
+                composable(
+                    route = Channel.NotificationSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: NotificationSettingsViewModel = hiltViewModel(backStackEntry)
+                    NotificationSettingsView(navController, viewModel)
                 }
 
                 composable(
