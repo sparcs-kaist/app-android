@@ -5,7 +5,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -14,26 +13,12 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -44,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import org.sparcs.soap.App.Domain.Helpers.PopupManager
 import org.sparcs.soap.App.Domain.Services.AuthenticationCallbackHandler
@@ -61,23 +47,18 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainViewModel by viewModels()
     private val settingsViewModel: SettingsViewModel by viewModels()
     private lateinit var helper: InAppUpdateHelper
+    private val snackbarHostState = SnackbarHostState() // 유연한 인앱 업데이트용 스낵 바
 
-    private val launcher = registerForActivityResult(
+    // 인앱 업데이트 결과 처리 런처
+    private val appUpdateLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
-    ) { result: ActivityResult ->
-        if (result.resultCode == RESULT_CANCELED) {
-            Log.d("MainActivity", "CANCELED")
-        }
-        if (result.resultCode != RESULT_OK) {
-            Log.w("MainActivity", "FAILED")
-        }
-    }
+    ) { result: ActivityResult -> helper.onActivityResult(result.resultCode) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        helper = InAppUpdateHelper(this, launcher, 4, true)
+        helper = InAppUpdateHelper(this, appUpdateLauncher, 4, snackbarHostState, lifecycleScope)
         helper.check()
 
         intent?.data?.let { uri ->
@@ -131,7 +112,21 @@ class MainActivity : ComponentActivity() {
                             )
                         }
                         */
-                        MainTabBar()
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            MainTabBar()
+                            SnackbarHost(
+                                hostState = snackbarHostState,
+                                modifier = Modifier
+                                    .align(Alignment.BottomCenter)
+                                    .padding(bottom = 20.dp)
+                            ) {
+                                Snackbar(
+                                    snackbarData = it,
+                                    containerColor = MaterialTheme.colorScheme.surface,
+                                    contentColor = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
                     } else {
                         SignInView()
                     }
@@ -152,6 +147,11 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         helper.resumeCheck()
         viewModel.checkAuthOnResume()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        helper.onDestroy()
     }
 }
 

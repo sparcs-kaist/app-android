@@ -430,4 +430,6 @@
     <string name="error_update_failed_title">Failed to update toggle status</string>
     <string name="error_save_failed_title">Failed to save toggle status</string>
     <string name="error_encode_failed_message">Failed to encode toggle status</string>
+    <string name="inapp_snackbar_explanation">Update downloaded. Restart to apply.</string>
+    <string name="restart">Restart</string>
 </resources>
