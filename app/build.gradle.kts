@@ -112,6 +112,7 @@ dependencies {
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.messaging.ktx)
 
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)

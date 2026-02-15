@@ -16,6 +16,7 @@ import org.sparcs.soap.App.Domain.Enums.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.AuthenticationService
 import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraSignInResponseDTO
@@ -49,7 +50,7 @@ class AuthUseCase @Inject constructor(
     val tokenStorage: TokenStorageProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
-    private val otlUserRepository: org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
+    private val otlUserRepository: OTLUserRepositoryProtocol
 ) : AuthUseCaseProtocol {
 
     private val _isAuthenticated = MutableStateFlow(
