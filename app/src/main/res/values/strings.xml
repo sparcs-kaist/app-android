@@ -420,7 +420,7 @@
     <string name="error_token_exchange_failed">Failed to exchange code for tokens: %s</string>
     <string name="error_token_refresh_failed">Failed to refresh access token: %s</string>
     <string name="error_no_refresh_token">No refresh token available.</string>
-    <string name="error_unknown">An unknown authentication error occurred.</string>
+    <string name="error_unknown">An unknown error occurred.</string>
     <string name="error_post_has_comments">Posts with comments cannot be deleted.</string>
     <string name="error_post_has_votes">Posts with vote records cannot be deleted.</string>
     <string name="error_comment_has_replies">Comments with replies cannot be deleted.</string>
@@ -429,4 +429,9 @@
     <string name="nickname_updated">Nickname updated successfully.</string>
     <string name="inapp_snackbar_explanation">Update downloaded. Restart to apply.</string>
     <string name="restart">Restart</string>
+    <string name="otl" translatable="false">OTL</string>
+    <string name="notifications_title">Notifications</string>
+    <string name="error_update_failed_title">Failed to update toggle status</string>
+    <string name="error_save_failed_title">Failed to save toggle status</string>
+    <string name="error_encode_failed_message">Failed to encode toggle status</string>
 </resources>
