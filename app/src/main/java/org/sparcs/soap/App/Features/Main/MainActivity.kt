@@ -1,6 +1,9 @@
 package org.sparcs.soap.App.Features.Main
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -25,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.lifecycleScope
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import org.sparcs.soap.App.Domain.Helpers.PopupManager
 import org.sparcs.soap.App.Domain.Services.AuthenticationCallbackHandler
@@ -58,6 +63,13 @@ class MainActivity : ComponentActivity() {
 
         intent?.data?.let { uri ->
             AuthenticationCallbackHandler.handleUri(uri)
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
+                PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 101)
+            }
         }
 
         setContent {
