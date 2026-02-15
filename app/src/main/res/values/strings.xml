@@ -425,4 +425,6 @@
     <string name="error_comment_has_replies">Comments with replies cannot be deleted.</string>
     <string name="error_comment_has_votes">Comments with existing votes cannot be deleted.</string>
     <string name="error_unknown_conflict">This item cannot be deleted at this time.</string>
+    <string name="inapp_snackbar_explanation">Update downloaded. Restart to apply.</string>
+    <string name="restart">Restart</string>
 </resources>
