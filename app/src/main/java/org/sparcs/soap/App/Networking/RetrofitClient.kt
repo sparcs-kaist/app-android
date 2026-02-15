@@ -26,6 +26,8 @@ import org.sparcs.soap.App.Domain.Repositories.Ara.AraCommentRepository
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepository
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.FCMRepository
+import org.sparcs.soap.App.Domain.Repositories.FCMRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepository
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedImageRepository
@@ -40,6 +42,8 @@ import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepository
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepository
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiChatRepository
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiChatRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiReportRepository
@@ -52,6 +56,8 @@ import org.sparcs.soap.App.Domain.Services.AuthenticationService
 import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCase
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.FCMUseCase
+import org.sparcs.soap.App.Domain.Usecases.FCMUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.TaxiChatUseCase
 import org.sparcs.soap.App.Domain.Usecases.TaxiChatUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.TaxiLocationUseCase
@@ -69,6 +75,7 @@ import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraBoardApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraCommentApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraUserApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.AuthApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.FCMApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedCommentApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedImageApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedPostApi
@@ -382,6 +389,12 @@ object NetworkModule {
     fun provideAppVersionApi(@Named("FeedBackend") retrofit: Retrofit): AppVersionApi {
         return retrofit.create(AppVersionApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideFCMApi(@Named("FeedBackend") retrofit: Retrofit): FCMApi {
+        return retrofit.create(FCMApi::class.java)
+    }
 }
 
 @Module
@@ -468,8 +481,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindOTLUserRepository(
-        impl: org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepository
-    ): org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
+        impl: OTLUserRepository
+    ): OTLUserRepositoryProtocol
 
     @Binds
     @Singleton
@@ -494,6 +507,12 @@ abstract class RepositoryModule {
     abstract fun bindTaxiChatRepository(
         impl: TaxiChatRepository
     ): TaxiChatRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFCMRepository(
+        impl: FCMRepository
+    ): FCMRepositoryProtocol
 }
 
 @Module
@@ -533,6 +552,12 @@ abstract class UseCaseModule {
     abstract fun bindStringProvider(
         impl: AndroidStringProvider
     ): StringProvider
+
+    @Binds
+    @Singleton
+    abstract fun bindFCMUseCase(
+        fcmUseCase: FCMUseCase
+    ): FCMUseCaseProtocol
 }
 
 @Module
