@@ -107,7 +107,13 @@ fun SettingsView(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
                 )
-                AppSettings(context, navController)
+                AppSettings(context)
+
+                ServiceNavButton(
+                    text = stringResource(R.string.notifications_title),
+                    icon = { Icon(Icons.Outlined.Notifications, null) }
+                ) { navController.navigate(Channel.NotificationSettings.name) }
+
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
                 SendCrashReportsButton(isCrashlyticsEnabled) {
@@ -214,10 +220,7 @@ fun SettingsView(
 }
 
 @Composable
-private fun AppSettings(
-    context: Context,
-    navController: NavController
-) {
+private fun AppSettings(context: Context) {
     val currentLocale =
         context.resources.configuration.locales[0]
 
@@ -262,11 +265,6 @@ private fun AppSettings(
         )
 
         Spacer(Modifier.width(8.dp))
-
-        ServiceNavButton(
-            text = stringResource(R.string.notifications_title),
-            icon = { Icon(Icons.Outlined.Notifications, null) }
-        ) { navController.navigate(Channel.NotificationSettings.name) }
 
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
