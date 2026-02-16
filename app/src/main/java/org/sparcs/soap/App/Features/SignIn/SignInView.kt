@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Enums.Auth.AuthUseCaseError
+import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSignInViewModel
 import org.sparcs.soap.App.theme.ui.Theme
