@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import org.sparcs.soap.App.Domain.Enums.Auth.AuthenticationServiceError
+import org.sparcs.soap.App.Domain.Error.Auth.AuthenticationServiceError
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Auth.SignInResponseDTO

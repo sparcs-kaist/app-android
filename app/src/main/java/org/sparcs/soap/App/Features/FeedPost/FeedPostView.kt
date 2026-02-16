@@ -60,7 +60,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
+import org.sparcs.soap.App.Domain.Error.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Domain.Repositories.Feed.FakeFeedCommentRepository
