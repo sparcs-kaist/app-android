@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Domain.Enums.Feed
+package org.sparcs.soap.App.Domain.Error.Feed
 
 import androidx.annotation.StringRes
 import org.sparcs.soap.R
