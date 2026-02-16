@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Enums.Auth.AuthUseCaseError
+import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
