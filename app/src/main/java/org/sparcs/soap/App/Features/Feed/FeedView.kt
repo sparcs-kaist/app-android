@@ -37,7 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
+import org.sparcs.soap.App.Domain.Error.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Features.Feed.Components.FeedPostRow
 import org.sparcs.soap.App.Features.Feed.Components.FeedPostRowSkeleton

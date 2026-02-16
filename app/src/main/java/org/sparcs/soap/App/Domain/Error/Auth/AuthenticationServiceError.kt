@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Domain.Enums.Auth
+package org.sparcs.soap.App.Domain.Error.Auth
 
 import android.content.Context
 import org.sparcs.soap.R

@@ -2,9 +2,9 @@ package org.sparcs.soap.App.Domain.Repositories.Feed
 
 import android.util.Log
 import com.google.gson.Gson
-import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
+import org.sparcs.soap.App.Domain.Error.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Models.Feed.FeedCreatePost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPostPage

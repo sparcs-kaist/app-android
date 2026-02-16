@@ -51,9 +51,9 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
+import org.sparcs.soap.App.Domain.Error.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
 import org.sparcs.soap.App.Domain.Repositories.Feed.FakeFeedCommentRepository
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
