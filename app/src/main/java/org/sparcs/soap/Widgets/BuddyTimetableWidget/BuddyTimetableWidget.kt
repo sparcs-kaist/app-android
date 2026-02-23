@@ -14,6 +14,7 @@ import androidx.glance.GlanceTheme
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
@@ -49,6 +50,7 @@ import javax.inject.Singleton
 
 class TimetableWidget : GlanceAppWidget() {
     override val stateDefinition = PreferencesGlanceStateDefinition
+    override val sizeMode = SizeMode.Exact
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val appContext = context.applicationContext

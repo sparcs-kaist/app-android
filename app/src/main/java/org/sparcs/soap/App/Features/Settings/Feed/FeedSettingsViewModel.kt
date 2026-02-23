@@ -29,7 +29,7 @@ interface FeedSettingsViewModelProtocol {
     val state: StateFlow<FeedSettingsViewModel.ViewState>
 
     suspend fun fetchUser()
-    fun updateNickname()
+    fun updateNickname(onComplete: (Boolean) -> Unit)
     fun uploadProfileImage(imagePart: MultipartBody.Part)
     fun resetProfileImage()
 }
@@ -75,25 +75,31 @@ class FeedSettingsViewModel @Inject constructor(
         }
     }
 
-    override fun updateNickname() {
-        if (nickname == _user.value?.nickname) return
-
+    override fun updateNickname(onComplete: (Boolean) -> Unit) {
+        if (nickname == _user.value?.nickname) {
+            onComplete(true)
+            return
+        }
         viewModelScope.launch {
             try {
                 nicknameError = null
                 feedUserRepository.updateNickname(nickname)
+                userUseCase.fetchFeedUser()
+                _user.value = userUseCase.feedUser
+                onComplete(true)
             } catch (e: Exception) {
                 nicknameError = when (e) {
                     is HttpException -> {
-                        if (e.code() == 409) {
-                            R.string.nickname_error_conflict
-                        } else {
-                            R.string.nickname_error_update_failed
+                        when (e.code()) {
+                            409 -> R.string.nickname_error_conflict
+                            400 -> R.string.nickname_error_invalid
+                            else -> R.string.nickname_error_update_failed
                         }
                     }
                     else -> R.string.nickname_error_update_failed
                 }
                 Log.e("FeedSettingsViewModel", "Nickname update failed: $e")
+                onComplete(false)
                 crashlyticsHelper.recordException(e)
             }
         }
