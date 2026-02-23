@@ -76,12 +76,16 @@ class FeedSettingsViewModel @Inject constructor(
     }
 
     override fun updateNickname(onComplete: (Boolean) -> Unit) {
-        if (nickname == _user.value?.nickname) return
-
+        if (nickname == _user.value?.nickname) {
+            onComplete(true)
+            return
+        }
         viewModelScope.launch {
             try {
                 nicknameError = null
                 feedUserRepository.updateNickname(nickname)
+                userUseCase.fetchFeedUser()
+                _user.value = userUseCase.feedUser
                 onComplete(true)
             } catch (e: Exception) {
                 nicknameError = when (e) {
