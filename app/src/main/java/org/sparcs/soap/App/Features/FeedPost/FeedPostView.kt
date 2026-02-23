@@ -1,7 +1,5 @@
 package org.sparcs.soap.App.Features.FeedPost
 
-import android.util.Log
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,6 +29,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -49,7 +48,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,29 +58,23 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Error.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
-import org.sparcs.soap.App.Domain.Repositories.Feed.FakeFeedCommentRepository
-import org.sparcs.soap.App.Domain.Repositories.Feed.FakeFeedPostRepository
-import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
-import org.sparcs.soap.App.Domain.Repositories.Feed.FeedPostRepositoryProtocol
 import org.sparcs.soap.App.Features.Feed.Components.FeedPostRow
-import org.sparcs.soap.App.Features.Feed.FeedViewModel
 import org.sparcs.soap.App.Features.Feed.FeedViewModelProtocol
 import org.sparcs.soap.App.Features.FeedPost.Components.FeedCommentRow
 import org.sparcs.soap.App.Features.FeedPost.Components.FeedPostNavigationBar
 import org.sparcs.soap.App.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.toggle
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
-import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.lightGray0
+import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
 import org.sparcs.soap.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,7 +85,8 @@ fun FeedPostView(
     navController: NavController,
 ) {
     val postState by viewModel.state.collectAsState()
-    val feedState by feedViewModel.state.collectAsState()
+    val isAlertPresented = viewModel.isAlertPresented
+    val alertState = viewModel.alertState
 
     val coroutineScope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
@@ -107,24 +100,8 @@ fun FeedPostView(
     val pullState = rememberPullToRefreshState()
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
-
-    val isPreview = LocalInspectionMode.current
-    val repo: FeedPostRepositoryProtocol =
-        if (!isPreview) hiltViewModel<FeedViewModel>().feedPostRepository else FakeFeedPostRepository()
-    val repo1: FeedCommentRepositoryProtocol =
-        if (!isPreview) hiltViewModel<FeedPostViewModel>().feedCommentRepository else FakeFeedCommentRepository()
-    val vm = if (!isPreview) hiltViewModel<FeedViewModel>() else MockFeedViewModel(
-        initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList())
-    )
-
-    var showAlert by remember { mutableStateOf(false) }
-    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
-    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-
-    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
-        alertTitle = title
-        alertMessage = message
-        showAlert = true
+    LaunchedEffect(Unit) {
+        viewModel.fetchFeedUser()
     }
 
     when (val state = postState) {
@@ -145,42 +122,16 @@ fun FeedPostView(
         }
 
         is FeedPostViewModel.ViewState.Loaded -> {
-            val post = if (feedState is FeedViewModel.ViewState.Loaded) {
-                (feedState as FeedViewModel.ViewState.Loaded).posts.find { it.id == state.post.id }
-                    ?: state.post
-            } else {
-                state.post
-            }
-
-            LaunchedEffect(Unit) {
-                viewModel.fetchComments(postID = post.id, initial = true)
-            }
+            val post = feedViewModel.posts.find { it.id == state.post.id } ?: state.post
 
             Scaffold(
                 topBar = {
                     FeedPostNavigationBar(
                         navController = navController,
                         onDelete = { showDeleteConfirmation = true },
-                        onReport = {
+                        onReport = { reason ->
                             coroutineScope.launch {
-                                try {
-                                    repo.reportPost(post.id, it)
-                                    showAlert(
-                                        title = R.string.report_submitted,
-                                        message = R.string.reported_successfully
-                                    )
-                                } catch (e: Exception) {
-                                    val message = if (e.isNetworkError()) {
-                                        R.string.network_connection_error
-                                    } else {
-                                        R.string.unexpected_error_reporting_post
-                                    }
-
-                                    showAlert(
-                                        title = R.string.error,
-                                        message = message
-                                    )
-                                }
+                                viewModel.reportPost(post.id, reason)
                             }
                         },
                         onTranslate = {/*Todo - translate*/ },
@@ -194,43 +145,31 @@ fun FeedPostView(
                         isWritingCommentFocusState = isWritingCommentFocusState,
                         onCommentUploaded = {
                             if (viewModel.text.isEmpty()) return@InputBar
-                            isUploadingComment = true
                             coroutineScope.launch {
-                                val uploadedComment: FeedComment?
-                                try {
-                                    uploadedComment = if (targetComment != null) {
-                                        viewModel.writeReply(targetComment!!.id)
-                                    } else {
-                                        viewModel.writeComment(post.id)
-                                    }
+                                val uploaded = viewModel.submitComment(post.id, targetComment)
+                                if (uploaded != null) {
+                                    post.commentCount += 1
+                                    targetComment = null
+                                    isWritingCommentFocusState = false
 
-                                    uploadedComment.let { comment ->
-                                        post.commentCount += 1
-                                        targetComment = null
-                                        viewModel.text = ""
-                                        isWritingCommentFocusState = false
-
-                                        val index =
-                                            viewModel.comments.indexOfFirst { it.id == comment.id }
-                                        if (index != -1) {
-                                            proxy.animateScrollToItem(index)
-                                        }
+                                    val index =
+                                        viewModel.comments.indexOfFirst { it.id == uploaded.id }
+                                    if (index != -1) {
+                                        proxy.animateScrollToItem(index)
                                     }
-                                } catch (e: Exception) {
-                                    Log.e("FeedPostView", "Failed to upload comment", e)
-                                    showAlert(
-                                        title = R.string.error,
-                                        message = R.string.unexpected_error_uploading_comment
-                                    )
-                                } finally {
-                                    isUploadingComment = false
                                 }
                             }
                         },
                         focusRequester = focusRequester,
                         isUploadingComment = isUploadingComment
                     )
-                }
+                },
+                modifier = Modifier
+                    .analyticsScreen(
+                        name = "Feed Post",
+                        "is_author" to post.isAuthor,
+                        "has_comments" to (post.commentCount > 0)
+                    ),
             ) { innerPadding ->
                 PullToRefreshBox(
                     isRefreshing = isRefreshing,
@@ -265,7 +204,6 @@ fun FeedPostView(
                             Comments(
                                 viewModel = viewModel,
                                 post = post,
-                                feedCommentRepository = repo1,
                                 onReply = { c ->
                                     targetComment = c
                                     isWritingCommentFocusState = true
@@ -290,21 +228,11 @@ fun FeedPostView(
                                 onClick = {
                                     coroutineScope.launch {
                                         try {
-                                            vm.deletePost(post.id)
+                                            feedViewModel.deletePost(post.id)
                                             showDeleteConfirmation = false
-                                            navController.previousBackStackEntry
-                                                ?.savedStateHandle
-                                                ?.set("listNeedsRefresh", true)
                                             navController.popBackStack()
                                         } catch (e: Exception) {
                                             showDeleteConfirmation = false
-
-                                            val resId = when (e) {
-                                                is FeedDeletionError -> e.errorDescription()
-                                                else -> R.string.unexpected_error_deleting_post
-                                            }
-
-                                            showAlert(R.string.error, resId)
                                         }
                                     }
                                 },
@@ -321,17 +249,24 @@ fun FeedPostView(
             }
         }
     }
-    if (showAlert) {
+    if (isAlertPresented && alertState != null) {
         AlertDialog(
-            onDismissRequest = { showAlert = false },
+            onDismissRequest = { viewModel.isAlertPresented = false },
             confirmButton = {
-                Button(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
+                TextButton(onClick = { viewModel.isAlertPresented = false }) {
+                    Text(stringResource(R.string.ok))
+                }
             },
-            title = { Text(stringResource(alertTitle)) },
-            text = { Text(stringResource(alertMessage)) }
+            title = { Text(stringResource(alertState.titleResId)) },
+            text = {
+                alertState.message?.let { Text(it) } ?: alertState.messageResId?.let {
+                    Text(
+                        stringResource(it)
+                    )
+                }
+            }
         )
     }
-
 }
 
 
@@ -454,7 +389,6 @@ private fun InputBar(
 private fun Comments(
     viewModel: FeedPostViewModelProtocol,
     post: FeedPost,
-    feedCommentRepository: FeedCommentRepositoryProtocol,
     onReply: (FeedComment) -> Unit,
 ) {
     when (val state = viewModel.state.collectAsState().value) {
@@ -488,16 +422,17 @@ private fun Comments(
                         comment = comment,
                         isReply = false,
                         onReply = { onReply(comment) },
-                        feedCommentRepository = feedCommentRepository,
+                        viewModel
                     )
                     comment.replies.forEach { reply ->
-                        FeedCommentRow(
-                            comment = reply,
-                            isReply = true,
-                            onReply = {},
-                            feedCommentRepository = feedCommentRepository,
-                        )
-                    }
+                            FeedCommentRow(
+                                comment = reply,
+                                isReply = true,
+                                onReply = {},
+                                viewModel
+                            )
+                        }
+
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.lightGray0,
                         modifier = Modifier.padding(vertical = 4.dp)
@@ -550,34 +485,48 @@ private fun LoadingView(
     }
 }
 
-/* ____________________________________________________________________*/
-
+// MARK: - Previews
+@Preview(showBackground = true, name = "Post Detail")
 @Composable
-private fun MockView(state: FeedPostViewModel.ViewState) {
-    val mockViewModel = remember { MockFeedPostViewModel(initialState = state) }
-    val mockFeedViewModel =
-        remember { MockFeedViewModel(initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList())) }
-    FeedPostView(
-        viewModel = mockViewModel,
-        feedViewModel = mockFeedViewModel,
-        navController = rememberNavController()
-    )
+private fun PostDetailPreview() {
+    val mockVM = MockFeedPostViewModel(
+        initialState = FeedPostViewModel.ViewState.Loaded(FeedPost.mock())
+    ).apply {
+        comments = FeedComment.mockList()
+    }
+    val mockFeedVM = PreviewFeedViewModel()
+
+    Theme {
+        FeedPostView(viewModel = mockVM, mockFeedVM, navController = rememberNavController())
+    }
 }
 
+@Preview(showBackground = true, name = "With Comments")
 @Composable
-@Preview
-private fun LoadingPreview() {
-    Theme { MockView(FeedPostViewModel.ViewState.Loading) }
+private fun WithCommentsPreview() {
+    val mockVM = MockFeedPostViewModel(
+        initialState = FeedPostViewModel.ViewState.Loaded(FeedPost.mockList()[3])
+    ).apply {
+        comments = FeedComment.mockList()
+    }
+    val mockFeedVM = PreviewFeedViewModel()
+
+    Theme {
+        FeedPostView(viewModel = mockVM, mockFeedVM, navController = rememberNavController())
+    }
 }
 
+@Preview(showBackground = true, name = "Author Post")
 @Composable
-@Preview
-private fun LoadedPreview() {
-    Theme { MockView(FeedPostViewModel.ViewState.Loaded(FeedPost.mock(), emptyList())) }
-}
+private fun AuthorPostPreview() {
+    val mockVM = MockFeedPostViewModel(
+        initialState = FeedPostViewModel.ViewState.Loaded(FeedPost.mockList()[0])
+    ).apply {
+        isAnonymous = false
+    }
+    val mockFeedVM = PreviewFeedViewModel()
 
-@Composable
-@Preview
-private fun ErrorPreview() {
-    Theme { MockView(FeedPostViewModel.ViewState.Error("Error Message")) }
+    Theme {
+        FeedPostView(viewModel = mockVM, mockFeedVM, navController = rememberNavController())
+    }
 }

@@ -20,7 +20,9 @@ import org.sparcs.soap.App.Domain.Enums.Ara.PostListType
 import org.sparcs.soap.App.Domain.Enums.Ara.PostOrigin
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostAuthor
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
+import org.sparcs.soap.App.Features.PostList.Event.PostListViewEvent
 import javax.inject.Inject
 
 interface UserPostListViewModelProtocol {
@@ -44,7 +46,8 @@ interface UserPostListViewModelProtocol {
 @HiltViewModel
 class UserPostListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val araBoardRepository: AraBoardRepositoryProtocol,
+    private val araBoardUseCase: AraBoardUseCaseProtocol,
+    private val analyticsService: AnalyticsServiceProtocol
 ) : ViewModel(), UserPostListViewModelProtocol {
 
     //Mark - ViewState
@@ -91,7 +94,7 @@ class UserPostListViewModel @Inject constructor(
         val userID = user.id.toDoubleOrNull()?.toInt() ?: return
         _state.value = ViewState.Loading
         try {
-            val page = araBoardRepository.fetchPosts(
+            val page = araBoardUseCase.fetchPosts(
                 type = PostListType.User(userID),
                 page = 1,
                 pageSize = pageSize,
@@ -114,7 +117,7 @@ class UserPostListViewModel @Inject constructor(
         _isLoadingMore.value = true
         try {
             val nextPage = currentPage + 1
-            val page = araBoardRepository.fetchPosts(
+            val page = araBoardUseCase.fetchPosts(
                 type = PostListType.User(userID),
                 page = nextPage,
                 pageSize = pageSize,
@@ -135,7 +138,7 @@ class UserPostListViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val updated =
-                    araBoardRepository.fetchPost(origin = PostOrigin.None, postID = postID)
+                    araBoardUseCase.fetchPost(origin = PostOrigin.None, postID = postID)
                 val updatedPosts = _posts.value.toMutableList()
                 val idx = updatedPosts.indexOfFirst { it.id == updated.id }
                 if (idx != -1) {
@@ -173,7 +176,10 @@ class UserPostListViewModel @Inject constructor(
                 .map { it.trim() }
                 .distinctUntilChanged()
                 .debounce(350)
-                .collectLatest {
+                .collectLatest { keyword ->
+                    if (keyword.isNotBlank()) {
+                        analyticsService.logEvent(PostListViewEvent.SearchPerformed(keyword))
+                    }
                     fetchInitialPosts()
                 }
         }

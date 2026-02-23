@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Domain.Usecases
+package org.sparcs.soap.App.Domain.Usecases.OTL
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -6,6 +6,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.OTLUser
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import javax.inject.Inject
 import javax.inject.Singleton
 

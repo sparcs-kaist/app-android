@@ -12,13 +12,22 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Helpers.CrashlyticsHelper
+import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
+import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
+import org.sparcs.soap.App.Domain.Error.Feed.FeedCommentUseCaseError
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
 import org.sparcs.soap.App.Domain.Models.Feed.FeedCreateComment
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
-import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
-import org.sparcs.soap.App.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import org.sparcs.soap.App.Domain.Models.Feed.FeedUser
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedCommentUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.soap.App.Features.Feed.Event.FeedPostRowEvent
+import org.sparcs.soap.App.Features.FeedPost.Event.FeedPostViewEvent
+import org.sparcs.soap.R
 import javax.inject.Inject
 
 interface FeedPostViewModelProtocol {
@@ -28,27 +37,35 @@ interface FeedPostViewModelProtocol {
     var text: String
     var image: Bitmap?
     var isAnonymous: Boolean
+    var isSubmittingComment: Boolean
+    val feedUser: FeedUser?
+
+    var alertState: AlertState?
+    var isAlertPresented: Boolean
 
     suspend fun fetchComments(postID: String, initial: Boolean)
-    suspend fun writeComment(postID: String): FeedComment
-    suspend fun writeReply(commentID: String): FeedComment
+    suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment?
+    suspend fun reportPost(postID: String, reason: FeedReportType) {}
+    suspend fun fetchFeedUser()
+
+    suspend fun voteComment(comment: FeedComment, type: FeedVoteType?)
+    suspend fun deleteComment(comment: FeedComment)
+    suspend fun reportComment(commentID: String, reason: FeedReportType)
 }
 
 @HiltViewModel
 class FeedPostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    val feedCommentRepository: FeedCommentRepositoryProtocol,
-    val userUseCase: UserUseCaseProtocol,
-    private val feedPostRepository: FeedPostRepositoryProtocol,
-    private val crashlyticsHelper: CrashlyticsHelper
+    private val feedCommentUseCase: FeedCommentUseCaseProtocol,
+    private val feedPostUseCase: FeedPostUseCaseProtocol,
+    private val userUseCase: UserUseCaseProtocol,
+    private val crashlyticsService: CrashlyticsServiceProtocol,
+    private val analyticsService: AnalyticsServiceProtocol,
 ) : ViewModel(), FeedPostViewModelProtocol {
 
     sealed interface ViewState {
         data object Loading : ViewState
-        data class Loaded(
-            val post: FeedPost,
-            val comments: List<FeedComment>
-        ) : ViewState
+        data class Loaded(val post: FeedPost) : ViewState
         data class Error(val message: String) : ViewState
     }
 
@@ -65,73 +82,204 @@ class FeedPostViewModel @Inject constructor(
     // MARK: - Initializer
     init {
         viewModelScope.launch {
-            _state.value = ViewState.Loading
-            try {
-                val data = feedPostRepository.fetchPost(feedId)
-                _state.value = ViewState.Loaded(data, emptyList())
-            } catch (e: Exception) {
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
-            }
+            loadInitialPage()
         }
     }
 
-    private val _comments = MutableStateFlow<List<FeedComment>>(emptyList())
-    override var comments: List<FeedComment>
-        get() = _comments.value
-        set(value) {
-            _comments.value = value
-        }
+    override var comments by mutableStateOf<List<FeedComment>>(emptyList())
 
     override var text by mutableStateOf("")
     override var image by mutableStateOf<Bitmap?>(null)
-    override var isAnonymous by mutableStateOf(true)
+
+    override var isAnonymous: Boolean by mutableStateOf(true)
+    override var isSubmittingComment: Boolean by mutableStateOf(false)
+    override var feedUser: FeedUser? by mutableStateOf(null)
+
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     // MARK: - Functions
-    override suspend fun fetchComments(postID: String, initial: Boolean) {
-        if (_state.value is ViewState.Loading && !initial) return
-        val currentPost = post ?: return
+    private suspend fun loadInitialPage() {
+        _state.value = ViewState.Loading
         try {
-            val fetchedComments = feedCommentRepository.fetchComments(postID)
-            _comments.value = fetchedComments
-            _state.value = ViewState.Loaded(currentPost, fetchedComments)
+            val postData = feedPostUseCase.fetchPost(feedId)
+            _state.value = ViewState.Loaded(postData)
+
+            fetchComments(feedId, initial = true)
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
         }
     }
 
-    override suspend fun writeComment(postID: String): FeedComment {
-        val request = FeedCreateComment(
-            content = text,
-            isAnonymous = isAnonymous,
-            image = null
-        )
-        val comment = feedCommentRepository.writeComment(postID, request)
-        _comments.value += comment
-        return comment
+    override suspend fun fetchComments(postID: String, initial: Boolean) {
+        if (_state.value is ViewState.Loading && !initial) return
+        try {
+            val fetchedComments = feedCommentUseCase.fetchComments(postID)
+            this.comments = fetchedComments
+            if (!initial) {
+                analyticsService.logEvent(FeedPostViewEvent.CommentsRefreshed)
+            }
+        } catch (e: Exception) {
+            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            crashlyticsService.recordException(e)
+        }
     }
 
-    private fun insertReply(
-        commentsList: List<FeedComment>,
-        comment: FeedComment,
-    ): List<FeedComment> {
-        val parentId = comment.parentCommentID ?: return commentsList
-        return commentsList.map { c ->
-            if (c.id == parentId) {
-                c.copy(replies = c.replies + comment)
+    override suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment? {
+        isSubmittingComment = true
+        return try {
+            val request = FeedCreateComment(
+                content = text,
+                isAnonymous = isAnonymous,
+                image = null
+            )
+
+            val uploaded: FeedComment = if (replyingTo != null) {
+                feedCommentUseCase.writeReply(replyingTo.id, request)
             } else {
-                c
+                feedCommentUseCase.writeComment(postID, request)
+            }
+
+            if (replyingTo != null) {
+                insertReplyLocally(uploaded)
+            } else {
+                this.comments += uploaded
+            }
+            analyticsService.logEvent(
+                FeedPostViewEvent.CommentSubmitted(
+                    isReply = (replyingTo != null),
+                    isAnonymous = isAnonymous
+                )
+            )
+            text = ""
+            uploaded
+        } catch (e: Exception) {
+            alertState = AlertState(
+                titleResId = R.string.unexpected_error_uploading_comment,
+                message = e.localizedMessage ?: "Unknown error"
+            )
+            isAlertPresented = true
+            crashlyticsService.recordException(e)
+            null
+        } finally {
+            isSubmittingComment = false
+        }
+    }
+
+    private fun insertReplyLocally(reply: FeedComment) {
+        val parentID = reply.parentCommentID ?: return
+        this.comments = this.comments.map { comment ->
+            if (comment.id == parentID) {
+                comment.copy(replies = comment.replies + reply)
+            } else {
+                comment
             }
         }
     }
 
-    override suspend fun writeReply(commentID: String): FeedComment {
-        val request = FeedCreateComment(
-            content = text,
-            isAnonymous = isAnonymous,
-            image = null
-        )
-        val comment = feedCommentRepository.writeReply(commentID, request)
-        _comments.value = insertReply(_comments.value, comment)
-        return comment
+    override suspend fun reportPost(postID: String, reason: FeedReportType) {
+        try {
+            feedPostUseCase.reportPost(postID = postID, reason = reason, detail = "")
+            alertState = AlertState(
+                titleResId = R.string.report_submitted_title,
+                messageResId = R.string.report_submitted_message
+            )
+            isAlertPresented = true
+            analyticsService.logEvent(FeedPostRowEvent.PostReported(reason.name))
+        } catch (e: Exception) {
+            alertState = AlertState(
+                titleResId = R.string.error,
+                messageResId = R.string.error_unable_to_submit_report
+            )
+            isAlertPresented = true
+            crashlyticsService.recordException(e)
+        }
+    }
+
+    override suspend fun fetchFeedUser() {
+        this.feedUser = userUseCase.feedUser
+    }
+
+    override suspend fun voteComment(comment: FeedComment, type: FeedVoteType?) {
+        viewModelScope.launch {
+            val prevComments = this@FeedPostViewModel.comments
+
+            updateCommentLocally(comment.id) { old ->
+                var newUp = old.upVotes
+                var newDown = old.downVotes
+
+                if (old.myVote == FeedVoteType.UP) newUp--
+                if (old.myVote == FeedVoteType.DOWN) newDown--
+
+                if (type == FeedVoteType.UP) newUp++
+                if (type == FeedVoteType.DOWN) newDown++
+
+                old.copy(myVote = type, upVotes = newUp, downVotes = newDown)
+            }
+
+            try {
+                if (type == null) {
+                    feedCommentUseCase.deleteVote(comment.id)
+                } else {
+                    feedCommentUseCase.vote(comment.id, type)
+                }
+            } catch (e: Exception) {
+                this@FeedPostViewModel.comments = prevComments
+                alertState = AlertState(
+                    titleResId = R.string.error,
+                    messageResId = R.string.error_failed_to_upvote
+                )
+                isAlertPresented = true
+            }
+        }
+    }
+
+    override suspend fun deleteComment(comment: FeedComment) {
+        updateCommentLocally(comment.id) { it.copy(isDeleted = true) }
+        try {
+            feedCommentUseCase.deleteComment(comment.id)
+        } catch (e: Exception) {
+            updateCommentLocally(comment.id) { it.copy(isDeleted = false) }
+            val useCaseError = e as? FeedCommentUseCaseError
+            alertState = AlertState(
+                titleResId = R.string.error,
+                messageResId = useCaseError?.messageRes
+                    ?: R.string.unexpected_error_deleting_comment
+            )
+            isAlertPresented = true
+        }
+    }
+
+    override suspend fun reportComment(commentID: String, reason: FeedReportType) {
+        try {
+            feedCommentUseCase.reportComment(commentID = commentID, reason = reason, detail = "")
+            alertState = AlertState(
+                titleResId = R.string.report_submitted_title,
+                messageResId = R.string.report_submitted_message
+            )
+            isAlertPresented = true
+        } catch (e: Exception) {
+            alertState = AlertState(
+                titleResId = R.string.error,
+                messageResId = R.string.error_unable_to_submit_report
+            )
+            isAlertPresented = true
+        }
+    }
+
+    private fun updateCommentLocally(commentID: String, transform: (FeedComment) -> FeedComment) {
+        this.comments = this.comments.map { comment ->
+            if (comment.id == commentID) {
+                transform(comment)
+            } else if (comment.replies.any { it.id == commentID }) {
+                comment.copy(
+                    replies = comment.replies.map { reply ->
+                        if (reply.id == commentID) transform(reply) else reply
+                    }
+                )
+            } else {
+                comment
+            }
+        }
     }
 }

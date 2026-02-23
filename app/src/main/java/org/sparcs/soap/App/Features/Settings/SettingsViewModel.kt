@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.soap.App.Domain.Repositories.Settings.SettingsRepository
+import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCase
 import javax.inject.Inject
 
@@ -24,7 +24,7 @@ interface SettingsViewModelProtocol {
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val crashlyticsHelper: CrashlyticsHelper,
+    private val crashlyticsService: CrashlyticsService,
     private val authUseCase: AuthUseCase
 ) : ViewModel(), SettingsViewModelProtocol {
 
@@ -53,6 +53,6 @@ class SettingsViewModel @Inject constructor(
     }
 
     override fun handleException(error: Throwable) {
-        crashlyticsHelper.recordException(error)
+        crashlyticsService.recordException(error)
     }
 }
