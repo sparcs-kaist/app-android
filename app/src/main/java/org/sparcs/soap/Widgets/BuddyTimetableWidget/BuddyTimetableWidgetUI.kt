@@ -89,6 +89,7 @@ private fun TimetableGridCell(
         }
     }
 }
+
 @Composable
 fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
     val size = LocalSize.current
@@ -112,21 +113,11 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
             LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
                 for (hour in startHour until endHour) {
                     item {
-                        Row(modifier = GlanceModifier.fillMaxWidth().height(dynamicHourHeight.dp)) {
-                            Box(
-                                modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight(),
-                                contentAlignment = Alignment.TopCenter
+                        Box(modifier = GlanceModifier.fillMaxWidth().height(dynamicHourHeight.dp)) {
+                            Row(
+                                modifier = GlanceModifier.fillMaxSize()
+                                    .padding(start = hoursWidth + 8.dp, top = 6.dp)
                             ) {
-                                Text(
-                                    text = hour.toString(),
-                                    style = TextStyle(
-                                        fontSize = 11.sp,
-                                        color = GlanceTheme.colors.onSurface
-                                    )
-                                )
-                            }
-
-                            Row(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
                                 visibleDays.forEach { _ ->
                                     Column(
                                         modifier = GlanceModifier.defaultWeight().fillMaxHeight()
@@ -139,18 +130,37 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
                                     }
                                 }
                             }
+
+                            Box(
+                                modifier = GlanceModifier
+                                    .width(hoursWidth + 8.dp)
+                                    .fillMaxHeight(),
+                                contentAlignment = Alignment.TopCenter
+                            ) {
+                                Text(
+                                    text = hour.toString(),
+                                    style = TextStyle(
+                                        fontSize = 11.sp,
+                                        color = GlanceTheme.colors.onSurface,
+                                        textAlign = TextAlign.Center
+                                    ),
+                                    modifier = GlanceModifier.padding(top = 0.dp)
+                                )
+                            }
                         }
                     }
                 }
             }
 
             Row(
-                modifier = GlanceModifier.fillMaxSize().padding(start = hoursWidth + 8.dp)
+                modifier = GlanceModifier.fillMaxSize()
+                    .padding(start = hoursWidth + 8.dp, top = 6.dp)
             ) {
                 visibleDays.forEach { day ->
                     Box(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
                         timetable?.getLectures(day)?.forEach { lecture ->
-                            val topOffset = (lecture.startMinutes!! - (startHour * 60)) * minuteHeight
+                            val topOffset =
+                                (lecture.startMinutes!! - (startHour * 60)) * minuteHeight
                             val lHeight = lecture.durationMinutes!! * minuteHeight
 
                             Box(
@@ -160,7 +170,7 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
                             ) {
                                 TimetableGridCell(
                                     lecture = lecture,
-                                    height = maxOf(25, lHeight.toInt())
+                                    height = lHeight.toInt()
                                 )
                             }
                         }
