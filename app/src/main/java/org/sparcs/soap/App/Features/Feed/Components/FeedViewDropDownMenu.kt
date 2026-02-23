@@ -34,8 +34,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun FeedViewDropDownMenu(
-    onClickSettings: () -> Unit,
-    onClickNotification: () -> Unit,
+    onClickSettings: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -109,7 +108,7 @@ private fun Preview() {
             Button(
                 onClick = {}
             ) {
-                FeedViewDropDownMenu({}, {})
+                FeedViewDropDownMenu({})
             }
         }
     }

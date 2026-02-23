@@ -427,11 +427,34 @@
     <string name="error_comment_has_votes">Comments with existing votes cannot be deleted.</string>
     <string name="error_unknown_conflict">This item cannot be deleted at this time.</string>
     <string name="nickname_updated">Nickname updated successfully.</string>
-    <string name="inapp_snackbar_explanation">Update downloaded. Restart to apply.</string>
-    <string name="restart">Restart</string>
     <string name="otl" translatable="false">OTL</string>
     <string name="notifications_title">Notifications</string>
     <string name="error_update_failed_title">Failed to update toggle status</string>
     <string name="error_save_failed_title">Failed to save toggle status</string>
     <string name="error_encode_failed_message">Failed to encode toggle status</string>
+    <string name="inapp_snackbar_explanation">Update downloaded. Restart to apply.</string>
+    <string name="restart">Restart</string>
+    <string name="error_no_connection">No internet connection.</string>
+    <string name="error_timeout">Request timed out.</string>
+    <string name="error_server_error">Server error (%d).</string>
+    <string name="error_unauthorized">Session expired. Please sign in again.</string>
+    <string name="error_not_found">Resources not found.</string>
+    <string name="error_feed_comment_cannot_delete_with_vote">Cannot delete comment that has votes.</string>
+    <string name="error_unknown_try_again">Unknown error occurred. Please try again.</string>
+    <string name="error_feed_image_compression_failed">Failed to compress image for upload.</string>
+    <string name="error_feed_post_cannot_delete_with_vote_or_comment">Cannot delete post that has votes or comments.</string>
+    <string name="error_failed_to_upvote">Failed to upvote</string>
+    <string name="error_failed_to_downvote">Failed to downvote</string>
+    <string name="report_submitted_title">Report Submitted</string>
+    <string name="report_submitted_message">Your report has been submitted successfully.</string>
+    <string name="error_unable_to_submit_report">Unable to submit report.</string>
+    <string name="error_delete_post">Unable to delete post.</string>
+    <string name="error_unable_to_delete_comment">An error occurred while deleting the comment. Please try again later.</string>
+    <string name="post_not_found_title">Post Not Found</string>
+    <string name="post_not_found_message">The post you are looking for could not be found.</string>
+    <string name="invalid_invitation_title">Invalid Invitation</string>
+    <string name="invalid_invitation_message">The link you followed is invalid. Please try again.</string>
+    <string name="unable_to_fetch_post">Unable to fetch post.</string>
+    <string name="unable_to_load_more_posts">Unable to load more posts.</string>
+
 </resources>

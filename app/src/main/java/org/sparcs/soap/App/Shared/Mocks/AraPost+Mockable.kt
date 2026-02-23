@@ -832,3 +832,9 @@ fun AraPost.Companion.mockList(): List<AraPost> {
                     )
                 )
         }
+
+val AraPost.Companion.mockWithoutComments: AraPost
+    get() = AraPost.mock().copy(
+        comments = mutableListOf(),
+        commentCount = 0
+    )

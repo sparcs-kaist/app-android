@@ -1,10 +1,16 @@
 package org.sparcs.soap.App.Networking
 
+import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import com.google.gson.Gson
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
@@ -26,6 +32,8 @@ import org.sparcs.soap.App.Domain.Repositories.Ara.AraCommentRepository
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepository
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.AuthRepository
+import org.sparcs.soap.App.Domain.Repositories.AuthRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.FCMRepository
 import org.sparcs.soap.App.Domain.Repositories.FCMRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepository
@@ -52,22 +60,36 @@ import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepository
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepository
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Services.AnalyticsService
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Services.AuthenticationService
 import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
+import org.sparcs.soap.App.Domain.Services.CrashlyticsService
+import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCase
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCase
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCase
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.FCMUseCase
 import org.sparcs.soap.App.Domain.Usecases.FCMUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.TaxiChatUseCase
-import org.sparcs.soap.App.Domain.Usecases.TaxiChatUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.TaxiLocationUseCase
-import org.sparcs.soap.App.Domain.Usecases.TaxiLocationUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.TaxiRoomUseCase
-import org.sparcs.soap.App.Domain.Usecases.TaxiRoomUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCase
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCaseBackground
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCaseBackgroundProtocol
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedCommentUseCase
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedCommentUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedImageUseCase
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedImageUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCase
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackground
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Networking.RetrofitAPI.AppVersionApi
@@ -513,6 +535,12 @@ abstract class RepositoryModule {
     abstract fun bindFCMRepository(
         impl: FCMRepository
     ): FCMRepositoryProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        impl: AuthRepository
+    ): AuthRepositoryProtocol
 }
 
 @Module
@@ -558,6 +586,50 @@ abstract class UseCaseModule {
     abstract fun bindFCMUseCase(
         fcmUseCase: FCMUseCase
     ): FCMUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedCommentUseCase(
+        impl: FeedCommentUseCase
+    ): FeedCommentUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedPostUseCase(
+        impl: FeedPostUseCase
+    ): FeedPostUseCaseProtocol
+
+
+    @Binds
+    @Singleton
+    abstract fun bindCrashlyticsService(
+        impl: CrashlyticsService
+    ): CrashlyticsServiceProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindAnalyticsService(
+        impl: AnalyticsService
+    ): AnalyticsServiceProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindAraBoardUseCase(
+        impl: AraBoardUseCase
+    ): AraBoardUseCaseProtocol
+
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedImageUseCase(
+        impl: FeedImageUseCase
+    ): FeedImageUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindAraCommentUseCase(
+        impl: AraCommentUseCase
+    ): AraCommentUseCaseProtocol
 }
 
 @Module
@@ -567,9 +639,18 @@ object ServiceModule {
     @Provides
     @Singleton
     fun provideAuthenticationService(
-        @Named("Auth") authApi: AuthApi,
-        tokenStorage: TokenStorageProtocol
+        authRepository: AuthRepositoryProtocol
     ): AuthenticationServiceProtocol {
-        return AuthenticationService(authApi, tokenStorage)
+        return AuthenticationService(authRepository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return PreferenceDataStoreFactory.create(
+            produceFile = {
+                context.preferencesDataStoreFile("soap_preferences")
+            }
+        )
     }
 }
