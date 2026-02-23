@@ -13,6 +13,7 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.appwidget.cornerRadius
+import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
@@ -102,31 +103,40 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
     val headerHeight = 32.dp
     val availableHeight = size.height - headerHeight
     val minuteHeight = availableHeight.value / (totalHours * 60f)
+    val dynamicHourHeight = minuteHeight * 60f
 
     Column(modifier = GlanceModifier.fillMaxSize()) {
         DaysColumnHeader(visibleDays)
 
         Box(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
-            Column(modifier = GlanceModifier.fillMaxSize()) {
+            LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
                 for (hour in startHour until endHour) {
-                    Row(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
-                        Box(
-                            modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight(),
-                            contentAlignment = Alignment.TopCenter
-                        ) {
-                            Text(
-                                text = hour.toString(),
-                                style = TextStyle(fontSize = 11.sp, color = GlanceTheme.colors.onSurface)
-                            )
-                        }
+                    item {
+                        Row(modifier = GlanceModifier.fillMaxWidth().height(dynamicHourHeight.dp)) {
+                            Box(
+                                modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight(),
+                                contentAlignment = Alignment.TopCenter
+                            ) {
+                                Text(
+                                    text = hour.toString(),
+                                    style = TextStyle(
+                                        fontSize = 11.sp,
+                                        color = GlanceTheme.colors.onSurface
+                                    )
+                                )
+                            }
 
-                        Row(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
-                            visibleDays.forEach { _ ->
-                                Column(modifier = GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = 2.dp)) {
-                                    HorizontalLine(alpha = 0.15f)
-                                    Spacer(modifier = GlanceModifier.defaultWeight())
-                                    DashedHorizontalLine()
-                                    Spacer(modifier = GlanceModifier.defaultWeight())
+                            Row(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
+                                visibleDays.forEach { _ ->
+                                    Column(
+                                        modifier = GlanceModifier.defaultWeight().fillMaxHeight()
+                                            .padding(horizontal = 2.dp)
+                                    ) {
+                                        HorizontalLine(alpha = 0.15f)
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                        DashedHorizontalLine()
+                                        Spacer(modifier = GlanceModifier.defaultWeight())
+                                    }
                                 }
                             }
                         }
