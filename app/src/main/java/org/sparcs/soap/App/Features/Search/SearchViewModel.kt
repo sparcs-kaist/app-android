@@ -19,10 +19,10 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.SearchScope
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
-import org.sparcs.soap.App.Domain.Usecases.TaxiLocationUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
 import javax.inject.Inject
 
 interface SearchViewModelProtocol {
@@ -45,7 +45,7 @@ interface SearchViewModelProtocol {
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val araBoardRepository: AraBoardRepositoryProtocol,
+    private val araBoardUseCase: AraBoardUseCaseProtocol,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
     private val otlCourseRepository: OTLCourseRepositoryProtocol,
@@ -122,7 +122,7 @@ class SearchViewModel @Inject constructor(
         try {
             val keyword = searchText.value
 
-            val postPage = araBoardRepository.fetchPosts(
+            val postPage = araBoardUseCase.fetchPosts(
                 type = PostListType.All,
                 page = 1,
                 pageSize = pageSize,
@@ -179,7 +179,7 @@ class SearchViewModel @Inject constructor(
 
         try {
             val nextPage = currentPage + 1
-            val page = araBoardRepository.fetchPosts(
+            val page = araBoardUseCase.fetchPosts(
                 type = PostListType.All,
                 page = nextPage,
                 pageSize = pageSize,

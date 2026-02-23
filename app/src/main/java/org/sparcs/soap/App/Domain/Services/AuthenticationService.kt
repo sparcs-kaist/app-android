@@ -10,21 +10,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Error.Auth.AuthenticationServiceError
 import org.sparcs.soap.App.Domain.Helpers.Constants
-import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
+import org.sparcs.soap.App.Domain.Repositories.AuthRepositoryProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Auth.SignInResponseDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.Auth.TokenResponseDTO
-import org.sparcs.soap.App.Networking.RetrofitAPI.AuthApi
 import org.sparcs.soap.App.Shared.Extensions.base64UrlEncodedString
 import org.sparcs.soap.App.Shared.Extensions.sha256
-import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.Base64
 import javax.inject.Inject
-import javax.inject.Named
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -47,9 +43,8 @@ object AuthenticationCallbackHandler {
 }
 
 class AuthenticationService @Inject constructor(
-    @Named("Auth") private val authApi: AuthApi,
-    private val tokenStorage: TokenStorageProtocol
-): AuthenticationServiceProtocol {
+    private val authRepository: AuthRepositoryProtocol
+) : AuthenticationServiceProtocol {
 
     private fun generateCodeVerifier(): String {
         val sr = SecureRandom()
@@ -99,7 +94,7 @@ class AuthenticationService @Inject constructor(
                     if (!session.isNullOrEmpty()) {
                         CoroutineScope(Dispatchers.IO).launch {
                             try {
-                                val tokenResponse = exchangeCodeForTokens(session, codeVerifier)
+                                val tokenResponse = authRepository.requestToken(session, codeVerifier)
                                 continuation.resume(tokenResponse)
                             } catch (e: Exception) {
                                 Log.e("AuthWebView", "Token exchange failed", e)
@@ -131,27 +126,9 @@ class AuthenticationService @Inject constructor(
         }
 
 
-    private suspend fun exchangeCodeForTokens(
-        sessionCode: String,
-        codeVerifier: String
-    ): SignInResponseDTO {
-        val encodedSessionCode = withContext(Dispatchers.IO) {
-            URLEncoder.encode(sessionCode, "UTF-8")
-        }
-        val encodedVerifier =
-            codeVerifier.toByteArray(StandardCharsets.UTF_8).base64UrlEncodedString()
-        val response = authApi.requestTokens(
-            cookie = "connect.sid=$encodedSessionCode",
-            body = mapOf("codeVerifier" to encodedVerifier)
-        )
-        return response
-    }
-
-
     override suspend fun refreshAccessToken(refreshToken: String): TokenResponseDTO {
         return try {
-            val body = mapOf("refreshToken" to refreshToken)
-            authApi.refreshTokens(body = body)
+            authRepository.refreshToken(refreshToken)
         } catch (e: Exception) {
             if (e is java.net.UnknownHostException || e is java.net.SocketTimeoutException) {
                 Log.w("AuthService", "Network error during token refresh. Stopping retry.")

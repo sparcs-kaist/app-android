@@ -53,18 +53,21 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.PostList.Components.PostList.PostList
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.BoardNavigationBar
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostListViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.SearchCustomBar
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
+import org.sparcs.soap.BuddyPreviewSupport.Post.PreviewPostListViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -97,10 +100,15 @@ fun PostListView(
                 viewModel.lastClickedPostId = null
             }
 
-            val needsRefresh = navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("listNeedsRefresh") ?: false
+            val needsRefresh =
+                navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("listNeedsRefresh")
+                    ?: false
             if (needsRefresh) {
                 viewModel.fetchInitialPosts()
-                navController.currentBackStackEntry?.savedStateHandle?.set("listNeedsRefresh", false)
+                navController.currentBackStackEntry?.savedStateHandle?.set(
+                    "listNeedsRefresh",
+                    false
+                )
             }
         }
     }
@@ -135,7 +143,8 @@ fun PostListView(
                     }
                 )
             }
-        }
+        },
+        modifier = Modifier.analyticsScreen(name = "Ara Post List")
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -292,28 +301,47 @@ private fun ComposeButton(onClick: () -> Unit) {
         )
     }
 }
-/* ____________________________________________________________________*/
 
+// Mark: Preview
+@Preview(name = "Loading State", showBackground = true)
 @Composable
-private fun MockView(state: PostListViewModel.ViewState) {
-    val mockViewModel = remember { MockPostListViewModel(initialState = state) }
-    PostListView(viewModel = mockViewModel, navController = rememberNavController())
+private fun PreviewPostListLoading() {
+    val viewModel = PreviewPostListViewModel(
+        initialState = PostListViewModel.ViewState.Loading,
+        board = AraBoard.mock()
+    )
+    Theme { PostListView(viewModel = viewModel, rememberNavController()) }
 }
 
+@Preview(name = "Loaded State", showBackground = true)
 @Composable
-@Preview
-private fun LoadingPreview() {
-    Theme { MockView(PostListViewModel.ViewState.Loading) }
+private fun PreviewPostListLoaded() {
+    val viewModel = PreviewPostListViewModel(
+        initialState = PostListViewModel.ViewState.Loaded(AraPost.mockList()),
+        board = AraBoard.mock(),
+        posts = AraPost.mockList()
+    )
+    Theme { PostListView(viewModel = viewModel, rememberNavController()) }
 }
 
+@Preview(name = "Error State", showBackground = true)
 @Composable
-@Preview
-private fun LoadedPreview() {
-    Theme { MockView(PostListViewModel.ViewState.Loaded(AraPost.mockList())) }
+private fun PreviewPostListError() {
+    val viewModel = PreviewPostListViewModel(
+        initialState = PostListViewModel.ViewState.Error("Something went wrong"),
+        board = AraBoard.mock()
+    )
+    Theme { PostListView(viewModel = viewModel, rememberNavController()) }
 }
 
+@Preview(name = "Empty Search", showBackground = true)
 @Composable
-@Preview
-private fun ErrorPreview() {
-    Theme { MockView(PostListViewModel.ViewState.Error("Error Message")) }
+private fun PreviewPostListEmptySearch() {
+    val viewModel = PreviewPostListViewModel(
+        initialState = PostListViewModel.ViewState.Loaded(emptyList()),
+        board = AraBoard.mock(),
+        posts = emptyList(),
+        initialSearchKeyword = "no results"
+    )
+    Theme { PostListView(viewModel = viewModel, rememberNavController()) }
 }

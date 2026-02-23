@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,7 +34,6 @@ import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -46,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -63,7 +62,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
@@ -79,7 +77,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.FeedPostCompose.Components.FeedPostComposeNavigationBar
 import org.sparcs.soap.App.Features.PostCompose.Components.AnimatedAlphabetText
 import org.sparcs.soap.App.Features.PostCompose.TermsOfUseButton
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostComposeViewModel
 import org.sparcs.soap.App.theme.ui.Theme
@@ -92,27 +90,15 @@ fun FeedPostComposeView(
     navController: NavController,
 ) {
     var showPhotosPicker by remember { mutableStateOf(false) }
-    var isUploading by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val contentFocusRequester = remember { FocusRequester() }
-    val context = LocalContext.current
 
     //KeyBoard
     var contentField by remember { mutableStateOf(TextFieldValue(viewModel.text)) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
     val cursorLine by remember { derivedStateOf { textLayoutResult?.getLineForOffset(contentField.selection.start) } }
     val keyboardPaddingPx = with(LocalDensity.current) { 250.dp.toPx() }
-
-    var showAlert by remember { mutableStateOf(false) }
-    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
-    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-
-    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
-        alertTitle = title
-        alertMessage = message
-        showAlert = true
-    }
 
     LaunchedEffect(cursorLine) {
         val layout = textLayoutResult ?: return@LaunchedEffect
@@ -131,7 +117,6 @@ fun FeedPostComposeView(
     ) { uri: List<Uri> ->
         uri.let {
             viewModel.selectedItems += it
-            coroutineScope.launch { viewModel.loadImagesAndReconcile(context) }
         }
     }
 
@@ -142,32 +127,17 @@ fun FeedPostComposeView(
                 isDoneEnabled = viewModel.text.isNotEmpty() && viewModel.text.length <= 280,
                 onDoneClick = {
                     coroutineScope.launch {
-                        isUploading = true
-                        try {
-                            viewModel.writePost()
+                        val isSuccess = viewModel.submitPost()
 
+                        if (isSuccess) {
                             navController.previousBackStackEntry
                                 ?.savedStateHandle
                                 ?.set("listNeedsRefresh", true)
                             navController.popBackStack()
-
-                        } catch (e: Exception) {
-                            val message = if (e.isNetworkError()) {
-                                R.string.network_connection_error
-                            } else {
-                                viewModel.handleException(e)
-                                R.string.unexpected_error_uploading_post
-                            }
-                            showAlert(
-                                title = R.string.error,
-                                message = message
-                            )
-                        } finally {
-                            isUploading = false
                         }
                     }
                 },
-                isUploading = isUploading
+                isUploading = viewModel.isUploading
             )
         },
         bottomBar = {
@@ -178,11 +148,13 @@ fun FeedPostComposeView(
                 contentAlignment = Alignment.CenterEnd
             ) {
                 FeedPostOptionsRow(
-                    isUploading = isUploading,
+                    isUploading = viewModel.isUploading,
                     onPhotoButton = { showPhotosPicker = true }
                 )
             }
-        }
+        },
+        modifier = Modifier
+            .analyticsScreen(name = "Feed Compose"),
     ) { innerPadding ->
         Column(modifier = Modifier
             .fillMaxSize()
@@ -285,14 +257,26 @@ fun FeedPostComposeView(
             showPhotosPicker = false
         }
     }
-    if (showAlert) {
+    if (viewModel.isAlertPresented) {
         AlertDialog(
-            onDismissRequest = { showAlert = false },
+            onDismissRequest = { viewModel.isAlertPresented = false },
             confirmButton = {
-                Button(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
+                TextButton(onClick = { viewModel.isAlertPresented = false }) {
+                    Text(stringResource(R.string.ok))
+                }
             },
-            title = { Text(stringResource(alertTitle)) },
-            text = { Text(stringResource(alertMessage)) }
+            title = {
+                viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
+            },
+            text = {
+                viewModel.alertState?.let { state ->
+                    Text(
+                        state.message ?: stringResource(
+                            state.messageResId ?: R.string.unexpected_error
+                        )
+                    )
+                }
+            }
         )
     }
 }

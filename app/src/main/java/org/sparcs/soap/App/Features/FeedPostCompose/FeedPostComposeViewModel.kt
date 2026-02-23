@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -20,12 +21,16 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedPostPhotoItem
-import org.sparcs.soap.App.Domain.Helpers.CrashlyticsHelper
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Feed.FeedCreatePost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedUser
-import org.sparcs.soap.App.Domain.Repositories.Feed.FeedImageRepositoryProtocol
-import org.sparcs.soap.App.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedImageUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.soap.App.Features.FeedPostCompose.Event.FeedPostComposeViewEvent
+import org.sparcs.soap.R
 import java.util.UUID
 import javax.inject.Inject
 
@@ -37,9 +42,13 @@ interface FeedPostComposeViewModelProtocol {
     var selectedItems: List<Uri>
     var selectedImages: List<FeedPostPhotoItem>
 
+    val alertState: AlertState?
+    var isAlertPresented: Boolean
+    var isUploading: Boolean
+
     fun fetchFeedUser()
     suspend fun writePost()
-    suspend fun loadImagesAndReconcile(context: Context)
+    suspend fun submitPost(): Boolean
     fun removeImage(index: Int)
     fun handleException(error: Throwable)
 }
@@ -47,9 +56,11 @@ interface FeedPostComposeViewModelProtocol {
 @HiltViewModel
 class FeedPostComposeViewModel @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
-    private val feedImageRepository: FeedImageRepositoryProtocol,
-    private val feedPostRepository: FeedPostRepositoryProtocol,
-    private val crashlyticsHelper: CrashlyticsHelper
+    private val feedImageUseCase: FeedImageUseCaseProtocol,
+    private val feedPostUseCase: FeedPostUseCaseProtocol,
+    private val crashlyticsService: CrashlyticsServiceProtocol,
+    private val analyticsService: AnalyticsServiceProtocol,
+    @ApplicationContext private val context: Context
 ) : ViewModel(), FeedPostComposeViewModelProtocol {
 
     sealed class ComposeType(val value: Int) {
@@ -68,9 +79,15 @@ class FeedPostComposeViewModel @Inject constructor(
         get() = _selectedItems
         set(value) {
             _selectedItems = value
+            viewModelScope.launch {
+                loadImagesAndReconcile()
+            }
         }
 
-    override var selectedImages by mutableStateOf(listOf<FeedPostPhotoItem>())
+    override var selectedImages by mutableStateOf(emptyList<FeedPostPhotoItem>())
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
+    override var isUploading: Boolean by mutableStateOf(false)
 
     // MARK: - Functions
     override fun fetchFeedUser() {
@@ -87,11 +104,11 @@ class FeedPostComposeViewModel @Inject constructor(
     override suspend fun writePost() {
         val uploadedImages = coroutineScope {
             selectedImages.mapIndexed { idx, item ->
-                async {
-                    val image = feedImageRepository.uploadPostImage(item)
-                    idx to image
-                }
-            }.awaitAll()
+            async {
+                val image = feedImageUseCase.uploadPostImage(item)
+                idx to image
+            }
+        }.awaitAll()
         }.sortedBy { it.first }
             .map { it.second }
 
@@ -100,30 +117,39 @@ class FeedPostComposeViewModel @Inject constructor(
             isAnonymous = selectedComposeType == ComposeType.Anonymously,
             images = uploadedImages
         )
-        feedPostRepository.writePost(request)
+        feedPostUseCase.writePost(request)
     }
 
-    private fun reconcile(
-        new: List<FeedPostPhotoItem>,
-        current: List<FeedPostPhotoItem>,
-    ): List<FeedPostPhotoItem> {
-        val byId = current.associateBy { it.id }
-        return new.map { fresh ->
-            byId[fresh.id]?.let { old ->
-                fresh.copy(
-                    spoiler = old.spoiler,
-                    description = old.description
+    override suspend fun submitPost(): Boolean {
+        isUploading = true
+        return try {
+            writePost()
+            analyticsService.logEvent(
+                FeedPostComposeViewEvent.PostSubmitted(
+                    isAnonymous = (selectedComposeType == ComposeType.Anonymously),
+                    imageCount = selectedImages.size
                 )
-            } ?: fresh
+            )
+            true
+        } catch (e: Exception) {
+            handleException(e)
+            alertState = AlertState(
+                titleResId = R.string.unexpected_error_uploading_post,
+                message = e.localizedMessage ?: "Unknown error"
+            )
+            isAlertPresented = true
+            false
+        } finally {
+            isUploading = false
         }
     }
 
-    override suspend fun loadImagesAndReconcile(context: Context) {
+    private suspend fun loadImagesAndReconcile() {
         val loaded = coroutineScope {
             selectedItems.mapIndexed { idx, uri ->
                 async {
                     val id = UUID.randomUUID().toString()
-                    val image = loadBitmapFromUri(uri, context)
+                    val image = loadBitmapFromUri(uri)
                     idx to image?.let {
                         FeedPostPhotoItem(
                             id,
@@ -140,8 +166,22 @@ class FeedPostComposeViewModel @Inject constructor(
         selectedImages = reconcile(new = loaded, current = selectedImages)
     }
 
+    private fun reconcile(
+        new: List<FeedPostPhotoItem>,
+        current: List<FeedPostPhotoItem>
+    ): List<FeedPostPhotoItem> {
+        val byId = current.associateBy { it.id }
+        return new.map { fresh ->
+            byId[fresh.id]?.let { old ->
+                fresh.copy(
+                    spoiler = old.spoiler,
+                    description = old.description
+                )
+            } ?: fresh
+        }
+    }
 
-    private suspend fun loadBitmapFromUri(uri: Uri, context: Context): Bitmap? =
+    private suspend fun loadBitmapFromUri(uri: Uri): Bitmap? =
         withContext(Dispatchers.IO) {
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -158,7 +198,6 @@ class FeedPostComposeViewModel @Inject constructor(
             }
         }
 
-
     override fun removeImage(index: Int) {
         val mutable = selectedImages.toMutableList()
         mutable.removeAt(index)
@@ -167,7 +206,6 @@ class FeedPostComposeViewModel @Inject constructor(
     }
 
     override fun handleException(error: Throwable) {
-        Log.e("FeedPostComposeViewModel","failed to post a feed: $error")
-        crashlyticsHelper.recordException(error)
+        crashlyticsService.recordException(error)
     }
 }

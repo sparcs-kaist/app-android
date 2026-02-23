@@ -19,6 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.NavigationBar.Animation.AnimatedText
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
@@ -64,6 +66,7 @@ fun SemesterSelector(
     val isEnabledNextButton =
         viewModel.semesters.collectAsState().value.lastOrNull() != selectedSemester
     val haptic = LocalHapticFeedback.current
+    val coroutineScope = rememberCoroutineScope()
 
     Row(
         modifier = Modifier
@@ -82,7 +85,7 @@ fun SemesterSelector(
                 .then(
                     if (isEnabledPreviousButton) Modifier.clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                        viewModel.selectPreviousSemester()
+                        coroutineScope.launch { viewModel.selectPreviousSemester() }
                     } else Modifier
                 )
         )
@@ -103,7 +106,7 @@ fun SemesterSelector(
                 .then(
                     if (isEnabledNextButton) Modifier.clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                        viewModel.selectNextSemester()
+                        coroutineScope.launch { viewModel.selectNextSemester() }
                     } else Modifier
                 )
         )

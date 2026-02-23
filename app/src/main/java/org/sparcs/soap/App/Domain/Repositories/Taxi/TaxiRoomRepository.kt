@@ -19,6 +19,7 @@ interface TaxiRoomRepositoryProtocol {
     suspend fun joinRoom(id: String): TaxiRoom
     suspend fun leaveRoom(id: String): TaxiRoom
     suspend fun getRoom(id: String): TaxiRoom
+    suspend fun getPublicRoom(id: String): TaxiRoom
     suspend fun commitSettlement(id: String): TaxiRoom
     suspend fun commitPayment(id: String): TaxiRoom
 }
@@ -31,6 +32,7 @@ class FakeTaxiRoomRepository : TaxiRoomRepositoryProtocol {
     override suspend fun joinRoom(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun leaveRoom(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun getRoom(id: String): TaxiRoom = TaxiRoom.mock()
+    override suspend fun getPublicRoom(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun commitSettlement(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun commitPayment(id: String): TaxiRoom = TaxiRoom.mock()
 }
@@ -99,6 +101,14 @@ class TaxiRoomRepository @Inject constructor(
     override suspend fun getRoom(id: String): TaxiRoom {
         return try {
             taxiRoomApi.getRoom(id).toModel()
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
+    }
+
+    override suspend fun getPublicRoom(id: String): TaxiRoom {
+        return try {
+            taxiRoomApi.getPublicRoom(id).toModel()
         } catch (e: Exception) {
             handleApiError(gson, e)
         }

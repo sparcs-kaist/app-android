@@ -14,12 +14,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Ara.PostListType
 import org.sparcs.soap.App.Domain.Enums.Ara.PostOrigin
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
+import org.sparcs.soap.App.Features.PostList.Event.PostListViewEvent
 import javax.inject.Inject
 
 interface PostListViewModelProtocol {
@@ -43,7 +46,8 @@ interface PostListViewModelProtocol {
 @HiltViewModel
 class PostListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    private val araBoardRepository: AraBoardRepositoryProtocol,
+    private val araBoardUseCase: AraBoardUseCaseProtocol,
+    private val analyticsService: AnalyticsServiceProtocol,
 ) : ViewModel(), PostListViewModelProtocol {
 
     private val initialBoard: AraBoard by lazy {
@@ -86,9 +90,13 @@ class PostListViewModel @Inject constructor(
     override fun bind() {
         viewModelScope.launch {
             _searchKeyword
-                .debounce(350)
+                .map { it.trim() }
                 .distinctUntilChanged()
-                .collectLatest {
+                .debounce(350)
+                .collectLatest {keyword ->
+                    if (keyword.isNotEmpty()) {
+                        analyticsService.logEvent(PostListViewEvent.SearchPerformed(keyword))
+                    }
                     fetchInitialPosts()
                 }
         }
@@ -97,7 +105,7 @@ class PostListViewModel @Inject constructor(
     override suspend fun fetchInitialPosts() {
         _state.value = ViewState.Loading
         try {
-            val page = araBoardRepository.fetchPosts(
+            val page = araBoardUseCase.fetchPosts(
                 type = PostListType.Board(boardID = board.id),
                 page = 1,
                 pageSize = pageSize,
@@ -108,6 +116,7 @@ class PostListViewModel @Inject constructor(
             posts = page.results
             hasMorePages = currentPage < totalPages
             _state.value = ViewState.Loaded(posts)
+            analyticsService.logEvent(PostListViewEvent.PostsRefreshed)
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
         }
@@ -118,7 +127,7 @@ class PostListViewModel @Inject constructor(
         isLoadingMore = true
         try {
             val nextPage = currentPage + 1
-            val page = araBoardRepository.fetchPosts(
+            val page = araBoardUseCase.fetchPosts(
                 type = PostListType.Board(boardID = board.id),
                 page = nextPage,
                 pageSize = pageSize,
@@ -129,7 +138,7 @@ class PostListViewModel @Inject constructor(
             hasMorePages = currentPage < totalPages
             _state.value = ViewState.Loaded(posts)
             isLoadingMore = false
-
+            analyticsService.logEvent(PostListViewEvent.NextPageLoaded)
         } catch (e: Exception) {
             Log.e("PostListViewModel", "Error loading next page: $e")
             isLoadingMore = false
@@ -139,7 +148,7 @@ class PostListViewModel @Inject constructor(
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             val updated = try {
-                araBoardRepository.fetchPost(postID = postID, origin = PostOrigin.None)
+                araBoardUseCase.fetchPost(postID = postID, origin = PostOrigin.None)
             } catch (e: Exception) {
                 null
             } ?: return@launch
