@@ -432,7 +432,7 @@ fun PostCommentFooter(
                         }
                     }
                 },
-                enabled = commentState.isMine == true
+                enabled = commentState.isMine != true
             )
         }
     }
