@@ -110,8 +110,8 @@ class TaxiChatViewModel @Inject constructor(
     // MARK: - Setup
     override suspend fun setup() {
         if (isLoaded) return
-        taxiChatUseCase.setRoom(room.value)
         fetchTaxiUser()
+        taxiChatUseCase.setRoom(room.value)
         bind()
         fetchInitialChats()
 
@@ -123,7 +123,14 @@ class TaxiChatViewModel @Inject constructor(
         taxiChatUseCase.switchRoom(newRoom.id)
     }
 
-    private fun fetchTaxiUser() {
+    private suspend fun fetchTaxiUser() {
+        if (userUseCase.taxiUser == null) {
+            try {
+                userUseCase.fetchTaxiUser()
+            } catch (e: Exception) {
+                Log.e("TaxiChatViewModel", "Failed to fetch taxi user", e)
+            }
+        }
         _taxiUser.value = userUseCase.taxiUser
     }
 
