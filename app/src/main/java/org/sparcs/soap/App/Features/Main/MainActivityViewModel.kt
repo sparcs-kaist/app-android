@@ -51,7 +51,7 @@ class MainViewModel @Inject constructor(
 
     private suspend fun refreshAccessTokenIfNeeded() {
         try {
-            authUseCase.refreshAccessTokenIfNeeded()
+            authUseCase.refreshAccessToken()
             userUseCase.fetchUsers()
         } catch (e: Exception) {
             Log.e("MainViewModel", "Data fetch failed", e)
@@ -62,7 +62,7 @@ class MainViewModel @Inject constructor(
 
     fun checkAuthOnResume() {
         viewModelScope.launch {
-            authUseCase.refreshAccessTokenIfNeeded(force = false)
+            authUseCase.refreshAccessToken(force = false)
         }
     }
 

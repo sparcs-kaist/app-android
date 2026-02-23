@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureSearchRequest
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
 import javax.inject.Inject
 
 interface LectureSearchViewModelProtocol {

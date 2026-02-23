@@ -1,8 +1,9 @@
 package org.sparcs.soap.App.Networking.ResponseDTO
 
 import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 import com.google.gson.annotations.SerializedName
+import org.sparcs.soap.App.Domain.Error.NetworkError
+import org.sparcs.soap.App.Domain.Helpers.NetworkErrorMapper
 import retrofit2.HttpException
 
 data class ApiErrorResponse(
@@ -12,40 +13,52 @@ data class ApiErrorResponse(
 
     override val message: String
         get() = error
-
-    fun toDomainError(): Exception {
-        return Exception(error)
-    }
-}
-
-fun handleApiError(gson: Gson, exception: Exception): Nothing {
-    if (exception is HttpException) {
-        val errorBody = exception.response()?.errorBody()?.string()
-        if (!errorBody.isNullOrEmpty()) {
-            try {
-                val parsedError = gson.fromJson(errorBody, ApiErrorResponse::class.java)
-                throw parsedError.toDomainError()
-            } catch (ex: JsonSyntaxException) {
-                try {
-                    val parsedArray = gson.fromJson(errorBody, Array<String>::class.java)
-                    if (parsedArray.isNotEmpty()) {
-                        throw ApiException(parsedArray[0])
-                    } else {
-                        throw exception
-                    }
-                } catch (nestedEx: Exception) {
-                    throw exception
-                }
-            }
-        } else {
-            throw exception
-        }
-    } else {
-        throw exception
-    }
 }
 
 class ApiException(override val message: String) : Exception(message)
+
+//TODO 모든 UseCase 수정 이후 다시 보기
+fun handleApiError(gson: Gson, exception: Exception): Nothing {
+    if (exception !is HttpException) throw NetworkErrorMapper.map(exception)
+
+    val response = exception.response()
+    val code = response?.code() ?: 500
+    val errorBody = response?.errorBody()?.string()
+
+    if (errorBody.isNullOrEmpty()) throw NetworkError.ServerError(code)
+
+    try {
+        val json = gson.fromJson(errorBody, com.google.gson.JsonObject::class.java)
+        if (json.has("detail")) {
+            val detail = json.get("detail")
+            val message = if (detail.isJsonObject) {
+                val detailObj = detail.asJsonObject
+                if (detailObj.has("error")) {
+                    detailObj.getAsJsonObject("error").get("message")?.asString
+                } else {
+                    detailObj.get("message")?.asString
+                }
+            } else {
+                detail.asString
+            }
+            throw NetworkError.ServerError(code)
+        }
+    } catch (_: Exception) { }
+
+    try {
+        val parsedError = gson.fromJson(errorBody, ApiErrorResponse::class.java)
+        throw ApiException(parsedError.error)
+    } catch (_: Exception) { }
+
+    try {
+        val parsedArray = gson.fromJson(errorBody, Array<String>::class.java)
+        if (parsedArray.isNotEmpty()) {
+            throw ApiException(parsedArray[0])
+        }
+    } catch (_: Exception) { }
+
+    throw NetworkError.ServerError(code)
+}
 
 fun parseReportCommentError(exception: Exception): Exception {
     if (exception !is HttpException) return exception

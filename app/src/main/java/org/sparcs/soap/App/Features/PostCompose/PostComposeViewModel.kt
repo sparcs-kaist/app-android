@@ -22,7 +22,9 @@ import org.sparcs.soap.App.Domain.Enums.Ara.AraPostNicknameType
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoardTopic
 import org.sparcs.soap.App.Domain.Models.Ara.AraCreatePost
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
+import org.sparcs.soap.App.Features.PostCompose.Event.PostComposeViewEvent
 import javax.inject.Inject
 
 interface PostComposeViewModelProtocol {
@@ -44,8 +46,9 @@ interface PostComposeViewModelProtocol {
 
 @HiltViewModel
 class PostComposeViewModel @Inject constructor(
-    private val araBoardRepository: AraBoardRepositoryProtocol,
+    private val araBoardUseCase: AraBoardUseCaseProtocol,
     savedStateHandle: SavedStateHandle,
+    private val analyticsService: AnalyticsServiceProtocol,
     @ApplicationContext private val context: Context
 ) : ViewModel(), PostComposeViewModelProtocol {
 
@@ -92,7 +95,7 @@ class PostComposeViewModel @Inject constructor(
 
     override suspend fun writePost() {
         val attachments = selectedImages.map { bitmap ->
-            viewModelScope.async { araBoardRepository.uploadImage(bitmap) }
+            viewModelScope.async { araBoardUseCase.uploadImage(bitmap) }
         }.awaitAll()
 
         val request = AraCreatePost(
@@ -106,7 +109,8 @@ class PostComposeViewModel @Inject constructor(
             board = board
         )
 
-        araBoardRepository.writePost(request)
+        araBoardUseCase.writePost(request)
+        analyticsService.logEvent(PostComposeViewEvent.PostSubmitted)
     }
 
     override fun removeImage(index: Int) {

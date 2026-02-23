@@ -23,7 +23,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
-import org.sparcs.soap.App.Domain.Usecases.TaxiChatUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import java.util.Date
 import javax.inject.Inject

@@ -8,9 +8,9 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import org.sparcs.soap.App.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepository
+import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
 import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.R
@@ -36,7 +36,7 @@ interface TaxiSettingsViewModelProtocol {
 class TaxiSettingsViewModel @Inject constructor(
     private val userUseCase: UserUseCase,
     private val taxiUserRepository: TaxiUserRepository,
-    private val crashlyticsHelper: CrashlyticsHelper
+    private val crashlyticsService: CrashlyticsService
 ) : ViewModel(), TaxiSettingsViewModelProtocol {
 
     sealed class ViewState {
@@ -145,7 +145,7 @@ class TaxiSettingsViewModel @Inject constructor(
         val messageRes = if (error.isNetworkError()) {
             R.string.network_connection_error
         } else {
-            crashlyticsHelper.recordException(error)
+            crashlyticsService.recordException(error)
             when (type) {
                 ErrorType.BADGE -> R.string.badge_information_error
                 ErrorType.BANK -> R.string.bank_account_error
