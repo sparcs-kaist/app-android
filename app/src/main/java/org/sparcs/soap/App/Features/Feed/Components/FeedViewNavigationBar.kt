@@ -15,16 +15,19 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import org.sparcs.soap.App.Features.Feed.FeedViewModelProtocol
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.NavigationBar.Components.AddButton
 import org.sparcs.soap.App.Shared.Extensions.elevation
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedViewNavigationBar(
     scrollState: ScrollState,
+    viewModel: FeedViewModelProtocol,
     navController: NavController,
 ) {
     TopAppBar(
@@ -40,11 +43,16 @@ fun FeedViewNavigationBar(
         actions = {
             AddButton(
                 contentDescription = "Create Feed",
-                onClick = { navController.navigate(Channel.FeedPostCompose.name) }
+                onClick = {
+                    viewModel.writeFeedButtonTapped()
+                    navController.navigate(Channel.FeedPostCompose.name)
+                }
             )
             FeedViewDropDownMenu(
-                onClickSettings = { navController.navigate(Channel.Settings.name) },
-                onClickNotification = { }
+                onClickSettings = {
+                    viewModel.openSettingsTapped()
+                    navController.navigate(Channel.Settings.name)
+                }
             )
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -62,7 +70,8 @@ private fun Preview() {
     Theme {
         FeedViewNavigationBar(
             scrollState = ScrollState(0),
-            navController = NavController(LocalContext.current)
+            navController = NavController(LocalContext.current),
+            viewModel = PreviewFeedViewModel()
         )
     }
 }

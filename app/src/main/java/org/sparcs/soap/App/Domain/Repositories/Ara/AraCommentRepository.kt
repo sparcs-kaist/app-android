@@ -9,7 +9,7 @@ import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.CommentPatchRequest
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.CommentPostRequest
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.CommentReportRequest
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.ThreadedCommentPostRequest
-import org.sparcs.soap.App.Shared.Mocks.mock
+import retrofit2.HttpException
 import javax.inject.Inject
 
 interface AraCommentRepositoryProtocol {
@@ -69,10 +69,15 @@ class AraCommentRepository @Inject constructor(
         }
     }
 
-    override suspend fun deleteComment(commentID: Int) = try {
-        araCommentApi.deleteComment(commentID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun deleteComment(commentID: Int) {
+        try {
+            val response = araCommentApi.deleteComment(commentID)
+            if (!response.isSuccessful) {
+                throw HttpException(response)
+            }
+        } catch (e: Exception) {
+            handleApiError(gson, e)
+        }
     }
 
     override suspend fun editComment(commentID: Int, content: String): AraPostComment {
@@ -98,15 +103,4 @@ class AraCommentRepository @Inject constructor(
     } catch (e: Exception) {
         handleApiError(gson, e)
     }
-}
-
-class FakeAraCommentRepository : AraCommentRepositoryProtocol {
-    override suspend fun upVoteComment(commentID: Int) {}
-    override suspend fun downVoteComment(commentID: Int) {}
-    override suspend fun cancelVote(commentID: Int) {}
-    override suspend fun writeComment(postID: Int, content: String) = AraPostComment.mock()
-    override suspend fun writeThreadedComment(commentID: Int, content: String) = AraPostComment.mock()
-    override suspend fun deleteComment(commentID: Int) {}
-    override suspend fun editComment(commentID: Int, content: String) = AraPostComment.mock()
-    override suspend fun reportComment(commentID: Int, type: AraContentReportType) {}
 }

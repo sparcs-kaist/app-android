@@ -24,15 +24,18 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
+import org.sparcs.soap.App.Domain.Models.Ara.AraPostAuthor
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.PostList.Components.PostList.PostList
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import org.sparcs.soap.App.Features.UserPostList.Components.UserPostNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockUserPostListViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.SearchCustomBar
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.Post.PreviewUserPostListViewModel
+import org.sparcs.soap.BuddyPreviewSupport.Post.previewAuthor
 import org.sparcs.soap.R
 
 @Composable
@@ -60,7 +63,8 @@ fun UserPostListView(
                 isSelected = showSearchBar,
                 navController = navController
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen(name = "Ara User Post List")
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -127,28 +131,54 @@ fun UserPostListView(
     }
 }
 
-/* ____________________________________________________________________*/
-
+// Mark: Preview
+@Preview(name = "Loading State", showBackground = true)
 @Composable
-private fun MockView(state: UserPostListViewModel.ViewState) {
-    val mockViewModel = remember { MockUserPostListViewModel(initialState = state) }
-    UserPostListView(viewModel = mockViewModel, navController = rememberNavController())
+private fun PreviewUserPostListLoading() {
+    val viewModel = PreviewUserPostListViewModel(
+        initialState = UserPostListViewModel.ViewState.Loading,
+        user = AraPostAuthor.previewAuthor
+    )
+    Theme {
+        UserPostListView(viewModel = viewModel, rememberNavController())
+    }
 }
 
+@Preview(name = "Loaded State", showBackground = true)
 @Composable
-@Preview
-private fun LoadingPreview() {
-    Theme { MockView(UserPostListViewModel.ViewState.Loading) }
+private fun PreviewUserPostListLoaded() {
+    val viewModel = PreviewUserPostListViewModel(
+        initialState = UserPostListViewModel.ViewState.Loaded(AraPost.mockList()),
+        user = AraPostAuthor.previewAuthor,
+        initialPosts = AraPost.mockList()
+    )
+    Theme {
+        UserPostListView(viewModel = viewModel, rememberNavController())
+    }
 }
 
+@Preview(name = "Error State", showBackground = true)
 @Composable
-@Preview
-private fun LoadedPreview() {
-    Theme { MockView(UserPostListViewModel.ViewState.Loaded(AraPost.mockList())) }
+private fun PreviewUserPostListError() {
+    val viewModel = PreviewUserPostListViewModel(
+        initialState = UserPostListViewModel.ViewState.Error("Something went wrong"),
+        user = AraPostAuthor.previewAuthor
+    )
+    Theme {
+        UserPostListView(viewModel = viewModel, rememberNavController())
+    }
 }
 
+@Preview(name = "Empty Search", showBackground = true)
 @Composable
-@Preview
-private fun ErrorPreview() {
-    Theme { MockView(UserPostListViewModel.ViewState.Error("Error Message")) }
+private fun PreviewUserPostListEmptySearch() {
+    val viewModel = PreviewUserPostListViewModel(
+        initialState = UserPostListViewModel.ViewState.Loaded(emptyList()),
+        user = AraPostAuthor.previewAuthor,
+        initialPosts = emptyList(),
+        initialSearchKeyword = "no results"
+    )
+    Theme {
+        UserPostListView(viewModel = viewModel, rememberNavController())
+    }
 }

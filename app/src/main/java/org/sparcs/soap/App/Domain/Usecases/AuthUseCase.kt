@@ -41,7 +41,7 @@ interface AuthUseCaseProtocol {
     suspend fun getValidAccessToken(): String
 
     @Throws(Exception::class)
-    suspend fun refreshAccessTokenIfNeeded(force: Boolean = false)
+    suspend fun refreshAccessToken(force: Boolean = false)
 }
 
 @Singleton
@@ -82,7 +82,7 @@ class AuthUseCase @Inject constructor(
         refreshJob = coroutineScope.launch {
             if (delayMillis > 0) delay(delayMillis)
             try {
-                refreshAccessTokenIfNeeded(force = true)
+                refreshAccessToken(force = true)
             } catch (e: Exception) {
                 Log.e("AuthUseCase", "Token refresh failed in scheduled job", e)
             }
@@ -102,7 +102,7 @@ class AuthUseCase @Inject constructor(
     override suspend fun getValidAccessToken(): String {
         return try {
             if (tokenStorage.isTokenExpired()) {
-                refreshAccessTokenIfNeeded()
+                refreshAccessToken()
             }
             tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken
         } catch (e: Exception) {
@@ -111,7 +111,7 @@ class AuthUseCase @Inject constructor(
         }
     }
 
-    override suspend fun refreshAccessTokenIfNeeded(force: Boolean) {
+    override suspend fun refreshAccessToken(force: Boolean) {
         if (isRefreshing) return
         isRefreshing = true
 

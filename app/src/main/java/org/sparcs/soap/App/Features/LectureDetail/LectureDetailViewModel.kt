@@ -14,7 +14,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepository
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.unescapeHash
 import javax.inject.Inject

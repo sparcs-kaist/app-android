@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Domain.Usecases
+package org.sparcs.soap.App.Domain.Usecases.Taxi
 
 import android.graphics.Bitmap
 import android.util.Log
@@ -22,6 +22,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiChatRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.TaxiChatService
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.toByteArray
 import org.sparcs.soap.App.Shared.Extensions.toISO8601
 import java.util.Calendar

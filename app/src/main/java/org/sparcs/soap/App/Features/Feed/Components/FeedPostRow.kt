@@ -56,9 +56,11 @@ import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.Extensions.relativeTimeString
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
 import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
+import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -82,7 +84,7 @@ fun FeedPostRow(
             showDeleteConfirmation,
         ) { showDeleteConfirmation = it }
         Content(post, singleLine, onComment)
-        Footer(post, viewModel, onComment, onPostDeleted, !singleLine, coroutineScope)
+        Footer(post, viewModel, onComment, coroutineScope)
     }
 }
 
@@ -186,7 +188,8 @@ fun Content(
         val baseText = if (expanded || !isOverflowing) {
             post.content
         } else {
-            val visibleEnd = textLayoutResult?.getLineEnd(1, visibleEnd = true) ?: post.content.length
+            val visibleEnd =
+                textLayoutResult?.getLineEnd(1, visibleEnd = true) ?: post.content.length
             post.content.substring(0, visibleEnd.coerceAtMost(post.content.length)).trimEnd()
         }
 
@@ -232,22 +235,28 @@ fun Content(
                 }
             },
             onClick = { offset ->
-                displayText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { annotation ->
-                    val url = annotation.item
-                    val formattedUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                        "http://$url"
-                    } else {
-                        url
-                    }
+                displayText.getStringAnnotations("URL", offset, offset).firstOrNull()
+                    ?.let { annotation ->
+                        val url = annotation.item
+                        val formattedUrl =
+                            if (!url.startsWith("http://") && !url.startsWith("https://")) {
+                                "http://$url"
+                            } else {
+                                url
+                            }
 
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
-                        context.startActivity(intent)
-                    } catch (e: Exception) {
-                        android.util.Log.e("FeedPostRow", "Failed to open URL: $formattedUrl", e)
+                        try {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
+                            context.startActivity(intent)
+                        } catch (e: Exception) {
+                            android.util.Log.e(
+                                "FeedPostRow",
+                                "Failed to open URL: $formattedUrl",
+                                e
+                            )
+                        }
+                        return@ClickableText
                     }
-                    return@ClickableText
-                }
 
                 displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()?.let {
                     expanded = true
@@ -269,8 +278,6 @@ fun Footer(
     post: FeedPost,
     viewModel: FeedViewModelProtocol,
     onComment: () -> Unit,
-    onPostDeleted: ((String) -> Unit)?,
-    isDetailedView: Boolean,
     coroutineScope: CoroutineScope,
 ) {
     Row(
@@ -301,11 +308,6 @@ fun Footer(
 
         Spacer(Modifier.width(8.dp))
         PostCommentButton(commentCount = post.commentCount) { onComment() }
-//        Spacer(Modifier.weight(1f))
-//        if (onPostDeleted != null && isDetailedView) PostShareButton(
-//            url = Constants.feedShareURL + post.id,
-//            context = context
-//        )TODO: PostShareButton
     }
 }
 
@@ -386,27 +388,73 @@ fun FeedPostRowSkeleton() {
     }
 }
 
-
+// MARK: - Previews
+@Preview(showBackground = true, name = "With Actions")
 @Composable
-@Preview
-private fun Preview() {
+private fun PreviewWithActions() {
     Theme {
-        Column(Modifier
-            .fillMaxWidth()
-            .noRippleClickable {}
-        ) {
-            Header(
-                FeedPost.mock(),
-                {},
-                false,
-            ) {}
-            Content(FeedPost.mock(), true, {})
-        }
+        FeedPostRow(
+            post = FeedPost.mock(),
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = false
+        )
     }
 }
 
+@Preview(showBackground = true, name = "Without Actions")
 @Composable
-@Preview(showBackground = true)
-private fun SkeletonPreview() {
-    Theme { FeedPostRowSkeleton() }
+private fun PreviewWithoutActions() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mock(),
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Anonymous")
+@Composable
+private fun PreviewAnonymous() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mockList()[4],
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = false
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Long Content")
+@Composable
+private fun PreviewLongContent() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mockList()[3],
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Multiple Images")
+@Composable
+private fun PreviewMultipleImages() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mockList()[2],
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = false
+        )
+    }
 }

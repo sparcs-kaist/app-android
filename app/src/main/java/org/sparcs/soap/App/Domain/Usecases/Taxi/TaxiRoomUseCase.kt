@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Domain.Usecases
+package org.sparcs.soap.App.Domain.Usecases.Taxi
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -20,11 +20,9 @@ class TaxiRoomUseCase @Inject constructor(
     // MARK: - Functions
     override suspend fun isBlocked(): TaxiRoomBlockStatus = withContext(Dispatchers.IO) {
         val taxiUser = userStorage.getTaxiUser()
-        val taxiRooms = try {
+        val taxiRooms = runCatching {
             taxiRoomRepository.fetchMyRooms().first
-        } catch (e: Exception) {
-            null
-        }
+        }.getOrNull()
 
         if (taxiUser == null || taxiRooms == null) {
             return@withContext TaxiRoomBlockStatus.Error("Failed to load user information.")
