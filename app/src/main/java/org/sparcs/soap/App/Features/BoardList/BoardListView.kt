@@ -31,9 +31,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Helpers.LocalizedString
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoardGroup
 import org.sparcs.soap.App.Features.BoardList.Components.BoardList
@@ -42,13 +42,14 @@ import org.sparcs.soap.App.Features.BoardList.Components.BoardListSectionItem
 import org.sparcs.soap.App.Features.BoardList.Components.BoardListSkeleton
 import org.sparcs.soap.App.Features.NavigationBar.AppDownBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
-import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.Post.PreviewBoardListViewModel
+import org.sparcs.soap.R
 
 @Composable
 fun BoardListView(
-    viewModel: BoardListViewModel = hiltViewModel(),
+    viewModel: BoardListViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
@@ -81,7 +82,8 @@ fun BoardListView(
                 navController = navController,
                 currentScreen = Channel.Boards
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen(name = "Board List")
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -169,21 +171,28 @@ fun systemImage(slug: String): ImageVector {
     }
 }
 
-
+// MARK: - Previews
+@Preview(name = "Loading State", showBackground = true)
 @Composable
-@Preview(showBackground = true)
-private fun Preview() {
-    Theme {
-        LoadedView(
-            boards = AraBoard.mockList(),
-            groups = listOf(
-                AraBoardGroup(
-                    id = 123,
-                    slug = "slug",
-                    name = LocalizedString(mapOf("en" to "Group Name", "ko" to "그룹"))
-                ),
-            ),
-            onBoardClick = {}
-        )
-    }
+fun PreviewBoardListLoading() {
+    val viewModel = PreviewBoardListViewModel(initialState = BoardListViewModel.ViewState.Loading)
+    BoardListView(viewModel, rememberNavController())
+}
+
+@Preview(name = "Loaded State", showBackground = true)
+@Composable
+fun PreviewBoardListLoaded() {
+    val viewModel = PreviewBoardListViewModel(
+        initialState = PreviewBoardListViewModel.loadedState()
+    )
+    BoardListView(viewModel, rememberNavController())
+}
+
+@Preview(name = "Error State", showBackground = true)
+@Composable
+fun PreviewBoardListError() {
+    val viewModel = PreviewBoardListViewModel(
+        initialState = BoardListViewModel.ViewState.Error(message = R.string.error_fetch_boards)
+    )
+    BoardListView(viewModel, rememberNavController())
 }

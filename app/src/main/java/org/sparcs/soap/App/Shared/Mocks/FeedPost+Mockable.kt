@@ -110,12 +110,19 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
                     mimeType = "image/png",
                     size = 48507,
                     spoiler = false
+                ),
+                FeedImage(
+                    id = UUID.randomUUID().toString(),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/b899e2e7-d68d-4c94-8c8c-2eae607ec6d2.jpg"),
+                    mimeType = "image/png",
+                    size = 48507,
+                    spoiler = false
                 )
             )
         ),
         FeedPost(
             id = UUID.randomUUID().toString(),
-            content = "sample post",
+            content = "sample post ASJHDAJSDASHDJAKSDA SJASJDNASDASLD ASDAISUDANSDU ASDAISNDUIOANSUDA SDUAISNDOID",
             isAnonymous = false,
             isKaistIP = false,
             authorName = "멋진다람쥐632",

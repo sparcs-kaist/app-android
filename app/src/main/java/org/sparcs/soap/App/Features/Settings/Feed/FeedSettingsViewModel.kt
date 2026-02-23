@@ -13,9 +13,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
-import org.sparcs.soap.App.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.soap.App.Domain.Models.Feed.FeedUser
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
 import org.sparcs.soap.R
 import retrofit2.HttpException
@@ -38,7 +38,7 @@ interface FeedSettingsViewModelProtocol {
 class FeedSettingsViewModel @Inject constructor(
     private val userUseCase: UserUseCase,
     private val feedUserRepository: FeedUserRepositoryProtocol,
-    private val crashlyticsHelper: CrashlyticsHelper,
+    private val crashlyticsService: CrashlyticsService,
 ) : ViewModel(), FeedSettingsViewModelProtocol {
 
     sealed class ViewState {
@@ -94,7 +94,7 @@ class FeedSettingsViewModel @Inject constructor(
                     else -> R.string.nickname_error_update_failed
                 }
                 Log.e("FeedSettingsViewModel", "Nickname update failed: $e")
-                crashlyticsHelper.recordException(e)
+                crashlyticsService.recordException(e)
             }
         }
     }
@@ -107,7 +107,7 @@ class FeedSettingsViewModel @Inject constructor(
                 _user.value = userUseCase.feedUser
             } catch (e: Exception) {
                 Log.e("FeedSettingsViewModel", "Image upload failed: $e")
-                crashlyticsHelper.recordException(e)
+                crashlyticsService.recordException(e)
             }
         }
     }
@@ -120,7 +120,7 @@ class FeedSettingsViewModel @Inject constructor(
                 _user.value = userUseCase.feedUser
             } catch (e: Exception) {
                 Log.e("FeedSettingsViewModel", "Reset failed: $e")
-                crashlyticsHelper.recordException(e)
+                crashlyticsService.recordException(e)
             }
         }
     }

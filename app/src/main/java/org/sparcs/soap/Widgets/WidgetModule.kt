@@ -8,7 +8,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCaseBackgroundProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtocol
 import org.sparcs.soap.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UpComingWidgetSyncManager
 import javax.inject.Qualifier

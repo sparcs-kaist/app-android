@@ -1,8 +1,8 @@
 package org.sparcs.soap.App.Shared.ViewModelMocks.Feed
 
-import android.content.Context
 import android.net.Uri
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedPostPhotoItem
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Feed.FeedUser
 import org.sparcs.soap.App.Features.FeedPostCompose.FeedPostComposeViewModel
 import org.sparcs.soap.App.Features.FeedPostCompose.FeedPostComposeViewModelProtocol
@@ -16,10 +16,16 @@ class MockFeedPostComposeViewModel : FeedPostComposeViewModelProtocol {
         FeedPostComposeViewModel.ComposeType.Publicly
     override var selectedItems: List<Uri> = emptyList()
     override var selectedImages: List<FeedPostPhotoItem> = emptyList()
+    override val alertState: AlertState? = null
+    override var isAlertPresented: Boolean = false
+    override var isUploading: Boolean = false
 
     override fun fetchFeedUser() {}
     override suspend fun writePost() {}
-    override suspend fun loadImagesAndReconcile(context: Context) {}
+    override suspend fun submitPost(): Boolean {
+        return true
+    }
+
     override fun removeImage(index: Int) {}
     override fun handleException(error: Throwable) {}
 }

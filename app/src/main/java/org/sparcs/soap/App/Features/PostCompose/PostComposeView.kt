@@ -76,6 +76,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.PostCompose.Components.PostComposeNavigationBar
 import org.sparcs.soap.App.Features.PostCompose.Components.TopicSelector
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostComposeViewModel
 import org.sparcs.soap.App.theme.ui.Theme
@@ -164,7 +165,8 @@ fun PostComposeView(
                     onPhotoButton = { showPhotosPicker = true }
                 )
             }
-        }
+        },
+        modifier = Modifier.analyticsScreen(name = "Ara Post Compose")
     ) { innerPadding ->
         Column(
             modifier = Modifier

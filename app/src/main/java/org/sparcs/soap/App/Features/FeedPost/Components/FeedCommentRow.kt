@@ -3,7 +3,6 @@ package org.sparcs.soap.App.Features.FeedPost.Components
 import android.content.Intent
 import android.net.Uri
 import android.util.Patterns
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,12 +16,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,22 +45,19 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
-import org.sparcs.soap.App.Domain.Error.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
-import org.sparcs.soap.App.Domain.Repositories.Feed.FakeFeedCommentRepository
-import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
+import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
+import org.sparcs.soap.App.Features.FeedPost.FeedPostViewModel
+import org.sparcs.soap.App.Features.FeedPost.FeedPostViewModelProtocol
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
 import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.grayF8
@@ -75,20 +69,10 @@ fun FeedCommentRow(
     comment: FeedComment,
     isReply: Boolean,
     onReply: () -> Unit,
-    feedCommentRepository: FeedCommentRepositoryProtocol,
+    viewModel: FeedPostViewModelProtocol
 ) {
-    var localComment by remember { mutableStateOf(comment) }
     val coroutineScope = rememberCoroutineScope()
 
-    var showAlert by remember { mutableStateOf(false) }
-    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
-    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-
-    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
-        alertTitle = title
-        alertMessage = message
-        showAlert = true
-    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -108,67 +92,38 @@ fun FeedCommentRow(
                 modifier = Modifier.padding(vertical = 4.dp)
             ) //TODO - 추가할지 말지 고민
             Header(
-                comment = localComment,
+                comment = comment,
                 onDelete = {
                     coroutineScope.launch {
-                        try {
-                            feedCommentRepository.deleteComment(localComment.id)
-                            localComment = localComment.copy(isDeleted = true)
-                        } catch (e: Exception) {
-                            val message = if (e.isNetworkError()) {
-                                R.string.network_connection_error
-                            } else if (e is FeedDeletionError) {
-                                e.errorDescription()
-                            } else {
-                                R.string.unexpected_error_deleting_comment
-                            }
-                            showAlert(
-                                title = R.string.error,
-                                message = message
-                            )
-                        }
+                        viewModel.deleteComment(comment)
                     }
                 },
-                onReport = {
+                onReport = { reason ->
                     coroutineScope.launch {
-                        try {
-                            feedCommentRepository.reportComment(localComment.id, it)
-                            showAlert(
-                                title = R.string.report_submitted,
-                                message = R.string.reported_successfully
-                            )
-                        } catch (e: Exception) {
-                            val message = if (e.isNetworkError()) {
-                                R.string.network_connection_error
-                            } else {
-                                R.string.unexpected_error_reporting_comment
-                            }
-                            showAlert(
-                                title = R.string.error,
-                                message = message
-                            )
-                        }
+                        viewModel.reportComment(comment.id, reason)
                     }
                 }
             )
 
-            Content(localComment)
+            Content(comment)
 
-            Footer(localComment, onReply, feedCommentRepository) { updated ->
-                localComment = updated
-            }
+            Footer(
+                comment = comment,
+                onReply = onReply,
+                onUpVote = {
+                    coroutineScope.launch {
+                        val newType = if (comment.myVote == FeedVoteType.UP) null else FeedVoteType.UP
+                        viewModel.voteComment(comment, newType)
+                    }
+                },
+                onDownVote = {
+                    coroutineScope.launch {
+                        val newType = if (comment.myVote == FeedVoteType.DOWN) null else FeedVoteType.DOWN
+                        viewModel.voteComment(comment, newType)
+                    }
+                }
+            )
         }
-    }
-
-    if (showAlert) {
-        AlertDialog(
-            onDismissRequest = { showAlert = false },
-            confirmButton = {
-                TextButton(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
-            },
-            title = { Text(stringResource(alertTitle)) },
-            text = { Text(stringResource(alertMessage)) }
-        )
     }
 }
 
@@ -346,9 +301,9 @@ private fun Content(comment: FeedComment) {
 @Composable
 private fun Footer(
     comment: FeedComment,
-    onReply: (() -> Unit)?,
-    repo: FeedCommentRepositoryProtocol,
-    update: (FeedComment) -> Unit,
+    onReply: () -> Unit,
+    onUpVote: () -> Unit,
+    onDownVote: () -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.weight(1f))
@@ -356,7 +311,7 @@ private fun Footer(
         if (comment.parentCommentID == null) {
             PostCommentButton(
                 commentCount = comment.replyCount,
-                onClick = { onReply?.invoke() }
+                onClick = onReply
             )
             Spacer(modifier = Modifier.padding(4.dp))
         }
@@ -369,99 +324,66 @@ private fun Footer(
                     else -> null
                 },
                 votes = comment.upVotes - comment.downVotes,
-                onUpVote = {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        handleVote(comment, true, repo, update)
-                    }
-                },
-                onDownVote = {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        handleVote(comment, false, repo, update)
-                    }
-                },
+                onUpVote = onUpVote,
+                onDownVote = onDownVote,
                 enabled = true
             )
         }
     }
 }
 
-suspend fun handleVote(
-    comment: FeedComment,
-    isUpVote: Boolean,
-    repo: FeedCommentRepositoryProtocol,
-    update: (FeedComment) -> Unit,
-) {
-    val prev = comment.copy()
-
-    val updated = when {
-        isUpVote && comment.myVote == FeedVoteType.UP -> comment.copy(
-            myVote = null,
-            upVotes = comment.upVotes - 1
-        )
-
-        isUpVote && comment.myVote == FeedVoteType.DOWN -> comment.copy(
-            myVote = FeedVoteType.UP,
-            upVotes = comment.upVotes + 1,
-            downVotes = comment.downVotes - 1
-        )
-
-        isUpVote -> comment.copy(myVote = FeedVoteType.UP, upVotes = comment.upVotes + 1)
-        !isUpVote && comment.myVote == FeedVoteType.DOWN -> comment.copy(
-            myVote = null,
-            downVotes = comment.downVotes - 1
-        )
-
-        !isUpVote && comment.myVote == FeedVoteType.UP -> comment.copy(
-            myVote = FeedVoteType.DOWN,
-            upVotes = comment.upVotes - 1,
-            downVotes = comment.downVotes + 1
-        )
-
-        else -> comment.copy(myVote = FeedVoteType.DOWN, downVotes = comment.downVotes + 1)
-    }
-
-    update(updated)
-
-    try {
-        if (isUpVote) {
-            if (prev.myVote == FeedVoteType.UP) repo.deleteVote(prev.id) else repo.vote(
-                prev.id,
-                FeedVoteType.UP
-            )
-        } else {
-            if (prev.myVote == FeedVoteType.DOWN) repo.deleteVote(prev.id) else repo.vote(
-                prev.id,
-                FeedVoteType.DOWN
-            )
-        }
-    } catch (e: Exception) {
-        update(prev)
-    }
-}
-
+/* ____________________________________________________________________*/
+@Preview(showBackground = true, name = "Root Comment")
 @Composable
-@Preview
-private fun Preview() {
+private fun RootCommentPreview() {
+    val mockViewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(
+        FeedPost.mock()))
     Theme {
         FeedCommentRow(
-            comment = FeedComment.mock(),
+            comment = FeedComment.mock().copy(
+                content = "This is a root comment with enough content to test layout.",
+                replyCount = 3
+            ),
             isReply = false,
             onReply = {},
-            feedCommentRepository = FakeFeedCommentRepository(),
+            viewModel = mockViewModel
         )
     }
 }
 
-
+@Preview(showBackground = true, name = "Reply Comment")
 @Composable
-@Preview
-private fun Preview2() {
+private fun ReplyCommentPreview() {
+    val mockViewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(
+        FeedPost.mock()))
     Theme {
         FeedCommentRow(
-            comment = FeedComment.mockList()[0],
+            comment = FeedComment.mock().copy(
+                content = "This is a reply comment.",
+                parentCommentID = "parent_id",
+                myVote = FeedVoteType.UP
+            ),
             isReply = true,
             onReply = {},
-            feedCommentRepository = FakeFeedCommentRepository(),
+            viewModel = mockViewModel
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Deleted Comment")
+@Composable
+private fun DeletedCommentPreview() {
+    val mockViewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(
+        FeedPost.mock()))
+    Theme {
+        FeedCommentRow(
+            comment = FeedComment.mock().copy(
+                content = "Deleted content",
+                isDeleted = true
+            ),
+            isReply = false,
+            onReply = {},
+            viewModel = mockViewModel
         )
     }
 }

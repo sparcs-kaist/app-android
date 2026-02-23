@@ -37,6 +37,21 @@ android {
     }
 
     buildTypes {
+
+            getByName("debug") {
+                manifestPlaceholders += mapOf(
+                    "taxiHost" to "taxi.dev.sparcs.org",
+                    "araHost" to "newara.dev.sparcs.org",
+                    "feedHost" to "buddy.dev.sparcs.org"
+                )
+            }
+            getByName("release") {
+                manifestPlaceholders += mapOf(
+                    "taxiHost" to "taxi.sparcs.org",
+                    "araHost" to "newara.sparcs.org",
+                    "feedHost" to "sparcs.org"
+                )
+            }
         release {
             isMinifyEnabled = true
             proguardFiles(
@@ -83,6 +98,7 @@ dependencies {
     implementation(libs.google.gson)
     implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.kotlinx.coroutines.android)
+    testImplementation(libs.kotlinx.coroutines.test)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(libs.androidx.material.icons.extended)
@@ -124,4 +140,5 @@ dependencies {
 
     implementation (libs.androidx.core.splashscreen)
     implementation(libs.aboutlibraries.compose.m3)
+    implementation(libs.datastore.preferences.v111)
 }

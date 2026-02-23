@@ -97,7 +97,7 @@
 
                 <data
                     android:scheme="https"
-                    android:host="taxi.sparcs.org"
+                    android:host="${taxiHost}"
                     android:pathPrefix="/invite/"/>
             </intent-filter>
 
@@ -108,7 +108,7 @@
 
                 <data
                     android:scheme="https"
-                    android:host="newara.sparcs.org"
+                    android:host="${araHost}"
                     android:pathPrefix="/post/"/>
             </intent-filter>
 

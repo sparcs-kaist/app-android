@@ -18,7 +18,7 @@ import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepository
-import org.sparcs.soap.App.Domain.Usecases.TaxiRoomUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
 import org.sparcs.soap.BuildConfig
 import javax.inject.Inject

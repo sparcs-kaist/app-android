@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Domain.Usecases
+package org.sparcs.soap.App.Domain.Usecases.Taxi
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
