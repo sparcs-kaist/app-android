@@ -373,6 +373,7 @@
     <string name="karma">Karma</string>
     <string name="reset">Reset</string>
     <string name="nickname_error_conflict">This nickname is already taken.</string>
+    <string name="nickname_error_invalid">Nickname contains forbidden words.</string>
     <string name="nickname_error_update_failed">Failed to update nickname. Please try again.</string>
     <string name="widget_settings">Widget Settings</string>
     <string name="theme_mode">Theme Mode</string>
@@ -425,6 +426,7 @@
     <string name="error_comment_has_replies">Comments with replies cannot be deleted.</string>
     <string name="error_comment_has_votes">Comments with existing votes cannot be deleted.</string>
     <string name="error_unknown_conflict">This item cannot be deleted at this time.</string>
+    <string name="nickname_updated">Nickname updated successfully.</string>
     <string name="inapp_snackbar_explanation">Update downloaded. Restart to apply.</string>
     <string name="restart">Restart</string>
 </resources>
