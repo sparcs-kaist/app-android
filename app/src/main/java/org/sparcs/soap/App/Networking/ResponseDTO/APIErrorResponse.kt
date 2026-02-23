@@ -1,7 +1,7 @@
 package org.sparcs.soap.App.Networking.ResponseDTO
 
 import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
+import com.google.gson.JsonObject
 import com.google.gson.annotations.SerializedName
 import retrofit2.HttpException
 
@@ -19,30 +19,41 @@ data class ApiErrorResponse(
 }
 
 fun handleApiError(gson: Gson, exception: Exception): Nothing {
-    if (exception is HttpException) {
-        val errorBody = exception.response()?.errorBody()?.string()
-        if (!errorBody.isNullOrEmpty()) {
-            try {
-                val parsedError = gson.fromJson(errorBody, ApiErrorResponse::class.java)
-                throw parsedError.toDomainError()
-            } catch (ex: JsonSyntaxException) {
-                try {
-                    val parsedArray = gson.fromJson(errorBody, Array<String>::class.java)
-                    if (parsedArray.isNotEmpty()) {
-                        throw ApiException(parsedArray[0])
-                    } else {
-                        throw exception
-                    }
-                } catch (nestedEx: Exception) {
-                    throw exception
-                }
+    if (exception !is HttpException) throw exception
+
+    val response = exception.response()
+    val errorBody = response?.errorBody()?.string()
+
+    if (errorBody.isNullOrBlank()) throw exception
+
+    try {
+        val parsedError = gson.fromJson(errorBody, ApiErrorResponse::class.java)
+        if (parsedError?.error != null) throw ApiException(parsedError.error)
+    } catch (_: Exception) { }
+
+    try {
+        val json = gson.fromJson(errorBody, JsonObject::class.java)
+        if (json.has("detail")) {
+            val detail = json.get("detail")
+            val message = if (detail.isJsonObject) {
+                val detailObj = detail.asJsonObject
+                val errorObj = if (detailObj.has("error")) detailObj.getAsJsonObject("error") else detailObj
+                errorObj.get("message")?.asString
+            } else {
+                detail.asString
             }
-        } else {
-            throw exception
+            if (message != null) throw ApiException(message)
         }
-    } else {
-        throw exception
-    }
+    } catch (_: Exception) { }
+
+    try {
+        val parsedArray = gson.fromJson(errorBody, Array<String>::class.java)
+        if (parsedArray != null && parsedArray.isNotEmpty()) {
+            throw ApiException(parsedArray[0])
+        }
+    } catch (_: Exception) { }
+
+    throw exception
 }
 
 class ApiException(override val message: String) : Exception(message)
