@@ -403,4 +403,6 @@
     <string name="error_comment_has_votes">투표 기록이 있는 댓글은 삭제할 수 없습니다.</string>
     <string name="error_unknown_conflict">삭제할 수 없는 상태입니다. 다시 시도해주세요.</string>
     <string name="nickname_updated">닉네임이 변경되었습니다.</string>
+    <string name="inapp_snackbar_explanation">업데이트가 준비되었습니다. 적용하려면 앱을 재시작하세요.</string>
+    <string name="restart">재시작</string>
 </resources>
