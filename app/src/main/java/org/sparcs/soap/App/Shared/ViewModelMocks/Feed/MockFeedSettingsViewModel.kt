@@ -36,7 +36,7 @@ class MockFeedSettingsViewModel(initialState: FeedSettingsViewModel.ViewState) :
 
     override suspend fun fetchUser() {}
 
-    override fun updateNickname() {}
+    override fun updateNickname(onComplete: (Boolean) -> Unit) {}
 
     override fun uploadProfileImage(imagePart: MultipartBody.Part) {}
 

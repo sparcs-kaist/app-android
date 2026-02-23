@@ -26,11 +26,15 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,6 +66,8 @@ fun FeedSettingsView(
 ) {
     val scope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    val snackBarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
@@ -73,7 +79,9 @@ fun FeedSettingsView(
                 title = stringResource(R.string.feed_settings),
                 onDismiss = { navController.popBackStack() }
             )
-        }) { innerPadding ->
+        },
+        snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier
@@ -85,7 +93,16 @@ fun FeedSettingsView(
             when (state) {
                 is FeedSettingsViewModel.ViewState.Loading -> LoadingView()
                 is FeedSettingsViewModel.ViewState.Loaded -> LoadedView(
-                    viewModel
+                    viewModel,
+                    onUpdateSuccess = {
+                        scope.launch {
+                            snackBarHostState.currentSnackbarData?.dismiss()
+                            snackBarHostState.showSnackbar(
+                                message = context.getString(R.string.nickname_updated),
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
                 )
 
                 is FeedSettingsViewModel.ViewState.Error -> {
@@ -176,6 +193,7 @@ private fun LoadingView() {
 @Composable
 private fun LoadedView(
     viewModel: FeedSettingsViewModelProtocol = hiltViewModel(),
+    onUpdateSuccess: () -> Unit,
 ) {
     val userState by viewModel.user.collectAsState()
     val context = LocalContext.current
@@ -245,6 +263,7 @@ private fun LoadedView(
                 viewModel.nickname = it
                 viewModel.nicknameError = null
             },
+            isError = viewModel.nicknameError != null,
             supportingText = {
                 viewModel.nicknameError?.let { errorRes ->
                     Text(
@@ -263,8 +282,12 @@ private fun LoadedView(
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(
                 onDone = {
-                    viewModel.updateNickname()
-                    keyboardController?.hide()
+                    viewModel.updateNickname { success ->
+                        if (success) {
+                            keyboardController?.hide()
+                            onUpdateSuccess()
+                        }
+                    }
                 }
             ),
             singleLine = true,
