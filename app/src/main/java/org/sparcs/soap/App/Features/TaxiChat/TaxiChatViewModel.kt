@@ -3,6 +3,9 @@ package org.sparcs.soap.App.Features.TaxiChat
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +20,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChatGroup
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
@@ -25,6 +29,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.soap.R
 import java.util.Date
 import javax.inject.Inject
 
@@ -35,7 +40,10 @@ interface TaxiChatViewModelProtocol {
     val state: StateFlow<TaxiChatViewModel.ViewState>
     val groupedChats: StateFlow<List<TaxiChatGroup>>
     val taxiUser: StateFlow<TaxiUser?>
-    var fetchedDateSet: MutableSet<Date>
+
+    val alertState: AlertState?
+    var isAlertPresented: Boolean
+
     val room: StateFlow<TaxiRoom>
     val isUploading: StateFlow<Boolean>
 
@@ -44,11 +52,12 @@ interface TaxiChatViewModelProtocol {
     val isCommitSettlementAvailable: Boolean
     val isCommitPaymentAvailable: Boolean
     val account: String?
+    val topChatID: String?
 
     // MARK: - Functions
     suspend fun setup()
 
-    suspend fun fetchChats(before: Date)
+    suspend fun loadMoreChats()
     suspend fun fetchInitialChats()
     suspend fun sendChat(message: String, type: TaxiChat.ChatType)
     suspend fun leaveRoom()
@@ -93,7 +102,13 @@ class TaxiChatViewModel @Inject constructor(
     private val _taxiUser = MutableStateFlow<TaxiUser?>(null)
     override val taxiUser: StateFlow<TaxiUser?> = _taxiUser.asStateFlow()
 
-    override var fetchedDateSet: MutableSet<Date> = mutableSetOf()
+    override var topChatID: String? = null
+        private set
+
+    private var fetchedDateSet: MutableSet<Date> = mutableSetOf()
+
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     private val _isUploading = MutableStateFlow(false)
     override val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
@@ -154,11 +169,21 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     // MARK: - Chat loading
-    override suspend fun fetchChats(before: Date) {
-        if (isFetching) return
+    override suspend fun loadMoreChats() {
+        val oldestDate = groupedChats.value.firstOrNull()?.chats?.firstOrNull()?.time
+
+        if (isFetching || oldestDate == null || fetchedDateSet.contains(oldestDate)) {
+            return
+        }
+
+        topChatID = groupedChats.value.firstOrNull()?.id
+        fetchedDateSet.add(oldestDate)
+
         isFetching = true
         try {
-            taxiChatUseCase.fetchChats(before)
+            taxiChatUseCase.fetchChats(before = oldestDate)
+        } catch (e: Exception) {
+            Log.e("TaxiChatViewModel", "loadMoreChats failed", e)
         } finally {
             isFetching = false
         }
@@ -199,19 +224,28 @@ class TaxiChatViewModel @Inject constructor(
                 taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
             }
         } catch (e: Exception) {
+            this.alertState = AlertState(
+                titleResId = R.string.error_settlement_failed,
+                message = e.localizedMessage ?: "Unknown error"
+            )
+            this.isAlertPresented = true
+
             Log.e("TaxiChatViewModel", "commitSettlement failed", e)
         }
     }
 
 
     override suspend fun commitPayment() {
-        viewModelScope.launch {
-            try {
-                val newRoom = taxiRoomRepository.commitPayment(room.value.id)
-                _room.value = newRoom
-            } catch (e: Exception) {
-                Log.e("TaxiChatViewModel", "Failed to commit payment for room ${room.value.id}", e)
-            }
+        try {
+            val newRoom = taxiRoomRepository.commitPayment(room.value.id)
+            _room.value = newRoom
+        } catch (e: Exception) {
+            this.alertState = AlertState(
+                titleResId = R.string.error_payment_failed,
+                message = e.localizedMessage ?: "Unknown error"
+            )
+            this.isAlertPresented = true
+            Log.e("TaxiChatViewModel", "Failed to commit payment", e)
         }
     }
 

@@ -9,16 +9,18 @@ import java.net.UnknownHostException
 object NetworkErrorMapper {
     fun map(throwable: Throwable): NetworkError {
         return when (throwable) {
+            is NetworkError -> throwable
+
             is UnknownHostException,
             is ConnectException -> NetworkError.NoConnection
 
             is SocketTimeoutException -> NetworkError.Timeout
 
             is HttpException -> {
-                when (val code = throwable.code()) {
+                when (throwable.code()) {
                     401 -> NetworkError.Unauthorized
                     404 -> NetworkError.NotFound
-                    else -> NetworkError.ServerError(code)
+                    else -> NetworkError.ServerError(throwable.code())
                 }
             }
 

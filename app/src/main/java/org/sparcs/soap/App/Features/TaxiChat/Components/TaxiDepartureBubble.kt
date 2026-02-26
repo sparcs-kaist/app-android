@@ -1,7 +1,5 @@
 package org.sparcs.soap.App.Features.TaxiChat.Components
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -30,6 +28,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
+import org.sparcs.soap.App.Shared.Extensions.openUri
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.R
 import java.util.Date
@@ -86,14 +85,20 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
             confirmButton = {
                 Row {
                     TextButton(onClick = {
-                        openKakaoT(context, room)
+                        context.openUri(
+                            uri = TaxiDeepLinkHelper.getKakaoTUri(room.source, room.destination),
+                            packageName = "com.kakao.taxi"
+                        )
                         showDialog = false
                     }) {
                         Text(stringResource(R.string.open_kakao_t))
                     }
 
                     TextButton(onClick = {
-                        openUber(context, room)
+                        context.openUri(
+                            uri = TaxiDeepLinkHelper.getUberUri(room.source, room.destination),
+                            packageName = "com.ubercab"
+                        )
                         showDialog = false
                     }) {
                         Text(stringResource(R.string.open_uber))
@@ -102,26 +107,6 @@ fun TaxiDepartureBubble(room: TaxiRoom) {
             },
         )
     }
-}
-
-private fun openKakaoT(context: android.content.Context, room: TaxiRoom) {
-    val uri = Uri.parse(
-        "kakaot://taxi/set?" +
-                "dest_lng=${room.destination.longitude}&dest_lat=${room.destination.latitude}" +
-                "&origin_lng=${room.source.longitude}&origin_lat=${room.source.latitude}"
-    )
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    context.startActivity(intent)
-}
-
-private fun openUber(context: android.content.Context, room: TaxiRoom) {
-    val uri = Uri.parse(
-        "uber://?action=setPickup&client_id=a" +
-                "&pickup[latitude]=${room.source.latitude}&pickup[longitude]=${room.source.longitude}" +
-                "&dropoff[latitude]=${room.destination.latitude}&dropoff[longitude]=${room.destination.longitude}"
-    )
-    val intent = Intent(Intent.ACTION_VIEW, uri)
-    context.startActivity(intent)
 }
 
 @Preview
