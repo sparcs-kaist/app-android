@@ -7,6 +7,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.LectureSearchRequest
 import org.sparcs.soap.App.Networking.RequestDTO.OTL.LectureSearchRequestDTO
 import org.sparcs.soap.App.Networking.RequestDTO.OTL.WriteReviewRequest
 import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLLectureApi
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
@@ -49,10 +50,10 @@ class OTLLectureRepository @Inject constructor(
         }
     }
 
-    override suspend fun fetchLectures(lectureID: Int): List<LectureReview> = try {
-        api.fetchReviews(lectureID).map { it.toModel() }
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun fetchLectures(lectureID: Int): List<LectureReview> {
+        return safeApiCall(gson) {
+            api.fetchReviews(lectureID)
+        }.map { it.toModel() }
     }
 
     override suspend fun writeReview(
