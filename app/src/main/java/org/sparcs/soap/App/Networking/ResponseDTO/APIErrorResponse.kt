@@ -17,13 +17,41 @@ data class ApiErrorResponse(
 
 class ApiException(override val message: String) : Exception(message)
 
+
+object AuthRetryConfig {
+    var tokenRefresher: (suspend () -> Unit)? = null
+}
+
+suspend inline fun <T> safeApiCall(
+    gson: Gson,
+    crossinline call: suspend () -> T
+): T {
+    return try {
+        call()
+    } catch (e: Exception) {
+        handleApiError(gson, e) { call() }
+    }
+}
+
 //TODO 모든 UseCase 수정 이후 다시 보기
-fun handleApiError(gson: Gson, exception: Exception): Nothing {
+suspend fun <T> handleApiError(
+    gson: Gson,
+    exception: Exception,
+    call: suspend () -> T
+): T {
     if (exception !is HttpException) throw NetworkErrorMapper.map(exception)
 
     val response = exception.response()
     val code = response?.code() ?: 500
     val errorBody = response?.errorBody()?.string()
+
+    if (code == 401) {
+        val refresher = AuthRetryConfig.tokenRefresher
+        if (refresher != null) {
+            refresher()
+            return call()
+        }
+    }
 
     if (errorBody.isNullOrEmpty()) throw NetworkError.ServerError(code)
 
@@ -41,21 +69,19 @@ fun handleApiError(gson: Gson, exception: Exception): Nothing {
             } else {
                 detail.asString
             }
-            throw NetworkError.ServerError(code)
+            if (!message.isNullOrEmpty()) throw ApiException(message)
         }
-    } catch (_: Exception) { }
+    } catch (e: Exception) { if (e is ApiException) throw e }
 
     try {
         val parsedError = gson.fromJson(errorBody, ApiErrorResponse::class.java)
         throw ApiException(parsedError.error)
-    } catch (_: Exception) { }
+    } catch (e: Exception) { if (e is ApiException) throw e }
 
     try {
         val parsedArray = gson.fromJson(errorBody, Array<String>::class.java)
-        if (parsedArray.isNotEmpty()) {
-            throw ApiException(parsedArray[0])
-        }
-    } catch (_: Exception) { }
+        if (parsedArray.isNotEmpty()) throw ApiException(parsedArray[0])
+    } catch (e: Exception) { if (e is ApiException) throw e }
 
     throw NetworkError.ServerError(code)
 }
