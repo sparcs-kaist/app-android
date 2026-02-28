@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Domain.Repositories
 
-import android.util.Log
 import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Networking.ResponseDTO.MinimumRequiredAppVersionDTO
 import org.sparcs.soap.App.Networking.RetrofitAPI.AppVersionApi
@@ -15,7 +14,6 @@ class AppVersionRepository @Inject constructor(
             appVersionApi.getMinimumRequiredVersion()
         } catch (e: Exception) {
             crashlyticsService.recordException(e)
-            Log.e("AppVersionRepository", "Error fetching minimum version: $e")
             MinimumRequiredAppVersionDTO(android = "1.0.0")
         }
     }

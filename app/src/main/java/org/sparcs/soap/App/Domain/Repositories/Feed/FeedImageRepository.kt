@@ -6,7 +6,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedPostPhotoItem
 import org.sparcs.soap.App.Domain.Models.Feed.FeedImage
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedImageApi
 import org.sparcs.soap.App.Shared.Extensions.compressForUpload
 import javax.inject.Inject
@@ -20,25 +20,19 @@ class FeedImageRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : FeedImageRepositoryProtocol {
 
-    override suspend fun uploadPostImage(item: FeedPostPhotoItem): FeedImage {
-        try {
-            val imageData = item.image.compressForUpload(10.0)
-                ?: throw IllegalArgumentException("Image compression failed")
+    override suspend fun uploadPostImage(item: FeedPostPhotoItem): FeedImage = safeApiCall(gson) {
+        val imageData = item.image.compressForUpload(10.0)
+            ?: throw IllegalArgumentException("Image compression failed")
 
-            val filePart = MultipartBody.Part.createFormData(
-                "file",
-                "image.jpg",
-                imageData.toRequestBody("image/jpeg".toMediaTypeOrNull())
-            )
+        val filePart = MultipartBody.Part.createFormData(
+            "file",
+            "image.jpg",
+            imageData.toRequestBody("image/jpeg".toMediaTypeOrNull())
+        )
 
-            val descriptionPart = item.description.toRequestBody("text/plain".toMediaTypeOrNull())
-            val spoilerPart =
-                (if (item.spoiler) "true" else "false").toRequestBody("text/plain".toMediaTypeOrNull())
+        val descriptionPart = item.description.toRequestBody("text/plain".toMediaTypeOrNull())
+        val spoilerPart = (if (item.spoiler) "true" else "false").toRequestBody("text/plain".toMediaTypeOrNull())
 
-            val imageDTO = api.uploadPostImage(filePart, descriptionPart, spoilerPart)
-            return imageDTO.toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
+        api.uploadPostImage(filePart, descriptionPart, spoilerPart)
+    }.toModel()
 }
