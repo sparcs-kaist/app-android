@@ -21,6 +21,11 @@ import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
 
+
+interface AnalyticsServiceProtocol {
+    fun logEvent(event: Event)
+}
+
 class AnalyticsService @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>,

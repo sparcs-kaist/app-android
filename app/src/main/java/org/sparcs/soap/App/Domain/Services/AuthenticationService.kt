@@ -24,6 +24,14 @@ import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+interface AuthenticationServiceProtocol {
+
+    @Throws(Exception::class)
+    suspend fun authenticate(activity: ComponentActivity): SignInResponseDTO
+
+    @Throws(Exception::class)
+    suspend fun refreshAccessToken(refreshToken: String): TokenResponseDTO
+}
 
 object AuthenticationCallbackHandler {
     private var callback: ((Uri) -> Unit)? = null
