@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.CreateTableRequest
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.LectureRequest
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLTimetableApi
@@ -29,56 +29,36 @@ class OTLTimetableRepository @Inject constructor(
         userID: Int,
         year: Int,
         semester: SemesterType,
-    ): List<Timetable> = try {
-        api.fetchTables(userID, year, semester.intValue).map { it.toModel() }
-    } catch (e: Exception) {
-        handleApiError(gson, e)
-    }
+    ): List<Timetable> = safeApiCall(gson) {
+        api.fetchTables(userID, year, semester.intValue)
+    }.map { it.toModel() }
 
-    override suspend fun createTable(userID: Int, year: Int, semester: SemesterType): Timetable {
-        try {
-            val request = CreateTableRequest(
-                year = year,
-                semester = semester.intValue,
-                lectures = emptyList()
-            )
-            return api.createTable(userID, request).toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
+    override suspend fun createTable(userID: Int, year: Int, semester: SemesterType): Timetable = safeApiCall(gson) {
+        val request = CreateTableRequest(
+            year = year,
+            semester = semester.intValue,
+            lectures = emptyList()
+        )
+        api.createTable(userID, request)
+    }.toModel()
 
-    override suspend fun deleteTable(userID: Int, timetableID: Int) = try {
+    override suspend fun deleteTable(userID: Int, timetableID: Int) = safeApiCall(gson) {
         api.deleteTable(userID, timetableID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun addLecture(userID: Int, timetableID: Int, lectureID: Int): Timetable =
-        try {
-            api.addLecture(userID, timetableID, request = LectureRequest(lecture = lectureID))
-                .toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
+    override suspend fun addLecture(userID: Int, timetableID: Int, lectureID: Int): Timetable = safeApiCall(gson) {
+        api.addLecture(userID, timetableID, request = LectureRequest(lecture = lectureID))
+    }.toModel()
 
-    override suspend fun deleteLecture(userID: Int, timetableID: Int, lectureID: Int): Timetable =
-        try {
-            api.deleteLecture(userID, timetableID, request = LectureRequest(lecture = lectureID))
-                .toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
+    override suspend fun deleteLecture(userID: Int, timetableID: Int, lectureID: Int): Timetable = safeApiCall(gson) {
+        api.deleteLecture(userID, timetableID, request = LectureRequest(lecture = lectureID))
+    }.toModel()
 
-    override suspend fun getSemesters(): List<Semester> = try {
-        api.fetchSemesters().map { it.toModel() }
-    } catch (e: Exception) {
-        handleApiError(gson, e)
-    }
+    override suspend fun getSemesters(): List<Semester> = safeApiCall(gson) {
+        api.fetchSemesters()
+    }.map { it.toModel() }
 
-    override suspend fun getCurrentSemester(): Semester = try {
-        api.fetchCurrentSemester().toModel()
-    } catch (e: Exception) {
-        handleApiError(gson, e)
-    }
+    override suspend fun getCurrentSemester(): Semester = safeApiCall(gson) {
+        api.fetchCurrentSemester()
+    }.toModel()
 }
