@@ -8,6 +8,7 @@ import io.socket.client.Socket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -22,6 +23,15 @@ import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Taxi.TaxiChatDTO
 import org.sparcs.soap.App.Shared.Extensions.toMap
 import javax.inject.Inject
+
+interface TaxiChatServiceProtocol {
+
+    val chatsPublisher: Flow<List<TaxiChat>>
+
+    val isConnectedPublisher: Flow<Boolean>
+
+    val roomUpdatePublisher: Flow<String>
+}
 
 class TaxiChatService @Inject constructor(
     private val tokenStorage: TokenStorageProtocol,
