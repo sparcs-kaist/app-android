@@ -3,7 +3,7 @@ package org.sparcs.soap.App.Domain.Repositories.Ara
 import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraSignInResponseDTO
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraUserApi
 import javax.inject.Inject
 
@@ -19,27 +19,19 @@ class AraUserRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : AraUserRepositoryProtocol {
 
-    override suspend fun register(ssoInfo: String): AraSignInResponseDTO = try {
+    override suspend fun register(ssoInfo: String): AraSignInResponseDTO = safeApiCall(gson) {
         api.register(mapOf("ssoInfo" to ssoInfo))
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun agreeTOS(userID: Int) = try {
+    override suspend fun agreeTOS(userID: Int) = safeApiCall(gson) {
         api.agreeTOS(userID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun fetchUser(): AraUser = try {
-        api.fetchMe().toModel()
-    } catch (e: Exception) {
-        handleApiError(gson, e)
-    }
+    override suspend fun fetchUser(): AraUser = safeApiCall(gson) {
+        api.fetchMe()
+    }.toModel()
 
-    override suspend fun updateMe(id: Int, params: Map<String, Any>) = try {
+    override suspend fun updateMe(id: Int, params: Map<String, Any>) = safeApiCall(gson) {
         api.updateUser(id, params)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 }

@@ -3,7 +3,6 @@ package org.sparcs.soap.App.Networking.RetrofitAPI.Feed
 import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
 import org.sparcs.soap.App.Networking.ResponseDTO.Feed.FeedUserDTO
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -17,7 +16,7 @@ interface FeedUserApi {
     @POST("auth/bootstrap")
     suspend fun register(
         @Body request: RegisterRequest
-    ): Response<Unit>
+    )
 
     @GET("me")
     suspend fun getUser(): FeedUserDTO

@@ -4,7 +4,7 @@ import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiReports
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiCreateReport
 import org.sparcs.soap.App.Networking.RequestDTO.Taxi.TaxiCreateReportRequestDTO
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiReportApi
 import javax.inject.Inject
 
@@ -18,24 +18,15 @@ class TaxiReportRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : TaxiReportRepositoryProtocol {
 
-    override suspend fun fetchMyReports(): TaxiReports {
-        try {
-            val body = api.fetchMyReports()
-            return TaxiReports(
-                body.incoming.map { it.toModel() },
-                body.outgoing.map { it.toModel() }
-            )
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
+    override suspend fun fetchMyReports(): TaxiReports = safeApiCall(gson) {
+        val body = api.fetchMyReports()
+        TaxiReports(
+            incoming = body.incoming.map { it.toModel() },
+            outgoing = body.outgoing.map { it.toModel() }
+        )
     }
 
-
-    override suspend fun createReport(report: TaxiCreateReport) {
-        try {
-            api.createReport(TaxiCreateReportRequestDTO.fromModel(report))
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
+    override suspend fun createReport(report: TaxiCreateReport) = safeApiCall(gson) {
+        api.createReport(TaxiCreateReportRequestDTO.fromModel(report))
     }
 }
