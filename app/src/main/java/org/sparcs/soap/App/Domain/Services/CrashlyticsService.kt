@@ -18,6 +18,14 @@ import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
 
+
+interface CrashlyticsServiceProtocol {
+    fun recordException(error: Throwable)
+
+    fun record(error: SourcedError, context: CrashContext)
+    fun record(error: Throwable, context: CrashContext)
+}
+
 class CrashlyticsService @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) : CrashlyticsServiceProtocol {
