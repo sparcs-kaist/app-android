@@ -27,7 +27,7 @@ interface FeedPostApi {
     @POST("posts")
     suspend fun writePost(
         @Body request: FeedPostRequestDTO
-    ): FeedPostDTO
+    )
 
     @DELETE("posts/{postID}")
     suspend fun deletePost(

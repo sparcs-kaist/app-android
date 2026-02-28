@@ -33,7 +33,6 @@ suspend inline fun <T> safeApiCall(
     }
 }
 
-//TODO 모든 UseCase 수정 이후 다시 보기
 suspend fun <T> handleApiError(
     gson: Gson,
     exception: Exception,
@@ -46,8 +45,7 @@ suspend fun <T> handleApiError(
     val errorBody = response?.errorBody()?.string()
 
     if (code == 401) {
-        val refresher = AuthRetryConfig.tokenRefresher
-        if (refresher != null) {
+        AuthRetryConfig.tokenRefresher?.let { refresher ->
             refresher()
             return call()
         }
@@ -84,18 +82,4 @@ suspend fun <T> handleApiError(
     } catch (e: Exception) { if (e is ApiException) throw e }
 
     throw NetworkError.ServerError(code)
-}
-
-fun parseReportCommentError(exception: Exception): Exception {
-    if (exception !is HttpException) return exception
-
-    val body = exception.response()?.errorBody()?.string().orEmpty()
-    if (body.isBlank()) return exception
-
-    return try {
-        val messages = Gson().fromJson(body, Array<String>::class.java)
-        if (messages.isNotEmpty()) Exception(messages[0]) else exception
-    } catch (_: Exception) {
-        exception
-    }
 }
