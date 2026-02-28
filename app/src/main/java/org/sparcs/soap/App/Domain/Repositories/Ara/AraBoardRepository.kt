@@ -15,8 +15,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraCreatePost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostPage
 import org.sparcs.soap.App.Networking.RequestDTO.Ara.AraPostRequestDTO
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
-import org.sparcs.soap.App.Networking.ResponseDTO.parseReportCommentError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraBoardApi
 import org.sparcs.soap.App.Shared.Extensions.compressForUpload
 import javax.inject.Inject
@@ -62,136 +61,72 @@ class AraBoardRepository @Inject constructor(
         cachedBoards = boards
         return boards
     }
-
     override suspend fun fetchPosts(
         type: PostListType,
         page: Int,
         pageSize: Int,
         searchKeyword: String?,
-    ): AraPostPage {
-        try {
-            val response = when (type) {
-                is PostListType.Board -> api.fetchPosts(
-                    page, pageSize, parentBoard = type.boardID, searchKeyword = searchKeyword
-                )
-
-                is PostListType.User -> api.fetchPosts(
-                    page, pageSize, createdBy = type.userID, searchKeyword = searchKeyword
-                )
-
-                is PostListType.All -> api.fetchPosts(
-                    page, pageSize, searchKeyword = searchKeyword
-                )
-            }
-            return response.toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
+    ): AraPostPage = safeApiCall(gson) {
+        when (type) {
+            is PostListType.Board -> api.fetchPosts(page, pageSize, parentBoard = type.boardID, searchKeyword = searchKeyword)
+            is PostListType.User -> api.fetchPosts(page, pageSize, createdBy = type.userID, searchKeyword = searchKeyword)
+            is PostListType.All -> api.fetchPosts(page, pageSize, searchKeyword = searchKeyword)
         }
+    }.toModel()
+
+    override suspend fun fetchPost(origin: PostOrigin?, postID: Int): AraPost = safeApiCall(gson) {
+        api.fetchPost(postID, topicId = (origin as? PostOrigin.Topic)?.topicID)
+    }.toModel()
+
+    override suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage = safeApiCall(gson) {
+        api.fetchBookmarks(page = page, pageSize = pageSize)
+    }.toModel()
+
+    override suspend fun uploadImage(image: Bitmap): AraAttachment = safeApiCall(gson) {
+        val compressed = image.compressForUpload(maxSizeMB = 1.0, maxDimension = 500)
+            ?: throw IllegalArgumentException("Failed to compress image")
+        val part = MultipartBody.Part.createFormData("file", "image.jpg", compressed.toRequestBody())
+        api.uploadImage(part)
+    }.toModel()
+
+    override suspend fun writePost(request: AraCreatePost) = safeApiCall(gson) {
+        api.writePost(AraPostRequestDTO.fromModel(request))
     }
 
-    override suspend fun fetchPost(origin: PostOrigin?, postID: Int): AraPost {
-        try {
-            val response = api.fetchPost(
-                postID,
-                topicId = (origin as? PostOrigin.Topic)?.topicID
-            )
-            return response.toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun fetchBookmarks(page: Int, pageSize: Int): AraPostPage {
-        try {
-            val response = api.fetchBookmarks(page = page, pageSize = pageSize)
-            return response.toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun uploadImage(image: Bitmap): AraAttachment {
-        try {
-            val compressed = image.compressForUpload(maxSizeMB = 1.0, maxDimension = 500)
-                ?: throw IllegalArgumentException("Failed to compress image")
-            val part = MultipartBody.Part.createFormData(
-                "file", "image.jpg", compressed.toRequestBody()
-            )
-            val response = api.uploadImage(part)
-            return response.toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun writePost(request: AraCreatePost) {
-        try {
-            api.writePost(AraPostRequestDTO.fromModel(request))
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun upVotePost(postID: Int) = try {
+    override suspend fun upVotePost(postID: Int) = safeApiCall(gson) {
         api.upVote(postID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun downVotePost(postID: Int) = try {
+    override suspend fun downVotePost(postID: Int) = safeApiCall(gson) {
         api.downVote(postID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun cancelVote(postID: Int) = try {
+    override suspend fun cancelVote(postID: Int) = safeApiCall(gson) {
         api.cancelVote(postID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun reportPost(postID: Int, type: AraContentReportType) =
-        try {
-            api.report(
-                PostReportRequest(
-                    post_id = postID,
-                    type = "others",
-                    content = type.name
-                )
+    override suspend fun reportPost(postID: Int, type: AraContentReportType) = safeApiCall(gson) {
+        api.report(
+            PostReportRequest(
+                post_id = postID,
+                type = "others",
+                content = type.name
             )
-        } catch (e: Exception) {
-            throw parseReportCommentError(e)
-        }
-
-    override suspend fun deletePost(postID: Int) {
-        try {
-            val response = api.delete(postID)
-            if (!response.isSuccessful) {
-                throw Exception("Delete failed: ${response.code()}")
-            }
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
+        )
     }
 
-    override suspend fun addBookmark(postID: Int): Int {
-        val scrap = try {
-            api.addBookmark(mapOf("parent_article" to postID))
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-        return scrap.id
+    override suspend fun deletePost(postID: Int) = safeApiCall(gson) {
+        val response = api.delete(postID)
+        if (!response.isSuccessful) throw retrofit2.HttpException(response)
     }
 
-    override suspend fun removeBookmark(bookmarkID: Int) {
-        try {
-            val response = api.removeBookmark(bookmarkID)
-            if (!response.isSuccessful) {
-                throw Exception("Failed to remove bookmark: ${response.code()}")
-            }
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
+    override suspend fun addBookmark(postID: Int): Int = safeApiCall(gson) {
+        api.addBookmark(mapOf("parent_article" to postID))
+    }.id
+
+    override suspend fun removeBookmark(bookmarkID: Int) = safeApiCall(gson) {
+        val response = api.removeBookmark(bookmarkID)
+        if (!response.isSuccessful) throw retrofit2.HttpException(response)
     }
 }
 
