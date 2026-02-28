@@ -7,7 +7,7 @@ import org.sparcs.soap.App.Domain.Models.Feed.FeedCreatePost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPostPage
 import org.sparcs.soap.App.Networking.RequestDTO.Feed.FeedPostRequestDTO
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedPostApi
 import javax.inject.Inject
 
@@ -26,50 +26,32 @@ class FeedPostRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : FeedPostRepositoryProtocol {
 
-    override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage = try {
-        api.fetchPosts(cursor, page).toModel()
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage = safeApiCall(gson) {
+        api.fetchPosts(cursor, page)
+    }.toModel()
+
+    override suspend fun fetchPost(postID: String): FeedPost = safeApiCall(gson) {
+        api.fetchPost(postID)
+    }.toModel()
+
+    override suspend fun writePost(request: FeedCreatePost) = safeApiCall(gson) {
+        val dto = FeedPostRequestDTO.fromModel(request)
+        api.writePost(dto)
     }
 
-    override suspend fun fetchPost(postID: String): FeedPost = try {
-        api.fetchPost(postID).toModel()
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun deletePost(postID: String) = safeApiCall(gson) {
+        api.deletePost(postID)
     }
 
-    override suspend fun writePost(request: FeedCreatePost) {
-        try {
-            val dto = FeedPostRequestDTO.fromModel(request)
-            api.writePost(dto)
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun deletePost(postID: String) {
-        try {
-           api.deletePost(postID)
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun vote(postID: String, type: FeedVoteType) = try {
+    override suspend fun vote(postID: String, type: FeedVoteType) = safeApiCall(gson) {
         api.vote(postID, mapOf("vote" to type.name))
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun deleteVote(postID: String) = try {
+    override suspend fun deleteVote(postID: String) = safeApiCall(gson) {
         api.deleteVote(postID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun reportPost(postID: String, reason: FeedReportType, detail: String) = try {
+    override suspend fun reportPost(postID: String, reason: FeedReportType, detail: String) = safeApiCall(gson) {
         api.reportPost(postID, mapOf("reason" to reason.name, "detail" to detail))
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 }
