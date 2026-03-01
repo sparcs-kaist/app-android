@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Features.TaxiChat.Components
+package org.sparcs.soap.App.Features.TaxiChat.ChatBubbles
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,16 +14,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import org.sparcs.soap.App.Domain.Helpers.Constants
-import java.util.Date
 
 @Composable
-fun TaxiChatImageBubble(
+fun ChatImageBubble(
     id: String,
     onClick: () -> Unit
 ) {
@@ -49,7 +47,7 @@ fun TaxiChatImageBubble(
                     contentDescription = "Chat Image",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .heightIn(max = 360.dp)
+                        .heightIn(max = 240.dp)
                         .fillMaxWidth()
                         .clickable { onClick() }
                 )
@@ -64,20 +62,20 @@ fun TaxiChatImageBubble(
         }
     }
 }
-
-@Preview
-@Composable
-private fun Preview() {
-    TaxiChatUserWrapper(
-        authorID = null,
-        authorName = null,
-        authorProfileImageURL = null,
-        date = Date(),
-        isMe = false,
-        isGeneral = false,
-        isWithdrawn = false,
-        badge = true
-    ) {
-        TaxiChatImageBubble(id = "688714fb95fce20ddc8f19da", {})
-    }
-}
+//
+//@Preview
+//@Composable
+//private fun Preview() {
+//    TaxiChatUserWrapper(
+//        authorID = null,
+//        authorName = null,
+//        authorProfileImageURL = null,
+//        date = Date(),
+//        isMe = false,
+//        isGeneral = false,
+//        isWithdrawn = false,
+//        badge = true
+//    ) {
+//        ChatImageBubble(id = "688714fb95fce20ddc8f19da", {})
+//    }
+//}

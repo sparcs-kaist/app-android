@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
+import org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.TaxiChatBubble
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 import java.net.URL

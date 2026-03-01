@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Features.TaxiChat.Components
+package org.sparcs.soap.App.Features.TaxiChat.ChatBubbles
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -26,13 +26,11 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
-import java.util.Date
 
 @Composable
-fun TaxiChatAccountBubble(
+fun ChatAccountBubble(
     content: String,
     isCommitPaymentAvailable: Boolean,
     markAsSent: () -> Unit,
@@ -125,24 +123,24 @@ fun TaxiChatAccountBubble(
         }
     }
 }
-
-@Preview
-@Composable
-private fun Preview() {
-    TaxiChatUserWrapper(
-        authorID = null,
-        authorName = null,
-        authorProfileImageURL = null,
-        date = Date(),
-        isMe = false,
-        isGeneral = false,
-        isWithdrawn = false,
-        badge = true
-    ) {
-        TaxiChatAccountBubble(
-            content = "KB국민 90415338958",
-            isCommitPaymentAvailable = false,
-            markAsSent = { println("mark as sent") }
-        )
-    }
-}
+//
+//@Preview
+//@Composable
+//private fun Preview() {
+//    TaxiChatUserWrapper(
+//        authorID = null,
+//        authorName = null,
+//        authorProfileImageURL = null,
+//        date = Date(),
+//        isMe = false,
+//        isGeneral = false,
+//        isWithdrawn = false,
+//        badge = true
+//    ) {
+//        TaxiChatAccountBubble(
+//            content = "KB국민 90415338958",
+//            isCommitPaymentAvailable = false,
+//            markAsSent = { println("mark as sent") }
+//        )
+//    }
+//}
