@@ -6,13 +6,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
+import org.sparcs.soap.App.Shared.Extensions.formattedTime
 import org.sparcs.soap.App.theme.ui.Theme
+import java.util.Date
 
 @Composable
-fun TaxiChatReadReceipt(
+fun ChatReadReceipt(
     readCount: Int,
-    showTimeLabel: Boolean,
-    time: String,
+    showTime: Boolean,
+    time: Date,
     alignment: Alignment.Horizontal,
 ) {
     Column(
@@ -26,9 +28,9 @@ fun TaxiChatReadReceipt(
             )
         }
 
-        if (showTimeLabel) {
+        if (showTime) {
             Text(
-                text = time,
+                text = time.formattedTime(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -41,17 +43,17 @@ fun TaxiChatReadReceipt(
 private fun Preview() {
     Theme {
         Column(horizontalAlignment = Alignment.End) {
-            TaxiChatReadReceipt(
+            ChatReadReceipt(
                 readCount = 1,
-                showTimeLabel = true,
-                time = "오후 2:30",
+                showTime = true,
+                time = Date(),
                 alignment = Alignment.End
             )
 
-            TaxiChatReadReceipt(
+            ChatReadReceipt(
                 readCount = 0,
-                showTimeLabel = true,
-                time = "오후 2:31",
+                showTime = true,
+                time = Date(),
                 alignment = Alignment.Start,
             )
         }
