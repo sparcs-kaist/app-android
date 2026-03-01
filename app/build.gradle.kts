@@ -8,7 +8,7 @@ plugins {
     alias(libs.plugins.hilt.gradle.plugin)
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
-    id ("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 val properties = Properties().apply {
@@ -38,20 +38,25 @@ android {
 
     buildTypes {
 
-            getByName("debug") {
-                manifestPlaceholders += mapOf(
-                    "taxiHost" to "taxi.dev.sparcs.org",
-                    "araHost" to "newara.dev.sparcs.org",
-                    "feedHost" to "buddy.dev.sparcs.org"
-                )
-            }
-            getByName("release") {
-                manifestPlaceholders += mapOf(
-                    "taxiHost" to "taxi.sparcs.org",
-                    "araHost" to "newara.sparcs.org",
-                    "feedHost" to "sparcs.org"
-                )
-            }
+        getByName("debug") {
+            manifestPlaceholders += mapOf(
+                "taxiHost" to "taxi.dev.sparcs.org",
+                "araHost" to "newara.dev.sparcs.org",
+                "feedHost" to "buddy.dev.sparcs.org"
+            )
+            buildConfigField("String", "TAXI_HOST", "\"taxi.dev.sparcs.org\"")
+            buildConfigField("String", "ARA_HOST", "\"newara.dev.sparcs.org\"")
+        }
+
+        getByName("release") {
+            manifestPlaceholders += mapOf(
+                "taxiHost" to "taxi.sparcs.org",
+                "araHost" to "newara.sparcs.org",
+                "feedHost" to "sparcs.org"
+            )
+            buildConfigField("String", "TAXI_HOST", "\"taxi.sparcs.org\"")
+            buildConfigField("String", "ARA_HOST", "\"newara.sparcs.org\"")
+        }
         release {
             isMinifyEnabled = true
             proguardFiles(
@@ -119,10 +124,10 @@ dependencies {
     kapt(libs.hilt.compiler)
     implementation(libs.androidx.security.crypto)
     implementation(libs.socket.io.client)
-    implementation (libs.kotlinx.serialization.json)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
 
-    implementation (libs.osmdroid.android)
+    implementation(libs.osmdroid.android)
     implementation(libs.osmdroid.android)
 
     implementation(platform(libs.firebase.bom))
@@ -133,12 +138,12 @@ dependencies {
     implementation(libs.app.update)
     implementation(libs.app.update.ktx)
 
-    implementation (libs.androidx.glance)
+    implementation(libs.androidx.glance)
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
     debugImplementation(libs.androidx.glance.appwidget.preview)
 
-    implementation (libs.androidx.core.splashscreen)
+    implementation(libs.androidx.core.splashscreen)
     implementation(libs.aboutlibraries.compose.m3)
     implementation(libs.datastore.preferences.v111)
 }

@@ -1,8 +1,9 @@
 package org.sparcs.soap.App.Features.FeedPost.Components
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Patterns
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,18 +35,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Enums.DeepLink
+import org.sparcs.soap.App.Domain.Enums.DeepLinkEventBus
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
@@ -56,6 +60,7 @@ import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
+import org.sparcs.soap.App.Shared.Extensions.toDetectedAnnotatedString
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import org.sparcs.soap.App.theme.ui.Theme
@@ -216,6 +221,7 @@ private fun Content(comment: FeedComment) {
     val context = LocalContext.current
     val text = if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
     val color = if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+    val scope = rememberCoroutineScope()
 
     var expanded by remember { mutableStateOf(false) }
     var isOverflowing by remember { mutableStateOf(false) }
@@ -227,39 +233,24 @@ private fun Content(comment: FeedComment) {
     val linkColor = MaterialTheme.colorScheme.primary
 
     val displayText = remember(text, expanded, isOverflowing, textLayoutResult) {
-        val baseText = if (expanded || !isOverflowing) {
-            text
-        } else {
-            val visibleEnd = textLayoutResult?.getLineEnd(2, visibleEnd = true) ?: text.length
-            text.substring(0, visibleEnd.coerceAtMost(text.length)).trimEnd()
+        if (comment.isDeleted) {
+            return@remember AnnotatedString(text)
         }
 
-        buildAnnotatedString {
-            if (comment.isDeleted) {
-                append(baseText)
-            } else {
-                val regex = Patterns.WEB_URL.toRegex()
-                var lastIndex = 0
-                regex.findAll(baseText).forEach { match ->
-                    append(baseText.substring(lastIndex, match.range.first))
-                    val url = match.value
-                    pushStringAnnotation("URL", url)
-                    withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
-                        append(url)
-                    }
-                    pop()
-                    lastIndex = match.range.last + 1
-                }
-                if (lastIndex < baseText.length) append(baseText.substring(lastIndex))
+        val annotatedContent = text.toDetectedAnnotatedString(linkColor)
 
-                if (!expanded && isOverflowing) {
-                    pushStringAnnotation("MORE", "expand")
-                    append("… ")
-                    withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
-                        append(moreText)
-                    }
-                    pop()
+        if (expanded || !isOverflowing || textLayoutResult == null) {
+            annotatedContent
+        } else {
+            val visibleEnd = textLayoutResult!!.getLineEnd(2, visibleEnd = true)
+            buildAnnotatedString {
+                append(annotatedContent.subSequence(0, visibleEnd.coerceAtMost(annotatedContent.length)))
+                pushStringAnnotation("MORE", "expand")
+                append("… ")
+                withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
+                    append(moreText)
                 }
+                pop()
             }
         }
     }
@@ -280,13 +271,7 @@ private fun Content(comment: FeedComment) {
             if (comment.isDeleted) return@ClickableText
 
             displayText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { annotation ->
-                val url = annotation.item
-                val formattedUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) "http://$url" else url
-                try {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl)))
-                } catch (e: Exception) {
-                    android.util.Log.e("CommentContent", "Failed to open URL", e)
-                }
+                handleURL(context, annotation.item, scope)
                 return@ClickableText
             }
 
@@ -328,6 +313,28 @@ private fun Footer(
                 onDownVote = onDownVote,
                 enabled = true
             )
+        }
+    }
+}
+
+private fun handleURL(
+    context: Context,
+    urlString: String,
+    scope: CoroutineScope
+) {
+    val uri = Uri.parse(if (!urlString.startsWith("http")) "http://$urlString" else urlString)
+    val deepLink = DeepLink.fromUri(uri)
+
+    if (deepLink != null) {
+        scope.launch {
+            DeepLinkEventBus.post(deepLink)
+        }
+    } else {
+        try {
+            val intent = CustomTabsIntent.Builder().build()
+            intent.launchUrl(context, uri)
+        } catch (e: Exception) {
+            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
         }
     }
 }
