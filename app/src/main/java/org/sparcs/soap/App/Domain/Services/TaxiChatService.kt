@@ -23,20 +23,22 @@ import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Taxi.TaxiChatDTO
 import org.sparcs.soap.App.Shared.Extensions.toMap
 import javax.inject.Inject
+import javax.inject.Provider
 
 interface TaxiChatServiceProtocol {
-
     val chatsPublisher: Flow<List<TaxiChat>>
-
     val isConnectedPublisher: Flow<Boolean>
-
     val roomUpdatePublisher: Flow<String>
+    fun reconnect()
+    fun disconnect()
 }
 
 class TaxiChatService @Inject constructor(
     private val tokenStorage: TokenStorageProtocol,
-    private val authUseCase: AuthUseCaseProtocol,
+    private val authUseCaseProvider: Provider<AuthUseCaseProtocol>,
 ) : TaxiChatServiceProtocol {
+    private val authUseCase get() = authUseCaseProvider.get()
+
     private val roomChats = mutableMapOf<String, MutableList<TaxiChat>>()
 
     private val _chatsFlow = MutableSharedFlow<List<TaxiChat>>(replay = 1)
@@ -70,27 +72,24 @@ class TaxiChatService @Inject constructor(
     init {
         observeAuthState()
     }
-
     private fun observeAuthState() {
         serviceScope.launch {
             authUseCase.isAuthenticatedFlow.collect { isAuth ->
                 if (!isAuth) {
-                    socket?.disconnect()
-                    _isConnectedFlow.value = false
+                    disconnect()
                 } else {
-                    reconnectSocketWithToken(tokenStorage.getAccessToken())
+                    reconnect()
                 }
             }
         }
     }
 
     private fun reconnectSocketWithToken(token: String?) {
-        if (token == null) return
+        disconnect()
 
-        try {
-            socket?.disconnect()
-        } catch (e: Exception) {
-            Log.e("TaxiChatService", "Error during socket disconnect: ${e.message}")
+        if (token == null) {
+            Log.e("TaxiChatService", "Token is null, cannot reconnect.")
+            return
         }
 
         val opts = IO.Options().apply {
@@ -101,10 +100,13 @@ class TaxiChatService @Inject constructor(
                 "Authorization" to listOf("Bearer $token")
             )
         }
-
-        socket = IO.socket(Constants.taxiSocketURL, opts)
-        setupSocketEvents()
-        socket?.connect()
+        try {
+            socket = IO.socket(Constants.taxiSocketURL, opts)
+            setupSocketEvents()
+            socket?.connect()
+        } catch (e: Exception) {
+            Log.e("TaxiChatService", "Socket creation failed: ${e.message}")
+        }
     }
 
 
@@ -139,6 +141,10 @@ class TaxiChatService @Inject constructor(
 
         socket?.on(Socket.EVENT_DISCONNECT) {
             isConnected = false
+        }
+
+        socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
+            Log.e("TaxiChatService", "[TaxiChatService] Socket error: ${args.getOrNull(0)}")
         }
 
         // chat_init
@@ -219,5 +225,18 @@ class TaxiChatService @Inject constructor(
         } catch (e: Exception) {
             null
         }
+    }
+
+    override fun disconnect() {
+        socket?.off()
+        socket?.disconnect()
+        socket = null
+        _isConnectedFlow.value = false
+    }
+
+    override fun reconnect() {
+        Log.d("TaxiChatService", "[TaxiChatService] Reconnecting socket...")
+        val token = tokenStorage.getAccessToken()
+        reconnectSocketWithToken(token)
     }
 }

@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Features.TaxiChat.Components
+package org.sparcs.soap.App.Features.TaxiChat.ChatBubbles
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.rounded.CreditCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,14 +14,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
-import java.util.Date
 
 @Composable
-fun TaxiChatPaymentBubble() {
+fun ChatSettlementBubble() {
     Row(
         modifier = Modifier
             .background(
@@ -38,33 +35,33 @@ fun TaxiChatPaymentBubble() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = stringResource(R.string.i_sent_the_money),
+            text = stringResource(R.string.i_paid_for_the_taxi),
             color = MaterialTheme.colorScheme.surface,
             style = MaterialTheme.typography.bodyMedium
         )
         Icon(
-            imageVector = Icons.AutoMirrored.Filled.Send,
-            contentDescription = "Send",
+            imageVector = Icons.Rounded.CreditCard,
+            contentDescription = "Credit Card",
             tint = MaterialTheme.colorScheme.background
         )
     }
 }
 
-@Preview
-@Composable
-private fun Preview() {
-    Theme {
-        TaxiChatUserWrapper(
-            authorID = null,
-            authorName = null,
-            authorProfileImageURL = null,
-            date = Date(),
-            isMe = false,
-            isGeneral = false,
-            isWithdrawn = false,
-            badge = true
-        ) {
-            TaxiChatPaymentBubble()
-        }
-    }
-}
+//@Preview
+//@Composable
+//private fun Preview() {
+//    Theme {
+//        TaxiChatUserWrapper(
+//            authorID = null,
+//            authorName = null,
+//            authorProfileImageURL = null,
+//            date = Date(),
+//            isMe = false,
+//            isGeneral = false,
+//            isWithdrawn = false,
+//            badge = true
+//        ) {
+//            ChatSettlementBubble()
+//        }
+//    }
+//}

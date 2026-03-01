@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Features.TaxiChat.Components
+package org.sparcs.soap.App.Features.TaxiChat.ChatBubbles
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.padding
@@ -11,14 +11,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
-import java.util.Date
 
 @Composable
-fun TaxiArrivalBubble() {
+fun ChatArrivalBubble() {
     val bubbleText = stringResource(
         id = R.string.taxi_arrival_bubble,
         "\n\n",
@@ -48,22 +45,22 @@ fun buildBoldAnnotatedString(vararg parts: String, normalText: String = "") = bu
         pop()
     }
 }
-
-@Preview
-@Composable
-private fun Preview() {
-    Theme {
-        TaxiChatUserWrapper(
-            authorID = null,
-            authorName = null,
-            authorProfileImageURL = null,
-            date = Date(),
-            isMe = false,
-            isGeneral = false,
-            isWithdrawn = false,
-            badge = true
-        ) {
-            TaxiArrivalBubble()
-        }
-    }
-}
+//
+//@Preview
+//@Composable
+//private fun Preview() {
+//    Theme {
+//        TaxiChatUserWrapper(
+//            authorID = null,
+//            authorName = null,
+//            authorProfileImageURL = null,
+//            date = Date(),
+//            isMe = false,
+//            isGeneral = false,
+//            isWithdrawn = false,
+//            badge = true
+//        ) {
+//            TaxiArrivalBubble()
+//        }
+//    }
+//}
