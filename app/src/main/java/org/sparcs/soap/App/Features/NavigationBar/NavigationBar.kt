@@ -627,7 +627,18 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
             }
         }
-        MainDeepLinkHandler(navController = navController)
+        MainDeepLinkHandler(
+            navController = navController,
+            onTabSelected = { channel ->
+                navController.navigate(channel.name) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        )
     }
 }
 
