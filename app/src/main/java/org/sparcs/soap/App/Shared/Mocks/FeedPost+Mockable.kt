@@ -167,6 +167,30 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
                     spoiler = false
                 )
             )
+        ),
+        FeedPost(
+            id = UUID.randomUUID().toString(),
+            content = "이것은 URL이 포함된 게시글입니다.\\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            isAnonymous = true,
+            isKaistIP = false,
+            authorName = "Anonymous",
+            nickname = null,
+            profileImageURL = null,
+            createdAt = Date(),
+            commentCount = 0,
+            upVotes = 0,
+            downVotes = 0,
+            myVote = null,
+            isAuthor = true,
+            images = listOf(
+                FeedImage(
+                    id = UUID.randomUUID().toString(),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/0c351f1b-3837-4329-9ced-de317fcfea6a.jpg"),
+                    mimeType = "image/png",
+                    size = 219138,
+                    spoiler = false
+                )
+            )
         )
     )
 }
