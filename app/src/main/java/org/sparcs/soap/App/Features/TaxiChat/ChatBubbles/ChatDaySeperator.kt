@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Features.TaxiChat.Components
+package org.sparcs.soap.App.Features.TaxiChat.ChatBubbles
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Row
@@ -19,7 +19,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun TaxiChatDayMessage(date: LocalDate) {
+fun ChatDaySeperator(date: LocalDate) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -35,7 +35,6 @@ fun TaxiChatDayMessage(date: LocalDate) {
         )
         DashedDivider(modifier = Modifier.weight(1f))
     }
-
 }
 
 @Composable
@@ -60,5 +59,5 @@ fun DashedDivider(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun Preview() {
-    TaxiChatDayMessage(date = LocalDate.now())
+    ChatDaySeperator(date = LocalDate.now())
 }

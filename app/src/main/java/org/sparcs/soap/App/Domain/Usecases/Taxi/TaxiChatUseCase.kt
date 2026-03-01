@@ -7,16 +7,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
-import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChatGroup
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChatRequest
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiChatRepositoryProtocol
@@ -24,18 +22,16 @@ import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.TaxiChatService
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.toByteArray
-import org.sparcs.soap.App.Shared.Extensions.toISO8601
-import java.util.Calendar
-import java.util.Collections
 import java.util.Date
 import javax.inject.Inject
 
 interface TaxiChatUseCaseProtocol {
-    val groupedChatsFlow: Flow<List<TaxiChatGroup>>
+    val chats: SharedFlow<List<TaxiChat>>
     val roomUpdateFlow: Flow<TaxiRoom>
     val accountChats: List<TaxiChat>
 
     fun setRoom(room: TaxiRoom)
+    fun reconnect()
     suspend fun fetchInitialChats()
     suspend fun fetchChats(before: Date)
     suspend fun sendChat(content: String?, type: TaxiChat.ChatType)
@@ -51,34 +47,38 @@ class TaxiChatUseCase @Inject constructor(
 ) : TaxiChatUseCaseProtocol {
 
     private lateinit var room: TaxiRoom
-
-    override fun setRoom(room: TaxiRoom) {
-        this.room = room
-        _accumulatedChats.clear()
-        _groupedChatsFlow.value = emptyList()
-
-        taxiChatService.setRoom(room.id)
-    }
-
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     // MARK: - Flows
-    private val _groupedChatsFlow = MutableStateFlow<List<TaxiChatGroup>>(emptyList())
-    override val groupedChatsFlow: Flow<List<TaxiChatGroup>> = _groupedChatsFlow.asStateFlow()
+    private val _chats = MutableSharedFlow<List<TaxiChat>>()
+    override val chats: SharedFlow<List<TaxiChat>> = _chats.asSharedFlow()
 
     private val _roomUpdateFlow = MutableSharedFlow<TaxiRoom>()
     override val roomUpdateFlow: Flow<TaxiRoom> = _roomUpdateFlow.asSharedFlow()
 
     private var isSocketConnected: Boolean = false
-
-    private val _accumulatedChats = Collections.synchronizedList(mutableListOf<TaxiChat>())
+    private var hasInitialChatsBeenFetched: Boolean = false
+    private var flatChats: List<TaxiChat> = emptyList()
 
     // MARK: - Computed Properties
     override var accountChats: List<TaxiChat> = emptyList()
 
     private var isBound = false
 
+    override fun setRoom(room: TaxiRoom) {
+        this.room = room
+        this.flatChats = emptyList()
+        this.hasInitialChatsBeenFetched = false
+        taxiChatService.setRoom(room.id)
+    }
+
+    override fun reconnect() {
+        taxiChatService.reconnect()
+    }
+
     override suspend fun fetchInitialChats() {
+        if (hasInitialChatsBeenFetched) return
+        hasInitialChatsBeenFetched = true
         bind()
         try {
             taxiChatService.isConnectedPublisher.filter { it }.first()
@@ -99,13 +99,30 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     override suspend fun sendChat(content: String?, type: TaxiChat.ChatType) {
-        scope.launch(Dispatchers.IO) {
-            try {
-                val request = TaxiChatRequest(room.id, type, content)
-                taxiChatRepository.sendChat(request)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
+        // Optimistic insert
+        if (content != null) {
+            val user = userUseCase.taxiUser
+            val optimisticChat = TaxiChat(
+                roomID = room.id,
+                type = type,
+                authorID = user?.oid,
+                authorName = user?.nickname,
+                authorProfileURL = user?.profileImageURL,
+                authorIsWithdrew = false,
+                content = content,
+                time = Date(),
+                isValid = true,
+                inOutNames = null
+            )
+            flatChats = flatChats + optimisticChat
+            _chats.emit(flatChats)
+        }
+
+        try {
+            val request = TaxiChatRequest(room.id, type, content)
+            taxiChatRepository.sendChat(request)
+        } catch (e: Exception) {
+            Log.e("TaxiChatUseCase", "Failed to send chat", e)
         }
     }
 
@@ -127,23 +144,14 @@ class TaxiChatUseCase @Inject constructor(
             }
             .launchIn(scope)
 
-        // converts [TaxiChat] into [TaxiChatGroup]
         taxiChatService.chatsPublisher
             .onEach { newChats ->
-                val user = userUseCase.taxiUser
+                try { taxiChatRepository.readChats(room.id) } catch (e: Exception) {}
 
-                val filtered = newChats.filter { it.roomID == room.id }
-                if (filtered.isEmpty()) return@onEach
+                this.flatChats = newChats
+                this.accountChats = newChats.filter { it.type == TaxiChat.ChatType.ACCOUNT }
 
-                val merged = (filtered + _accumulatedChats)
-                    .distinctBy { it.id }
-
-                _accumulatedChats.clear()
-                _accumulatedChats.addAll(merged)
-
-                _groupedChatsFlow.value =
-                    groupChats(_accumulatedChats.toList(), user?.oid ?: "")
-                accountChats = _accumulatedChats.filter { it.type == TaxiChat.ChatType.ACCOUNT }
+                _chats.emit(newChats)
             }
             .launchIn(scope)
 
@@ -151,94 +159,25 @@ class TaxiChatUseCase @Inject constructor(
         taxiChatService.roomUpdatePublisher
             .onEach { roomId ->
                 if (roomId != room.id) return@onEach
-
                 try {
                     val updatedRoom = taxiRoomRepository.getRoom(roomId)
-                    room = updatedRoom
+                    this.room = updatedRoom
                     _roomUpdateFlow.emit(updatedRoom)
-
-                    Log.d("TaxiChatUseCase", "Room updated: $roomId")
                 } catch (e: Exception) {
-                    Log.e("TaxiChatUseCase", "Failed to update room $roomId", e)
+                    Log.e("TaxiChatUseCase", "Failed to update room: $e")
                 }
             }
             .launchIn(scope)
     }
 
-    private fun groupChats(chats: List<TaxiChat>, currentUserID: String): List<TaxiChatGroup> {
-        if (chats.isEmpty()) return emptyList()
-
-        val result = mutableListOf<TaxiChatGroup>()
-        val currentGroup = mutableListOf<TaxiChat>()
-
-        fun flushGroup() {
-            if (currentGroup.isNotEmpty()) {
-                val first = currentGroup.first()
-                val group = TaxiChatGroup(
-                    id = first.time.toISO8601(),
-                    chats = currentGroup.toList(),
-                    lastChatID = currentGroup.lastOrNull()?.id,
-                    authorID = first.authorID,
-                    authorName = first.authorName,
-                    authorProfileURL = first.authorProfileURL,
-                    authorIsWithdrew = first.authorIsWithdrew,
-                    time = first.time,
-                    isMe = first.authorID == currentUserID,
-                    isGeneral = false
-                )
-                result.add(group)
-                currentGroup.clear()
-            }
-        }
-
-        val calendar = Calendar.getInstance()
-
-        for (chat in chats) {
-            if (chat.type == TaxiChat.ChatType.IN || chat.type == TaxiChat.ChatType.OUT) {
-                flushGroup()
-                result.add(
-                    TaxiChatGroup(
-                        id = chat.time.toISO8601(),
-                        chats = listOf(chat),
-                        lastChatID = null,
-                        authorID = chat.authorID,
-                        authorName = chat.authorName,
-                        authorProfileURL = chat.authorProfileURL,
-                        authorIsWithdrew = chat.authorIsWithdrew,
-                        time = chat.time,
-                        isMe = chat.authorID == currentUserID,
-                        isGeneral = true
-                    )
-                )
-                continue
-            }
-
-            if (currentGroup.isEmpty()) {
-                currentGroup.add(chat)
-                continue
-            }
-
-            val lastChat = currentGroup.last()
-            val isSameAuthor = chat.authorID == lastChat.authorID
-            val isSameMinute = calendar.apply { time = chat.time }.get(Calendar.MINUTE) ==
-                    calendar.apply { time = lastChat.time }.get(Calendar.MINUTE)
-
-            if (isSameAuthor && isSameMinute) {
-                currentGroup.add(chat)
-            } else {
-                flushGroup()
-                currentGroup.add(chat)
-            }
-        }
-
-        flushGroup()
-        return result
-    }
-
     override fun switchRoom(newRoomId: String) {
-        _accumulatedChats.clear()
+        hasInitialChatsBeenFetched = false
+        flatChats = emptyList()
         accountChats = emptyList()
-        _groupedChatsFlow.value = emptyList()
+
+        scope.launch {
+            _chats.emit(emptyList())
+        }
         taxiChatService.setRoom(newRoomId)
     }
 }
