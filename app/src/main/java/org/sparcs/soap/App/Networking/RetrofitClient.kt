@@ -66,6 +66,7 @@ import org.sparcs.soap.App.Domain.Services.AuthenticationService
 import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
 import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Services.TaxiChatService
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCase
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCase
@@ -652,5 +653,47 @@ object ServiceModule {
                 context.preferencesDataStoreFile("soap_preferences")
             }
         )
+    }
+
+    @Provides
+    @Singleton
+    fun provideTaxiChatService(
+        tokenStorage: TokenStorageProtocol,
+        authUseCaseProvider: Provider<AuthUseCaseProtocol>
+    ): TaxiChatService {
+        return TaxiChatService(
+            tokenStorage = tokenStorage,
+            authUseCaseProvider = authUseCaseProvider
+        )
+    }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object AuthUseCaseModule {
+    @Provides
+    @Singleton
+    fun provideAuthUseCase(
+        authenticationService: AuthenticationServiceProtocol,
+        tokenStorage: TokenStorageProtocol,
+        araUserRepository: AraUserRepositoryProtocol,
+        feedUserRepository: FeedUserRepositoryProtocol,
+        otlUserRepository: OTLUserRepositoryProtocol,
+        taxiChatServiceProvider: Provider<TaxiChatService>
+    ): AuthUseCaseProtocol {
+
+        val useCase = AuthUseCase(
+            authenticationService,
+            tokenStorage,
+            araUserRepository,
+            feedUserRepository,
+            otlUserRepository
+        )
+
+        useCase.onTokenRefresh = {
+            taxiChatServiceProvider.get().reconnect()
+        }
+
+        return useCase
     }
 }
