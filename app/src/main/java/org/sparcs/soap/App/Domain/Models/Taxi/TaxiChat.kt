@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Domain.Models.Taxi
 
-import java.net.URL
 import java.util.Date
 import java.util.UUID
 
@@ -10,7 +9,7 @@ data class TaxiChat(
     val type: ChatType,
     val authorID: String?,
     val authorName: String?,
-    val authorProfileURL: URL?,
+    val authorProfileURL: String?,
     val authorIsWithdrew: Boolean?,
     val content: String,
     val time: Date,

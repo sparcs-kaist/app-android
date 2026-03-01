@@ -1,10 +1,7 @@
 package org.sparcs.soap.App.Shared.Mocks
 
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
-import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChatGroup
-import org.sparcs.soap.App.Shared.Extensions.toISO8601
 import java.net.URL
-import java.util.Calendar
 import java.util.Date
 
 fun TaxiChat.Companion.mock(): TaxiChat {
@@ -51,6 +48,30 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             authorIsWithdrew = false,
             content = "Hello!",
             time = Date(baseDate.time - 3500_000),
+            isValid = true,
+            inOutNames = emptyList()
+        ),
+        TaxiChat(
+            roomID = "room123",
+            type = TaxiChat.ChatType.TEXT,
+            authorID = "user1",
+            authorName = "Alice",
+            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorIsWithdrew = false,
+            content = "hello?",
+            time = Date(baseDate.time - 3500 * 1000L),
+            isValid = true,
+            inOutNames = emptyList()
+        ),
+        TaxiChat(
+            roomID = "room123",
+            type = TaxiChat.ChatType.TEXT,
+            authorID = "user1",
+            authorName = "Alice",
+            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorIsWithdrew = false,
+            content = "this is a test message",
+            time = Date(baseDate.time - 3430 * 1000L),
             isValid = true,
             inOutNames = emptyList()
         ),
@@ -271,118 +292,4 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             inOutNames = emptyList()
         )
     )
-}
-
-fun TaxiChatGroup.Companion.mock(): TaxiChatGroup {
-    return TaxiChatGroup.mockList()[0]
-}
-
-fun TaxiChatGroup.Companion.mockList(): List<TaxiChatGroup>{
-    val chats = org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat.mockList()
-    val currentUserID = "user1" // Alice is current user
-
-    // Group chats by time and author (simplified grouping logic)
-    val calendar = Calendar.getInstance()
-    val groups = mutableListOf<TaxiChatGroup>()
-    var currentGroup = mutableListOf<TaxiChat>()
-
-    for (chat in chats) {
-        if (chat.type == org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat.ChatType.IN || chat.type == org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat.ChatType.OUT) {
-            // Flush current group if any
-            if (currentGroup.isNotEmpty()) {
-                val first = currentGroup.first()
-                val time = first.time
-                val isMe = first.authorID == currentUserID
-                groups.add(
-                    TaxiChatGroup(
-                        id = time.toISO8601(),
-                        chats = currentGroup.toList(),
-                        lastChatID = currentGroup.lastOrNull()?.id,
-                        authorID = first.authorID,
-                        authorName = first.authorName,
-                        authorProfileURL = first.authorProfileURL,
-                        authorIsWithdrew = first.authorIsWithdrew,
-                        time = time,
-                        isMe = isMe,
-                        isGeneral = false
-                    )
-                )
-                currentGroup.clear()
-            }
-
-            // Add general message group
-            groups.add(
-                TaxiChatGroup(
-                    id = chat.time.toISO8601(),
-                    chats = listOf(chat),
-                    lastChatID = null,
-                    authorID = chat.authorID,
-                    authorName = chat.authorName,
-                    authorProfileURL = chat.authorProfileURL,
-                    authorIsWithdrew = chat.authorIsWithdrew,
-                    time = chat.time,
-                    isMe = chat.authorID == currentUserID,
-                    isGeneral = true
-                )
-            )
-            continue
-        }
-
-        if (currentGroup.isEmpty()) {
-            currentGroup.add(chat)
-            continue
-        }
-
-        val lastChat = currentGroup.last()
-        val isSameAuthor = chat.authorID == lastChat.authorID
-        val isSameMinute = calendar.apply { time = chat.time }.get(Calendar.MINUTE) ==
-                calendar.apply { time = lastChat.time }.get(Calendar.MINUTE)
-
-        if (isSameAuthor && isSameMinute) {
-            currentGroup.add(chat)
-        } else {
-            // Flush current group
-            val first = currentGroup.first()
-            val time = first.time
-            val isMe = first.authorID == currentUserID
-            groups.add(
-                TaxiChatGroup(
-                    id = time.toISO8601(),
-                    chats = currentGroup.toList(),
-                    lastChatID = currentGroup.lastOrNull()?.id,
-                    authorID = first.authorID,
-                    authorName = first.authorName,
-                    authorProfileURL = first.authorProfileURL,
-                    authorIsWithdrew = first.authorIsWithdrew,
-                    time = time,
-                    isMe = isMe,
-                    isGeneral = false
-                )
-            )
-            currentGroup = mutableListOf(chat)
-        }
-    }
-
-    // Flush remaining group
-    if (currentGroup.isNotEmpty()) {
-        val first = currentGroup.first()
-        val time = first.time
-        val isMe = first.authorID == currentUserID
-        groups.add(
-            TaxiChatGroup(
-                id = time.toISO8601(),
-                chats = currentGroup.toList(),
-                lastChatID = currentGroup.lastOrNull()?.id,
-                authorID = first.authorID,
-                authorName = first.authorName,
-                authorProfileURL = first.authorProfileURL,
-                authorIsWithdrew = first.authorIsWithdrew,
-                time = time,
-                isMe = isMe,
-                isGeneral = false
-            )
-        )
-    }
-
-    return groups
 }
