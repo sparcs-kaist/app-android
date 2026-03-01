@@ -1,11 +1,15 @@
 package org.sparcs.soap.App.Shared.Extensions
 
 import android.content.Context
+import android.util.Patterns
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -27,9 +31,6 @@ fun String.toDate(): Date? {
         null
     }
 }
-
-val String.urlEscaped: String
-    get() = URLEncoder.encode(this, StandardCharsets.UTF_8.toString())
 
 fun String.toHTMLParagraphs(): String =
     this.split("\n")
@@ -88,6 +89,7 @@ fun String.toPhoneNumberFormat(): String {
         }
     }.trimEnd('-')
 }
+
 fun String.isUpdateRequired(min: String): Boolean {
     val currentParts = this.split(".").map { it.toIntOrNull() ?: 0 }
     val minParts = min.split(".").map { it.toIntOrNull() ?: 0 }
@@ -100,4 +102,31 @@ fun String.isUpdateRequired(min: String): Boolean {
         if (c > m) return false
     }
     return false
+}
+
+fun String.toDetectedAnnotatedString(linkColor: Color): AnnotatedString {
+    return buildAnnotatedString {
+        append(this@toDetectedAnnotatedString)
+        val matcher = Patterns.WEB_URL.matcher(this@toDetectedAnnotatedString)
+        while (matcher.find()) {
+            val start = matcher.start()
+            val end = matcher.end()
+            val url = matcher.group()
+
+            addStringAnnotation(
+                tag = "URL",
+                annotation = url,
+                start = start,
+                end = end
+            )
+            addStyle(
+                style = SpanStyle(
+                    color = linkColor,
+                    textDecoration = TextDecoration.Underline
+                ),
+                start = start,
+                end = end
+            )
+        }
+    }
 }

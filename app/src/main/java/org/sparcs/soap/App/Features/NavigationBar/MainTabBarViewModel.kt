@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.DeepLink
 import org.sparcs.soap.App.Domain.Helpers.AlertState
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.R
@@ -21,6 +22,7 @@ class MainTabBarViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val araBoardUseCase: AraBoardRepositoryProtocol
 ) : ViewModel() {
+    var invitedRoom by mutableStateOf<TaxiRoom?>(null)
 
     var alertState by mutableStateOf<AlertState?>(null)
     var isAlertPresented by mutableStateOf(false)
@@ -56,7 +58,7 @@ class MainTabBarViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val room = taxiRoomRepository.getPublicRoom(code)
-                _navigationEvent.emit(Channel.Taxi.name + "?roomId=${room.id}")
+                invitedRoom = room
             } catch (e: Exception) {
                 showError(R.string.invalid_invitation_title, R.string.invalid_invitation_message)
             }
