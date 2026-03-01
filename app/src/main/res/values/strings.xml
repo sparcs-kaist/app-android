@@ -452,4 +452,5 @@
     <string name="unable_to_load_more_posts">Unable to load more posts.</string>
     <string name="error_settlement_failed">Failed to commit settlement. Please try again.</string>
     <string name="error_payment_failed">Failed to commit payment.</string>
+    <string name="error_fetch_chat">Failed to load chat</string>
 </resources>
