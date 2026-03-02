@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Settings.Taxi
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -14,6 +13,7 @@ import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
 import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.R
+import timber.log.Timber
 import javax.inject.Inject
 
 interface TaxiSettingsViewModelProtocol {
@@ -36,7 +36,7 @@ interface TaxiSettingsViewModelProtocol {
 class TaxiSettingsViewModel @Inject constructor(
     private val userUseCase: UserUseCase,
     private val taxiUserRepository: TaxiUserRepository,
-    private val crashlyticsService: CrashlyticsService
+    private val crashlyticsService: CrashlyticsService,
 ) : ViewModel(), TaxiSettingsViewModelProtocol {
 
     sealed class ViewState {
@@ -66,19 +66,19 @@ class TaxiSettingsViewModel @Inject constructor(
 
     override suspend fun fetchUser() {
         _state.value = ViewState.Loading
-            val fetchedUser = userUseCase.taxiUser
-            if (fetchedUser == null) {
-                _state.value = ViewState.Error(R.string.error_taxi_user_not_found)
-                return
-            }
-            user = fetchedUser
-            val parts = fetchedUser.account.split(" ")
-            bankName = parts.firstOrNull()
-            bankNumber = parts.getOrNull(1) ?: ""
-            phoneNumber = fetchedUser.phoneNumber ?: ""
-            showBadge = fetchedUser.badge ?: false
-            residence = fetchedUser.residence ?: ""
-            _state.value = ViewState.Loaded
+        val fetchedUser = userUseCase.taxiUser
+        if (fetchedUser == null) {
+            _state.value = ViewState.Error(R.string.error_taxi_user_not_found)
+            return
+        }
+        user = fetchedUser
+        val parts = fetchedUser.account.split(" ")
+        bankName = parts.firstOrNull()
+        bankNumber = parts.getOrNull(1) ?: ""
+        phoneNumber = fetchedUser.phoneNumber ?: ""
+        showBadge = fetchedUser.badge ?: false
+        residence = fetchedUser.residence ?: ""
+        _state.value = ViewState.Loaded
     }
 
 
@@ -100,7 +100,7 @@ class TaxiSettingsViewModel @Inject constructor(
             }
             userUseCase.fetchTaxiUser()
         } catch (e: Exception) {
-            Log.e("TaxiSettingsViewModel", "Failed to fetch user: ${e.message}")
+            Timber.e("Failed to fetch user: ${e.message}")
             handleException(e, ErrorType.FETCH)
         }
     }
@@ -109,7 +109,7 @@ class TaxiSettingsViewModel @Inject constructor(
         try {
             taxiUserRepository.editBankAccount(account = "$bankName $bankNumber")
         } catch (e: Exception) {
-            Log.e("TaxiSettingsViewModel", "Failed to edit bank account: ${e.message}")
+            Timber.e("Failed to edit bank account: ${e.message}")
             handleException(e, ErrorType.BANK)
         }
     }
@@ -118,7 +118,7 @@ class TaxiSettingsViewModel @Inject constructor(
         try {
             taxiUserRepository.registerPhoneNumber(phoneNumber = phoneNumber)
         } catch (e: Exception) {
-            Log.e("TaxiSettingsViewModel", "Failed to register phone number: ${e.message}")
+            Timber.e("Failed to register phone number: ${e.message}")
             handleException(e, ErrorType.PHONE)
         }
     }
@@ -127,7 +127,7 @@ class TaxiSettingsViewModel @Inject constructor(
         try {
             taxiUserRepository.editBadge(showBadge = showBadge)
         } catch (e: Exception) {
-            Log.e("TaxiSettingsViewModel", "Failed to edit badge: ${e.message}")
+            Timber.e("Failed to edit badge: ${e.message}")
             handleException(e, ErrorType.BADGE)
         }
     }
@@ -136,7 +136,7 @@ class TaxiSettingsViewModel @Inject constructor(
         try {
             taxiUserRepository.registerResidence(residence = residence)
         } catch (e: Exception) {
-            Log.e("TaxiSettingsViewModel", "Failed to register residence: ${e.message}")
+            Timber.tag("TaxiSettingsViewModel").e("Failed to register residence: ${e.message}")
             handleException(e, ErrorType.RESIDENCE)
         }
     }

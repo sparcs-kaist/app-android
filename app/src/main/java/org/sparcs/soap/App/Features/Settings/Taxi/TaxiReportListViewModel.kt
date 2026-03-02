@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Settings.Taxi
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -8,6 +7,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiReports
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -41,7 +41,7 @@ class TaxiReportListViewModel @Inject constructor(
             _state.value = ViewState.Loaded
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
-            Log.e("TaxiReportListViewModel", "Failed to fetch reports: ${e.localizedMessage}")
+            Timber.e("Failed to fetch reports: ${e.localizedMessage}")
         }
     }
 }

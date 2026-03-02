@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Settings.Ara
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -12,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import timber.log.Timber
 import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
@@ -80,7 +80,7 @@ class AraSettingsViewModel @Inject constructor(
             _state.value = ViewState.Loaded
         } catch (e: Exception) {
             _state.value = ViewState.Error("Failed to fetch user: ${e.message}")
-            Log.e("AraSettingsViewModel", "Failed to fetch user", e)
+            Timber.e(e, "Failed to fetch user")
         }
     }
 
@@ -90,7 +90,7 @@ class AraSettingsViewModel @Inject constructor(
                 userUseCase.updateAraUser(mapOf("nickname" to nickname))
             } catch (e: Exception) {
                 _state.value = ViewState.Error("Failed to update nickname: ${e.message}")
-                Log.e("AraSettingsViewModel", "Failed to update nickname", e)
+                Timber.e(e, "Failed to update nickname")
             }
         }
     }
@@ -106,7 +106,7 @@ class AraSettingsViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 _state.value = ViewState.Error("Failed to update content preference: ${e.message}")
-                Log.e("AraSettingsViewModel", "Failed to update content preference", e)
+                Timber.e(e, "Failed to update content preference")
             }
         }
     }

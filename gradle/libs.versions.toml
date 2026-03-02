@@ -28,6 +28,7 @@ okhttp = "4.11.0"
 osmdroidAndroid = "6.1.18"
 retrofit = "2.9.0"
 socketIoClient = "2.0.1"
+timber = "5.0.1"
 workRuntimeKtx = "2.10.3"
 androidxHiltWork = "1.2.0"
 androidxHiltNavigation = "1.2.0"
@@ -96,6 +97,7 @@ firebase-crashlytics-ndk = { module = "com.google.firebase:firebase-crashlytics-
 androidx-glance-preview = { group = "androidx.glance", name = "glance-preview", version.ref = "glancePreview" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
+timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

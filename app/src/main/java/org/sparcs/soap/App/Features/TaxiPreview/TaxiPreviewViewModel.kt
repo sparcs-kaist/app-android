@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.TaxiPreview
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +20,7 @@ import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepository
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
 import org.sparcs.soap.BuildConfig
+import timber.log.Timber
 import javax.inject.Inject
 
 interface TaxiPreviewViewModelProtocol {
@@ -78,7 +78,7 @@ class TaxiPreviewViewModel @Inject constructor(
 
             val response = client.newCall(request).execute()
             if (!response.isSuccessful) {
-                Log.e("TaxiPreviewViewModel", "HTTP error: ${response.code}")
+                Timber.e("HTTP error: ${response.code}")
                 return@withContext emptyList()
             }
 
@@ -86,7 +86,7 @@ class TaxiPreviewViewModel @Inject constructor(
 
             if (json.has("error")) {
                 val errorMsg = json.getJSONObject("error").optString("message", "Unknown API error")
-                Log.e("TaxiPreviewViewModel", "OpenRouteService API error: $errorMsg")
+                Timber.e("OpenRouteService API error: $errorMsg")
                 return@withContext emptyList()
             }
 
@@ -106,7 +106,7 @@ class TaxiPreviewViewModel @Inject constructor(
 
             points
         } catch (e: Exception) {
-            Log.e("TaxiPreviewViewModel", "Error parsing route: ${e.message}", e)
+            Timber.e(e, "Error parsing route: ${e.message}")
             emptyList()
         }
     }
@@ -117,7 +117,7 @@ class TaxiPreviewViewModel @Inject constructor(
             try {
                 taxiRoomRepository.joinRoom(id)
             } catch (e: Exception) {
-                Log.e("TaxiPreviewViewModel", "Error joining room: ${e.message}")
+                Timber.e("Error joining room: ${e.message}")
             }
         }
     }
