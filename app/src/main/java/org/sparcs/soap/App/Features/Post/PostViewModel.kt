@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Post
 
-import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -23,6 +22,7 @@ import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCaseProtocol
 import org.sparcs.soap.App.Features.Post.Event.PostCommentCellEvent
 import org.sparcs.soap.App.Features.Post.Event.PostViewEvent
 import org.sparcs.soap.R
+import timber.log.Timber
 import javax.inject.Inject
 
 interface PostViewModelProtocol {
@@ -133,7 +133,8 @@ class PostViewModel @Inject constructor(
                 araBoardUseCase.cancelVote(currentPost.id)
             } else {
                 // upvote
-                val newDownVotes = if (previousMyVote == false) previousDownVotes - 1 else previousDownVotes
+                val newDownVotes =
+                    if (previousMyVote == false) previousDownVotes - 1 else previousDownVotes
                 val updatedComments = currentPost.comments.toList().toMutableList()
                 _post.value = currentPost.copy(
                     myVote = true,
@@ -173,7 +174,8 @@ class PostViewModel @Inject constructor(
                 araBoardUseCase.cancelVote(currentPost.id)
             } else {
                 // downvote
-                val newUpVotes = if (previousMyVote == true) previousUpVotes - 1 else previousUpVotes
+                val newUpVotes =
+                    if (previousMyVote == true) previousUpVotes - 1 else previousUpVotes
                 val updatedComments = currentPost.comments.toList().toMutableList()
                 _post.value = currentPost.copy(
                     myVote = false,
@@ -285,7 +287,7 @@ class PostViewModel @Inject constructor(
                 PostViewEvent.BookmarkToggled(_post.value?.myScrap ?: false),
             )
         } catch (e: Exception) {
-            Log.e("PostViewModel", "toggleBookmark error", e)
+            Timber.e(e, "toggleBookmark error")
             _post.value = current.copy(
                 myScrap = previous,
                 scrapID = originalScrapId
@@ -306,7 +308,8 @@ class PostViewModel @Inject constructor(
             if (previousMyVote == true) {
                 target.copy(myVote = null, upVotes = previousUpVotes - 1)
             } else {
-                val newDownVotes = if (previousMyVote == false) previousDownVotes - 1 else previousDownVotes
+                val newDownVotes =
+                    if (previousMyVote == false) previousDownVotes - 1 else previousDownVotes
                 target.copy(myVote = true, upVotes = previousUpVotes + 1, downVotes = newDownVotes)
             }
         }
@@ -334,7 +337,8 @@ class PostViewModel @Inject constructor(
             if (previousMyVote == false) {
                 target.copy(myVote = null, downVotes = previousDownVotes - 1)
             } else {
-                val newUpVotes = if (previousMyVote == true) previousUpVotes - 1 else previousUpVotes
+                val newUpVotes =
+                    if (previousMyVote == true) previousUpVotes - 1 else previousUpVotes
                 target.copy(myVote = false, downVotes = previousDownVotes + 1, upVotes = newUpVotes)
             }
         }
@@ -357,7 +361,7 @@ class PostViewModel @Inject constructor(
             araCommentUseCase.reportComment(commentID = commentID, type = type)
             analyticsService.logEvent(PostCommentCellEvent.CommentReported(type.name))
         } catch (e: Exception) {
-            Log.e("ReportComment", "Error during report: ${e.message}", e)
+            Timber.e(e, "Error during report: ${e.message}")
         }
     }
 
@@ -373,7 +377,7 @@ class PostViewModel @Inject constructor(
             araCommentUseCase.deleteComment(commentID = comment.id)
             analyticsService.logEvent(PostCommentCellEvent.CommentDeleted)
         } catch (e: Exception) {
-            Log.e("DeleteComment", "Error during delete: ${e.message}", e) // 여기서 에러가 찍히는지 확인!ㅇㅇㅇ
+            Timber.e(e, "Error during delete: ${e.message}")
             _post.value = currentPost
         }
     }
@@ -381,7 +385,7 @@ class PostViewModel @Inject constructor(
     private fun updateCommentInList(
         comments: List<AraPostComment>,
         commentID: Int,
-        transform: (AraPostComment) -> AraPostComment
+        transform: (AraPostComment) -> AraPostComment,
     ): List<AraPostComment> {
         return comments.map { parent ->
             if (parent.id == commentID) {

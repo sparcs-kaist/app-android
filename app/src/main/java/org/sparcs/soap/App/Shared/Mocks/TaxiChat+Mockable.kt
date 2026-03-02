@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Shared.Mocks
 
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
-import java.net.URL
 import java.util.Date
 
 fun TaxiChat.Companion.mock(): TaxiChat {
@@ -16,10 +15,10 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
         // Alice enters first
         TaxiChat(
             roomID = roomID,
-            type = TaxiChat.ChatType.IN,
+            type = TaxiChat.ChatType.ENTRANCE,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = "https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png",
             authorIsWithdrew = false,
             content = "",
             time = Date(baseDate.time - 3600_000), // 1 hour ago
@@ -32,7 +31,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "Hello! Anyone want to share a taxi?",
             time = Date(baseDate.time - 3500_000),
@@ -44,7 +43,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "Hello!",
             time = Date(baseDate.time - 3500_000),
@@ -56,7 +55,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "hello?",
             time = Date(baseDate.time - 3500 * 1000L),
@@ -68,7 +67,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "this is a test message",
             time = Date(baseDate.time - 3430 * 1000L),
@@ -78,10 +77,10 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
         // Bob enters
         TaxiChat(
             roomID = roomID,
-            type = TaxiChat.ChatType.IN,
+            type = TaxiChat.ChatType.ENTRANCE,
             authorID = "user2",
             authorName = "Bob",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
             authorIsWithdrew = false,
             content = "",
             time = Date(baseDate.time - 3400_000),
@@ -94,7 +93,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user2",
             authorName = "Bob",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
             authorIsWithdrew = false,
             content = "Yes! I'd like to join too",
             time = Date(baseDate.time - 3350_000),
@@ -107,7 +106,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "Great! What time should we leave?",
             time = Date(baseDate.time - 3200_000),
@@ -120,7 +119,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user2",
             authorName = "Bob",
-            authorProfileURL =URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
+            authorProfileURL =("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
             authorIsWithdrew = false,
             content = "How about 2 PM?",
             time = Date(baseDate.time - 3100_000),
@@ -130,10 +129,10 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
         // Charlie enters
         TaxiChat(
             roomID = roomID,
-            type = TaxiChat.ChatType.IN,
+            type = TaxiChat.ChatType.ENTRANCE,
             authorID = "user3",
             authorName = "Charlie",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "",
             time = Date(baseDate.time - 2800_000),
@@ -146,7 +145,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user3",
             authorName = "Charlie",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "Mind if I join? I'm going to the same destination",
             time = Date(baseDate.time - 2750_000),
@@ -154,26 +153,26 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             inOutNames = emptyList()
         ),
         // Account sharing
-        // TaxiChat(
-        //     roomID = roomID,
-        //     type = TaxiChat.ChatType.ACCOUNT,
-        //     authorID = "user1",
-        //     authorName = "Alice",
-        //     authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
-        //     authorIsWithdrew = false,
-        //     content = "Shared payment account info",
-        //     time = Date(baseDate.time - 2600_000),
-        //     isValid = true,
-        //     inOutNames = emptyList()
-        // ),
+         TaxiChat(
+             roomID = roomID,
+             type = TaxiChat.ChatType.ACCOUNT,
+             authorID = "user1",
+             authorName = "Alice",
+             authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+             authorIsWithdrew = false,
+             content = "Shared payment account info",
+             time = Date(baseDate.time - 2600_000),
+             isValid = true,
+             inOutNames = emptyList()
+         ),
 
         // Someone leaves
         TaxiChat(
             roomID = roomID,
-            type = TaxiChat.ChatType.OUT,
+            type = TaxiChat.ChatType.EXIT,
             authorID = "user3",
             authorName = "Charlie",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "",
             time = Date(baseDate.time - 2400_000),
@@ -187,7 +186,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "Alright, let's meet at the pickup location",
             time = Date(baseDate.time - 2000_000),
@@ -215,7 +214,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "We've departed!",
             time = Date(baseDate.time - 1700_000),
@@ -228,7 +227,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user2",
             authorName = "Bob",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
             authorIsWithdrew = false,
             content = "Traffic is lighter than expected, we should arrive early",
             time = Date(baseDate.time - 1200_000),
@@ -256,7 +255,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.SETTLEMENT,
             authorID = "user2",
             authorName = "Bob",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
             authorIsWithdrew = false,
             content = "",
             time = Date(baseDate.time - 300_000),
@@ -270,7 +269,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.PAYMENT,
             authorID = "user1",
             authorName = "Alice",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             authorIsWithdrew = false,
             content = "",
             time = Date(baseDate.time - 180_000),
@@ -284,7 +283,7 @@ fun TaxiChat.Companion.mockList(): List<TaxiChat>{
             type = TaxiChat.ChatType.TEXT,
             authorID = "user2",
             authorName = "Bob",
-            authorProfileURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
+            authorProfileURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
             authorIsWithdrew = false,
             content = "Arrived safely! Thank you",
             time = Date(baseDate.time - 60_000),

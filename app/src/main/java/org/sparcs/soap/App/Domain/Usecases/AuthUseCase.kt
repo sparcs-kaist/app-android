@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Domain.Usecases
 
 import android.app.Activity
-import android.util.Log
 import androidx.activity.ComponentActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -23,6 +22,7 @@ import org.sparcs.soap.App.Domain.Services.AuthenticationService
 import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraSignInResponseDTO
 import retrofit2.HttpException
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -51,7 +51,7 @@ class AuthUseCase @Inject constructor(
     val tokenStorage: TokenStorageProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
-    private val otlUserRepository: OTLUserRepositoryProtocol
+    private val otlUserRepository: OTLUserRepositoryProtocol,
 ) : AuthUseCaseProtocol {
 
     private val _isAuthenticated = MutableStateFlow(
@@ -88,7 +88,7 @@ class AuthUseCase @Inject constructor(
             try {
                 refreshAccessToken(force = true)
             } catch (e: Exception) {
-                Log.e("AuthUseCase", "Token refresh failed in scheduled job", e)
+                Timber.e(e, "Token refresh failed in scheduled job")
             }
         }
     }
@@ -127,7 +127,7 @@ class AuthUseCase @Inject constructor(
         val isExpired = tokenStorage.isTokenExpired()
 
         if (accessToken != null && !isExpired && !force) {
-            Log.d("AuthUseCase", "[AuthUseCase] Access token is still valid. No refresh needed.")
+            Timber.d("[AuthUseCase] Access token is still valid. No refresh needed.")
             scheduleRefreshToken() // reset timer on valid
             return
         }
@@ -181,7 +181,7 @@ class AuthUseCase @Inject constructor(
             try {
                 araUserRepository.agreeTOS(userID = userInfo.userID)
             } catch (e: Exception) {
-                Log.e("AuthUseCase","Failed to Sign in. agreeTOS failed: ${e.message}")
+                Timber.e("Failed to Sign in. agreeTOS failed: ${e.message}")
             }
 
             // MARK - Sign up Feed

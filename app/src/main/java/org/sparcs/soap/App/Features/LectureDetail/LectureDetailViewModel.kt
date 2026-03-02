@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.LectureDetail
 
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,15 +16,16 @@ import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepository
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.unescapeHash
+import timber.log.Timber
 import javax.inject.Inject
 
-interface LectureDetailViewModelProtocol{
+interface LectureDetailViewModelProtocol {
     val lecture: StateFlow<Lecture>
     val state: StateFlow<LectureDetailViewModel.ViewState>
     val reviews: StateFlow<List<LectureReview>>
     val isInCurrentTimetable: Boolean
     fun fetchReviews(lectureID: Int)
-    fun writeReview(lectureID: Int,review: LectureReview)
+    fun writeReview(lectureID: Int, review: LectureReview)
 }
 
 @HiltViewModel
@@ -34,7 +34,7 @@ class LectureDetailViewModel @Inject constructor(
     val userUseCase: UserUseCaseProtocol,
     val otlCourseRepository: OTLCourseRepositoryProtocol,
     val timetableUseCase: TimetableUseCaseProtocol,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel(), LectureDetailViewModelProtocol {
 
     sealed class ViewState {
@@ -51,7 +51,7 @@ class LectureDetailViewModel @Inject constructor(
 
     // MARK: - Properties
     private val _lecture = MutableStateFlow(initialLecture)
-    override val lecture : StateFlow<Lecture> = _lecture.asStateFlow()
+    override val lecture: StateFlow<Lecture> = _lecture.asStateFlow()
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state
@@ -67,7 +67,7 @@ class LectureDetailViewModel @Inject constructor(
                 val result = otlLectureRepository.fetchLectures(lectureID)
                 _reviews.value = result
             } catch (e: Exception) {
-                Log.e("LectureDetailVM", "fetchReviews failed", e)
+                Timber.e(e, "fetchReviews failed")
                 _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
             } finally {
                 _state.value = ViewState.Loaded
@@ -75,7 +75,7 @@ class LectureDetailViewModel @Inject constructor(
         }
     }
 
-    override fun writeReview(lectureID: Int,review: LectureReview){
+    override fun writeReview(lectureID: Int, review: LectureReview) {
         viewModelScope.launch {
             try {
                 val result = otlLectureRepository.writeReview(
@@ -87,7 +87,7 @@ class LectureDetailViewModel @Inject constructor(
                 )
                 _reviews.value += result
             } catch (e: Exception) {
-                Log.e("LectureDetailVM", "writeReview failed", e)
+                Timber.e(e, "writeReview failed")
             }
         }
     }

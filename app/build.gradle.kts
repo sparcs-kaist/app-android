@@ -146,4 +146,6 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.aboutlibraries.compose.m3)
     implementation(libs.datastore.preferences.v111)
+
+    implementation(libs.timber)
 }
