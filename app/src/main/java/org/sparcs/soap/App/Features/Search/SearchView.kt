@@ -52,6 +52,7 @@ import org.sparcs.soap.App.Features.Search.Components.SearchNavigationBar
 import org.sparcs.soap.App.Features.Search.Components.TaxiSection
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewView
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSearchViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.SearchCustomBar
@@ -103,7 +104,8 @@ fun SearchView(
                 navController = navController,
                 currentScreen = Channel.SearchView
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Search")
     ) { innerPadding ->
         Column(
             Modifier

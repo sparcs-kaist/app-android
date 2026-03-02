@@ -60,6 +60,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiPreview.Components.InfoRow
 import org.sparcs.soap.App.Features.TaxiPreview.Components.RouteHeaderView
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.formattedString
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiPreviewViewModel
@@ -141,6 +142,7 @@ fun TaxiPreviewView(
         Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
+            .analyticsScreen("Taxi Preview")
     ) {
         Box(
             modifier = Modifier

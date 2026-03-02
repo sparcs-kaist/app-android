@@ -48,6 +48,7 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -65,6 +66,7 @@ import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.soap.App.Features.TaxiChat.TaxiChatViewModel
 import org.sparcs.soap.App.Features.TaxiReport.Components.TaxiReportUser
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiReportViewModel
 import org.sparcs.soap.App.theme.ui.Theme
@@ -108,13 +110,19 @@ fun TaxiReportView(
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.report)) },
+                title = {
+                    Text(
+                        stringResource(R.string.report),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     DismissButton { navController.popBackStack() }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.background)
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Taxi Report")
     ) { innerPadding ->
 
         Column(

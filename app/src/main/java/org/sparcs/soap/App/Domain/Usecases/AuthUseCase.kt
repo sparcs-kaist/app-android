@@ -2,6 +2,9 @@ package org.sparcs.soap.App.Domain.Usecases
 
 import android.app.Activity
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -54,11 +57,18 @@ class AuthUseCase @Inject constructor(
     private val otlUserRepository: OTLUserRepositoryProtocol,
 ) : AuthUseCaseProtocol {
 
-    private val _isAuthenticated = MutableStateFlow(
-        tokenStorage.getRefreshToken() != null    )
+    private val _isAuthenticated = MutableStateFlow(tokenStorage.getRefreshToken() != null)
     override val isAuthenticatedFlow: Flow<Boolean> = _isAuthenticated.asStateFlow()
+
+    // Coalesce concurrent refresh calls
     private var refreshJob: Deferred<Unit>? = null
     private var scheduledRefreshJob: Job? = null
+
+    // Cooldown: skip refresh attempts for 10s after a failure
+    private var lastRefreshFailure: Long = 0
+    private val refreshCooldownMillis = 10_000L
+
+    // Called after a successful token refresh
     var onTokenRefresh: (() -> Unit)? = null
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -68,8 +78,22 @@ class AuthUseCase @Inject constructor(
 
         _isAuthenticated.value = hasAccess || hasRefresh
 
-        if (hasRefresh) {
-            scheduleRefreshToken()
+        scheduleRefreshToken()
+        observeForeground()
+    }
+
+    // MARK: - Foreground Refresh
+    private fun observeForeground() {
+        coroutineScope.launch(Dispatchers.Main) {
+            ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    coroutineScope.launch {
+                        if (_isAuthenticated.value) {
+                            try { refreshAccessToken(force = false) } catch (e: Exception) { /* ignore */ }
+                        }
+                    }
+                }
+            })
         }
     }
 
@@ -78,17 +102,14 @@ class AuthUseCase @Inject constructor(
 
         val expirationDate = tokenStorage.getTokenExpirationDate() ?: return
         val bufferMillis = TimeUnit.MINUTES.toMillis(5)
-        val delayMillis =
-            (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
+        val delayMillis = (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
 
         scheduledRefreshJob = coroutineScope.launch {
-            if (delayMillis > 0) {
-                delay(delayMillis)
-            }
+            if (delayMillis > 0) delay(delayMillis)
             try {
                 refreshAccessToken(force = true)
             } catch (e: Exception) {
-                Timber.e(e, "Token refresh failed in scheduled job")
+                Timber.e(e, "Scheduled token refresh failed")
             }
         }
     }
@@ -123,12 +144,14 @@ class AuthUseCase @Inject constructor(
             }
         }
 
-        val accessToken = tokenStorage.getAccessToken()
-        val isExpired = tokenStorage.isTokenExpired()
+        if (System.currentTimeMillis() - lastRefreshFailure < refreshCooldownMillis) {
+            throw AuthUseCaseError.RefreshFailed(Exception("Refresh on cooldown"))
+        }
 
-        if (accessToken != null && !isExpired && !force) {
-            Timber.d("[AuthUseCase] Access token is still valid. No refresh needed.")
-            scheduleRefreshToken() // reset timer on valid
+        val accessToken = tokenStorage.getAccessToken()
+        if (accessToken != null && !tokenStorage.isTokenExpired() && !force) {
+            Timber.d("[AuthUseCase] Still valid. No refresh needed.")
+            scheduleRefreshToken()
             return
         }
 
@@ -136,9 +159,7 @@ class AuthUseCase @Inject constructor(
             try {
                 val currentRefreshToken = tokenStorage.getRefreshToken() ?: run {
                     // No refresh token found, sign out.
-                    tokenStorage.clearTokens()
-                    _isAuthenticated.value = false
-                    cancelRefreshToken()
+                    signOut()
                     throw AuthUseCaseError.RefreshFailed(Exception("No refresh token available"))
                 }
 
@@ -147,24 +168,21 @@ class AuthUseCase @Inject constructor(
                 tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
 
                 _isAuthenticated.value = true
+                lastRefreshFailure = 0
                 scheduleRefreshToken() // set timer on success
                 onTokenRefresh?.invoke()
 
                 Unit
             } catch (e: Exception) {
-                // network error, do not remove tokens on decoding error. only when 401
-                val isAuthError = (e as? HttpException)?.code() == 401
-                if (isAuthError) {
-                    tokenStorage.clearTokens()
-                    _isAuthenticated.value = false
-                    cancelRefreshToken()
+                lastRefreshFailure = System.currentTimeMillis()
+                if ((e as? HttpException)?.code() == 401) {
+                    signOut()
                 }
                 throw e
             } finally {
                 refreshJob = null
             }
         }
-
         refreshJob = job
         job.await()
     }
@@ -172,7 +190,6 @@ class AuthUseCase @Inject constructor(
     override suspend fun signIn(activity: Activity) {
         try {
             val tokenResponse = (authenticationService as AuthenticationService).authenticate(activity as ComponentActivity)
-
             tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
 
             // MARK - Sign up Ara
@@ -204,6 +221,6 @@ class AuthUseCase @Inject constructor(
     override suspend fun signOut() {
         tokenStorage.clearTokens()
         _isAuthenticated.value = false
-        cancelRefreshToken()
+        scheduledRefreshJob?.cancel()
     }
 }
