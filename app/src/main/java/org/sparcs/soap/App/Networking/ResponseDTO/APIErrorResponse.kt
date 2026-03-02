@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Error.NetworkError
 import org.sparcs.soap.App.Domain.Helpers.NetworkErrorMapper
 import retrofit2.HttpException
+import timber.log.Timber
 
 data class ApiErrorResponse(
     @SerializedName("error")
@@ -20,6 +21,7 @@ class ApiException(override val message: String) : Exception(message)
 
 object AuthRetryConfig {
     var tokenRefresher: (suspend () -> Unit)? = null
+    var isRefreshing = false
 }
 
 suspend inline fun <T> safeApiCall(
@@ -45,12 +47,26 @@ suspend fun <T> handleApiError(
     val errorBody = response?.errorBody()?.string()
 
     if (code == 401) {
-        AuthRetryConfig.tokenRefresher?.let { refresher ->
+        val refresher = AuthRetryConfig.tokenRefresher
+
+        if (AuthRetryConfig.isRefreshing || refresher == null) {
+            Timber.e("Unauthorized: Skipping retry (isRefreshing: ${AuthRetryConfig.isRefreshing})")
+            throw NetworkError.Unauthorized
+        }
+
+        return try {
+            AuthRetryConfig.isRefreshing = true
+            Timber.d("401 detected: Refreshing token...")
+
             refresher()
-            return call()
+
+            AuthRetryConfig.isRefreshing = false
+            call()
+        } catch (e: Exception) {
+            AuthRetryConfig.isRefreshing = false
+            throw NetworkErrorMapper.map(e)
         }
     }
-
     if (errorBody.isNullOrEmpty()) throw NetworkError.ServerError(code)
 
     try {

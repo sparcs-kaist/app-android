@@ -66,6 +66,7 @@ import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModel
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.ReviewCompose.Components.ReviewComposeNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureDetailViewModel
 import org.sparcs.soap.App.theme.ui.Theme
@@ -143,7 +144,8 @@ fun ReviewComposeView(
                 isUploading = isUploading,
                 isDoneEnabled = contentField.text.isNotBlank() && !isUploading
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Review Compose")
     ) { innerPadding ->
         Column(
             modifier = Modifier

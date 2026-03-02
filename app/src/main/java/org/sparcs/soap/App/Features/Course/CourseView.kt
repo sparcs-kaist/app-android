@@ -42,6 +42,7 @@ import org.sparcs.soap.App.Features.LectureDetail.Components.LectureDetailRow
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewCell
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewSkeletonCell
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureSummaryRow
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
@@ -68,7 +69,8 @@ fun CourseView(
                 navController = navController,
                 text = course.title.localized()
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Course")
     ) { paddingValues ->
         Column(
             modifier = Modifier

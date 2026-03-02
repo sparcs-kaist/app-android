@@ -454,4 +454,6 @@
     <string name="error_payment_failed">Failed to commit payment.</string>
     <string name="error_fetch_chat">Failed to load chat</string>
     <string name="not_supported">Not Supported</string>
+    <string name="error_feed_image_update_failed">Failed to update profile.</string>
+    <string name="error_feed_nickname_reserved">This nickname is not available.</string>
 </resources>
