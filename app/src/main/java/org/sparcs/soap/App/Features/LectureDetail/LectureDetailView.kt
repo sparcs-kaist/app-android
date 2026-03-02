@@ -32,6 +32,7 @@ import org.sparcs.soap.App.Features.LectureDetail.Components.LectureInformation
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviews
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureSummary
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureDetailViewModel
 import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
@@ -79,7 +80,8 @@ fun LectureDetailView(
                 isCurrentTimetable = lectureDetailViewModel.isInCurrentTimetable,
                 isEnabled = timetableViewModel.isEditable.collectAsState().value
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Lecture Detail")
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier

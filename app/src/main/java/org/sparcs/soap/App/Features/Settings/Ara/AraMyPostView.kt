@@ -29,6 +29,7 @@ import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.PostList.Components.PostList.PostList
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.SearchCustomBar
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
@@ -68,7 +69,8 @@ fun AraMyPostView(
                 onClickSearch = { showSearchBar = !showSearchBar },
                 isSelected = showSearchBar
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Ara My Post")
     ) { innerPadding ->
 
         Column(

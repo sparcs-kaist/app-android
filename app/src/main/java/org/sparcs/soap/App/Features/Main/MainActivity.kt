@@ -147,7 +147,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    if (isLoading || isAuthenticated == null) {
+                    if (isLoading) {
                         // MARK: THIS PLAYS CRUCIAL ROLE HIDING SIGN IN VIEW ON LOADING
                     } else {
                         if (isAuthenticated == true) {
