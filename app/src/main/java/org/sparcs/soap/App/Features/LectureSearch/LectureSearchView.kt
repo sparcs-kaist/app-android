@@ -47,6 +47,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Features.LectureSearch.Components.LectureSearchViewNavigationBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
 import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
@@ -94,7 +95,8 @@ fun LectureSearchView(
                     ),
                 )
             }
-        }
+        },
+        modifier = Modifier.analyticsScreen("Lecture Search")
     ) { innerPadding ->
         Column(
             modifier = Modifier

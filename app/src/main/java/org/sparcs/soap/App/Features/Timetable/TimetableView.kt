@@ -47,6 +47,7 @@ import org.sparcs.soap.App.Features.Timetable.Components.TimetableCreditGraph
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableGrid
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableSummary
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableViewNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.escapeHash
 import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
 import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
@@ -98,7 +99,8 @@ fun TimetableView(
                     navController = navController,
                     currentScreen = Channel.TimeTable
                 )
-            }
+            },
+            modifier = Modifier.analyticsScreen("Timetable")
         ) { innerPadding ->
             Column(
                 modifier = Modifier

@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.App.Features.NavigationBar.Components.DismissButton
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.isDark
 import org.sparcs.soap.R
@@ -79,7 +80,8 @@ fun CreditView(navController: NavController) {
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Credit")
     ) { innerPadding ->
         Column(
             modifier = Modifier

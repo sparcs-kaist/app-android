@@ -46,6 +46,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.Constants
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSignInViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.isDark
@@ -71,7 +72,8 @@ fun SignInView(
         modifier = Modifier
             .fillMaxSize()
             .navigationBarsPadding()
-            .padding(16.dp),
+            .padding(16.dp)
+            .analyticsScreen("Sign In"),
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

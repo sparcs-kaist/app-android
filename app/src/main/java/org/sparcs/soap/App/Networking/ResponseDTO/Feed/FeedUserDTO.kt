@@ -25,3 +25,7 @@ data class FeedUserDTO (
         )
     }
 }
+
+data class KarmaResponse(
+    @SerializedName("karma_total") val karmaTotal: Int
+)
