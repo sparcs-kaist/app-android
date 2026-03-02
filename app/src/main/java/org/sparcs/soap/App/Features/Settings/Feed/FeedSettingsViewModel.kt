@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Settings.Feed
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +18,7 @@ import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
 import org.sparcs.soap.R
 import retrofit2.HttpException
+import timber.log.Timber
 import javax.inject.Inject
 
 interface FeedSettingsViewModelProtocol {
@@ -91,9 +91,10 @@ class FeedSettingsViewModel @Inject constructor(
                             R.string.nickname_error_update_failed
                         }
                     }
+
                     else -> R.string.nickname_error_update_failed
                 }
-                Log.e("FeedSettingsViewModel", "Nickname update failed: $e")
+                Timber.e("Nickname update failed: $e")
                 crashlyticsService.recordException(e)
             }
         }
@@ -106,7 +107,7 @@ class FeedSettingsViewModel @Inject constructor(
                 userUseCase.fetchFeedUser()
                 _user.value = userUseCase.feedUser
             } catch (e: Exception) {
-                Log.e("FeedSettingsViewModel", "Image upload failed: $e")
+                Timber.e("Image upload failed: $e")
                 crashlyticsService.recordException(e)
             }
         }
@@ -119,7 +120,7 @@ class FeedSettingsViewModel @Inject constructor(
                 userUseCase.fetchFeedUser()
                 _user.value = userUseCase.feedUser
             } catch (e: Exception) {
-                Log.e("FeedSettingsViewModel", "Reset failed: $e")
+                Timber.e("Reset failed: $e")
                 crashlyticsService.recordException(e)
             }
         }

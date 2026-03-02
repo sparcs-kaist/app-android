@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
-import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -19,6 +18,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Usecases.FCMUseCaseProtocol
 import org.sparcs.soap.R
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -35,7 +35,7 @@ class FCMService : FirebaseMessagingService() {
             try {
                 fcmUseCase.register(token)
             } catch (e: Exception) {
-                Log.e("FCMService", "Registration failed", e)
+                Timber.e(e, "Registration failed")
             }
         }
     }
@@ -50,21 +50,25 @@ class FCMService : FirebaseMessagingService() {
                 showNotification(title, body)
             }
         } catch (e: Exception) {
-            Log.e("FCMService", "Message processing failed", e)
+            Timber.e(e, "Message processing failed")
         }
     }
 
     private fun showNotification(title: String, body: String) {
         try {
-            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val notificationManager =
+                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val channelId = "buddy_notification_channel"
 
             val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
             }
+
             val pendingIntent = PendingIntent.getActivity(
-                this, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+                this,
+                0,
+                intent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -73,9 +77,13 @@ class FCMService : FirebaseMessagingService() {
                     channelId,
                     channelName,
                     NotificationManager.IMPORTANCE_HIGH
-                )
+                ).apply {
+                    enableLights(true)
+                    enableVibration(true)
+                }
                 notificationManager.createNotificationChannel(channel)
             }
+
             val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
             val notification = NotificationCompat.Builder(this, channelId)
@@ -85,12 +93,13 @@ class FCMService : FirebaseMessagingService() {
                 .setContentText(body)
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .build()
 
             notificationManager.notify(System.currentTimeMillis().toInt(), notification)
         } catch (e: Exception) {
-            Log.e("FCMService", "Notification display failed", e)
+            Timber.e(e, "Notification display failed")
         }
     }
 

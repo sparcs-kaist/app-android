@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Features.UserPostList
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,6 +22,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPostAuthor
 import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Features.PostList.Event.PostListViewEvent
+import timber.log.Timber
 import javax.inject.Inject
 
 interface UserPostListViewModelProtocol {
@@ -47,7 +47,7 @@ interface UserPostListViewModelProtocol {
 class UserPostListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val araBoardUseCase: AraBoardUseCaseProtocol,
-    private val analyticsService: AnalyticsServiceProtocol
+    private val analyticsService: AnalyticsServiceProtocol,
 ) : ViewModel(), UserPostListViewModelProtocol {
 
     //Mark - ViewState
@@ -153,7 +153,7 @@ class UserPostListViewModel @Inject constructor(
                     _state.value = ViewState.Loaded(updatedPosts)
                 }
             } catch (e: Exception) {
-                Log.e("UserPostListViewModel", "Failed to refresh item")
+                Timber.e("Failed to refresh item")
                 _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
             }
         }

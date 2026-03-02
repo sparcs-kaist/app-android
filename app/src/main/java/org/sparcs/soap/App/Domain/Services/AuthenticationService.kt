@@ -2,7 +2,6 @@ package org.sparcs.soap.App.Domain.Services
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -17,6 +16,7 @@ import org.sparcs.soap.App.Networking.ResponseDTO.Auth.SignInResponseDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.Auth.TokenResponseDTO
 import org.sparcs.soap.App.Shared.Extensions.base64UrlEncodedString
 import org.sparcs.soap.App.Shared.Extensions.sha256
+import timber.log.Timber
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.Base64
@@ -51,7 +51,7 @@ object AuthenticationCallbackHandler {
 }
 
 class AuthenticationService @Inject constructor(
-    private val authRepository: AuthRepositoryProtocol
+    private val authRepository: AuthRepositoryProtocol,
 ) : AuthenticationServiceProtocol {
 
     private fun generateCodeVerifier(): String {
@@ -102,10 +102,11 @@ class AuthenticationService @Inject constructor(
                     if (!session.isNullOrEmpty()) {
                         CoroutineScope(Dispatchers.IO).launch {
                             try {
-                                val tokenResponse = authRepository.requestToken(session, codeVerifier)
+                                val tokenResponse =
+                                    authRepository.requestToken(session, codeVerifier)
                                 continuation.resume(tokenResponse)
                             } catch (e: Exception) {
-                                Log.e("AuthWebView", "Token exchange failed", e)
+                                Timber.e(e, "Token exchange failed")
                                 continuation.resumeWithException(
                                     AuthenticationServiceError.TokenExchangeFailed(
                                         e
@@ -139,9 +140,9 @@ class AuthenticationService @Inject constructor(
             authRepository.refreshToken(refreshToken)
         } catch (e: Exception) {
             if (e is java.net.UnknownHostException || e is java.net.SocketTimeoutException) {
-                Log.w("AuthService", "Network error during token refresh. Stopping retry.")
+                Timber.w("Network error during token refresh. Stopping retry.")
             } else {
-                Log.e("AuthService", "Failed to refresh access token", e)
+                Timber.e(e, "Failed to refresh access token")
             }
             throw AuthenticationServiceError.TokenRefreshFailed(e)
         }

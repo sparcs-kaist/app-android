@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -31,6 +30,7 @@ import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Features.FeedPostCompose.Event.FeedPostComposeViewEvent
 import org.sparcs.soap.R
+import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
 
@@ -60,7 +60,7 @@ class FeedPostComposeViewModel @Inject constructor(
     private val feedPostUseCase: FeedPostUseCaseProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
 ) : ViewModel(), FeedPostComposeViewModelProtocol {
 
     sealed class ComposeType(val value: Int) {
@@ -96,7 +96,7 @@ class FeedPostComposeViewModel @Inject constructor(
                 userUseCase.fetchFeedUser()
                 feedUser = userUseCase.feedUser
             } catch (e: Exception) {
-                Log.e("FeedViewModel", "Fetch failed", e)
+                Timber.e(e, "Fetch failed")
             }
         }
     }
@@ -104,11 +104,11 @@ class FeedPostComposeViewModel @Inject constructor(
     override suspend fun writePost() {
         val uploadedImages = coroutineScope {
             selectedImages.mapIndexed { idx, item ->
-            async {
-                val image = feedImageUseCase.uploadPostImage(item)
-                idx to image
-            }
-        }.awaitAll()
+                async {
+                    val image = feedImageUseCase.uploadPostImage(item)
+                    idx to image
+                }
+            }.awaitAll()
         }.sortedBy { it.first }
             .map { it.second }
 
@@ -168,7 +168,7 @@ class FeedPostComposeViewModel @Inject constructor(
 
     private fun reconcile(
         new: List<FeedPostPhotoItem>,
-        current: List<FeedPostPhotoItem>
+        current: List<FeedPostPhotoItem>,
     ): List<FeedPostPhotoItem> {
         val byId = current.associateBy { it.id }
         return new.map { fresh ->

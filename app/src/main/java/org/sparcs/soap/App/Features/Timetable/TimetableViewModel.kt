@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Timetable
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -22,6 +21,7 @@ import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.R
+import timber.log.Timber
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
@@ -133,7 +133,7 @@ class TimetableViewModel @Inject constructor(
                 timetableUseCase.load()
                 isLoading.value = false
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "failed to fetch Timetable Data")
+                Timber.e("failed to fetch Timetable Data")
                 handleException(e, ErrorType.FetchData)
             }
         }
@@ -176,7 +176,7 @@ class TimetableViewModel @Inject constructor(
             try {
                 timetableUseCase.createTable()
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "Error creating table", e)
+                Timber.e(e, "Error creating table")
                 handleException(e, ErrorType.CreateTable)
             }
         }
@@ -187,7 +187,7 @@ class TimetableViewModel @Inject constructor(
             try {
                 timetableUseCase.deleteTable()
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "Error deleting table", e)
+                Timber.e(e, "Error deleting table")
                 handleException(e, ErrorType.DeleteTable)
             }
         }
@@ -202,7 +202,7 @@ class TimetableViewModel @Inject constructor(
                 }
                 timetableUseCase.addLecture(lecture)
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "Error adding lecture", e)
+                Timber.e(e, "Error adding lecture")
                 handleException(e, ErrorType.AddLecture)
             }
         }
@@ -213,7 +213,7 @@ class TimetableViewModel @Inject constructor(
             try {
                 timetableUseCase.deleteLecture(lecture)
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "Error deleting lecture", e)
+                Timber.e(e, "Error deleting lecture")
                 handleException(e, ErrorType.DeleteLecture)
             }
         }

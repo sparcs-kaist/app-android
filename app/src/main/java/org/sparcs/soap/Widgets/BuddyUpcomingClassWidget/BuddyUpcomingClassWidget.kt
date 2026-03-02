@@ -3,7 +3,6 @@ package org.sparcs.soap.Widgets.BuddyUpcomingClassWidget
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -45,6 +44,7 @@ import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassRectangl
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassSmallWidgetView
 import org.sparcs.soap.Widgets.WidgetEntryPoint
 import org.sparcs.soap.Widgets.theme.ui.WidgetTheme
+import timber.log.Timber
 import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -124,7 +124,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val glanceIds = glanceManager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
 
         if (glanceIds.isEmpty()) {
-            Log.d("BuddyUpcomingClassWidgetWorker", "No installed widgets found. Stopping worker.")
+            Timber.d("No installed widgets found. Stopping worker.")
             return Result.success()
         }
         val entryPoint =
@@ -206,7 +206,7 @@ class UpComingWidgetSyncManager @Inject constructor(
             }
             BuddyUpcomingClassWidget().updateAll(context)
         } catch (e: Exception) {
-            Log.e("WidgetSync", "${e.message}")
+            Timber.tag("WidgetSync").e("${e.message}")
         }
     }
 }

@@ -1,4 +1,3 @@
-import android.util.Log
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.webkit.WebViewClient
@@ -97,7 +96,6 @@ private fun HTMLViewPreview() {
         HTMLView(
             htmlString = "<p style='color:red;'>🔥 Compose + WebView Test<br><b>오샐러드 최고!</b></p>",
             onContentHeightChanged = { height ->
-                Log.d("HTMLView", "Content height: $height px")
             },
             modifier = Modifier
                 .fillMaxWidth()

@@ -3,7 +3,6 @@ package org.sparcs.soap.Widgets.BuddyTimetableWidget
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -44,6 +43,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.Widgets.WidgetEntryPoint
 import org.sparcs.soap.Widgets.theme.ui.TimetableWidgetTheme.grayBB
 import org.sparcs.soap.Widgets.theme.ui.WidgetTheme
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -76,7 +76,9 @@ class TimetableWidget : GlanceAppWidget() {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
-                        .background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
+                        .background(
+                            GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency)
+                        )
                 ) {
                     if (state.signInRequired) {
                         Box(
@@ -85,7 +87,13 @@ class TimetableWidget : GlanceAppWidget() {
                         ) {
                             Text(
                                 context.getString(R.string.login_required),
-                                style = TextStyle(color = ColorProvider(GlanceTheme.colors.onSurface.getColor(context)))
+                                style = TextStyle(
+                                    color = ColorProvider(
+                                        GlanceTheme.colors.onSurface.getColor(
+                                            context
+                                        )
+                                    )
+                                )
                             )
                         }
                     } else if (state.timetable == null) {
@@ -96,13 +104,23 @@ class TimetableWidget : GlanceAppWidget() {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     context.getString(R.string.loading_data),
-                                    style = TextStyle(color = ColorProvider(GlanceTheme.colors.onSurface.getColor(context)))
+                                    style = TextStyle(
+                                        color = ColorProvider(
+                                            GlanceTheme.colors.onSurface.getColor(
+                                                context
+                                            )
+                                        )
+                                    )
                                 )
                                 Text(
                                     context.getString(R.string.wait_moment),
                                     style = TextStyle(
                                         fontSize = 12.sp,
-                                        color = ColorProvider(GlanceTheme.colors.grayBB.getColor(context))
+                                        color = ColorProvider(
+                                            GlanceTheme.colors.grayBB.getColor(
+                                                context
+                                            )
+                                        )
                                     )
                                 )
                             }
@@ -152,7 +170,7 @@ class TimetableWidgetSyncManager @Inject constructor(
             }
             TimetableWidget().updateAll(context)
         } catch (e: Exception) {
-            Log.e("WidgetSync", "${e.message}")
+            Timber.tag("WidgetSync").e("${e.message}")
         }
     }
 }
@@ -164,7 +182,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
         val glanceIds = glanceManager.getGlanceIds(TimetableWidget::class.java)
 
         if (glanceIds.isEmpty()) {
-            Log.d("TimetableWidgetWorker", "No installed widgets found. Stopping worker.")
+            Timber.d("No installed widgets found. Stopping worker.")
             return Result.success()
         }
         val entryPoint =
@@ -184,7 +202,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             syncManager.sync(timetable)
             Result.success()
         } catch (e: Exception) {
-            Log.e("TimetableWorker", "TimetableUpdateWorker Error: ${e.message}")
+            Timber.e("TimetableUpdateWorker Error: ${e.message}")
             Result.retry()
         }
     }
