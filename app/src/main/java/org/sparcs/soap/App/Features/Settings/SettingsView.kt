@@ -62,6 +62,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.toggle
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSettingsViewModel
 import org.sparcs.soap.App.theme.ui.Theme
@@ -94,7 +95,9 @@ fun SettingsView(
                 title = stringResource(R.string.settings),
                 onDismiss = { navController.popBackStack() }
             )
-        }) { innerPadding ->
+        },
+        modifier = Modifier.analyticsScreen("Settings")
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .padding(16.dp)

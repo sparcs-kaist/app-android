@@ -42,6 +42,8 @@ import org.sparcs.soap.App.Domain.Repositories.Feed.FeedImageRepository
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedImageRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedPostRepository
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedProfileRepository
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedProfileRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepository
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepository
@@ -81,6 +83,8 @@ import org.sparcs.soap.App.Domain.Usecases.Feed.FeedImageUseCase
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedImageUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCase
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedProfileUseCase
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedProfileUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackground
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtocol
@@ -93,6 +97,7 @@ import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCase
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.soap.App.Networking.ResponseDTO.AuthRetryConfig
 import org.sparcs.soap.App.Networking.RetrofitAPI.AppVersionApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraBoardApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraCommentApi
@@ -102,6 +107,7 @@ import org.sparcs.soap.App.Networking.RetrofitAPI.FCMApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedCommentApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedImageApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedPostApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedProfileApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedUserApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLCourseApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLLectureApi
@@ -418,6 +424,12 @@ object NetworkModule {
     fun provideFCMApi(@Named("FeedBackend") retrofit: Retrofit): FCMApi {
         return retrofit.create(FCMApi::class.java)
     }
+
+    @Provides
+    @Singleton
+    fun provideFeedProfileApi(@Named("FeedBackend") retrofit: Retrofit): FeedProfileApi {
+        return retrofit.create(FeedProfileApi::class.java)
+    }
 }
 
 @Module
@@ -489,6 +501,13 @@ abstract class RepositoryModule {
         impl: FeedUserRepository
     ): FeedUserRepositoryProtocol
 
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedProfileRepository(
+        impl: FeedProfileRepository
+    ): FeedProfileRepositoryProtocol
+
     @Binds
     @Singleton
     abstract fun bindFeedImageRepository(
@@ -547,10 +566,6 @@ abstract class RepositoryModule {
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class UseCaseModule {
-
-    @Binds
-    @Singleton
-    abstract fun bindAuthUseCase(impl: AuthUseCase): AuthUseCaseProtocol
 
     @Binds
     @Singleton
@@ -631,6 +646,12 @@ abstract class UseCaseModule {
     abstract fun bindAraCommentUseCase(
         impl: AraCommentUseCase
     ): AraCommentUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedProfileUseCase(
+        impl: FeedProfileUseCase
+    ): FeedProfileUseCaseProtocol
 }
 
 @Module
@@ -687,8 +708,12 @@ object AuthUseCaseModule {
             tokenStorage,
             araUserRepository,
             feedUserRepository,
-            otlUserRepository
+            otlUserRepository,
         )
+
+        AuthRetryConfig.tokenRefresher = {
+            useCase.refreshAccessToken(force = true)
+        }
 
         useCase.onTokenRefresh = {
             taxiChatServiceProvider.get().reconnect()
