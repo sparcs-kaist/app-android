@@ -3,7 +3,6 @@ package org.sparcs.soap.Widgets.BuddyTimetableWidget
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -47,6 +46,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.Widgets.WidgetEntryPoint
 import org.sparcs.soap.Widgets.theme.ui.TimetableWidgetTheme.grayBB
 import org.sparcs.soap.Widgets.theme.ui.WidgetTheme
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -168,7 +168,7 @@ class TimetableWidgetSyncManager @Inject constructor(
             }
             TimetableWidget().updateAll(context)
         } catch (e: Exception) {
-            Log.e("WidgetSync", "${e.message}")
+            Timber.tag("WidgetSync").e("${e.message}")
         }
     }
 }
@@ -180,7 +180,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
         val glanceIds = glanceManager.getGlanceIds(TimetableWidget::class.java)
 
         if (glanceIds.isEmpty()) {
-            Log.d("TimetableWidgetWorker", "No installed widgets found. Stopping worker.")
+            Timber.d("No installed widgets found. Stopping worker.")
             return Result.success()
         }
         val entryPoint =
@@ -200,7 +200,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             syncManager.sync(timetable)
             Result.success()
         } catch (e: Exception) {
-            Log.e("TimetableWorker", "TimetableUpdateWorker Error: ${e.message}")
+            Timber.e("TimetableUpdateWorker Error: ${e.message}")
             Result.retry()
         }
     }

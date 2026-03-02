@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Domain.Usecases.Taxi
 
 import android.graphics.Bitmap
-import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +21,7 @@ import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.TaxiChatService
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.toByteArray
+import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
 
@@ -84,7 +84,7 @@ class TaxiChatUseCase @Inject constructor(
             taxiChatService.isConnectedPublisher.filter { it }.first()
             taxiChatRepository.fetchChats(room.id)
         } catch (e: Exception) {
-            Log.e("TaxiChatUseCase", "Failed to fetch initial chats", e)
+            Timber.e(e, "Failed to fetch initial chats")
         }
     }
 
@@ -93,7 +93,7 @@ class TaxiChatUseCase @Inject constructor(
             try {
                 taxiChatRepository.fetchChatsBefore(room.id, before)
             } catch (e: Exception) {
-                Log.e("TaxiChatUseCase", "Failed to fetch chats", e)
+                Timber.e(e, "Failed to fetch chats")
             }
         }
     }
@@ -122,7 +122,7 @@ class TaxiChatUseCase @Inject constructor(
             val request = TaxiChatRequest(room.id, type, content)
             taxiChatRepository.sendChat(request)
         } catch (e: Exception) {
-            Log.e("TaxiChatUseCase", "Failed to send chat", e)
+            Timber.e(e, "Failed to send chat")
         }
     }
 
@@ -140,13 +140,16 @@ class TaxiChatUseCase @Inject constructor(
         taxiChatService.isConnectedPublisher
             .onEach { isConnected ->
                 isSocketConnected = isConnected
-                Log.d("TaxiChatUseCase", "Socket connected: $isConnected")
+                Timber.d("Socket connected: $isConnected")
             }
             .launchIn(scope)
 
         taxiChatService.chatsPublisher
             .onEach { newChats ->
-                try { taxiChatRepository.readChats(room.id) } catch (e: Exception) {}
+                try {
+                    taxiChatRepository.readChats(room.id)
+                } catch (e: Exception) {
+                }
 
                 this.flatChats = newChats
                 this.accountChats = newChats.filter { it.type == TaxiChat.ChatType.ACCOUNT }
@@ -164,7 +167,7 @@ class TaxiChatUseCase @Inject constructor(
                     this.room = updatedRoom
                     _roomUpdateFlow.emit(updatedRoom)
                 } catch (e: Exception) {
-                    Log.e("TaxiChatUseCase", "Failed to update room: $e")
+                    Timber.e("Failed to update room: $e")
                 }
             }
             .launchIn(scope)

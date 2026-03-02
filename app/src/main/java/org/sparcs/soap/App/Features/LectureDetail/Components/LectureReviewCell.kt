@@ -3,7 +3,6 @@ package org.sparcs.soap.App.Features.LectureDetail.Components
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
@@ -55,6 +54,7 @@ import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.gray64
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
+import timber.log.Timber
 
 
 @Composable
@@ -355,7 +355,7 @@ private fun toggleLike(
         } catch (e: Exception) {
             update(prev)
             Toast.makeText(context, "Error toggling like", Toast.LENGTH_SHORT).show()
-            Log.e("toggleLike", "Error toggling like", e)
+            Timber.e(e, "Error toggling like")
         }
     }
 }
@@ -377,7 +377,7 @@ fun report(review: LectureReview, context: Context, unknown: String) {
     try {
         context.startActivity(intent)
     } catch (e: Exception) {
-        Log.e("SettingsView", "Error launching email app", e)
+        Timber.e(e, "Error launching email app")
         Toast.makeText(context, "Failed to open email app", Toast.LENGTH_SHORT).show()
     }
 }

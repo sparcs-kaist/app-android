@@ -2,7 +2,6 @@ package org.sparcs.soap.App.Features.TaxiPreview
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -68,6 +67,7 @@ import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.Components.TaxiParticipants
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
+import timber.log.Timber
 
 @Composable
 fun TaxiPreviewView(
@@ -123,7 +123,7 @@ fun TaxiPreviewView(
             )
 
         } catch (e: Exception) {
-            Log.e("TaxiPreviewView", "Error calculating route points: ${e.message}")
+            Timber.e("Error calculating route points: ${e.message}")
             errorMessage = e.localizedMessage ?: "Unknown error"
             showError = true
         }
