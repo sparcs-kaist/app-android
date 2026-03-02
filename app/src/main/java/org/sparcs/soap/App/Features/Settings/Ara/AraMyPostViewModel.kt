@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Features.Settings.Ara
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -21,6 +20,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPostPage
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import timber.log.Timber
 import javax.inject.Inject
 
 interface AraMyPostViewModelProtocol {
@@ -41,7 +41,7 @@ interface AraMyPostViewModelProtocol {
 class AraMyPostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     userUseCase: UserUseCase,
-    private val araBoardUseCase : AraBoardUseCaseProtocol,
+    private val araBoardUseCase: AraBoardUseCaseProtocol,
 ) : ViewModel(), AraMyPostViewModelProtocol {
 
     sealed class ViewState {
@@ -119,7 +119,7 @@ class AraMyPostViewModel @Inject constructor(
 
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.message ?: "Unknown error")
-            Log.e("AraMyPostViewModel", "fetchInitialPosts failed$e")
+            Timber.e("fetchInitialPosts failed$e")
         }
     }
 
@@ -174,7 +174,7 @@ class AraMyPostViewModel @Inject constructor(
                     _state.value = ViewState.Loaded(_posts.value)
                 }
             } catch (_: Exception) {
-                Log.e("AraMyPostViewModel", "refreshItem failed")
+                Timber.e("refreshItem failed")
             }
         }
     }

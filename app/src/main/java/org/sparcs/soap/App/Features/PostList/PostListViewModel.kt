@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Features.PostList
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,6 +22,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Features.PostList.Event.PostListViewEvent
+import timber.log.Timber
 import javax.inject.Inject
 
 interface PostListViewModelProtocol {
@@ -70,6 +70,7 @@ class PostListViewModel @Inject constructor(
     override var posts: List<AraPost> = emptyList()
 
     override var lastClickedPostId: Int? = null
+
     //Search Properties
     private val _searchKeyword = MutableStateFlow("")
     override val searchKeyword: StateFlow<String> = _searchKeyword
@@ -93,7 +94,7 @@ class PostListViewModel @Inject constructor(
                 .map { it.trim() }
                 .distinctUntilChanged()
                 .debounce(350)
-                .collectLatest {keyword ->
+                .collectLatest { keyword ->
                     if (keyword.isNotEmpty()) {
                         analyticsService.logEvent(PostListViewEvent.SearchPerformed(keyword))
                     }
@@ -140,7 +141,7 @@ class PostListViewModel @Inject constructor(
             isLoadingMore = false
             analyticsService.logEvent(PostListViewEvent.NextPageLoaded)
         } catch (e: Exception) {
-            Log.e("PostListViewModel", "Error loading next page: $e")
+            Timber.e("Error loading next page: $e")
             isLoadingMore = false
         }
     }

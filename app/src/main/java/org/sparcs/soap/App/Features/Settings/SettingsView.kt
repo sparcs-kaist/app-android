@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -69,6 +68,7 @@ import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.R
+import timber.log.Timber
 
 @Composable
 fun SettingsView(
@@ -133,17 +133,35 @@ fun SettingsView(
 
                 ServiceNavButton(
                     text = stringResource(R.string.feed),
-                    icon = { Icon(painterResource(R.drawable.sparcs_logo), null, tint = Color.Unspecified) }
+                    icon = {
+                        Icon(
+                            painterResource(R.drawable.sparcs_logo),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
                 ) { navController.navigate(Channel.FeedSettings.name) }
 
                 ServiceNavButton(
                     text = stringResource(R.string.ara),
-                    icon = { Icon(painterResource(R.drawable.ara_logo), null, tint = Color.Unspecified) }
+                    icon = {
+                        Icon(
+                            painterResource(R.drawable.ara_logo),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
                 ) { navController.navigate(Channel.AraSettings.name) }
 
                 ServiceNavButton(
                     text = stringResource(R.string.taxi),
-                    icon = { Icon(painterResource(R.drawable.taxi_logo), null, tint = Color.Unspecified) }
+                    icon = {
+                        Icon(
+                            painterResource(R.drawable.taxi_logo),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
                 ) { navController.navigate(Channel.TaxiSettings.name) }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -294,7 +312,7 @@ private fun FeedbackButton(context: Context) {
         try {
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Log.e("SettingsView", "Error launching email app")
+            Timber.e("Error launching email app")
         }
     }
     Row(
@@ -369,7 +387,13 @@ private fun Term(context: Context, navController: NavController) {
 
     ServiceNavButton(
         text = stringResource(R.string.terms_of_use),
-        icon = { Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.onSurface) }
+        icon = {
+            Icon(
+                Icons.Outlined.Description,
+                null,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
     ) {
         val intent = Intent(
             Intent.ACTION_VIEW,
@@ -379,7 +403,13 @@ private fun Term(context: Context, navController: NavController) {
 
     ServiceNavButton(
         text = stringResource(R.string.acknowledgements),
-        icon = { Icon(Icons.Outlined.VolunteerActivism, null, tint = MaterialTheme.colorScheme.onSurface) }
+        icon = {
+            Icon(
+                Icons.Outlined.VolunteerActivism,
+                null,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
     ) {
         navController.navigate(Channel.CreditView.name)
     }

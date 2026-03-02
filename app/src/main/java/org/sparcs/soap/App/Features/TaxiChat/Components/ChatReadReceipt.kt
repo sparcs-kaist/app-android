@@ -42,20 +42,11 @@ fun ChatReadReceipt(
 @Composable
 private fun Preview() {
     Theme {
-        Column(horizontalAlignment = Alignment.End) {
-            ChatReadReceipt(
-                readCount = 1,
-                showTime = true,
-                time = Date(),
-                alignment = Alignment.End
-            )
-
-            ChatReadReceipt(
-                readCount = 0,
-                showTime = true,
-                time = Date(),
-                alignment = Alignment.Start,
-            )
-        }
+        ChatReadReceipt(
+            readCount = 1,
+            showTime = true,
+            time = Date(),
+            alignment = Alignment.Start
+        )
     }
 }

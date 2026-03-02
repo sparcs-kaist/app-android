@@ -2,7 +2,6 @@ package org.sparcs.soap.App.Features.Post
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -101,6 +100,7 @@ import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.R
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -150,7 +150,7 @@ fun PostView(
                 val intent = Intent(Intent.ACTION_VIEW, finalUri)
                 context.startActivity(intent)
             } catch (e: Exception) {
-                Log.e("PostView", "Failed to open URL: $tappedURL", e)
+                Timber.e(e, "Failed to open URL: $tappedURL")
             } finally {
                 tappedURL = null
             }
@@ -780,7 +780,12 @@ data class CommentUpdate(
 @Composable
 private fun LoadedPreview() {
     val mockViewModel =
-        remember { MockPostViewModel(initialState = PostViewModel.ViewState.Loaded, post = AraPost.mock()) }
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loaded,
+                post = AraPost.mock()
+            )
+        }
     Theme {
         PostView(viewModel = mockViewModel, navController = rememberNavController())
     }
@@ -790,7 +795,12 @@ private fun LoadedPreview() {
 @Composable
 private fun LoadingPreview() {
     val mockViewModel =
-        remember { MockPostViewModel(initialState = PostViewModel.ViewState.Loading, post = AraPost.mockList()[0]) }
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loading,
+                post = AraPost.mockList()[0]
+            )
+        }
     Theme {
         PostView(viewModel = mockViewModel, navController = rememberNavController())
     }
@@ -800,7 +810,12 @@ private fun LoadingPreview() {
 @Composable
 private fun NoCommentsPreview() {
     val mockViewModel =
-        remember { MockPostViewModel(initialState = PostViewModel.ViewState.Loaded, post = AraPost.mockList()[1])}
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loaded,
+                post = AraPost.mockList()[1]
+            )
+        }
     Theme {
         PostView(viewModel = mockViewModel, navController = rememberNavController())
     }

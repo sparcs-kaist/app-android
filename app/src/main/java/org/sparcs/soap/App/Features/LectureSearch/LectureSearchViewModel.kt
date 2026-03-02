@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.LectureSearch
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +15,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureSearchRequest
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
+import timber.log.Timber
 import javax.inject.Inject
 
 interface LectureSearchViewModelProtocol {
@@ -69,7 +69,7 @@ class LectureSearchViewModel @Inject constructor(
 
     @OptIn(FlowPreview::class)
     override fun bind() {
-        if(isBound) return
+        if (isBound) return
         isBound = true
         viewModelScope.launch {
             searchKeywordFlow
@@ -101,7 +101,7 @@ class LectureSearchViewModel @Inject constructor(
                 _lectures.value += page
                 currentPage++
             } catch (e: Exception) {
-                Log.e("LectureSearchVM", "fetchLectures failed", e)
+                Timber.e(e, "fetchLectures failed")
                 _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
             }
         }
