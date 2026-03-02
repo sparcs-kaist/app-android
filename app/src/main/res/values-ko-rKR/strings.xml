@@ -437,4 +437,5 @@
     <string name="error_settlement_failed">정산 처리에 실패했습니다. 다시 시도해 주세요.</string>
     <string name="error_payment_failed">결제 승인에 실패했습니다.</string>
     <string name="error_fetch_chat">채팅을 불러올 수 없습니다</string>
+    <string name="not_supported">지원할 수 없음</string>
 </resources>
