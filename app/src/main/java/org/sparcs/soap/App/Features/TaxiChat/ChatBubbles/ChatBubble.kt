@@ -3,11 +3,8 @@ package org.sparcs.soap.App.Features.TaxiChat.ChatBubbles
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Patterns
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -22,88 +19,71 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.DeepLink
 import org.sparcs.soap.App.Domain.Enums.DeepLinkEventBus
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
+import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePosition
+import org.sparcs.soap.App.Shared.Extensions.toDetectedAnnotatedString
 
 @Composable
-fun TaxiChatBubble(
-    content: String,
-    showTip: Boolean,
-    isMe: Boolean
+fun ChatBubble(
+    chat: TaxiChat,
+    position: ChatBubblePosition,
+    isMine: Boolean
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val clipboardManager = LocalClipboardManager.current
 
-    val clipboardManager: ClipboardManager = LocalClipboardManager.current
-
-    val backgroundColor = if (isMe) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (isMe) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-    val urlColor = if (isMe) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.primary
-
-    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
-    val annotatedString = buildAnnotatedString {
-        val regex = Patterns.WEB_URL.toRegex()
-        var lastIndex = 0
-        regex.findAll(content).forEach { matchResult ->
-            val range = matchResult.range
-            append(content.substring(lastIndex, range.first))
-            val url = content.substring(range)
-            pushStringAnnotation(tag = "URL", annotation = url)
-            withStyle(
-                style = SpanStyle(color = urlColor, textDecoration = TextDecoration.Underline)
-            ) {
-                append(url)
-            }
-            pop()
-            lastIndex = range.last + 1
-        }
-        if (lastIndex < content.length) append(content.substring(lastIndex))
-    }
+    val backgroundColor = if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor = if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    val urlColor = if (isMine) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary
 
     val bubbleShape = RoundedCornerShape(
         topStart = 24.dp,
         topEnd = 24.dp,
-        bottomStart = if (!isMe && showTip) 4.dp else 24.dp,
-        bottomEnd = if (isMe && showTip) 4.dp else 24.dp,
+        bottomStart = if (!isMine && (position == ChatBubblePosition.BOTTOM || position == ChatBubblePosition.SINGLE)) 4.dp else 24.dp,
+        bottomEnd = if (isMine && (position == ChatBubblePosition.BOTTOM || position == ChatBubblePosition.SINGLE)) 4.dp else 24.dp
     )
+
+    val formattedContent = remember(chat.content) {
+        chat.content.toDetectedAnnotatedString(urlColor)
+    }
+
+    var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     Surface(
         shape = bubbleShape,
-        color = backgroundColor
+        color = backgroundColor,
+        modifier = Modifier.padding(vertical = 2.dp)
     ) {
         SelectionContainer {
             Text(
-                text = annotatedString,
+                text = formattedContent,
                 style = MaterialTheme.typography.bodyMedium,
                 color = contentColor,
                 modifier = Modifier
-                    .padding(12.dp)
+                    .padding(horizontal = 16.dp, vertical = 10.dp)
                     .pointerInput(Unit) {
                         detectTapGestures(
                             onTap = { offset ->
                                 textLayoutResult?.let { layoutResult ->
-                                    val position = layoutResult.getOffsetForPosition(offset)
-                                    annotatedString.getStringAnnotations("URL", position, position)
+                                    val pos = layoutResult.getOffsetForPosition(offset)
+                                    formattedContent.getStringAnnotations("URL", pos, pos)
                                         .firstOrNull()?.let { annotation ->
                                             handleURL(context, annotation.item, scope)
                                         }
                                 }
                             },
                             onLongPress = {
-                                clipboardManager.setText(AnnotatedString(content))
+                                clipboardManager.setText(AnnotatedString(chat.content))
                             }
                         )
                     },
@@ -132,23 +112,5 @@ private fun handleURL(
         } catch (e: Exception) {
             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
         }
-    }
-}
-
-@Preview
-@Composable
-private fun Preview() {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(16.dp)
-    ) {
-        TaxiChatBubble(content = "Visit https://naver.com now!", showTip = true, isMe = true)
-        TaxiChatBubble(content = "Here is a link: https://apple.com and some more text.", showTip = true, isMe = false)
-        TaxiChatBubble(content = "No link here just chatting casually", showTip = false, isMe = true)
-        TaxiChatBubble(
-            content = "Multiple links: https://swift.org and also https://developer.apple.com",
-            showTip = true,
-            isMe = false
-        )
     }
 }
