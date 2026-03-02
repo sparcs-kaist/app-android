@@ -23,7 +23,7 @@ import org.sparcs.soap.App.Domain.Helpers.Constants
 @Composable
 fun ChatImageBubble(
     id: String,
-    onClick: () -> Unit
+    onClick: (String) -> Unit
 ) {
     val context = LocalContext.current
     val imageUrl = Constants.taxiChatImageURL + id
@@ -49,7 +49,7 @@ fun ChatImageBubble(
                     modifier = Modifier
                         .heightIn(max = 240.dp)
                         .fillMaxWidth()
-                        .clickable { onClick() }
+                        .clickable { onClick(id) }
                 )
             }
             else -> {
