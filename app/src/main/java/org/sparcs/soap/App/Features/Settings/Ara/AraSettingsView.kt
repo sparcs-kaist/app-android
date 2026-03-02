@@ -44,6 +44,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.Features.Settings.Taxi.NavigationLinkWithIcon
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.toggle
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockAraSettingsViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
@@ -76,7 +77,8 @@ fun AraSettingsView(
                 title = stringResource(R.string.ara_settings),
                 onDismiss = { navController.popBackStack() },
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Ara Settings")
     ) { innerPadding ->
 
         Column(

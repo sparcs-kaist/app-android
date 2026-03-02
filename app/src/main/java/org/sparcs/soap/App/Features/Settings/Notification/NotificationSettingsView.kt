@@ -37,6 +37,7 @@ import org.sparcs.soap.App.Domain.Helpers.FeatureType
 import org.sparcs.soap.App.Domain.Usecases.MockFCMUseCase
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.Presentation.Settings.NotificationSettingsViewModel
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
@@ -59,7 +60,8 @@ fun NotificationSettingsView(
                 title = stringResource(R.string.notifications_title),
                 onDismiss = { navController.popBackStack() }
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Notification Settings")
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

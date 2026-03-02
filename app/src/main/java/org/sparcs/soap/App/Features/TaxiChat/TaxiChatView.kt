@@ -43,6 +43,7 @@ import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiChatInputBar
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiChatViewNavigationBar
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.openUri
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
@@ -114,7 +115,8 @@ fun TaxiChatView(
                 },
                 onCommitPayment = { showPayMoneyAlert = true }
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Taxi Chat")
     ) { innerPadding ->
         Box(modifier = Modifier
             .padding(innerPadding)
