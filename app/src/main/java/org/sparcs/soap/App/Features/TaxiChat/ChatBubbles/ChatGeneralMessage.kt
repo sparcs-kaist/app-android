@@ -24,9 +24,9 @@ fun ChatGeneralMessage(
 ) {
     val displayName = authorName ?: stringResource(R.string.unknown)
     when (type) {
-        TaxiChat.ChatType.IN -> {
+        TaxiChat.ChatType.ENTRANCE -> {
             Box(
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -44,9 +44,9 @@ fun ChatGeneralMessage(
                 )
             }
         }
-        TaxiChat.ChatType.OUT -> {
+        TaxiChat.ChatType.EXIT -> {
             Box(
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().padding(8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(

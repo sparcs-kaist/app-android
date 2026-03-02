@@ -132,14 +132,17 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    val currentVersion = remember {
+                        packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
+                    }
+
                     LaunchedEffect(Unit) {
-                        val currentVersion =
-                            packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
-                        viewModel.checkVersion(currentVersion)
+                        viewModel.onActivation(currentVersion)
                     }
 
                     LaunchedEffect(mustUpdate) {
                         if (mustUpdate) {
+                            viewModel.resetTimer()
                             helper.forceStart()
                         }
                     }
@@ -195,7 +198,8 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         helper.resumeCheck()
-        viewModel.checkAuthOnResume()
+        val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
+        viewModel.onActivation(currentVersion)
     }
 
     override fun onDestroy() {

@@ -2,7 +2,6 @@ package org.sparcs.soap.App.Features.TaxiChat
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -29,9 +28,13 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePositionResolver
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItem
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItemBuilder
+import org.sparcs.soap.App.Features.TaxiChat.Components.DefaultMessagePresentationPolicy
+import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy
 import org.sparcs.soap.R
+import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
 
@@ -76,7 +79,7 @@ class TaxiChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val taxiChatUseCase: TaxiChatUseCaseProtocol,
     val userUseCase: UserUseCaseProtocol,
-    private val taxiRoomRepository: TaxiRoomRepositoryProtocol
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
 ) : ViewModel(), TaxiChatViewModelProtocol {
 
     private val initialRoom: TaxiRoom by lazy {
@@ -90,15 +93,13 @@ class TaxiChatViewModel @Inject constructor(
         data object Loaded : ViewState()
         data class Error(val message: String) : ViewState()
     }
+
     // MARK: - ViewModel Properties
     private val _room = MutableStateFlow(initialRoom)
     override val room: StateFlow<TaxiRoom> = _room.asStateFlow()
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
-
-    private val _renderItems = MutableStateFlow<List<ChatRenderItem>>(emptyList())
-    override val renderItems: StateFlow<List<ChatRenderItem>> = _renderItems.asStateFlow()
 
     private val _taxiUser = MutableStateFlow<TaxiUser?>(null)
     override val taxiUser: StateFlow<TaxiUser?> = _taxiUser.asStateFlow()
@@ -119,13 +120,27 @@ class TaxiChatViewModel @Inject constructor(
     private var isLoaded = false
     override var scrollToBottomTrigger = 0
 
-    private val builder = ChatRenderItemBuilder()
+    private val builder = ChatRenderItemBuilder(
+        policy = TaxiGroupingPolicy(),
+        positionResolver = ChatBubblePositionResolver(),
+        presentationPolicy = DefaultMessagePresentationPolicy()
+    )
 
-    val renderItemBuilder: StateFlow<List<ChatRenderItem>> = taxiChatUseCase.chats
+    override val renderItems: StateFlow<List<ChatRenderItem>> = taxiChatUseCase.chats
         .map { rawChats ->
-            renderItemBuilder.build(rawChats, currentUserId = "me")
+            val myId = userUseCase.taxiUser?.oid ?: ""
+            val filtered = rawChats.filter { it.roomID == _room.value.id }
+            builder.build(filtered, myUserID = myId)
         }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+        .onEach {
+            if (it.isNotEmpty()) _state.value = ViewState.Loaded
+        }
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
     // MARK: - Setup
     override suspend fun setup() {
@@ -134,7 +149,6 @@ class TaxiChatViewModel @Inject constructor(
         taxiChatUseCase.setRoom(room.value)
         bind()
         fetchInitialChats()
-        taxiChatUseCase.reconnect()
         isLoaded = true
     }
 
@@ -155,19 +169,6 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     private fun bind() {
-        taxiChatUseCase.chats
-            .onEach { chats ->
-                val filtered = chats.filter { it.roomID == _room.value.id }
-                val builtItems = builder.build(
-                    rawChats = filtered,
-                    currentUserId = userUseCase.taxiUser?.oid ?: ""
-                )
-                _renderItems.value = builtItems
-                _state.value = ViewState.Loaded
-            }
-            .flowOn(Dispatchers.Default)
-            .launchIn(viewModelScope)
-
         taxiChatUseCase.roomUpdateFlow
             .onEach { updatedRoom ->
                 _room.value = updatedRoom
@@ -200,7 +201,11 @@ class TaxiChatViewModel @Inject constructor(
     override suspend fun fetchInitialChats() {
         if (isInitialFetching) return
         isInitialFetching = true
-        try { taxiChatUseCase.fetchInitialChats() } finally { isInitialFetching = false }
+        try {
+            taxiChatUseCase.fetchInitialChats()
+        } finally {
+            isInitialFetching = false
+        }
     }
 
     // MARK: - Chat send
@@ -240,7 +245,7 @@ class TaxiChatViewModel @Inject constructor(
             )
             this.isAlertPresented = true
 
-            Log.e("TaxiChatViewModel", "commitSettlement failed", e)
+            Timber.e(e, "commitSettlement failed")
         }
     }
 
@@ -255,7 +260,7 @@ class TaxiChatViewModel @Inject constructor(
                 message = e.localizedMessage ?: "Unknown error"
             )
             this.isAlertPresented = true
-            Log.e("TaxiChatViewModel", "Failed to commit payment", e)
+            Timber.e(e, "Failed to commit payment")
         }
     }
 

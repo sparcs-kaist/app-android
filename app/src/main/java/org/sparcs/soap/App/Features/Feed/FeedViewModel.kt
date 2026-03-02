@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Feed
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -19,6 +18,7 @@ import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.App.Features.Feed.Event.FeedPostRowEvent
 import org.sparcs.soap.App.Features.Feed.Event.FeedViewEvent
 import org.sparcs.soap.R
+import timber.log.Timber
 import javax.inject.Inject
 
 interface FeedViewModelProtocol {
@@ -77,7 +77,7 @@ class FeedViewModel @Inject constructor(
             hasNext = page.hasNext
             _state.value = ViewState.Loaded(posts)
         } catch (e: Exception) {
-            Log.e("FeedViewModel", "failed to fetch data", e)
+            Timber.e(e, "failed to fetch data")
             _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
         }
     }
@@ -111,7 +111,7 @@ class FeedViewModel @Inject constructor(
 
             this.alertState = AlertState(
                 titleResId = R.string.error,
-                messageResId =  useCaseError?.messageRes ?: R.string.unexpected_error_deleting_post,
+                messageResId = useCaseError?.messageRes ?: R.string.unexpected_error_deleting_post,
             )
             this.isAlertPresented = true
         }
@@ -206,7 +206,7 @@ class FeedViewModel @Inject constructor(
     }
 
     override suspend fun refreshFeed() {
-            fetchInitialData()
+        fetchInitialData()
         analyticsService.logEvent(FeedViewEvent.FeedRefreshed)
     }
 
