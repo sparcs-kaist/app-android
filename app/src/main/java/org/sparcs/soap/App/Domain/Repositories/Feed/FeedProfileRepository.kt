@@ -24,10 +24,10 @@ class FeedProfileRepository @Inject constructor(
 
     override suspend fun setProfileImage(image: MultipartBody.Part): String = safeApiCall(gson) {
         api.setProfileImage(image)
-    }.s3Key
+    }.url
 
     override suspend fun removeProfileImage() = safeApiCall(gson) {
         api.removeProfileImage()
-    }.s3Key
+    }.url
 }
 

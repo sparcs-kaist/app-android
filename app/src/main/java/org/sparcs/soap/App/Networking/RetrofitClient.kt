@@ -127,7 +127,7 @@ import javax.inject.Provider
 import javax.inject.Singleton
 
 class TokenAuthenticator @Inject constructor(
-    private val authUseCaseProvider: Provider<AuthUseCase>
+    private val authUseCaseProvider: Provider<AuthUseCaseProtocol>
 ) : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
         if (responseCount(response) >= 2) {
@@ -701,7 +701,7 @@ object AuthUseCaseModule {
         feedUserRepository: FeedUserRepositoryProtocol,
         otlUserRepository: OTLUserRepositoryProtocol,
         taxiChatServiceProvider: Provider<TaxiChatService>
-    ): AuthUseCaseProtocol {
+    ): AuthUseCase {
 
         val useCase = AuthUseCase(
             authenticationService,
@@ -721,4 +721,7 @@ object AuthUseCaseModule {
 
         return useCase
     }
+    @Provides
+    @Singleton
+    fun provideAuthUseCaseProtocol(impl: AuthUseCase): AuthUseCaseProtocol = impl
 }

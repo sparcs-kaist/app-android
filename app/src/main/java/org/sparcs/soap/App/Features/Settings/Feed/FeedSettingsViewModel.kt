@@ -91,6 +91,7 @@ class FeedSettingsViewModel @Inject constructor(
             _user.value = fetchedUser
             nickname = fetchedUser.nickname
             karma = fetchedUser.karma
+            _profileImageState.value = FeedProfileImageState.NoChange
             _state.value = ViewState.Loaded
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.message ?: "Unknown Error")
@@ -105,7 +106,7 @@ class FeedSettingsViewModel @Inject constructor(
             nicknameError = null
             try {
                 feedProfileUseCase.updateNickname(nickname)
-                fetchUser()
+                userUseCase.fetchFeedUser()
             } catch (e: Exception) {
                 val useCaseError = e as? FeedProfileUseCaseError
                 if (useCaseError is FeedProfileUseCaseError.NicknameConflict) {
@@ -130,19 +131,16 @@ class FeedSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             isUpdatingProfile = true
             try {
-                if (uri != null) {
-                    _profileImageState.value = FeedProfileImageState.Updated(uri)
+                val imagePart = uri?.toMultipartBody(context)
+                feedProfileUseCase.updateProfileImage(imagePart)
 
-                    val imagePart = uri.toMultipartBody(context)
-                    if (imagePart != null) {
-                        feedProfileUseCase.updateProfileImage(imagePart)
-                    }
-                } else {
-                    _profileImageState.value = FeedProfileImageState.Removed
-                    feedProfileUseCase.updateProfileImage(null)
-                }
-                fetchUser()
+                userUseCase.fetchFeedUser()
+                _user.value = userUseCase.feedUser
+
+                _profileImageState.value = FeedProfileImageState.Updated(uri)
             } catch (e: Exception) {
+                _profileImageState.value = FeedProfileImageState.NoChange
+
                 val useCaseError = e as? FeedProfileUseCaseError
                 alertState = AlertState(
                     titleResId = R.string.error,

@@ -31,12 +31,8 @@ class MainViewModel @Inject constructor(
 
     private var lastCheckTime: Long? = null
 
-    val isAuthenticated: StateFlow<Boolean> = authUseCase.isAuthenticatedFlow
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Eagerly,
-            initialValue = false
-        )
+    val isAuthenticated: StateFlow<Boolean?> = authUseCase.isAuthenticatedFlow
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     init {
         viewModelScope.launch {

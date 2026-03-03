@@ -253,16 +253,11 @@ private fun LoadedView(
                     }
                     is FeedProfileImageState.Updated -> {
                         AsyncImage(
-                            model = (profileImageState as FeedProfileImageState.Updated),
+                            model = (profileImageState as FeedProfileImageState.Updated).image ?: userState?.profileImageURL,
                             contentDescription = null,
                             modifier = Modifier.size(100.dp).clip(CircleShape),
                             contentScale = ContentScale.Crop
                         )
-                    }
-                    is FeedProfileImageState.Removed -> {
-                        Box(modifier = Modifier.size(100.dp).clip(CircleShape).background(MaterialTheme.colorScheme.surfaceVariant), contentAlignment = Alignment.Center) {
-                            Text("😀", style = MaterialTheme.typography.headlineLarge)
-                        }
                     }
                     else -> CircularProgressIndicator(modifier = Modifier.size(50.dp))
                 }
