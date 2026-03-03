@@ -65,6 +65,7 @@ import org.sparcs.soap.App.InAppUpdateHelper
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.R
+import timber.log.Timber
 import javax.inject.Inject
 
 val LocalAnalytics = staticCompositionLocalOf<AnalyticsServiceProtocol> {
@@ -120,6 +121,9 @@ class MainActivity : ComponentActivity() {
                 Theme(darkTheme = useDarkTheme) {
                     val mustUpdate by viewModel.mustUpdate.collectAsState()
                     val isAuthenticated by viewModel.isAuthenticated.collectAsState()
+                    LaunchedEffect(isAuthenticated) {
+                        Timber.tag("CHECK_AUTH").d("3. [UI] Compose가 감지한 인증 상태: $isAuthenticated")
+                    }
                     val isLoading by viewModel.isLoading.collectAsState()
 
                     var showNotice by remember {
@@ -147,7 +151,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    if (isLoading) {
+                    if (isLoading && isAuthenticated == null) {
                         // MARK: THIS PLAYS CRUCIAL ROLE HIDING SIGN IN VIEW ON LOADING
                     } else {
                         if (isAuthenticated == true) {
