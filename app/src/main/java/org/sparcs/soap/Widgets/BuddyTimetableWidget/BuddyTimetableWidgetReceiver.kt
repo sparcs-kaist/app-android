@@ -6,6 +6,7 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 
@@ -30,9 +31,18 @@ class BuddyTimetableWidgetReceiver : GlanceAppWidgetReceiver() {
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val request = PeriodicWorkRequestBuilder<TimetableUpdateWorker>(
-            1,
-            java.util.concurrent.TimeUnit.HOURS
+        val oneTimeRequest = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "timetable_immediate_work",
+            androidx.work.ExistingWorkPolicy.REPLACE,
+            oneTimeRequest
+        )
+
+        val periodicRequest = PeriodicWorkRequestBuilder<TimetableUpdateWorker>(
+            1, java.util.concurrent.TimeUnit.HOURS
         )
             .setConstraints(constraints)
             .build()
@@ -40,7 +50,7 @@ class BuddyTimetableWidgetReceiver : GlanceAppWidgetReceiver() {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
             "timetable_widget_sync_work",
             ExistingPeriodicWorkPolicy.UPDATE,
-            request
+            periodicRequest
         )
     }
 }
