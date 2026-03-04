@@ -79,7 +79,7 @@ fun MessageView(
         }
 
         Column(
-            modifier = Modifier.widthIn(max = 280.dp),
+            modifier = Modifier.widthIn(max = 350.dp),
             horizontalAlignment = if (sender.isMine) Alignment.End else Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -127,8 +127,7 @@ fun MessageView(
 
             Row(
                 verticalAlignment = Alignment.Bottom,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.fillMaxWidth()
+                horizontalArrangement = if (sender.isMine) Arrangement.End else Arrangement.Start
             ) {
                 Box(modifier = Modifier.weight(1f, fill = false)) {
                     content()

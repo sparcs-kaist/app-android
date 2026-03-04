@@ -3,11 +3,17 @@ package org.sparcs.soap.App.Domain.Usecases.Taxi
 import android.graphics.Bitmap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -23,10 +29,11 @@ import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.toByteArray
 import timber.log.Timber
 import java.util.Date
+import java.util.UUID
 import javax.inject.Inject
 
 interface TaxiChatUseCaseProtocol {
-    val chats: SharedFlow<List<TaxiChat>>
+    val chats: StateFlow<List<TaxiChat>>
     val roomUpdateFlow: Flow<TaxiRoom>
     val accountChats: List<TaxiChat>
 
@@ -50,8 +57,8 @@ class TaxiChatUseCase @Inject constructor(
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     // MARK: - Flows
-    private val _chats = MutableSharedFlow<List<TaxiChat>>()
-    override val chats: SharedFlow<List<TaxiChat>> = _chats.asSharedFlow()
+    private val _chats = MutableStateFlow<List<TaxiChat>>(emptyList())
+    override val chats: StateFlow<List<TaxiChat>> = _chats.asStateFlow()
 
     private val _roomUpdateFlow = MutableSharedFlow<TaxiRoom>()
     override val roomUpdateFlow: Flow<TaxiRoom> = _roomUpdateFlow.asSharedFlow()
@@ -64,6 +71,7 @@ class TaxiChatUseCase @Inject constructor(
     override var accountChats: List<TaxiChat> = emptyList()
 
     private var isBound = false
+    private var bindJob: Job? = null
 
     override fun setRoom(room: TaxiRoom) {
         this.room = room
@@ -102,7 +110,9 @@ class TaxiChatUseCase @Inject constructor(
         // Optimistic insert
         if (content != null) {
             val user = userUseCase.taxiUser
+            val tempId = UUID.randomUUID()
             val optimisticChat = TaxiChat(
+                id = tempId,
                 roomID = room.id,
                 type = type,
                 authorID = user?.oid,
@@ -114,17 +124,22 @@ class TaxiChatUseCase @Inject constructor(
                 isValid = true,
                 inOutNames = null
             )
-            flatChats = flatChats + optimisticChat
-            _chats.emit(flatChats)
-        }
+            synchronized(this) {
+                this.flatChats += optimisticChat
+            }
+            _chats.emit(this.flatChats)
 
-        try {
-            val request = TaxiChatRequest(room.id, type, content)
-            taxiChatRepository.sendChat(request)
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to send chat")
+            try {
+                val request = TaxiChatRequest(room.id, type, content)
+                taxiChatRepository.sendChat(request)
+            } catch (e: Exception) {
+                synchronized(this) {
+                    this.flatChats = this.flatChats.filter { it.id != optimisticChat.id }
+                }
+                _chats.emit(this.flatChats)
+            }
         }
-    }
+        }
 
     override suspend fun sendImage(content: Bitmap) {
         val presignedURL = taxiChatRepository.getPresignedURL(room.id)
@@ -133,44 +148,59 @@ class TaxiChatUseCase @Inject constructor(
         taxiChatRepository.notifyImageUploadComplete(presignedURL.id)
     }
 
+    @OptIn(FlowPreview::class)
     private fun bind() {
         if (isBound) return
         isBound = true
-        // is socket(TaxiChatService) connected
-        taxiChatService.isConnectedPublisher
-            .onEach { isConnected ->
-                isSocketConnected = isConnected
-                Timber.d("Socket connected: $isConnected")
-            }
-            .launchIn(scope)
 
-        taxiChatService.chatsPublisher
-            .onEach { newChats ->
-                try {
-                    taxiChatRepository.readChats(room.id)
-                } catch (e: Exception) {
+        bindJob?.cancel()
+        bindJob = scope.launch {
+            // is socket(TaxiChatService) connected
+            taxiChatService.isConnectedPublisher
+                .onEach { isConnected ->
+                    isSocketConnected = isConnected
+                    Timber.d("Socket connected: $isConnected")
                 }
+                .launchIn(this)
 
-                this.flatChats = newChats
-                this.accountChats = newChats.filter { it.type == TaxiChat.ChatType.ACCOUNT }
-
-                _chats.emit(newChats)
-            }
-            .launchIn(scope)
-
-        // handles room updates from chat_update event
-        taxiChatService.roomUpdatePublisher
-            .onEach { roomId ->
-                if (roomId != room.id) return@onEach
-                try {
-                    val updatedRoom = taxiRoomRepository.getRoom(roomId)
-                    this.room = updatedRoom
-                    _roomUpdateFlow.emit(updatedRoom)
-                } catch (e: Exception) {
-                    Timber.e("Failed to update room: $e")
+            taxiChatService.chatsPublisher
+                .filter { it.isNotEmpty() }
+                .distinctUntilChanged()
+                .onEach { serverChats ->
+                    synchronized(this) {
+                        flatChats = serverChats
+                        accountChats =
+                            serverChats.filter { it.type == TaxiChat.ChatType.ACCOUNT }
+                    }
+                    _chats.value = flatChats
+                    launch {
+                        try {
+                            taxiChatRepository.readChats(room.id)
+                        } catch (e: Exception) {
+                            Timber.e("Read chats failed")
+                        }
+                    }
                 }
-            }
-            .launchIn(scope)
+                .launchIn(this)
+
+            // handles room updates from chat_update event
+            taxiChatService.roomUpdatePublisher
+                .filter { it == room.id }
+                .debounce(500L)
+                .onEach { roomId ->
+                    if (roomId != room.id) return@onEach
+                    try {
+                        val updatedRoom = taxiRoomRepository.getRoom(roomId)
+                        if (room != updatedRoom) {
+                            room = updatedRoom
+                            _roomUpdateFlow.emit(updatedRoom)
+                        }
+                    } catch (e: Exception) {
+                        Timber.e("Failed to update room: $e")
+                    }
+                }
+                .launchIn(this)
+        }
     }
 
     override fun switchRoom(newRoomId: String) {

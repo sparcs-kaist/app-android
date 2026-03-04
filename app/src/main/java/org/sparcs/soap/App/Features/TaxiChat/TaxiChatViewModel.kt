@@ -12,14 +12,11 @@ import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
@@ -36,6 +33,7 @@ import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy
 import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.Date
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 
@@ -117,39 +115,22 @@ class TaxiChatViewModel @Inject constructor(
 
     private var isFetching = false
     private var isInitialFetching = false
-    private var isLoaded = false
     override var scrollToBottomTrigger = 0
+    private val isBound = AtomicBoolean(false)
 
     private val builder = ChatRenderItemBuilder(
         policy = TaxiGroupingPolicy(),
         positionResolver = ChatBubblePositionResolver(),
         presentationPolicy = DefaultMessagePresentationPolicy()
     )
-
-    override val renderItems: StateFlow<List<ChatRenderItem>> = taxiChatUseCase.chats
-        .map { rawChats ->
-            val myId = userUseCase.taxiUser?.oid ?: ""
-            val filtered = rawChats.filter { it.roomID == _room.value.id }
-            builder.build(filtered, myUserID = myId)
-        }
-        .onEach {
-            if (it.isNotEmpty()) _state.value = ViewState.Loaded
-        }
-        .flowOn(Dispatchers.Default)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
+    private val _renderItems = MutableStateFlow<List<ChatRenderItem>>(emptyList())
+    override val renderItems: StateFlow<List<ChatRenderItem>> = _renderItems.asStateFlow()
 
     // MARK: - Setup
     override suspend fun setup() {
-        if (isLoaded) return
-        taxiChatUseCase.setRoom(room.value)
         fetchTaxiUser()
+        taxiChatUseCase.setRoom(room.value)
         bind()
-        fetchInitialChats()
-        isLoaded = true
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
@@ -162,30 +143,59 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     private fun bind() {
+        if (!isBound.compareAndSet(false, true)) return
+        taxiChatUseCase.chats
+            .onEach { chats ->
+                val distinctChats = chats.distinctBy { it.id }
+                val myId = userUseCase.taxiUser?.oid ?: ""
+                val filtered = distinctChats.filter { it.roomID == room.value.id }
+
+                val builtItems = builder.build(filtered, myUserID = myId)
+
+                if (_renderItems.value == builtItems) {
+                    return@onEach
+                }
+
+                val lastItemId = _renderItems.value.lastOrNull()?.id
+                val newLastItemId = builtItems.lastOrNull()?.id
+
+                _renderItems.value = builtItems
+
+                if (lastItemId != null && lastItemId != newLastItemId) {
+                    scrollToBottomTrigger += 1
+                }
+
+                if (builtItems.isNotEmpty() && _state.value is ViewState.Loading) {
+                    _state.value = ViewState.Loaded
+                }
+            }
+            .flowOn(Dispatchers.Default)
+            .launchIn(viewModelScope)
+
+
         taxiChatUseCase.roomUpdateFlow
             .onEach { updatedRoom ->
                 _room.value = updatedRoom
             }
             .flowOn(Dispatchers.Main)
             .launchIn(viewModelScope)
+
     }
 
     // MARK: - Chat loading
     override suspend fun loadMoreChats() {
-//        val oldestDate = groupedChats.value.firstOrNull()?.chats?.firstOrNull()?.time
+//        if (isFetching) return
 //
-//        if (isFetching || oldestDate == null || fetchedDateSet.contains(oldestDate)) {
-//            return
-//        }
+//        val oldestChatTime = renderItems.value.firstOrNull()? ?: return
 //
-//        topChatID = groupedChats.value.firstOrNull()?.id
-//        fetchedDateSet.add(oldestDate)
+//        if (fetchedDateSet.contains(oldestChatTime)) return
 //
 //        isFetching = true
 //        try {
-//            taxiChatUseCase.fetchChats(before = oldestDate)
+//            taxiChatUseCase.fetchChats(before = oldestChatTime)
+//            fetchedDateSet.add(oldestChatTime)
 //        } catch (e: Exception) {
-//            Log.e("TaxiChatViewModel", "loadMoreChats failed", e)
+//            Timber.e(e, "loadMoreChats failed")
 //        } finally {
 //            isFetching = false
 //        }
@@ -196,6 +206,7 @@ class TaxiChatViewModel @Inject constructor(
         isInitialFetching = true
         try {
             taxiChatUseCase.fetchInitialChats()
+            _state.value = ViewState.Loaded
         } finally {
             isInitialFetching = false
         }
