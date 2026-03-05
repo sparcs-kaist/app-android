@@ -14,11 +14,13 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalSize
+import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
-import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
@@ -73,10 +75,13 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
             if (state.entry == null && !state.signInRequired) {
-                val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>().build()
+                val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
+                    .addTag("FETCH_UPCOMING")
+                    .build()
+
                 WorkManager.getInstance(appContext).enqueueUniqueWork(
                     "upcoming_one_time_sync",
-                    ExistingWorkPolicy.REPLACE,
+                    ExistingWorkPolicy.KEEP,
                     request
                 )
             }
@@ -103,12 +108,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
                     modifier = GlanceModifier
                         .fillMaxSize()
                         .clickable(
-                            onClick = actionStartActivity(
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(Constants.otlShareURL)
-                                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            )
+                            onClick = actionRunCallback<RefreshAndOpenAppAction>()
                         )
                 ) {}
             }
@@ -227,6 +227,34 @@ object UpcomingClassStateParser {
             UpcomingClassUiState(signInRequired = false, entry = null)
         } else {
             UpcomingClassUiState(signInRequired = true)
+        }
+    }
+}
+
+class RefreshAndOpenAppAction : ActionCallback {
+    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+        val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
+        val tokenStorage = entryPoint.tokenStorage()
+
+        val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
+            .addTag("FETCH_UPCOMING")
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "upcoming_one_time_sync",
+            ExistingWorkPolicy.REPLACE,
+            request
+        )
+
+        val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
+            context.packageManager.getLaunchIntentForPackage(context.packageName)
+        } else {
+            Intent(Intent.ACTION_VIEW, Uri.parse(Constants.otlShareURL))
+        }
+
+        intent?.apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(this)
         }
     }
 }
