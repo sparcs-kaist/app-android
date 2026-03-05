@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Repositories.Settings.SettingsRepository
 import org.sparcs.soap.App.Domain.Services.CrashlyticsService
-import org.sparcs.soap.App.Domain.Usecases.AuthUseCase
+import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import javax.inject.Inject
 
 interface SettingsViewModelProtocol {
@@ -25,7 +25,7 @@ interface SettingsViewModelProtocol {
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val crashlyticsService: CrashlyticsService,
-    private val authUseCase: AuthUseCase
+    private val authUseCase: AuthUseCaseProtocol
 ) : ViewModel(), SettingsViewModelProtocol {
 
     override val darkModeSetting: StateFlow<Boolean?> = settingsRepository.themeMode

@@ -18,7 +18,7 @@ import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Feed.FeedUser
 import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedProfileUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Features.Settings.Feed.ViewState.FeedProfileImageState
 import org.sparcs.soap.App.Shared.Extensions.toMultipartBody
 import org.sparcs.soap.R
@@ -40,13 +40,13 @@ interface FeedSettingsViewModelProtocol {
     var isAlertPresented: Boolean
 
     suspend fun fetchUser()
-    fun updateNickname()
+    fun updateNickname(onComplete: (Boolean) -> Unit)
     fun updateProfileImage(uri: Uri?, context: Context)
 }
 
 @HiltViewModel
 class FeedSettingsViewModel @Inject constructor(
-    private val userUseCase: UserUseCase,
+    private val userUseCase: UserUseCaseProtocol,
     private val feedProfileUseCase: FeedProfileUseCaseProtocol,
     private val crashlyticsService: CrashlyticsService
 ) : ViewModel(), FeedSettingsViewModelProtocol {
@@ -98,8 +98,11 @@ class FeedSettingsViewModel @Inject constructor(
         }
     }
 
-    override fun updateNickname() {
-        if (nickname == _user.value?.nickname) return
+    override fun updateNickname(onComplete: (Boolean) -> Unit) {
+        if (nickname == _user.value?.nickname) {
+            onComplete(true)
+            return
+        }
 
         viewModelScope.launch {
             isUpdatingProfile = true
@@ -107,6 +110,9 @@ class FeedSettingsViewModel @Inject constructor(
             try {
                 feedProfileUseCase.updateNickname(nickname)
                 userUseCase.fetchFeedUser()
+
+                _user.value = userUseCase.feedUser
+                onComplete(true)
             } catch (e: Exception) {
                 val useCaseError = e as? FeedProfileUseCaseError
                 if (useCaseError is FeedProfileUseCaseError.NicknameConflict) {
@@ -119,6 +125,7 @@ class FeedSettingsViewModel @Inject constructor(
                     )
                     isAlertPresented = true
                 }
+                onComplete(false)
                 Timber.e(e, "Nickname update failed")
                 crashlyticsService.recordException(e)
             } finally {

@@ -19,7 +19,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostPage
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -40,7 +40,7 @@ interface AraMyPostViewModelProtocol {
 @HiltViewModel
 class AraMyPostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    userUseCase: UserUseCase,
+    userUseCase: UserUseCaseProtocol,
     private val araBoardUseCase: AraBoardUseCaseProtocol,
 ) : ViewModel(), AraMyPostViewModelProtocol {
 
