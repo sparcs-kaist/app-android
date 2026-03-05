@@ -14,11 +14,13 @@ import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalSize
+import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
-import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
@@ -73,7 +75,10 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
             if (state.entry == null && !state.signInRequired) {
-                val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>().build()
+                val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
+                    .addTag("upcoming_one_time_sync")
+                    .build()
+
                 WorkManager.getInstance(appContext).enqueueUniqueWork(
                     "upcoming_one_time_sync",
                     ExistingWorkPolicy.KEEP,
@@ -83,7 +88,9 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
 
             WidgetTheme(themeMode = themeMode) {
                 Box(
-                    modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
+                    modifier = GlanceModifier.fillMaxSize().background(
+                        GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency)
+                    )
                 ) {
                     val entry = state.entry ?: WidgetLectureEntry.empty(state.signInRequired)
                     val size = LocalSize.current
@@ -103,12 +110,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
                     modifier = GlanceModifier
                         .fillMaxSize()
                         .clickable(
-                            onClick = actionStartActivity(
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(Constants.otlShareURL)
-                                ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                            )
+                            onClick = actionRunCallback<RefreshAndOpenAppAction>()
                         )
                 ) {}
             }
@@ -227,6 +229,48 @@ object UpcomingClassStateParser {
             UpcomingClassUiState(signInRequired = false, entry = null)
         } else {
             UpcomingClassUiState(signInRequired = true)
+        }
+    }
+}
+
+class RefreshAndOpenAppAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetEntryPoint::class.java
+        )
+        val tokenStorage = entryPoint.tokenStorage()
+        if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
+
+            val constraints = androidx.work.Constraints.Builder()
+                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
+                .setConstraints(constraints)
+                .addTag("upcoming_one_time_sync")
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "upcoming_one_time_sync",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+
+        val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
+            context.packageManager.getLaunchIntentForPackage(context.packageName)
+        } else {
+            Intent(Intent.ACTION_VIEW, Uri.parse(Constants.otlShareURL))
+        }
+
+        intent?.apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(this)
         }
     }
 }
