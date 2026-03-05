@@ -213,8 +213,20 @@ class RefreshTimetableAction : ActionCallback {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
         val tokenStorage = entryPoint.tokenStorage()
 
-        val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>().build()
-        WorkManager.getInstance(context).enqueueUniqueWork("one_time_sync", ExistingWorkPolicy.REPLACE, request)
+        val constraints = androidx.work.Constraints.Builder()
+            .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+            .build()
+
+        val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
+            .setConstraints(constraints)
+            .addTag("one_time_sync")
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "one_time_sync",
+            ExistingWorkPolicy.REPLACE,
+            request
+        )
 
         val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)

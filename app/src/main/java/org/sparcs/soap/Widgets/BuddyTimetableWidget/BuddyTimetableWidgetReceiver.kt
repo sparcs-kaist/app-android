@@ -33,6 +33,7 @@ class BuddyTimetableWidgetReceiver : GlanceAppWidgetReceiver() {
 
         val oneTimeRequest = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
             .setConstraints(constraints)
+            .addTag("timetable_immediate_work")
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(
@@ -45,6 +46,7 @@ class BuddyTimetableWidgetReceiver : GlanceAppWidgetReceiver() {
             1, java.util.concurrent.TimeUnit.HOURS
         )
             .setConstraints(constraints)
+            .addTag("timetable_widget_sync_work")
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(

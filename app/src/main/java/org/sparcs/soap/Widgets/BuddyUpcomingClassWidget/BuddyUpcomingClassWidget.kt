@@ -76,7 +76,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
 
             if (state.entry == null && !state.signInRequired) {
                 val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
-                    .addTag("FETCH_UPCOMING")
+                    .addTag("upcoming_one_time_sync")
                     .build()
 
                 WorkManager.getInstance(appContext).enqueueUniqueWork(
@@ -236,8 +236,13 @@ class RefreshAndOpenAppAction : ActionCallback {
         val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
         val tokenStorage = entryPoint.tokenStorage()
 
+        val constraints = androidx.work.Constraints.Builder()
+            .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+            .build()
+
         val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
-            .addTag("FETCH_UPCOMING")
+            .setConstraints(constraints)
+            .addTag("upcoming_one_time_sync")
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(

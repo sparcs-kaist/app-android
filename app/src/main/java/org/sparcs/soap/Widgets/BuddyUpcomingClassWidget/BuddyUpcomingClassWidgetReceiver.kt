@@ -36,6 +36,7 @@ class BuddyUpcomingClassWidgetReceiver : GlanceAppWidgetReceiver() {
 
         val oneTimeRequest = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
             .setConstraints(constraints)
+            .addTag("upcoming_class_immediate_work")
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(
@@ -48,6 +49,7 @@ class BuddyUpcomingClassWidgetReceiver : GlanceAppWidgetReceiver() {
             30, TimeUnit.MINUTES
         )
             .setConstraints(constraints)
+            .addTag("upcoming_class_sync_work")
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
