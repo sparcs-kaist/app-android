@@ -80,7 +80,9 @@ class TimetableWidget : GlanceAppWidget() {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
-                        .background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
+                        .background(
+                            GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency)
+                        )
                 ) {
                     if (state.signInRequired) {
                         Box(
@@ -89,7 +91,13 @@ class TimetableWidget : GlanceAppWidget() {
                         ) {
                             Text(
                                 context.getString(R.string.login_required),
-                                style = TextStyle(color = ColorProvider(GlanceTheme.colors.onSurface.getColor(context)))
+                                style = TextStyle(
+                                    color = ColorProvider(
+                                        GlanceTheme.colors.onSurface.getColor(
+                                            context
+                                        )
+                                    )
+                                )
                             )
                         }
                     } else if (state.timetable == null) {
@@ -100,13 +108,23 @@ class TimetableWidget : GlanceAppWidget() {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                 Text(
                                     context.getString(R.string.loading_data),
-                                    style = TextStyle(color = ColorProvider(GlanceTheme.colors.onSurface.getColor(context)))
+                                    style = TextStyle(
+                                        color = ColorProvider(
+                                            GlanceTheme.colors.onSurface.getColor(
+                                                context
+                                            )
+                                        )
+                                    )
                                 )
                                 Text(
                                     context.getString(R.string.wait_moment),
                                     style = TextStyle(
                                         fontSize = 12.sp,
-                                        color = ColorProvider(GlanceTheme.colors.grayBB.getColor(context))
+                                        color = ColorProvider(
+                                            GlanceTheme.colors.grayBB.getColor(
+                                                context
+                                            )
+                                        )
                                     )
                                 )
                             }
@@ -209,24 +227,32 @@ object TimetableStateParser {
 }
 
 class RefreshTimetableAction : ActionCallback {
-    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
-        val tokenStorage = entryPoint.tokenStorage()
-
-        val constraints = androidx.work.Constraints.Builder()
-            .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
-            .build()
-
-        val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
-            .setConstraints(constraints)
-            .addTag("one_time_sync")
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            "one_time_sync",
-            ExistingWorkPolicy.REPLACE,
-            request
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetEntryPoint::class.java
         )
+        val tokenStorage = entryPoint.tokenStorage()
+        if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
+            val constraints = androidx.work.Constraints.Builder()
+                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
+                .setConstraints(constraints)
+                .addTag("one_time_sync")
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "one_time_sync",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
 
         val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
