@@ -364,7 +364,7 @@ private fun LoadedView(
 @Composable
 private fun LoadedPreview() {
     Theme {
-        val viewModel = PreviewFeedSettingsViewModel()
+        val viewModel = PreviewFeedSettingsViewModel(state = FeedSettingsViewModel.ViewState.Loaded)
         FeedSettingsView(viewModel = viewModel, navController = rememberNavController())
     }
 }

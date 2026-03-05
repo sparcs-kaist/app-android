@@ -52,8 +52,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import org.sparcs.soap.App.Domain.Enums.DeepLink
 import org.sparcs.soap.App.Domain.Helpers.PopupManager

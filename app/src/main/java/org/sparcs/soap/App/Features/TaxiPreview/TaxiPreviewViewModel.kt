@@ -18,7 +18,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepository
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.BuildConfig
 import timber.log.Timber
 import javax.inject.Inject
@@ -36,7 +36,7 @@ interface TaxiPreviewViewModelProtocol {
 @HiltViewModel
 class TaxiPreviewViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepository,
-    private val userUseCase: UserUseCase,
+    private val userUseCase: UserUseCaseProtocol,
     private val taxiRoomUseCase: TaxiRoomUseCaseProtocol,
 ) : ViewModel(), TaxiPreviewViewModelProtocol {
 

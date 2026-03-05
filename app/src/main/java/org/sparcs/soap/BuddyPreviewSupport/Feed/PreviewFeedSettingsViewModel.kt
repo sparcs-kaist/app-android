@@ -46,7 +46,7 @@ class PreviewFeedSettingsViewModel(
     override suspend fun fetchUser() {
     }
 
-    override fun updateNickname() {
+    override fun updateNickname(onComplete: (Boolean) -> Unit) {
     }
 
     override fun updateProfileImage(uri: Uri?, context: Context) {
