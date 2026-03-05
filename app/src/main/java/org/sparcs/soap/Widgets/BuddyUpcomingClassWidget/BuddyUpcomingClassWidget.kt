@@ -88,7 +88,9 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
 
             WidgetTheme(themeMode = themeMode) {
                 Box(
-                    modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
+                    modifier = GlanceModifier.fillMaxSize().background(
+                        GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency)
+                    )
                 ) {
                     val entry = state.entry ?: WidgetLectureEntry.empty(state.signInRequired)
                     val size = LocalSize.current
@@ -232,24 +234,33 @@ object UpcomingClassStateParser {
 }
 
 class RefreshAndOpenAppAction : ActionCallback {
-    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val entryPoint = EntryPointAccessors.fromApplication(context.applicationContext, WidgetEntryPoint::class.java)
-        val tokenStorage = entryPoint.tokenStorage()
-
-        val constraints = androidx.work.Constraints.Builder()
-            .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
-            .build()
-
-        val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
-            .setConstraints(constraints)
-            .addTag("upcoming_one_time_sync")
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniqueWork(
-            "upcoming_one_time_sync",
-            ExistingWorkPolicy.REPLACE,
-            request
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetEntryPoint::class.java
         )
+        val tokenStorage = entryPoint.tokenStorage()
+        if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
+
+            val constraints = androidx.work.Constraints.Builder()
+                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
+                .setConstraints(constraints)
+                .addTag("upcoming_one_time_sync")
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "upcoming_one_time_sync",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
 
         val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
