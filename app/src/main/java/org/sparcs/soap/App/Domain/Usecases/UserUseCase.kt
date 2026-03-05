@@ -12,6 +12,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.OTLUser
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
 import timber.log.Timber
 import javax.inject.Inject
@@ -47,7 +48,7 @@ class UserUseCase @Inject constructor(
     private val taxiUserRepository: TaxiUserRepositoryProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
-    private val otlUserRepository: org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol,
+    private val otlUserRepository: OTLUserRepositoryProtocol,
     private val userStorage: UserStorageProtocol,
 ) : UserUseCaseProtocol {
 

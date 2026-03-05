@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepository
 import org.sparcs.soap.App.Domain.Services.CrashlyticsService
-import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.R
 import timber.log.Timber
@@ -34,7 +34,7 @@ interface TaxiSettingsViewModelProtocol {
 
 @HiltViewModel
 class TaxiSettingsViewModel @Inject constructor(
-    private val userUseCase: UserUseCase,
+    private val userUseCase: UserUseCaseProtocol,
     private val taxiUserRepository: TaxiUserRepository,
     private val crashlyticsService: CrashlyticsService,
 ) : ViewModel(), TaxiSettingsViewModelProtocol {

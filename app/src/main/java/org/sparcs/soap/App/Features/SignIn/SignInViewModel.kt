@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import org.sparcs.soap.App.Domain.Usecases.AuthUseCase
+import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import javax.inject.Inject
 
 interface SignInViewModelProtocol {
@@ -16,7 +16,7 @@ interface SignInViewModelProtocol {
 
 @HiltViewModel
 class SignInViewModel @Inject constructor(
-    private val authUseCase: AuthUseCase,
+    private val authUseCase: AuthUseCaseProtocol,
 ) : ViewModel(), SignInViewModelProtocol {
 
     override var isLoading by mutableStateOf(false)

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
-import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import timber.log.Timber
 import java.util.Calendar
 import java.util.Date
@@ -37,7 +37,7 @@ interface AraSettingsViewModelProtocol {
 
 @HiltViewModel
 class AraSettingsViewModel @Inject constructor(
-    private val userUseCase: UserUseCase,
+    private val userUseCase: UserUseCaseProtocol,
 ) : ViewModel(), AraSettingsViewModelProtocol {
     sealed class ViewState {
         data object Loading : ViewState()
