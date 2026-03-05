@@ -69,7 +69,7 @@ class TimetableWidget : GlanceAppWidget() {
                 val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>().build()
                 WorkManager.getInstance(appContext).enqueueUniqueWork(
                     "one_time_sync",
-                    ExistingWorkPolicy.KEEP,
+                    ExistingWorkPolicy.REPLACE,
                     request
                 )
             }
