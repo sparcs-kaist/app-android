@@ -76,7 +76,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
                 val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>().build()
                 WorkManager.getInstance(appContext).enqueueUniqueWork(
                     "upcoming_one_time_sync",
-                    ExistingWorkPolicy.KEEP,
+                    ExistingWorkPolicy.REPLACE,
                     request
                 )
             }
