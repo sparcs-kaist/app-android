@@ -412,7 +412,7 @@ private fun Header(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = if (post.author.username != stringResource(R.string.anonymous)) {
+            modifier = if (post.author.username != "익명" && post.author.username != "Anonymous") {
                 Modifier.clickable { onAuthorClick() }
             } else {
                 Modifier
@@ -424,7 +424,7 @@ private fun Header(
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.bodySmall
             )
-            if (post.author.username != stringResource(R.string.anonymous)) {
+            if (post.author.username != "익명" && post.author.username != "Anonymous") {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                     contentDescription = null,
