@@ -2,7 +2,6 @@ package org.sparcs.soap.App.Domain.Usecases.Feed
 
 import okhttp3.MultipartBody
 import org.sparcs.soap.App.Domain.Error.CrashContext
-import org.sparcs.soap.App.Domain.Error.Feed.FeedCommentUseCaseError
 import org.sparcs.soap.App.Domain.Error.Feed.FeedProfileUseCaseError
 import org.sparcs.soap.App.Domain.Error.NetworkError
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedProfileRepositoryProtocol
@@ -76,7 +75,7 @@ class FeedProfileUseCase @Inject constructor(
                 }
 
                 else -> {
-                    val mappedError = FeedCommentUseCaseError.Unknown(e)
+                    val mappedError = FeedProfileUseCaseError.Unknown(e)
                     crashlyticsService?.record(error = mappedError as Throwable, context = context)
                     throw mappedError
                 }

@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Domain.Error
 
+import android.content.Context
 import org.sparcs.soap.R
 import java.io.Serializable
 
@@ -25,6 +26,12 @@ sealed class NetworkError : Exception(), SourcedError, Serializable {
 
     data class Unknown(val underlying: Throwable) : NetworkError()
 
+    val messageArgs: Array<Any>
+        get() = when (this) {
+            is ServerError -> arrayOf(code)
+            else -> emptyArray()
+        }
+
     val messageRes: Int
         get() = when (this) {
             is NoConnection -> R.string.error_no_connection
@@ -47,4 +54,7 @@ sealed class NetworkError : Exception(), SourcedError, Serializable {
             is ServerError, is NotFound, is Unknown -> true
             else -> false
         }
+
+    fun message(context: Context): String =
+        context.getString(messageRes, *messageArgs)
 }

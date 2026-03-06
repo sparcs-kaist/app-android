@@ -1,3 +1,5 @@
+package org.sparcs.soap.BuddyTestSupport.Repository
+
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.soap.App.Domain.Models.Feed.FeedCreatePost
