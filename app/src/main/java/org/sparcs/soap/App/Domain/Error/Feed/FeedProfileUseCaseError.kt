@@ -13,7 +13,7 @@ sealed class FeedProfileUseCaseError : Exception(), SourcedError, Serializable {
         private fun readResolve(): Any = ImageCompressionFailed
     }
     object NicknameReserved : FeedProfileUseCaseError() {
-        private fun readResolve(): Any = NicknameConflict
+        private fun readResolve(): Any = NicknameReserved
     }
     object NicknameConflict : FeedProfileUseCaseError() {
         private fun readResolve(): Any = NicknameConflict
