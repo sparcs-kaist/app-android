@@ -1,6 +1,10 @@
 package org.sparcs.soap.App.Features.Timetable.Components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -110,6 +114,18 @@ fun TimetableGrid(
                             ).toDp()
                         }//+24하면 딱 맞는 이유가 뭐지...
 
+                        val animatedCellHeight by animateDpAsState(
+                            targetValue = cellHeight,
+                            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                            label = "HeightAnimation"
+                        )
+
+                        val animatedCellOffsetY by animateDpAsState(
+                            targetValue = cellOffsetY,
+                            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                            label = "OffsetAnimation"
+                        )
+
                         val isCandidate =
                             item.lecture.id == candidateLecture?.id
                         val animatedAlpha by animateFloatAsState(
@@ -120,10 +136,10 @@ fun TimetableGrid(
                         TimetableGridCell(
                             lecture = item.lecture,
                             isCandidate = isCandidate,
-                            cellHeight = cellHeight,
+                            cellHeight = animatedCellHeight,
                             modifier = Modifier
-                                .offset(y = cellOffsetY)
-                                .height(cellHeight)
+                                .offset(y = animatedCellOffsetY)
+                                .height(animatedCellHeight)
                                 .fillMaxWidth()
                                 .combinedClickable(
                                     onClick = {
@@ -197,12 +213,24 @@ private fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
 @Composable
 private fun GridHorizontalLines(minMinutes: Int, maxMinutes: Int) {
     val lineColor = MaterialTheme.colorScheme.grayBB
+    val animatedMinMinutes by animateIntAsState(
+        targetValue = minMinutes,
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        label = "MinMinutesAnim"
+    )
+    val animatedMaxMinutes by animateIntAsState(
+        targetValue = maxMinutes,
+        animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+        label = "MaxMinutesAnim"
+    )
     Canvas(
         modifier = Modifier
             .fillMaxSize()
             .padding(top = TimetableConstructor.daysHeight + 14.dp)
     ) {
-        val duration = maxMinutes - minMinutes
+        val duration = animatedMaxMinutes - animatedMinMinutes
+        if (duration <= 0) return@Canvas
+
         val spacing = size.height / duration.toFloat() * 60f
 
         val hours = (minMinutes / 60) until (maxMinutes / 60)
