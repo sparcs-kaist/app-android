@@ -12,15 +12,15 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.DeepLink
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.R
 import javax.inject.Inject
 
 @HiltViewModel
 class MainTabBarViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
-    private val araBoardUseCase: AraBoardRepositoryProtocol
+    private val araBoardUseCase: AraBoardUseCaseProtocol
 ) : ViewModel() {
     var invitedRoom by mutableStateOf<TaxiRoom?>(null)
 
