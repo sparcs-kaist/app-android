@@ -12,6 +12,7 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -31,6 +32,8 @@ class AnalyticsService @Inject constructor(
     private val dataStore: DataStore<Preferences>,
 ) : AnalyticsServiceProtocol {
 
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     companion object {
         private val FCM_DEVICE_ID_KEY = stringPreferencesKey("fcm_device_id")
     }
@@ -38,7 +41,7 @@ class AnalyticsService @Inject constructor(
     override fun logEvent(event: Event) {
         val firebaseAnalytics = FirebaseAnalytics.getInstance(context)
 
-        CoroutineScope(Dispatchers.IO).launch {
+        scope.launch {
             val deviceId = getDeviceUUID()
 
             val bundle = Bundle().apply {
