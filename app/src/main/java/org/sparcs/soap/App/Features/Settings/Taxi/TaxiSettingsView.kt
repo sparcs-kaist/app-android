@@ -63,6 +63,7 @@ import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
 import org.sparcs.soap.App.Features.Settings.Components.RowElementView
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.PhoneNumberVisualTransformation
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.toPhoneNumberFormat
 import org.sparcs.soap.App.Shared.Extensions.toggle
 import org.sparcs.soap.App.Shared.Mocks.mock
@@ -171,7 +172,9 @@ fun TaxiSettingsView(
                     }
                 }
             )
-        }) { innerPadding ->
+        },
+        modifier = Modifier.analyticsScreen("Taxi Settings")
+    ) { innerPadding ->
 
         Column(
             modifier = Modifier

@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.TaxiReport
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,12 +12,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiCreateReport
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiReport
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
+import org.sparcs.soap.App.Domain.Services.CrashlyticsService
+import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
 
@@ -39,7 +39,7 @@ interface TaxiReportViewModelProtocol {
 class TaxiReportViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val taxiReportRepository: TaxiReportRepositoryProtocol,
-    private val crashlyticsHelper: CrashlyticsHelper,
+    private val crashlyticsService: CrashlyticsService,
 ) : ViewModel(), TaxiReportViewModelProtocol {
 
     // MARK: - Initialiser
@@ -92,13 +92,13 @@ class TaxiReportViewModel @Inject constructor(
             try {
                 taxiReportRepository.createReport(requestModel)
             } catch (e: Throwable) {
-                Log.e("TaxiReportViewModel", "createReport: $e")
+                Timber.e("createReport: $e")
             }
         }
     }
 
     override fun handleException(error: Throwable) {
-        Log.e("TaxiReportViewModel","failed to create a report: $error")
-        crashlyticsHelper.recordException(error)
+        Timber.e("failed to create a report: $error")
+        crashlyticsService.recordException(error)
     }
 }

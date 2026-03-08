@@ -2,8 +2,7 @@ package org.sparcs.soap.App.Features.Post
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
-import androidx.annotation.StringRes
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,7 +26,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -57,6 +55,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -74,32 +73,34 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraCommentRepositoryProtocol
 import org.sparcs.soap.App.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import org.sparcs.soap.App.Features.NavigationBar.Animation.MoveToLeftFadeOut
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Post.Components.DynamicHeightWebView
 import org.sparcs.soap.App.Features.Post.Components.PostBookmarkButton
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
+import org.sparcs.soap.App.Features.Post.Components.PostCommentsSection
 import org.sparcs.soap.App.Features.Post.Components.PostNavigationBar
 import org.sparcs.soap.App.Features.Post.Components.PostShareButton
 import org.sparcs.soap.App.Features.Post.Components.PostViewSkeleton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.formattedString
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.App.Shared.Extensions.postfixEuroRo
+import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
-import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
-import org.sparcs.soap.Features.Post.PostCommentCell
 import org.sparcs.soap.R
+import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,16 +108,18 @@ fun PostView(
     viewModel: PostViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
+    val post = viewModel.post.collectAsState().value
     val context = LocalContext.current
     val state = viewModel.state.collectAsState().value
+    val pullState = rememberPullToRefreshState()
+
     val scope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
-
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
+
     var htmlHeight by remember { mutableStateOf(0.dp) }
     var tappedURL by remember { mutableStateOf<Uri?>(null) }
-
     var comment by remember { mutableStateOf("") }
     var isWritingComment by remember { mutableStateOf(false) }
     var targetComment by remember { mutableStateOf<AraPostComment?>(null) }
@@ -129,36 +132,25 @@ fun PostView(
 
     val summarisedContent by remember { mutableStateOf<String?>(null) }
 
-    var showAlert by remember { mutableStateOf(false) }
-    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
-    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-
-    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
-        alertTitle = title
-        alertMessage = message
-        showAlert = true
-    }
-
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
     }
-    val post = viewModel.post.collectAsState().value
-    val pullState = rememberPullToRefreshState()
 
     LaunchedEffect(tappedURL) {
         tappedURL?.let { uri ->
             try {
                 val urlString = uri.toString()
-                val finalUri = if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
-                    Uri.parse("http://$urlString")
-                } else {
-                    uri
-                }
+                val finalUri =
+                    if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
+                        Uri.parse("http://$urlString")
+                    } else {
+                        uri
+                    }
 
                 val intent = Intent(Intent.ACTION_VIEW, finalUri)
                 context.startActivity(intent)
             } catch (e: Exception) {
-                Log.e("PostView", "Failed to open URL: $tappedURL", e)
+                Timber.e(e, "Failed to open URL: $tappedURL")
             } finally {
                 tappedURL = null
             }
@@ -174,23 +166,7 @@ fun PostView(
                 onClick = { navController.popBackStack() },
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { type ->
-                    scope.launch {
-                        try {
-                            viewModel.report(type)
-                        } catch (e: Exception) {
-                            Log.e("PostView", "Failed to report post", e)
-                            val message = if (e.isNetworkError()) {
-                                R.string.network_connection_error
-                            } else {
-                                R.string.unexpected_error_reporting_post
-                            }
-
-                            showAlert(
-                                title = R.string.error,
-                                message = message
-                            )
-                        }
-                    }
+                    scope.launch { viewModel.report(type) }
                 },
                 onTranslate = {
                     showTranslationView = true
@@ -215,44 +191,35 @@ fun PostView(
                     scope.launch {
                         isUploadingComment = true
                         try {
-                            val uploadedComment: AraPostComment = when {
+                            val uploadedComment = when {
                                 commentOnEdit != null -> viewModel.editComment(
-                                    commentID = commentOnEdit!!.id,
-                                    content = comment
+                                    commentOnEdit!!.id,
+                                    comment
                                 )
 
                                 targetComment != null -> viewModel.writeThreadedComment(
-                                    commentID = targetComment!!.id,
-                                    content = comment
+                                    targetComment!!.id,
+                                    comment
                                 )
 
-                                else -> viewModel.writeComment(content = comment)
+                                else -> viewModel.writeComment(comment)
                             }
 
-                            targetComment = null
-                            commentOnEdit = null
-                            comment = ""
-                            isWritingComment = false
+                            comment = ""; targetComment = null; commentOnEdit = null
+                            keyboardController?.hide()
 
                             uploadedComment.let { comment ->
                                 scope.launch {
                                     proxy.scrollToItem(comment.id)
                                 }
                             }
-
                         } catch (e: Exception) {
-                            Log.e("PostView", "Failed to upload comment", e)
-                            val message = if (e.isNetworkError()) {
-                                R.string.network_connection_error
-                            } else {
-                                viewModel.handleException(e)
-                                R.string.unexpected_error_uploading_comment
-                            }
-                            showAlert(
-                                title = R.string.error,
-                                message = message
+                            viewModel.alertState = AlertState(
+                                titleResId = R.string.unexpected_error_uploading_comment,
+                                message = e.localizedMessage
+                                    ?: context.getString(R.string.error_unknown_try_again)
                             )
-
+                            viewModel.isAlertPresented = true
                         } finally {
                             isUploadingComment = false
                         }
@@ -262,7 +229,12 @@ fun PostView(
                 placeholder = placeholder(viewModel, targetComment, commentOnEdit),
                 focusRequester = focusRequester
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen(
+            "Ara Post",
+            "is_author" to (post?.isMine ?: false),
+            "has_comments" to ((post?.commentCount ?: 0) > 0)
+        ),
     ) { innerPadding ->
         when (state) {
             is PostViewModel.ViewState.Loading -> {
@@ -319,22 +291,24 @@ fun PostView(
                         item {
                             Footer(viewModel, scope = scope, post = post) {
                                 targetComment = null
-                                isWritingComment = true
                                 focusRequester.requestFocus()
                                 keyboardController?.show()
                             }
                         }
                         item {
                             Comments(
-                                post = post
-                            ) {
-                                commentOnEdit = it.commentOnEdit
-                                targetComment = it.targetComment
-                                comment = it.comment
-                                focusRequester.requestFocus()
-                                keyboardController?.show()
-                            }
+                                post = post,
+                                onCommentChange = { update ->
+                                    targetComment = update.targetComment
+                                    commentOnEdit = update.commentOnEdit
+                                    comment = update.comment
+                                },
+                                viewModel = viewModel,
+                                focusRequester = focusRequester,
+                                keyboardController = keyboardController
+                            )
                         }
+                        item { Spacer(modifier = Modifier.height(64.dp)) }
                     }
                 }
             }
@@ -355,13 +329,12 @@ fun PostView(
                                         ?.set("listNeedsRefresh", true)
                                     navController.popBackStack()
                                 } catch (e: Exception) {
-                                    Log.e("PostView", "Failed to delete post", e)
-                                    viewModel.handleException(e)
-                                    showAlert = true
-                                    showAlert(
-                                        R.string.error,
-                                        R.string.unexpected_error_deleting_post
+                                    viewModel.alertState = AlertState(
+                                        titleResId = R.string.error,
+                                        messageResId = R.string.unexpected_error_deleting_post
                                     )
+                                    viewModel.isAlertPresented = true
+                                    showDeleteConfirmation = false
                                 }
                             }
 
@@ -384,18 +357,25 @@ fun PostView(
                 text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
             )
         }
-
-        if (showAlert) {
+        if (viewModel.isAlertPresented) {
             AlertDialog(
-                onDismissRequest = { showAlert = false },
+                onDismissRequest = { viewModel.isAlertPresented = false },
                 confirmButton = {
-                    Button(onClick = { showAlert = false }) {
+                    TextButton(onClick = { viewModel.isAlertPresented = false }) {
                         Text(stringResource(R.string.ok))
                     }
                 },
-                title = { Text(stringResource(alertTitle)) },
+                title = {
+                    viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
+                },
                 text = {
-                    Text(stringResource(alertMessage))
+                    viewModel.alertState?.let { state ->
+                        Text(
+                            state.message ?: stringResource(
+                                state.messageResId ?: R.string.unexpected_error
+                            )
+                        )
+                    }
                 }
             )
         }
@@ -432,7 +412,7 @@ private fun Header(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = if (post.author.username != stringResource(R.string.anonymous)) {
+            modifier = if (post.author.username != "익명" && post.author.username != "Anonymous") {
                 Modifier.clickable { onAuthorClick() }
             } else {
                 Modifier
@@ -444,7 +424,7 @@ private fun Header(
                 fontWeight = FontWeight.Medium,
                 style = MaterialTheme.typography.bodySmall
             )
-            if (post.author.username != stringResource(R.string.anonymous)) {
+            if (post.author.username != "익명" && post.author.username != "Anonymous") {
                 Icon(
                     imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
                     contentDescription = null,
@@ -529,81 +509,59 @@ private fun Footer(
 private fun Comments(
     post: AraPost,
     onCommentChange: (CommentUpdate) -> Unit,
+    viewModel: PostViewModelProtocol,
+    focusRequester: FocusRequester,
+    keyboardController: SoftwareKeyboardController?,
 ) {
-    val repo: AraCommentRepositoryProtocol = hiltViewModel<PostViewModel>().araCommentRepository
-    Column {
-        if (post.comments.isEmpty()) {
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.lightGray0,
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
+    val scope = rememberCoroutineScope()
 
-            UnavailableView(
-                icon = Icons.Outlined.ChatBubbleOutline,
-                title = stringResource(R.string.no_one_has_commented_yet),
-                description = stringResource(R.string.be_the_first_one_to_share_your_thoughts)
-            )
-        } else {
-            post.comments.forEach { commentItem ->
-                PostCommentCell(
-                    comment = commentItem,
-                    isThreaded = false,
-                    onComment = {
-                        onCommentChange(
-                            CommentUpdate(
-                                targetComment = commentItem,
-                                commentOnEdit = null,
-                                comment = ""
-                            )
-                        )
-                    },
-                    onEdit = {
-                        onCommentChange(
-                            CommentUpdate(
-                                targetComment = null,
-                                commentOnEdit = commentItem,
-                                comment = commentItem.content ?: ""
-                            )
-                        )
-                    },
-                    onDelete = {
-                        post.commentCount -= 1
-                    },
-                    onTranslate = {},
-                    araCommentRepository = repo
-                )
-                //Threads
-                commentItem.comments.forEach { thread ->
-                    PostCommentCell(
-                        comment = thread,
-                        isThreaded = true,
-                        onComment = {
-                            onCommentChange(
-                                CommentUpdate(
-                                    targetComment = thread,
-                                    commentOnEdit = null,
-                                    comment = ""
-                                )
-                            )
-                        },
-                        onEdit = {
-                            onCommentChange(
-                                CommentUpdate(
-                                    targetComment = null,
-                                    commentOnEdit = thread,
-                                    comment = thread.content ?: ""
-                                )
-                            )
-                        },
-                        onDelete = { post.commentCount -= 1 },
-                        onTranslate = {
-                            //TODO - translate
-                        },
-                        araCommentRepository = repo
+    Box(
+        modifier = Modifier
+            .padding(top = 4.dp)
+            .animateContentSize()
+    ) {
+        PostCommentsSection(
+            comments = post.comments,
+            onReply = { selectedComment ->
+                onCommentChange(
+                    CommentUpdate(
+                        targetComment = selectedComment,
+                        commentOnEdit = null,
+                        comment = ""
                     )
+                )
+                focusRequester.requestFocus()
+                keyboardController?.show()
+            },
+            onCommentDeleted = {
+                post.commentCount -= 1
+            },
+            onEdit = { selectedComment ->
+                onCommentChange(
+                    CommentUpdate(
+                        targetComment = null,
+                        commentOnEdit = selectedComment,
+                        comment = selectedComment.content ?: ""
+                    )
+                )
+                focusRequester.requestFocus()
+                keyboardController?.show()
+            },
+            onUpVote = { target ->
+                scope.launch { viewModel.upVoteComment(target) }
+            },
+            onDownVote = { target ->
+                scope.launch { viewModel.downVoteComment(target) }
+            },
+            onReport = { commentID, type ->
+                scope.launch {
+                    viewModel.reportComment(commentID, type)
                 }
+            },
+            onDeleteComment = { target ->
+                scope.launch { viewModel.deleteComment(target) }
             }
-        }
+        )
     }
 }
 
@@ -818,15 +776,47 @@ data class CommentUpdate(
 )
 
 /* ____________________________________________________________________*/
-
+@Preview(name = "Loaded", showBackground = true)
 @Composable
-private fun MockView(state: PostViewModel.ViewState) {
-    val mockViewModel = remember { MockPostViewModel(initialState = state) }
-    PostView(viewModel = mockViewModel, navController = rememberNavController())
+private fun LoadedPreview() {
+    val mockViewModel =
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loaded,
+                post = AraPost.mock()
+            )
+        }
+    Theme {
+        PostView(viewModel = mockViewModel, navController = rememberNavController())
+    }
 }
 
+@Preview(name = "Loading Content", showBackground = true)
 @Composable
-@Preview
-private fun LoadedPreview() {
-    Theme { MockView(PostViewModel.ViewState.Loaded) }
+private fun LoadingPreview() {
+    val mockViewModel =
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loading,
+                post = AraPost.mockList()[0]
+            )
+        }
+    Theme {
+        PostView(viewModel = mockViewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(name = "No Comments", showBackground = true)
+@Composable
+private fun NoCommentsPreview() {
+    val mockViewModel =
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loaded,
+                post = AraPost.mockList()[1]
+            )
+        }
+    Theme {
+        PostView(viewModel = mockViewModel, navController = rememberNavController())
+    }
 }

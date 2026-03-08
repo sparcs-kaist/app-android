@@ -15,7 +15,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiCreateRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
-import org.sparcs.soap.App.Domain.Usecases.TaxiLocationUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.ceilToNextTenMinutes
 import java.util.Calendar
 import java.util.Date

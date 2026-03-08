@@ -15,7 +15,12 @@ import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.TableChart
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -25,10 +30,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.*
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import androidx.navigation.navigation
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.BoardList.BoardListView
 import org.sparcs.soap.App.Features.BoardList.BoardListViewModel
@@ -48,6 +58,7 @@ import org.sparcs.soap.App.Features.LectureSearch.LectureSearchViewModel
 import org.sparcs.soap.App.Features.NavigationBar.Animation.trendingEnterTransition
 import org.sparcs.soap.App.Features.NavigationBar.Animation.trendingExitTransition
 import org.sparcs.soap.App.Features.NavigationBar.Animation.trendingPopExitTransition
+import org.sparcs.soap.App.Features.NavigationBar.Components.MainDeepLinkHandler
 import org.sparcs.soap.App.Features.Post.PostView
 import org.sparcs.soap.App.Features.Post.PostViewModel
 import org.sparcs.soap.App.Features.PostCompose.PostComposeView
@@ -64,6 +75,7 @@ import org.sparcs.soap.App.Features.Settings.Ara.AraSettingsView
 import org.sparcs.soap.App.Features.Settings.Ara.AraSettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Feed.FeedSettingsView
 import org.sparcs.soap.App.Features.Settings.Feed.FeedSettingsViewModel
+import org.sparcs.soap.App.Features.Settings.Notification.NotificationSettingsView
 import org.sparcs.soap.App.Features.Settings.SettingsView
 import org.sparcs.soap.App.Features.Settings.SettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Taxi.TaxiReportListView
@@ -88,6 +100,7 @@ import org.sparcs.soap.App.Features.Timetable.TimetableView
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModel
 import org.sparcs.soap.App.Features.UserPostList.UserPostListView
 import org.sparcs.soap.App.Features.UserPostList.UserPostListViewModel
+import org.sparcs.soap.App.Presentation.Settings.NotificationSettingsViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
@@ -124,6 +137,7 @@ enum class Channel(@StringRes val title: Int) {
     //Setting
     SignOut(title = R.string.sign_out),
     Settings(title = R.string.settings),
+    NotificationSettings(title = R.string.notifications_title),
     CreditView(title = R.string.acknowledgements),
     FeedSettings(title = R.string.feed_settings),
     AraSettings(title = R.string.ara_settings),
@@ -519,6 +533,17 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
+                    route = Channel.NotificationSettings.name,
+                    enterTransition = trendingEnterTransition(),
+                    exitTransition = trendingExitTransition(),
+                    popEnterTransition = null,
+                    popExitTransition = trendingPopExitTransition()
+                ) { backStackEntry ->
+                    val viewModel: NotificationSettingsViewModel = hiltViewModel(backStackEntry)
+                    NotificationSettingsView(navController, viewModel)
+                }
+
+                composable(
                     route = Channel.CreditView.name,
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
@@ -602,6 +627,18 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
             }
         }
+        MainDeepLinkHandler(
+            navController = navController,
+            onTabSelected = { channel ->
+                navController.navigate(channel.name) {
+                    popUpTo(navController.graph.startDestinationId) {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
+        )
     }
 }
 

@@ -39,6 +39,7 @@ import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiCapacityPick
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDepartureTimePicker
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiListViewModel
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiRoomCreationViewModel
@@ -81,7 +82,8 @@ fun TaxiRoomCreationView(
                 taxiRoomCreationViewModel = taxiRoomCreationViewModel,
                 title = title
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Taxi Room Creation")
     ) { innerPadding ->
 
         Column(
@@ -117,7 +119,9 @@ fun TaxiRoomCreationView(
                 BasicTextField(
                     value = title,
                     onValueChange = { title = it },
-                    textStyle = MaterialTheme.typography.bodyLarge,
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     modifier = Modifier
                         .fillMaxWidth()

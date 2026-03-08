@@ -3,7 +3,6 @@ package org.sparcs.soap.App.Networking.ResponseDTO.Taxi
 import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Shared.Extensions.toDate
-import java.net.URL
 import java.util.Date
 
 data class TaxiChatDTO(
@@ -43,7 +42,7 @@ data class TaxiChatDTO(
             type = TaxiChat.ChatType.valueOf(type.uppercase()),
             authorID = authorID,
             authorName = authorName,
-            authorProfileURL = authorProfileURL?.let { URL(it) },
+            authorProfileURL = authorProfileURL,
             authorIsWithdrew = authorIsWithdrew,
             content = content,
             time = time.toDate() ?: Date(),

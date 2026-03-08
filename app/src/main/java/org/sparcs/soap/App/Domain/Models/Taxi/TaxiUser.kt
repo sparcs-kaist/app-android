@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Domain.Models.Taxi
 
-import java.net.URL
 import java.util.Date
 
 data class TaxiUser(
@@ -16,7 +15,7 @@ data class TaxiUser(
     val ban: Boolean,
     val agreeOnTermsOfService: Boolean,
     val joinedAt: Date,
-    val profileImageURL: URL?,
+    val profileImageURL: String?,
     val account: String
 ) {
     companion object {}

@@ -1,18 +1,14 @@
 package org.sparcs.soap.App.Domain.Repositories.Feed
 
-import android.util.Log
 import com.google.gson.Gson
-import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.soap.App.Domain.Models.Feed.FeedCreatePost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPostPage
 import org.sparcs.soap.App.Networking.RequestDTO.Feed.FeedPostRequestDTO
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedPostApi
-import org.sparcs.soap.App.Shared.Mocks.mock
-import retrofit2.HttpException
 import javax.inject.Inject
 
 interface FeedPostRepositoryProtocol {
@@ -22,7 +18,7 @@ interface FeedPostRepositoryProtocol {
     suspend fun deletePost(postID: String)
     suspend fun vote(postID: String, type: FeedVoteType)
     suspend fun deleteVote(postID: String)
-    suspend fun reportPost(postID: String, reason: FeedReportType)
+    suspend fun reportPost(postID: String, reason: FeedReportType, detail: String)
 }
 
 class FeedPostRepository @Inject constructor(
@@ -30,88 +26,32 @@ class FeedPostRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : FeedPostRepositoryProtocol {
 
-    override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage = try {
-        api.fetchPosts(cursor, page).toModel()
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage = safeApiCall(gson) {
+        api.fetchPosts(cursor, page)
+    }.toModel()
+
+    override suspend fun fetchPost(postID: String): FeedPost = safeApiCall(gson) {
+        api.fetchPost(postID)
+    }.toModel()
+
+    override suspend fun writePost(request: FeedCreatePost) = safeApiCall(gson) {
+        val dto = FeedPostRequestDTO.fromModel(request)
+        api.writePost(dto)
     }
 
-    override suspend fun fetchPost(postID: String): FeedPost = try {
-        api.fetchPost(postID).toModel()
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun deletePost(postID: String) = safeApiCall(gson) {
+        api.deletePost(postID)
     }
 
-    override suspend fun writePost(request: FeedCreatePost) {
-        try {
-            val dto = FeedPostRequestDTO.fromModel(request)
-            api.writePost(dto)
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun deletePost(postID: String) {
-        try {
-            val response = api.deletePost(postID)
-            if (response.isSuccessful) return
-
-            if (response.code() == 409) {
-                val body = response.errorBody()?.string() ?: ""
-                val bodyLower = body.lowercase()
-                val deletionError = when {
-                    bodyLower.contains("comments") -> FeedDeletionError.PostHasComments
-                    bodyLower.contains("vote") -> FeedDeletionError.PostHasVotes
-                    else -> {
-                        Log.e("FeedCommentRepository", body)
-                        FeedDeletionError.Unknown
-                    }
-                }
-
-                throw deletionError
-            }
-
-            throw HttpException(response)
-
-        } catch (e: Exception) {
-            if (e is FeedDeletionError) throw e
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun vote(postID: String, type: FeedVoteType) = try {
+    override suspend fun vote(postID: String, type: FeedVoteType) = safeApiCall(gson) {
         api.vote(postID, mapOf("vote" to type.name))
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun deleteVote(postID: String) = try {
+    override suspend fun deleteVote(postID: String) = safeApiCall(gson) {
         api.deleteVote(postID)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun reportPost(postID: String, reason: FeedReportType) = try {
-        api.reportPost(postID, mapOf("reason" to reason.name))
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun reportPost(postID: String, reason: FeedReportType, detail: String) = safeApiCall(gson) {
+        api.reportPost(postID, mapOf("reason" to reason.name, "detail" to detail))
     }
-}
-
-class FakeFeedPostRepository: FeedPostRepositoryProtocol {
-    override suspend fun fetchPost(postID: String): FeedPost {
-       return FeedPost.mock()
-    }
-    override suspend fun fetchPosts(cursor: String?, page: Int): FeedPostPage {
-      return FeedPostPage(
-          items = listOf(),
-          nextCursor = null,
-          hasNext = false
-      )
-    }
-    override suspend fun writePost(request: FeedCreatePost) {}
-    override suspend fun deletePost(postID: String) {}
-    override suspend fun vote(postID: String, type: FeedVoteType) {}
-    override suspend fun deleteVote(postID: String) {}
-    override suspend fun reportPost(postID: String, reason: FeedReportType) {}
 }

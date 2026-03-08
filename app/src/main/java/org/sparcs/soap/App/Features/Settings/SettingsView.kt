@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,6 +24,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
@@ -56,22 +56,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavHostController
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.toggle
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSettingsViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.R
+import timber.log.Timber
 
 @Composable
 fun SettingsView(
-    navController: NavHostController,
+    navController: NavController,
     settingsViewModel: SettingsViewModelProtocol = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -93,7 +95,9 @@ fun SettingsView(
                 title = stringResource(R.string.settings),
                 onDismiss = { navController.popBackStack() }
             )
-        }) { innerPadding ->
+        },
+        modifier = Modifier.analyticsScreen("Settings")
+    ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
                 .padding(16.dp)
@@ -107,6 +111,12 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
                 AppSettings(context)
+
+                ServiceNavButton(
+                    text = stringResource(R.string.notifications_title),
+                    icon = { Icon(Icons.Outlined.Notifications, null) }
+                ) { navController.navigate(Channel.NotificationSettings.name) }
+
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
                 SendCrashReportsButton(isCrashlyticsEnabled) {
@@ -126,17 +136,35 @@ fun SettingsView(
 
                 ServiceNavButton(
                     text = stringResource(R.string.feed),
-                    icon = { Icon(painterResource(R.drawable.sparcs_logo), null, tint = Color.Unspecified) }
+                    icon = {
+                        Icon(
+                            painterResource(R.drawable.sparcs_logo),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
                 ) { navController.navigate(Channel.FeedSettings.name) }
 
                 ServiceNavButton(
                     text = stringResource(R.string.ara),
-                    icon = { Icon(painterResource(R.drawable.ara_logo), null, tint = Color.Unspecified) }
+                    icon = {
+                        Icon(
+                            painterResource(R.drawable.ara_logo),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
                 ) { navController.navigate(Channel.AraSettings.name) }
 
                 ServiceNavButton(
                     text = stringResource(R.string.taxi),
-                    icon = { Icon(painterResource(R.drawable.taxi_logo), null, tint = Color.Unspecified) }
+                    icon = {
+                        Icon(
+                            painterResource(R.drawable.taxi_logo),
+                            null,
+                            tint = Color.Unspecified
+                        )
+                    }
                 ) { navController.navigate(Channel.TaxiSettings.name) }
 
                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
@@ -258,6 +286,7 @@ private fun AppSettings(context: Context) {
         )
 
         Spacer(Modifier.width(8.dp))
+
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
                 text = stringResource(R.string.change_language),
@@ -286,7 +315,7 @@ private fun FeedbackButton(context: Context) {
         try {
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Log.e("SettingsView", "Error launching email app")
+            Timber.e("Error launching email app")
         }
     }
     Row(
@@ -348,7 +377,7 @@ private fun SendCrashReportsButton(
 }
 
 @Composable
-private fun Term(context: Context, navController: NavHostController) {
+private fun Term(context: Context, navController: NavController) {
     ServiceNavButton(
         text = stringResource(R.string.privacy_policy),
         icon = { Icon(Icons.Outlined.Policy, null, tint = MaterialTheme.colorScheme.onSurface) }
@@ -361,7 +390,13 @@ private fun Term(context: Context, navController: NavHostController) {
 
     ServiceNavButton(
         text = stringResource(R.string.terms_of_use),
-        icon = { Icon(Icons.Outlined.Description, null, tint = MaterialTheme.colorScheme.onSurface) }
+        icon = {
+            Icon(
+                Icons.Outlined.Description,
+                null,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
     ) {
         val intent = Intent(
             Intent.ACTION_VIEW,
@@ -371,7 +406,13 @@ private fun Term(context: Context, navController: NavHostController) {
 
     ServiceNavButton(
         text = stringResource(R.string.acknowledgements),
-        icon = { Icon(Icons.Outlined.VolunteerActivism, null, tint = MaterialTheme.colorScheme.onSurface) }
+        icon = {
+            Icon(
+                Icons.Outlined.VolunteerActivism,
+                null,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+        }
     ) {
         navController.navigate(Channel.CreditView.name)
     }

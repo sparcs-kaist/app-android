@@ -3,7 +3,6 @@ package org.sparcs.soap.App.Networking.ResponseDTO.Taxi
 import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Shared.Extensions.toDate
-import java.net.URL
 import java.util.Date
 
 data class TaxiUserDTO(
@@ -63,7 +62,7 @@ data class TaxiUserDTO(
             ban = ban,
             agreeOnTermsOfService = agreeOnTermsOfService,
             joinedAt = joinAt.toDate() ?: Date(),
-            profileImageURL = URL(profileImageURL),
+            profileImageURL = profileImageURL,
             account = account
         )
     }

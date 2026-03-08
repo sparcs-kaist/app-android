@@ -33,7 +33,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
 import org.sparcs.soap.App.Domain.Repositories.Taxi.FakeTaxiRoomRepository
-import org.sparcs.soap.App.Domain.Usecases.MockTaxiLocationUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.MockTaxiLocationUseCase
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModel
 import org.sparcs.soap.App.Shared.Extensions.toDate
 import org.sparcs.soap.App.Shared.Extensions.toLocalDate

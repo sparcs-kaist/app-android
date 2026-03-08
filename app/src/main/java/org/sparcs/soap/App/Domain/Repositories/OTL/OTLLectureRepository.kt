@@ -6,7 +6,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.LectureSearchRequest
 import org.sparcs.soap.App.Networking.RequestDTO.OTL.LectureSearchRequestDTO
 import org.sparcs.soap.App.Networking.RequestDTO.OTL.WriteReviewRequest
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLLectureApi
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
@@ -31,9 +31,9 @@ class OTLLectureRepository @Inject constructor(
 ) : OTLLectureRepositoryProtocol {
 
     override suspend fun searchLectures(request: LectureSearchRequest): List<Lecture> {
-        try {
+        return safeApiCall(gson) {
             val dto = LectureSearchRequestDTO.fromModel(request)
-            val response = api.searchLecture(
+            api.searchLecture(
                 year = dto.year,
                 semester = dto.semester,
                 keyword = dto.keyword,
@@ -43,16 +43,13 @@ class OTLLectureRepository @Inject constructor(
                 limit = dto.limit,
                 offset = dto.offset
             )
-            return response.map { it.toModel() }
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
+        }.map { it.toModel() }
     }
 
-    override suspend fun fetchLectures(lectureID: Int): List<LectureReview> = try {
-        api.fetchReviews(lectureID).map { it.toModel() }
-    } catch (e: Exception) {
-        handleApiError(gson, e)
+    override suspend fun fetchLectures(lectureID: Int): List<LectureReview> {
+        return safeApiCall(gson) {
+            api.fetchReviews(lectureID)
+        }.map { it.toModel() }
     }
 
     override suspend fun writeReview(
@@ -62,7 +59,7 @@ class OTLLectureRepository @Inject constructor(
         load: Int,
         speech: Int,
     ): LectureReview {
-        try {
+        return safeApiCall(gson) {
             val request = WriteReviewRequest(
                 lectureID = lectureID,
                 content = content,
@@ -70,12 +67,8 @@ class OTLLectureRepository @Inject constructor(
                 load = load,
                 speech = speech
             )
-
-            val response = api.writeReview(request)
-            return response.toModel()
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
+            api.writeReview(request)
+        }.toModel()
     }
 }
 

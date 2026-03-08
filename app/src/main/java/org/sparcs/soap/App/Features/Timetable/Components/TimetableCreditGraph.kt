@@ -1,5 +1,8 @@
 package org.sparcs.soap.App.Features.Timetable.Components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,9 +30,9 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
-import org.sparcs.soap.App.Domain.Models.OTL.LectureCreditData
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.theme.ui.Theme
@@ -42,26 +45,25 @@ val lectureColors = mapOf(
     LectureType.HSE to Color(0xFFE2455C),
     LectureType.ETC to Color(0xFF47D0BA)
 )
-
 @Composable
 fun TimetableCreditGraph(
     timetable: Timetable,
     modifier: Modifier = Modifier
 ) {
-    val data = listOf(
-        LectureCreditData(LectureType.BR, timetable.getCreditsFor(LectureType.BR)),
-        LectureCreditData(LectureType.BE, timetable.getCreditsFor(LectureType.BE)),
-        LectureCreditData(LectureType.MR, timetable.getCreditsFor(LectureType.MR)),
-        LectureCreditData(LectureType.ME, timetable.getCreditsFor(LectureType.ME)),
-        LectureCreditData(LectureType.HSE, timetable.getCreditsFor(LectureType.HSE)),
-        LectureCreditData(LectureType.ETC, timetable.getCreditsFor(LectureType.ETC))
+    val lectureTypes = listOf(
+        LectureType.BR, LectureType.BE, LectureType.MR,
+        LectureType.ME, LectureType.HSE, LectureType.ETC
     )
 
-    val totalCredits = data.sumOf { it.credits }.coerceAtLeast(1)
-    val stepCredit = 5
-    val tickValues = (0..totalCredits step stepCredit).toList().let {
-        if (totalCredits % stepCredit != 0 && totalCredits !in it) it + totalCredits else it
+    val animatedCredits = lectureTypes.map { type ->
+        animateFloatAsState(
+            targetValue = timetable.getCreditsFor(type).toFloat(),
+            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+            label = "credit_${type.name}"
+        )
     }
+
+    val animatedTotal = animatedCredits.sumOf { it.value.toDouble() }.toFloat().coerceAtLeast(1f)
 
     Card(
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
@@ -78,23 +80,28 @@ fun TimetableCreditGraph(
                 val heightPx = size.height
 
                 var startX = 0f
-                val filteredData = data.filter { it.credits > 0 }
-                filteredData.forEachIndexed { index, element ->
-                    val blockWidth = (element.credits.toFloat() / totalCredits) * widthPx
-                    val isLast = index == filteredData.lastIndex
-                    val cornerRadius = when {
-                        index == 0 && isLast -> CornerRadius(8f, 8f)
-                        index == 0 -> CornerRadius(8f, 0f)
-                        isLast -> CornerRadius(0f, 8f)
-                        else -> CornerRadius(0f, 0f)
+
+                lectureTypes.forEachIndexed { index, type ->
+                    val credits = animatedCredits[index].value
+                    if (credits > 0) {
+                        val blockWidth = (credits / animatedTotal) * widthPx
+
+                        val isFirst = startX == 0f
+                        val isLast = (startX + blockWidth) >= widthPx - 1f
+
+                        drawRoundRect(
+                            color = lectureColors[type] ?: Color.Gray.copy(0.5f),
+                            topLeft = Offset(startX, 0f),
+                            size = Size(blockWidth, heightPx / 2),
+                            cornerRadius = when {
+                                isFirst && isLast -> CornerRadius(8f, 8f)
+                                isFirst -> CornerRadius(8f, 0f)
+                                isLast -> CornerRadius(0f, 8f)
+                                else -> CornerRadius(0f, 0f)
+                            }
+                        )
+                        startX += blockWidth
                     }
-                    drawRoundRect(
-                        color = lectureColors[element.lectureType] ?: Color.Gray.copy(0.5f),
-                        topLeft = Offset(startX, 0f),
-                        size = Size(blockWidth, heightPx / 2),
-                        cornerRadius = cornerRadius
-                    )
-                    startX += blockWidth
                 }
 
                 drawRoundRect(
@@ -105,8 +112,12 @@ fun TimetableCreditGraph(
                     size = Size(widthPx, heightPx / 2)
                 )
 
+                val stepCredit = 5
+                val actualTotal = animatedTotal.toInt()
+                val tickValues = (0..actualTotal step stepCredit).toList()
+
                 tickValues.forEach { tick ->
-                    val x = (tick.toFloat() / totalCredits) * widthPx
+                    val x = (tick.toFloat() / animatedTotal) * widthPx
                     drawLine(
                         color = Color.DarkGray,
                         start = Offset(x, 0f),
@@ -118,7 +129,7 @@ fun TimetableCreditGraph(
                         drawText(
                             "$tick",
                             x,
-                            heightPx / 2 + 25f,
+                            heightPx / 2 + 30f,
                             android.graphics.Paint().apply {
                                 textSize = 28f
                                 color = android.graphics.Color.DKGRAY
@@ -132,28 +143,32 @@ fun TimetableCreditGraph(
             Spacer(modifier = Modifier.height(8.dp))
 
             FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                data.forEach { element ->
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(
-                                    color = lectureColors[element.lectureType] ?: Color.Gray,
-                                    shape = RoundedCornerShape(4.dp)
-                                )
-                        )
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text(text = element.lectureType.code.localized() + "(${element.credits})", style = MaterialTheme.typography.bodySmall)
-
+                lectureTypes.forEachIndexed { index, type ->
+                    val currentCredits = animatedCredits[index].value
+                    if (currentCredits > 0 || timetable.getCreditsFor(type) > 0) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(
+                                        color = lectureColors[type] ?: Color.Gray,
+                                        shape = RoundedCornerShape(4.dp)
+                                    )
+                            )
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text(
+                                text = "${type.code.localized()}(${currentCredits.toInt()})",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
         }
     }
 }
-
 @Composable
-@androidx.compose.ui.tooling.preview.Preview
+@Preview
 private fun Preview() {
     Theme {
         Column {

@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Timetable
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,13 +14,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Helpers.CrashlyticsHelper
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCase
+import org.sparcs.soap.App.Domain.Services.CrashlyticsService
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.R
+import timber.log.Timber
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
@@ -42,8 +42,8 @@ interface TimetableViewModelProtocol {
 
     fun setCandidateLecture(lecture: Lecture?)
     fun fetchData()
-    fun selectPreviousSemester()
-    fun selectNextSemester()
+    suspend fun selectPreviousSemester()
+    suspend fun selectNextSemester()
     fun selectTimetable(id: String)
     fun createTable()
     fun deleteTable()
@@ -55,7 +55,7 @@ interface TimetableViewModelProtocol {
 @HiltViewModel
 class TimetableViewModel @Inject constructor(
     override val timetableUseCase: TimetableUseCase,
-    private val crashlyticsHelper: CrashlyticsHelper,
+    private val crashlyticsService: CrashlyticsService,
 ) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
@@ -133,13 +133,13 @@ class TimetableViewModel @Inject constructor(
                 timetableUseCase.load()
                 isLoading.value = false
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "failed to fetch Timetable Data")
+                Timber.e("failed to fetch Timetable Data")
                 handleException(e, ErrorType.FetchData)
             }
         }
     }
 
-    override fun selectPreviousSemester() {
+    override suspend fun selectPreviousSemester() {
         val semestersList = timetableUseCase.semesters.value
         val currentIndex = timetableUseCase.selectedSemesterID.value?.let { id ->
             semestersList.indexOfFirst { it.id == id }
@@ -147,13 +147,13 @@ class TimetableViewModel @Inject constructor(
 
         if (currentIndex > 0) {
             val newSemester = semestersList[currentIndex - 1]
-            timetableUseCase.setSelectedSemesterID(newSemester.id)
+            timetableUseCase.selectSemester(newSemester.id)
         }
         val defaultTableId = timetableUseCase.timetableIDsForSelectedSemester.firstOrNull()
         defaultTableId?.let { selectTimetable(it) }
     }
 
-    override fun selectNextSemester() {
+    override suspend fun selectNextSemester() {
         val semestersList = timetableUseCase.semesters.value
         val currentIndex = timetableUseCase.selectedSemesterID.value?.let { id ->
             semestersList.indexOfFirst { it.id == id }
@@ -161,7 +161,7 @@ class TimetableViewModel @Inject constructor(
 
         if (currentIndex >= 0 && currentIndex < semestersList.size - 1) {
             val newSemester = semestersList[currentIndex + 1]
-            timetableUseCase.setSelectedSemesterID(newSemester.id)
+            timetableUseCase.selectSemester(newSemester.id)
         }
         val defaultTableId = timetableUseCase.timetableIDsForSelectedSemester.firstOrNull()
         defaultTableId?.let { selectTimetable(it) }
@@ -176,7 +176,7 @@ class TimetableViewModel @Inject constructor(
             try {
                 timetableUseCase.createTable()
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "Error creating table", e)
+                Timber.e(e, "Error creating table")
                 handleException(e, ErrorType.CreateTable)
             }
         }
@@ -187,7 +187,7 @@ class TimetableViewModel @Inject constructor(
             try {
                 timetableUseCase.deleteTable()
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "Error deleting table", e)
+                Timber.e(e, "Error deleting table")
                 handleException(e, ErrorType.DeleteTable)
             }
         }
@@ -202,7 +202,7 @@ class TimetableViewModel @Inject constructor(
                 }
                 timetableUseCase.addLecture(lecture)
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "Error adding lecture", e)
+                Timber.e(e, "Error adding lecture")
                 handleException(e, ErrorType.AddLecture)
             }
         }
@@ -213,7 +213,7 @@ class TimetableViewModel @Inject constructor(
             try {
                 timetableUseCase.deleteLecture(lecture)
             } catch (e: Exception) {
-                Log.e("TimetableViewModel", "Error deleting lecture", e)
+                Timber.e(e, "Error deleting lecture")
                 handleException(e, ErrorType.DeleteLecture)
             }
         }
@@ -241,7 +241,7 @@ class TimetableViewModel @Inject constructor(
         val messageRes = if (error.isNetworkError()) {
             R.string.network_connection_error
         } else {
-            crashlyticsHelper.recordException(error)
+            crashlyticsService.recordException(error)
             when (type) {
                 ErrorType.AddLecture -> R.string.error_add_lecture
                 ErrorType.CreateTable -> R.string.error_create_table

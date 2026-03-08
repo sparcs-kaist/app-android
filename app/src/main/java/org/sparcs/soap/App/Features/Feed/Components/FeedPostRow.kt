@@ -1,8 +1,9 @@
 package org.sparcs.soap.App.Features.Feed.Components
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Patterns
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,13 +40,14 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Enums.DeepLink
+import org.sparcs.soap.App.Domain.Enums.DeepLinkEventBus
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Features.Feed.FeedViewModelProtocol
@@ -55,10 +57,13 @@ import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.Extensions.relativeTimeString
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
+import org.sparcs.soap.App.Shared.Extensions.toDetectedAnnotatedString
 import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
+import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -82,12 +87,12 @@ fun FeedPostRow(
             showDeleteConfirmation,
         ) { showDeleteConfirmation = it }
         Content(post, singleLine, onComment)
-        Footer(post, viewModel, onComment, onPostDeleted, !singleLine, coroutineScope)
+        Footer(post, viewModel, onComment, coroutineScope)
     }
 }
 
 @Composable
-fun ProfileImage(post: FeedPost) {
+private fun ProfileImage(post: FeedPost) {
     if (post.profileImageURL != null) {
         AsyncImage(
             model = post.profileImageURL,
@@ -112,7 +117,7 @@ fun ProfileImage(post: FeedPost) {
 }
 
 @Composable
-fun Header(
+private fun Header(
     post: FeedPost,
     onPostDeleted: ((String) -> Unit)?,
     showDeleteConfirmation: Boolean,
@@ -167,46 +172,33 @@ fun Header(
 }
 
 @Composable
-fun Content(
+private fun Content(
     post: FeedPost,
     singleLine: Boolean,
     onComment: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     var isOverflowing by remember { mutableStateOf(false) }
-    var hasMeasured by remember { mutableStateOf(false) }
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     val context = LocalContext.current
+    val linkColor = MaterialTheme.colorScheme.primary
     val moreColor = MaterialTheme.colorScheme.grayBB
     val moreText = stringResource(R.string.more)
-    val linkColor = MaterialTheme.colorScheme.primary
 
-    val displayText = remember(post.content, expanded, isOverflowing, textLayoutResult) {
-        val baseText = if (expanded || !isOverflowing) {
-            post.content
+    val scope = rememberCoroutineScope()
+
+    val annotatedContent = remember(post.content) {
+        post.content.toDetectedAnnotatedString(linkColor)
+    }
+
+    val displayText = remember(annotatedContent, expanded, isOverflowing, textLayoutResult) {
+        if (expanded || !isOverflowing || textLayoutResult == null) {
+            annotatedContent
         } else {
-            val visibleEnd = textLayoutResult?.getLineEnd(1, visibleEnd = true) ?: post.content.length
-            post.content.substring(0, visibleEnd.coerceAtMost(post.content.length)).trimEnd()
-        }
-
-        buildAnnotatedString {
-            val regex = Patterns.WEB_URL.toRegex()
-            var lastIndex = 0
-
-            regex.findAll(baseText).forEach { match ->
-                append(baseText.substring(lastIndex, match.range.first))
-                val url = match.value
-                pushStringAnnotation("URL", url)
-                withStyle(SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)) {
-                    append(url)
-                }
-                pop()
-                lastIndex = match.range.last + 1
-            }
-            if (lastIndex < baseText.length) append(baseText.substring(lastIndex))
-
-            if (!expanded && isOverflowing) {
+            val visibleEnd = textLayoutResult!!.getLineEnd(1, visibleEnd = true)
+            buildAnnotatedString {
+                append(annotatedContent.subSequence(0, visibleEnd.coerceAtMost(annotatedContent.length)))
                 pushStringAnnotation("MORE", "expand")
                 append("… ")
                 withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
@@ -225,27 +217,14 @@ fun Content(
             ),
             maxLines = if (!expanded && singleLine) 2 else Int.MAX_VALUE,
             onTextLayout = { layoutResult ->
-                if (!hasMeasured) {
-                    hasMeasured = true
+                if (textLayoutResult == null && !expanded) {
                     isOverflowing = layoutResult.hasVisualOverflow
                     textLayoutResult = layoutResult
                 }
             },
             onClick = { offset ->
                 displayText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { annotation ->
-                    val url = annotation.item
-                    val formattedUrl = if (!url.startsWith("http://") && !url.startsWith("https://")) {
-                        "http://$url"
-                    } else {
-                        url
-                    }
-
-                    try {
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(formattedUrl))
-                        context.startActivity(intent)
-                    } catch (e: Exception) {
-                        android.util.Log.e("FeedPostRow", "Failed to open URL: $formattedUrl", e)
-                    }
+                    handleURL(context, annotation.item, scope)
                     return@ClickableText
                 }
 
@@ -253,6 +232,7 @@ fun Content(
                     expanded = true
                     return@ClickableText
                 }
+
                 onComment()
             },
             modifier = Modifier.padding(horizontal = 16.dp)
@@ -265,12 +245,10 @@ fun Content(
 }
 
 @Composable
-fun Footer(
+private fun Footer(
     post: FeedPost,
     viewModel: FeedViewModelProtocol,
     onComment: () -> Unit,
-    onPostDeleted: ((String) -> Unit)?,
-    isDetailedView: Boolean,
     coroutineScope: CoroutineScope,
 ) {
     Row(
@@ -301,11 +279,6 @@ fun Footer(
 
         Spacer(Modifier.width(8.dp))
         PostCommentButton(commentCount = post.commentCount) { onComment() }
-//        Spacer(Modifier.weight(1f))
-//        if (onPostDeleted != null && isDetailedView) PostShareButton(
-//            url = Constants.feedShareURL + post.id,
-//            context = context
-//        )TODO: PostShareButton
     }
 }
 
@@ -386,27 +359,111 @@ fun FeedPostRowSkeleton() {
     }
 }
 
+private fun handleURL(
+    context: Context,
+    urlString: String,
+    scope: CoroutineScope
+) {
+    val uri = Uri.parse(if (!urlString.startsWith("http")) "http://$urlString" else urlString)
 
-@Composable
-@Preview
-private fun Preview() {
-    Theme {
-        Column(Modifier
-            .fillMaxWidth()
-            .noRippleClickable {}
-        ) {
-            Header(
-                FeedPost.mock(),
-                {},
-                false,
-            ) {}
-            Content(FeedPost.mock(), true, {})
+    val deepLink = DeepLink.fromUri(uri)
+
+    if (deepLink != null) {
+        scope.launch {
+            DeepLinkEventBus.post(deepLink)
+        }
+    } else {
+        try {
+            val customTabsIntent = CustomTabsIntent.Builder().build()
+            customTabsIntent.launchUrl(context, uri)
+        } catch (e: Exception) {
+            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
         }
     }
 }
 
+// MARK: - Previews
+@Preview(showBackground = true, name = "With Actions")
 @Composable
-@Preview(showBackground = true)
-private fun SkeletonPreview() {
-    Theme { FeedPostRowSkeleton() }
+private fun PreviewWithActions() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mock(),
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = false
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Without Actions")
+@Composable
+private fun PreviewWithoutActions() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mock(),
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Anonymous")
+@Composable
+private fun PreviewAnonymous() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mockList()[4],
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = false
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Long Content")
+@Composable
+private fun PreviewLongContent() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mockList()[3],
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = true
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Multiple Images")
+@Composable
+private fun PreviewMultipleImages() {
+    Theme {
+        FeedPostRow(
+            post = FeedPost.mockList()[2],
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = false
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "URL Content")
+@Composable
+private fun PreviewURLContent() {
+    Theme {
+
+        FeedPostRow(
+            post = FeedPost.mockList()[5],
+            viewModel = PreviewFeedViewModel(),
+            onPostDeleted = { _ -> },
+            onComment = { },
+            singleLine = false
+        )
+    }
 }

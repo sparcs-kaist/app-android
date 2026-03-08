@@ -110,12 +110,19 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
                     mimeType = "image/png",
                     size = 48507,
                     spoiler = false
+                ),
+                FeedImage(
+                    id = UUID.randomUUID().toString(),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/b899e2e7-d68d-4c94-8c8c-2eae607ec6d2.jpg"),
+                    mimeType = "image/png",
+                    size = 48507,
+                    spoiler = false
                 )
             )
         ),
         FeedPost(
             id = UUID.randomUUID().toString(),
-            content = "sample post",
+            content = "sample post ASJHDAJSDASHDJAKSDA SJASJDNASDASLD ASDAISUDANSDU ASDAISNDUIOANSUDA SDUAISNDOID",
             isAnonymous = false,
             isKaistIP = false,
             authorName = "멋진다람쥐632",
@@ -140,6 +147,30 @@ fun FeedPost.Companion.mockList(): List<FeedPost> {
         FeedPost(
             id = UUID.randomUUID().toString(),
             content = "anonymously shit posting",
+            isAnonymous = true,
+            isKaistIP = false,
+            authorName = "Anonymous",
+            nickname = null,
+            profileImageURL = null,
+            createdAt = Date(),
+            commentCount = 0,
+            upVotes = 0,
+            downVotes = 0,
+            myVote = null,
+            isAuthor = true,
+            images = listOf(
+                FeedImage(
+                    id = UUID.randomUUID().toString(),
+                    url = ("https://dlnutnvhcnj0u.cloudfront.net/orphaned/0c351f1b-3837-4329-9ced-de317fcfea6a.jpg"),
+                    mimeType = "image/png",
+                    size = 219138,
+                    spoiler = false
+                )
+            )
+        ),
+        FeedPost(
+            id = UUID.randomUUID().toString(),
+            content = "이것은 URL이 포함된 게시글입니다.\\nhttps://www.youtube.com/watch?v=dQw4w9WgXcQ",
             isAnonymous = true,
             isKaistIP = false,
             authorName = "Anonymous",
