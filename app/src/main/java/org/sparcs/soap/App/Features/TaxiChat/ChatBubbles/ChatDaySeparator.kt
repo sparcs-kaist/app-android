@@ -19,7 +19,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Composable
-fun ChatDaySeperator(date: LocalDate) {
+fun ChatDaySeparator(date: LocalDate) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(4.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -59,5 +59,5 @@ fun DashedDivider(modifier: Modifier = Modifier) {
 @Preview
 @Composable
 private fun Preview() {
-    ChatDaySeperator(date = LocalDate.now())
+    ChatDaySeparator(date = LocalDate.now())
 }
