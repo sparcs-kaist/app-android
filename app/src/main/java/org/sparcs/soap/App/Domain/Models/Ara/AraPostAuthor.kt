@@ -5,4 +5,6 @@ data class AraPostAuthor(
     val username: String,
     val profile: AraPostAuthorProfile,
     val isBlocked: Boolean?
-)
+){
+    companion object
+}

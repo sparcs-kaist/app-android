@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Domain.Usecases
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,7 +12,9 @@ import org.sparcs.soap.App.Domain.Models.OTL.OTLUser
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,7 +48,7 @@ class UserUseCase @Inject constructor(
     private val taxiUserRepository: TaxiUserRepositoryProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
-    private val otlUserRepository: org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol,
+    private val otlUserRepository: OTLUserRepositoryProtocol,
     private val userStorage: UserStorageProtocol,
 ) : UserUseCaseProtocol {
 
@@ -71,14 +72,11 @@ class UserUseCase @Inject constructor(
 
             if (results.all { it.isFailure }) {
                 val firstError = results.firstNotNullOfOrNull { it.exceptionOrNull() }
-                Log.e("UserUseCase", "All fetches failed", firstError)
+                Timber.e(firstError, "All fetches failed")
             } else {
                 results.forEachIndexed { index, result ->
                     if (result.isFailure) {
-                        Log.w(
-                            "UserUseCase",
-                            "Fetch task $index failed: ${result.exceptionOrNull()?.message}"
-                        )
+                        Timber.w("Fetch task $index failed: ${result.exceptionOrNull()?.message}")
                     }
                 }
             }
@@ -86,7 +84,7 @@ class UserUseCase @Inject constructor(
     }
 
     override suspend fun fetchAraUser() {
-        Log.d("UserUseCase", "Fetching Ara User")
+        Timber.d("Fetching Ara User")
         val user = araUserRepository.fetchUser()
         userStorage.setAraUser(user)
         araUser = user
@@ -117,7 +115,7 @@ class UserUseCase @Inject constructor(
     }
 }
 
-class MockUserUseCase: UserUseCaseProtocol {
+class MockUserUseCase : UserUseCaseProtocol {
 
     override var araUser: AraUser? = null
     override var taxiUser: TaxiUser? = null
@@ -126,7 +124,7 @@ class MockUserUseCase: UserUseCaseProtocol {
 
     override suspend fun fetchUsers() {}
     override suspend fun fetchAraUser() {}
-    override suspend fun updateAraUser(params: Map<String, Any>) { }
+    override suspend fun updateAraUser(params: Map<String, Any>) {}
     override suspend fun fetchFeedUser() {}
     override suspend fun fetchTaxiUser() {}
 

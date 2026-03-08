@@ -34,7 +34,6 @@ fun PostBookmarkButton(
 ){
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
-    println("isBookmarked: $isBookmarked")
     Card(
         shape = CircleShape,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.lightGray0),

@@ -1,6 +1,5 @@
 package org.sparcs.soap.Features.Post
 
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
@@ -45,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -53,12 +53,10 @@ import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Ara.AraContentReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.ReportLabelProvider
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraCommentRepositoryProtocol
-import org.sparcs.soap.App.Domain.Repositories.Ara.FakeAraCommentRepository
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.theme.ui.grayBB
@@ -74,45 +72,18 @@ fun PostCommentCell(
     onComment: () -> Unit,
     onDelete: () -> Unit,
     onEdit: () -> Unit,
-    onTranslate: (String) -> Unit,
-    araCommentRepository: AraCommentRepositoryProtocol,
+    onUpVote: () -> Unit,
+    onDownVote: () -> Unit,
+    onReport: (AraContentReportType) -> Unit,
+    onDeleteComment: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    val isDeleted = comment.content == null
+    val context = LocalContext.current
+
+    var alertState by remember { mutableStateOf<AlertState?>(null) }
+    var isAlertPresented by remember { mutableStateOf(false) }
     var showTranslateSheet by remember { mutableStateOf(false) }
-    var commentState by remember { mutableStateOf(comment) }
-    val isDeleted = commentState.content == null
-
-    var showAlert by remember { mutableStateOf(false) }
-    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
-    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-
-    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
-        alertTitle = title
-        alertMessage = message
-        showAlert = true
-    }
-
-    val handleReport: (AraContentReportType) -> Unit = { type ->
-        scope.launch {
-            try {
-                araCommentRepository.reportComment(comment.id, type)
-                showAlert(
-                    title = R.string.report_submitted,
-                    message = R.string.reported_successfully
-                )
-            } catch (e: Exception) {
-                val message = if (e.isNetworkError()) {
-                    R.string.network_connection_error
-                } else {
-                    R.string.unexpected_error_reporting_comment
-                }
-                showAlert(
-                    title = R.string.error,
-                    message = message
-                )
-            }
-        }
-    }
 
     Row(modifier = Modifier.fillMaxWidth()) {
         if (isThreaded) {
@@ -130,42 +101,41 @@ fun PostCommentCell(
             )
 
             PostCommentHeader(
-                comment = commentState,
+                comment = comment,
                 isDeleted = isDeleted,
                 onEdit = onEdit,
                 onDelete = {
                     scope.launch {
-                        val prev = commentState.content
-                        try {
-                            commentState = commentState.copy(content = null)
-                            onDelete()
-                            araCommentRepository.deleteComment(commentState.id)
-                        } catch (e: Exception) {
-                            commentState.content = prev
-                        }
+                        onDelete.invoke()
+                        onDeleteComment()
                     }
                 },
                 onReport = { type ->
-                    handleReport(type)
-                },
-                onTranslate = {
-                    commentState.content?.let { text ->
-                        onTranslate(text)
-                        showTranslateSheet = true
+                    scope.launch {
+                        try {
+                            onReport(type)
+                            alertState = AlertState(titleResId = R.string.report_submitted, messageResId = R.string.report_submitted_message)
+                        } catch (e: Exception) {
+                            alertState = AlertState(titleResId = R.string.error_unable_to_submit_report, message = e.localizedMessage ?: context.getString(R.string.error_unknown_try_again))
+                        } finally {
+                            isAlertPresented = true
+                        }
                     }
-                }
+                },
+                onTranslate = { showTranslateSheet = true }
             )
 
             PostCommentContent(
                 isDeleted = isDeleted,
-                comment = commentState
+                comment = comment
             )
             PostCommentFooter(
-                comment = commentState,
+                comment = comment,
                 isThreaded = isThreaded,
                 isDeleted = isDeleted,
                 onComment = onComment,
-                araCommentRepository = araCommentRepository
+                onUpVote = onUpVote,
+                onDownVote = onDownVote
             )
         }
     }
@@ -173,28 +143,34 @@ fun PostCommentCell(
     if (showTranslateSheet) {
         ModalBottomSheet(onDismissRequest = { showTranslateSheet = false }) {
             Text(
-                text = commentState.content ?: "",
+                text = comment.content ?: "",
                 modifier = Modifier.padding(16.dp)
             )
         }
     }
 
-    if (showAlert) {
+    if (isAlertPresented) {
         AlertDialog(
-            onDismissRequest = { showAlert = false },
-            confirmButton = {
-                TextButton(onClick = { showAlert = false }) {
-                    Text(stringResource(R.string.ok))
+            onDismissRequest = { isAlertPresented = false },
+            title = { Text(stringResource(alertState?.titleResId ?: R.string.error_unknown_try_again)) },
+            text = {
+                alertState?.message?.let { Text(it) } ?: alertState?.messageResId?.let {
+                    Text(
+                        stringResource(it)
+                    )
                 }
             },
-            title = { Text(stringResource(alertTitle)) },
-            text = { Text(stringResource(alertMessage)) }
+            confirmButton = {
+                TextButton(onClick = { isAlertPresented = false }) {
+                    Text(stringResource(R.string.ok))
+                }
+            }
         )
     }
 }
 
 @Composable
-fun PostCommentHeader(
+private fun PostCommentHeader(
     comment: AraPostComment,
     isDeleted: Boolean,
     onEdit: () -> Unit,
@@ -363,7 +339,7 @@ fun <T> PostCommentActionsMenu(
 }
 
 @Composable
-fun ProfilePicture(url: String?) {
+private fun ProfilePicture(url: String?) {
     if (!url.isNullOrEmpty()) {
         AsyncImage(
             model = url,
@@ -383,7 +359,7 @@ fun ProfilePicture(url: String?) {
 }
 
 @Composable
-fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
+private fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
     AnimatedContent(targetState = comment.content) { content ->
         Text(
             text = content ?: stringResource(R.string.this_comment_has_been_deleted),
@@ -396,12 +372,13 @@ fun PostCommentContent(isDeleted: Boolean, comment: AraPostComment) {
 }
 
 @Composable
-fun PostCommentFooter(
+private fun PostCommentFooter(
     comment: AraPostComment,
     isThreaded: Boolean,
     isDeleted: Boolean,
     onComment: () -> Unit,
-    araCommentRepository: AraCommentRepositoryProtocol,
+    onUpVote: () -> Unit,
+    onDownVote: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     var commentState by remember { mutableStateOf(comment) }
@@ -420,16 +397,12 @@ fun PostCommentFooter(
                 votes = commentState.upVotes - commentState.downVotes,
                 onUpVote = {
                     scope.launch {
-                        handleVote(commentState, true, araCommentRepository) { updated ->
-                            commentState = updated
-                        }
+                        onUpVote()
                     }
                 },
                 onDownVote = {
                     scope.launch {
-                        handleVote(commentState, false, araCommentRepository) { updated ->
-                            commentState = updated
-                        }
+                        onDownVote()
                     }
                 },
                 enabled = commentState.isMine != true
@@ -437,56 +410,6 @@ fun PostCommentFooter(
         }
     }
 }
-
-suspend fun handleVote(
-    comment: AraPostComment,
-    isUpVote: Boolean,
-    repo: AraCommentRepositoryProtocol,
-    update: (AraPostComment) -> Unit,
-) {
-    val prev = comment.copy()
-
-    val updated = when {
-        isUpVote && comment.myVote == true -> comment.copy(
-            myVote = null,
-            upVotes = comment.upVotes - 1
-        )
-
-        isUpVote && comment.myVote == false -> comment.copy(
-            myVote = true,
-            upVotes = comment.upVotes + 1,
-            downVotes = comment.downVotes - 1
-        )
-
-        isUpVote -> comment.copy(myVote = true, upVotes = comment.upVotes + 1)
-        !isUpVote && comment.myVote == false -> comment.copy(
-            myVote = null,
-            downVotes = comment.downVotes - 1
-        )
-
-        !isUpVote && comment.myVote == true -> comment.copy(
-            myVote = false,
-            upVotes = comment.upVotes - 1,
-            downVotes = comment.downVotes + 1
-        )
-
-        else -> comment.copy(myVote = false, downVotes = comment.downVotes + 1)
-    }
-
-    update(updated)
-
-    try {
-        if (isUpVote) {
-            if (prev.myVote == true) repo.cancelVote(prev.id) else repo.upVoteComment(prev.id)
-        } else {
-            if (prev.myVote == false) repo.cancelVote(prev.id) else repo.downVoteComment(prev.id)
-        }
-    } catch (e: Exception) {
-        update(prev)
-    }
-}
-
-
 @Composable
 @Preview(showBackground = true)
 private fun Preview1() {
@@ -496,8 +419,10 @@ private fun Preview1() {
         onComment = {},
         onDelete = {},
         onEdit = {},
-        onTranslate = {},
-        FakeAraCommentRepository()
+        onUpVote = {},
+        onDownVote = {},
+        onReport = {},
+        onDeleteComment = {}
     )
 }
 
@@ -511,7 +436,9 @@ private fun Preview2() {
         onComment = {},
         onDelete = {},
         onEdit = {},
-        onTranslate = {},
-        FakeAraCommentRepository()
+        onUpVote = {},
+        onDownVote = {},
+        onReport = {},
+        onDeleteComment = {}
     )
 }

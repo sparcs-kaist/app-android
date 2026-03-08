@@ -63,6 +63,7 @@ import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewView
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.isDateInSameDay
 import org.sparcs.soap.App.Shared.Extensions.weekdaySymbol
 import org.sparcs.soap.App.Shared.Mocks.mockList
@@ -114,7 +115,8 @@ fun TaxiListView(
                 navController = navController,
                 currentScreen = Channel.Taxi
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Taxi List")
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,

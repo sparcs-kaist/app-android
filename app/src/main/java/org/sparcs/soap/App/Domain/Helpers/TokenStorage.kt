@@ -5,9 +5,9 @@ import android.content.SharedPreferences
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import android.util.Log
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import java.nio.charset.Charset
 import java.security.KeyStore
 import java.util.Date
@@ -17,9 +17,18 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 
+interface TokenStorageProtocol {
+    fun save(accessToken: String, refreshToken: String)
+    fun getAccessToken(): String?
+    fun getRefreshToken(): String?
+    fun isTokenExpired(): Boolean
+    fun getTokenExpirationDate(): Date?
+    fun clearTokens()
+}
+
 class TokenStorage @Inject constructor(
-    @ApplicationContext private val context: Context
-)  : TokenStorageProtocol {
+    @ApplicationContext private val context: Context,
+) : TokenStorageProtocol {
 
     companion object {
         private const val PREF_FILE_NAME = "secure_token_storage"
@@ -85,7 +94,7 @@ class TokenStorage @Inject constructor(
             cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), GCMParameterSpec(128, iv))
             String(cipher.doFinal(encrypted), charset)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to decrypt token", e)
+            Timber.e(e, "Failed to decrypt token")
             null
         }
     }
@@ -146,7 +155,7 @@ class TokenStorage @Inject constructor(
             val exp = (map["exp"] as? Double)?.toLong() ?: return null
             Date(exp * 1000)
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to extract expiration from token", e)
+            Timber.e(e, "Failed to extract expiration from token")
             null
         }
     }

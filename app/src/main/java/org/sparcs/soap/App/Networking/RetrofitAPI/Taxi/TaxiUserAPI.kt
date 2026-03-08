@@ -32,5 +32,5 @@ interface TaxiUserApi {
     ): Response<Unit>
 
     @POST("users/deleteResidence")
-    suspend fun deleteResidence(): Response<Unit>
+    suspend fun deleteResidence()
 }

@@ -1,26 +1,31 @@
 package org.sparcs.soap.App.Domain.Usecases
 
 import android.app.Activity
-import android.util.Log
 import androidx.activity.ComponentActivity
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Enums.Auth.AuthUseCaseError
+import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.AuthenticationService
 import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraSignInResponseDTO
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import retrofit2.HttpException
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -40,7 +45,7 @@ interface AuthUseCaseProtocol {
     suspend fun getValidAccessToken(): String
 
     @Throws(Exception::class)
-    suspend fun refreshAccessTokenIfNeeded(force: Boolean = false)
+    suspend fun refreshAccessToken(force: Boolean = false)
 }
 
 @Singleton
@@ -49,14 +54,22 @@ class AuthUseCase @Inject constructor(
     val tokenStorage: TokenStorageProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
-    private val otlUserRepository: org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
+    private val otlUserRepository: OTLUserRepositoryProtocol,
 ) : AuthUseCaseProtocol {
 
-    private val _isAuthenticated = MutableStateFlow(
-        tokenStorage.getRefreshToken() != null    )
+    private val _isAuthenticated = MutableStateFlow(tokenStorage.getRefreshToken() != null)
     override val isAuthenticatedFlow: Flow<Boolean> = _isAuthenticated.asStateFlow()
-    private var refreshJob: Job? = null
-    private var isRefreshing = false
+
+    // Coalesce concurrent refresh calls
+    private var refreshJob: Deferred<Unit>? = null
+    private var scheduledRefreshJob: Job? = null
+
+    // Cooldown: skip refresh attempts for 10s after a failure
+    private var lastRefreshFailure: Long = 0
+    private val refreshCooldownMillis = 10_000L
+
+    // Called after a successful token refresh
+    var onTokenRefresh: (() -> Unit)? = null
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
@@ -65,25 +78,38 @@ class AuthUseCase @Inject constructor(
 
         _isAuthenticated.value = hasAccess || hasRefresh
 
-        if (hasRefresh) {
-            scheduleRefreshToken()
+        scheduleRefreshToken()
+        observeForeground()
+    }
+
+    // MARK: - Foreground Refresh
+    private fun observeForeground() {
+        coroutineScope.launch(Dispatchers.Main) {
+            ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    coroutineScope.launch {
+                        if (_isAuthenticated.value) {
+                            try { refreshAccessToken(force = false) } catch (e: Exception) { /* ignore */ }
+                        }
+                    }
+                }
+            })
         }
     }
 
     private fun scheduleRefreshToken() {
-        refreshJob?.cancel()
+        scheduledRefreshJob?.cancel()
 
         val expirationDate = tokenStorage.getTokenExpirationDate() ?: return
         val bufferMillis = TimeUnit.MINUTES.toMillis(5)
-        val delayMillis =
-            (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
+        val delayMillis = (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
 
-        refreshJob = coroutineScope.launch {
+        scheduledRefreshJob = coroutineScope.launch {
             if (delayMillis > 0) delay(delayMillis)
             try {
-                refreshAccessTokenIfNeeded(force = true)
+                refreshAccessToken(force = true)
             } catch (e: Exception) {
-                Log.e("AuthUseCase", "Token refresh failed in scheduled job", e)
+                Timber.e(e, "Scheduled token refresh failed")
             }
         }
     }
@@ -101,7 +127,7 @@ class AuthUseCase @Inject constructor(
     override suspend fun getValidAccessToken(): String {
         return try {
             if (tokenStorage.isTokenExpired()) {
-                refreshAccessTokenIfNeeded()
+                refreshAccessToken()
             }
             tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken
         } catch (e: Exception) {
@@ -109,57 +135,61 @@ class AuthUseCase @Inject constructor(
             throw AuthUseCaseError.NoAccessToken
         }
     }
+    override suspend fun refreshAccessToken(force: Boolean) {
+        // If a refresh is already in-flight, coalesce by awaiting it
+        refreshJob?.let {
+            if (it.isActive) {
+                it.await()
+                return
+            }
+        }
 
-    override suspend fun refreshAccessTokenIfNeeded(force: Boolean) {
-        if (isRefreshing) return
-        isRefreshing = true
+        if (System.currentTimeMillis() - lastRefreshFailure < refreshCooldownMillis) {
+            throw AuthUseCaseError.RefreshFailed(Exception("Refresh on cooldown"))
+        }
 
         val accessToken = tokenStorage.getAccessToken()
-        val isExpired = tokenStorage.isTokenExpired()
-
-        if (accessToken != null && !isExpired && !force) {
-            Log.d("AuthUseCase", "Access token still valid. No refresh needed.")
+        if (accessToken != null && !tokenStorage.isTokenExpired() && !force) {
+            Timber.d("[AuthUseCase] Still valid. No refresh needed.")
             scheduleRefreshToken()
-            isRefreshing = false
             return
         }
 
-        val refreshToken = tokenStorage.getRefreshToken()
-        if (refreshToken == null) {
-            Log.d("AuthUseCase", "No refresh token available, marking as unauthenticated")
-            _isAuthenticated.value = false
-            cancelRefreshToken()
-            isRefreshing = false
-            return
-        }
+        val job = coroutineScope.async(Dispatchers.IO) {
+            try {
+                val currentRefreshToken = tokenStorage.getRefreshToken() ?: run {
+                    // No refresh token found, sign out.
+                    signOut()
+                    throw AuthUseCaseError.RefreshFailed(Exception("No refresh token available"))
+                }
 
-        try {
-            val tokenResponse = authenticationService.refreshAccessToken(refreshToken)
-            tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
+                // Attempts to refresh token using refresh token from Keychain
+                val tokenResponse = authenticationService.refreshAccessToken(currentRefreshToken)
+                tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
 
-            _isAuthenticated.value = true
-            scheduleRefreshToken()
-        } catch (e: Exception) {
-            Log.d("AuthUseCase", "Failed to refresh token, marking as unauthenticated", e)
+                _isAuthenticated.value = true
+                lastRefreshFailure = 0
+                scheduleRefreshToken() // set timer on success
+                onTokenRefresh?.invoke()
 
-            val isAuthError = !e.isNetworkError() && (e as? HttpException)?.code() == 401
-
-            if (isAuthError) {
-                tokenStorage.clearTokens()
-                _isAuthenticated.value = false
-                cancelRefreshToken()
+                Unit
+            } catch (e: Exception) {
+                lastRefreshFailure = System.currentTimeMillis()
+                if ((e as? HttpException)?.code() == 401) {
+                    signOut()
+                }
+                throw e
+            } finally {
+                refreshJob = null
             }
-
-            throw AuthUseCaseError.RefreshFailed(e)
-        } finally {
-            isRefreshing = false
         }
+        refreshJob = job
+        job.await()
     }
 
     override suspend fun signIn(activity: Activity) {
         try {
             val tokenResponse = (authenticationService as AuthenticationService).authenticate(activity as ComponentActivity)
-
             tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
 
             // MARK - Sign up Ara
@@ -168,7 +198,7 @@ class AuthUseCase @Inject constructor(
             try {
                 araUserRepository.agreeTOS(userID = userInfo.userID)
             } catch (e: Exception) {
-                Log.e("AuthUseCase","Failed to Sign in. agreeTOS failed: ${e.message}")
+                Timber.e("Failed to Sign in. agreeTOS failed: ${e.message}")
             }
 
             // MARK - Sign up Feed
@@ -191,6 +221,6 @@ class AuthUseCase @Inject constructor(
     override suspend fun signOut() {
         tokenStorage.clearTokens()
         _isAuthenticated.value = false
-        cancelRefreshToken()
+        scheduledRefreshJob?.cancel()
     }
 }

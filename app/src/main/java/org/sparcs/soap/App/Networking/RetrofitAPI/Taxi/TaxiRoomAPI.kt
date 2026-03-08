@@ -32,6 +32,11 @@ interface TaxiRoomApi {
     @GET("rooms/info")
     suspend fun getRoom(@Query("id") roomId: String): TaxiRoomDTO
 
+    @GET("rooms/publicInfo")
+    suspend fun getPublicRoom(
+        @Query("id") roomId: String,
+    ): TaxiRoomDTO
+
     @POST("rooms/commitSettlement")
     suspend fun commitSettlement(@Body body: Map<String, String>): TaxiRoomDTO
 

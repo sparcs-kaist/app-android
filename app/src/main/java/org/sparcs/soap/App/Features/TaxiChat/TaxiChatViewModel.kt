@@ -2,7 +2,9 @@ package org.sparcs.soap.App.Features.TaxiChat
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,22 +12,28 @@ import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
-import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChatGroup
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
-import org.sparcs.soap.App.Domain.Usecases.TaxiChatUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePositionResolver
+import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItem
+import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItemBuilder
+import org.sparcs.soap.App.Features.TaxiChat.Components.DefaultMessagePresentationPolicy
+import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy
+import org.sparcs.soap.R
+import timber.log.Timber
 import java.util.Date
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
 
@@ -33,9 +41,12 @@ interface TaxiChatViewModelProtocol {
 
     // MARK: - ViewModel Properties
     val state: StateFlow<TaxiChatViewModel.ViewState>
-    val groupedChats: StateFlow<List<TaxiChatGroup>>
+    val renderItems: StateFlow<List<ChatRenderItem>>
     val taxiUser: StateFlow<TaxiUser?>
-    var fetchedDateSet: MutableSet<Date>
+
+    var alertState: AlertState?
+    var isAlertPresented: Boolean
+
     val room: StateFlow<TaxiRoom>
     val isUploading: StateFlow<Boolean>
 
@@ -44,19 +55,20 @@ interface TaxiChatViewModelProtocol {
     val isCommitSettlementAvailable: Boolean
     val isCommitPaymentAvailable: Boolean
     val account: String?
+    val topChatID: String?
+
+    var scrollToBottomTrigger: Int
 
     // MARK: - Functions
     suspend fun setup()
 
-    suspend fun fetchChats(before: Date)
+    suspend fun loadMoreChats()
     suspend fun fetchInitialChats()
     suspend fun sendChat(message: String, type: TaxiChat.ChatType)
     suspend fun leaveRoom()
     suspend fun commitSettlement()
     suspend fun commitPayment()
     suspend fun sendImage(image: Bitmap)
-    fun hasBadge(authorID: String?): Boolean
-
     fun switchRoom(newRoom: TaxiRoom)
 }
 
@@ -65,7 +77,7 @@ class TaxiChatViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val taxiChatUseCase: TaxiChatUseCaseProtocol,
     val userUseCase: UserUseCaseProtocol,
-    private val taxiRoomRepository: TaxiRoomRepositoryProtocol
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
 ) : ViewModel(), TaxiChatViewModelProtocol {
 
     private val initialRoom: TaxiRoom by lazy {
@@ -76,7 +88,7 @@ class TaxiChatViewModel @Inject constructor(
 
     sealed class ViewState {
         data object Loading : ViewState()
-        data class Loaded(val groupedChats: List<TaxiChatGroup>) : ViewState()
+        data object Loaded : ViewState()
         data class Error(val message: String) : ViewState()
     }
 
@@ -87,35 +99,38 @@ class TaxiChatViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    private val _groupedChats = MutableStateFlow<List<TaxiChatGroup>>(emptyList())
-    override val groupedChats: StateFlow<List<TaxiChatGroup>> = _groupedChats.asStateFlow()
-
     private val _taxiUser = MutableStateFlow<TaxiUser?>(null)
     override val taxiUser: StateFlow<TaxiUser?> = _taxiUser.asStateFlow()
 
-    override var fetchedDateSet: MutableSet<Date> = mutableSetOf()
+    override var topChatID: String? = null
+        private set
+
+    private var fetchedDateSet: MutableSet<Date> = mutableSetOf()
+
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     private val _isUploading = MutableStateFlow(false)
     override val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
 
     private var isFetching = false
     private var isInitialFetching = false
-    private var isLoaded = false
+    override var scrollToBottomTrigger = 0
+    private val isBound = AtomicBoolean(false)
 
-    private val badgeByAuthorID : StateFlow<Map<String, Boolean>> = room
-        .map { room -> room.participants.associate { it.id to it.badge } }
-        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyMap())
-
+    private val builder = ChatRenderItemBuilder(
+        policy = TaxiGroupingPolicy(),
+        positionResolver = ChatBubblePositionResolver(),
+        presentationPolicy = DefaultMessagePresentationPolicy()
+    )
+    private val _renderItems = MutableStateFlow<List<ChatRenderItem>>(emptyList())
+    override val renderItems: StateFlow<List<ChatRenderItem>> = _renderItems.asStateFlow()
 
     // MARK: - Setup
     override suspend fun setup() {
-        if (isLoaded) return
         fetchTaxiUser()
         taxiChatUseCase.setRoom(room.value)
         bind()
-        fetchInitialChats()
-
-        isLoaded = true
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
@@ -128,52 +143,87 @@ class TaxiChatViewModel @Inject constructor(
             try {
                 userUseCase.fetchTaxiUser()
             } catch (e: Exception) {
-                Log.e("TaxiChatViewModel", "Failed to fetch taxi user", e)
+                Timber.e("TaxiChatViewModel", "Failed to fetch taxi user", e)
             }
         }
         _taxiUser.value = userUseCase.taxiUser
     }
 
     private fun bind() {
-        viewModelScope.launch {
-            taxiChatUseCase.groupedChatsFlow
-                .flowOn(Dispatchers.Main)
-                .collect { chats ->
-                    _groupedChats.value = chats
-                    _state.value = ViewState.Loaded(chats)
-                }
-        }
+        if (!isBound.compareAndSet(false, true)) return
+        taxiChatUseCase.chats
+            .onEach { chats ->
+                val distinctChats = chats.distinctBy { it.id }
+                val myId = userUseCase.taxiUser?.oid ?: ""
+                val filtered = distinctChats.filter { it.roomID == room.value.id }
 
-        viewModelScope.launch {
-            taxiChatUseCase.roomUpdateFlow
-                .flowOn(Dispatchers.Main)
-                .collect { updatedRoom ->
-                    _room.value = updatedRoom
+                val builtItems = builder.build(filtered, myUserID = myId)
+
+                if (_renderItems.value == builtItems) {
+                    return@onEach
                 }
-        }
+
+                val lastItemId = _renderItems.value.lastOrNull()?.id
+                val newLastItemId = builtItems.lastOrNull()?.id
+
+                _renderItems.value = builtItems
+
+                if (lastItemId != null && lastItemId != newLastItemId) {
+                    scrollToBottomTrigger += 1
+                }
+
+                if (builtItems.isNotEmpty() && _state.value is ViewState.Loading) {
+                    _state.value = ViewState.Loaded
+                }
+            }
+            .flowOn(Dispatchers.Default)
+            .launchIn(viewModelScope)
+
+
+        taxiChatUseCase.roomUpdateFlow
+            .onEach { updatedRoom ->
+                _room.value = updatedRoom
+            }
+            .flowOn(Dispatchers.Main)
+            .launchIn(viewModelScope)
     }
 
     // MARK: - Chat loading
-    override suspend fun fetchChats(before: Date) {
-        if (isFetching) return
-        isFetching = true
-        try {
-            taxiChatUseCase.fetchChats(before)
-        } finally {
-            isFetching = false
-        }
+    override suspend fun loadMoreChats() {
+//        if (isFetching) return
+//
+//        val oldestChatTime = renderItems.value.firstOrNull()? ?: return
+//
+//        if (fetchedDateSet.contains(oldestChatTime)) return
+//
+//        isFetching = true
+//        try {
+//            taxiChatUseCase.fetchChats(before = oldestChatTime)
+//            fetchedDateSet.add(oldestChatTime)
+//        } catch (e: Exception) {
+//            Timber.e(e, "loadMoreChats failed")
+//        } finally {
+//            isFetching = false
+//        }
     }
 
     override suspend fun fetchInitialChats() {
         if (isInitialFetching) return
         isInitialFetching = true
-        try { taxiChatUseCase.fetchInitialChats() } finally { isInitialFetching = false }
+        try {
+            taxiChatUseCase.fetchInitialChats()
+            _state.value = ViewState.Loaded
+        } finally {
+            isInitialFetching = false
+        }
     }
 
     // MARK: - Chat send
     override suspend fun sendChat(message: String, type: TaxiChat.ChatType) {
         if (type == TaxiChat.ChatType.TEXT && message.isBlank()) return
         taxiChatUseCase.sendChat(message, type)
+
+        scrollToBottomTrigger += 1
     }
 
     // MARK: - Room management
@@ -199,19 +249,28 @@ class TaxiChatViewModel @Inject constructor(
                 taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
             }
         } catch (e: Exception) {
-            Log.e("TaxiChatViewModel", "commitSettlement failed", e)
+            this.alertState = AlertState(
+                titleResId = R.string.error_settlement_failed,
+                message = e.localizedMessage ?: "Unknown error"
+            )
+            this.isAlertPresented = true
+
+            Timber.e(e, "commitSettlement failed")
         }
     }
 
 
     override suspend fun commitPayment() {
-        viewModelScope.launch {
-            try {
-                val newRoom = taxiRoomRepository.commitPayment(room.value.id)
-                _room.value = newRoom
-            } catch (e: Exception) {
-                Log.e("TaxiChatViewModel", "Failed to commit payment for room ${room.value.id}", e)
-            }
+        try {
+            val newRoom = taxiRoomRepository.commitPayment(room.value.id)
+            _room.value = newRoom
+        } catch (e: Exception) {
+            this.alertState = AlertState(
+                titleResId = R.string.error_payment_failed,
+                message = e.localizedMessage ?: "Unknown error"
+            )
+            this.isAlertPresented = true
+            Timber.e(e, "Failed to commit payment")
         }
     }
 
@@ -238,12 +297,10 @@ class TaxiChatViewModel @Inject constructor(
         _isUploading.value = true
         try {
             taxiChatUseCase.sendImage(image)
+
+            scrollToBottomTrigger += 1
         } finally {
             _isUploading.value = false
         }
-    }
-
-    override fun hasBadge(authorID: String?): Boolean {
-        return authorID?.let { badgeByAuthorID.value[it] } ?: false
     }
 }

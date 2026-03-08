@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiRoomBlockStatus
-import org.sparcs.soap.App.Domain.Usecases.TaxiRoomUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCaseProtocol
 import javax.inject.Inject
 
 interface TaxiRoomCreationViewModelProtocol{

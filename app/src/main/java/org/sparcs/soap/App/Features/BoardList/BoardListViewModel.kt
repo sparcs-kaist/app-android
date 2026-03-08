@@ -9,16 +9,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoardGroup
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.R
 import javax.inject.Inject
 
+interface BoardListViewModelProtocol {
+    val state: StateFlow<BoardListViewModel.ViewState>
+    suspend fun fetchBoards()
+}
 
 @HiltViewModel
 class BoardListViewModel @Inject constructor(
-    private val araBoardRepository: AraBoardRepositoryProtocol,
-) : ViewModel() {
+    private val araBoardUseCase: AraBoardUseCaseProtocol,
+) : ViewModel(), BoardListViewModelProtocol {
 
     sealed class ViewState {
         data object Loading : ViewState()
@@ -28,17 +32,17 @@ class BoardListViewModel @Inject constructor(
 
     // MARK: - Properties
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
-    val state: StateFlow<ViewState> = _state.asStateFlow()
+    override val state: StateFlow<ViewState> = _state.asStateFlow()
 
     private var boards: List<AraBoard> = emptyList()
         private set
     private var groups: List<AraBoardGroup> = emptyList()
         private set
 
-    fun fetchBoards() {
+    override suspend fun fetchBoards() {
         viewModelScope.launch {
             try {
-                val fetchedBoards = araBoardRepository.fetchBoards()
+                val fetchedBoards = araBoardUseCase.fetchBoards()
 
                 val sortedBoards = fetchedBoards.sortedBy { it.id }
                 val uniqueGroups =
