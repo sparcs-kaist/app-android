@@ -3,7 +3,6 @@ package org.sparcs.soap.App.Networking.RetrofitAPI.Feed
 import org.sparcs.soap.App.Networking.RequestDTO.Feed.FeedPostRequestDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.Feed.FeedPostDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.Feed.FeedPostPageDTO
-import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -28,12 +27,12 @@ interface FeedPostApi {
     @POST("posts")
     suspend fun writePost(
         @Body request: FeedPostRequestDTO
-    ): FeedPostDTO
+    )
 
     @DELETE("posts/{postID}")
     suspend fun deletePost(
         @Path("postID") postId: String
-    ): Response<Unit>
+    )
 
     @POST("posts/{postID}/vote")
     suspend fun vote(

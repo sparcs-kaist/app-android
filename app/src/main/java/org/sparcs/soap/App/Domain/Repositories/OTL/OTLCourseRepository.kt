@@ -3,7 +3,7 @@ package org.sparcs.soap.App.Domain.Repositories.OTL
 import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
-import org.sparcs.soap.App.Networking.ResponseDTO.handleApiError
+import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLCourseApi
 import javax.inject.Inject
 
@@ -20,35 +20,20 @@ class OTLCourseRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : OTLCourseRepositoryProtocol {
 
-    override suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course> {
-        try {
-            val response = api.searchCourse(name, offset, limit)
-            return response.map { it.toModel() }
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
+    override suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course> = safeApiCall(gson) {
+        api.searchCourse(name, offset, limit)
+    }.map { it.toModel() }
 
-    override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> {
-        try {
-            val response = api.fetchReviews(courseId, offset, limit)
-            return response.map { it.toModel() }
+    override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> = safeApiCall(gson) {
+        api.fetchReviews(courseId, offset, limit)
+    }.map { it.toModel() }
 
-        } catch (e: Exception) {
-            handleApiError(gson, e)
-        }
-    }
-
-    override suspend fun likeReview(reviewId: Int) = try {
+    override suspend fun likeReview(reviewId: Int) = safeApiCall(gson) {
         api.likeReview(reviewId)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 
-    override suspend fun unlikeReview(reviewId: Int) = try {
+    override suspend fun unlikeReview(reviewId: Int) = safeApiCall(gson) {
         api.unlikeReview(reviewId)
-    } catch (e: Exception) {
-        handleApiError(gson, e)
     }
 }
 

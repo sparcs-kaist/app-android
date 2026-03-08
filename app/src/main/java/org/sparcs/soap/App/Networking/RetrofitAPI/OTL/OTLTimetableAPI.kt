@@ -50,7 +50,7 @@ interface OTLTimetableApi {
     @GET("api/semesters")
     suspend fun fetchSemesters(): List<SemesterDTO>
 
-    @GET("api/semesters/current")
+    @GET("api/v2/semesters/current")
     suspend fun fetchCurrentSemester(): SemesterDTO
 }
 

@@ -5,6 +5,8 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
     <application
         android:name="org.sparcs.soap.App.MyApplication"
         android:allowBackup="true"
@@ -57,7 +59,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
+        <service
+            android:name="org.sparcs.soap.App.Domain.Services.FCMService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_buddy_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="buddy_notification_channel" />
         <activity
             android:name="org.sparcs.soap.App.Features.Main.MainActivity"
             android:launchMode="singleTop"
@@ -83,7 +97,7 @@
 
                 <data
                     android:scheme="https"
-                    android:host="taxi.sparcs.org"
+                    android:host="${taxiHost}"
                     android:pathPrefix="/invite/"/>
             </intent-filter>
 
@@ -94,7 +108,7 @@
 
                 <data
                     android:scheme="https"
-                    android:host="newara.sparcs.org"
+                    android:host="${araHost}"
                     android:pathPrefix="/post/"/>
             </intent-filter>
 

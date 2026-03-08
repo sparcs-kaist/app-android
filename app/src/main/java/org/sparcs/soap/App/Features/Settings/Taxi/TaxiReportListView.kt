@@ -49,6 +49,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiReport
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.Features.Settings.Components.TaxiReportDetailRow
 import org.sparcs.soap.App.Features.Settings.Components.TaxiReportDetailSkeletonRow
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiReportListViewModel
@@ -78,7 +79,8 @@ fun TaxiReportListView(
                 title = stringResource(R.string.taxi_reports),
                 onDismiss = { navController.popBackStack() }
             )
-        }
+        },
+        modifier = Modifier.analyticsScreen("Taxi Report List")
     ) { innerPadding ->
 
         Column(

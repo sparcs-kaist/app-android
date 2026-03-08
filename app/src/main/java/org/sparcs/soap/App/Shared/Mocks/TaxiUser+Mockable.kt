@@ -1,14 +1,13 @@
 package org.sparcs.soap.App.Shared.Mocks
 
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
-import java.net.URL
 import java.util.Calendar
 
 fun TaxiUser.Companion.mock(): TaxiUser {
     return TaxiUser.mockList()[0]
 }
 
-fun TaxiUser.Companion.mockList(): List<TaxiUser>{
+fun TaxiUser.Companion.mockList(): List<TaxiUser> {
     return listOf(
         TaxiUser(
             id = "mock-taxi-user-1",
@@ -23,7 +22,7 @@ fun TaxiUser.Companion.mockList(): List<TaxiUser>{
             ban = false,
             agreeOnTermsOfService = true,
             joinedAt = Calendar.getInstance().apply { add(Calendar.MONTH, -6) }.time,
-            profileImageURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            profileImageURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             account = "카카오뱅크 3333-01-1234567"
         ),
         TaxiUser(
@@ -39,7 +38,7 @@ fun TaxiUser.Companion.mockList(): List<TaxiUser>{
             ban = false,
             agreeOnTermsOfService = true,
             joinedAt = Calendar.getInstance().apply { add(Calendar.MONTH, -3) }.time,
-            profileImageURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
+            profileImageURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/GooseOTL.png"),
             account = "신한은행 110-123-456789"
         ),
         TaxiUser(
@@ -55,7 +54,7 @@ fun TaxiUser.Companion.mockList(): List<TaxiUser>{
             ban = false,
             agreeOnTermsOfService = true,
             joinedAt = Calendar.getInstance().apply { add(Calendar.MONTH, -2) }.time,
-            profileImageURL = URL("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
+            profileImageURL = ("https://sparcs-taxi-dev.s3.ap-northeast-2.amazonaws.com/profile-img/default/NupjukOTL.png"),
             account = "국민은행 123456-04-123456"
         )
     )

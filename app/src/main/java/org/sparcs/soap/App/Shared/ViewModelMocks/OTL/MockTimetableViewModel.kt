@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
-import org.sparcs.soap.App.Domain.Usecases.TimetableUseCase
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
@@ -32,8 +32,8 @@ class MockTimetableViewModel: TimetableViewModelProtocol {
 
     override fun fetchData() {}
 
-    override fun selectPreviousSemester() {}
-    override fun selectNextSemester() {}
+    override suspend fun selectPreviousSemester() {}
+    override suspend fun selectNextSemester() {}
     override fun selectTimetable(id: String) {}
     override fun createTable() {}
     override fun deleteTable() {}

@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import org.sparcs.soap.App.Domain.Helpers.Constants
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 
 @Composable
 fun FullscreenImageView(
@@ -28,7 +29,8 @@ fun FullscreenImageView(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black)
-                .clickable { onDismiss() },
+                .clickable { onDismiss() }
+                .analyticsScreen("Fullscreen Image"),
             contentAlignment = Alignment.Center
         ) {
             AsyncImage(

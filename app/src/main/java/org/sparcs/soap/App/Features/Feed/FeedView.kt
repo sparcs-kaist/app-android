@@ -1,10 +1,9 @@
 package org.sparcs.soap.App.Features.Feed
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
@@ -37,7 +36,6 @@ import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Enums.Feed.FeedDeletionError
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Features.Feed.Components.FeedPostRow
 import org.sparcs.soap.App.Features.Feed.Components.FeedPostRowSkeleton
@@ -45,11 +43,11 @@ import org.sparcs.soap.App.Features.Feed.Components.FeedViewNavigationBar
 import org.sparcs.soap.App.Features.NavigationBar.AppDownBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
 import org.sparcs.soap.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -59,19 +57,9 @@ fun FeedView(
     navController: NavController,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val state = viewModel.state.collectAsState().value
+    val state by viewModel.state.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
-
-    var showAlert by remember { mutableStateOf(false) }
-    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
-    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-
-    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
-        alertTitle = title
-        alertMessage = message
-        showAlert = true
-    }
 
     val scrollState = rememberScrollState()
     val listState = rememberLazyListState()
@@ -79,28 +67,6 @@ fun FeedView(
     val listNeedsRefresh = stateHandle
         ?.getStateFlow("listNeedsRefresh", false)
         ?.collectAsState()
-
-    val deletePost: (String) -> Unit = { postID ->
-        coroutineScope.launch {
-            try {
-                viewModel.deletePost(postID)
-                viewModel.fetchInitialData()
-            } catch (e: Exception) {
-                val message = if (e.isNetworkError()) {
-                    R.string.network_connection_error
-                } else if (e is FeedDeletionError) {
-                    e.errorDescription()
-                } else {
-                    R.string.unexpected_error_deleting_post
-                }
-
-                showAlert(
-                    title = R.string.error,
-                    message = message
-                )
-            }
-        }
-    }
     val pullState = rememberPullToRefreshState()
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
@@ -119,30 +85,12 @@ fun FeedView(
         }
     }
 
-    //LoadMore
-    LaunchedEffect(listState) {
-        snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-            .distinctUntilChanged()
-            .collect { lastVisibleIndex ->
-                val totalItems = listState.layoutInfo.totalItemsCount
-                if (!viewModel.isLoadingMore && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
-                    viewModel.isLoadingMore = true
-                    try {
-                        coroutineScope.launch {
-                            viewModel.loadNextPage()
-                        }
-                    } finally {
-                        viewModel.isLoadingMore = false
-                    }
-                }
-            }
-    }
-
     Scaffold(
         topBar = {
             FeedViewNavigationBar(
                 scrollState = scrollState,
-                navController = navController
+                navController = navController,
+                viewModel = viewModel
             )
         },
         bottomBar = {
@@ -150,14 +98,16 @@ fun FeedView(
                 currentScreen = Channel.Start,
                 navController = navController
             )
-        }
+        },
+        modifier = Modifier
+            .analyticsScreen(name = "Feed"),
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
             onRefresh = {
                 isRefreshing = true
                 coroutineScope.launch {
-                    viewModel.fetchInitialData()
+                    viewModel.refreshFeed()
                     delay(500)
                     isRefreshing = false
                 }
@@ -177,18 +127,28 @@ fun FeedView(
 
                 is FeedViewModel.ViewState.Loaded -> {
                     LazyColumn(state = listState) {
-                        items(state.posts) { post ->
+                        itemsIndexed(viewModel.posts) { index, post ->
                             FeedPostRow(
                                 post = post,
                                 viewModel = viewModel,
                                 singleLine = true,
                                 onPostDeleted = { postID ->
-                                    deletePost(postID)
+                                    coroutineScope.launch { viewModel.deletePost(postID) }
                                 },
                                 onComment = {
                                     navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
                                 }
                             )
+                            LaunchedEffect(listState) {
+                                snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
+                                    .distinctUntilChanged()
+                                    .collect { lastVisibleIndex ->
+                                        val totalItems = listState.layoutInfo.totalItemsCount
+                                        if (!viewModel.isLoadingMore && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
+                                            viewModel.loadNextPage()
+                                        }
+                                    }
+                            }
                             HorizontalDivider(Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                         }
                     }
@@ -197,7 +157,7 @@ fun FeedView(
                 is FeedViewModel.ViewState.Error -> {
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = state.message,
+                        message = (state as FeedViewModel.ViewState.Error).message,
                         onRetry = {
                             coroutineScope.launch {
                                 viewModel.fetchInitialData()
@@ -208,42 +168,66 @@ fun FeedView(
             }
         }
     }
-    if (showAlert) {
+    if (viewModel.isAlertPresented) {
         AlertDialog(
-            onDismissRequest = { showAlert = false },
+            onDismissRequest = { viewModel.isAlertPresented = false },
             confirmButton = {
-                TextButton(onClick = { showAlert = false }) {
+                TextButton(onClick = { viewModel.isAlertPresented = false }) {
                     Text(stringResource(R.string.ok))
                 }
             },
-            title = { Text(stringResource(alertTitle)) },
-            text = { Text(stringResource(alertMessage)) }
+            title = {
+                viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
+            },
+            text = {
+                viewModel.alertState?.let { state ->
+                    Text(
+                        state.message ?: stringResource(
+                            state.messageResId ?: R.string.unexpected_error
+                        )
+                    )
+                }
+            }
         )
     }
 }
 
-/* ____________________________________________________________________*/
-
+// MARK: - Previews
+@Preview(showBackground = true, name = "Loading")
 @Composable
-private fun MockView(state: FeedViewModel.ViewState) {
-    val mockViewModel = remember { MockFeedViewModel(initialState = state) }
-    FeedView(viewModel = mockViewModel, navController = rememberNavController())
+private fun PreviewLoading() {
+    val viewModel = PreviewFeedViewModel(
+        state = FeedViewModel.ViewState.Loading,
+        posts = FeedPost.mockList()
+    )
+    Theme { FeedView(viewModel, rememberNavController()) }
 }
 
+@Preview(showBackground = true, name = "Loaded")
 @Composable
-@Preview
-private fun LoadingPreview() {
-    Theme { MockView(FeedViewModel.ViewState.Loading) }
+private fun PreviewLoaded() {
+    val viewModel = PreviewFeedViewModel(
+        state = FeedViewModel.ViewState.Loaded(FeedPost.mockList()),
+        posts = FeedPost.mockList()
+    )
+    Theme { FeedView(viewModel, rememberNavController()) }
 }
 
+@Preview(showBackground = true, name = "Error")
 @Composable
-@Preview
-private fun LoadedPreview() {
-    Theme { MockView(FeedViewModel.ViewState.Loaded(FeedPost.mockList())) }
+private fun PreviewError() {
+    val viewModel = PreviewFeedViewModel(
+        state = FeedViewModel.ViewState.Error("Something went wrong")
+    )
+    Theme { FeedView(viewModel, rememberNavController()) }
 }
 
+@Preview(showBackground = true, name = "Empty")
 @Composable
-@Preview
-private fun ErrorPreview() {
-    Theme { MockView(FeedViewModel.ViewState.Error("Error Message")) }
+private fun PreviewEmpty() {
+    val viewModel = PreviewFeedViewModel(
+        state = FeedViewModel.ViewState.Loaded(emptyList()),
+        posts = emptyList()
+    )
+    Theme { FeedView(viewModel, rememberNavController()) }
 }

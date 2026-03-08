@@ -23,6 +23,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -30,6 +32,7 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -38,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -51,12 +55,14 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
-import org.sparcs.soap.App.Shared.Extensions.toMultipartBody
-import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedSettingsViewModel
+import org.sparcs.soap.App.Features.Settings.Feed.ViewState.FeedProfileImageState
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
+import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedSettingsViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -80,6 +86,7 @@ fun FeedSettingsView(
                 onDismiss = { navController.popBackStack() }
             )
         },
+        modifier = Modifier.analyticsScreen("Feed Settings"),
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
 
@@ -89,6 +96,7 @@ fun FeedSettingsView(
                 .padding(innerPadding)
                 .padding(16.dp)
                 .background(MaterialTheme.colorScheme.background)
+                .then(if (viewModel.isUpdatingProfile) Modifier.alpha(0.5f) else Modifier)
         ) {
             when (state) {
                 is FeedSettingsViewModel.ViewState.Loading -> LoadingView()
@@ -114,6 +122,38 @@ fun FeedSettingsView(
                     )
                 }
             }
+        }
+
+        if (viewModel.isUpdatingProfile) {
+            Box(
+                modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        }
+
+        if (viewModel.isAlertPresented) {
+            AlertDialog(
+                onDismissRequest = { viewModel.isAlertPresented = false },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.isAlertPresented = false }) {
+                        Text(stringResource(R.string.ok))
+                    }
+                },
+                title = {
+                    viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
+                },
+                text = {
+                    viewModel.alertState?.let { state ->
+                        Text(
+                            state.message ?: stringResource(
+                                state.messageResId ?: R.string.unexpected_error
+                            )
+                        )
+                    }
+                }
+            )
         }
     }
 }
@@ -197,16 +237,14 @@ private fun LoadedView(
 ) {
     val userState by viewModel.user.collectAsState()
     val context = LocalContext.current
-    val keyboardController = LocalSoftwareKeyboardController.current
+    val profileImageState by viewModel.profileImageState.collectAsState()
 
+    val keyboardController = LocalSoftwareKeyboardController.current
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         uri?.let {
-            val imagePart = it.toMultipartBody(context)
-            if (imagePart != null) {
-                viewModel.uploadProfileImage(imagePart)
-            }
+            viewModel.updateProfileImage(it, context)
         }
     }
 
@@ -220,16 +258,27 @@ private fun LoadedView(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AsyncImage(
-                model = userState?.profileImageURL,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
-                contentScale = ContentScale.Crop
-            )
-
+            Box(contentAlignment = Alignment.Center) {
+                when (profileImageState) {
+                    is FeedProfileImageState.NoChange -> {
+                        AsyncImage(
+                            model = userState?.profileImageURL,
+                            contentDescription = null,
+                            modifier = Modifier.size(100.dp).clip(CircleShape).border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    is FeedProfileImageState.Updated -> {
+                        AsyncImage(
+                            model = (profileImageState as FeedProfileImageState.Updated).image ?: userState?.profileImageURL,
+                            contentDescription = null,
+                            modifier = Modifier.size(100.dp).clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                    else -> CircularProgressIndicator(modifier = Modifier.size(50.dp))
+                }
+            }
             Row(
                 modifier = Modifier.padding(top = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -250,7 +299,7 @@ private fun LoadedView(
                     text = stringResource(R.string.reset),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.clickable { viewModel.resetProfileImage() }
+                    modifier = Modifier.clickable { viewModel.updateProfileImage(null, context) }
                 )
             }
         }
@@ -311,25 +360,56 @@ private fun LoadedView(
         }
     }
 }
-
-@Preview
+@Preview(name = "Loaded State", showBackground = true)
 @Composable
 private fun LoadedPreview() {
     Theme {
-        FeedSettingsView(
-            MockFeedSettingsViewModel(initialState = FeedSettingsViewModel.ViewState.Loaded),
-            rememberNavController()
-        )
+        val viewModel = PreviewFeedSettingsViewModel(state = FeedSettingsViewModel.ViewState.Loaded)
+        FeedSettingsView(viewModel = viewModel, navController = rememberNavController())
     }
 }
 
-@Preview
+@Preview(name = "Loading State", showBackground = true)
 @Composable
 private fun LoadingPreview() {
     Theme {
-        FeedSettingsView(
-            MockFeedSettingsViewModel(initialState = FeedSettingsViewModel.ViewState.Loading),
-            rememberNavController()
-        )
+        val viewModel = PreviewFeedSettingsViewModel(FeedSettingsViewModel.ViewState.Loading)
+        FeedSettingsView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(name = "Error State", showBackground = true)
+@Composable
+private fun ErrorPreview() {
+    Theme {
+        val viewModel = PreviewFeedSettingsViewModel(FeedSettingsViewModel.ViewState.Error("ERROR"))
+        FeedSettingsView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(name = "Nickname Conflict State", showBackground = true)
+@Composable
+private fun NicknameConflictPreview() {
+    Theme {
+        val viewModel = PreviewFeedSettingsViewModel().apply {
+            nickname = "DuplicateName"
+            nicknameError = R.string.nickname_error_conflict
+        }
+        FeedSettingsView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(name = "Alert Dialog State", showBackground = true)
+@Composable
+private fun AlertPreview() {
+    Theme {
+        val viewModel = PreviewFeedSettingsViewModel().apply {
+            alertState = AlertState(
+                titleResId = R.string.error,
+                message = "Failed to upload settings."
+            )
+            isAlertPresented = true
+        }
+        FeedSettingsView(viewModel = viewModel, navController = rememberNavController())
     }
 }

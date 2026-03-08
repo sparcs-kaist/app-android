@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Features.Settings.Ara
 
 import android.net.Uri
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,8 +18,9 @@ import org.sparcs.soap.App.Domain.Enums.Ara.PostOrigin
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostPage
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
-import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
-import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import timber.log.Timber
 import javax.inject.Inject
 
 interface AraMyPostViewModelProtocol {
@@ -40,8 +40,8 @@ interface AraMyPostViewModelProtocol {
 @HiltViewModel
 class AraMyPostViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
-    userUseCase: UserUseCase,
-    private val araBoardRepository: AraBoardRepositoryProtocol,
+    userUseCase: UserUseCaseProtocol,
+    private val araBoardUseCase: AraBoardUseCaseProtocol,
 ) : ViewModel(), AraMyPostViewModelProtocol {
 
     sealed class ViewState {
@@ -98,14 +98,14 @@ class AraMyPostViewModel @Inject constructor(
 
         try {
             val page: AraPostPage = when (type) {
-                PostType.ALL -> araBoardRepository.fetchPosts(
+                PostType.ALL -> araBoardUseCase.fetchPosts(
                     type = PostListType.User(currentUser.id),
                     page = 1,
                     pageSize = pageSize,
                     searchKeyword = _searchKeyword.value.takeIf { it.isNotEmpty() }
                 )
 
-                PostType.BOOKMARK -> araBoardRepository.fetchBookmarks(
+                PostType.BOOKMARK -> araBoardUseCase.fetchBookmarks(
                     page = 1,
                     pageSize = pageSize
                 )
@@ -119,7 +119,7 @@ class AraMyPostViewModel @Inject constructor(
 
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.message ?: "Unknown error")
-            Log.e("AraMyPostViewModel", "fetchInitialPosts failed$e")
+            Timber.e("fetchInitialPosts failed$e")
         }
     }
 
@@ -132,14 +132,14 @@ class AraMyPostViewModel @Inject constructor(
             try {
                 val nextPage = currentPage + 1
                 val page: AraPostPage = when (type) {
-                    PostType.ALL -> araBoardRepository.fetchPosts(
+                    PostType.ALL -> araBoardUseCase.fetchPosts(
                         type = PostListType.User(user.id),
                         page = nextPage,
                         pageSize = pageSize,
                         searchKeyword = _searchKeyword.value.takeIf { it.isNotEmpty() }
                     )
 
-                    PostType.BOOKMARK -> araBoardRepository.fetchBookmarks(
+                    PostType.BOOKMARK -> araBoardUseCase.fetchBookmarks(
                         page = nextPage,
                         pageSize = pageSize
                     )
@@ -160,7 +160,7 @@ class AraMyPostViewModel @Inject constructor(
     override fun refreshItem(postID: Int) {
         viewModelScope.launch {
             try {
-                val updated = araBoardRepository.fetchPost(PostOrigin.None, postID)
+                val updated = araBoardUseCase.fetchPost(PostOrigin.None, postID)
                 val idx = _posts.value.indexOfFirst { it.id == updated.id }
                 if (idx != -1) {
                     val newPosts = _posts.value.toMutableList()
@@ -174,7 +174,7 @@ class AraMyPostViewModel @Inject constructor(
                     _state.value = ViewState.Loaded(_posts.value)
                 }
             } catch (_: Exception) {
-                Log.e("AraMyPostViewModel", "refreshItem failed")
+                Timber.e("refreshItem failed")
             }
         }
     }

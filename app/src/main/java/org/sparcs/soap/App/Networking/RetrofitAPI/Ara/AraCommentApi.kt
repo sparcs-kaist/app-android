@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Networking.RetrofitAPI.Ara
 
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraPostCommentDTO
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.PATCH
@@ -25,7 +26,7 @@ interface AraCommentApi {
     suspend fun writeThreadedComment(@Body body: ThreadedCommentPostRequest): AraPostCommentDTO
 
     @DELETE("comments/{id}/")
-    suspend fun deleteComment(@Path("id") commentID: Int)
+    suspend fun deleteComment(@Path("id") commentID: Int): Response<Unit>
 
     @PATCH("comments/{id}/")
     suspend fun editComment(@Path("id") commentID: Int, @Body body: CommentPatchRequest): AraPostCommentDTO

@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiChatListViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
@@ -61,7 +62,7 @@ fun TaxiChatListView(
         topBar = {
             TaxiChatListViewNavigationBar { navController.popBackStack() }
         },
-        containerColor = MaterialTheme.colorScheme.surfaceVariant
+        modifier = Modifier.analyticsScreen("Taxi Chat List")
     ) { innerPadding ->
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
