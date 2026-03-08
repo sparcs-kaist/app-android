@@ -93,7 +93,7 @@ private fun ChatItem(
 ) {
     when (item) {
         is ChatRenderItem.DaySeparator -> {
-            ChatDaySeperator(
+            ChatDaySeparator(
                 date = item.date.toLocalDate()
             )
         }

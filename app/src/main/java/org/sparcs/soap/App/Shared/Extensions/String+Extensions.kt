@@ -111,7 +111,7 @@ fun String.toDetectedAnnotatedString(linkColor: Color): AnnotatedString {
         while (matcher.find()) {
             val start = matcher.start()
             val end = matcher.end()
-            val url = matcher.group()
+            val url = matcher.group() ?: continue
 
             addStringAnnotation(
                 tag = "URL",
