@@ -42,4 +42,7 @@ interface TaxiRoomApi {
 
     @POST("rooms/commitPayment")
     suspend fun commitPayment(@Body body: Map<String, String>): TaxiRoomDTO
+
+    @POST("rooms/carrier/toggle")
+    suspend fun toggleCarrier(@Body body: Map<String, @JvmSuppressWildcards Any>): TaxiRoomDTO
 }

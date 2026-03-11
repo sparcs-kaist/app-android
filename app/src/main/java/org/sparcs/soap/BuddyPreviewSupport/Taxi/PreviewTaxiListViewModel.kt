@@ -66,8 +66,9 @@ class PreviewTaxiListViewModel(
 
     override var roomDepartureTime: Date by mutableStateOf(Date())
     override var roomCapacity by mutableIntStateOf(4)
+    override var roomHasCarrier: Boolean by mutableStateOf(false)
 
     override suspend fun fetchData() {}
-
     override suspend fun createRoom(title: String) {}
+    override suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean) {}
 }

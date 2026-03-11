@@ -36,6 +36,7 @@ import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModel
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModelProtocol
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiCapacityPicker
+import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiCarrierToggleButton
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDepartureTimePicker
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
@@ -55,7 +56,6 @@ fun TaxiRoomCreationView(
     taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol = hiltViewModel(),
 ) {
     var title by remember { mutableStateOf("") }
-
     val locations by taxiListViewModel.locations.collectAsState()
     val (isEnabled, validationMessage) = remember(
         title,
@@ -159,6 +159,15 @@ fun TaxiRoomCreationView(
                         capacity = taxiListViewModel.roomCapacity,
                         onCapacityChange = { capacity ->
                             taxiListViewModel.roomCapacity = capacity
+                        }
+                    )
+
+                    HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+                    TaxiCarrierToggleButton(
+                        hasCarrier = taxiListViewModel.roomHasCarrier,
+                        onToggle = { newValue ->
+                            taxiListViewModel.roomHasCarrier = newValue
                         }
                     )
                 }

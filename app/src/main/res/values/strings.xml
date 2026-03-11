@@ -465,4 +465,10 @@
     <string name="taxi_room_emoji_description">This emoji is used to identify the room.</string>
     <string name="taxi_room_identifier_title">Room Identifier</string>
     <string name="taxi_check_room_id_notice">Please check the room ID when boarding!</string>
+    <string name="error_toggle_carrier_failed">Failed to update carrier status.</string>
+    <string name="carrier_status_title">Bringing a Carrier</string>
+    <string name="carrier_status_description">Any bulky luggage?</string>
+    <string name="carrier_status_yes">Yes</string>
+    <string name="carrier_status_no">No</string>
+    <string name="carrier_status">Bulky Luggage</string>
 </resources>

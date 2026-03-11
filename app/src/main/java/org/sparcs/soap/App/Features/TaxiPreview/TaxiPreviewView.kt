@@ -60,6 +60,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiPreview.Components.InfoRow
 import org.sparcs.soap.App.Features.TaxiPreview.Components.RouteHeaderView
+import org.sparcs.soap.App.Features.TaxiPreview.Components.TaxiCarrierIndicator
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.formattedString
 import org.sparcs.soap.App.Shared.Mocks.mockList
@@ -224,6 +225,10 @@ fun TaxiPreviewView(
                 TaxiParticipantsIndicator(
                     participants = room.participants.size,
                     capacity = room.capacity
+                )
+
+                TaxiCarrierIndicator(
+                    carrierCount = room.participants.count { it.hasCarrier }
                 )
             }
 

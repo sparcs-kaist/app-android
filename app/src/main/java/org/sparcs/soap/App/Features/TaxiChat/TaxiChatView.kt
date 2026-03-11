@@ -81,6 +81,7 @@ fun TaxiChatView(
         topBar = {
             TaxiChatViewNavigationBar(
                 room = room,
+                myUserId = taxiUser?.oid,
                 onDismiss = { navController.popBackStack() },
                 onClickCallTaxi = { showCallTaxiAlert = true },
                 onReport = {
@@ -97,6 +98,7 @@ fun TaxiChatView(
                         }
                     }
                 },
+                onCarrierToggle = { coroutineScope.launch { viewModel.toggleCarrier(it) } },
                 isEnabled = viewModel.isLeaveRoomAvailable
             )
         },

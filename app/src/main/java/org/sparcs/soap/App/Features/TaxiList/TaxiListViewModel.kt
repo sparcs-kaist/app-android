@@ -29,6 +29,7 @@ interface TaxiListViewModelProtocol {
     var roomId: String?
     val rooms: StateFlow<List<TaxiRoom>>
     val locations: StateFlow<List<TaxiLocation>>
+    var roomHasCarrier: Boolean
 
     // MARK: - View Properties
     var source: TaxiLocation?
@@ -41,7 +42,7 @@ interface TaxiListViewModelProtocol {
 
     suspend fun fetchData()
     suspend fun createRoom(title: String)
-
+    suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean)
 }
 
 @HiltViewModel
@@ -82,6 +83,7 @@ class TaxiListViewModel @Inject constructor(
     // Room Creation
     override var roomDepartureTime: Date by mutableStateOf(Date().ceilToNextTenMinutes())
     override var roomCapacity: Int by mutableStateOf(4)
+    override var roomHasCarrier: Boolean by mutableStateOf(false)
 
     // MARK: - Functions
     override suspend fun fetchData() {
@@ -115,12 +117,20 @@ class TaxiListViewModel @Inject constructor(
                 departureTime = roomDepartureTime,
                 capacity = roomCapacity
             )
-            taxiRoomRepository.createRoom(request)
+            val newRoom = taxiRoomRepository.createRoom(request)
+            this.roomId = newRoom.id
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.message ?: "Unknown error")
         }
 
     }
 
+    override suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean) {
+        try {
+            taxiRoomRepository.toggleCarrier(roomID, hasCarrier)
+        } catch (e: Exception) {
+            _state.value = ViewState.Error(e.message ?: "Unknown error")
+        }
+    }
 }
 

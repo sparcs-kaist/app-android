@@ -37,8 +37,8 @@ fun TaxiRoomCreationNavigationBar(
     isEnabled: Boolean,
     viewModel: TaxiListViewModelProtocol,
     taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol,
-    title: String
-    ) {
+    title: String,
+) {
     var showAlert by remember { mutableStateOf(false) }
     var alertMessage by remember { mutableStateOf("") }
     var alertTitle by remember { mutableStateOf("") }
@@ -56,7 +56,7 @@ fun TaxiRoomCreationNavigationBar(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            },
+        },
         actions = {
             SendButton(
                 isEnabled = isEnabled,
@@ -91,20 +91,23 @@ fun TaxiRoomCreationNavigationBar(
         taxiRoomCreationViewModel.fetchBlockStatus()
         when (val status = taxiRoomCreationViewModel.blockStatus.value) {
             is TaxiRoomBlockStatus.Error -> {
-                alertTitle = error 
+                alertTitle = error
                 alertMessage = status.errorMessage
                 showAlert = true
             }
+
             TaxiRoomBlockStatus.NotPaid -> {
                 alertTitle = notice
                 alertMessage = notPaid
                 showAlert = true
             }
+
             TaxiRoomBlockStatus.TooManyRooms -> {
                 alertTitle = notice
                 alertMessage = tooManyRooms
                 showAlert = true
             }
+
             else -> {}
         }
     }
@@ -117,15 +120,19 @@ private fun SendButton(
     onClick: () -> Unit,
     onError: (String) -> Unit,
     viewModel: TaxiListViewModelProtocol,
-    title: String
+    title: String,
 ) {
     val coroutineScope = rememberCoroutineScope()
     TextButton(
         onClick = {
             coroutineScope.launch {
                 try {
-                     viewModel.createRoom(title)
-                     viewModel.fetchData()
+                    viewModel.createRoom(title)
+                    viewModel.toggleCarrier(
+                        viewModel.roomId ?: "",
+                        viewModel.roomHasCarrier
+                    )
+                    viewModel.fetchData()
                     onClick()
                 } catch (e: Exception) {
                     onError(e.localizedMessage ?: "Unknown error")
@@ -148,7 +155,7 @@ private fun SendButton(
 
 @Composable
 @Preview
-private fun Preview(){
-    Theme { TaxiRoomCreationNavigationBar({}, false, viewModel(), viewModel(),"") }
+private fun Preview() {
+    Theme { TaxiRoomCreationNavigationBar({}, false, viewModel(), viewModel(), "") }
 }
 

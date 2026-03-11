@@ -6,7 +6,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,10 +42,12 @@ import org.sparcs.soap.R
 @Composable
 fun TaxiChatViewNavigationBar(
     room: TaxiRoom,
+    myUserId: String?,
     onDismiss: () -> Unit,
     onClickCallTaxi: () -> Unit,
     onReport: () -> Unit,
     onClickLeave: () -> Unit,
+    onCarrierToggle: (Boolean) -> Unit,
     isEnabled: Boolean,
 ) {
     val context = LocalContext.current
@@ -56,15 +60,17 @@ fun TaxiChatViewNavigationBar(
         shareUrl
     )
     var showPopover by remember { mutableStateOf(false) }
+    val isMineCarrier = room.participants.find { it.id == myUserId }?.hasCarrier ?: false
 
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = { onDismiss() }) },
         title = {
             Column {
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(
-                        text = room.title,
-                    )
+                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                    Text(room.title)
+
+                    Spacer(Modifier.padding(4.dp))
+
                     Text(
                         text = room.emojiIdentifier.display,
                         modifier = Modifier
@@ -78,9 +84,11 @@ fun TaxiChatViewNavigationBar(
                 )
             }
         },
+
         actions = {
             TaxiChatViewDropDownMenu(
                 room = room,
+                isMineCarrier = isMineCarrier,
                 onClickShare = {
                     val sendIntent = Intent().apply {
                         action = Intent.ACTION_SEND
@@ -94,6 +102,7 @@ fun TaxiChatViewNavigationBar(
                 onClickCallTaxi = { onClickCallTaxi() },
                 onClickReport = { onReport() },
                 onClickLeave = { onClickLeave() },
+                onCarrierToggle = onCarrierToggle,
                 isEnabled = isEnabled
             )
         },
@@ -130,6 +139,8 @@ private fun Preview() {
         Box(Modifier.fillMaxSize()) {
             TaxiChatViewNavigationBar(
                 TaxiRoom.mock(),
+                "",
+                {},
                 {},
                 {},
                 {},
