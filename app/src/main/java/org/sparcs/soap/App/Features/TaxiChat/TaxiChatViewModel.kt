@@ -70,6 +70,7 @@ interface TaxiChatViewModelProtocol {
     suspend fun commitPayment()
     suspend fun sendImage(image: Bitmap)
     fun switchRoom(newRoom: TaxiRoom)
+    suspend fun toggleCarrier(hasCarrier: Boolean)
 }
 
 @HiltViewModel
@@ -271,6 +272,27 @@ class TaxiChatViewModel @Inject constructor(
             )
             this.isAlertPresented = true
             Timber.e(e, "Failed to commit payment")
+        }
+    }
+
+    override suspend fun toggleCarrier(hasCarrier: Boolean) {
+        try {
+            val updatedRoom = taxiRoomRepository.toggleCarrier(
+                id = room.value.id,
+                hasCarrier = hasCarrier
+            )
+
+            _room.value = updatedRoom
+
+            taxiChatUseCase.setRoom(updatedRoom)
+
+        } catch (e: Exception) {
+            this.alertState = AlertState(
+                titleResId = R.string.error_toggle_carrier_failed,
+                message = e.localizedMessage ?: "Failed to update carrier status"
+            )
+            this.isAlertPresented = true
+            Timber.e(e, "toggleCarrier failed")
         }
     }
 
