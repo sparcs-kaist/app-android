@@ -197,7 +197,7 @@ fun FeedView(
 @Composable
 private fun PreviewLoading() {
     val viewModel = PreviewFeedViewModel(
-        state = FeedViewModel.ViewState.Loading,
+        initialState = FeedViewModel.ViewState.Loading,
         posts = FeedPost.mockList()
     )
     Theme { FeedView(viewModel, rememberNavController()) }
@@ -207,7 +207,7 @@ private fun PreviewLoading() {
 @Composable
 private fun PreviewLoaded() {
     val viewModel = PreviewFeedViewModel(
-        state = FeedViewModel.ViewState.Loaded(FeedPost.mockList()),
+        initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList()),
         posts = FeedPost.mockList()
     )
     Theme { FeedView(viewModel, rememberNavController()) }
@@ -217,7 +217,7 @@ private fun PreviewLoaded() {
 @Composable
 private fun PreviewError() {
     val viewModel = PreviewFeedViewModel(
-        state = FeedViewModel.ViewState.Error("Something went wrong")
+        initialState = FeedViewModel.ViewState.Error("Something went wrong")
     )
     Theme { FeedView(viewModel, rememberNavController()) }
 }
@@ -226,7 +226,7 @@ private fun PreviewError() {
 @Composable
 private fun PreviewEmpty() {
     val viewModel = PreviewFeedViewModel(
-        state = FeedViewModel.ViewState.Loaded(emptyList()),
+        initialState = FeedViewModel.ViewState.Loaded(emptyList()),
         posts = emptyList()
     )
     Theme { FeedView(viewModel, rememberNavController()) }

@@ -67,13 +67,12 @@ import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.isDateInSameDay
 import org.sparcs.soap.App.Shared.Extensions.weekdaySymbol
 import org.sparcs.soap.App.Shared.Mocks.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiListViewModel
-import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiPreviewViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
+import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiListViewModel
 import org.sparcs.soap.R
 import java.util.Calendar
 import java.util.Date
@@ -181,7 +180,8 @@ fun TaxiListView(
 
                     is TaxiListViewModel.ViewState.Loaded -> {
                         if (viewModel.roomId != null) {
-                            selectedRoom = (uiState as TaxiListViewModel.ViewState.Loaded).rooms.find { it.id == viewModel.roomId }
+                            selectedRoom =
+                                (uiState as TaxiListViewModel.ViewState.Loaded).rooms.find { it.id == viewModel.roomId }
                         }
 
                         LoadedView(
@@ -193,7 +193,7 @@ fun TaxiListView(
                             onRoomSelected = {
                                 haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                 selectedRoom = it
-                                             },
+                            },
                             viewModel = viewModel,
                             navController = navController
                         )
@@ -314,7 +314,10 @@ private fun LoadedView(
     Column {
         if (filteredRooms.isEmpty()) {
             val description = if (selectedDate != null)
-                stringResource(R.string.no_rooms_found_for_selected_week, selectedDate.weekdaySymbol())
+                stringResource(
+                    R.string.no_rooms_found_for_selected_week,
+                    selectedDate.weekdaySymbol()
+                )
             else
                 stringResource(R.string.no_rooms_found)
 
@@ -337,18 +340,21 @@ private fun LoadedView(
                             viewModel.destination?.title ?: "",
                             day.weekdaySymbol()
                         )
+
                     viewModel.source != null ->
                         stringResource(
                             R.string.no_rooms_from_any,
                             viewModel.source?.title ?: "",
                             day.weekdaySymbol()
                         )
+
                     viewModel.destination != null ->
                         stringResource(
                             R.string.no_rooms_to,
                             viewModel.destination?.title ?: "",
                             day.weekdaySymbol()
                         )
+
                     else ->
                         stringResource(
                             R.string.no_rooms_on,
@@ -504,52 +510,52 @@ private fun EmptyResultView(
 }
 
 
+@Preview(showBackground = true, name = "Loading State")
 @Composable
-@Preview
-private fun TaxiListScreenLoadingPreview() {
-    Theme { MockTaxiListScreen(TaxiListViewModel.ViewState.Loading) }
-}
-
-@Composable
-@Preview
-private fun TaxiListScreenLoadedPreview() {
+private fun TaxiListView_Loading_Preview() {
+    val viewModel = PreviewTaxiListViewModel(
+        initialState = TaxiListViewModel.ViewState.Loading
+    )
     Theme {
-        MockTaxiListScreen(
-            TaxiListViewModel.ViewState.Loaded(
-                rooms = TaxiRoom.mockList(),
-                locations = TaxiLocation.mockList()
-            )
-        )
+        TaxiListView(viewModel = viewModel, navController = rememberNavController())
     }
 }
 
+@Preview(showBackground = true, name = "Loaded State")
 @Composable
-@Preview
-private fun TaxiListScreenLoadedEmptyResultPreview() {
+private fun TaxiListView_Loaded_Preview() {
+    val state = TaxiListViewModel.ViewState.Loaded(
+        rooms = TaxiRoom.mockList(),
+        locations = TaxiLocation.mockList()
+    )
+    val viewModel = PreviewTaxiListViewModel(initialState = state)
+
     Theme {
-        MockTaxiListScreen(
-            TaxiListViewModel.ViewState.Loaded(
-                rooms = listOf(),
-                locations = listOf()
-            )
-        )
+        TaxiListView(viewModel = viewModel, navController = rememberNavController())
     }
 }
 
+@Preview(showBackground = true, name = "Empty State")
 @Composable
-@Preview
-private fun TaxiListScreenEmptyPreview() {
-    Theme { MockTaxiListScreen(TaxiListViewModel.ViewState.Empty(TaxiLocation.mockList())) }
+private fun TaxiListView_Empty_Preview() {
+    val state = TaxiListViewModel.ViewState.Loaded(
+        rooms = emptyList(),
+        locations = TaxiLocation.mockList()
+    )
+    val viewModel = PreviewTaxiListViewModel(initialState = state)
+
+    Theme {
+        TaxiListView(viewModel = viewModel, navController = rememberNavController())
+    }
 }
 
+@Preview(showBackground = true, name = "Error State")
 @Composable
-@Preview
-private fun TaxiListScreenErrorPreview() {
-    Theme { MockTaxiListScreen(TaxiListViewModel.ViewState.Error("Something went wrong")) }
-}
-
-@Composable
-private fun MockTaxiListScreen(state: TaxiListViewModel.ViewState) {
-    val mockViewModel = remember { MockTaxiListViewModel(initialState = state) }
-    TaxiListView(viewModel = mockViewModel, taxiPreviewViewModel = MockTaxiPreviewViewModel(), navController = rememberNavController())
+private fun TaxiListView_Error_Preview() {
+    val viewModel = PreviewTaxiListViewModel(
+        initialState = TaxiListViewModel.ViewState.Error("Something went wrong")
+    )
+    Theme {
+        TaxiListView(viewModel = viewModel, navController = rememberNavController())
+    }
 }
