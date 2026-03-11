@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Shared.Mocks
 
+import org.sparcs.soap.App.Domain.Enums.Taxi.EmojiIdentifier
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
@@ -47,6 +48,7 @@ fun TaxiRoom.Companion.mockList(): List<TaxiRoom>{
             madeAt = Date(),
             capacity = 4,
             settlementTotal = null,
+            emojiIdentifier = EmojiIdentifier.APPLE,
             isDeparted = false,
             isOver = null
         )

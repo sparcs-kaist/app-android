@@ -462,4 +462,7 @@
     <string name="not_supported">Not Supported</string>
     <string name="error_feed_image_update_failed">Failed to update profile.</string>
     <string name="error_feed_nickname_reserved">This nickname is not available.</string>
+    <string name="taxi_room_emoji_description">This emoji is used to identify the room.</string>
+    <string name="taxi_room_identifier_title">Room Identifier</string>
+    <string name="taxi_check_room_id_notice">Please check the room ID when boarding!</string>
 </resources>

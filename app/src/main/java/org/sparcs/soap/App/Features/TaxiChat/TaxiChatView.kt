@@ -27,16 +27,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Features.FullscreenImage.FullscreenImageView
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatCollectionView
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePositionResolver
-import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItem
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItemBuilder
 import org.sparcs.soap.App.Features.TaxiChat.Components.DefaultMessagePresentationPolicy
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiChatInputBar
@@ -47,6 +49,8 @@ import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.openUri
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiChatViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -260,4 +264,37 @@ private val PlaceholderItems: List<ChatRenderItem> by lazy {
         presentationPolicy = DefaultMessagePresentationPolicy()
     )
     builder.build(chats = TaxiChat.mockList(), myUserID = null)
+}
+
+@Preview(showBackground = true, name = "Loading State")
+@Composable
+private fun TaxiChatView_Loading_Preview() {
+    val viewModel = PreviewTaxiChatViewModel(
+        initialState = TaxiChatViewModel.ViewState.Loading
+    )
+    Theme {
+        TaxiChatView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(showBackground = true, name = "Loaded State")
+@Composable
+private fun TaxiChatView_Loaded_Preview() {
+    val viewModel = PreviewTaxiChatViewModel(
+        initialState = TaxiChatViewModel.ViewState.Loaded
+    )
+    Theme {
+        TaxiChatView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(showBackground = true, name = "Error State")
+@Composable
+private fun TaxiChatView_Error_Preview() {
+    val viewModel = PreviewTaxiChatViewModel(
+        initialState = TaxiChatViewModel.ViewState.Error("Something went wrong")
+    )
+    Theme {
+        TaxiChatView(viewModel = viewModel, navController = rememberNavController())
+    }
 }

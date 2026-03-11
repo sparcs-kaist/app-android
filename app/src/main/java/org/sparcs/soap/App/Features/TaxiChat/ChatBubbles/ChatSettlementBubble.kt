@@ -14,7 +14,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
 @Composable
@@ -47,21 +49,10 @@ fun ChatSettlementBubble() {
     }
 }
 
-//@Preview
-//@Composable
-//private fun Preview() {
-//    Theme {
-//        TaxiChatUserWrapper(
-//            authorID = null,
-//            authorName = null,
-//            authorProfileImageURL = null,
-//            date = Date(),
-//            isMe = false,
-//            isGeneral = false,
-//            isWithdrawn = false,
-//            badge = true
-//        ) {
-//            ChatSettlementBubble()
-//        }
-//    }
-//}
+@Preview
+@Composable
+private fun Preview() {
+    Theme {
+        ChatSettlementBubble()
+    }
+}

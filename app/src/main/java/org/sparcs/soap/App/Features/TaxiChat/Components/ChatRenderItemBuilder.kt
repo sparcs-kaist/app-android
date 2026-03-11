@@ -1,31 +1,11 @@
 package org.sparcs.soap.App.Features.TaxiChat.Components
 
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatBubblePosition
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
+import org.sparcs.soap.App.Domain.Models.Taxi.SenderInfo
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Shared.Extensions.formattedDate
-import java.util.Date
 
-sealed class ChatRenderItem {
-    abstract val id: String
-
-    data class DaySeparator(
-        val date: Date,
-        override val id: String = "day-${date.time}"
-    ) : ChatRenderItem()
-
-    data class SystemEvent(
-        override val id: String,
-        val chat: TaxiChat
-    ) : ChatRenderItem()
-
-    data class Message(
-        override val id: String,
-        val chat: TaxiChat,
-        val kind: TaxiChat.ChatType,
-        val sender: SenderInfo,
-        val position: ChatBubblePosition,
-        val metadata: MetadataVisibility
-    ) : ChatRenderItem()
-}
 
 class ChatRenderItemBuilder(
     private val policy: ChatGroupingPolicy = TaxiGroupingPolicy(),

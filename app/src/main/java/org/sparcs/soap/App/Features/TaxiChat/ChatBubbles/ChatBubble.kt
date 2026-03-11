@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -23,14 +24,17 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.DeepLink
 import org.sparcs.soap.App.Domain.Enums.DeepLinkEventBus
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatBubblePosition
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
-import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePosition
 import org.sparcs.soap.App.Shared.Extensions.toDetectedAnnotatedString
+import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.theme.ui.Theme
 
 @Composable
 fun ChatBubble(
@@ -111,6 +115,76 @@ private fun handleURL(
             intent.launchUrl(context, uri)
         } catch (e: Exception) {
             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+        }
+    }
+}
+
+@Preview(name = "Mine - Single Bubble", showBackground = true)
+@Composable
+private fun MineSingleBubblePreview() {
+    Theme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            ChatBubble(
+                chat = TaxiChat.mockList()[0].copy(content = "내가 보낸 단일 메시지입니다."),
+                position = ChatBubblePosition.SINGLE,
+                isMine = true
+            )
+        }
+    }
+}
+
+@Preview(name = "Others - Single Bubble", showBackground = true)
+@Composable
+private fun OthersSingleBubblePreview() {
+    Theme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            ChatBubble(
+                chat = TaxiChat.mockList()[0].copy(content = "상대방이 보낸 단일 메시지입니다."),
+                position = ChatBubblePosition.SINGLE,
+                isMine = false
+            )
+        }
+    }
+}
+
+@Preview(name = "Mine - Message Group (Top)", showBackground = true)
+@Composable
+private fun MineGroupTopPreview() {
+    Theme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            ChatBubble(
+                chat = TaxiChat.mockList()[0].copy(content = "연속된 메시지의 시작입니다."),
+                position = ChatBubblePosition.TOP,
+                isMine = true
+            )
+        }
+    }
+}
+
+@Preview(name = "Others - Message Group (Bottom)", showBackground = true)
+@Composable
+private fun OthersGroupBottomPreview() {
+    Theme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            ChatBubble(
+                chat = TaxiChat.mockList()[0].copy(content = "연속된 메시지의 마지막입니다."),
+                position = ChatBubblePosition.BOTTOM,
+                isMine = false
+            )
+        }
+    }
+}
+
+@Preview(name = "Link Interaction Bubble", showBackground = true)
+@Composable
+private fun LinkBubblePreview() {
+    Theme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            ChatBubble(
+                chat = TaxiChat.mockList()[0].copy(content = "링크 포함 메시지: https://www.kaist.ac.kr"),
+                position = ChatBubblePosition.SINGLE,
+                isMine = false
+            )
         }
     }
 }

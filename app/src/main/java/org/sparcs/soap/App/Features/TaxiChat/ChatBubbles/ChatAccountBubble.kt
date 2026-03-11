@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 
@@ -123,24 +124,13 @@ fun ChatAccountBubble(
         }
     }
 }
-//
-//@Preview
-//@Composable
-//private fun Preview() {
-//    TaxiChatUserWrapper(
-//        authorID = null,
-//        authorName = null,
-//        authorProfileImageURL = null,
-//        date = Date(),
-//        isMe = false,
-//        isGeneral = false,
-//        isWithdrawn = false,
-//        badge = true
-//    ) {
-//        TaxiChatAccountBubble(
-//            content = "KB국민 90415338958",
-//            isCommitPaymentAvailable = false,
-//            markAsSent = { println("mark as sent") }
-//        )
-//    }
-//}
+
+@Preview
+@Composable
+private fun Preview() {
+    ChatAccountBubble(
+        content = "KB국민 90415338958",
+        isCommitPaymentAvailable = false,
+        markAsSent = { println("mark as sent") }
+    )
+}
