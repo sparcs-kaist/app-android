@@ -63,6 +63,8 @@ class PreviewTaxiChatViewModel(
         _room.value = newRoom
     }
 
+    override suspend fun toggleCarrier(hasCarrier: Boolean) {}
+
     companion object {
         private val mockRenderItems: List<ChatRenderItem> by lazy {
             val chats = TaxiChat.mockList()
