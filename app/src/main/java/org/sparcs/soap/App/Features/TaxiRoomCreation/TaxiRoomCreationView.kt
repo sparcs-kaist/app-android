@@ -41,10 +41,10 @@ import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDestinationP
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiListViewModel
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiRoomCreationViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
+import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiListViewModel
 import org.sparcs.soap.R
 import java.util.Date
 
@@ -211,13 +211,16 @@ private fun isValid(
 @Preview
 @Composable
 private fun Preview() {
-    val mockViewModel =
-        remember { MockTaxiListViewModel(initialState = TaxiListViewModel.ViewState.Loaded(TaxiRoom.mockList(), TaxiLocation.mockList())) }
+    val loadedState = TaxiListViewModel.ViewState.Loaded(
+        rooms = TaxiRoom.mockList(),
+        locations = TaxiLocation.mockList()
+    )
+    val viewModel = PreviewTaxiListViewModel(initialState = loadedState)
 
     Theme {
         TaxiRoomCreationView(
             rememberNavController(),
-            taxiListViewModel = mockViewModel,
+            taxiListViewModel = viewModel,
             taxiRoomCreationViewModel = MockTaxiRoomCreationViewModel()
         )
     }

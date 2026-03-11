@@ -16,12 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatBubblePosition
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
-import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePosition
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePositionResolver
-import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItem
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItemBuilder
 import org.sparcs.soap.App.Features.TaxiChat.Components.DefaultMessagePresentationPolicy
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy

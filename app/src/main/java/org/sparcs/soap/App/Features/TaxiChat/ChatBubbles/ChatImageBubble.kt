@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
@@ -62,20 +63,9 @@ fun ChatImageBubble(
         }
     }
 }
-//
-//@Preview
-//@Composable
-//private fun Preview() {
-//    TaxiChatUserWrapper(
-//        authorID = null,
-//        authorName = null,
-//        authorProfileImageURL = null,
-//        date = Date(),
-//        isMe = false,
-//        isGeneral = false,
-//        isWithdrawn = false,
-//        badge = true
-//    ) {
-//        ChatImageBubble(id = "688714fb95fce20ddc8f19da", {})
-//    }
-//}
+
+@Preview
+@Composable
+private fun Preview() {
+    ChatImageBubble(id = "688714fb95fce20ddc8f19da", {})
+}

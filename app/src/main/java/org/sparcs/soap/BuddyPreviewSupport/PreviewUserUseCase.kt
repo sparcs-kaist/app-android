@@ -1,4 +1,4 @@
-package org.sparcs.soap.BuddyPreviewSupport.Feed
+package org.sparcs.soap.BuddyPreviewSupport
 
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
 import org.sparcs.soap.App.Domain.Models.Feed.FeedUser
