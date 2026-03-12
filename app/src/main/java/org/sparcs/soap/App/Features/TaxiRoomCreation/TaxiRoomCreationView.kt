@@ -203,17 +203,18 @@ private fun isValid(
     roomCreationViewModel: TaxiRoomCreationViewModelProtocol,
     title: String,
 ): Pair<Boolean, Int?> {
+    val blockStatus = roomCreationViewModel.blockStatus.value
+    if (blockStatus == TaxiRoomBlockStatus.TooManyRooms) return false to R.string.error_too_many_rooms
+    if (blockStatus != TaxiRoomBlockStatus.Allow) return false to R.string.error_unsettled_room
+
     val source = viewModel.source
     val destination = viewModel.destination
+    if (source == null || destination == null || title.isBlank()) return false to null
 
-    if (source == null) return false to null
-    if (destination == null) return false to null
     if (source == destination) return false to R.string.error_source_equals_destination
-    if (title.isBlank()) return false to null
     if (!isTitleValid(title)) return false to R.string.error_invalid_title
     if (viewModel.roomDepartureTime <= Date()) return false to R.string.error_departure_in_past
-    if (roomCreationViewModel.blockStatus.value == TaxiRoomBlockStatus.TooManyRooms) return false to R.string.error_too_many_rooms
-    if (roomCreationViewModel.blockStatus.value != TaxiRoomBlockStatus.Allow) return false to R.string.error_unsettled_room
+
     return true to null
 }
 
