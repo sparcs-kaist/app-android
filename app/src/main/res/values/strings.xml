@@ -471,4 +471,7 @@
     <string name="carrier_status_yes">Yes</string>
     <string name="carrier_status_no">No</string>
     <string name="carrier_status">Bulky Luggage</string>
+    <string name="error_too_many_rooms">
+        Maximum limit (5 rooms) reached.\nPlease complete settlement or cancel a ride.
+    </string>
 </resources>

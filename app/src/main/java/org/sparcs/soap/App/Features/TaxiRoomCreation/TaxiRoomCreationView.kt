@@ -212,8 +212,8 @@ private fun isValid(
     if (title.isBlank()) return false to null
     if (!isTitleValid(title)) return false to R.string.error_invalid_title
     if (viewModel.roomDepartureTime <= Date()) return false to R.string.error_departure_in_past
+    if (roomCreationViewModel.blockStatus.value == TaxiRoomBlockStatus.TooManyRooms) return false to R.string.error_too_many_rooms
     if (roomCreationViewModel.blockStatus.value != TaxiRoomBlockStatus.Allow) return false to R.string.error_unsettled_room
-
     return true to null
 }
 

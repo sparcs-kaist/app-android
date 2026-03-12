@@ -446,4 +446,7 @@
     <string name="carrier_status_yes">있음</string>
     <string name="carrier_status_no">없음</string>
     <string name="carrier_status">캐리어 소지 여부</string>
+    <string name="error_too_many_rooms">
+        참여할 수 있는 방 개수(최대 5개)를 초과했습니다.\n정산을 완료하거나 탑승을 취소해 주세요.
+    </string>
 </resources>
