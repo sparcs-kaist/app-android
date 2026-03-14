@@ -1,25 +1,11 @@
 package org.sparcs.soap.App.Features.ReviewCompose
 
+import android.util.Log
 import android.widget.Toast
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -27,22 +13,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -51,7 +23,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
@@ -61,8 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Repositories.OTL.FakeOTLLectureRepository
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModel
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.ReviewCompose.Components.ReviewComposeNavigationBar
@@ -79,11 +48,8 @@ fun ReviewComposeView(
     lectureDetailViewModel: LectureDetailViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val isPreview = LocalInspectionMode.current
-    val repo: OTLLectureRepositoryProtocol = if(!isPreview)
-        hiltViewModel<ReviewComposeViewModel>().otlLectureRepository else FakeOTLLectureRepository()
+    val writtenReview = lectureDetailViewModel.writtenReview.collectAsState().value
 
-    val lecture = reviewComposeViewModel.lecture
     var grade by remember { mutableStateOf(5) }
     var load by remember { mutableStateOf(5) }
     var speech by remember { mutableStateOf(5) }
@@ -104,6 +70,16 @@ fun ReviewComposeView(
     val contentFocusRequester = remember { FocusRequester() }
     val submittedMessage = stringResource(R.string.review_submitted)
 
+    LaunchedEffect(writtenReview) {
+        Log.d("ReviewComposeView", "LaunchedEffect triggered with writtenReview: $writtenReview")
+        writtenReview?.let { review ->
+            grade = review.grade
+            load = review.load
+            speech = review.speech
+            contentField = TextFieldValue(review.content)
+        }
+    }
+
     LaunchedEffect(cursorLine) {
         val layout = textLayoutResult ?: return@LaunchedEffect
         val line = cursorLine ?: return@LaunchedEffect
@@ -120,14 +96,7 @@ fun ReviewComposeView(
                     scope.launch {
                         isUploading = true
                         try {
-                            val review = repo.writeReview(
-                                lectureID = lecture.id,
-                                content = contentField.text,
-                                grade = grade,
-                                load = load,
-                                speech = speech
-                            )
-                            lectureDetailViewModel.writeReview(lecture.id, review)
+                            lectureDetailViewModel.writeReview(contentField.text, grade, load, speech, writtenReview != null)
                             navController.popBackStack()
                         } catch (e: Exception) {
                             showErrorDialog = true
@@ -142,7 +111,8 @@ fun ReviewComposeView(
                     }
                 },
                 isUploading = isUploading,
-                isDoneEnabled = contentField.text.isNotBlank() && !isUploading
+                isDoneEnabled = contentField.text.isNotBlank() && !isUploading,
+                isEditing = writtenReview != null
             )
         },
         modifier = Modifier.analyticsScreen("Review Compose")
@@ -197,7 +167,7 @@ fun ReviewComposeView(
                     decorationBox = { inner ->
                         if (contentField.text.isEmpty())
                             Text(
-                                text = stringResource(R.string.share_lecture_thoughts, reviewComposeViewModel.lecture.title.localized()),
+                                text = stringResource(R.string.share_lecture_thoughts, reviewComposeViewModel.lecture.name),
                                 color = MaterialTheme.colorScheme.grayBB,
                                 style = MaterialTheme.typography.titleMedium
                             )

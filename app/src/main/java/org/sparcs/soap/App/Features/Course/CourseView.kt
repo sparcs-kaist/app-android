@@ -1,13 +1,6 @@
 package org.sparcs.soap.App.Features.Course
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,7 +10,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -34,9 +26,9 @@ import org.sparcs.soap.App.Domain.Helpers.gradeLetter
 import org.sparcs.soap.App.Domain.Helpers.loadLetter
 import org.sparcs.soap.App.Domain.Helpers.speechLetter
 import org.sparcs.soap.App.Domain.Models.OTL.Course
-import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
-import org.sparcs.soap.App.Domain.Repositories.OTL.FakeOTLCourseRepository
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import org.sparcs.soap.App.Domain.Models.OTL.ReviewResponse
+import org.sparcs.soap.App.Domain.Repositories.OTL.FakeOTLReviewRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepositoryProtocol
 import org.sparcs.soap.App.Features.Course.Components.CourseNavigationBar
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureDetailRow
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewCell
@@ -44,7 +36,6 @@ import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewSkelet
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureSummaryRow
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.R
@@ -54,20 +45,14 @@ fun CourseView(
     viewModel: CourseViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val repo: OTLCourseRepositoryProtocol = hiltViewModel<CourseViewModel>().otlCourseRepository
-    val course = viewModel.course.collectAsState().value
+    val reviewRepo: OTLReviewRepositoryProtocol = hiltViewModel<CourseViewModel>().otlReviewRepository
     val state by viewModel.state.collectAsState()
-    val reviews by viewModel.reviews.collectAsState()
-
-    LaunchedEffect(course.id) {
-        viewModel.fetchReviews(courseId = course.id)
-    }
 
     Scaffold(
         topBar = {
             CourseNavigationBar(
                 navController = navController,
-                text = course.title.localized()
+                text = (state as? CourseViewModel.ViewState.Loaded)?.course?.name ?: ""
             )
         },
         modifier = Modifier.analyticsScreen("Course")
@@ -80,10 +65,14 @@ fun CourseView(
                 .padding(horizontal = 16.dp)
         ) {
             when (state) {
-                CourseViewModel.ViewState.Loading, CourseViewModel.ViewState.Loaded -> {
+                CourseViewModel.ViewState.Loading -> {}
+
+                is CourseViewModel.ViewState.Loaded -> {
+                    val course = (state as CourseViewModel.ViewState.Loaded).course
+                    val reviews = (state as CourseViewModel.ViewState.Loaded).reviews
                     CourseSummary(course)
                     Spacer(modifier = Modifier.height(16.dp))
-                    CourseReviewSection(course, reviews, state, repo)
+                    CourseReviewSection(reviews, state, reviewRepo)
                 }
 
                 is CourseViewModel.ViewState.Error -> {
@@ -91,7 +80,7 @@ fun CourseView(
                     ErrorView(
                         icon = Icons.Default.Warning,
                         message = "Error: $message",
-                        onRetry = { viewModel.fetchReviews(courseId = course.id) }
+                        onRetry = { viewModel.loadCourse() }
                     )
                 }
             }
@@ -107,8 +96,8 @@ fun CourseSummary(course: Course) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            LectureSummaryRow(stringResource(R.string.hours).uppercase(), course.numClasses.toString())
-            LectureSummaryRow(stringResource(R.string.lab).uppercase(), course.numLabs.toString())
+            LectureSummaryRow(stringResource(R.string.hours).uppercase(), course.classDuration.toString())
+            LectureSummaryRow(stringResource(R.string.lab).uppercase(), course.expDuration.toString())
             if (course.credit == 0) {
                 LectureSummaryRow(stringResource(R.string.au).uppercase(), course.creditAu.toString())
             } else {
@@ -125,10 +114,10 @@ fun CourseSummary(course: Course) {
                 style = MaterialTheme.typography.titleLarge
             )
             LectureDetailRow(stringResource(R.string.code), course.code)
-            LectureDetailRow(stringResource(R.string.type), course.type.localized())
+            LectureDetailRow(stringResource(R.string.type), stringResource(course.type.displayName))
             LectureDetailRow(
                 stringResource(R.string.department),
-                course.department.name.localized()
+                course.department.name
             )
 
             if (course.summary.isNotEmpty()) {
@@ -150,34 +139,33 @@ fun CourseSummary(course: Course) {
 
 @Composable
 fun CourseReviewSection(
-    course: Course,
-    reviews: List<LectureReview>,
+    reviewResponse: ReviewResponse,
     state: CourseViewModel.ViewState,
-    repo: OTLCourseRepositoryProtocol,
+    repo: OTLReviewRepositoryProtocol,
 ) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(stringResource(R.string.reviews), fontSize = 18.sp, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow(stringResource(R.string.grade), course.gradeLetter)
+            LectureSummaryRow(stringResource(R.string.grade), reviewResponse.gradeLetter)
             Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow(stringResource(R.string.load), course.loadLetter)
+            LectureSummaryRow(stringResource(R.string.load), reviewResponse.loadLetter)
             Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow(stringResource(R.string.speech), course.speechLetter)
+            LectureSummaryRow(stringResource(R.string.speech), reviewResponse.speechLetter)
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            if (state == CourseViewModel.ViewState.Loaded) {
-                if (reviews.isEmpty()) {
+            if (state is CourseViewModel.ViewState.Loaded) {
+                if (reviewResponse.reviews.isEmpty()) {
                     UnavailableView(
                         Icons.AutoMirrored.Outlined.LibraryBooks,
                         title = stringResource(R.string.no_reviews),
                         description = stringResource(R.string.there_are_no_reviews_yet)
                     )
                 } else {
-                    reviews.forEach { review ->
+                    reviewResponse.reviews.forEach { review ->
                         LectureReviewCell(review, repo)
                     }
                 }
@@ -197,10 +185,9 @@ private fun Preview() {
         CourseSummary(Course.mock())
         Spacer(modifier = Modifier.height(16.dp))
         CourseReviewSection(
-            Course.mock(),
-            LectureReview.mockList(),
-            CourseViewModel.ViewState.Loaded,
-            FakeOTLCourseRepository()
+            ReviewResponse.mock(),
+            CourseViewModel.ViewState.Loaded(Course.mock(), ReviewResponse.mock()),
+            FakeOTLReviewRepository()
         )
     }
 }

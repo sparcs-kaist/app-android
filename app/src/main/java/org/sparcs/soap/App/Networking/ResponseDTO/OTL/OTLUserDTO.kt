@@ -7,43 +7,29 @@ data class OTLUserDTO(
     @SerializedName("id")
     val id: Int,
 
-    @SerializedName("email")
-    val email: String,
+    @SerializedName("name")
+    val name: String,
 
-    @SerializedName("student_id")
-    val studentID: String,
+    @SerializedName("mail")
+    val mail: String,
 
-    @SerializedName("firstName")
-    val firstName: String,
+    @SerializedName("studentNumber")
+    val studentNumber: Number,
 
-    @SerializedName("lastName")
-    val lastName: String,
+    @SerializedName("degree")
+    val degree: String,
 
-    @SerializedName("department")
-    val department: DepartmentDTO?,
+    @SerializedName("majorDepartments")
+    val majorDepartments: List<DepartmentDTO>,
 
-    @SerializedName("majors")
-    val majors: List<DepartmentDTO>,
-
-    @SerializedName("review_writable_lectures")
-    val reviewWritableLectures: List<LectureDTO>,
-
-    @SerializedName("my_timetable_lectures")
-    val myTimetableLectures: List<LectureDTO>,
-
-    @SerializedName("reviews")
-    val reviews: List<LectureReviewDTO>
+    @SerializedName("interestedDepartments")
+    val interestedDepartments: List<DepartmentDTO>,
 ) {
     fun toModel(): OTLUser = OTLUser(
         id = id,
-        email = email,
-        studentID = studentID,
-        firstName = firstName,
-        lastName = lastName,
-        department = department?.toModel(),
-        majors = majors.map { it.toModel() },
-        reviewWritableLectures = reviewWritableLectures.map { it.toModel() },
-        myTimetableLectures = myTimetableLectures.map { it.toModel() },
-        reviews = reviews.map { it.toModel() }
+        name = name,
+        email = mail,
+        studentNumber = studentNumber,
+        majors = majorDepartments.map { it.toModel() },
     )
 }

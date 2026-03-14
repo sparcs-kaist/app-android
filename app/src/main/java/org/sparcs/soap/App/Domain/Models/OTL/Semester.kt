@@ -3,7 +3,7 @@ package org.sparcs.soap.App.Domain.Models.OTL
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
-import java.util.Date
+import java.util.*
 
 data class Semester(
     val year: Int,
@@ -41,9 +41,8 @@ data class Semester(
         return result
     }
 
-    companion object{}
+    companion object
 }
-
 
 data class SemesterEventDate(
     val registrationPeriodStartDate: Date?,

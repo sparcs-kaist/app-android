@@ -1,16 +1,8 @@
 package org.sparcs.soap.App.Features.Search.Components
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
@@ -26,9 +18,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
-import org.sparcs.soap.App.Domain.Models.OTL.Course
+import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
 import org.sparcs.soap.App.Domain.Models.SearchScope
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
@@ -91,7 +82,7 @@ fun SearchSection(
 
 @Composable
 fun CourseSection(
-    courses: List<Course>,
+    cours: List<SearchCourse>,
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     navController: NavController,
@@ -105,17 +96,16 @@ fun CourseSection(
         onScopeChange = onScopeChange
     ) {
         SearchContent(
-            results = courses,
+            results = cours,
             onLoadMore = onLoadMore,
         ) { course ->
             if (isSkeleton) {
                 CourseSkeletonCell()
             } else {
                 CourseCell(
-                    course = course,
+                    searchCourse = course,
                     onClick = {
-                        val json = Uri.encode(Gson().toJson(course))
-                        navController.navigate(Channel.CourseView.name + "?course_json=$json")
+                        navController.navigate(Channel.CourseView.name + "?courseId=${course.id}")
                     }
                 )
             }
@@ -195,7 +185,7 @@ private fun Preview() {
             searchScope = SearchScope.All,
             targetScope = SearchScope.Rides,
             onScopeChange = {},
-            content = { CourseCell(Course.mock(), {}) }
+            content = { CourseCell(SearchCourse.mock(), {}) }
         )
     }
 }

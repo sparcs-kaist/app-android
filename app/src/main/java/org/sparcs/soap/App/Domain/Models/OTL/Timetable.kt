@@ -4,8 +4,15 @@ import org.sparcs.soap.App.Domain.Enums.OTL.DayType
 import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import kotlin.math.roundToInt
 
+data class TimetableListItem (
+    val id: Int,
+    val name: String,
+    val year: Int,
+    val semester: Int,
+    val timetableOrder: Int
+)
+
 data class Timetable(
-    val id: String,
     var lectures: List<Lecture>,
 ) {
     private val defaultMinMinutes = 540  // 9:00 AM
@@ -88,17 +95,15 @@ data class Timetable(
        */
     val targetCredits: Int
         get() = lectures
-            .filter { it.reviewTotalWeight > 0.0 }
             .sumOf { it.credit + it.creditAu }
 
     private fun calculateWeightedAverage(
         selector: (Lecture) -> Double,
         withCredits: Boolean = true,
     ): Double {
-        val relevant = lectures.filter { it.reviewTotalWeight > 0.0 }
         val numerator =
-            relevant.sumOf { selector(it) * (it.credit + if (withCredits) it.creditAu else 0) }
-        val denominator = relevant.sumOf { it.credit + if (withCredits) it.creditAu else 0 }
+            lectures.sumOf { selector(it) * (it.credit + if (withCredits) it.creditAu else 0) }
+        val denominator = lectures.sumOf { it.credit + if (withCredits) it.creditAu else 0 }
         return if (denominator > 0) numerator / denominator else 0.0
     }
 

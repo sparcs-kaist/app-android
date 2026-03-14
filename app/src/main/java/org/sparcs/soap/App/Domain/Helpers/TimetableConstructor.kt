@@ -17,7 +17,7 @@ object TimetableConstructor {
         daysHeightPx: Float
     ): Float {
         val timetableHeight = containerHeightPx - daysHeightPx - TOP_EXTRA_PX
-        val cellDuration = item.lecture.classTimes[item.index].duration.toFloat()
+        val cellDuration = item.lecture.classTimes[item.index].let { it.end - it.begin }.toFloat()
         val cellHeight = (timetableHeight / durationMinutes.toFloat()) * cellDuration
         return if (cellHeight <= 0f) 0f else cellHeight - CELL_OVERLAP_ADJUST_PX
     }

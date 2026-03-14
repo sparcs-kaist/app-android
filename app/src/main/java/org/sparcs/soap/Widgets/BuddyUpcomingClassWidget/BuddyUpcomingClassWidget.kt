@@ -9,30 +9,17 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.glance.GlanceId
-import androidx.glance.GlanceModifier
-import androidx.glance.GlanceTheme
-import androidx.glance.LocalSize
+import androidx.glance.*
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.*
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
-import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
-import androidx.glance.background
-import androidx.glance.currentState
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.state.PreferencesGlanceStateDefinition
-import androidx.work.CoroutineWorker
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.WorkerParameters
+import androidx.work.*
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.encodeToString
@@ -47,7 +34,7 @@ import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassSmallWid
 import org.sparcs.soap.Widgets.WidgetEntryPoint
 import org.sparcs.soap.Widgets.theme.ui.WidgetTheme
 import timber.log.Timber
-import java.util.Calendar
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -160,18 +147,18 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
                 .flatMap { lecture ->
                     lecture.classTimes.map { time -> lecture to time }
                 }
-                .filter { (lecture, time) -> time.day.name == dayOfWeekString }
-                .filter { (lecture, time) -> time.end > currentMinutes }
-                .minByOrNull { (lecture, time) -> time.begin }
+                .filter { (_, time) -> time.day.name == dayOfWeekString }
+                .filter { (_, time) -> time.end > currentMinutes }
+                .minByOrNull { (_, time) -> time.begin }
 
             val widgetEntry = if (nextLecture != null) {
                 val (lecture, time) = nextLecture
                 WidgetLectureEntry(
-                    title = lecture.title.localized(),
-                    classroom = time.classroomNameShort.localized(),
+                    title = lecture.name,
+                    classroom = time.let { it.buildingCode + it.roomName },
                     day = time.day,
                     startMinutes = time.begin,
-                    durationMinutes = time.duration,
+                    durationMinutes = time.let { it.end - it.begin },
                     bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb())
                         .uppercase(),
                     textColor = "#" + Integer.toHexString(lecture.textColor.toArgb()).uppercase(),
@@ -246,8 +233,8 @@ class RefreshAndOpenAppAction : ActionCallback {
         val tokenStorage = entryPoint.tokenStorage()
         if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
 
-            val constraints = androidx.work.Constraints.Builder()
-                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
             val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()

@@ -18,3 +18,17 @@ data class WriteReviewRequest(
     @SerializedName("speech")
     val speech: Int
 )
+
+data class EditReviewRequest(
+    @SerializedName("content")
+    val content: String,
+
+    @SerializedName("grade")
+    val grade: Int,
+
+    @SerializedName("load")
+    val load: Int,
+
+    @SerializedName("speech")
+    val speech: Int
+)

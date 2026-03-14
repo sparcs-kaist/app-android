@@ -1,93 +1,40 @@
 package org.sparcs.soap.App.Domain.Repositories.OTL
 
 import com.google.gson.Gson
-import org.sparcs.soap.App.Domain.Models.OTL.Lecture
-import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.LectureSearchRequest
+import org.sparcs.soap.App.Domain.Models.OTL.LectureWrapperCourse
 import org.sparcs.soap.App.Networking.RequestDTO.OTL.LectureSearchRequestDTO
-import org.sparcs.soap.App.Networking.RequestDTO.OTL.WriteReviewRequest
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLLectureApi
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
 import javax.inject.Inject
 
 interface OTLLectureRepositoryProtocol {
-    suspend fun searchLectures(request: LectureSearchRequest): List<Lecture>
-    suspend fun fetchLectures(lectureID: Int): List<LectureReview>
-    suspend fun writeReview(
-        lectureID: Int,
-        content: String,
-        grade: Int,
-        load: Int,
-        speech: Int,
-    ): LectureReview
+    suspend fun searchLectures(request: LectureSearchRequest): List<LectureWrapperCourse>
 }
-
 
 class OTLLectureRepository @Inject constructor(
     private val api: OTLLectureApi,
     private val gson: Gson = Gson(),
 ) : OTLLectureRepositoryProtocol {
 
-    override suspend fun searchLectures(request: LectureSearchRequest): List<Lecture> {
-        return safeApiCall(gson) {
-            val dto = LectureSearchRequestDTO.fromModel(request)
-            api.searchLecture(
-                year = dto.year,
-                semester = dto.semester,
-                keyword = dto.keyword,
-                type = dto.type,
-                department = dto.department,
-                level = dto.level,
-                limit = dto.limit,
-                offset = dto.offset
-            )
-        }.map { it.toModel() }
-    }
-
-    override suspend fun fetchLectures(lectureID: Int): List<LectureReview> {
-        return safeApiCall(gson) {
-            api.fetchReviews(lectureID)
-        }.map { it.toModel() }
-    }
-
-    override suspend fun writeReview(
-        lectureID: Int,
-        content: String,
-        grade: Int,
-        load: Int,
-        speech: Int,
-    ): LectureReview {
-        return safeApiCall(gson) {
-            val request = WriteReviewRequest(
-                lectureID = lectureID,
-                content = content,
-                grade = grade,
-                load = load,
-                speech = speech
-            )
-            api.writeReview(request)
-        }.toModel()
-    }
+    override suspend fun searchLectures(request: LectureSearchRequest): List<LectureWrapperCourse> = safeApiCall(gson) {
+        val dto = LectureSearchRequestDTO.fromModel(request)
+        api.searchLecture(
+            year = dto.year,
+            semester = dto.semester,
+            keyword = dto.keyword,
+            type = dto.type,
+            department = dto.department,
+            level = dto.level,
+            limit = dto.limit,
+            offset = dto.offset
+        )
+    }.courses.map { it.toModel() }
 }
 
 class FakeOTLLectureRepository : OTLLectureRepositoryProtocol {
-    override suspend fun searchLectures(request: LectureSearchRequest): List<Lecture> {
-        return Lecture.mockList()
-    }
-
-    override suspend fun fetchLectures(lectureID: Int): List<LectureReview> {
-        return LectureReview.mockList()
-    }
-
-    override suspend fun writeReview(
-        lectureID: Int,
-        content: String,
-        grade: Int,
-        load: Int,
-        speech: Int,
-    ): LectureReview {
-        return LectureReview.mock()
+    override suspend fun searchLectures(request: LectureSearchRequest): List<LectureWrapperCourse> {
+//        return Lecture.mockList()
+        return emptyList()
     }
 }

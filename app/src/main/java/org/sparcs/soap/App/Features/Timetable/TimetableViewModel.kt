@@ -6,17 +6,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
+import org.sparcs.soap.App.Domain.Models.OTL.TimetableListItem
 import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Shared.Extensions.isNetworkError
@@ -29,10 +24,11 @@ interface TimetableViewModelProtocol {
     val isLoading: MutableStateFlow<Boolean>
     val semesters: StateFlow<List<Semester>>
     val selectedSemester: StateFlow<Semester?>
+    val selectedTimetableId: StateFlow<Int?>
     val selectedTimetable: StateFlow<Timetable?>
     val selectedTimetableDisplayName: StateFlow<String>
     val isEditable: StateFlow<Boolean>
-    val timetableIDsForSelectedSemester: List<String>
+    val timetableList: StateFlow<List<TimetableListItem>>
     val candidateLecture: StateFlow<Lecture?>
     val isCandidateOverlapping: StateFlow<Boolean>
     val overlappingLecture: StateFlow<Lecture?>
@@ -44,7 +40,7 @@ interface TimetableViewModelProtocol {
     fun fetchData()
     suspend fun selectPreviousSemester()
     suspend fun selectNextSemester()
-    fun selectTimetable(id: String)
+    suspend fun selectTimetable(id: Int)
     fun createTable()
     fun deleteTable()
     fun addLecture(lecture: Lecture)
@@ -73,14 +69,14 @@ class TimetableViewModel @Inject constructor(
 
     override val semesters: StateFlow<List<Semester>> = timetableUseCase.semesters
     override val selectedSemester: StateFlow<Semester?> = timetableUseCase.selectedSemester
+    override val selectedTimetableId: StateFlow<Int?> = timetableUseCase.selectedTimetableID
     override val selectedTimetable: StateFlow<Timetable?> = timetableUseCase.selectedTimetable
 
     override val selectedTimetableDisplayName: StateFlow<String> =
         timetableUseCase.selectedTimetableDisplayName
     override val isEditable: StateFlow<Boolean> = timetableUseCase.isEditable
 
-    override val timetableIDsForSelectedSemester: List<String>
-        get() = timetableUseCase.timetableIDsForSelectedSemester
+    override val timetableList: StateFlow<List<TimetableListItem>> = timetableUseCase.timetableList
 
     private val _candidateLecture = MutableStateFlow<Lecture?>(null)
     override val candidateLecture: StateFlow<Lecture?> = _candidateLecture.asStateFlow()
@@ -149,7 +145,7 @@ class TimetableViewModel @Inject constructor(
             val newSemester = semestersList[currentIndex - 1]
             timetableUseCase.selectSemester(newSemester.id)
         }
-        val defaultTableId = timetableUseCase.timetableIDsForSelectedSemester.firstOrNull()
+        val defaultTableId = timetableList.value.firstOrNull()?.id
         defaultTableId?.let { selectTimetable(it) }
     }
 
@@ -163,12 +159,14 @@ class TimetableViewModel @Inject constructor(
             val newSemester = semestersList[currentIndex + 1]
             timetableUseCase.selectSemester(newSemester.id)
         }
-        val defaultTableId = timetableUseCase.timetableIDsForSelectedSemester.firstOrNull()
+        val defaultTableId = timetableList.value.firstOrNull()?.id
         defaultTableId?.let { selectTimetable(it) }
     }
 
-    override fun selectTimetable(id: String) {
-        timetableUseCase.selectTimetable(id)
+    override suspend fun selectTimetable(id: Int) {
+        viewModelScope.launch {
+            timetableUseCase.selectTimetable(id)
+        }
     }
 
     override fun createTable() {

@@ -2,38 +2,14 @@ package org.sparcs.soap.App.Features.LectureSearch
 
 import android.net.Uri
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -65,25 +41,13 @@ fun LectureSearchView(
     onFold: () -> Unit,
 ) {
     val searchText by lectureSearchViewModel.searchText.collectAsState()
-    val lectures by lectureSearchViewModel.lectures.collectAsState()
-    val groupedByCourse = lectures.groupBy { it.course }
+    val courses by lectureSearchViewModel.lectures.collectAsState()
 
     val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
 
     val selectedTimetableDisplayName by timetableViewModel.selectedTimetableDisplayName.collectAsState()
-
-    val orderedCourses = remember(lectures) {
-        val seen = mutableSetOf<Int>()
-        val result = mutableListOf<Int>()
-        for (lecture in lectures) {
-            if (seen.add(lecture.course)) {
-                result.add(lecture.course)
-            }
-        }
-        result
-    }
 
     Scaffold(
         topBar = {
@@ -129,7 +93,7 @@ fun LectureSearchView(
                             description = stringResource(R.string.search_by_course)
                         )
                     }
-                } else if (orderedCourses.isEmpty()) {
+                } else if (courses.isEmpty()) {
                     item {
                         UnavailableView(
                             icon = Icons.Rounded.Search,
@@ -138,9 +102,8 @@ fun LectureSearchView(
                         )
                     }
                 } else {
-                    orderedCourses.forEach { course ->
-                        val courseLectures = groupedByCourse[course] ?: emptyList()
-                        if (courseLectures.isNotEmpty()) {
+                    courses.forEach { course ->
+                        if (course.lectures.isNotEmpty()) {
                             item {
                                 Card(
                                     modifier = Modifier
@@ -148,7 +111,6 @@ fun LectureSearchView(
                                         .padding(horizontal = 16.dp, vertical = 8.dp),
                                     colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
                                 ) {
-                                    val firstItem = courseLectures.first()
                                     Row(
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -156,18 +118,18 @@ fun LectureSearchView(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = firstItem.commonTitle.localized(),
+                                            text = course.name,
                                             style = MaterialTheme.typography.titleSmall,
                                             modifier = Modifier.weight(1f)
                                         )
                                         Column(horizontalAlignment = Alignment.End) {
                                             Text(
-                                                text = firstItem.code,
+                                                text = course.code,
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.grayBB
                                             )
                                             Text(
-                                                text = firstItem.typeDetail.localized(),
+                                                text = stringResource(course.type.displayName),
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.grayBB
                                             )
@@ -176,7 +138,7 @@ fun LectureSearchView(
 
                                     HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp))
 
-                                    courseLectures.forEach { lecture ->
+                                    course.lectures.forEach { lecture ->
                                         LectureRow(
                                             lecture = lecture,
                                             onClick = {
@@ -241,9 +203,9 @@ fun LectureSearchView(
                     title = { Text(stringResource(R.string.add_overlapping_lecture)) },
                     text = {
                         val currentName =
-                            overlappingLecture?.title?.localized()
+                            overlappingLecture?.name
                                 ?: stringResource(R.string.the_existing_lecture)
-                        val newName = pendingLectureToAdd?.title?.localized()
+                        val newName = pendingLectureToAdd?.name
                             ?: stringResource(R.string.the_new_lecture)
                         Text(
                             text = stringResource(
@@ -288,14 +250,8 @@ fun LectureRow(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.weight(1f, fill = false)) {
-                val displayTitle = if (lecture.classTitle.localized() != (lecture.section ?: "A")) {
-                    lecture.classTitle.localized()
-                } else {
-                    lecture.section ?: "A"
-                }
-
                 Text(
-                    text = displayTitle,
+                    text = lecture.classNo + lecture.subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     softWrap = true
@@ -303,7 +259,7 @@ fun LectureRow(
             }
             Spacer(modifier = Modifier.width(12.dp))
             Text(
-                text = lecture.professors.firstOrNull()?.name?.localized()
+                text = lecture.professors.firstOrNull()?.name
                     ?: stringResource(R.string.unknown),
                 style = MaterialTheme.typography.bodyMedium
             )

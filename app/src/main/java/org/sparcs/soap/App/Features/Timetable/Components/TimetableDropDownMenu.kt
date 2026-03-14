@@ -1,13 +1,7 @@
 package org.sparcs.soap.App.Features.Timetable.Components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -16,16 +10,11 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.Button
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -118,19 +107,22 @@ fun MyTableDropDownItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
 ) {
-    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+    val selectedTimetableId by viewModel.selectedTimetableId.collectAsState()
+    val timetableList by viewModel.timetableList.collectAsState()
+    val scope = rememberCoroutineScope()
+
     Column {
-        viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
-            val displayName =
-                if (id.contains("myTable")) stringResource(R.string.my_table) else stringResource(
-                    R.string.table_label,
-                    index
-                )
-            val isSelected = id == selectedTimetable?.id
+        timetableList.forEach { timetableInfo ->
+            val isSelected = timetableInfo.id == selectedTimetableId
 
             DropdownMenuItem(
-                text = { Text(displayName) },
-                onClick = { viewModel.selectTimetable(id); onDismiss() },
+                text = { Text(timetableInfo.name.let { if (it == "") "No Title" else it }) },
+                onClick = {
+                    scope.launch {
+                        viewModel.selectTimetable(timetableInfo.id as Int)
+                    }
+                    onDismiss()
+                },
                 leadingIcon = {
                     if (isSelected) Icon(
                         imageVector = Icons.Default.Check,
@@ -148,8 +140,9 @@ private fun BottomMenuDropDownItems(
     onDismiss: () -> Unit,
 ) {
     val scope = CoroutineScope(Dispatchers.Main)
-    val deleteColor =
-        if (viewModel.isEditable.collectAsState().value) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
+    val isEditable by viewModel.isEditable.collectAsState()
+    val deleteColor = if (isEditable) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
+
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
         onClick = {
@@ -175,7 +168,7 @@ private fun BottomMenuDropDownItems(
         text = { Text(stringResource(R.string.timetable_delete), color = deleteColor) },
         onClick = {
             onDismiss()
-            if (viewModel.isEditable.value) {
+            if (isEditable) {
                 viewModel.deleteTable()
             }
         },
@@ -185,7 +178,8 @@ private fun BottomMenuDropDownItems(
                 contentDescription = null,
                 tint = deleteColor
             )
-        }
+        },
+        enabled = isEditable
     )
 }
 
