@@ -4,19 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Ara.PostListType
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
-import org.sparcs.soap.App.Domain.Models.OTL.Course
+import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
 import org.sparcs.soap.App.Domain.Models.SearchScope
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
@@ -26,7 +18,7 @@ import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
 import javax.inject.Inject
 
 interface SearchViewModelProtocol {
-    val courses: StateFlow<List<Course>>
+    val courses: StateFlow<List<SearchCourse>>
     val posts: StateFlow<List<AraPost>>
     val taxiRooms: StateFlow<List<TaxiRoom>>
 
@@ -61,8 +53,8 @@ class SearchViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state
 
-    private val _courses = MutableStateFlow<List<Course>>(emptyList())
-    override val courses: StateFlow<List<Course>> = _courses
+    private val _courses = MutableStateFlow<List<SearchCourse>>(emptyList())
+    override val courses: StateFlow<List<SearchCourse>> = _courses
 
     private val _posts = MutableStateFlow<List<AraPost>>(emptyList())
     override val posts: StateFlow<List<AraPost>> = _posts

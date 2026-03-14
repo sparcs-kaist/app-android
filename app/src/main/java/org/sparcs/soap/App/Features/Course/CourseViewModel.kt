@@ -3,64 +3,66 @@ package org.sparcs.soap.App.Features.Course
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.OTL.Course
-import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
+import org.sparcs.soap.App.Domain.Models.OTL.ReviewResponse
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepositoryProtocol
 import javax.inject.Inject
 
 
 interface CourseViewModelProtocol {
-    val course: StateFlow<Course>
-    val reviews: StateFlow<List<LectureReview>>
     val state: StateFlow<CourseViewModel.ViewState>
-    fun fetchReviews(courseId: Int)
+    fun loadCourse()
 }
 
 @HiltViewModel
 class CourseViewModel @Inject constructor(
     val otlCourseRepository: OTLCourseRepositoryProtocol,
+    val otlReviewRepository: OTLReviewRepositoryProtocol,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel(), CourseViewModelProtocol {
 
     sealed class ViewState {
         data object Loading : ViewState()
-        data object Loaded : ViewState()
+        data class Loaded(
+            val course: Course,
+            val reviews: ReviewResponse
+        ) : ViewState()
         data class Error(val message: String) : ViewState()
     }
 
-    private val initialCourse: Course by lazy {
-        val json = savedStateHandle.get<String>("course_json")
-            ?: throw IllegalStateException("course_json is null. CourseViewModel requires a course_json to initialize.")
-        Gson().fromJson(json, Course::class.java)
-    }
-
-    // MARK: - Properties
-    private val _course = MutableStateFlow(initialCourse)
-    override val course: StateFlow<Course> = _course.asStateFlow()
+    private val initialCourseId: String? = savedStateHandle["courseId"]
 
     // MARK: - State
-    private val _reviews = MutableStateFlow<List<LectureReview>>(emptyList())
-    override val reviews = _reviews.asStateFlow()
-
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state = _state.asStateFlow()
 
-    // MARK: - Functions
-    override fun fetchReviews(courseId: Int) {
-        viewModelScope.launch {
-            try {
-                _state.value = ViewState.Loading
-                val result = otlCourseRepository.fetchReviews(courseId, 0, 100)
-                _reviews.value = result
-                _state.value = ViewState.Loaded
-            } catch (e: Exception) {
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+    init {
+        loadCourse()
+    }
+
+    override fun loadCourse() {
+        initialCourseId?.let { id ->
+            viewModelScope.launch {
+                try {
+                    _state.value = ViewState.Loading
+
+                    val reviewsDeferred = async { otlReviewRepository.fetchReviews(courseId = id.toInt(), offset = 0, limit = 100) }
+                    val courseDeferred = async { otlCourseRepository.getCourseDetail(id.toInt()) }
+
+                    _state.value = ViewState.Loaded(
+                        course = courseDeferred.await(),
+                        reviews = reviewsDeferred.await()
+                    )
+                } catch (e: Exception) {
+                    _state.value = ViewState.Error(e.localizedMessage ?: "Failed to load course / review")
+                }
             }
         }
     }

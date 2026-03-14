@@ -4,15 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureSearchRequest
+import org.sparcs.soap.App.Domain.Models.OTL.LectureWrapperCourse
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
 import timber.log.Timber
@@ -20,7 +15,7 @@ import javax.inject.Inject
 
 interface LectureSearchViewModelProtocol {
     val state: StateFlow<LectureSearchViewModel.ViewState>
-    val lectures: StateFlow<List<Lecture>>
+    val lectures: StateFlow<List<LectureWrapperCourse>>
     var searchText: StateFlow<String>
 
     fun bind()
@@ -42,8 +37,8 @@ class LectureSearchViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loaded)
     override val state: StateFlow<ViewState> = _state
 
-    private val _lectures = MutableStateFlow<List<Lecture>>(emptyList())
-    override val lectures: StateFlow<List<Lecture>> = _lectures
+    private val _lectures = MutableStateFlow<List<LectureWrapperCourse>>(emptyList())
+    override val lectures: StateFlow<List<LectureWrapperCourse>> = _lectures
 
     private val _searchText = MutableStateFlow("")
     override var searchText: StateFlow<String> = _searchText

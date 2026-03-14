@@ -13,6 +13,6 @@ interface OTLUserApi {
         @Body params: Map<String, String>
     )
 
-    @GET("session/info")
+    @GET("api/v2/users/info")
     suspend fun fetchUserInfo(): Response<OTLUserDTO>
 }

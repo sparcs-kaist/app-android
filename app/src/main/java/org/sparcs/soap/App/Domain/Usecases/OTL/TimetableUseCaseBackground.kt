@@ -2,11 +2,9 @@ package org.sparcs.soap.App.Domain.Usecases.OTL
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.sparcs.soap.App.Domain.Models.OTL.OTLUser
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
-import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,7 +17,6 @@ interface TimetableUseCaseBackgroundProtocol {
 
 @Singleton
 class TimetableUseCaseBackground @Inject constructor(
-    private val userUseCase: UserUseCaseProtocol,
     private val otlTimetableRepository: OTLTimetableRepositoryProtocol
 ) : TimetableUseCaseBackgroundProtocol {
 
@@ -42,13 +39,8 @@ class TimetableUseCaseBackground @Inject constructor(
                 this.semesters = fetchedSemesters
                 this.currentSemester = fetchedCurrent
 
-                val user = userUseCase.otlUser ?: run {
-                    userUseCase.fetchOTLUser()
-                    userUseCase.otlUser
-                }
-
                 this.store = semesters.associate { semester ->
-                    semester.id to listOf(makeMyTable(semester, user))
+                    semester.id to listOf(makeMyTable(semester))
                 }
             } catch (e: Exception) {
                 throw e
@@ -58,14 +50,10 @@ class TimetableUseCaseBackground @Inject constructor(
 
     override fun getMyTable(semesterId: String): Timetable {
         return store[semesterId]?.firstOrNull()
-            ?: Timetable(id = "$semesterId-myTable", lectures = emptyList())
+            ?: Timetable(lectures = emptyList())
     }
 
-    private fun makeMyTable(semester: Semester, user: OTLUser?): Timetable {
-        val lectures = user?.myTimetableLectures?.filter {
-            it.year == semester.year && it.semester == semester.semesterType
-        } ?: emptyList()
-
-        return Timetable(id = "${semester.id}-myTable", lectures = lectures)
+    private suspend fun makeMyTable(semester: Semester): Timetable {
+        return Timetable(lectures = otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType).lectures)
     }
 }

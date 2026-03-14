@@ -1,18 +1,8 @@
 package org.sparcs.soap.App.Features.ReviewCompose.Components
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -30,14 +20,14 @@ fun ReviewComposeNavigationBar(
     navController: NavController,
     onDoneClick: () -> Unit,
     isDoneEnabled: Boolean,
-    isUploading: Boolean
+    isUploading: Boolean,
+    isEditing: Boolean,
 ){
-    var expanded by remember { mutableStateOf(false) }
 
     CenterAlignedTopAppBar(
         title = {
             Text(
-                text = stringResource(R.string.write_a_review),
+                text = stringResource(if (isEditing) R.string.edit else R.string.write_a_review),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )

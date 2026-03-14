@@ -1,76 +1,78 @@
 package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
-import org.sparcs.soap.App.Domain.Helpers.LocalizedString
+import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 
-data class CourseDTO(
+data class CourseClassDTO(
+    @SerializedName("lectureId")
+    val lectureId: Int,
+
+    @SerializedName("subtitle")
+    val subtitle: String,
+
+    @SerializedName("classNo")
+    val classNo: String,
+
+    @SerializedName("professors")
+    val professors: List<ProfessorDTO>,
+)
+
+data class CourseHistoryDTO(
+    @SerializedName("year")
+    val year: Int,
+
+    @SerializedName("semester")
+    val semester: String,
+
+    @SerializedName("classes")
+    val classes: List<CourseClassDTO>,
+)
+
+data class CourseDTO (
     @SerializedName("id")
     val id: Int,
 
-    @SerializedName("old_code")
-    val code: String,
+    @SerializedName("name")
+    val name: String,
 
-    @SerializedName("department")
-    val department: DepartmentDTO,
+    @SerializedName("code")
+    val code: String,
 
     @SerializedName("type")
     val type: String,
 
-    @SerializedName("type_en")
-    val enType: String,
+    @SerializedName("department")
+    val department: DepartmentDTO,
 
-    @SerializedName("title")
-    val title: String,
-
-    @SerializedName("title_en")
-    val enTitle: String,
+    @SerializedName("history")
+    val history: List<CourseHistoryDTO>,
 
     @SerializedName("summary")
     val summary: String,
 
-    @SerializedName("review_total_weight")
-    val reviewTotalWeight: Double,
+    @SerializedName("classDuration")
+    val classDuration: Int,
 
-    @SerializedName("grade")
-    val grade: Double?,
-
-    @SerializedName("load")
-    val load: Double?,
-
-    @SerializedName("speech")
-    val speech: Double?,
+    @SerializedName("expDuration")
+    val expDuration: Int,
 
     @SerializedName("credit")
     val credit: Int,
 
-    @SerializedName("credit_au")
-    val creditAU: Int,
-
-    @SerializedName("num_classes")
-    val numClasses: Int,
-
-    @SerializedName("num_labs")
-    val numLabs: Int
+    @SerializedName("creditAu")
+    val creditAu: Int,
 ) {
     fun toModel(): Course = Course(
         id = id,
+        name = name,
         code = code,
+        type = LectureType.fromString(type),
         department = department.toModel(),
-        type = LocalizedString(
-            mapOf("ko" to type, "en" to enType)
-        ),
-        title = LocalizedString(
-            mapOf("ko" to title, "en" to enTitle)
-        ),
         summary = summary,
-        reviewTotalWeight = reviewTotalWeight,
-        grade = grade ?: 0.0,
-        load = load ?: 0.0,
-        speech = speech ?: 0.0,
+        classDuration = classDuration,
+        expDuration = expDuration,
         credit = credit,
-        creditAu = creditAU,
-        numClasses = numClasses,
-        numLabs = numLabs
+        creditAu = creditAu
     )
 }

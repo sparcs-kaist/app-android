@@ -37,19 +37,19 @@ fun LectureInformation(lecture: Lecture){
 
         LectureDetailRow(
             title = stringResource(R.string.type),
-            description = lecture.typeDetail.localized()
+            description = stringResource(lecture.type.displayName)
         )
 
-        LectureDetailRow(title = stringResource(R.string.department), description = lecture.department.name.localized())
+        LectureDetailRow(title = stringResource(R.string.department), description = lecture.department.name)
 
         LectureDetailRow(
             title = stringResource(R.string.professor),
-            description = lecture.professors.joinToString("\n") { it.name.localized() }.ifEmpty { stringResource(R.string.unknown) }
+            description = lecture.professors.joinToString("\n") { it.name }.ifEmpty { stringResource(R.string.unknown) }
         )
 
         LectureDetailRow(
             title = stringResource(R.string.classroom),
-            description = lecture.classTimes.firstOrNull()?.classroomNameShort?.localized()
+            description = lecture.classTimes.firstOrNull()?.let { it.buildingCode + it.roomName }
                 ?: stringResource(R.string.unknown)
         )
 
@@ -60,7 +60,7 @@ fun LectureInformation(lecture: Lecture){
 
         LectureDetailRow(
             title = stringResource(R.string.exams),
-            description = lecture.examTimes.joinToString("\n") { it.description.localized() }.ifEmpty { stringResource(R.string.unknown) }
+            description = lecture.examTimes.joinToString("\n") { it.str }.ifEmpty { stringResource(R.string.unknown) }
         )
 
 //        Row(

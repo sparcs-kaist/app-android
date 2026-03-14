@@ -1,20 +1,12 @@
 package org.sparcs.soap.App.Features.LectureDetail.Components
 
 import android.net.Uri
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.RateReview
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -32,8 +24,8 @@ import org.sparcs.soap.App.Domain.Helpers.gradeLetter
 import org.sparcs.soap.App.Domain.Helpers.loadLetter
 import org.sparcs.soap.App.Domain.Helpers.speechLetter
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
-import org.sparcs.soap.App.Domain.Repositories.OTL.FakeOTLCourseRepository
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.FakeOTLReviewRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepositoryProtocol
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModel
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.NavigationBar.Channel
@@ -50,10 +42,10 @@ import org.sparcs.soap.R
 fun LectureReviews(
     lecture: Lecture,
     viewModel: LectureDetailViewModelProtocol,
-    repo: OTLCourseRepositoryProtocol,
+    repo: OTLReviewRepositoryProtocol,
     navController: NavController,
-    canWriteReview: Boolean
 ){
+    val canWriteReview = viewModel.canWriteReview.collectAsState().value
     val state by viewModel.state.collectAsState()
     val textColor = if(canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
     val reviews = viewModel.reviews.collectAsState().value
@@ -87,7 +79,8 @@ fun LectureReviews(
                 onClick = {
                     if(canWriteReview) {
                         val json = Uri.encode(Gson().toJson(lecture))
-                        navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}")
+                        val writtenReviewJSON = Uri.encode(Gson().toJson(viewModel.writtenReview.value))
+                        navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}&written_review_json=${writtenReviewJSON}")
                     }
                           },
                 colors = if(canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface) else
@@ -119,14 +112,14 @@ fun LectureReviews(
                     }
                 }
                 is LectureDetailViewModel.ViewState.Loaded -> {
-                    if(reviews.isEmpty()) {
+                    if(reviews.reviews.isEmpty()) {
                         UnavailableView(
                             icon = Icons.AutoMirrored.Outlined.LibraryBooks,
                             title = stringResource(R.string.no_reviews),
                             description = stringResource(R.string.there_are_no_reviews_yet)
                         )
                     } else {
-                        reviews.forEach { review ->
+                        reviews.reviews.forEach { review ->
                             LectureReviewCell(review, repo)
                         }
                     }
@@ -137,7 +130,7 @@ fun LectureReviews(
                         icon = Icons.Default.Warning,
                         message = message
                     ) {
-                        viewModel.fetchReviews(lecture.id)
+                        viewModel.fetchReviews()
                     }
                 }
             }
@@ -154,9 +147,8 @@ private fun MockView(state: LectureDetailViewModel.ViewState) {
     LectureReviews(
         lecture = Lecture.mock(),
         viewModel = mockViewModel,
-        repo = FakeOTLCourseRepository(),
+        repo = FakeOTLReviewRepository(),
         navController = rememberNavController(),
-        canWriteReview = true
     )
 }
 

@@ -1,54 +1,47 @@
 package org.sparcs.soap.App.Networking.RetrofitAPI.OTL
 
 import org.sparcs.soap.App.Networking.ResponseDTO.OTL.SemesterDTO
+import org.sparcs.soap.App.Networking.ResponseDTO.OTL.SemesterResponseDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.OTL.TimetableDTO
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.POST
-import retrofit2.http.Path
-import retrofit2.http.Query
+import org.sparcs.soap.App.Networking.ResponseDTO.OTL.TimetableListDTO
+import retrofit2.http.*
 
 interface OTLTimetableApi {
-
-    @GET("api/users/{userID}/timetables")
-    suspend fun fetchTables(
-        @Path("userID") userID: Int,
+    @GET("api/v2/timetables")
+    suspend fun fetchTimeTables(
         @Query("year") year: Int,
         @Query("semester") semester: Int,
-        @Query("order") order: String = "arrange_order"
-    ): List<TimetableDTO>
+    ): TimetableListDTO
 
-    @JvmSuppressWildcards
-    @POST("api/users/{userID}/timetables")
-    suspend fun createTable(
-        @Path("userID") userID: Int,
-        @Body request: CreateTableRequest
+    @GET("api/v2/timetables/my-timetable")
+    suspend fun fetchMyTimetable(
+        @Query("year") year: Int,
+        @Query("semester") semester: Int
     ): TimetableDTO
 
-
-    @DELETE("api/users/{userId}/timetables/{timetableId}")
-    suspend fun deleteTable(
-        @Path("userId") userId: Int,
+    @GET("api/v2/timetables/{timetableId}")
+    suspend fun fetchTimeTable(
         @Path("timetableId") timetableId: Int
+    ): TimetableDTO
+
+    @POST("api/v2/timetables")
+    suspend fun createTable(
+        @Body request: CreateTableRequest
+    ): CreateTimetableResponse
+
+    @DELETE("api/v2/timetables")
+    suspend fun deleteTable(
+        @Path("id") timetableId: Int
     )
 
-    @POST("api/users/{userId}/timetables/{timetableId}/add-lecture")
-    suspend fun addLecture(
-        @Path("userId") userId: Int,
+    @PATCH("api/v2/timetables/{timetableId}")
+    suspend fun patchLecture(
         @Path("timetableId") timetableId: Int,
         @Body request: LectureRequest
-    ): TimetableDTO
+    )
 
-    @POST("api/users/{userId}/timetables/{timetableId}/remove-lecture")
-    suspend fun deleteLecture(
-        @Path("userId") userId: Int,
-        @Path("timetableId") timetableId: Int,
-        @Body request: LectureRequest
-    ): TimetableDTO
-
-    @GET("api/semesters")
-    suspend fun fetchSemesters(): List<SemesterDTO>
+    @GET("api/v2/semesters")
+    suspend fun fetchSemesters(): SemesterResponseDTO
 
     @GET("api/v2/semesters/current")
     suspend fun fetchCurrentSemester(): SemesterDTO
@@ -57,9 +50,14 @@ interface OTLTimetableApi {
 data class CreateTableRequest(
     val year: Int,
     val semester: Int,
-    val lectures: List<Int> = emptyList()
+    val lectureIds: List<Int> = emptyList()
 )
 
 data class LectureRequest(
-    val lecture: Int
+    val lectureId: Int,
+    val action: String // "add" or "delete"
+)
+
+data class CreateTimetableResponse(
+    val id: Int
 )
