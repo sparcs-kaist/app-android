@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.ReviewCompose
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -71,7 +70,6 @@ fun ReviewComposeView(
     val submittedMessage = stringResource(R.string.review_submitted)
 
     LaunchedEffect(writtenReview) {
-        Log.d("ReviewComposeView", "LaunchedEffect triggered with writtenReview: $writtenReview")
         writtenReview?.let { review ->
             grade = review.grade
             load = review.load
