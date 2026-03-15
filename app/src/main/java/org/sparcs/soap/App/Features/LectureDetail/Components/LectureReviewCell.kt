@@ -343,7 +343,7 @@ private fun toggleLike(
 fun report(review: Review, context: Context, unknown: String) {
     val urlString = ReportMailComposer.compose(
         title = review.courseName,
-        code = "Not Implemented",
+        code = "Unknown",
         year = review.year,
         semester = review.semester,
         professorName = review.professors.firstOrNull()?.name ?: unknown,
