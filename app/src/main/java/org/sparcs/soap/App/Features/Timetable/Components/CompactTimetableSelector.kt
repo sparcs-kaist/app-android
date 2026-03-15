@@ -14,13 +14,7 @@ import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -116,7 +110,7 @@ fun SemesterSelector(
 @Composable
 fun TableSelector(viewModel: TimetableViewModelProtocol) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedTimetableDisplayName by viewModel.selectedTimetableDisplayName.collectAsState()
+    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
 
     Row(
         modifier = Modifier
@@ -125,12 +119,14 @@ fun TableSelector(viewModel: TimetableViewModelProtocol) {
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = selectedTimetableDisplayName,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
+        selectedTimetable?.let {
+            Text(
+                text = it.name.let { name -> if (name == "") "No Title" else name  },
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+        }
 
         Icon(
             imageVector = Icons.Rounded.MoreHoriz,

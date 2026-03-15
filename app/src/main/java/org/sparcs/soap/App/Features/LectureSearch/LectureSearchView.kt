@@ -47,17 +47,19 @@ fun LectureSearchView(
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
 
-    val selectedTimetableDisplayName by timetableViewModel.selectedTimetableDisplayName.collectAsState()
+    val selectedTimetable by timetableViewModel.selectedTimetable.collectAsState()
 
     Scaffold(
         topBar = {
             if (searchText.isEmpty()) {
-                LectureSearchViewNavigationBar(
-                    title = stringResource(
-                        id = R.string.add_to_timetable,
-                        selectedTimetableDisplayName
-                    ),
-                )
+                selectedTimetable?.let {
+                    LectureSearchViewNavigationBar(
+                        title = stringResource(
+                            id = R.string.add_to_timetable,
+                            it.name
+                        ),
+                    )
+                }
             }
         },
         modifier = Modifier.analyticsScreen("Lecture Search")

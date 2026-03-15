@@ -7,6 +7,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Domain.Models.OTL.TimetableListItem
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.CreateTableRequest
+import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.DeleteTableRequest
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.LectureRequest
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLTimetableApi
 import javax.inject.Inject
@@ -28,7 +29,7 @@ class OTLTimetableRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : OTLTimetableRepositoryProtocol {
 
-    override suspend fun getTimetables(year: Int, semester: SemesterType, ): List<TimetableListItem> = safeApiCall(gson) {
+    override suspend fun getTimetables(year: Int, semester: SemesterType): List<TimetableListItem> = safeApiCall(gson) {
         api.fetchTimeTables(year, semester.intValue)
     }.timetables.map { it.toModel() }
 
@@ -44,8 +45,8 @@ class OTLTimetableRepository @Inject constructor(
         api.createTable(request = CreateTableRequest(year, semester.intValue)).id
     }
 
-    override suspend fun deleteTable(timetableID: Int) = safeApiCall(gson) {
-        api.deleteTable(timetableID)
+    override suspend fun deleteTable(timetableID: Int) {
+        safeApiCall(gson) { api.deleteTable(DeleteTableRequest(id = timetableID)) }
     }
 
     override suspend fun addLecture(timetableID: Int, lectureID: Int) = safeApiCall(gson) {

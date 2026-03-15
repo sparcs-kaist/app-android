@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
-import org.sparcs.soap.App.Domain.Models.OTL.Department
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureWrapperCourse
 
@@ -25,7 +24,7 @@ data class LectureDTO(
     val code: String,
 
     @SerializedName("department")
-    val department: Department,
+    val department: DepartmentDTO,
 
     @SerializedName("type")
     val type: String,
@@ -76,7 +75,7 @@ data class LectureDTO(
         name = name,
         subtitle = subtitle,
         code = code,
-        department = department,
+        department = department.toModel(),
         type = type,
         capacity = limitPeople,
         numberOfPeople = numPeople,

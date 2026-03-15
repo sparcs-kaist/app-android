@@ -107,13 +107,13 @@ fun MyTableDropDownItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
 ) {
-    val selectedTimetableId by viewModel.selectedTimetableId.collectAsState()
+    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
     val timetableList by viewModel.timetableList.collectAsState()
     val scope = rememberCoroutineScope()
 
     Column {
         timetableList.forEach { timetableInfo ->
-            val isSelected = timetableInfo.id == selectedTimetableId
+            val isSelected = timetableInfo.id == selectedTimetable?.id
 
             DropdownMenuItem(
                 text = { Text(timetableInfo.name.let { if (it == "") "No Title" else it }) },

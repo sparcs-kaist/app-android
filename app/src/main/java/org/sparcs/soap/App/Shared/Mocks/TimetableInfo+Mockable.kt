@@ -1,8 +1,19 @@
 package org.sparcs.soap.App.Shared.Mocks
 
+import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
+import org.sparcs.soap.App.Domain.Models.OTL.TimetableListItem
 
+fun TimetableListItem.Companion.mock(): TimetableListItem {
+    return TimetableListItem(
+        id = 0,
+        name = "Mock Timetable",
+        year = 2026,
+        semester = SemesterType.SPRING,
+        timetableOrder = 0
+    )
+}
 
 fun Timetable.Companion.mock(): Timetable {
     return Timetable(

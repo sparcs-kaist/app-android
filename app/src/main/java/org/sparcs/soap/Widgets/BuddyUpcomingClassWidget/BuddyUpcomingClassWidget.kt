@@ -129,7 +129,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
 
             runCatching { timetableUseCase.load() }
             val currentSemester = timetableUseCase.currentSemester ?: return Result.failure()
-            val timetable = timetableUseCase.getMyTable(currentSemester.id)
+            val timetable = timetableUseCase.getMyTable(currentSemester)
 
             val now = Calendar.getInstance()
             val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {

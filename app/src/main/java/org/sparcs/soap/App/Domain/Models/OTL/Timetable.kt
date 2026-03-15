@@ -2,15 +2,18 @@ package org.sparcs.soap.App.Domain.Models.OTL
 
 import org.sparcs.soap.App.Domain.Enums.OTL.DayType
 import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
+import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
 import kotlin.math.roundToInt
 
 data class TimetableListItem (
     val id: Int,
     val name: String,
     val year: Int,
-    val semester: Int,
+    val semester: SemesterType,
     val timetableOrder: Int
-)
+) {
+    companion object
+}
 
 data class Timetable(
     var lectures: List<Lecture>,
