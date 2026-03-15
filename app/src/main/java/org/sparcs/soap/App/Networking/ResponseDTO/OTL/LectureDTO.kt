@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
-import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.Department
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureWrapperCourse
@@ -78,7 +77,7 @@ data class LectureDTO(
         subtitle = subtitle,
         code = code,
         department = department,
-        type = LectureType.fromString(type),
+        type = type,
         capacity = limitPeople,
         numberOfPeople = numPeople,
         credit = credit,
@@ -113,7 +112,7 @@ data class LectureWrapperCourseDTO(
         return LectureWrapperCourse(
             name = name,
             code = code,
-            type = LectureType.fromString(type),
+            type = type,
             lectures = lectures.map { it.toModel() },
         )
     }

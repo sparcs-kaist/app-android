@@ -1,12 +1,11 @@
 package org.sparcs.soap.App.Domain.Repositories.OTL
 
 import com.google.gson.Gson
-import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.Course
-import org.sparcs.soap.App.Domain.Models.OTL.Department
 import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLCourseApi
+import org.sparcs.soap.App.Shared.Mocks.mock
 import javax.inject.Inject
 
 interface OTLCourseRepositoryProtocol {
@@ -36,20 +35,6 @@ class FakeOTLCourseRepository : OTLCourseRepositoryProtocol {
     }
 
     override suspend fun getCourseDetail(courseId: Int): Course {
-        return Course(
-            id = courseId,
-            name = "Fake Course",
-            code = "FAKE101",
-            type = LectureType.ETC,
-            department = Department(
-                id = 0,
-                name = "Fake Department",
-            ),
-            summary = "This is a fake course for testing purposes.",
-            classDuration = 2,
-            expDuration = 1,
-            credit = 3,
-            creditAu = 0
-        )
+        return Course.mock()
     }
 }

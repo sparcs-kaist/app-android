@@ -1,12 +1,10 @@
 package org.sparcs.soap.App.Domain.Models.OTL
 
-import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
-
 data class Course(
     val id: Int,
     val name: String,
     val code: String,
-    val type: LectureType,
+    val type: String,
     val department: Department,
     val summary: String,
     val classDuration: Int,

@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Domain.Models.OTL
 
 import androidx.compose.ui.graphics.Color
-import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Helpers.CourseRepresentable
 import org.sparcs.soap.App.Domain.Helpers.TimetableColorPalette
 
@@ -27,7 +26,7 @@ data class Lecture(
     val subtitle: String,
     val code: String,
     val department: Department,
-    val type: LectureType,
+    val type: String,
     val capacity: Int,
     val numberOfPeople: Int,
     val credit: Int,
@@ -46,7 +45,7 @@ data class Lecture(
 data class LectureWrapperCourse(
     val name: String,
     val code: String,
-    val type: LectureType,
+    val type: String,
     val lectures: List<Lecture>
 ) {
     companion object

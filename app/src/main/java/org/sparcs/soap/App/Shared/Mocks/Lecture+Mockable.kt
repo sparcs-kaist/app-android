@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Shared.Mocks
 
 import org.sparcs.soap.App.Domain.Enums.OTL.DayType
-import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.ClassTime
 import org.sparcs.soap.App.Domain.Models.OTL.Department
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
@@ -27,7 +26,7 @@ fun Lecture.Companion.mock(): Lecture {
         grade = 15.000001,
         load = 14.64670425922474,
         speech = 15.000001,
-        type = LectureType.ETC,
+        type = "기타",
         professors = listOf(
             Professor(
                 id = 2281,
@@ -77,7 +76,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 15.000001,
             load = 14.64670425922474,
             speech = 15.000001,
-            type = LectureType.ETC,
+            type = "기타",
             professors = listOf(
                 Professor(
                     id = 2281,
@@ -123,7 +122,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.74118225329123,
             load = 11.99264633489851,
             speech = 13.873856226664769,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1541,
@@ -169,7 +168,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.74118225329123,
             load = 11.99264633489851,
             speech = 13.873856226664769,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1541,
@@ -216,7 +215,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.74118225329123,
             load = 11.99264633489851,
             speech = 13.873856226664769,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1541,
@@ -262,7 +261,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.74118225329123,
             load = 11.99264633489851,
             speech = 13.873856226664769,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1541,
@@ -309,7 +308,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.74118225329123,
             load = 11.99264633489851,
             speech = 13.873856226664769,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1541,
@@ -355,7 +354,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.2092786938052,
             load = 10.821787294177309,
             speech = 10.887041589757208,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1544,
@@ -402,7 +401,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.2092786938052,
             load = 10.821787294177309,
             speech = 10.887041589757208,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1544,
@@ -448,7 +447,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.2092786938052,
             load = 10.821787294177309,
             speech = 10.887041589757208,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1544,
@@ -495,7 +494,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.2092786938052,
             load = 10.821787294177309,
             speech = 10.887041589757208,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1544,
@@ -541,7 +540,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.2092786938052,
             load = 10.821787294177309,
             speech = 10.887041589757208,
-            type = LectureType.BR,
+            type = "기초필수",
             professors = listOf(
                 Professor(
                     id = 1544,
@@ -588,7 +587,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 0.000001,
             load = 0.000001,
             speech = 0.000001,
-            type = LectureType.BE,
+            type = "기초선택",
             professors = listOf(
                 Professor(
                     id = 39201,
@@ -635,7 +634,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 13.2942608089639,
             load = 8.842953455343785,
             speech = 14.209425118646509,
-            type = LectureType.ME,
+            type = "전공선택",
             professors = listOf(
                 Professor(
                     id = 1474,
@@ -681,7 +680,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 12.3725250982223,
             load = 11.04803889115866,
             speech = 13.15433246923384,
-            type = LectureType.MR,
+            type = "전공필수",
             professors = listOf(
                 Professor(
                     id = 1652,
@@ -728,7 +727,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 0.000001,
             load = 0.000001,
             speech = 0.000001,
-            type = LectureType.ETC,
+            type = "기타",
             professors = listOf(
                 Professor(
                     id = 2092,
@@ -775,7 +774,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 0.000001,
             load = 0.000001,
             speech = 0.000001,
-            type = LectureType.MR,
+            type = "전공필수",
             professors = listOf(
                 Professor(
                     id = 75186,
@@ -829,7 +828,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 14.38955367736754,
             load = 9.93522217051653,
             speech = 13.65590001299735,
-            type = LectureType.MR,
+            type = "전공필수",
             professors = listOf(
                 Professor(
                     id = 1912,
@@ -875,7 +874,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 0.000001,
             load = 0.000001,
             speech = 0.000001,
-            type = LectureType.ME,
+            type = "전공선택",
             professors = listOf(
                 Professor(
                     id = 2342,
@@ -922,7 +921,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 0.000001,
             load = 0.000001,
             speech = 0.000001,
-            type = LectureType.ME,
+            type = "전공선택",
             professors = listOf(
                 Professor(
                     id = 2214,
@@ -968,7 +967,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 0.000001,
             load = 0.000001,
             speech = 0.000001,
-            type = LectureType.MR,
+            type = "전공필수",
             professors = listOf(
                 Professor(
                     id = 2531,
@@ -1015,7 +1014,7 @@ fun Lecture.Companion.mockList(): List<Lecture> {
             grade = 0.000001,
             load = 0.000001,
             speech = 0.000001,
-            type = LectureType.ME,
+            type = "전공선택",
             professors = listOf(
                 Professor(
                     id = 2141,

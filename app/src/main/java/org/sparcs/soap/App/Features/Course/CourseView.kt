@@ -114,7 +114,7 @@ fun CourseSummary(course: Course) {
                 style = MaterialTheme.typography.titleLarge
             )
             LectureDetailRow(stringResource(R.string.code), course.code)
-            LectureDetailRow(stringResource(R.string.type), stringResource(course.type.displayName))
+            LectureDetailRow(stringResource(R.string.type), course.type)
             LectureDetailRow(
                 stringResource(R.string.department),
                 course.department.name

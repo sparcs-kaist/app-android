@@ -127,7 +127,7 @@ data class Timetable(
 
     // Get credits(credits, AUs) for the LectureType
     fun getCreditsFor(type: LectureType): Int =
-        lectures.filter { it.type == type }.sumOf { it.credit + it.creditAu }
+        lectures.filter { LectureType.fromString(it.type) == type }.sumOf { it.credit + it.creditAu }
 
     fun hasCollision(newLecture: Lecture): Boolean {
         for (existingLecture in lectures) {

@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
-import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 
 data class CourseClassDTO(
@@ -67,7 +66,7 @@ data class CourseDTO (
         id = id,
         name = name,
         code = code,
-        type = LectureType.fromString(type),
+        type = type,
         department = department.toModel(),
         summary = summary,
         classDuration = classDuration,
