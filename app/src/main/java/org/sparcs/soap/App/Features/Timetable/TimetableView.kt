@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
+import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Features.LectureSearch.LectureSearchView
 import org.sparcs.soap.App.Features.LectureSearch.LectureSearchViewModel
 import org.sparcs.soap.App.Features.LectureSearch.LectureSearchViewModelProtocol
@@ -47,7 +48,7 @@ fun TimetableView(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val selectedTimetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
+    val selectedTimetable = viewModel.timetableUseCase?.selectedTimetableLectures?.collectAsState()?.value
 
     val backStackEvent = {
         navController.navigate(Channel.Start.name) {
@@ -115,7 +116,7 @@ fun TimetableView(
                         }
                     )
                 }
-                selectedTimetable?.let { TimetableCreditGraph(it) }
+                selectedTimetable?.let { TimetableCreditGraph(Timetable(it)) }
 
                 TimetableSummary(viewModel)
             }

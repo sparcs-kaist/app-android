@@ -3,7 +3,6 @@ package org.sparcs.soap.App.Shared.ViewModelMocks.OTL
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
-import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Domain.Models.OTL.TimetableListItem
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
@@ -15,9 +14,7 @@ class MockTimetableViewModel: TimetableViewModelProtocol {
     override val isLoading = MutableStateFlow(false)
     override val semesters = MutableStateFlow(Semester.mockList())
     override val selectedSemester = MutableStateFlow(Semester.mockList()[32])
-    override val selectedTimetableId = MutableStateFlow(0)
-    override val selectedTimetable = MutableStateFlow(Timetable.mock())
-    override val selectedTimetableDisplayName = MutableStateFlow("")
+    override val selectedTimetable = MutableStateFlow(TimetableListItem.mock())
     override val isEditable = MutableStateFlow(false)
 
     override val timetableList = MutableStateFlow(listOf<TimetableListItem>())
@@ -35,7 +32,7 @@ class MockTimetableViewModel: TimetableViewModelProtocol {
 
     override suspend fun selectNextSemester() {}
 
-    override suspend fun selectTimetable(id: Int) {}
+    override fun selectTimetable(id: Int) {}
 
     override fun createTable() {}
 

@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
+import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Domain.Models.OTL.TimetableListItem
 
@@ -25,7 +26,7 @@ data class TimetableListItemDTO(
             id = id,
             name = name,
             year = year,
-            semester = semester,
+            semester = SemesterType.fromRawValue(semester),
             timetableOrder = timetableOrder
         )
     }

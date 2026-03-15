@@ -29,9 +29,9 @@ interface OTLTimetableApi {
         @Body request: CreateTableRequest
     ): CreateTimetableResponse
 
-    @DELETE("api/v2/timetables")
+    @HTTP(method = "DELETE", path = "api/v2/timetables", hasBody = true)
     suspend fun deleteTable(
-        @Path("id") timetableId: Int
+        @Body request: DeleteTableRequest
     )
 
     @PATCH("api/v2/timetables/{timetableId}")
@@ -51,6 +51,10 @@ data class CreateTableRequest(
     val year: Int,
     val semester: Int,
     val lectureIds: List<Int> = emptyList()
+)
+
+data class DeleteTableRequest(
+    val id: Int
 )
 
 data class LectureRequest(

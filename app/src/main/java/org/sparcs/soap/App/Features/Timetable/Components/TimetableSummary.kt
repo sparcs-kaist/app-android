@@ -1,10 +1,6 @@
 package org.sparcs.soap.App.Features.Timetable.Components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -27,7 +23,7 @@ import org.sparcs.soap.R
 fun TimetableSummary(
     viewModel: TimetableViewModelProtocol,
 ) {
-    val selectedTimetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
+    val selectedTimetable = viewModel.timetableUseCase?.selectedTimetableObject?.collectAsState()?.value
     Card(
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(20.dp),
