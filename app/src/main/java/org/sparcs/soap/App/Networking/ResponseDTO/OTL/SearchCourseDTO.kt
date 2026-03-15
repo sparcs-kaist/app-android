@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
-import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
 
 data class SearchCourseDTO(
@@ -36,7 +35,7 @@ data class SearchCourseDTO(
         id = id,
         name = name,
         code = code,
-        type = LectureType.fromString(type),
+        type = type,
         summary = summary
     )
 }

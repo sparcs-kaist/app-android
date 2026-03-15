@@ -34,7 +34,6 @@ class OTLLectureRepository @Inject constructor(
 
 class FakeOTLLectureRepository : OTLLectureRepositoryProtocol {
     override suspend fun searchLectures(request: LectureSearchRequest): List<LectureWrapperCourse> {
-//        return Lecture.mockList()
         return emptyList()
     }
 }

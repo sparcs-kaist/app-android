@@ -129,7 +129,7 @@ fun LectureSearchView(
                                                 color = MaterialTheme.colorScheme.grayBB
                                             )
                                             Text(
-                                                text = stringResource(course.type.displayName),
+                                                text = course.type,
                                                 style = MaterialTheme.typography.bodySmall,
                                                 color = MaterialTheme.colorScheme.grayBB
                                             )

@@ -148,7 +148,7 @@ fun TimetableCreditGraph(
                             )
                             Spacer(modifier = Modifier.width(3.dp))
                             Text(
-                                text = "${stringResource(type.displayName)}(${currentCredits.toInt()})",
+                                text = "${stringResource(type.code)}(${currentCredits.toInt()})",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }

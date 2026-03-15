@@ -37,7 +37,7 @@ fun LectureInformation(lecture: Lecture){
 
         LectureDetailRow(
             title = stringResource(R.string.type),
-            description = stringResource(lecture.type.displayName)
+            description = lecture.type
         )
 
         LectureDetailRow(title = stringResource(R.string.department), description = lecture.department.name)
