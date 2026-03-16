@@ -122,8 +122,6 @@ fun ChatAccountBubble(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-//TODO 글씨 색
-
         }
     }
 }

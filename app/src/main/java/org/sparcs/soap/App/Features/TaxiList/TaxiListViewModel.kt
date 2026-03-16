@@ -41,7 +41,7 @@ interface TaxiListViewModelProtocol {
     var roomCapacity: Int
 
     suspend fun fetchData()
-    suspend fun createRoom(title: String)
+    suspend fun createRoom(title: String): String?
     suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean)
 }
 
@@ -108,21 +108,22 @@ class TaxiListViewModel @Inject constructor(
     }
 
     //Safely capture values before any suspension
-    override suspend fun createRoom(title: String) {
+    override suspend fun createRoom(title: String): String? {
         try {
             val request = TaxiCreateRoom(
                 title = title,
-                source = source ?: return,
-                destination = destination ?: return,
+                source = source ?: return null,
+                destination = destination ?: return null,
                 departureTime = roomDepartureTime,
                 capacity = roomCapacity
             )
             val newRoom = taxiRoomRepository.createRoom(request)
             this.roomId = newRoom.id
+            return newRoom.id
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.message ?: "Unknown error")
+            throw e
         }
-
     }
 
     override suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean) {
