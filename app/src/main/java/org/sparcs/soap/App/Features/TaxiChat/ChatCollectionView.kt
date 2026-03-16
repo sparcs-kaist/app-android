@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Models.Taxi.ChatBubblePosition
 import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePositionResolver
@@ -36,6 +37,7 @@ fun ChatCollectionView(
     items: List<ChatRenderItem>,
     room: TaxiRoom,
     user: TaxiUser?,
+    onCommitPayment: () -> Unit,
     onImageClick: (String) -> Unit,
     listState: LazyListState,
     scrollToBottomTrigger: Int,
@@ -46,7 +48,10 @@ fun ChatCollectionView(
     }
 
     val isCommitSettlementAvailable = remember(room) {
-        room.isDeparted && room.settlementTotal == 0
+        val departed = room.isDeparted
+        val myParticipantInfo = room.participants.find { it.id == user?.oid }
+        val iHaveNotSettled = myParticipantInfo?.isSettlement != TaxiParticipant.SettlementType.PaymentSent
+        departed && iHaveNotSettled
     }
 
     LaunchedEffect(scrollToBottomTrigger) {
@@ -74,6 +79,7 @@ fun ChatCollectionView(
                 item = item,
                 room = room,
                 user = user,
+                onCommitPayment = { onCommitPayment() },
                 isCommitSettlementAvailable = isCommitSettlementAvailable,
                 onImageClick = onImageClick,
                 hasBadge = { authorID -> authorID?.let { badgeByAuthorID[it] } ?: false }
@@ -88,6 +94,7 @@ private fun ChatItem(
     room: TaxiRoom,
     user: TaxiUser?,
     isCommitSettlementAvailable: Boolean,
+    onCommitPayment: () -> Unit,
     onImageClick: (String) -> Unit,
     hasBadge: (String?) -> Boolean
 ) {
@@ -132,7 +139,9 @@ private fun ChatItem(
                     TaxiChat.ChatType.ACCOUNT -> ChatAccountBubble(
                         content = item.chat.content,
                         isCommitPaymentAvailable = isCommitSettlementAvailable
-                    ) { }
+                    ) {
+                        onCommitPayment()
+                    }
                     TaxiChat.ChatType.SHARE -> ChatShareBubble(room = room)
                     else -> Text(stringResource(R.string.not_supported))
                 }
@@ -166,6 +175,7 @@ private fun ChatCollectionViewPreview() {
                 items = items,
                 room = TaxiRoom.mock(),
                 user = TaxiUser.mock(),
+                onCommitPayment = {},
                 onImageClick = {},
                 listState = listState,
                 scrollToBottomTrigger = 0
