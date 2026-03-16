@@ -21,15 +21,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Shared.Extensions.formattedString
+import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
 @Composable
 fun ChatShareBubble(
-    room: TaxiRoom
+    room: TaxiRoom,
 ) {
     val context = LocalContext.current
     val shareUrl = "${Constants.taxiInviteURL}${room.id}"
@@ -86,22 +89,11 @@ fun ChatShareBubble(
         }
     }
 }
-//
-//@Preview
-//@Composable
-//private fun Preview() {
-//    Theme {
-//        TaxiChatUserWrapper(
-//            authorID = null,
-//            authorName = null,
-//            authorProfileImageURL = null,
-//            date = Date(),
-//            isMe = false,
-//            isGeneral = false,
-//            isWithdrawn = false,
-//            badge = true
-//        ) {
-//            ChatShareBubble(room = TaxiRoom.mock())
-//        }
-//    }
-//}
+
+@Preview
+@Composable
+private fun Preview() {
+    Theme {
+        ChatShareBubble(room = TaxiRoom.mock())
+    }
+}

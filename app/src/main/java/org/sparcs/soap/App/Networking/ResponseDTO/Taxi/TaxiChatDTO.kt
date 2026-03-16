@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Shared.Extensions.toDate
 import java.util.Date
+import java.util.UUID
 
 data class TaxiChatDTO(
     @SerializedName("roomId")
@@ -37,9 +38,13 @@ data class TaxiChatDTO(
     val inOutNames: List<String>?
 ) {
     fun toModel(): TaxiChat {
+        val identityString = "${authorID ?: "system"}_${content}_${time}"
+        val deterministicId = UUID.nameUUIDFromBytes(identityString.toByteArray())
+
         return TaxiChat(
+            id = deterministicId,
             roomID = roomID,
-            type = TaxiChat.ChatType.valueOf(type.uppercase()),
+            type = TaxiChat.ChatType.fromRawValue(type),
             authorID = authorID,
             authorName = authorName,
             authorProfileURL = authorProfileURL,

@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Features.TaxiChat.Components
 
+import org.sparcs.soap.App.Domain.Models.Taxi.MetadataVisibility
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 
 interface MessagePresentationPolicy {

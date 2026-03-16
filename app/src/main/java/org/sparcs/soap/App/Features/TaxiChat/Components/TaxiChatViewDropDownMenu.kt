@@ -5,21 +5,25 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material.icons.rounded.MoreHoriz
@@ -34,6 +38,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -60,10 +65,12 @@ import org.sparcs.soap.R
 @Composable
 fun TaxiChatViewDropDownMenu(
     room: TaxiRoom,
+    isMineCarrier: Boolean,
     onClickShare: () -> Unit,
     onClickCallTaxi: () -> Unit,
     onClickReport: () -> Unit,
     onClickLeave: () -> Unit,
+    onCarrierToggle: (Boolean) -> Unit,
     isEnabled: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -90,7 +97,11 @@ fun TaxiChatViewDropDownMenu(
                 onClickCallTaxi = { onClickCallTaxi() },
                 onClickReport = { onClickReport() }
             )
-            MiddleDropDownItems(room = room)
+            MiddleDropDownItems(
+                room = room,
+                isMineCarrier = isMineCarrier,
+                onCarrierToggle = onCarrierToggle
+            )
             BottomDropDownItems(
                 onClickLeave = { showLeaveDialog = true },
                 isEnabled = isEnabled
@@ -167,7 +178,11 @@ private fun TopDropDownItems(
 }
 
 @Composable
-private fun MiddleDropDownItems(room: TaxiRoom) {
+private fun MiddleDropDownItems(
+    room: TaxiRoom,
+    isMineCarrier: Boolean,
+    onCarrierToggle: (Boolean) -> Unit
+) {
     var showParticipants by remember { mutableStateOf(false) }
     Column {
         DropdownMenuItem(
@@ -221,7 +236,6 @@ private fun MiddleDropDownItems(room: TaxiRoom) {
         )
 
 
-
     AnimatedVisibility(
             visible = showParticipants,
             enter = expandVertically() + fadeIn(),
@@ -229,11 +243,73 @@ private fun MiddleDropDownItems(room: TaxiRoom) {
         ) {
             Column {
                 room.participants.forEach { participant ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = participant.nickname,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.gray64
+                        )
+                        if (participant.hasCarrier) {
+                            Spacer(Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Outlined.WorkOutline,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Surface(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Outlined.WorkOutline,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.darkGray
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.carrier_status_title),
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            text = stringResource(R.string.carrier_status_description),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.gray64
+                        )
+                    }
+                }
+
+                Spacer(Modifier.padding(8.dp))
+
+                Surface(
+                    onClick = { onCarrierToggle(!isMineCarrier) },
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (isMineCarrier) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
                     Text(
-                        text = participant.nickname,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.gray64,
-                        modifier = Modifier.padding(8.dp)
+                        text = if (isMineCarrier) stringResource(R.string.carrier_status_yes) else stringResource(R.string.carrier_status_no),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }
@@ -301,7 +377,7 @@ private fun Preview(){
             Button(
                 onClick = {}
             ) {
-                TaxiChatViewDropDownMenu(room = TaxiRoom.mock(), {}, {}, {},{}, true)
+                TaxiChatViewDropDownMenu(room = TaxiRoom.mock(), true, {}, {}, {},{}, {}, true)
             }
         }
     }

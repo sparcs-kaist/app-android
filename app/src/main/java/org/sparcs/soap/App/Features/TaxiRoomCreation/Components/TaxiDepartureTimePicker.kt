@@ -53,8 +53,6 @@ import org.sparcs.soap.App.Shared.Extensions.toLocalDate
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.darkGray
 import org.sparcs.soap.App.theme.ui.grayBB
-import org.sparcs.soap.App.theme.ui.grayF8
-import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.R
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -72,7 +70,7 @@ import kotlin.math.abs
 @Composable
 fun TaxiDepartureTimePicker(
     departureTime: Date,
-    onDepartureTimeChange: (Date) -> Unit
+    onDepartureTimeChange: (Date) -> Unit,
 ) {
     val calendar = remember { Calendar.getInstance() }
 
@@ -85,7 +83,14 @@ fun TaxiDepartureTimePicker(
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
     val dateText = remember { mutableStateOf(dateFormatter.format(calendar.time)) }
-    val timeText = remember { mutableStateOf(timeFormatter.format(calendar.apply { set(Calendar.MINUTE, (get(Calendar.MINUTE) / 10 + 1) * 10); set(Calendar.SECOND, 0) }.time)) }
+    val timeText = remember {
+        mutableStateOf(timeFormatter.format(calendar.apply {
+            set(
+                Calendar.MINUTE,
+                (get(Calendar.MINUTE) / 10 + 1) * 10
+            ); set(Calendar.SECOND, 0)
+        }.time))
+    }
 
     LaunchedEffect(departureTime) {
         calendar.time = departureTime
@@ -99,13 +104,16 @@ fun TaxiDepartureTimePicker(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(stringResource(R.string.departure_time), style = MaterialTheme.typography.titleMedium)
+            Text(
+                stringResource(R.string.departure_time),
+                style = MaterialTheme.typography.titleMedium
+            )
 
             Row {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.lightGray0)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         .clickable {
                             showDatePicker = !showDatePicker
                             showTimePicker = false
@@ -123,7 +131,7 @@ fun TaxiDepartureTimePicker(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.lightGray0)
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                         .clickable {
                             showTimePicker = !showTimePicker
                             showDatePicker = false
@@ -146,7 +154,10 @@ fun TaxiDepartureTimePicker(
                     calendar.set(Calendar.DATE, selectedDate.dayOfMonth)
                     calendar.set(Calendar.MONTH, selectedDate.monthValue - 1)
                     dateText.value = DateTimeFormatter.ofPattern("MM/dd").format(it)
-                    onDepartureTimeChange(calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate())
+                    onDepartureTimeChange(
+                        calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
+                            .toDate()
+                    )
                 }
             )
         }
@@ -160,7 +171,9 @@ fun TaxiDepartureTimePicker(
                 calendar.set(Calendar.MINUTE, minute)
                 calendar.set(Calendar.SECOND, 0)
                 timeText.value = timeFormatter.format(calendar.time)
-                onDepartureTimeChange(calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate())
+                onDepartureTimeChange(
+                    calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate()
+                )
             }
         }
     }
@@ -170,7 +183,7 @@ fun TaxiDepartureTimePicker(
 fun CircularTimePicker(
     hour: Int,
     minute: Int,
-    onTimeSelected: (Int, Int) -> Unit
+    onTimeSelected: (Int, Int) -> Unit,
 ) {
     val hours = (0..23).toList()
     val minutes = (0..59 step 10).toList()
@@ -180,7 +193,8 @@ fun CircularTimePicker(
 
     val itemHeight = 30.dp
     val hourState = rememberLazyListState(initialFirstVisibleItemIndex = hour)
-    val minuteState = rememberLazyListState(initialFirstVisibleItemIndex = minutes.indexOfFirst { it >= minute })
+    val minuteState =
+        rememberLazyListState(initialFirstVisibleItemIndex = minutes.indexOfFirst { it >= minute })
 
     LaunchedEffect(hourState.firstVisibleItemIndex, minuteState.firstVisibleItemIndex) {
         val selectedHour = (hourState.firstVisibleItemIndex).coerceIn(0, hours.lastIndex)
@@ -216,7 +230,7 @@ fun PickerWheel(
     items: List<String>,
     listState: LazyListState,
     itemHeight: Dp,
-    text: String
+    text: String,
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -234,7 +248,7 @@ fun PickerWheel(
                 flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
             ) {
                 itemsIndexed(items) { index, item ->
-                    val centerIndex = listState.firstVisibleItemIndex +1
+                    val centerIndex = listState.firstVisibleItemIndex + 1
                     val distanceFromCenter = abs(index - centerIndex)
                     val alpha = when (distanceFromCenter) {
                         0 -> 1f
@@ -287,7 +301,7 @@ fun PickerWheel(
 @Composable
 fun CustomDatePicker(
     selectedDate: LocalDate,
-    onDateSelected: (LocalDate) -> Unit
+    onDateSelected: (LocalDate) -> Unit,
 ) {
     val today = LocalDate.now()
     val startDate = if (today.dayOfWeek == DayOfWeek.SUNDAY) {
@@ -316,10 +330,13 @@ fun CustomDatePicker(
                     modifier = Modifier
                         .padding(end = 8.dp)
                         .size(15.dp),
-                    tint =MaterialTheme.colorScheme.grayBB
+                    tint = MaterialTheme.colorScheme.grayBB
                 )
                 Text(
-                    stringResource(R.string.date_label, selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))),
+                    stringResource(
+                        R.string.date_label,
+                        selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
+                    ),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -355,7 +372,7 @@ fun CustomDatePicker(
                     val bgColor = when {
                         isSelected -> MaterialTheme.colorScheme.primary
                         isDisabled -> MaterialTheme.colorScheme.grayBB
-                        else -> MaterialTheme.colorScheme.grayF8
+                        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     }
 
                     val textColor = when {
@@ -394,7 +411,13 @@ fun CustomDatePicker(
                                     modifier = Modifier
                                         .size(4.dp)
                                         .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.surfaceContainer)
+                                        .background(
+                                            if (isSelected) {
+                                                MaterialTheme.colorScheme.onPrimary
+                                            } else {
+                                                MaterialTheme.colorScheme.primary
+                                            }
+                                        )
                                 )
                             }
                         }
@@ -407,12 +430,11 @@ fun CustomDatePicker(
 }
 
 
-
 @Composable
 @Preview
 private fun Preview() {
     Theme {
-        Box(Modifier.background(MaterialTheme.colorScheme.surface)){
+        Box(Modifier.background(MaterialTheme.colorScheme.surface)) {
             var time by remember {
                 mutableStateOf(
                     Date.from(

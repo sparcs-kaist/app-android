@@ -26,7 +26,9 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
 @Composable
@@ -97,50 +99,54 @@ fun ChatAccountBubble(
                 Icon(
                     imageVector = Icons.Rounded.Payment,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.send_payment),
                     fontWeight = FontWeight.Medium,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
                 Icon(
                     imageVector = Icons.Rounded.Check,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.already_sent),
                     fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-
         }
     }
 }
-//
-//@Preview
-//@Composable
-//private fun Preview() {
-//    TaxiChatUserWrapper(
-//        authorID = null,
-//        authorName = null,
-//        authorProfileImageURL = null,
-//        date = Date(),
-//        isMe = false,
-//        isGeneral = false,
-//        isWithdrawn = false,
-//        badge = true
-//    ) {
-//        TaxiChatAccountBubble(
-//            content = "KB국민 90415338958",
-//            isCommitPaymentAvailable = false,
-//            markAsSent = { println("mark as sent") }
-//        )
-//    }
-//}
+
+@Preview
+@Composable
+private fun PreviewSendPayment() {
+    Theme {
+        ChatAccountBubble(
+            content = "KB국민 90415338958",
+            isCommitPaymentAvailable = true,
+            markAsSent = { println("mark as sent") }
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun PreviewAlreadySent() {
+    Theme {
+        ChatAccountBubble(
+            content = "KB국민 90415338958",
+            isCommitPaymentAvailable = false,
+            markAsSent = { println("mark as sent") }
+        )
+    }
+}
+

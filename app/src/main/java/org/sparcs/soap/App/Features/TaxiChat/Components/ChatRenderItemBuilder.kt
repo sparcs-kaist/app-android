@@ -1,31 +1,11 @@
 package org.sparcs.soap.App.Features.TaxiChat.Components
 
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatBubblePosition
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
+import org.sparcs.soap.App.Domain.Models.Taxi.SenderInfo
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Shared.Extensions.formattedDate
-import java.util.Date
-
-sealed class ChatRenderItem {
-    abstract val id: String
-
-    data class DaySeparator(
-        val date: Date,
-        override val id: String = "day-${date.time}"
-    ) : ChatRenderItem()
-
-    data class SystemEvent(
-        override val id: String,
-        val chat: TaxiChat
-    ) : ChatRenderItem()
-
-    data class Message(
-        override val id: String,
-        val chat: TaxiChat,
-        val kind: TaxiChat.ChatType,
-        val sender: SenderInfo,
-        val position: ChatBubblePosition,
-        val metadata: MetadataVisibility
-    ) : ChatRenderItem()
-}
+import java.util.UUID
 
 class ChatRenderItemBuilder(
     private val policy: ChatGroupingPolicy = TaxiGroupingPolicy(),
@@ -33,7 +13,29 @@ class ChatRenderItemBuilder(
     private val presentationPolicy: MessagePresentationPolicy = DefaultMessagePresentationPolicy()
 ) {
     fun build(chats: List<TaxiChat>, myUserID: String?): List<ChatRenderItem> {
-        val sorted = chats.sortedWith(compareBy({ it.time }, { it.id }))
+        val mutableChats = chats.sortedWith(compareBy({ it.time }, { it.id })).toMutableList()
+
+        if (mutableChats.none { it.type == TaxiChat.ChatType.SHARE }) {
+            val firstInIndex = mutableChats.indexOfFirst { it.type == TaxiChat.ChatType.ENTRANCE }
+            if (firstInIndex != -1) {
+                val firstIn = mutableChats[firstInIndex]
+                val shareMessage = TaxiChat(
+                    id = UUID.nameUUIDFromBytes("INITIAL_SHARE_${firstIn.roomID}".toByteArray()),
+                    roomID = firstIn.roomID,
+                    type = TaxiChat.ChatType.SHARE,
+                    authorID = null,
+                    authorName = null,
+                    authorProfileURL = null,
+                    authorIsWithdrew = false,
+                    content = "SHARE_PROMPT",
+                    time = firstIn.time,
+                    isValid = true,
+                    inOutNames = null
+                )
+                mutableChats.add(firstInIndex + 1, shareMessage)
+            }
+        }
+
         val items = mutableListOf<ChatRenderItem>()
         val cluster = mutableListOf<TaxiChat>()
         var lastDay: String? = null
@@ -52,12 +54,21 @@ class ChatRenderItemBuilder(
                     isStandalone = false
                 )
 
-                items.add(ChatRenderItem.Message(chat.id.toString(), chat, chat.type, sender, pos, meta))
+                items.add(
+                    ChatRenderItem.Message(
+                        chat.id.toString(),
+                        chat,
+                        chat.type,
+                        sender,
+                        pos,
+                        meta
+                    )
+                )
             }
             cluster.clear()
         }
 
-        for (chat in sorted) {
+        for (chat in mutableChats) {
             val currentDay = chat.time.formattedDate()
             if (lastDay == null || currentDay != lastDay) {
                 flushCluster()
@@ -75,7 +86,16 @@ class ChatRenderItemBuilder(
                 if (chat.type == TaxiChat.ChatType.ENTRANCE || chat.type == TaxiChat.ChatType.EXIT) {
                     items.add(ChatRenderItem.SystemEvent(chat.id.toString(), chat))
                 } else {
-                    items.add(ChatRenderItem.Message(chat.id.toString(), chat, chat.type, sender, ChatBubblePosition.SINGLE, meta))
+                    items.add(
+                        ChatRenderItem.Message(
+                            chat.id.toString(),
+                            chat,
+                            chat.type,
+                            sender,
+                            ChatBubblePosition.SINGLE,
+                            meta
+                        )
+                    )
                 }
             } else {
                 val prev = cluster.lastOrNull()
@@ -96,7 +116,7 @@ class ChatRenderItemBuilder(
         id = chat.authorID,
         name = chat.authorName,
         avatarURL = chat.authorProfileURL,
-        isMine = chat.authorID == myUserId,
+        isMine = chat.authorID != null && chat.authorID == myUserId,
         isWithdrew = chat.authorIsWithdrew ?: false
     )
 }

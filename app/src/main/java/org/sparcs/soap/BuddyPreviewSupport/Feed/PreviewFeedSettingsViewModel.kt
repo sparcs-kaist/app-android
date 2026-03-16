@@ -16,7 +16,7 @@ import org.sparcs.soap.App.Features.Settings.Feed.FeedSettingsViewModelProtocol
 import org.sparcs.soap.App.Features.Settings.Feed.ViewState.FeedProfileImageState
 
 class PreviewFeedSettingsViewModel(
-    state: FeedSettingsViewModel.ViewState = FeedSettingsViewModel.ViewState.Loaded,
+    initialState: FeedSettingsViewModel.ViewState = FeedSettingsViewModel.ViewState.Loaded,
 ) : FeedSettingsViewModelProtocol {
     // MARK: - Properties
     override var nickname by mutableStateOf("NICKNAME")
