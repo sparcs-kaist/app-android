@@ -127,16 +127,17 @@ private fun SendButton(
         onClick = {
             coroutineScope.launch {
                 try {
-                    viewModel.createRoom(title)
-                    viewModel.toggleCarrier(
-                        viewModel.roomId ?: "",
-                        viewModel.roomHasCarrier
-                    )
-                    viewModel.fetchData()
-                    onClick()
+                    val newRoomId = viewModel.createRoom(title)
+
+                    if (!newRoomId.isNullOrBlank()) {
+                        viewModel.toggleCarrier(newRoomId, viewModel.roomHasCarrier)
+                        viewModel.fetchData()
+                        onClick()
+                    } else {
+                        throw Exception("Room creation failed")
+                    }
                 } catch (e: Exception) {
                     onError(e.localizedMessage ?: "Unknown error")
-
                 }
             }
         },
