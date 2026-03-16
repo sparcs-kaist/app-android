@@ -8,10 +8,10 @@ import org.sparcs.soap.App.Features.Feed.FeedViewModel
 import org.sparcs.soap.App.Features.Feed.FeedViewModelProtocol
 
 class PreviewFeedViewModel(
-    state: FeedViewModel.ViewState = FeedViewModel.ViewState.Loaded(emptyList()),
+    initialState: FeedViewModel.ViewState = FeedViewModel.ViewState.Loaded(emptyList()),
     override var posts: List<FeedPost> = emptyList(),
 ) : FeedViewModelProtocol {
-    override var state: StateFlow<FeedViewModel.ViewState> = MutableStateFlow(state)
+    override var state: StateFlow<FeedViewModel.ViewState> = MutableStateFlow(initialState)
     override var alertState: AlertState? = null
     override var isAlertPresented: Boolean = false
     override var isLoadingMore: Boolean = false

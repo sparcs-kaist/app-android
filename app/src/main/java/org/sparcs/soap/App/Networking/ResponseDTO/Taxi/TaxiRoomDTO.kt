@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Networking.ResponseDTO.Taxi
 
 import com.google.gson.annotations.SerializedName
+import org.sparcs.soap.App.Domain.Enums.Taxi.EmojiIdentifier
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Shared.Extensions.toDate
 import java.util.Date
@@ -33,6 +34,9 @@ data class TaxiRoomDTO(
     @SerializedName("settlementTotal")
     val settlementTotal: Int?,
 
+    @SerializedName("emojiIdentifier")
+    val emojiIdentifier: String?,
+
     @SerializedName("isDeparted")
     val isDeparted: Boolean,
 
@@ -50,6 +54,7 @@ data class TaxiRoomDTO(
             madeAt = madeAt.toDate() ?: Date(),
             capacity = maxParticipants,
             settlementTotal = settlementTotal,
+            emojiIdentifier = EmojiIdentifier.fromRawValue(emojiIdentifier),
             isDeparted = isDeparted,
             isOver = isOver
         )

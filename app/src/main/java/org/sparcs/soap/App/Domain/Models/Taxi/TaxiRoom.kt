@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Domain.Models.Taxi
 
+import org.sparcs.soap.App.Domain.Enums.Taxi.EmojiIdentifier
 import java.util.Date
 
 data class TaxiRoom(
@@ -12,6 +13,7 @@ data class TaxiRoom(
     val madeAt: Date,
     val capacity: Int,
     val settlementTotal: Int?,
+    val emojiIdentifier: EmojiIdentifier,
     val isDeparted: Boolean,
     val isOver: Boolean?
 ){

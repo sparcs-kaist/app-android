@@ -1,11 +1,7 @@
 package org.sparcs.soap.App.Features.TaxiChat.Components
 
-enum class ChatBubblePosition {
-    SINGLE,
-    TOP,
-    MIDDLE,
-    BOTTOM
-}
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatBubblePosition
+
 
 class ChatBubblePositionResolver {
     fun resolve(index: Int, count: Int): ChatBubblePosition {

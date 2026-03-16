@@ -42,7 +42,6 @@ import org.sparcs.soap.App.Shared.Mocks.mock
 import org.sparcs.soap.App.Shared.Mocks.mockList
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.gray64
-import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.R
 
 @Composable
@@ -88,7 +87,7 @@ fun TaxiDestinationPicker(
             modifier = Modifier
                 .padding(horizontal = 4.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.lightGray0)
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                 .graphicsLayer {
                     rotationX = rotationXState.value
                     cameraDistance = 12 * density
