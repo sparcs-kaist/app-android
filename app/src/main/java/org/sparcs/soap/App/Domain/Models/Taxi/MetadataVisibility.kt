@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Features.TaxiChat.Components
+package org.sparcs.soap.App.Domain.Models.Taxi
 
 data class MetadataVisibility(
     val showName: Boolean,

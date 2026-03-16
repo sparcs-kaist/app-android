@@ -69,6 +69,8 @@ class TaxiChatUseCase @Inject constructor(
 
     // MARK: - Computed Properties
     override var accountChats: List<TaxiChat> = emptyList()
+    private var lastReadChatId: UUID? = null
+    private var isFirstReadSent = false
 
     private var isBound = false
     private var bindJob: Job? = null
@@ -76,6 +78,7 @@ class TaxiChatUseCase @Inject constructor(
     override fun setRoom(room: TaxiRoom) {
         this.room = room
         this.flatChats = emptyList()
+        this.isFirstReadSent = false
         this.hasInitialChatsBeenFetched = false
         taxiChatService.setRoom(room.id)
     }
@@ -150,8 +153,10 @@ class TaxiChatUseCase @Inject constructor(
 
     @OptIn(FlowPreview::class)
     private fun bind() {
-        if (isBound) return
-        isBound = true
+        synchronized(this) {
+            if (isBound) return
+            isBound = true
+        }
 
         bindJob?.cancel()
         bindJob = scope.launch {
@@ -165,19 +170,30 @@ class TaxiChatUseCase @Inject constructor(
 
             taxiChatService.chatsPublisher
                 .filter { it.isNotEmpty() }
-                .distinctUntilChanged()
+                .distinctUntilChanged { old, new ->
+                    old.lastOrNull()?.id == new.lastOrNull()?.id
+                }
                 .onEach { serverChats ->
-                    synchronized(this) {
-                        flatChats = serverChats
-                        accountChats =
-                            serverChats.filter { it.type == TaxiChat.ChatType.ACCOUNT }
+                    val latestChatId = serverChats.lastOrNull()?.id
+
+                    synchronized(this@TaxiChatUseCase) {
+                        flatChats = serverChats.distinctBy { it.id }
+                        accountChats = flatChats.filter { it.type == TaxiChat.ChatType.ACCOUNT }
                     }
+
                     _chats.value = flatChats
-                    launch {
-                        try {
-                            taxiChatRepository.readChats(room.id)
-                        } catch (e: Exception) {
-                            Timber.e("Read chats failed")
+
+                    if (latestChatId != null) {
+                        if (!isFirstReadSent || latestChatId != lastReadChatId) {
+                            isFirstReadSent = true
+                            lastReadChatId = latestChatId
+                            launch {
+                                try {
+                                    taxiChatRepository.readChats(room.id)
+                                } catch (e: Exception) {
+                                    Timber.e("Read chats failed: ${e.message}")
+                                }
+                            }
                         }
                     }
                 }
