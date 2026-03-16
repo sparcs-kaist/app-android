@@ -44,7 +44,7 @@ data class TaxiChatDTO(
         return TaxiChat(
             id = deterministicId,
             roomID = roomID,
-            type = TaxiChat.ChatType.valueOf(type.uppercase()),
+            type = TaxiChat.ChatType.fromRawValue(type),
             authorID = authorID,
             authorName = authorName,
             authorProfileURL = authorProfileURL,
