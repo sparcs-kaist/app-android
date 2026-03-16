@@ -139,6 +139,7 @@ fun TaxiChatView(
                             room = room,
                             user = null,
                             onImageClick = {},
+                            onCommitPayment = {},
                             listState = rememberLazyListState(),
                             scrollToBottomTrigger = 0,
                             modifier = Modifier.alpha(0.5f)
@@ -151,6 +152,7 @@ fun TaxiChatView(
                             room = room,
                             user = taxiUser,
                             onImageClick = { tappedImageID = it },
+                            onCommitPayment = { showPayMoneyAlert = true },
                             listState = listState,
                             scrollToBottomTrigger = viewModel.scrollToBottomTrigger
                         )
