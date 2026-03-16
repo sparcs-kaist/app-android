@@ -41,7 +41,7 @@ fun TaxiCarrierIndicator(
             )
             Icon(
                 imageVector = Icons.Outlined.WorkOutline,
-                contentDescription = "Carriers",
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(16.dp)
             )

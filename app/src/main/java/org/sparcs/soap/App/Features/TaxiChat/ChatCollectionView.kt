@@ -47,10 +47,14 @@ fun ChatCollectionView(
         room.participants.associate { it.id to it.badge }
     }
 
-    val isCommitSettlementAvailable = remember(room) {
+    val isCommitSettlementAvailable = remember(room, user?.oid) {
         val departed = room.isDeparted
-        val myParticipantInfo = room.participants.find { it.id == user?.oid }
-        val iHaveNotSettled = myParticipantInfo?.isSettlement != TaxiParticipant.SettlementType.PaymentSent
+        val myParticipantInfo = user?.let { currentUser ->
+            room.participants.find { it.id == currentUser.oid }
+        }
+        val iHaveNotSettled = myParticipantInfo?.isSettlement?.let {
+            it != TaxiParticipant.SettlementType.PaymentSent
+        } ?: false
         departed && iHaveNotSettled
     }
 
