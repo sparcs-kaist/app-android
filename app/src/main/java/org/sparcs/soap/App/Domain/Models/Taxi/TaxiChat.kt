@@ -35,7 +35,11 @@ data class TaxiChat(
 
         UNKNOWN("unknown");
 
+        companion object{
+            fun fromRawValue(rawValue: String): ChatType {
+                return entries.find { it.type == rawValue.lowercase() } ?: UNKNOWN
+            }
+        }
     }
-
     companion object {}
 }
