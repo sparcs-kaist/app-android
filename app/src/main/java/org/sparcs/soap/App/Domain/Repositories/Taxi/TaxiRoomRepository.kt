@@ -23,6 +23,7 @@ interface TaxiRoomRepositoryProtocol {
     suspend fun commitSettlement(id: String): TaxiRoom
     suspend fun commitPayment(id: String): TaxiRoom
     suspend fun toggleCarrier(id: String, hasCarrier: Boolean): TaxiRoom
+    suspend fun updateArrival(id: String, isArrived: Boolean): TaxiRoom
 }
 
 class FakeTaxiRoomRepository : TaxiRoomRepositoryProtocol {
@@ -37,6 +38,7 @@ class FakeTaxiRoomRepository : TaxiRoomRepositoryProtocol {
     override suspend fun commitSettlement(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun commitPayment(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun toggleCarrier(id: String, hasCarrier: Boolean): TaxiRoom = TaxiRoom.mock()
+    override suspend fun updateArrival(id: String, isArrived: Boolean): TaxiRoom = TaxiRoom.mock()
 }
 
 
@@ -95,6 +97,15 @@ class TaxiRoomRepository @Inject constructor(
             mapOf(
                 "roomId" to id,
                 "hasCarrier" to hasCarrier
+            )
+        )
+    }.toModel()
+
+    override suspend fun updateArrival(id: String, isArrived: Boolean): TaxiRoom = safeApiCall(gson) {
+        taxiRoomApi.updateArrival(
+            mapOf(
+                "roomId" to id,
+                "isArrived" to isArrived
             )
         )
     }.toModel()
