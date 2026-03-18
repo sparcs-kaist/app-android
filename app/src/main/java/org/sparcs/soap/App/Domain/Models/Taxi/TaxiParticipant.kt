@@ -12,7 +12,8 @@ data class TaxiParticipant(
     val badge: Boolean,
     val isSettlement: SettlementType?,
     val readAt: Date,
-    val hasCarrier: Boolean
+    val hasCarrier: Boolean,
+    val isArrived: Boolean
 ) {
     enum class SettlementType(val rawValue: String) {
         NotDeparted("not-departed"),

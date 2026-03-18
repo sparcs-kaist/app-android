@@ -449,4 +449,13 @@
     <string name="error_too_many_rooms">
         참여할 수 있는 방 개수(최대 5개)를 초과했습니다.\n정산을 완료하거나 탑승을 취소해 주세요.
     </string>
+    <string name="error_update_arrival_failed">도착 상태 업데이트에 실패했습니다.</string>
+    <string name="taxi_arrived_count">%1$d명 도착</string>
+    <string name="taxi_all_arrived">%1$d명 모두 도착!</string>
+    <string name="taxi_arrived_question">출발지에 도착하셨나요?</string>
+    <string name="taxi_status">현황</string>
+    <string name="taxi_arrival_status">도착 현황</string>
+    <string name="taxi_arrival">도착</string>
+    <string name="taxi_arrival_complete">도착 완료</string>
+    <string name="taxi_not_arrived">미도착</string>
 </resources>
