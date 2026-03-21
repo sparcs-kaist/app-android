@@ -7,9 +7,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -17,36 +21,35 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepositoryProtocol
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureDetailNavigationBar
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureInformation
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviews
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureSummary
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureDetailViewModel
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureDetailViewModel
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
 @Composable
 fun LectureDetailView(
-    lectureDetailViewModel: LectureDetailViewModelProtocol = hiltViewModel(),
+    viewModel: LectureDetailViewModelProtocol = hiltViewModel(),
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val lecture = lectureDetailViewModel.lecture.collectAsState().value
+    val lecture by viewModel.lecture.collectAsState()
+    val canWriteReview by viewModel.canWriteReview.collectAsState()
 
+    val selectedTimetable by timetableViewModel.selectedTimetable.collectAsState()
+    val isInCurrentTimetable = remember(selectedTimetable, lecture) {
+        selectedTimetable?.lectures?.any { it.id == lecture.id } ?: false
+    }
+
+    val isEditable by timetableViewModel.isEditable.collectAsState()
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
-
-    LocalInspectionMode.current
-    val repo: OTLReviewRepositoryProtocol = hiltViewModel<LectureDetailViewModel>().otlReviewRepository
-
-    LaunchedEffect(lecture.id) {
-        lectureDetailViewModel.fetchReviews()
-    }
 
     Scaffold(
         topBar = {
@@ -64,8 +67,8 @@ fun LectureDetailView(
                 onDelete = {
                     timetableViewModel.deleteLecture(lecture)
                 },
-                isCurrentTimetable = lectureDetailViewModel.isInCurrentTimetable,
-                isEnabled = timetableViewModel.isEditable.collectAsState().value
+                isCurrentTimetable = isInCurrentTimetable,
+                isEnabled = isEditable
             )
         },
         modifier = Modifier.analyticsScreen("Lecture Detail")
@@ -86,9 +89,9 @@ fun LectureDetailView(
             item {
                 LectureReviews(
                     lecture = lecture,
-                    viewModel = lectureDetailViewModel,
-                    repo = repo,
-                    navController = navController
+                    viewModel = viewModel,
+                    navController = navController,
+                    canWriteReview = canWriteReview,
                 )
             }
         }
@@ -143,9 +146,9 @@ fun LectureDetailView(
 @Composable
 private fun MockView(state: LectureDetailViewModel.ViewState) {
     LectureDetailView(
-        lectureDetailViewModel = MockLectureDetailViewModel(initialState = state),
+        viewModel = PreviewLectureDetailViewModel(initialState = state),
         navController = rememberNavController(),
-        timetableViewModel = MockTimetableViewModel()
+        timetableViewModel = PreviewTimetableViewModel()
     )
 }
 

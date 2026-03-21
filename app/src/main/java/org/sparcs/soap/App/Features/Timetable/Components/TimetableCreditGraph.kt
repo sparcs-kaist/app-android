@@ -5,7 +5,17 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -25,7 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.OTL.mockList
 import org.sparcs.soap.App.theme.ui.Theme
 
 val lectureColors = mapOf(
@@ -36,6 +46,7 @@ val lectureColors = mapOf(
     LectureType.HSE to Color(0xFFE2455C),
     LectureType.ETC to Color(0xFF47D0BA)
 )
+
 @Composable
 fun TimetableCreditGraph(
     timetable: Timetable,
@@ -148,7 +159,7 @@ fun TimetableCreditGraph(
                             )
                             Spacer(modifier = Modifier.width(3.dp))
                             Text(
-                                text = "${stringResource(type.code)}(${currentCredits.toInt()})",
+                                text = "${stringResource(type.labelRes)}(${currentCredits.toInt()})",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }

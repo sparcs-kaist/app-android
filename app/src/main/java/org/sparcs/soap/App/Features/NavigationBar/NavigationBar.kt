@@ -15,7 +15,12 @@ import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.TableChart
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -25,10 +30,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.*
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import androidx.navigation.navDeepLink
+import androidx.navigation.navigation
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.BoardList.BoardListView
 import org.sparcs.soap.App.Features.BoardList.BoardListViewModel
@@ -232,7 +242,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         navArgument("lecture_json") {
                             type = NavType.StringType
                             nullable = false
-                        }
+                        },
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
@@ -248,7 +258,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         hiltViewModel(backStackEntry)
 
                     LectureDetailView(
-                        lectureDetailViewModel = lectureDetailViewModel,
+                        viewModel = lectureDetailViewModel,
                         timetableViewModel = timetableViewModel,
                         navController = navController
                     )
@@ -273,17 +283,31 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
                 composable(
                     route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}&written_review_json={written_review_json}",
+                    arguments = listOf(
+                        navArgument("lecture_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        },
+                        navArgument("written_review_json") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
                     popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: ReviewComposeViewModel = hiltViewModel(backStackEntry)
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry(Channel.LectureDetail.name + "?lecture_json={lecture_json}")
+                    }
                     val lectureDetailViewModel: LectureDetailViewModel =
-                        hiltViewModel(backStackEntry)
+                        hiltViewModel(parentEntry)
 
                     ReviewComposeView(
-                        reviewComposeViewModel = viewModel,
+                        viewModel = viewModel,
                         lectureDetailViewModel = lectureDetailViewModel,
                         navController = navController
                     )

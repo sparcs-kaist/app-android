@@ -2,27 +2,38 @@ package org.sparcs.soap.App.Features.Search.Components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSummary
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 
 @Composable
 fun CourseCell(
-    searchCourse: SearchCourse,
+    course: CourseSummary,
     onClick: () -> Unit,
 ) {
+    val context = LocalContext.current
+
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
@@ -31,7 +42,7 @@ fun CourseCell(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = searchCourse.name,
+                text = course.name,
                 maxLines = 2,
                 fontWeight = FontWeight.SemiBold,
                 style = MaterialTheme.typography.bodyLarge,
@@ -41,12 +52,12 @@ fun CourseCell(
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = searchCourse.code,
+                    text = course.code,
                     color = MaterialTheme.colorScheme.grayBB,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = searchCourse.type,
+                    text = context.getString(course.type.labelRes),
                     color = MaterialTheme.colorScheme.grayBB,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -54,11 +65,11 @@ fun CourseCell(
 
         }
 
-        if (searchCourse.summary.isNotEmpty()) {
+        if (course.summary.isNotEmpty()) {
             Spacer(Modifier.height(4.dp))
 
             Text(
-                text = searchCourse.summary,
+                text = course.summary,
                 maxLines = 3,
                 style = MaterialTheme.typography.bodySmall,
                 overflow = TextOverflow.Ellipsis,
@@ -135,7 +146,7 @@ fun CourseSkeletonCell() {
 private fun Preview() {
     Theme {
         CourseCell(
-            SearchCourse.mock().copy(name = "Hello World"), {})
+            CourseSummary.mock().copy(name = "Hello World"), {})
     }
 }
 

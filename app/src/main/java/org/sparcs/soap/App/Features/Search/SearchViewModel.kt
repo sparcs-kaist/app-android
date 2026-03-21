@@ -4,21 +4,30 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Ara.PostListType
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
-import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSearchRequest
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSummary
 import org.sparcs.soap.App.Domain.Models.SearchScope
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.CourseUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
 import javax.inject.Inject
 
 interface SearchViewModelProtocol {
-    val courses: StateFlow<List<SearchCourse>>
+    val courses: StateFlow<List<CourseSummary>>
     val posts: StateFlow<List<AraPost>>
     val taxiRooms: StateFlow<List<TaxiRoom>>
 
@@ -40,7 +49,7 @@ class SearchViewModel @Inject constructor(
     private val araBoardUseCase: AraBoardUseCaseProtocol,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
-    private val otlCourseRepository: OTLCourseRepositoryProtocol,
+    private val courseUseCase: CourseUseCaseProtocol,
 ) : ViewModel(), SearchViewModelProtocol {
 
     // MARK: - Properties
@@ -53,8 +62,8 @@ class SearchViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state
 
-    private val _courses = MutableStateFlow<List<SearchCourse>>(emptyList())
-    override val courses: StateFlow<List<SearchCourse>> = _courses
+    private val _courses = MutableStateFlow<List<CourseSummary>>(emptyList())
+    override val courses: StateFlow<List<CourseSummary>> = _courses
 
     private val _posts = MutableStateFlow<List<AraPost>>(emptyList())
     override val posts: StateFlow<List<AraPost>> = _posts
@@ -152,12 +161,13 @@ class SearchViewModel @Inject constructor(
 
             _taxiRooms.value = matchedRooms
 
-            _courses.value = otlCourseRepository.searchCourse(
-                name = keyword,
-                offset = 0,
-                limit = 150
+            _courses.value = courseUseCase.searchCourse(
+                CourseSearchRequest(
+                    keyword = keyword,
+                    offset = 0,
+                    limit = 150
+                )
             )
-
             _state.value = ViewState.Loaded
 
         } catch (e: Exception) {
