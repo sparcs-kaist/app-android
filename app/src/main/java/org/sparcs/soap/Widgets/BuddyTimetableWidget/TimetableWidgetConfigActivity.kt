@@ -53,11 +53,11 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableGrid
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.theme_dark_surface
 import org.sparcs.soap.App.theme.ui.theme_light_surface
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
 class TimetableWidgetConfigActivity : ComponentActivity() {
@@ -310,7 +310,7 @@ private fun WidgetPreviewSection(selectedTheme: String, transparency: Float) {
                     .padding(8.dp)
             ) {
                 TimetableGrid(
-                    viewModel = MockTimetableViewModel(),
+                    viewModel = PreviewTimetableViewModel(),
                     onLectureSelected = {},
                     showDeleteDialog = {}
                 )

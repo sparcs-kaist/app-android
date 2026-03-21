@@ -15,32 +15,31 @@ data class TimetableUiState(
 )
 
 fun Timetable.toWidgetUiState(): TimetableUiState {
-    val times = this.lectures.flatMap { it.classTimes }
-    val calculatedMin = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 }
-        ?: this.minMinutes
-    val calculatedMax = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 }
-        ?: this.gappedMaxMinutes
+    val times = this.lectures.flatMap { it.classes }
+
+    val calculatedMin = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: (9 * 60)
+    val calculatedMax = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: (18 * 60)
+    val visibleDays = times.map { it.day }.distinct().sorted()
 
     val widgetItems = this.lectures.flatMap { lecture ->
-        lecture.classTimes.map { ct ->
+        lecture.classes.map { ct ->
             WidgetLectureEntry(
                 title = lecture.name,
-                classroom = ct.let { it.buildingCode + it.roomName },
+                classroom = "${ct.buildingCode}${ct.roomName}",
                 day = ct.day,
                 startMinutes = ct.begin,
                 durationMinutes = ct.end - ct.begin,
-                bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb()).uppercase(),
-                textColor = "#" + Integer.toHexString(lecture.textColor.toArgb()).uppercase(),
+                bgColor = String.format("#%06X", (0xFFFFFF and lecture.backgroundColor.toArgb())),
+                textColor = String.format("#%06X", (0xFFFFFF and lecture.textColor.toArgb())),
                 signInRequired = false
             )
         }
     }
-    val lecturesByDay = widgetItems.groupBy { it.day }
 
     return TimetableUiState(
         signInRequired = false,
         timetable = WidgetTimetableEntry(
-            lecturesByDay = lecturesByDay,
+            lecturesByDay = widgetItems.groupBy { it.day },
             visibleDays = this.visibleDays,
             minMinutes = calculatedMin,
             maxMinutes = calculatedMax
