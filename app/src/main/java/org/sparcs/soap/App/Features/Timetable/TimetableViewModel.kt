@@ -245,8 +245,13 @@ class TimetableViewModel @Inject constructor(
         val tableId = _selectedTimetableID.value ?: return
         viewModelScope.launch {
             try {
-                if (_timetable.value?.hasCollision(lecture) == true) {
-                    removeOverlappingLectures(lecture)
+                val table = _timetable.value
+                if (table?.hasCollision(lecture) == true) {
+                    val collisions = table.lectures.filter { table.hasCollision(lecture) && table.hasCollisions(lecture, it) }
+
+                    collisions.forEach { overlapping ->
+                        timetableUseCase.deleteLecture(tableId, overlapping.id)
+                    }
                 }
                 timetableUseCase.addLecture(tableId, lecture.id)
                 loadTimetable()

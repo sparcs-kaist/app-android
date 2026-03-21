@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.LocationOn
@@ -48,7 +47,6 @@ fun TimetableDropDownMenu(
     expanded: Boolean,
     onDismiss: () -> Unit,
     viewModel: TimetableViewModelProtocol,
-    onRenameClick: () -> Unit,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -63,7 +61,7 @@ fun TimetableDropDownMenu(
             modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
         )
 
-        TimetableManagementItems(viewModel, onDismiss, onRenameClick)
+        TimetableManagementItems(viewModel, onDismiss)
     }
 }
 
@@ -139,7 +137,6 @@ fun TimetableListItems(
         }
     )
 
-//    Column {
     timetableList.forEach { timetableInfo ->
         val isSelected = selectedTimetable?.let {
             it.id == timetableInfo.id.toString()
@@ -159,7 +156,6 @@ fun TimetableListItems(
                 if (isSelected) Icon(Icons.Default.Check, contentDescription = "Selected")
             }
         )
-//        }
     }
 }
 
@@ -167,7 +163,6 @@ fun TimetableListItems(
 private fun TimetableManagementItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
-    onRenameClick: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
@@ -189,16 +184,6 @@ private fun TimetableManagementItems(
                 contentDescription = null
             )
         }
-    )
-
-    DropdownMenuItem(
-        text = { Text(stringResource(R.string.action_rename)) },
-        onClick = {
-            onDismiss()
-            onRenameClick()
-        },
-        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
-        enabled = isActionEnabled
     )
 
     HorizontalDivider(
@@ -236,8 +221,8 @@ private fun Preview() {
                 TimetableDropDownMenu(
                     expanded = true,
                     onDismiss = {},
-                    PreviewTimetableViewModel(),
-                    onRenameClick = {})
+                    PreviewTimetableViewModel()
+                )
             }
         }
     }
