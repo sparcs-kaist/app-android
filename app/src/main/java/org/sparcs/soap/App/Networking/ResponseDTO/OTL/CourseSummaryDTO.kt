@@ -1,9 +1,10 @@
 package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
-import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
+import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSummary
 
-data class SearchCourseDTO(
+data class CourseSummaryDTO(
     @SerializedName("id")
     val id: Int,
 
@@ -31,19 +32,15 @@ data class SearchCourseDTO(
     @SerializedName("completed")
     val completed: Boolean
 ) {
-    fun toModel(): SearchCourse = SearchCourse(
+    fun toModel(): CourseSummary = CourseSummary(
         id = id,
         name = name,
         code = code,
-        type = type,
-        summary = summary
+        type = LectureType.fromString(type),
+        summary = summary,
+        open = open,
+        completed = completed,
+        department = department.toModel(),
+        professors = professors.map { it.toModel() }
     )
 }
-
-data class SearchCourseResponseDTO(
-    @SerializedName("courses")
-    val courses: List<SearchCourseDTO>,
-
-    @SerializedName("totalCount")
-    val totalCount: Int
-)

@@ -1,6 +1,6 @@
 package org.sparcs.soap.App.Networking.RetrofitAPI.OTL
 
-import org.sparcs.soap.App.Networking.ResponseDTO.OTL.LectureSearchResponseDTO
+import org.sparcs.soap.App.Networking.ResponseDTO.OTL.CourseLecturePageDTO
 import retrofit2.http.GET
 import retrofit2.http.Query
 
@@ -15,5 +15,5 @@ interface OTLLectureApi {
         @Query("level") level: List<Int>?,
         @Query("limit") limit: Int,
         @Query("offset") offset: Int
-    ): LectureSearchResponseDTO
+    ): CourseLecturePageDTO
 }

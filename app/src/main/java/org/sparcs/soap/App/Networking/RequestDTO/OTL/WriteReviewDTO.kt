@@ -3,7 +3,7 @@ package org.sparcs.soap.App.Networking.RequestDTO.OTL
 import com.google.gson.annotations.SerializedName
 
 data class WriteReviewRequest(
-    @SerializedName("lecture")
+    @SerializedName("lectureId")
     val lectureID: Int,
 
     @SerializedName("content")

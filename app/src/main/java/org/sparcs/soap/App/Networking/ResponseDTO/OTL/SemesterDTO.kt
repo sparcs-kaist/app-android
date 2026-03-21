@@ -5,7 +5,7 @@ import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.SemesterEventDate
 import org.sparcs.soap.App.Shared.Extensions.toDate
-import java.util.*
+import java.util.Date
 
 data class SemesterDTO(
     @SerializedName("year")
@@ -56,8 +56,3 @@ data class SemesterDTO(
         )
     )
 }
-
-data class SemesterResponseDTO(
-    @SerializedName("semesters")
-    val semesters: List<SemesterDTO>
-)
