@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import androidx.room.Room
 import com.google.gson.Gson
 import dagger.Binds
 import dagger.Module
@@ -13,29 +14,100 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
-import okhttp3.*
+import okhttp3.Authenticator
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
+import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
-import org.sparcs.soap.App.Domain.Helpers.*
-import org.sparcs.soap.App.Domain.Repositories.Ara.*
+import org.sparcs.soap.App.Cache.AppDatabase
+import org.sparcs.soap.App.Cache.TimetableCacheDAO
+import org.sparcs.soap.App.Domain.Helpers.Constants
+import org.sparcs.soap.App.Domain.Helpers.TaxiLocationStorage
+import org.sparcs.soap.App.Domain.Helpers.TaxiLocationStorageProtocol
+import org.sparcs.soap.App.Domain.Helpers.TokenStorage
+import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
+import org.sparcs.soap.App.Domain.Helpers.UserStorage
+import org.sparcs.soap.App.Domain.Helpers.UserStorageProtocol
+import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepository
+import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Ara.AraCommentRepository
+import org.sparcs.soap.App.Domain.Repositories.Ara.AraCommentRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepository
+import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.AuthRepository
 import org.sparcs.soap.App.Domain.Repositories.AuthRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.FCMRepository
 import org.sparcs.soap.App.Domain.Repositories.FCMRepositoryProtocol
-import org.sparcs.soap.App.Domain.Repositories.Feed.*
-import org.sparcs.soap.App.Domain.Repositories.OTL.*
-import org.sparcs.soap.App.Domain.Repositories.Taxi.*
-import org.sparcs.soap.App.Domain.Services.*
-import org.sparcs.soap.App.Domain.Usecases.*
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepository
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedCommentRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedImageRepository
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedImageRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedPostRepository
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedPostRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedProfileRepository
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedProfileRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepository
+import org.sparcs.soap.App.Domain.Repositories.Feed.FeedUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiChatRepository
+import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiChatRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiReportRepository
+import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepository
+import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepository
+import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepositoryProtocol
+import org.sparcs.soap.App.Domain.Services.AnalyticsService
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Services.AuthenticationService
+import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
+import org.sparcs.soap.App.Domain.Services.CrashlyticsService
+import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Services.TaxiChatService
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCase
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCase
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.Feed.*
+import org.sparcs.soap.App.Domain.Usecases.AuthUseCase
+import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.FCMUseCase
+import org.sparcs.soap.App.Domain.Usecases.FCMUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedCommentUseCase
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedCommentUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedImageUseCase
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedImageUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCase
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedProfileUseCase
+import org.sparcs.soap.App.Domain.Usecases.Feed.FeedProfileUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.CourseUseCase
+import org.sparcs.soap.App.Domain.Usecases.OTL.CourseUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.LectureUseCase
+import org.sparcs.soap.App.Domain.Usecases.OTL.LectureUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.ReviewUseCase
+import org.sparcs.soap.App.Domain.Usecases.OTL.ReviewUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackground
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
-import org.sparcs.soap.App.Domain.Usecases.Taxi.*
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.UserUseCase
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.AuthRetryConfig
 import org.sparcs.soap.App.Networking.RetrofitAPI.AppVersionApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraBoardApi
@@ -43,8 +115,16 @@ import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraCommentApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraUserApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.AuthApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.FCMApi
-import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.*
-import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.*
+import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedCommentApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedImageApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedPostApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedProfileApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedUserApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLCourseApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLLectureApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLReviewApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLTimetableApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLUserApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiChatApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiReportApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiRoomApi
@@ -599,6 +679,25 @@ abstract class UseCaseModule {
     abstract fun bindFeedProfileUseCase(
         impl: FeedProfileUseCase
     ): FeedProfileUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindCourseUseCase(
+        impl: CourseUseCase
+    ): CourseUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindReviewUseCase(
+        impl: ReviewUseCase
+    ): ReviewUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindLectureUseCase(
+        impl: LectureUseCase
+    ): LectureUseCaseProtocol
+
 }
 
 @Module
@@ -671,4 +770,26 @@ object AuthUseCaseModule {
     @Provides
     @Singleton
     fun provideAuthUseCaseProtocol(impl: AuthUseCase): AuthUseCaseProtocol = impl
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "soap_database"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+
+    @Provides
+    fun provideTimetableCacheDAO(database: AppDatabase): TimetableCacheDAO {
+        return database.timetableCacheDao()
+    }
 }

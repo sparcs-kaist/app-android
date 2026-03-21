@@ -2,9 +2,9 @@ package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Enums.OTL.DayType
-import org.sparcs.soap.App.Domain.Models.OTL.ExamTime
+import org.sparcs.soap.App.Domain.Models.OTL.LectureExam
 
-data class ExamTimeDTO(
+data class LectureExamDTO(
     @SerializedName("day")
     val day: Int,
 
@@ -17,9 +17,9 @@ data class ExamTimeDTO(
     @SerializedName("end")
     val end: Int
 ) {
-    fun toModel(): ExamTime = ExamTime(
+    fun toModel(): LectureExam = LectureExam(
         day = DayType.fromValue(day) ?: DayType.SUN,
-        str = str,
+        description = str,
         begin = begin,
         end = end
     )

@@ -11,10 +11,10 @@ data class OTLUserDTO(
     val name: String,
 
     @SerializedName("mail")
-    val mail: String,
+    val email: String,
 
     @SerializedName("studentNumber")
-    val studentNumber: Number,
+    val studentNumber: Int,
 
     @SerializedName("degree")
     val degree: String,
@@ -28,8 +28,10 @@ data class OTLUserDTO(
     fun toModel(): OTLUser = OTLUser(
         id = id,
         name = name,
-        email = mail,
+        email = email,
         studentNumber = studentNumber,
-        majors = majorDepartments.map { it.toModel() },
+        degree = degree,
+        majorDepartments = majorDepartments.map { it.toModel() },
+        interestedDepartments = interestedDepartments.map { it.toModel() }
     )
 }

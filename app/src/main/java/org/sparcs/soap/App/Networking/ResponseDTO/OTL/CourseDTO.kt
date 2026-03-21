@@ -3,31 +3,6 @@ package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 
-data class CourseClassDTO(
-    @SerializedName("lectureId")
-    val lectureId: Int,
-
-    @SerializedName("subtitle")
-    val subtitle: String,
-
-    @SerializedName("classNo")
-    val classNo: String,
-
-    @SerializedName("professors")
-    val professors: List<ProfessorDTO>,
-)
-
-data class CourseHistoryDTO(
-    @SerializedName("year")
-    val year: Int,
-
-    @SerializedName("semester")
-    val semester: String,
-
-    @SerializedName("classes")
-    val classes: List<CourseClassDTO>,
-)
-
 data class CourseDTO (
     @SerializedName("id")
     val id: Int,
@@ -69,6 +44,7 @@ data class CourseDTO (
         type = type,
         department = department.toModel(),
         summary = summary,
+        history = history.map { it.toModel() },
         classDuration = classDuration,
         expDuration = expDuration,
         credit = credit,

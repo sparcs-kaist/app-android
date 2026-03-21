@@ -1,7 +1,7 @@
 package org.sparcs.soap.App.Networking.RetrofitAPI.OTL
 
 import org.sparcs.soap.App.Networking.ResponseDTO.OTL.CourseDTO
-import org.sparcs.soap.App.Networking.ResponseDTO.OTL.SearchCourseResponseDTO
+import org.sparcs.soap.App.Networking.ResponseDTO.OTL.CoursePageDTO
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -12,10 +12,10 @@ interface OTLCourseApi {
         @Query("keyword") name: String,
         @Query("offset") offset: Int,
         @Query("limit") limit: Int
-    ): SearchCourseResponseDTO
+    ): CoursePageDTO
 
     @GET("api/v2/courses/{courseId}")
-    suspend fun fetchCourseDetail(
+    suspend fun fetchCourse(
         @Path("courseId") courseId: Int
     ): CourseDTO
 }

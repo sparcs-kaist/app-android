@@ -2,18 +2,17 @@ package org.sparcs.soap.App.Networking.ResponseDTO.OTL
 
 import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
-import org.sparcs.soap.App.Domain.Models.OTL.Review
-import org.sparcs.soap.App.Domain.Models.OTL.ReviewResponse
+import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 
-data class ReviewDTO(
+data class LectureReviewDTO(
     @SerializedName("id")
     val id: Int,
 
     @SerializedName("courseId")
-    val courseId: Int,
+    val courseID: Int,
 
     @SerializedName("lectureId")
-    val lectureId: Int,
+    val lectureID: Int,
 
     @SerializedName("courseName")
     val courseName: String,
@@ -48,52 +47,34 @@ data class ReviewDTO(
     @SerializedName("likedByUser")
     val likedByUser: Boolean
 ) {
-    fun toModel(): Review = Review(
+    fun toModel(): LectureReview = LectureReview(
         id = id,
-        courseId = courseId,
-        lectureId = lectureId,
+        courseID = courseID,
+        lectureID = lectureID,
         courseName = courseName,
         professors = professors.map { it.toModel() },
         year = year,
         semester = SemesterType.fromRawValue(semester),
         content = content,
         like = like,
-        grade = grade,
-        load = load,
-        speech = speech,
+        grade = ratingToString(grade),
+        load = ratingToString(load),
+        speech = ratingToString(speech),
         isDeleted = isDeleted,
-        isLiked = likedByUser
+        likedByUser = likedByUser
     )
 }
 
-data class ReviewResponseDTO(
-    @SerializedName("reviews")
-    val reviews: List<ReviewDTO>,
-
-    @SerializedName("averageGrade")
-    val averageGrade: Double,
-
-    @SerializedName("averageLoad")
-    val averageLoad: Double,
-
-    @SerializedName("averageSpeech")
-    val averageSpeech: Double,
-
-    @SerializedName("department")
-    val department: DepartmentDTO?,
-
-    @SerializedName("totalCount")
-    val totalCount: Int
-) {
-    fun toModel(): ReviewResponse = ReviewResponse(
-        reviews = reviews.map { it.toModel() },
-        grade = averageGrade,
-        load = averageLoad,
-        speech = averageSpeech
-    )
+fun ratingToString(rating: Int): String = when (rating) {
+    1 -> "F"
+    2 -> "D"
+    3 -> "C"
+    4 -> "B"
+    5 -> "A"
+    else -> "?"
 }
 
 data class WrittenReviewResponseDTO(
     @SerializedName("reviews")
-    val reviews: List<ReviewDTO>
+    val reviews: List<LectureReviewDTO>
 )
