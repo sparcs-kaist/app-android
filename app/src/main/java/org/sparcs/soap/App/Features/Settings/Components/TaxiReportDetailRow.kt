@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiReportType
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiReport
 import org.sparcs.soap.App.Shared.Extensions.formattedString
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R

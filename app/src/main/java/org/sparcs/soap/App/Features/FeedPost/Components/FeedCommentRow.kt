@@ -61,7 +61,7 @@ import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
 import org.sparcs.soap.App.Shared.Extensions.toDetectedAnnotatedString
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Feed.mock
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB

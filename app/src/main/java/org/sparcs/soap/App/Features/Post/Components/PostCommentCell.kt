@@ -58,7 +58,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Ara.mock
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.R

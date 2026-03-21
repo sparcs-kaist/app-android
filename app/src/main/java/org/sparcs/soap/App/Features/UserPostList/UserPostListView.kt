@@ -30,7 +30,7 @@ import org.sparcs.soap.App.Features.PostList.Components.PostList.PostList
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import org.sparcs.soap.App.Features.UserPostList.Components.UserPostNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Ara.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.SearchCustomBar
 import org.sparcs.soap.App.theme.ui.Theme

@@ -36,16 +36,15 @@ import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModel
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModelProtocol
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiCapacityPicker
-import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiCarrierToggleButton
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDepartureTimePicker
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
+import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiListViewModel
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiRoomCreationViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
-import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiListViewModel
 import org.sparcs.soap.R
 import java.util.Date
 

@@ -57,7 +57,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.soap.App.Shared.Extensions.formattedString
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
