@@ -64,6 +64,7 @@ class PreviewTaxiChatViewModel(
     }
 
     override suspend fun toggleCarrier(hasCarrier: Boolean) {}
+    override suspend fun updateArrival(isArrived: Boolean) {}
 
     companion object {
         private val mockRenderItems: List<ChatRenderItem> by lazy {

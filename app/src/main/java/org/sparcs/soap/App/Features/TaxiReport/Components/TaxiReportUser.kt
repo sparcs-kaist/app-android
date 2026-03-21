@@ -125,7 +125,8 @@ private fun Preview(){
             badge = true,
             isSettlement = TaxiParticipant.SettlementType.PaymentRequired,
             readAt = Date(),
-            hasCarrier = false
+            hasCarrier = false,
+            isArrived = false
         ), {}, false
         )
     }

@@ -45,4 +45,7 @@ interface TaxiRoomApi {
 
     @POST("rooms/carrier/toggle")
     suspend fun toggleCarrier(@Body body: Map<String, @JvmSuppressWildcards Any>): TaxiRoomDTO
+
+    @POST("rooms/updateArrival")
+    suspend fun updateArrival(@Body body: Map<String, @JvmSuppressWildcards Any>): TaxiRoomDTO
 }
