@@ -71,6 +71,7 @@ interface TaxiChatViewModelProtocol {
     suspend fun sendImage(image: Bitmap)
     fun switchRoom(newRoom: TaxiRoom)
     suspend fun toggleCarrier(hasCarrier: Boolean)
+    suspend fun updateArrival(isArrived: Boolean)
 }
 
 @HiltViewModel
@@ -144,7 +145,7 @@ class TaxiChatViewModel @Inject constructor(
             try {
                 userUseCase.fetchTaxiUser()
             } catch (e: Exception) {
-                Timber.e("TaxiChatViewModel", "Failed to fetch taxi user", e)
+                Timber.tag("TaxiChatViewModel").e(e, "Failed to fetch taxi user")
             }
         }
         _taxiUser.value = userUseCase.taxiUser
@@ -293,6 +294,27 @@ class TaxiChatViewModel @Inject constructor(
             )
             this.isAlertPresented = true
             Timber.e(e, "toggleCarrier failed")
+        }
+    }
+
+    override suspend fun updateArrival(isArrived: Boolean) {
+        try {
+            val updatedRoom = taxiRoomRepository.updateArrival(
+                id = room.value.id,
+                isArrived = isArrived
+            )
+
+            _room.value = updatedRoom
+
+            taxiChatUseCase.setRoom(updatedRoom)
+
+        } catch (e: Exception) {
+            this.alertState = AlertState(
+                titleResId = R.string.error_update_arrival_failed,
+                message = e.localizedMessage ?: "Failed to update arrival status"
+            )
+            this.isAlertPresented = true
+            Timber.e(e, "updateArrival failed")
         }
     }
 

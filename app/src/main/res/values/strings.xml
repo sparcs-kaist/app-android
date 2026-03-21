@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Buddy</string>
 
@@ -474,4 +475,13 @@
     <string name="error_too_many_rooms">
         Maximum limit (5 rooms) reached.\nPlease complete settlement or cancel a ride.
     </string>
+    <string name="error_update_arrival_failed">Failed to update arrival status.</string>
+    <string name="taxi_arrived_count">%1$d Arrived</string>
+    <string name="taxi_all_arrived">All %1$d Arrived!</string>
+    <string name="taxi_arrived_question">Have you arrived?</string>
+    <string name="taxi_status">Status</string>
+    <string name="taxi_arrival_status">Arrival Status</string>
+    <string name="taxi_arrival">Arrived</string>
+    <string name="taxi_arrival_complete">Arrived</string>
+    <string name="taxi_not_arrived">Not Arrived</string>
 </resources>
