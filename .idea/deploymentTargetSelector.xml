@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-02-15T17:53:36.257776800Z">
+        <DropdownSelection timestamp="2026-03-19T11:50:12.320254700Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\yih27\.android\avd\Pixel_9_Pro_API_35.avd" />
@@ -17,6 +17,9 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="release.ver">
+        <option name="selectionMode" value="DROPDOWN" />
+      </SelectionState>
+      <SelectionState runConfigName="buddywatch">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>
