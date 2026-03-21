@@ -9,7 +9,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
 import org.sparcs.soap.App.Features.Post.PostViewModel
 import org.sparcs.soap.App.Features.Post.PostViewModelProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Ara.mock
 
 
 class MockPostViewModel(initialState: PostViewModel.ViewState, post: AraPost) : PostViewModelProtocol {

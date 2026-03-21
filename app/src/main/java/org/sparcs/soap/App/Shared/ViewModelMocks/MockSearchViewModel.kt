@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
-import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSummary
 import org.sparcs.soap.App.Domain.Models.SearchScope
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.Search.SearchViewModel
@@ -12,8 +12,8 @@ import org.sparcs.soap.App.Features.Search.SearchViewModelProtocol
 
 class MockSearchViewModel(initialState: SearchViewModel.ViewState) : SearchViewModelProtocol {
 
-    private val _courses = MutableStateFlow<List<SearchCourse>>(emptyList())
-    override val courses: StateFlow<List<SearchCourse>> = _courses.asStateFlow()
+    private val _courses = MutableStateFlow<List<CourseSummary>>(emptyList())
+    override val courses: StateFlow<List<CourseSummary>> = _courses.asStateFlow()
 
     private val _posts = MutableStateFlow<List<AraPost>>(emptyList())
     override val posts: StateFlow<List<AraPost>> = _posts.asStateFlow()

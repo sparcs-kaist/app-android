@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Shared.Mocks
+package org.sparcs.soap.App.Shared.Mocks.Feed
 
 import org.sparcs.soap.App.Domain.Models.Feed.FeedImage
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost

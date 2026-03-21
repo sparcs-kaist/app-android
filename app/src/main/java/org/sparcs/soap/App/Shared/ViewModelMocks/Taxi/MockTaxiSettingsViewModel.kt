@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Features.Settings.Taxi.TaxiSettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Taxi.TaxiSettingsViewModelProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 
 
 class MockTaxiSettingsViewModel(initialState: TaxiSettingsViewModel.ViewState):

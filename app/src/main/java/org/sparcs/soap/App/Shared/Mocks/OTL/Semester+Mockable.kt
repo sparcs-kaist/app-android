@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Shared.Mocks
+package org.sparcs.soap.App.Shared.Mocks.OTL
 
 import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
 import org.sparcs.soap.App.Domain.Models.OTL.Semester

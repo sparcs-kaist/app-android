@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Shared.Mocks
+package org.sparcs.soap.App.Shared.Mocks.Ara
 
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostAuthor
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostAuthorProfile
