@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import javax.inject.Inject
 
 interface TaxiLocationUseCaseProtocol {

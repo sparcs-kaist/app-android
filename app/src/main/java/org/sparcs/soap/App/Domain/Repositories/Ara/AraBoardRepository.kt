@@ -17,6 +17,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPostPage
 import org.sparcs.soap.App.Networking.RequestDTO.Ara.AraPostRequestDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraBoardApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.PostReportRequest
 import org.sparcs.soap.App.Shared.Extensions.compressForUpload
 import javax.inject.Inject
 
@@ -53,14 +54,18 @@ class AraBoardRepository @Inject constructor(
     private var cachedBoards: List<AraBoard>? = null
     private val mutex = Mutex()
 
-    override suspend fun fetchBoards(): List<AraBoard> = mutex.withLock {
-        cachedBoards?.let { return it }
+    override suspend fun fetchBoards(): List<AraBoard> {
+        val cached = mutex.withLock { cachedBoards }
+        if (cached != null) return cached
 
-        val response = api.fetchBoards()
-        val boards = response.map { it.toModel() }
-        cachedBoards = boards
+        val boards = safeApiCall(gson) {
+            api.fetchBoards()
+        }.map { it.toModel() }
+
+        mutex.withLock { this.cachedBoards = boards }
         return boards
     }
+
     override suspend fun fetchPosts(
         type: PostListType,
         page: Int,
@@ -129,9 +134,3 @@ class AraBoardRepository @Inject constructor(
         if (!response.isSuccessful) throw retrofit2.HttpException(response)
     }
 }
-
-data class PostReportRequest(
-    val post_id: Int,
-    val type: String,
-    val content: String,
-)

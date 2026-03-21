@@ -4,8 +4,10 @@ data class OTLUser(
     val id: Int,
     val name: String,
     val email: String,
-    val studentNumber: Number,
-    val majors: List<Department>,
+    val studentNumber: Int,
+    val degree: String,
+    val majorDepartments: List<Department>,
+    val interestedDepartments: List<Department>
 ){
     companion object
 }

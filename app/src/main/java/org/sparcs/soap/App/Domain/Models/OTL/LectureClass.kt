@@ -3,7 +3,7 @@ package org.sparcs.soap.App.Domain.Models.OTL
 import org.sparcs.soap.App.Domain.Enums.OTL.DayType
 import java.time.LocalDateTime
 
-data class ClassTime(
+data class LectureClass(
     val day: DayType,
     val begin: Int,
     val end: Int,
@@ -11,6 +11,9 @@ data class ClassTime(
     val buildingName: String,
     val roomName: String,
 ){
+    val duration: Int
+        get() = end - begin
+
     fun begin(now: LocalDateTime): LocalDateTime {
         val hour = begin / 60
         val minute = begin % 60

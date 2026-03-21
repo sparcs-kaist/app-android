@@ -2,31 +2,29 @@ package org.sparcs.soap.App.Domain.Repositories.OTL
 
 import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Models.OTL.LectureHistory
-import org.sparcs.soap.App.Domain.Models.OTL.Review
-import org.sparcs.soap.App.Domain.Models.OTL.ReviewResponse
+import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
+import org.sparcs.soap.App.Domain.Models.OTL.LectureReviewPage
 import org.sparcs.soap.App.Networking.RequestDTO.OTL.EditReviewRequest
 import org.sparcs.soap.App.Networking.RequestDTO.OTL.WriteReviewRequest
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.LikeReviewRequest
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLReviewApi
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
 import javax.inject.Inject
 
 interface OTLReviewRepositoryProtocol {
     suspend fun fetchReviews(
-        mode: String = "default", courseId: Int? = null, professorId: Int? = null, year: Int? = null, semester: Int? = null,
-        departmentId: Int? = null, offset: Int = 0, limit: Int = 10): ReviewResponse
+        mode: String = "default", courseID: Int? = null, professorID: Int? = null, year: Int? = null, semester: Int? = null,
+        departmentId: Int? = null, offset: Int = 0, limit: Int = 10): LectureReviewPage
 
-    suspend fun createReview(lectureId: Int, content: String, grade: Int, load: Int, speech: Int): Int
+    suspend fun writeReview(lectureID: Int, content: String, grade: Int, load: Int, speech: Int): Int
 
-    suspend fun updateReview(reviewId: Int, content: String, grade: Int, load: Int, speech: Int)
+    suspend fun updateReview(reviewID: Int, content: String, grade: Int, load: Int, speech: Int)
 
-    suspend fun likeReview(reviewId: Int, like: Boolean)
+    suspend fun likeReview(reviewID: Int, like: Boolean)
 
-    suspend fun fetchLectureHistory(userId: Int): List<LectureHistory>
+    suspend fun fetchLectureHistory(userID: Int): List<LectureHistory>
 
-    suspend fun getWrittenReviews(): List<Review>
+    suspend fun getWrittenReviews(): List<LectureReview>
 }
 
 class OTLReviewRepository @Inject constructor(
@@ -36,37 +34,30 @@ class OTLReviewRepository @Inject constructor(
 
     override suspend fun fetchReviews(
         mode: String,
-        courseId: Int?,
-        professorId: Int?,
+        courseID: Int?,
+        professorID: Int?,
         year: Int?,
         semester: Int?,
         departmentId: Int?,
         offset: Int,
         limit: Int
-    ): ReviewResponse {
+    ): LectureReviewPage {
         return safeApiCall(gson) {
             api.fetchReviews(
                 mode = mode,
-                courseId = courseId,
-                professorId = professorId,
+                courseID = courseID,
+                professorID = professorID,
                 year = year,
                 semester = semester,
-                departmentId = departmentId,
+                departmentID = departmentId,
                 offset = offset,
                 limit = limit
             )
-        }.let { response ->
-            ReviewResponse(
-                reviews = response.reviews.map { it.toModel() },
-                grade = response.averageGrade,
-                load = response.averageLoad,
-                speech = response.averageSpeech
-            )
-        }
+        }.toModel()
     }
 
-    override suspend fun createReview(
-        lectureId: Int,
+    override suspend fun writeReview(
+        lectureID: Int,
         content: String,
         grade: Int,
         load: Int,
@@ -74,18 +65,18 @@ class OTLReviewRepository @Inject constructor(
     ): Int {
         return safeApiCall(gson) {
             val request = WriteReviewRequest(
-                lectureID = lectureId,
+                lectureID = lectureID,
                 content = content,
                 grade = grade,
                 load = load,
                 speech = speech
             )
-            api.createReview(request)
+            api.writeReview(request)
         }.reviewId
     }
 
     override suspend fun updateReview(
-        reviewId: Int,
+        reviewID: Int,
         content: String,
         grade: Int,
         load: Int,
@@ -98,50 +89,26 @@ class OTLReviewRepository @Inject constructor(
                 load = load,
                 speech = speech
             )
-            api.updateReview(reviewId, request)
+            api.updateReview(reviewID, request)
         }
     }
 
-    override suspend fun likeReview(reviewId: Int, like: Boolean) {
+    override suspend fun likeReview(reviewID: Int, like: Boolean) {
         safeApiCall(gson) {
-            val request = LikeReviewRequest(reviewId, like.let { if (it) "like" else "unlike" })
-            api.likeReview(reviewId, request)
+            val request = LikeReviewRequest(reviewID, like.let { if (it) "like" else "unlike" })
+            api.toggleLikeReview(reviewID, request)
         }
     }
 
-    override suspend fun fetchLectureHistory(userId: Int): List<LectureHistory> {
+    override suspend fun fetchLectureHistory(userID: Int): List<LectureHistory> {
         return safeApiCall(gson) {
-            api.fetchCompletedLectures(userId)
+            api.fetchCompletedLectures(userID)
         }.lecturesWrap.map { it.toModel() }
     }
 
-    override suspend fun getWrittenReviews(): List<Review> {
+    override suspend fun getWrittenReviews(): List<LectureReview> {
         return safeApiCall(gson) {
             api.fetchWrittenReviews()
         }.reviews.map { it.toModel() }
-    }
-}
-
-class FakeOTLReviewRepository: OTLReviewRepositoryProtocol {
-    override suspend fun fetchReviews(
-        mode: String, courseId: Int?, professorId: Int?, year: Int?,
-        semester: Int?, departmentId: Int?, offset: Int, limit: Int
-    ): ReviewResponse {
-        return ReviewResponse.mock()
-    }
-
-    override suspend fun createReview(lectureId: Int, content: String, grade: Int, load: Int, speech: Int): Int {
-        return 12345
-    }
-
-    override suspend fun updateReview(reviewId: Int, content: String, grade: Int, load: Int, speech: Int) {}
-    override suspend fun likeReview(reviewId: Int, like: Boolean) {}
-
-    override suspend fun fetchLectureHistory(userId: Int): List<LectureHistory> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun getWrittenReviews(): List<Review> {
-        return Review.mockList()
     }
 }

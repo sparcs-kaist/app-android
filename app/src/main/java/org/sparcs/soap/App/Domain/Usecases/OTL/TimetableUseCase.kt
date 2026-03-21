@@ -2,202 +2,277 @@ package org.sparcs.soap.App.Domain.Usecases.OTL
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import org.sparcs.soap.App.Domain.Models.OTL.Lecture
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Cache.TimetableCache
+import org.sparcs.soap.App.Domain.Error.CrashContext
+import org.sparcs.soap.App.Domain.Error.NetworkError
+import org.sparcs.soap.App.Domain.Error.OTL.TimetableUseCaseError
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
-import org.sparcs.soap.App.Domain.Models.OTL.TimetableListItem
+import org.sparcs.soap.App.Domain.Models.OTL.TimetableCreation
+import org.sparcs.soap.App.Domain.Models.OTL.TimetableSummary
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
-import org.sparcs.soap.App.Shared.Extensions.StringProvider
-import org.sparcs.soap.R
+import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 interface TimetableUseCaseProtocol {
-    val semesters: StateFlow<List<Semester>>
-    val selectedSemester: StateFlow<Semester?>
+    suspend fun getSemesters(): List<Semester>
 
-    val currentSemesterTimetableList: StateFlow<List<TimetableListItem>>
-    var selectedTimetable: StateFlow<TimetableListItem?>
-    val selectedTimetableLectures: StateFlow<List<Lecture>>
-    val selectedTimetableObject: StateFlow<Timetable>
-    val isEditable: StateFlow<Boolean>
+    suspend fun getCurrentSemester(): Semester
 
-    val hasLectureInCurrentTable: (Lecture) -> Boolean
+    suspend fun getTimetableList(semester: Semester): List<TimetableSummary>
 
-    // MARK: - Actions
-    suspend fun load()
-    suspend fun selectSemester(id: String)
-    suspend fun createTable()
-    suspend fun deleteTable()
-    suspend fun addLecture(lecture: Lecture)
-    suspend fun deleteLecture(lecture: Lecture)
+    suspend fun getTable(id: Int, forceRefresh: Boolean = false): Timetable
 
-    suspend fun selectTimetable(id: Int)
+    suspend fun getMyTable(semester: Semester, forceRefresh: Boolean = false): Timetable
+
+    suspend fun deleteTable(id: Int)
+
+    suspend fun renameTable(id: Int, title: String)
+
+    suspend fun createTable(semester: Semester): TimetableCreation
+
+    suspend fun addLecture(timetableID: Int, lectureID: Int)
+
+    suspend fun deleteLecture(timetableID: Int, lectureID: Int)
 }
 
 @Singleton
 class TimetableUseCase @Inject constructor(
     private val otlTimetableRepository: OTLTimetableRepositoryProtocol,
-    private val stringProvider: StringProvider,
+    private val crashlyticsService: CrashlyticsServiceProtocol? = null,
+    private val timetableCache: TimetableCache,
+//    private val sessionBridgeService: SessionBridgeServiceProtocol? = null
 ) : TimetableUseCaseProtocol {
-    companion object {
-        const val MY_TABLE_ID = -1
+    // MARK: - Properties
+    private val feature: String = "Timetable"
+
+    // MARK: - Cached State
+    private val semesterCache = SemesterCache()
+    private val externalScope = CoroutineScope(Dispatchers.IO)
+    private val updateJobs = mutableMapOf<String, Job>()
+
+    override suspend fun getSemesters(): List<Semester> {
+        val context = CrashContext(feature)
+        return execute(context) {
+            semesterCache.getSemesters()?.let { cached ->
+                externalScope.launch {
+                    runCatching { otlTimetableRepository.getSemesters() }
+                        .onSuccess { semesterCache.setSemesters(it) }
+                }
+                cached
+            } ?: run {
+                val result = otlTimetableRepository.getSemesters()
+                semesterCache.setSemesters(result)
+                result
+            }
+        }
     }
-    private val _semesters = MutableStateFlow<List<Semester>>(emptyList())
-    override val semesters: StateFlow<List<Semester>> = _semesters
 
-    /// Prevent overlapping fetches per semester when the user switches quickly.
-    private val fetchingSemesters = mutableSetOf<String>()
+    // MARK: - Functions
+    override suspend fun getCurrentSemester(): Semester {
+        val context = CrashContext(feature)
+        return execute(context) {
+            semesterCache.getCurrentSemester()?.let { cached ->
+                externalScope.launch {
+                    runCatching { otlTimetableRepository.getCurrentSemester() }
+                        .onSuccess { semesterCache.setCurrentSemester(it) }
+                }
+                cached
+            } ?: run {
+                val result = otlTimetableRepository.getCurrentSemester()
+                semesterCache.setCurrentSemester(result)
+                result
+            }
+        }
+    }
 
-    private val _selectedSemesterID = MutableStateFlow<String?>(null)
-    override val selectedSemester: StateFlow<Semester?> =
-        combine(_selectedSemesterID, _semesters) { id, list ->
-            list.firstOrNull { it.id == id }
-        }.stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, null)
-
-    private val _currentSemesterTimetableList = MutableStateFlow<List<TimetableListItem>>(emptyList())
-    override val currentSemesterTimetableList: StateFlow<List<TimetableListItem>> = _currentSemesterTimetableList.asStateFlow()
-
-    private val _selectedTimetableId = MutableStateFlow(-1)
-    override var selectedTimetable: StateFlow<TimetableListItem?> = combine(_selectedTimetableId, currentSemesterTimetableList) { selectedId, list ->
-        list.firstOrNull { it.id == selectedId } ?:
-        if (selectedId == MY_TABLE_ID && selectedSemester.value !== null) {
-            TimetableListItem(
-                id = MY_TABLE_ID,
-                name = stringProvider.get(R.string.my_table),
-                year = selectedSemester.value!!.year,
-                semester = selectedSemester.value!!.semesterType,
-                timetableOrder = -1
+    override suspend fun getTimetableList(semester: Semester): List<TimetableSummary> {
+        val context = CrashContext(
+            feature,
+            metadata = mapOf(
+                "year" to semester.year.toString(),
+                "semester" to semester.semesterType.toString()
             )
-        } else null
-    }.stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, null)
+        )
 
-    private val _selectedTimetableLectures = MutableStateFlow<List<Lecture>>(emptyList())
-    override val selectedTimetableLectures: StateFlow<List<Lecture>> = _selectedTimetableLectures.asStateFlow()
-
-    override val selectedTimetableObject: StateFlow<Timetable> = 
-        selectedTimetableLectures.map { Timetable(it) }.stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, Timetable(emptyList()))
-
-    override val isEditable: StateFlow<Boolean> = selectedTimetable.map { tid -> tid?.id != MY_TABLE_ID
-    }.stateIn(CoroutineScope(Dispatchers.IO), SharingStarted.Lazily, false)
-
-
-    override val hasLectureInCurrentTable: (Lecture) -> Boolean
-        get() = { lecture ->
-            selectedTimetableLectures.value.any { it.id == lecture.id }
-        }
-
-    // MARK: - API
-    override suspend fun load() {
-        if (semesters.value.isNotEmpty()) return
-
-        val fetchedSemesters = otlTimetableRepository.getSemesters()
-        val currentSemester = otlTimetableRepository.getCurrentSemester()
-
-        // Persist semesters
-        _semesters.value = fetchedSemesters
-
-        // Select the current semester if it exists; otherwise last
-        _selectedSemesterID.value =
-            fetchedSemesters.find { it.year == currentSemester.year && it.semesterType == currentSemester.semesterType }?.id
-                ?: fetchedSemesters.lastOrNull()?.id
-
-        // Ensure a selected timetable for the chosen semester
-        _selectedSemesterID.value?.let {
-            _selectedTimetableId.value = MY_TABLE_ID
-        }
-        getTimetableData(MY_TABLE_ID)
-        // Fetch remote tables for the selected semester and merge
-        refreshTablesForSelectedSemester()
-    }
-
-    override suspend fun selectSemester(id: String) {
-        _selectedSemesterID.value = id
-        _selectedTimetableId.value = MY_TABLE_ID
-        getTimetableData(MY_TABLE_ID)
-        refreshTablesForSelectedSemester()
-    }
-
-    override suspend fun createTable() {
-        val semester = selectedSemester.value ?: return
-        // Create on server
-        val newTableId =
-            otlTimetableRepository.createTable(semester.year, semester.semesterType)
-
-        // Refresh tables for the current semester to get the new table list
-        refreshTablesForSelectedSemester()
-
-        // Select the newly created table
-        selectTimetable(newTableId)
-    }
-
-    override suspend fun deleteTable() {
-        val tid = _selectedTimetableId.value
-
-        otlTimetableRepository.deleteTable(tid)
-
-        // Update local store
-        _currentSemesterTimetableList.value =
-            _currentSemesterTimetableList.value.filter { it.id != tid }
-
-        // Select my table
-        _selectedTimetableId.value = MY_TABLE_ID
-        getTimetableData(MY_TABLE_ID)
-    }
-
-    override suspend fun addLecture(lecture: Lecture) {
-        otlTimetableRepository.addLecture(_selectedTimetableId.value, lecture.id)
-        _selectedTimetableLectures.value += lecture
-    }
-
-    override suspend fun deleteLecture(lecture: Lecture) {
-        otlTimetableRepository.deleteLecture(_selectedTimetableId.value, lecture.id)
-        _selectedTimetableLectures.value = _selectedTimetableLectures.value.filter { it.id != lecture.id }
-    }
-
-    override suspend fun selectTimetable(id: Int) {
-        _selectedTimetableId.value = id
-        getTimetableData(id)
-    }
-
-    // MARK: - Helpers
-    private suspend fun getTimetableData(id: Int) {
-        if (id == MY_TABLE_ID) {
-            val sid = _selectedSemesterID.value ?: return
-            val semester = semesters.value.firstOrNull { it.id == sid } ?: return
-            _selectedTimetableLectures.value = otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType).lectures
-        } else {
-            _selectedTimetableLectures.value = otlTimetableRepository.getTimetable(id).lectures
+        return execute(context) {
+            otlTimetableRepository.getTimetables(semester.year, semester.semesterType)
         }
     }
 
-    private suspend fun refreshTablesForSelectedSemester() {
-        val sid = _selectedSemesterID.value?: return
-        val semester = selectedSemester.value?: return
+    override suspend fun getTable(id: Int, forceRefresh: Boolean): Timetable {
 
-        if (fetchingSemesters.contains(sid)) return
-        fetchingSemesters.add(sid)
-        try {
-            val fetched =
-                otlTimetableRepository.getTimetables(semester.year, semester.semesterType)
-            _currentSemesterTimetableList.value = listOf(
-                TimetableListItem(
-                    id = MY_TABLE_ID,
-                    year = semester.year,
-                    semester = semester.semesterType,
-                    name = stringProvider.get(R.string.my_table),
-                    timetableOrder = -1
-                )
-            ) + fetched
+        val key = id.toString()
+        val context = CrashContext(feature, metadata = mapOf("timetableID" to key))
 
-            if (_selectedTimetableId.value.let { fetched.none { t -> t.id == it } }) {
-                if (_selectedTimetableId.value != MY_TABLE_ID) {
-                    _selectedTimetableId.value = MY_TABLE_ID
+        return execute(context) {
+            if (!forceRefresh) {
+                timetableCache.timetable(key)?.let { cached ->
+                    launchUpdate(key) {
+                        val fresh = otlTimetableRepository.getTimetable(id)
+                        timetableCache.store(fresh, key)
+                    }
+                    return@execute cached
                 }
             }
-        } finally {
-            fetchingSemesters.remove(sid)
+
+            val result = otlTimetableRepository.getTimetable(id)
+            timetableCache.store(result, key)
+            result
         }
+    }
+
+    override suspend fun getMyTable(semester: Semester, forceRefresh: Boolean): Timetable {
+        val context = CrashContext(
+            feature, metadata = mapOf(
+                "year" to semester.year.toString(),
+                "semester" to semester.semesterType.toString()
+            )
+        )
+        val key = "${semester.year}-${semester.semesterType.name}-myTable"
+
+        return execute(context) {
+            if (!forceRefresh) {
+                timetableCache.timetable(key)?.let { cached ->
+                    launchUpdate(key) {
+                        val freshDef = async {
+                            runCatching { otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType) }.getOrNull()
+                        }
+                        val currentDef = async { runCatching { otlTimetableRepository.getCurrentSemester() }.getOrNull() }
+
+                        val fresh = freshDef.await()
+                        val current = currentDef.await()
+
+                        fresh?.let {
+                            timetableCache.store(it, key)
+                        }
+                    }
+                    return@execute cached
+                }
+            }
+
+            val result = otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType)
+            timetableCache.store(result, key)
+
+            launchUpdate(key) {
+                val current = runCatching { otlTimetableRepository.getCurrentSemester() }.getOrNull()
+                if (current?.year == semester.year && current.semesterType == semester.semesterType) {
+                    // sessionBridgeService?.updateTimetable(result)
+                }
+            }
+            result
+        }
+    }
+
+    override suspend fun deleteTable(id: Int) {
+        val context = CrashContext(feature, metadata = mapOf("timetableID" to id.toString()))
+        execute(context) {
+            otlTimetableRepository.deleteTable(id)
+            timetableCache.invalidate(id.toString())
+        }
+    }
+
+    override suspend fun renameTable(id: Int, title: String) {
+        val context = CrashContext(
+            feature,
+            metadata = mapOf("timetableID" to id.toString(), "title" to title)
+        )
+        execute(context) {
+            otlTimetableRepository.renameTable(id, title)
+            timetableCache.invalidate(id.toString())
+        }
+    }
+
+    override suspend fun createTable(semester: Semester): TimetableCreation {
+        val context = CrashContext(
+            feature,
+            metadata = mapOf(
+                "year" to semester.year.toString(),
+                "semester" to semester.semesterType.toString()
+            )
+        )
+        return execute(context) {
+            otlTimetableRepository.createTable(semester.year, semester.semesterType)
+        }
+    }
+
+    override suspend fun addLecture(timetableID: Int, lectureID: Int) {
+        val context = CrashContext(
+            feature,
+            metadata = mapOf(
+                "timetableID" to timetableID.toString(),
+                "lectureID" to lectureID.toString()
+            )
+        )
+        execute(context) {
+            otlTimetableRepository.addLecture(timetableID, lectureID)
+            val freshTable = otlTimetableRepository.getTimetable(timetableID)
+            timetableCache.store(freshTable, timetableID.toString())
+        }
+    }
+
+    override suspend fun deleteLecture(timetableID: Int, lectureID: Int) {
+        val context = CrashContext(
+            feature,
+            metadata = mapOf(
+                "timetableID" to timetableID.toString(),
+                "lectureID" to lectureID.toString()
+            )
+        )
+        execute(context) {
+            otlTimetableRepository.deleteLecture(timetableID, lectureID)
+            val freshTable = otlTimetableRepository.getTimetable(timetableID)
+            timetableCache.store(freshTable, timetableID.toString())
+        }
+    }
+
+    private fun launchUpdate(key: String, block: suspend CoroutineScope.() -> Unit) {
+        if (updateJobs[key]?.isActive == true) return
+
+        updateJobs[key] = externalScope.launch {
+            try {
+                block()
+            } catch (e: Exception) {
+                try {
+                    Timber.e(e, "Background update failed for key: $key")
+                } catch (t: Exception) {
+                    Timber.e("TimetableUseCase", "Update failed", e)
+                }
+            }
+        }
+    }
+
+    private suspend fun <T> execute(context: CrashContext, operation: suspend () -> T): T {
+        return try {
+            operation()
+        } catch (e: Exception) {
+            val mappedError = if (e is NetworkError) e else TimetableUseCaseError.Unknown(e)
+            crashlyticsService?.record(mappedError as Throwable, context)
+            throw mappedError
+        }
+    }
+}
+
+// MARK: - SemesterCache Actor
+private class SemesterCache {
+    @Volatile
+    private var semesters: List<Semester>? = null
+
+    @Volatile
+    private var currentSemester: Semester? = null
+
+    fun getSemesters() = semesters
+    fun setSemesters(value: List<Semester>) {
+        semesters = value
+    }
+
+    fun getCurrentSemester() = currentSemester
+    fun setCurrentSemester(value: Semester) {
+        currentSemester = value
     }
 }
