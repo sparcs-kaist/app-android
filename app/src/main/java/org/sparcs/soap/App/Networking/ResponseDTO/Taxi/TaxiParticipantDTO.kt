@@ -32,7 +32,10 @@ data class TaxiParticipantDTO(
     val readAt: String,
 
     @SerializedName("hasCarrier")
-    val hasCarrier: Boolean?
+    val hasCarrier: Boolean?,
+
+    @SerializedName("isArrived")
+    val isArrived: Boolean?
 ) {
     fun toModel(): TaxiParticipant {
         return TaxiParticipant(
@@ -44,7 +47,8 @@ data class TaxiParticipantDTO(
             badge = badge ?: false,//treat as false when null
             isSettlement = isSettlement?.let { TaxiParticipant.SettlementType.from(it) },
             readAt = readAt.toDate() ?: Date(),
-            hasCarrier = hasCarrier ?: false
+            hasCarrier = hasCarrier ?: false,
+            isArrived = isArrived ?: false
         )
     }
 }

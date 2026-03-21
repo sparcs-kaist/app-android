@@ -99,6 +99,7 @@ fun TaxiChatView(
                     }
                 },
                 onCarrierToggle = { coroutineScope.launch { viewModel.toggleCarrier(it) } },
+                onArrivalToggle = { coroutineScope.launch { viewModel.updateArrival(it) } },
                 isEnabled = viewModel.isLeaveRoomAvailable
             )
         },

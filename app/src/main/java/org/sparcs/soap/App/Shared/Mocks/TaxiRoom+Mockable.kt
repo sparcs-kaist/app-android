@@ -24,7 +24,8 @@ fun TaxiRoom.Companion.mockList(): List<TaxiRoom>{
                 badge = true,
                 isSettlement = null,
                 readAt = Date(),
-                hasCarrier = false
+                hasCarrier = false,
+                isArrived = false
             ),
             TaxiParticipant(
                 id = "686d4d8f56fd773a8bd9d78c",
@@ -35,7 +36,8 @@ fun TaxiRoom.Companion.mockList(): List<TaxiRoom>{
                 badge = true,
                 isSettlement = null,
                 readAt = Date(),
-                hasCarrier = false
+                hasCarrier = false,
+                isArrived = false
             )
     )
 
