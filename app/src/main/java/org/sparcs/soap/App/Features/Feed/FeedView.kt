@@ -44,7 +44,7 @@ import org.sparcs.soap.App.Features.NavigationBar.AppDownBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Feed.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel

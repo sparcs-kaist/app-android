@@ -25,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -66,7 +67,7 @@ import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.isDateInSameDay
 import org.sparcs.soap.App.Shared.Extensions.weekdaySymbol
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiListViewModel
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiPreviewViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
@@ -98,6 +99,22 @@ fun TaxiListView(
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
     val pullState = rememberPullToRefreshState()
+
+    val isInteractable = uiState is TaxiListViewModel.ViewState.Loaded ||
+            uiState is TaxiListViewModel.ViewState.Empty
+
+    @Composable
+    fun getFilterDescription(): String {
+        val src = viewModel.source?.title
+        val dest = viewModel.destination?.title
+
+        return when {
+            src != null && dest != null -> stringResource(R.string.taxi_no_rooms_from_to, src, dest)
+            src != null -> stringResource(R.string.taxi_no_rooms_from_any, src)
+            dest != null -> stringResource(R.string.taxi_no_rooms_to, dest)
+            else -> stringResource(R.string.taxi_no_rooms_this_week)
+        }
+    }
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
@@ -180,23 +197,31 @@ fun TaxiListView(
                     }
 
                     is TaxiListViewModel.ViewState.Loaded -> {
-                        if (viewModel.roomId != null) {
-                            selectedRoom = (uiState as TaxiListViewModel.ViewState.Loaded).rooms.find { it.id == viewModel.roomId }
+                        val rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms
+                        if (rooms.isEmpty()) {
+                            EmptyResultView(
+                                description = getFilterDescription(),
+                                navController = navController,
+                                onClear = {
+                                    viewModel.source = null
+                                    viewModel.destination = null
+                                }
+                            )
+                        } else {
+                            LoadedView(
+                                rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
+                                week = viewModel.week,
+                                selectedDate = selectedDate,
+                                source = viewModel.source,
+                                destination = viewModel.destination,
+                                onRoomSelected = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                                    selectedRoom = it
+                                },
+                                viewModel = viewModel,
+                                navController = navController
+                            )
                         }
-
-                        LoadedView(
-                            rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
-                            week = viewModel.week,
-                            selectedDate = selectedDate,
-                            source = viewModel.source,
-                            destination = viewModel.destination,
-                            onRoomSelected = {
-                                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                selectedRoom = it
-                                             },
-                            viewModel = viewModel,
-                            navController = navController
-                        )
                     }
 
                     is TaxiListViewModel.ViewState.Empty -> {
@@ -311,17 +336,20 @@ private fun LoadedView(
     }
     val targetDates = selectedDate?.let { listOf(it) } ?: week
 
+    val defaultDescription = if (selectedDate != null)
+        stringResource(R.string.no_rooms_found_for_selected_week, selectedDate.weekdaySymbol())
+    else
+        stringResource(R.string.no_rooms_found)
     Column {
         if (filteredRooms.isEmpty()) {
-            val description = if (selectedDate != null)
-                stringResource(R.string.no_rooms_found_for_selected_week, selectedDate.weekdaySymbol())
-            else
-                stringResource(R.string.no_rooms_found)
-
             EmptyResultView(
-                viewModel = viewModel,
-                description = description,
-                navController = navController
+                description = defaultDescription,
+                navController = navController,
+                onClear = {
+                    viewModel.source = null
+                    viewModel.destination = null
+                    viewModel.selectedDate = null
+                }
             )
         } else {
             targetDates.forEach { day ->
@@ -381,9 +409,13 @@ private fun LoadedView(
                     }
                 } else if (selectedDate != null) {
                     EmptyResultView(
-                        viewModel = viewModel,
                         description = description,
-                        navController = navController
+                        navController = navController,
+                        onClear = {
+                            viewModel.source = null
+                            viewModel.destination = null
+                            viewModel.selectedDate = null
+                        }
                     )
                 }
             }
@@ -440,9 +472,9 @@ private fun EmptyView(navController: NavController) {
 
 @Composable
 private fun EmptyResultView(
-    viewModel: TaxiListViewModelProtocol,
     description: String,
     navController: NavController,
+    onClear: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -461,8 +493,8 @@ private fun EmptyResultView(
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = stringResource(R.string.no_rides_this_week),
-            style = MaterialTheme.typography.bodyLarge,
+            text = stringResource(R.string.no_rides_found),
+            style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
 
@@ -489,12 +521,8 @@ private fun EmptyResultView(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = {
-                    viewModel.source = null
-                    viewModel.destination = null
-                    viewModel.selectedDate = null
-                },
+            OutlinedButton(
+                onClick = onClear,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.clear_selection))

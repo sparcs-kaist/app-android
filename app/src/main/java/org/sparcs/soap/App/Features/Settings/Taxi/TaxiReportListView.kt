@@ -50,8 +50,8 @@ import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBa
 import org.sparcs.soap.App.Features.Settings.Components.TaxiReportDetailRow
 import org.sparcs.soap.App.Features.Settings.Components.TaxiReportDetailSkeletonRow
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiReportListViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView

@@ -45,7 +45,7 @@ import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.openUri
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.R
 

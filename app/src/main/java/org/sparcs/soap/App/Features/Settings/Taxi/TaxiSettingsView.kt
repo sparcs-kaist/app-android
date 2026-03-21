@@ -66,7 +66,7 @@ import org.sparcs.soap.App.Shared.Extensions.PhoneNumberVisualTransformation
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.toPhoneNumberFormat
 import org.sparcs.soap.App.Shared.Extensions.toggle
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiSettingsViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.theme.ui.Theme
