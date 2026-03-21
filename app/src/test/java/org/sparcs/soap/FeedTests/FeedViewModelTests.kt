@@ -7,7 +7,7 @@ import org.junit.Before
 import org.junit.Test
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Features.Feed.FeedViewModel
-import org.sparcs.soap.App.Shared.Mocks.Ara.mockList
+import org.sparcs.soap.App.Shared.Mocks.Feed.mockList
 import org.sparcs.soap.BuddyTestSupport.Error.TestError
 import org.sparcs.soap.BuddyTestSupport.Helper.FeedTestFixtures
 
