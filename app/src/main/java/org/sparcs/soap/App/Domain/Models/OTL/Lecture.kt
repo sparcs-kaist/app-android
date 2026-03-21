@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Domain.Models.OTL
 
 import androidx.compose.ui.graphics.Color
+import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Helpers.CourseRepresentable
 import org.sparcs.soap.App.Domain.Helpers.TimetableColorPalette
 
@@ -8,7 +9,7 @@ import org.sparcs.soap.App.Domain.Helpers.TimetableColorPalette
 val Lecture.backgroundColor: Color
     get() {
         val palette = TimetableColorPalette.palettes[0]
-        val index = courseId % palette.colors.size
+        val index = courseID % palette.colors.size
         return palette.colors[index]
     }
 
@@ -20,33 +21,26 @@ val Lecture.textColor: Color
 
 data class Lecture(
     val id: Int,
-    val courseId: Int,
-    val classNo: String,
+    val courseID: Int,
+    val section: String,
     val name: String,
     val subtitle: String,
     val code: String,
     val department: Department,
-    val type: String,
+    val type: LectureType,
     val capacity: Int,
-    val numberOfPeople: Int,
-    val credit: Int,
-    val creditAu: Int,
+    val enrolledCount: Int,
+    override val credit: Int,
+    override val creditAU: Int,
     override val grade: Double,
     override val load: Double,
     override val speech: Double,
     val isEnglish: Boolean,
     val professors: List<Professor>,
-    val classTimes: List<ClassTime>,
-    val examTimes: List<ExamTime>
+    val classes: List<LectureClass>,
+    val exams: List<LectureExam>,
+    val classDuration: Int,
+    val expDuration: Int
 ): CourseRepresentable {
-    companion object
-}
-
-data class LectureWrapperCourse(
-    val name: String,
-    val code: String,
-    val type: String,
-    val lectures: List<Lecture>
-) {
     companion object
 }

@@ -7,8 +7,8 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Networking.RequestDTO.Taxi.TaxiCreateRoomRequestDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiRoomApi
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import javax.inject.Inject
 
 interface TaxiRoomRepositoryProtocol {

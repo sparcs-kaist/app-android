@@ -7,6 +7,7 @@ data class Course(
     val type: String,
     val department: Department,
     val summary: String,
+    val history: List<CourseHistory>,
     val classDuration: Int,
     val expDuration: Int,
     val credit: Int,

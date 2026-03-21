@@ -3,7 +3,11 @@ package org.sparcs.soap.App.Domain.Usecases
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.sparcs.soap.App.Domain.Helpers.UserStorageProtocol
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
@@ -60,6 +64,17 @@ class UserUseCase @Inject constructor(
         private set
     override var otlUser: OTLUser? by mutableStateOf(null)
         private set
+
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    init {
+        scope.launch {
+            araUser = userStorage.getAraUser()
+            taxiUser = userStorage.getTaxiUser()
+            feedUser = userStorage.getFeedUser()
+            otlUser = userStorage.getOTLUser()
+        }
+    }
 
     override suspend fun fetchUsers() {
         supervisorScope {

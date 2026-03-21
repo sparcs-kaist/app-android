@@ -7,7 +7,7 @@ data class LectureCreditData(
     val credits: Int
 ) {
     val id: Int
-        get() = lectureType.code
+        get() = lectureType.labelRes
 
     companion object {
         val mockList = listOf(
