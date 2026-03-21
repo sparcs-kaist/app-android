@@ -34,8 +34,8 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Features.TaxiPreview.Components.RouteHeaderView
 import org.sparcs.soap.App.Shared.Extensions.relativeTimeString
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.Components.TaxiRoomStatusIndicator
 import org.sparcs.soap.App.theme.ui.Theme

@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Shared.Mocks
+package org.sparcs.soap.App.Shared.Mocks.Taxi
 
 import org.sparcs.soap.App.Domain.Helpers.LocalizedString
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation

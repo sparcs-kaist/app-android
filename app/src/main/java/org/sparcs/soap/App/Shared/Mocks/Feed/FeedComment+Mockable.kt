@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Shared.Mocks
+package org.sparcs.soap.App.Shared.Mocks.Feed
 
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
