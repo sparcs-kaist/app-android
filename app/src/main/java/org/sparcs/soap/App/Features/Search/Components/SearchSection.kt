@@ -2,7 +2,14 @@ package org.sparcs.soap.App.Features.Search.Components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
@@ -19,13 +26,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
-import org.sparcs.soap.App.Domain.Models.OTL.SearchCourse
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSummary
 import org.sparcs.soap.App.Domain.Models.SearchScope
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListRow
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import org.sparcs.soap.App.theme.ui.Theme
@@ -82,7 +89,7 @@ fun SearchSection(
 
 @Composable
 fun CourseSection(
-    cours: List<SearchCourse>,
+    courses: List<CourseSummary>,
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     navController: NavController,
@@ -96,14 +103,14 @@ fun CourseSection(
         onScopeChange = onScopeChange
     ) {
         SearchContent(
-            results = cours,
+            results = courses,
             onLoadMore = onLoadMore,
         ) { course ->
             if (isSkeleton) {
                 CourseSkeletonCell()
             } else {
                 CourseCell(
-                    searchCourse = course,
+                    course = course,
                     onClick = {
                         navController.navigate(Channel.CourseView.name + "?courseId=${course.id}")
                     }
@@ -185,7 +192,7 @@ private fun Preview() {
             searchScope = SearchScope.All,
             targetScope = SearchScope.Rides,
             onScopeChange = {},
-            content = { CourseCell(SearchCourse.mock(), {}) }
+            content = { CourseCell(CourseSummary.mock(), {}) }
         )
     }
 }

@@ -1,16 +1,29 @@
 package org.sparcs.soap.App.Features.Timetable.Components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,14 +35,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -37,6 +48,7 @@ fun TimetableDropDownMenu(
     expanded: Boolean,
     onDismiss: () -> Unit,
     viewModel: TimetableViewModelProtocol,
+    onRenameClick: () -> Unit,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -44,11 +56,14 @@ fun TimetableDropDownMenu(
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Column {
-            MyTableDropDownItems(viewModel, onDismiss)
+        TimetableListItems(viewModel, onDismiss)
 
-            BottomMenuDropDownItems(viewModel, onDismiss)
-        }
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.lightGray0,
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+        )
+
+        TimetableManagementItems(viewModel, onDismiss, onRenameClick)
     }
 }
 
@@ -103,7 +118,7 @@ private fun IconWithText(
 }
 
 @Composable
-fun MyTableDropDownItems(
+fun TimetableListItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
 ) {
@@ -111,37 +126,54 @@ fun MyTableDropDownItems(
     val timetableList by viewModel.timetableList.collectAsState()
     val scope = rememberCoroutineScope()
 
-    Column {
-        timetableList.forEach { timetableInfo ->
-            val isSelected = timetableInfo.id == selectedTimetable?.id
+    val isMyTableSelected = selectedTimetable == null
 
-            DropdownMenuItem(
-                text = { Text(timetableInfo.name.let { if (it == "") "No Title" else it }) },
-                onClick = {
-                    scope.launch {
-                        viewModel.selectTimetable(timetableInfo.id as Int)
-                    }
-                    onDismiss()
-                },
-                leadingIcon = {
-                    if (isSelected) Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Selected"
-                    )
-                }
-            )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.my_table)) },
+        onClick = {
+            scope.launch { viewModel.selectTimetable(-1) }
+            onDismiss()
+        },
+        leadingIcon = {
+            if (isMyTableSelected) Icon(Icons.Default.Check, contentDescription = "Selected")
         }
+    )
+
+//    Column {
+    timetableList.forEach { timetableInfo ->
+        val isSelected = selectedTimetable?.let {
+            it.id == timetableInfo.id.toString()
+        } ?: false
+
+        DropdownMenuItem(
+            text = {
+                Text(if (timetableInfo.title.isEmpty()) stringResource(R.string.untitled) else timetableInfo.title)
+            },
+            onClick = {
+                scope.launch {
+                    viewModel.selectTimetable(timetableInfo.id)
+                }
+                onDismiss()
+            },
+            leadingIcon = {
+                if (isSelected) Icon(Icons.Default.Check, contentDescription = "Selected")
+            }
+        )
+//        }
     }
 }
 
 @Composable
-private fun BottomMenuDropDownItems(
+private fun TimetableManagementItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
+    onRenameClick: () -> Unit,
 ) {
-    val scope = CoroutineScope(Dispatchers.Main)
-    val isEditable by viewModel.isEditable.collectAsState()
-    val deleteColor = if (isEditable) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
+    val scope = rememberCoroutineScope()
+    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+
+    val isActionEnabled = selectedTimetable != null
+    val deleteColor = if (isActionEnabled) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
@@ -159,6 +191,16 @@ private fun BottomMenuDropDownItems(
         }
     )
 
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.action_rename)) },
+        onClick = {
+            onDismiss()
+            onRenameClick()
+        },
+        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
+        enabled = isActionEnabled
+    )
+
     HorizontalDivider(
         color = MaterialTheme.colorScheme.lightGray0,
         modifier = Modifier.padding(4.dp)
@@ -168,8 +210,8 @@ private fun BottomMenuDropDownItems(
         text = { Text(stringResource(R.string.timetable_delete), color = deleteColor) },
         onClick = {
             onDismiss()
-            if (isEditable) {
-                viewModel.deleteTable()
+            if (isActionEnabled) {
+                scope.launch { viewModel.deleteTable() }
             }
         },
         leadingIcon = {
@@ -179,7 +221,7 @@ private fun BottomMenuDropDownItems(
                 tint = deleteColor
             )
         },
-        enabled = isEditable
+        enabled = isActionEnabled
     )
 }
 
@@ -191,7 +233,11 @@ private fun Preview() {
             Button(
                 onClick = {}
             ) {
-                TimetableDropDownMenu(expanded = true, onDismiss = {}, MockTimetableViewModel())
+                TimetableDropDownMenu(
+                    expanded = true,
+                    onDismiss = {},
+                    PreviewTimetableViewModel(),
+                    onRenameClick = {})
             }
         }
     }

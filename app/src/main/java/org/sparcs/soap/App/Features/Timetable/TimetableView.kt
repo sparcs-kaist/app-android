@@ -2,13 +2,28 @@ package org.sparcs.soap.App.Features.Timetable
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
@@ -20,18 +35,22 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
-import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Features.LectureSearch.LectureSearchView
 import org.sparcs.soap.App.Features.LectureSearch.LectureSearchViewModel
 import org.sparcs.soap.App.Features.LectureSearch.LectureSearchViewModelProtocol
 import org.sparcs.soap.App.Features.NavigationBar.AppDownBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
-import org.sparcs.soap.App.Features.Timetable.Components.*
+import org.sparcs.soap.App.Features.Timetable.Components.CompactTimetableSelector
+import org.sparcs.soap.App.Features.Timetable.Components.TimetableBottomSheet
+import org.sparcs.soap.App.Features.Timetable.Components.TimetableCreditGraph
+import org.sparcs.soap.App.Features.Timetable.Components.TimetableGrid
+import org.sparcs.soap.App.Features.Timetable.Components.TimetableSummary
+import org.sparcs.soap.App.Features.Timetable.Components.TimetableViewNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.escapeHash
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureSearchViewModel
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -48,7 +67,22 @@ fun TimetableView(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val selectedTimetable = viewModel.timetableUseCase?.selectedTimetableLectures?.collectAsState()?.value
+    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+    val timetableList by viewModel.timetableList.collectAsState()
+    val isEditable by viewModel.isEditable.collectAsState()
+
+    val myTableLabel = stringResource(R.string.my_table)
+    val untitledLabel = stringResource(R.string.untitled)
+
+    val timetableName = remember(selectedTimetable, timetableList) {
+        if (selectedTimetable == null) {
+            myTableLabel
+        } else {
+            val foundTitle = timetableList.find { it.id.toString() == selectedTimetable?.id }?.title
+
+            if (foundTitle.isNullOrEmpty()) untitledLabel else foundTitle
+        }
+    }
 
     val backStackEvent = {
         navController.navigate(Channel.Start.name) {
@@ -60,9 +94,9 @@ fun TimetableView(
         backStackEvent()
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchData()
-    }
+//    LaunchedEffect(Unit) {
+//        viewModel.fetchData()
+//    }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
@@ -70,7 +104,7 @@ fun TimetableView(
             topBar = {
                 TimetableViewNavigationBar(
                     scrollState = scrollState,
-                    isButtonEnabled = viewModel.isEditable.collectAsState().value,
+                    isButtonEnabled = isEditable,
                     onClick = { expanded = true }
                 )
             },
@@ -108,15 +142,12 @@ fun TimetableView(
                             navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                         },
                         showDeleteDialog = { lecture ->
-                            if (viewModel.isEditable.value) {
                                 lectureToDelete = lecture
                                 showDeleteDialog = true
-                            }
-
                         }
                     )
                 }
-                selectedTimetable?.let { TimetableCreditGraph(Timetable(it)) }
+                selectedTimetable?.let { TimetableCreditGraph(it) }
 
                 TimetableSummary(viewModel)
             }
@@ -132,7 +163,8 @@ fun TimetableView(
                 LectureSearchView(
                     navController = navController,
                     timetableViewModel = viewModel,
-                    lectureSearchViewModel = lectureSearchViewModel
+                    lectureSearchViewModel = lectureSearchViewModel,
+                    timetableName = timetableName,
                 ) {
                     onFold()
                 }
@@ -180,8 +212,8 @@ private fun Preview(){
     Theme {
         TimetableView(
             navController = rememberNavController(),
-            lectureSearchViewModel = MockLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded),
-            viewModel = MockTimetableViewModel()
+            lectureSearchViewModel = PreviewLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded),
+            viewModel = PreviewTimetableViewModel()
         )
     }
 }

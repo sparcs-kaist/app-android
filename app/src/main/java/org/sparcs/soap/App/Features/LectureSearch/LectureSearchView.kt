@@ -2,65 +2,91 @@ package org.sparcs.soap.App.Features.LectureSearch
 
 import android.net.Uri
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
+import org.sparcs.soap.App.Domain.Models.OTL.CourseLecture
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Features.LectureSearch.Components.LectureSearchViewNavigationBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.ContentViews.SearchCustomBar
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.App.theme.ui.Theme
-import org.sparcs.soap.App.theme.ui.grayBB
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureSearchViewModel
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
 @Composable
 fun LectureSearchView(
     navController: NavController,
+    timetableName: String,
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel(),
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel(),
     onFold: () -> Unit,
 ) {
+    val state by lectureSearchViewModel.state.collectAsState()
     val searchText by lectureSearchViewModel.searchText.collectAsState()
-    val courses by lectureSearchViewModel.lectures.collectAsState()
+    val courses by lectureSearchViewModel.courses.collectAsState()
 
     val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
 
-    val selectedTimetable by timetableViewModel.selectedTimetable.collectAsState()
+    val selectedSemester by timetableViewModel.selectedSemester.collectAsState()
+
+    LaunchedEffect(selectedSemester) {
+        selectedSemester?.let { semester ->
+            lectureSearchViewModel.bind(semester)
+        }
+    }
 
     Scaffold(
         topBar = {
-            if (searchText.isEmpty()) {
-                selectedTimetable?.let {
-                    LectureSearchViewNavigationBar(
-                        title = stringResource(
-                            id = R.string.add_to_timetable,
-                            it.name
-                        ),
-                    )
-                }
-            }
+            LectureSearchViewNavigationBar(
+                title = stringResource(R.string.add_to_timetable, timetableName)
+            )
         },
         modifier = Modifier.analyticsScreen("Lecture Search")
     ) { innerPadding ->
@@ -86,86 +112,68 @@ fun LectureSearchView(
             Spacer(modifier = Modifier.height(8.dp))
 
             // Lecture list
-            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (searchText.isEmpty()) {
-                    item {
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    searchText.isEmpty() -> {
                         UnavailableView(
                             icon = Icons.Rounded.Search,
                             title = stringResource(R.string.search),
                             description = stringResource(R.string.search_by_course)
                         )
                     }
-                } else if (courses.isEmpty()) {
-                    item {
+
+                    state is LectureSearchViewModel.ViewState.Loading -> {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    }
+
+                    courses.isEmpty() -> {
                         UnavailableView(
                             icon = Icons.Rounded.Search,
                             title = stringResource(R.string.no_results_for, searchText),
                             description = stringResource(R.string.check_the_spelling)
                         )
                     }
-                } else {
-                    courses.forEach { course ->
-                        if (course.lectures.isNotEmpty()) {
-                            item {
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = course.name,
-                                            style = MaterialTheme.typography.titleSmall,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        Column(horizontalAlignment = Alignment.End) {
-                                            Text(
-                                                text = course.code,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.grayBB
-                                            )
-                                            Text(
-                                                text = course.type,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.grayBB
-                                            )
-                                        }
-                                    }
 
-                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 8.dp))
+                    else -> {
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            courses.forEach { course ->
+                                item { CourseSectionHeader(course) }
 
-                                    course.lectures.forEach { lecture ->
-                                        LectureRow(
-                                            lecture = lecture,
-                                            onClick = {
-                                                val currentCandidate =
-                                                    timetableViewModel.candidateLecture.value
-                                                if (currentCandidate?.id == lecture.id) {
-                                                    timetableViewModel.setCandidateLecture(null)
-                                                } else {
-                                                    timetableViewModel.setCandidateLecture(lecture)
-                                                }
-                                                onFold()
-                                            },
-                                            onAddClick = {
-                                                if (isOverlapping) {
-                                                    showCannotAddLectureAlert = true
-                                                    pendingLectureToAdd = lecture
-                                                    timetableViewModel.setCandidateLecture(null)
-                                                } else {
-                                                    timetableViewModel.addLecture(lecture)
-                                                }
-                                            },
-                                            onInfoClick = {
-                                                val json = Uri.encode(Gson().toJson(lecture))
-                                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                                items(course.lectures.size) { index ->
+                                    val lecture = course.lectures[index]
+                                    LectureRow(
+                                        lecture = lecture,
+                                        onClick = {
+                                            val currentCandidate =
+                                                timetableViewModel.candidateLecture.value
+                                            if (currentCandidate?.id == lecture.id) {
+                                                timetableViewModel.setCandidateLecture(null)
+                                            } else {
+                                                timetableViewModel.setCandidateLecture(lecture)
                                             }
+                                            onFold()
+                                        },
+                                        onInfoClick = {
+                                            timetableViewModel.setCandidateLecture(lecture)
+                                            val json = Uri.encode(Gson().toJson(lecture))
+                                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                                            onFold()
+                                        },
+
+                                        onAddClick = {
+                                            if (isOverlapping) {
+                                                pendingLectureToAdd = lecture
+                                                showCannotAddLectureAlert = true
+                                            } else {
+                                                timetableViewModel.addLecture(lecture)
+                                            }
+                                        }
+                                    )
+                                    if (index < course.lectures.lastIndex) {
+                                        HorizontalDivider(
+                                            modifier = Modifier.padding(horizontal = 16.dp),
+                                            thickness = 0.5.dp,
+                                            color = MaterialTheme.colorScheme.outlineVariant
                                         )
                                     }
                                 }
@@ -174,64 +182,61 @@ fun LectureSearchView(
                     }
                 }
             }
-            if (showCannotAddLectureAlert) {
-                val overlappingLecture by timetableViewModel.overlappingLecture.collectAsState()
+        }
+        if (showCannotAddLectureAlert) {
+            val overlappingLecture by timetableViewModel.overlappingLecture.collectAsState()
 
-                AlertDialog(
-                    onDismissRequest = {
+            AlertDialog(
+                onDismissRequest = {
+                    showCannotAddLectureAlert = false
+                    pendingLectureToAdd = null
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showCannotAddLectureAlert = false
+
+                        pendingLectureToAdd?.let { lecture ->
+                            timetableViewModel.addLecture(lecture)
+                            pendingLectureToAdd = null
+                        }
+                    }) {
+                        Text(stringResource(R.string.ok))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
                         showCannotAddLectureAlert = false
                         pendingLectureToAdd = null
-                    },
-                    confirmButton = {
-                        TextButton(onClick = {
-                            showCannotAddLectureAlert = false
-
-                            pendingLectureToAdd?.let { lecture ->
-                                timetableViewModel.addLecture(lecture)
-                                pendingLectureToAdd = null
-                            }
-                        }) {
-                            Text(stringResource(R.string.ok))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = {
-                            showCannotAddLectureAlert = false
-                            pendingLectureToAdd = null
-                        }) {
-                            Text(stringResource(R.string.cancel))
-                        }
-                    },
-                    title = { Text(stringResource(R.string.add_overlapping_lecture)) },
-                    text = {
-                        val currentName =
-                            overlappingLecture?.name
-                                ?: stringResource(R.string.the_existing_lecture)
-                        val newName = pendingLectureToAdd?.name
-                            ?: stringResource(R.string.the_new_lecture)
-                        Text(
-                            text = stringResource(
-                                id = R.string.lecture_overlap,
-                                currentName,
-                                newName
-                            )
-                        )
+                    }) {
+                        Text(stringResource(R.string.cancel))
                     }
-                )
-            }
-
-            LaunchedEffect(Unit) {
-                lectureSearchViewModel.bind()
-            }
-
-            DisposableEffect(Unit) {
-                onDispose {
-                    timetableViewModel.setCandidateLecture(null)
+                },
+                title = { Text(stringResource(R.string.add_overlapping_lecture)) },
+                text = {
+                    val currentName =
+                        overlappingLecture?.name
+                            ?: stringResource(R.string.the_existing_lecture)
+                    val newName = pendingLectureToAdd?.name
+                        ?: stringResource(R.string.the_new_lecture)
+                    Text(
+                        text = stringResource(
+                            id = R.string.lecture_overlap,
+                            currentName,
+                            newName
+                        )
+                    )
                 }
+            )
+        }
+
+        DisposableEffect(Unit) {
+            onDispose {
+                timetableViewModel.setCandidateLecture(null)
             }
         }
     }
 }
+
 
 @Composable
 fun LectureRow(
@@ -253,7 +258,7 @@ fun LectureRow(
         ) {
             Box(modifier = Modifier.weight(1f, fill = false)) {
                 Text(
-                    text = lecture.classNo + lecture.subtitle,
+                    text = lecture.section + lecture.subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     softWrap = true
@@ -287,14 +292,49 @@ fun LectureRow(
     }
 }
 
+@Composable
+private fun CourseSectionHeader(course: CourseLecture) {
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = course.name,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.weight(1f),
+                maxLines = 2
+            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = course.code,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+                Text(
+                    text = course.type.name,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
+        }
+    }
+}
+
+
 /* ____________________________________________________________________*/
 
 @Composable
 private fun MockView(state: LectureSearchViewModel.ViewState) {
     LectureSearchView(
         navController = rememberNavController(),
-        timetableViewModel = MockTimetableViewModel(),
-        lectureSearchViewModel = MockLectureSearchViewModel(initialState = state),
+        timetableName = "My Table",
+        timetableViewModel = PreviewTimetableViewModel(),
+        lectureSearchViewModel = PreviewLectureSearchViewModel(initialState = state),
         {}
     )
 }

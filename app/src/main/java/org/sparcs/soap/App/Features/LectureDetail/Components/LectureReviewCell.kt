@@ -7,14 +7,31 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -25,11 +42,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.ReportMailComposer
-import org.sparcs.soap.App.Domain.Models.OTL.Review
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepositoryProtocol
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.gray64
 import org.sparcs.soap.App.theme.ui.grayBB
@@ -39,15 +54,13 @@ import timber.log.Timber
 
 @Composable
 fun LectureReviewCell(
-    review: Review,
-    repo: OTLReviewRepositoryProtocol,
+    lectureReview: LectureReview,
+    onLikeClick: () -> Unit,
+    isMine: Boolean,
 ) {
-
     var expanded by remember { mutableStateOf(false) }
-    var isLikeButtonRunning = false
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var reviewChange by remember { mutableStateOf(review) }
+
     val haptic = LocalHapticFeedback.current
     val unknown = stringResource(R.string.unknown)
 
@@ -63,7 +76,7 @@ fun LectureReviewCell(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = review.professors.firstOrNull()?.name
+                    text = lectureReview.professors.firstOrNull()?.name
                         ?: unknown,
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -72,8 +85,8 @@ fun LectureReviewCell(
 
                 Text(
                     text = "${
-                        review.year.toString().takeLast(2)
-                    }${review.semester.shortCode}",
+                        lectureReview.year.toString().takeLast(2)
+                    }${lectureReview.semester.shortCode}",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
@@ -82,18 +95,19 @@ fun LectureReviewCell(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Box {
-                    Icon(
-                        imageVector = Icons.Rounded.MoreHoriz,
-                        contentDescription = "More",
-                        modifier = Modifier.clickable { expanded = true }
-                    )
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
+                if(!isMine){
+                    Box {
+                        Icon(
+                            imageVector = Icons.Rounded.MoreHoriz,
+                            contentDescription = "More",
+                            modifier = Modifier.clickable { expanded = true }
+                        )
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
 //                        DropdownMenuItem(
 //                            text = { Text(stringResource(R.string.translate)) },
 //                            onClick = { // },
@@ -115,11 +129,17 @@ fun LectureReviewCell(
 //                            }
 //                        )
 //                        HorizontalDivider() - TODO REVIEW TRANSLATE AND SUMMARIZE
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.report)) },
-                            onClick = { report(review, context, unknown) },
-                            leadingIcon = { Icon(Icons.Default.Warning, contentDescription = null) }
-                        )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.report)) },
+                                onClick = { report(lectureReview, context, unknown) },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -127,7 +147,7 @@ fun LectureReviewCell(
             Spacer(modifier = Modifier.padding(4.dp))
 
             Text(
-                text = review.content,
+                text = lectureReview.content,
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -136,40 +156,38 @@ fun LectureReviewCell(
             Row(verticalAlignment = Alignment.Bottom) {
                 ReviewRatingLetter(
                     title = stringResource(R.string.grade),
-                    value = review.gradeLetter
+                    value = lectureReview.grade
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
-                ReviewRatingLetter(title = stringResource(R.string.load), value = review.loadLetter)
+                ReviewRatingLetter(
+                    title = stringResource(R.string.load),
+                    value = lectureReview.load
+                )
                 Spacer(modifier = Modifier.padding(8.dp))
                 ReviewRatingLetter(
                     title = stringResource(R.string.speech),
-                    value = review.speechLetter
+                    value = lectureReview.speech
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AnimatedContent(
-                        targetState = reviewChange.like.toString(),
+                        targetState = lectureReview.like.toString(),
                         label = "VotesTransition"
                     ) { targetCount ->
                         Text(targetCount)
                     }
                     Spacer(modifier = Modifier.padding(4.dp))
                     Icon(
-                        painter = if (reviewChange.isLiked) painterResource(R.drawable.baseline_arrow_up_bold) else painterResource(
+                        painter = if (lectureReview.likedByUser) painterResource(R.drawable.baseline_arrow_up_bold) else painterResource(
                             R.drawable.outline_arrow_up
                         ),
                         contentDescription = "Vote",
-                        tint = if (reviewChange.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        tint = if (lectureReview.likedByUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.clickable {
-                            if (isLikeButtonRunning) return@clickable
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                            isLikeButtonRunning = true
-                            toggleLike(reviewChange, repo, scope, context) { updated ->
-                                reviewChange = updated
-                            }
-                            isLikeButtonRunning = false
+                            onLikeClick()
                         }
                     )
                 }
@@ -302,52 +320,14 @@ private fun ReviewRatingLetter(title: String, value: String) {
     }
 }
 
-// MARK: - Helpers
-private fun toggleLike(
-    review: Review,
-    otlReviewRepository: OTLReviewRepositoryProtocol,
-    scope: CoroutineScope,
-    context: Context,
-    update: (Review) -> Unit,
-) {
-    scope.launch {
-        val prev = review.copy()
-
-        val updated = if (review.isLiked) {
-            // If already liked, clicking will unlike and decrease count
-            review.copy(
-                isLiked = false,
-                like = review.like - 1
-            )
-        } else {
-            // If not liked yet, clicking will like and increase count
-            review.copy(
-                isLiked = true,
-                like = review.like + 1
-            )
-        }
-
-        update(updated)
-
-        try {
-            if (prev.isLiked) otlReviewRepository.likeReview(review.id, false)
-            else otlReviewRepository.likeReview(review.id, true)
-        } catch (e: Exception) {
-            update(prev)
-            Toast.makeText(context, "Error toggling like", Toast.LENGTH_SHORT).show()
-            Timber.e(e, "Error toggling like")
-        }
-    }
-}
-
-fun report(review: Review, context: Context, unknown: String) {
+fun report(lectureReview: LectureReview, context: Context, unknown: String) {
     val urlString = ReportMailComposer.compose(
-        title = review.courseName,
+        title = lectureReview.courseName,
         code = "Unknown",
-        year = review.year,
-        semester = review.semester,
-        professorName = review.professors.firstOrNull()?.name ?: unknown,
-        content = review.content
+        year = lectureReview.year,
+        semester = lectureReview.semester,
+        professorName = lectureReview.professors.firstOrNull()?.name ?: unknown,
+        content = lectureReview.content
     )
 
     val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -367,7 +347,7 @@ fun report(review: Review, context: Context, unknown: String) {
 @Preview
 private fun Preview() {
     Theme {
-//        LectureReviewCell(review = Review.mock(), FakeOTLCourseRepository())
+        LectureReviewCell(LectureReview.mock(), {}, false)
     }
 }
 
