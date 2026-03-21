@@ -94,10 +94,6 @@ fun TimetableView(
         backStackEvent()
     }
 
-//    LaunchedEffect(Unit) {
-//        viewModel.fetchData()
-//    }
-
     Box(modifier = Modifier.fillMaxSize()) {
 
         Scaffold(

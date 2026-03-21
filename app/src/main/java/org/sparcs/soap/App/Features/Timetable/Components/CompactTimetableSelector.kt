@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -182,14 +183,20 @@ fun TableSelector(
     onRenameClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
+    val isDefault = selectedTimetableID == null
 
-    Box {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(25.dp))
+            .background(MaterialTheme.colorScheme.surface),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         Row(
             modifier = Modifier
-                .clip(RoundedCornerShape(25.dp))
-                .background(MaterialTheme.colorScheme.surface)
-                .clickable { expanded = true }
-                .padding(8.dp),
+                .clip(RoundedCornerShape(topStart = 25.dp, bottomStart = 25.dp))
+                .clickable(enabled = !isDefault) { onRenameClick() }
+                .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AnimatedText(
@@ -197,20 +204,42 @@ fun TableSelector(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold
             )
-            Spacer(Modifier.width(8.dp))
 
+            if (!isDefault) {
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    imageVector = Icons.Rounded.Edit,
+                    contentDescription = "Rename",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .size(16.dp)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+        )
+
+        Box {
             Icon(
                 imageVector = Icons.Rounded.MoreHoriz,
                 contentDescription = "Menu",
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier
+                    .clip(RoundedCornerShape(topEnd = 25.dp, bottomEnd = 25.dp))
+                    .clickable { expanded = true }
+                    .padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)
+                    .size(20.dp)
+            )
+
+            TimetableDropDownMenu(
+                expanded = expanded,
+                onDismiss = { expanded = false },
+                viewModel = viewModel
             )
         }
-        TimetableDropDownMenu(
-            expanded = expanded,
-            onDismiss = { expanded = false },
-            viewModel = viewModel,
-            onRenameClick = onRenameClick
-        )
     }
 }
 
