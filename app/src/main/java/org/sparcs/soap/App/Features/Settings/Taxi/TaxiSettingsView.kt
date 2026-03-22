@@ -135,6 +135,12 @@ fun TaxiSettingsView(
         }
     }
 
+    val isChanged by remember {
+        derivedStateOf {
+            hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged
+        }
+    }
+
     val coroutineScope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
     var showAlert by remember { mutableStateOf(false) }
@@ -151,7 +157,7 @@ fun TaxiSettingsView(
             SettingsViewNavigationBar(
                 title = stringResource(R.string.taxi_settings),
                 onDismiss = {
-                    if (isValid) {
+                    if (isChanged) {
                         showDiscardDialog = true
                     } else {
                         navController.popBackStack()

@@ -31,12 +31,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import org.sparcs.soap.App.Domain.Models.Taxi.ChatBubblePosition
+import org.sparcs.soap.App.Domain.Models.Taxi.MetadataVisibility
+import org.sparcs.soap.App.Domain.Models.Taxi.SenderInfo
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatReadReceipt
-import org.sparcs.soap.App.Features.TaxiChat.Components.MetadataVisibility
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
-import org.sparcs.soap.App.Features.TaxiChat.Components.SenderInfo
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 

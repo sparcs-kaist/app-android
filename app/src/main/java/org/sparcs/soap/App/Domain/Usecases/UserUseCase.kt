@@ -83,17 +83,14 @@ class UserUseCase @Inject constructor(
             val feed = async { runCatching { fetchFeedUser() } }
             val otl = async { runCatching { fetchOTLUser() } }
 
-            val results = listOf(taxi.await(), ara.await(), feed.await(), otl.await())
-
-            if (results.all { it.isFailure }) {
-                val firstError = results.firstNotNullOfOrNull { it.exceptionOrNull() }
-                Timber.e(firstError, "All fetches failed")
-            } else {
-                results.forEachIndexed { index, result ->
-                    if (result.isFailure) {
-                        Timber.w("Fetch task $index failed: ${result.exceptionOrNull()?.message}")
-                    }
-                }
+            try {
+                taxi.await()
+                ara.await()
+                feed.await()
+                otl.await()
+            } catch (e: Exception) {
+                Timber.e(e, "User data fetch failed - triggering logout")
+                throw e
             }
         }
     }

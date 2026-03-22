@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,12 +39,12 @@ import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiChatListViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiChatListViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -238,7 +237,7 @@ fun LoadedView(
 private fun LoadingPreview(){
     Theme {
         TaxiChatListView(
-            MockTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Loading),
+            PreviewTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Loading),
             rememberNavController()
         )
     }
@@ -249,7 +248,7 @@ private fun LoadingPreview(){
 private fun LoadedPreview(){
     Theme {
         TaxiChatListView(
-            MockTaxiChatListViewModel(
+            PreviewTaxiChatListViewModel(
                 TaxiChatListViewModel.ViewState.Loaded(
                     TaxiRoom.mockList().subList(1, 4),
                 TaxiRoom.mockList().subList(5, 7))),
@@ -263,7 +262,7 @@ private fun LoadedPreview(){
 private fun ErrorPreview(){
     Theme {
         TaxiChatListView(
-            MockTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Error("Something went wrong")),
+            PreviewTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Error("Something went wrong")),
             rememberNavController()
         )
     }

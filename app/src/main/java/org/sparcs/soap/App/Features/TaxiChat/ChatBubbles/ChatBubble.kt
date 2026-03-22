@@ -33,7 +33,7 @@ import org.sparcs.soap.App.Domain.Enums.DeepLinkEventBus
 import org.sparcs.soap.App.Domain.Models.Taxi.ChatBubblePosition
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Shared.Extensions.toDetectedAnnotatedString
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.theme.ui.Theme
 
 @Composable
