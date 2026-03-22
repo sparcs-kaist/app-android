@@ -54,6 +54,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.LocalizedString
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.AppDownBar
@@ -100,22 +101,11 @@ fun TaxiListView(
     val sheetState = rememberModalBottomSheetState()
     val pullState = rememberPullToRefreshState()
 
-    val isInteractable = uiState is TaxiListViewModel.ViewState.Loaded ||
-            uiState is TaxiListViewModel.ViewState.Empty
-
-    @Composable
-    fun getFilterDescription(): String {
-        val src = viewModel.source?.title
-        val dest = viewModel.destination?.title
-
-        return when {
-            src != null && dest != null -> stringResource(R.string.taxi_no_rooms_from_to, src, dest)
-            src != null -> stringResource(R.string.taxi_no_rooms_from_any, src)
-            dest != null -> stringResource(R.string.taxi_no_rooms_to, dest)
-            else -> stringResource(R.string.taxi_no_rooms_this_week)
-        }
-    }
-
+    val description = getTaxiFilterDescription(
+        sourceTitle = viewModel.source?.title,
+        destinationTitle = viewModel.destination?.title,
+        selectedDate = selectedDate
+    )
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
     Scaffold(
@@ -200,7 +190,7 @@ fun TaxiListView(
                         val rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms
                         if (rooms.isEmpty()) {
                             EmptyResultView(
-                                description = getFilterDescription(),
+                                description = description,
                                 navController = navController,
                                 onClear = {
                                     viewModel.source = null
@@ -219,6 +209,7 @@ fun TaxiListView(
                                     selectedRoom = it
                                 },
                                 viewModel = viewModel,
+                                description = description,
                                 navController = navController
                             )
                         }
@@ -326,6 +317,7 @@ private fun LoadedView(
     destination: TaxiLocation?,
     onRoomSelected: (TaxiRoom) -> Unit,
     viewModel: TaxiListViewModelProtocol,
+    description: String,
     navController: NavController,
 ) {
     val calendar = Calendar.getInstance()
@@ -336,14 +328,10 @@ private fun LoadedView(
     }
     val targetDates = selectedDate?.let { listOf(it) } ?: week
 
-    val defaultDescription = if (selectedDate != null)
-        stringResource(R.string.no_rooms_found_for_selected_week, selectedDate.weekdaySymbol())
-    else
-        stringResource(R.string.no_rooms_found)
     Column {
         if (filteredRooms.isEmpty()) {
             EmptyResultView(
-                description = defaultDescription,
+                description = description,
                 navController = navController,
                 onClear = {
                     viewModel.source = null
@@ -357,35 +345,11 @@ private fun LoadedView(
                     calendar.isDateInSameDay(room.departAt, day)
                 }
 
-                val description: String = when {
-                    viewModel.source != null && viewModel.destination != null ->
-                        stringResource(
-                            R.string.no_rooms_from_to,
-                            viewModel.source?.title ?: "",
-                            viewModel.destination?.title ?: "",
-                            day.weekdaySymbol()
-                        )
-
-                    viewModel.source != null ->
-                        stringResource(
-                            R.string.no_rooms_from_any,
-                            viewModel.source?.title ?: "",
-                            day.weekdaySymbol()
-                        )
-
-                    viewModel.destination != null ->
-                        stringResource(
-                            R.string.no_rooms_to,
-                            viewModel.destination?.title ?: "",
-                            day.weekdaySymbol()
-                        )
-
-                    else ->
-                        stringResource(
-                            R.string.no_rooms_on,
-                            day.weekdaySymbol()
-                        )
-                }
+                val dayDescription = getTaxiFilterDescription(
+                    sourceTitle = viewModel.source?.title,
+                    destinationTitle = viewModel.destination?.title,
+                    selectedDate = day
+                )
 
                 if (roomsForDay.isNotEmpty()) {
                     Column(
@@ -412,7 +376,7 @@ private fun LoadedView(
                     }
                 } else if (selectedDate != null) {
                     EmptyResultView(
-                        description = description,
+                        description = dayDescription,
                         navController = navController,
                         onClear = {
                             viewModel.source = null
@@ -534,6 +498,41 @@ private fun EmptyResultView(
     }
 }
 
+@Composable
+private fun getTaxiFilterDescription(
+    sourceTitle: LocalizedString?,
+    destinationTitle: LocalizedString?,
+    selectedDate: Date?
+): String {
+    val daySymbol = selectedDate?.weekdaySymbol()
+    val src = sourceTitle?.toString()
+    val dest = destinationTitle?.toString()
+
+    return when {
+        src != null && dest != null -> {
+            if (daySymbol != null) stringResource(R.string.no_rooms_from_to, src, dest, daySymbol)
+            else stringResource(R.string.taxi_no_rooms_from_to, src, dest)
+        }
+
+        src != null -> {
+            if (daySymbol != null) stringResource(R.string.no_rooms_from_any, src, daySymbol)
+            else stringResource(R.string.taxi_no_rooms_from_any, src)
+        }
+
+        dest != null -> {
+            if (daySymbol != null) stringResource(R.string.no_rooms_to, dest, daySymbol)
+            else stringResource(R.string.taxi_no_rooms_to, dest)
+        }
+
+        daySymbol != null -> {
+            stringResource(R.string.no_rooms_on, daySymbol)
+        }
+
+        else -> {
+            stringResource(R.string.taxi_no_rooms_this_week)
+        }
+    }
+}
 
 @Composable
 @Preview
