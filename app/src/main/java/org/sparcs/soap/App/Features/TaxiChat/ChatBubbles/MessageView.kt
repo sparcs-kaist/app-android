@@ -36,6 +36,7 @@ import org.sparcs.soap.App.Features.TaxiChat.Components.ChatReadReceipt
 import org.sparcs.soap.App.Features.TaxiChat.Components.MetadataVisibility
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
+import org.sparcs.soap.App.Features.TaxiChat.Components.SenderInfo
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
