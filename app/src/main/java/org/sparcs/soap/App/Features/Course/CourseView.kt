@@ -1,6 +1,8 @@
 package org.sparcs.soap.App.Features.Course
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,16 +10,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -30,23 +34,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import org.sparcs.soap.App.Domain.Helpers.gradeLetter
-import org.sparcs.soap.App.Domain.Helpers.loadLetter
-import org.sparcs.soap.App.Domain.Helpers.speechLetter
+import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
-import org.sparcs.soap.App.Domain.Repositories.OTL.FakeOTLCourseRepository
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import org.sparcs.soap.App.Domain.Models.OTL.LectureReviewPage
 import org.sparcs.soap.App.Features.Course.Components.CourseNavigationBar
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureDetailRow
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewCell
-import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewSkeletonCell
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureSummaryRow
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
+import org.sparcs.soap.App.Shared.Mocks.OTL.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
+import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewCourseViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -54,20 +56,13 @@ fun CourseView(
     viewModel: CourseViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val repo: OTLCourseRepositoryProtocol = hiltViewModel<CourseViewModel>().otlCourseRepository
-    val course = viewModel.course.collectAsState().value
     val state by viewModel.state.collectAsState()
-    val reviews by viewModel.reviews.collectAsState()
-
-    LaunchedEffect(course.id) {
-        viewModel.fetchReviews(courseId = course.id)
-    }
 
     Scaffold(
         topBar = {
             CourseNavigationBar(
                 navController = navController,
-                text = course.title.localized()
+                text = (state as? CourseViewModel.ViewState.Loaded)?.course?.name ?: ""
             )
         },
         modifier = Modifier.analyticsScreen("Course")
@@ -80,25 +75,39 @@ fun CourseView(
                 .padding(horizontal = 16.dp)
         ) {
             when (state) {
-                CourseViewModel.ViewState.Loading, CourseViewModel.ViewState.Loaded -> {
+                CourseViewModel.ViewState.Loading -> {
+                    CourseSummarySkeleton()
+                }
+
+                is CourseViewModel.ViewState.Loaded -> {
+                    val course = (state as CourseViewModel.ViewState.Loaded).course
+                    val reviews = (state as CourseViewModel.ViewState.Loaded).reviews
+                    val reviewPage = (state as CourseViewModel.ViewState.Loaded).reviewPage
+                    val writtenReview = (state as CourseViewModel.ViewState.Loaded).writtenReview
+
                     CourseSummary(course)
                     Spacer(modifier = Modifier.height(16.dp))
-                    CourseReviewSection(course, reviews, state, repo)
+                    CourseReviewSection(
+                        course = course,
+                        reviews = reviews,
+                        myReview = writtenReview,
+                        reviewPage = reviewPage,
+                        viewModel = viewModel
+                    )
                 }
 
                 is CourseViewModel.ViewState.Error -> {
                     val message = (state as CourseViewModel.ViewState.Error).message
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = "Error: $message",
-                        onRetry = { viewModel.fetchReviews(courseId = course.id) }
+                        message = message,
+                        onRetry = { viewModel.loadCourse() }
                     )
                 }
             }
         }
     }
 }
-
 
 @Composable
 fun CourseSummary(course: Course) {
@@ -107,12 +116,24 @@ fun CourseSummary(course: Course) {
             horizontalArrangement = Arrangement.SpaceEvenly,
             modifier = Modifier.fillMaxWidth()
         ) {
-            LectureSummaryRow(stringResource(R.string.hours).uppercase(), course.numClasses.toString())
-            LectureSummaryRow(stringResource(R.string.lab).uppercase(), course.numLabs.toString())
+            LectureSummaryRow(
+                stringResource(R.string.hours).uppercase(),
+                course.classDuration.toString()
+            )
+            LectureSummaryRow(
+                stringResource(R.string.lab).uppercase(),
+                course.expDuration.toString()
+            )
             if (course.credit == 0) {
-                LectureSummaryRow(stringResource(R.string.au).uppercase(), course.creditAu.toString())
+                LectureSummaryRow(
+                    stringResource(R.string.au).uppercase(),
+                    course.creditAu.toString()
+                )
             } else {
-                LectureSummaryRow(stringResource(R.string.credit).uppercase(), course.credit.toString())
+                LectureSummaryRow(
+                    stringResource(R.string.credit).uppercase(),
+                    course.credit.toString()
+                )
             }
         }
 
@@ -125,10 +146,10 @@ fun CourseSummary(course: Course) {
                 style = MaterialTheme.typography.titleLarge
             )
             LectureDetailRow(stringResource(R.string.code), course.code)
-            LectureDetailRow(stringResource(R.string.type), course.type.localized())
+            LectureDetailRow(stringResource(R.string.type), course.type)
             LectureDetailRow(
                 stringResource(R.string.department),
-                course.department.name.localized()
+                course.department.name
             )
 
             if (course.summary.isNotEmpty()) {
@@ -149,58 +170,226 @@ fun CourseSummary(course: Course) {
 }
 
 @Composable
-fun CourseReviewSection(
-    course: Course,
-    reviews: List<LectureReview>,
-    state: CourseViewModel.ViewState,
-    repo: OTLCourseRepositoryProtocol,
-) {
-    Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.reviews), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow(stringResource(R.string.grade), course.gradeLetter)
-            Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow(stringResource(R.string.load), course.loadLetter)
-            Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow(stringResource(R.string.speech), course.speechLetter)
+private fun CourseSummarySkeleton() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp)
+    ) {
+        Row(
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            repeat(3) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .height(14.dp)
+                            .width(40.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                RoundedCornerShape(4.dp)
+                            )
+                    )
+                    Box(
+                        modifier = Modifier
+                            .height(24.dp)
+                            .width(30.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                RoundedCornerShape(4.dp)
+                            )
+                    )
+                }
+            }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            if (state == CourseViewModel.ViewState.Loaded) {
-                if (reviews.isEmpty()) {
-                    UnavailableView(
-                        Icons.AutoMirrored.Outlined.LibraryBooks,
-                        title = stringResource(R.string.no_reviews),
-                        description = stringResource(R.string.there_are_no_reviews_yet)
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Box(
+                modifier = Modifier
+                    .height(28.dp)
+                    .width(100.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
                     )
-                } else {
-                    reviews.forEach { review ->
-                        LectureReviewCell(review, repo)
-                    }
+            )
+
+            repeat(3) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .height(16.dp)
+                            .width(60.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                RoundedCornerShape(4.dp)
+                            )
+                    )
+                    Box(
+                        modifier = Modifier
+                            .height(16.dp)
+                            .width(120.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                RoundedCornerShape(4.dp)
+                            )
+                    )
                 }
-            } else {
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .height(14.dp)
+                    .width(70.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 repeat(3) {
-                    LectureReviewSkeletonCell()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(14.dp)
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                RoundedCornerShape(4.dp)
+                            )
+                    )
                 }
             }
         }
     }
 }
 
-@Preview
 @Composable
-private fun Preview() {
+fun CourseReviewSection(
+    viewModel: CourseViewModelProtocol,
+    course: Course,
+    reviews: List<LectureReview>,
+    myReview: LectureReview?,
+    reviewPage: LectureReviewPage,
+) {
+
     Column {
-        CourseSummary(Course.mock())
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.reviews), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Spacer(modifier = Modifier.weight(1f))
+            val totalCredit = course.credit + course.creditAu
+            LectureSummaryRow(
+                stringResource(R.string.grade),
+                reviewPage.getGradeLetter(totalCredit)
+            )
+            Spacer(modifier = Modifier.weight(1f))
+            LectureSummaryRow(stringResource(R.string.load), reviewPage.getLoadLetter(totalCredit))
+            Spacer(modifier = Modifier.weight(1f))
+            LectureSummaryRow(
+                stringResource(R.string.speech),
+                reviewPage.getSpeechLetter(totalCredit)
+            )
+        }
+
         Spacer(modifier = Modifier.height(16.dp))
-        CourseReviewSection(
-            Course.mock(),
-            LectureReview.mockList(),
-            CourseViewModel.ViewState.Loaded,
-            FakeOTLCourseRepository()
+
+        Column {
+            myReview?.let { myReview ->
+                Text(
+                    text = stringResource(R.string.my_review_title),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                LectureReviewCell(
+                    lectureReview = myReview,
+                    onLikeClick = { viewModel.toggleReviewLike(myReview) },
+                    isMine = true
+                )
+                Spacer(Modifier.padding(8.dp))
+                HorizontalDivider(thickness = 0.5.dp)
+            }
+
+            if (reviews.isEmpty() && myReview == null) {
+                UnavailableView(
+                    icon = Icons.AutoMirrored.Outlined.LibraryBooks,
+                    title = stringResource(R.string.no_reviews),
+                    description = stringResource(R.string.there_are_no_reviews_yet)
+                )
+            } else {
+                reviews.forEach { review ->
+                    LectureReviewCell(
+                        lectureReview = review,
+                        onLikeClick = { viewModel.toggleReviewLike(review) },
+                        isMine = false
+                    )
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Previews
+@Preview(showBackground = true, name = "Loading")
+@Composable
+private fun PreviewLoading() {
+    val viewModel = PreviewCourseViewModel(CourseViewModel.ViewState.Loading)
+    Theme {
+        CourseView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(showBackground = true, name = "Loaded")
+@Composable
+private fun PreviewLoaded() {
+    val viewModel = PreviewCourseViewModel(
+        CourseViewModel.ViewState.Loaded(
+            course = Course.mock(),
+            reviews = LectureReview.mockList(),
+            writtenReview = null,
+            reviewPage = LectureReviewPage.mock()
         )
+    )
+    Theme {
+        CourseView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(showBackground = true, name = "Error")
+@Composable
+private fun PreviewError() {
+    val viewModel = PreviewCourseViewModel(
+        CourseViewModel.ViewState.Error("강의 정보를 불러오는 중 오류가 발생했습니다.")
+    )
+    Theme {
+        CourseView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(showBackground = true, name = "Empty Reviews")
+@Composable
+private fun PreviewEmptyReviews() {
+    val viewModel = PreviewCourseViewModel(
+        CourseViewModel.ViewState.Loaded(
+            course = Course.mock(),
+            reviews = emptyList(),
+            writtenReview = null,
+            reviewPage = LectureReviewPage.mock()
+        )
+    )
+    Theme {
+        CourseView(viewModel = viewModel, navController = rememberNavController())
     }
 }

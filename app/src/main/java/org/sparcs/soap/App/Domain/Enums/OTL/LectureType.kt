@@ -1,40 +1,26 @@
 package org.sparcs.soap.App.Domain.Enums.OTL
 
-import org.sparcs.soap.App.Domain.Helpers.LocalizedString
+import androidx.annotation.StringRes
+import org.sparcs.soap.R
 
-enum class LectureType(val code: LocalizedString, val displayName: LocalizedString) {
-    BR(
-        LocalizedString(mapOf("en" to "BR", "ko" to "기필")),
-        LocalizedString(mapOf("en" to "Basic Required", "ko" to "기초필수"))
-    ),
-    BE(
-        LocalizedString(mapOf("en" to "BE", "ko" to "기선")),
-        LocalizedString(mapOf("en" to "Basic Elective", "ko" to "기초선택"))
-    ),
-    MR(
-        LocalizedString(mapOf("en" to "MR", "ko" to "전필")),
-        LocalizedString(mapOf("en" to "Major Required", "ko" to "전공필수"))
-    ),
-    ME(
-        LocalizedString(mapOf("en" to "ME", "ko" to "전선")),
-        LocalizedString(mapOf("en" to "Major Elective", "ko" to "전공선택"))
-    ),
-    HSE(
-        LocalizedString(mapOf("en" to "HSE", "ko" to "인선")),
-        LocalizedString(mapOf("en" to "Humanities and Social Elective", "ko" to "인문사회선택"))
-    ),
-    ETC(
-        LocalizedString(mapOf("en" to "ETC", "ko" to "기타")),
-        LocalizedString(mapOf("en" to "ETC", "ko" to "기타"))
-    );
-
+enum class LectureType(@StringRes val labelRes: Int, val displayName: Int) {
+    BR(R.string.br, R.string.lecture_type_br_full),
+    BE(R.string.be, R.string.lecture_type_be_full),
+    MR(R.string.mr, R.string.lecture_type_mr_full),
+    ME(R.string.me, R.string.lecture_type_me_full),
+    HSE(R.string.hse, R.string.lecture_type_hse_full),
+    ETC(R.string.etc, R.string.lecture_type_etc_full);
     companion object {
-        fun fromRawValue(rawValue: String): LectureType {
-            return entries.find { type ->
-                val englishName = type.displayName.localized("en")
-                val normalizedRaw = rawValue.replace("&", "and")
-                englishName.isNotEmpty() && normalizedRaw.startsWith(englishName, ignoreCase = true)
-            } ?: ETC
+        fun fromString(string: String): LectureType {
+            return when {
+                string.contains("기초필수") || string.contains("Basic Required") -> BR
+                string.contains("기초선택") || string.contains("Basic Elective") -> BE
+                string.contains("전공필수") || string.contains("Major Required") -> MR
+                string.contains("전공선택") || string.contains("Major Elective") -> ME
+                string.contains("인문사회선택") || string.contains("Humanities and Social Elective") -> HSE
+
+                else -> entries.find { string.contains(it.name, ignoreCase = true) } ?: ETC
+            }
         }
     }
 }

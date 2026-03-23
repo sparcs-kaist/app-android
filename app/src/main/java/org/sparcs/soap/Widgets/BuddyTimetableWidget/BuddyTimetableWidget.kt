@@ -30,8 +30,10 @@ import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -193,9 +195,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             val token = tokenStorage.getAccessToken()
             if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
 
-            runCatching { timetableUseCase.load() }
-            val current = timetableUseCase.currentSemester ?: return Result.failure()
-            val timetable = timetableUseCase.getMyTable(current.id)
+            val timetable = timetableUseCase.getCurrentMyTable()
 
             syncManager.sync(timetable)
             Result.success()
@@ -238,8 +238,8 @@ class RefreshTimetableAction : ActionCallback {
         )
         val tokenStorage = entryPoint.tokenStorage()
         if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-            val constraints = androidx.work.Constraints.Builder()
-                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
             val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()

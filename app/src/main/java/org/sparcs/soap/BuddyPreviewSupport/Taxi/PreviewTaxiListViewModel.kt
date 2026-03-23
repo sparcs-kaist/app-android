@@ -12,13 +12,16 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModel
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModelProtocol
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import java.util.Calendar
 import java.util.Date
 import java.util.UUID
 
 class PreviewTaxiListViewModel(
-    initialState: TaxiListViewModel.ViewState = TaxiListViewModel.ViewState.Loaded(TaxiRoom.mockList(), TaxiLocation.mockList())
+    initialState: TaxiListViewModel.ViewState = TaxiListViewModel.ViewState.Loaded(
+        TaxiRoom.mockList(),
+        TaxiLocation.mockList()
+    ),
 ) : TaxiListViewModelProtocol {
 
     private val _state = MutableStateFlow(initialState)
@@ -69,6 +72,9 @@ class PreviewTaxiListViewModel(
     override var roomHasCarrier: Boolean by mutableStateOf(false)
 
     override suspend fun fetchData() {}
-    override suspend fun createRoom(title: String): String? { return null }
+    override suspend fun createRoom(title: String): String? {
+        return null
+    }
+
     override suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean) {}
 }

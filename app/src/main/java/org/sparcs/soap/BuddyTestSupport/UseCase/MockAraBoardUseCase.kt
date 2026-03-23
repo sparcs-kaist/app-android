@@ -10,7 +10,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraCreatePost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostPage
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Ara.mock
 
 class MockAraBoardUseCase : AraBoardUseCaseProtocol {
 

@@ -31,7 +31,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,13 +42,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.ReportMailComposer
-import org.sparcs.soap.App.Domain.Repositories.OTL.FakeOTLCourseRepository
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.gray64
 import org.sparcs.soap.App.theme.ui.grayBB
@@ -59,15 +54,13 @@ import timber.log.Timber
 
 @Composable
 fun LectureReviewCell(
-    review: LectureReview,
-    repo: OTLCourseRepositoryProtocol,
+    lectureReview: LectureReview,
+    onLikeClick: () -> Unit,
+    isMine: Boolean,
 ) {
-
     var expanded by remember { mutableStateOf(false) }
-    var isLikeButtonRunning = false
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    var reviewChange by remember { mutableStateOf(review) }
+
     val haptic = LocalHapticFeedback.current
     val unknown = stringResource(R.string.unknown)
 
@@ -83,7 +76,7 @@ fun LectureReviewCell(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = review.lecture.professors.firstOrNull()?.name?.localized()
+                    text = lectureReview.professors.firstOrNull()?.name
                         ?: unknown,
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -92,8 +85,8 @@ fun LectureReviewCell(
 
                 Text(
                     text = "${
-                        review.lecture.year.toString().takeLast(2)
-                    }${review.lecture.semester.shortCode}",
+                        lectureReview.year.toString().takeLast(2)
+                    }${lectureReview.semester.shortCode}",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.SemiBold
                     ),
@@ -102,18 +95,19 @@ fun LectureReviewCell(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                Box {
-                    Icon(
-                        imageVector = Icons.Rounded.MoreHoriz,
-                        contentDescription = "More",
-                        modifier = Modifier.clickable { expanded = true }
-                    )
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
+                if(!isMine){
+                    Box {
+                        Icon(
+                            imageVector = Icons.Rounded.MoreHoriz,
+                            contentDescription = "More",
+                            modifier = Modifier.clickable { expanded = true }
+                        )
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+                            shape = RoundedCornerShape(16.dp)
+                        ) {
 //                        DropdownMenuItem(
 //                            text = { Text(stringResource(R.string.translate)) },
 //                            onClick = { // },
@@ -135,11 +129,17 @@ fun LectureReviewCell(
 //                            }
 //                        )
 //                        HorizontalDivider() - TODO REVIEW TRANSLATE AND SUMMARIZE
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.report)) },
-                            onClick = { report(review, context, unknown) },
-                            leadingIcon = { Icon(Icons.Default.Warning, contentDescription = null) }
-                        )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.report)) },
+                                onClick = { report(lectureReview, context, unknown) },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -147,7 +147,7 @@ fun LectureReviewCell(
             Spacer(modifier = Modifier.padding(4.dp))
 
             Text(
-                text = review.content,
+                text = lectureReview.content,
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -156,40 +156,38 @@ fun LectureReviewCell(
             Row(verticalAlignment = Alignment.Bottom) {
                 ReviewRatingLetter(
                     title = stringResource(R.string.grade),
-                    value = review.gradeLetter
+                    value = lectureReview.grade
                 )
                 Spacer(modifier = Modifier.padding(8.dp))
-                ReviewRatingLetter(title = stringResource(R.string.load), value = review.loadLetter)
+                ReviewRatingLetter(
+                    title = stringResource(R.string.load),
+                    value = lectureReview.load
+                )
                 Spacer(modifier = Modifier.padding(8.dp))
                 ReviewRatingLetter(
                     title = stringResource(R.string.speech),
-                    value = review.speechLetter
+                    value = lectureReview.speech
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AnimatedContent(
-                        targetState = reviewChange.like.toString(),
+                        targetState = lectureReview.like.toString(),
                         label = "VotesTransition"
                     ) { targetCount ->
                         Text(targetCount)
                     }
                     Spacer(modifier = Modifier.padding(4.dp))
                     Icon(
-                        painter = if (reviewChange.isLiked) painterResource(R.drawable.baseline_arrow_up_bold) else painterResource(
+                        painter = if (lectureReview.likedByUser) painterResource(R.drawable.baseline_arrow_up_bold) else painterResource(
                             R.drawable.outline_arrow_up
                         ),
                         contentDescription = "Vote",
-                        tint = if (reviewChange.isLiked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        tint = if (lectureReview.likedByUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.clickable {
-                            if (isLikeButtonRunning) return@clickable
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                            isLikeButtonRunning = true
-                            toggleLike(reviewChange, repo, scope, context) { updated ->
-                                reviewChange = updated
-                            }
-                            isLikeButtonRunning = false
+                            onLikeClick()
                         }
                     )
                 }
@@ -322,52 +320,14 @@ private fun ReviewRatingLetter(title: String, value: String) {
     }
 }
 
-// MARK: - Helpers
-private fun toggleLike(
-    review: LectureReview,
-    otlCourseRepository: OTLCourseRepositoryProtocol,
-    scope: CoroutineScope,
-    context: Context,
-    update: (LectureReview) -> Unit,
-) {
-    scope.launch {
-        val prev = review.copy()
-
-        val updated = if (review.isLiked) {
-            // If already liked, clicking will unlike and decrease count
-            review.copy(
-                isLiked = false,
-                like = review.like - 1
-            )
-        } else {
-            // If not liked yet, clicking will like and increase count
-            review.copy(
-                isLiked = true,
-                like = review.like + 1
-            )
-        }
-
-        update(updated)
-
-        try {
-            if (prev.isLiked) otlCourseRepository.unlikeReview(review.id)
-            else otlCourseRepository.likeReview(review.id)
-        } catch (e: Exception) {
-            update(prev)
-            Toast.makeText(context, "Error toggling like", Toast.LENGTH_SHORT).show()
-            Timber.e(e, "Error toggling like")
-        }
-    }
-}
-
-fun report(review: LectureReview, context: Context, unknown: String) {
+fun report(lectureReview: LectureReview, context: Context, unknown: String) {
     val urlString = ReportMailComposer.compose(
-        title = review.lecture.title.localized(),
-        code = review.lecture.code,
-        year = review.lecture.year,
-        semester = review.lecture.semester,
-        professorName = review.lecture.professors.firstOrNull()?.name?.localized() ?: unknown,
-        content = review.content
+        title = lectureReview.courseName,
+        code = "Unknown",
+        year = lectureReview.year,
+        semester = lectureReview.semester,
+        professorName = lectureReview.professors.firstOrNull()?.name ?: unknown,
+        content = lectureReview.content
     )
 
     val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -387,7 +347,7 @@ fun report(review: LectureReview, context: Context, unknown: String) {
 @Preview
 private fun Preview() {
     Theme {
-        LectureReviewCell(review = LectureReview.mock(), FakeOTLCourseRepository())
+        LectureReviewCell(LectureReview.mock(), {}, false)
     }
 }
 

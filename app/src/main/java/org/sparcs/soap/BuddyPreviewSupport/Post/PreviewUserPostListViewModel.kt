@@ -7,7 +7,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostAuthor
 import org.sparcs.soap.App.Features.UserPostList.UserPostListViewModel
 import org.sparcs.soap.App.Features.UserPostList.UserPostListViewModelProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Ara.mock
 
 class PreviewUserPostListViewModel(
     initialState: UserPostListViewModel.ViewState,

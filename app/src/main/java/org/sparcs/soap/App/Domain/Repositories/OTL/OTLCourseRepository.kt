@@ -2,16 +2,15 @@ package org.sparcs.soap.App.Domain.Repositories.OTL
 
 import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Models.OTL.Course
-import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSearchRequest
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSummary
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLCourseApi
 import javax.inject.Inject
 
 interface OTLCourseRepositoryProtocol {
-    suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course>
-    suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview>
-    suspend fun likeReview(reviewId: Int)
-    suspend fun unlikeReview(reviewId: Int)
+    suspend fun searchCourse(request: CourseSearchRequest): List<CourseSummary>
+    suspend fun getCourse(courseId: Int): Course
 }
 
 
@@ -20,32 +19,17 @@ class OTLCourseRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : OTLCourseRepositoryProtocol {
 
-    override suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course> = safeApiCall(gson) {
-        api.searchCourse(name, offset, limit)
-    }.map { it.toModel() }
+    override suspend fun searchCourse(request: CourseSearchRequest): List<CourseSummary> = safeApiCall(gson) {
+        val response = api.searchCourse(
+            name = request.keyword,
+            offset = request.offset,
+            limit = request.limit
+        )
 
-    override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> = safeApiCall(gson) {
-        api.fetchReviews(courseId, offset, limit)
-    }.map { it.toModel() }
-
-    override suspend fun likeReview(reviewId: Int) = safeApiCall(gson) {
-        api.likeReview(reviewId)
+        response.courses.map { it.toModel() }
     }
 
-    override suspend fun unlikeReview(reviewId: Int) = safeApiCall(gson) {
-        api.unlikeReview(reviewId)
+    override suspend fun getCourse(courseId: Int): Course = safeApiCall(gson) {
+        api.fetchCourse(courseId).toModel()
     }
-}
-
-class FakeOTLCourseRepository : OTLCourseRepositoryProtocol {
-    override suspend fun searchCourse(name: String, offset: Int, limit: Int): List<Course> {
-        return emptyList()
-    }
-
-    override suspend fun fetchReviews(courseId: Int, offset: Int, limit: Int): List<LectureReview> {
-        return emptyList()
-    }
-
-    override suspend fun likeReview(reviewId: Int) {}
-    override suspend fun unlikeReview(reviewId: Int) {}
 }

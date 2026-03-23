@@ -3,64 +3,144 @@ package org.sparcs.soap.App.Features.Course
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
+import org.sparcs.soap.App.Domain.Models.OTL.LectureReviewPage
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.CourseUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.ReviewUseCaseProtocol
+import org.sparcs.soap.App.Features.Course.Event.CourseViewEvent
 import javax.inject.Inject
 
-
 interface CourseViewModelProtocol {
-    val course: StateFlow<Course>
-    val reviews: StateFlow<List<LectureReview>>
     val state: StateFlow<CourseViewModel.ViewState>
-    fun fetchReviews(courseId: Int)
+    fun loadCourse()
+    fun toggleReviewLike(review: LectureReview)
 }
 
 @HiltViewModel
 class CourseViewModel @Inject constructor(
-    val otlCourseRepository: OTLCourseRepositoryProtocol,
+    private val courseUseCase: CourseUseCaseProtocol,
+    private val reviewUseCase: ReviewUseCaseProtocol,
+    private val crashlyticsService: CrashlyticsServiceProtocol,
+    private val analyticsService: AnalyticsServiceProtocol,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel(), CourseViewModelProtocol {
 
     sealed class ViewState {
         data object Loading : ViewState()
-        data object Loaded : ViewState()
+        data class Loaded(
+            val course: Course,
+            val reviews: List<LectureReview>,
+            val writtenReview: LectureReview?,
+            val reviewPage: LectureReviewPage
+        ) : ViewState()
+
         data class Error(val message: String) : ViewState()
     }
 
-    private val initialCourse: Course by lazy {
-        val json = savedStateHandle.get<String>("course_json")
-            ?: throw IllegalStateException("course_json is null. CourseViewModel requires a course_json to initialize.")
-        Gson().fromJson(json, Course::class.java)
-    }
-
-    // MARK: - Properties
-    private val _course = MutableStateFlow(initialCourse)
-    override val course: StateFlow<Course> = _course.asStateFlow()
+    private val courseId: Int? = savedStateHandle.get<String>("courseId")?.toIntOrNull()
 
     // MARK: - State
-    private val _reviews = MutableStateFlow<List<LectureReview>>(emptyList())
-    override val reviews = _reviews.asStateFlow()
-
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state = _state.asStateFlow()
 
-    // MARK: - Functions
-    override fun fetchReviews(courseId: Int) {
+    init {
+        loadCourse()
+    }
+
+    override fun loadCourse() {
+        val id = courseId ?: return
         viewModelScope.launch {
             try {
                 _state.value = ViewState.Loading
-                val result = otlCourseRepository.fetchReviews(courseId, 0, 100)
-                _reviews.value = result
-                _state.value = ViewState.Loaded
+
+                val course = courseUseCase.getCourse(id)
+                analyticsService.logEvent(CourseViewEvent.CourseLoaded)
+
+                fetchReviews(id, course)
+
             } catch (e: Exception) {
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+                crashlyticsService.recordException(e)
+                _state.value = ViewState.Error(e.localizedMessage ?: "Failed")
+            }
+        }
+    }
+
+    private fun fetchReviews(id: Int, course: Course) {
+        viewModelScope.launch {
+            try {
+                val allReviewsDeferred = async { reviewUseCase.fetchReviews(id, null, 0, 100) }
+                val myTotalReviewsDeferred = async { reviewUseCase.getWrittenReviews() }
+
+                val allReviewsResult = allReviewsDeferred.await()
+                val myTotalReviews = myTotalReviewsDeferred.await()
+
+                splitMyReviewFromOthers(
+                    allReviews = allReviewsResult.reviews,
+                    myTotalReviews = myTotalReviews,
+                    currentCourseId = id,
+                    course = course,
+                    reviewPage = allReviewsResult
+                )
+
+                analyticsService.logEvent(CourseViewEvent.ReviewsLoaded)
+            } catch (e: Exception) {
+                crashlyticsService.recordException(e)
+                _state.value = ViewState.Error("Reviews load failed")
+            }
+        }
+    }
+
+    private fun splitMyReviewFromOthers(
+        allReviews: List<LectureReview>,
+        myTotalReviews: List<LectureReview>,
+        currentCourseId: Int,
+        course: Course,
+        reviewPage: LectureReviewPage
+    ) {
+        val myReview = myTotalReviews.find { it.courseID == currentCourseId }
+
+        _state.value = ViewState.Loaded(
+            course = course,
+            reviews = if (myReview != null) allReviews.filter { it.id != myReview.id } else allReviews,
+            writtenReview = myReview,
+            reviewPage = reviewPage
+        )
+    }
+
+    override fun toggleReviewLike(review: LectureReview) {
+        val currentState = _state.value as? ViewState.Loaded ?: return
+
+        val isCurrentlyLiked = review.likedByUser
+        val updatedReviews = currentState.reviews.map { target ->
+            if (target.id == review.id) {
+                val nextLikeCount = if (isCurrentlyLiked) target.like - 1 else target.like + 1
+                target.copy(
+                    likedByUser = !isCurrentlyLiked,
+                    like = nextLikeCount
+                )
+            } else {
+                target
+            }
+        }
+
+        _state.value = currentState.copy(reviews = updatedReviews.toList())
+
+        viewModelScope.launch {
+            try {
+                reviewUseCase.likeReview(review.id, !isCurrentlyLiked)
+                analyticsService.logEvent(CourseViewEvent.LikeReview)
+            } catch (e: Exception) {
+                _state.value = currentState
+                crashlyticsService.recordException(e)
             }
         }
     }

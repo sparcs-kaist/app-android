@@ -1,9 +1,13 @@
 package org.sparcs.soap.App.Domain.Models.OTL
 
-import org.sparcs.soap.App.Domain.Helpers.LocalizedString
-
 data class Department(
     val id: Int,
-    val name: LocalizedString,
-    val code: String
-)
+    val name: String
+) {
+    fun toModel(): Department {
+        return Department(
+            id = id,
+            name = name
+        )
+    }
+}

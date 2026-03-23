@@ -242,7 +242,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         navArgument("lecture_json") {
                             type = NavType.StringType
                             nullable = false
-                        }
+                        },
                     ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
@@ -258,16 +258,16 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         hiltViewModel(backStackEntry)
 
                     LectureDetailView(
-                        lectureDetailViewModel = lectureDetailViewModel,
+                        viewModel = lectureDetailViewModel,
                         timetableViewModel = timetableViewModel,
                         navController = navController
                     )
                 }
 
                 composable(
-                    route = Channel.CourseView.name + "?course_json={course_json}",
+                    route = Channel.CourseView.name + "?courseId={courseId}",
                     arguments = listOf(
-                        navArgument("course_json") {
+                        navArgument("courseId") {
                             type = NavType.StringType
                             nullable = false
                         }
@@ -282,18 +282,32 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
-                    route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}",
+                    route = Channel.ReviewCompose.name + "?lecture_json={lecture_json}&written_review_json={written_review_json}",
+                    arguments = listOf(
+                        navArgument("lecture_json") {
+                            type = NavType.StringType
+                            nullable = false
+                        },
+                        navArgument("written_review_json") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    ),
                     enterTransition = trendingEnterTransition(),
                     exitTransition = trendingExitTransition(),
                     popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
                     val viewModel: ReviewComposeViewModel = hiltViewModel(backStackEntry)
+                    val parentEntry = remember(backStackEntry) {
+                        navController.getBackStackEntry(Channel.LectureDetail.name + "?lecture_json={lecture_json}")
+                    }
                     val lectureDetailViewModel: LectureDetailViewModel =
-                        hiltViewModel(backStackEntry)
+                        hiltViewModel(parentEntry)
 
                     ReviewComposeView(
-                        reviewComposeViewModel = viewModel,
+                        viewModel = viewModel,
                         lectureDetailViewModel = lectureDetailViewModel,
                         navController = navController
                     )

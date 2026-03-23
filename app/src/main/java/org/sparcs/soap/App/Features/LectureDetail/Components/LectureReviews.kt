@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,31 +33,30 @@ import org.sparcs.soap.App.Domain.Helpers.gradeLetter
 import org.sparcs.soap.App.Domain.Helpers.loadLetter
 import org.sparcs.soap.App.Domain.Helpers.speechLetter
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
-import org.sparcs.soap.App.Domain.Repositories.OTL.FakeOTLCourseRepository
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModel
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.NavigationBar.Channel
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureDetailViewModel
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureDetailViewModel
 import org.sparcs.soap.R
 
 @Composable
 fun LectureReviews(
     lecture: Lecture,
     viewModel: LectureDetailViewModelProtocol,
-    repo: OTLCourseRepositoryProtocol,
+    canWriteReview: Boolean,
     navController: NavController,
-    canWriteReview: Boolean
-){
+) {
     val state by viewModel.state.collectAsState()
-    val textColor = if(canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
-    val reviews = viewModel.reviews.collectAsState().value
+    val writtenReview by viewModel.writtenReview.collectAsState()
+    val reviews by viewModel.reviews.collectAsState()
+    val textColor =
+        if (canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
 
     Column {
         Row {
@@ -71,27 +71,38 @@ fun LectureReviews(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LectureSummaryRow(title = stringResource(R.string.grade), description = lecture.gradeLetter)
+            LectureSummaryRow(
+                title = stringResource(R.string.grade),
+                description = lecture.gradeLetter
+            )
 
             Spacer(Modifier.weight(1f))
 
-            LectureSummaryRow(title = stringResource(R.string.load), description = lecture.loadLetter)
+            LectureSummaryRow(
+                title = stringResource(R.string.load),
+                description = lecture.loadLetter
+            )
 
             Spacer(Modifier.weight(1f))
 
-            LectureSummaryRow(title = stringResource(R.string.speech), description = lecture.speechLetter)
+            LectureSummaryRow(
+                title = stringResource(R.string.speech),
+                description = lecture.speechLetter
+            )
 
             Spacer(Modifier.weight(1f))
 
             Button(
                 onClick = {
-                    if(canWriteReview) {
+                    if (canWriteReview) {
                         val json = Uri.encode(Gson().toJson(lecture))
-                        navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}")
+                        val writtenReviewJSON =
+                            Uri.encode(Gson().toJson(viewModel.writtenReview.value))
+                        navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}&written_review_json=${writtenReviewJSON}")
                     }
-                          },
-                colors = if(canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface) else
-                ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
+                },
+                colors = if (canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface) else
+                    ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.RateReview,
@@ -102,24 +113,42 @@ fun LectureReviews(
                 Spacer(Modifier.padding(4.dp))
 
                 Text(
-                    text = stringResource(R.string.write_a_review),
+                    text = if (writtenReview == null) stringResource(R.string.write_a_review) else stringResource(
+                        R.string.edit_a_review
+                    ),
                     style = MaterialTheme.typography.bodyLarge,
                     color = textColor
                 )
             }
-
         }
         Spacer(Modifier.padding(4.dp))
 
         Column {
-            when(state){
+            when (state) {
                 is LectureDetailViewModel.ViewState.Loading -> {
                     repeat(3) {
                         LectureReviewSkeletonCell()
                     }
                 }
+
                 is LectureDetailViewModel.ViewState.Loaded -> {
-                    if(reviews.isEmpty()) {
+                    writtenReview?.let { myReview ->
+                        Text(
+                            text = stringResource(R.string.my_review_title),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                        LectureReviewCell(
+                            lectureReview = myReview,
+                            onLikeClick = { viewModel.toggleReviewLike(myReview) },
+                            isMine = true
+                        )
+                        Spacer(Modifier.padding(8.dp))
+                        HorizontalDivider(thickness = 0.5.dp)
+                    }
+
+                    if (reviews.isEmpty() && writtenReview == null) {
                         UnavailableView(
                             icon = Icons.AutoMirrored.Outlined.LibraryBooks,
                             title = stringResource(R.string.no_reviews),
@@ -127,17 +156,22 @@ fun LectureReviews(
                         )
                     } else {
                         reviews.forEach { review ->
-                            LectureReviewCell(review, repo)
+                            if (review.id != writtenReview?.id) {
+                                LectureReviewCell(review, onLikeClick = {
+                                    viewModel.toggleReviewLike(review)
+                                }, false)
+                            }
                         }
                     }
                 }
+
                 is LectureDetailViewModel.ViewState.Error -> {
                     val message = (state as LectureDetailViewModel.ViewState.Error).message
                     ErrorView(
                         icon = Icons.Default.Warning,
                         message = message
                     ) {
-                        viewModel.fetchReviews(lecture.id)
+                        viewModel.fetchReviews(lecture)
                     }
                 }
             }
@@ -150,13 +184,12 @@ fun LectureReviews(
 
 @Composable
 private fun MockView(state: LectureDetailViewModel.ViewState) {
-    val mockViewModel = remember { MockLectureDetailViewModel(initialState = state) }
+    val mockViewModel = remember { PreviewLectureDetailViewModel(initialState = state) }
     LectureReviews(
         lecture = Lecture.mock(),
         viewModel = mockViewModel,
-        repo = FakeOTLCourseRepository(),
         navController = rememberNavController(),
-        canWriteReview = true
+        canWriteReview = true,
     )
 }
 

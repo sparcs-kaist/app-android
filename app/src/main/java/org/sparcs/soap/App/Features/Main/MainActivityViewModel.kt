@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Repositories.AppVersionRepository
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.isUpdateRequired
 import timber.log.Timber
 import javax.inject.Inject
@@ -20,6 +21,7 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val appVersionRepository: AppVersionRepository,
     private val authUseCase: AuthUseCaseProtocol,
+    private val userUseCase: UserUseCaseProtocol,
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
 ) : ViewModel() {
 
@@ -45,10 +47,18 @@ class MainViewModel @Inject constructor(
     fun onActivation(currentVersion: String) {
         viewModelScope.launch {
             _isLoading.value = true
-            checkUpdateIfNeeded(currentVersion)
+            try {
+                checkUpdateIfNeeded(currentVersion)
 
-            if (!_mustUpdate.value) {
-                _isLoading.value = false
+                authUseCase.refreshAccessToken(force = true)
+                userUseCase.fetchUsers()
+
+            } catch (e: Exception) {
+                authUseCase.signOut()
+            } finally {
+                if (!_mustUpdate.value) {
+                    _isLoading.value = false
+                }
             }
         }
     }

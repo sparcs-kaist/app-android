@@ -3,7 +3,7 @@ package org.sparcs.soap.BuddyTestSupport.UseCase
 import org.sparcs.soap.App.Domain.Enums.Ara.AraContentReportType
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCaseProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Ara.mock
 
 class MockAraCommentUseCase : AraCommentUseCaseProtocol {
 

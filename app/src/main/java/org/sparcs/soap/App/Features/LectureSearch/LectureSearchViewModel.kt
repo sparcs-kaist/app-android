@@ -4,37 +4,43 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Models.OTL.Lecture
+import org.sparcs.soap.App.Domain.Models.OTL.CourseLecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureSearchRequest
-import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
-import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
+import org.sparcs.soap.App.Domain.Models.OTL.Semester
+import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.LectureUseCaseProtocol
+import org.sparcs.soap.App.Features.LectureSearch.Event.LectureSearchViewEvent
 import timber.log.Timber
 import javax.inject.Inject
 
 interface LectureSearchViewModelProtocol {
     val state: StateFlow<LectureSearchViewModel.ViewState>
-    val lectures: StateFlow<List<Lecture>>
-    var searchText: StateFlow<String>
+    val courses: StateFlow<List<CourseLecture>>
+    val searchText: StateFlow<String>
 
-    fun bind()
-    fun fetchLectures()
+    fun bind(selectedSemester: Semester)
+    fun fetchLectures(selectedSemester: Semester)
     fun onSearchTextChange(text: String)
 }
 
 @HiltViewModel
 class LectureSearchViewModel @Inject constructor(
-    private val otlLectureRepository: OTLLectureRepositoryProtocol,
-    private val timetableUseCase: TimetableUseCaseProtocol,
+    private val lectureUseCase: LectureUseCaseProtocol,
+    private val crashlyticsService: CrashlyticsServiceProtocol,
+    private val analyticsService: AnalyticsServiceProtocol,
 ) : ViewModel(), LectureSearchViewModelProtocol {
 
     sealed class ViewState {
+        data object Loading : ViewState()
         data object Loaded : ViewState()
         data class Error(val message: String) : ViewState()
     }
@@ -42,67 +48,67 @@ class LectureSearchViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loaded)
     override val state: StateFlow<ViewState> = _state
 
-    private val _lectures = MutableStateFlow<List<Lecture>>(emptyList())
-    override val lectures: StateFlow<List<Lecture>> = _lectures
+    private val _courses = MutableStateFlow<List<CourseLecture>>(emptyList())
+    override val courses: StateFlow<List<CourseLecture>> = _courses
 
     private val _searchText = MutableStateFlow("")
-    override var searchText: StateFlow<String> = _searchText
-    private val searchKeywordFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
-
-    private val itemsPerPage = 50
-    private var currentPage = 0
-
-    private val isLastPage: Boolean
-        get() = currentPage * itemsPerPage > _lectures.value.size
+    override val searchText: StateFlow<String> = _searchText.asStateFlow()
 
     private var isBound = false
 
     override fun onSearchTextChange(text: String) {
         _searchText.value = text
-        viewModelScope.launch {
-            if (text.isNotBlank()) {
-                fetchLectures()
-                searchKeywordFlow.emit(text)
-            }
-        }
     }
 
     @OptIn(FlowPreview::class)
-    override fun bind() {
+    override fun bind(selectedSemester: Semester) {
         if (isBound) return
         isBound = true
         viewModelScope.launch {
-            searchKeywordFlow
+            _searchText
+                .map { it.trim() }
+                .distinctUntilChanged()
                 .debounce(350)
                 .distinctUntilChanged()
-                .collectLatest {
-                    _lectures.value = emptyList()
-                    _state.value = ViewState.Loaded
-                    currentPage = 0
-                    fetchLectures()
+                .collectLatest { query ->
+                    if (query.isEmpty()) {
+                        _courses.value = emptyList()
+                        _state.value = ViewState.Loading
+                        return@collectLatest
+                    }
+
+                    fetchLectures(selectedSemester, query)
                 }
         }
     }
 
+    override fun fetchLectures(selectedSemester: Semester) {
+        fetchLectures(selectedSemester, _searchText.value)
+    }
 
-    override fun fetchLectures() {
-        val selectedSemester = timetableUseCase.selectedSemester.value ?: return
-        if (isLastPage) return
+    private fun fetchLectures(selectedSemester: Semester, keyword: String) {
+        if (keyword.isBlank()) return
 
         viewModelScope.launch {
             try {
+                _state.value = ViewState.Loading
+
                 val request = LectureSearchRequest(
                     semester = selectedSemester,
-                    keyword = searchText.value,
-                    limit = itemsPerPage,
-                    offset = currentPage * itemsPerPage
+                    keyword = keyword,
+                    limit = 100,
+                    offset = 0
                 )
-                val page = otlLectureRepository.searchLectures(request)
-                _lectures.value += page
-                currentPage++
+
+                val result = lectureUseCase.searchLecture(request)
+                _courses.value = result
+                _state.value = ViewState.Loaded
+
+                analyticsService.logEvent(LectureSearchViewEvent.LecturesSearched)
             } catch (e: Exception) {
-                Timber.e(e, "fetchLectures failed")
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+                Timber.e(e, "Search failed")
+                crashlyticsService.recordException(e)
+                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
             }
         }
     }

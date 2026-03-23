@@ -19,14 +19,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import org.sparcs.soap.App.Domain.Models.OTL.Lecture
+import org.sparcs.soap.App.Domain.Models.OTL.LectureItem
 import org.sparcs.soap.App.Domain.Models.OTL.backgroundColor
 import org.sparcs.soap.App.Domain.Models.OTL.textColor
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.OTL.mockList
 
 @Composable
 fun TimetableGridCell(
-    lecture: Lecture,
+    lectureItem: LectureItem,
     isCandidate: Boolean,
     cellHeight: Dp,
     modifier: Modifier = Modifier,
@@ -35,7 +35,7 @@ fun TimetableGridCell(
         modifier = modifier
             .height(cellHeight)
             .background(
-                if (isCandidate) MaterialTheme.colorScheme.primary else lecture.backgroundColor,
+                if (isCandidate) MaterialTheme.colorScheme.primary else lectureItem.lecture.backgroundColor,
                 RoundedCornerShape(4.dp)
             )
     ) {
@@ -49,8 +49,8 @@ fun TimetableGridCell(
 
             Column(modifier = Modifier.fillMaxSize()) {
                 Text(
-                    text = lecture.title.localized(),
-                    color = lecture.textColor,
+                    text = lectureItem.lecture.name,
+                    color = lectureItem.lecture.textColor,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
@@ -58,8 +58,8 @@ fun TimetableGridCell(
                 )
 
                 Text(
-                    text = lecture.classTimes[0].classroomNameShort.localized(),
-                    color = if (isCandidate) MaterialTheme.colorScheme.onPrimary else lecture.textColor,
+                    text = lectureItem.lectureClass.buildingCode + lectureItem.lectureClass.roomName,
+                    color = if (isCandidate) MaterialTheme.colorScheme.onPrimary else lectureItem.lecture.textColor,
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -74,17 +74,17 @@ fun TimetableGridCell(
 @Preview
 @Composable
 private fun TimetableGridCellPreview2() {
-    TimetableGridCell(lecture = Lecture.mockList()[1], false, 100.dp)
+    TimetableGridCell(lectureItem = LectureItem.mockList()[1], false, 100.dp)
 }
 
 @Preview
 @Composable
 private fun TimetableGridCellPreview3() {
-    TimetableGridCell(lecture = Lecture.mockList()[2], false, 100.dp)
+    TimetableGridCell(lectureItem = LectureItem.mockList()[2], false, 100.dp)
 }
 
 @Preview
 @Composable
 private fun TimetableGridCellPreview4() {
-    TimetableGridCell(lecture = Lecture.mockList()[3], false, 100.dp)
+    TimetableGridCell(lectureItem = LectureItem.mockList()[3], false, 100.dp)
 }

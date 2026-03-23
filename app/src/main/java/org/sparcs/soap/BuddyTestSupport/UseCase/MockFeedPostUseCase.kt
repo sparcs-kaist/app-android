@@ -6,7 +6,7 @@ import org.sparcs.soap.App.Domain.Models.Feed.FeedCreatePost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPostPage
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Feed.mock
 
 class MockFeedPostUseCase : FeedPostUseCaseProtocol {
     var fetchPostsResult: Result<FeedPostPage> = Result.success(FeedPostPage(items = emptyList(), nextCursor = null, hasNext = false))

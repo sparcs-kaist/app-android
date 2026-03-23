@@ -28,8 +28,10 @@ import androidx.glance.currentState
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.state.PreferencesGlanceStateDefinition
+import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
@@ -140,9 +142,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
 
             if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
 
-            runCatching { timetableUseCase.load() }
-            val currentSemester = timetableUseCase.currentSemester ?: return Result.failure()
-            val timetable = timetableUseCase.getMyTable(currentSemester.id)
+            val timetable = timetableUseCase.getCurrentMyTable()
 
             val now = Calendar.getInstance()
             val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {
@@ -158,20 +158,20 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
 
             val nextLecture = timetable.lectures
                 .flatMap { lecture ->
-                    lecture.classTimes.map { time -> lecture to time }
+                    lecture.classes.map { time -> lecture to time }
                 }
-                .filter { (lecture, time) -> time.day.name == dayOfWeekString }
-                .filter { (lecture, time) -> time.end > currentMinutes }
-                .minByOrNull { (lecture, time) -> time.begin }
+                .filter { (_, time) -> time.day.name == dayOfWeekString }
+                .filter { (_, time) -> time.end > currentMinutes }
+                .minByOrNull { (_, time) -> time.begin }
 
             val widgetEntry = if (nextLecture != null) {
                 val (lecture, time) = nextLecture
                 WidgetLectureEntry(
-                    title = lecture.title.localized(),
-                    classroom = time.classroomNameShort.localized(),
+                    title = lecture.name,
+                    classroom = time.let { it.buildingCode + it.roomName },
                     day = time.day,
                     startMinutes = time.begin,
-                    durationMinutes = time.duration,
+                    durationMinutes = time.let { it.end - it.begin },
                     bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb())
                         .uppercase(),
                     textColor = "#" + Integer.toHexString(lecture.textColor.toArgb()).uppercase(),
@@ -246,8 +246,8 @@ class RefreshAndOpenAppAction : ActionCallback {
         val tokenStorage = entryPoint.tokenStorage()
         if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
 
-            val constraints = androidx.work.Constraints.Builder()
-                .setRequiredNetworkType(androidx.work.NetworkType.CONNECTED)
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
             val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()

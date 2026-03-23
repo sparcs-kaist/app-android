@@ -1,26 +1,39 @@
 package org.sparcs.soap.App.Networking.RequestDTO.OTL
 
 import kotlinx.serialization.SerialName
+import org.sparcs.soap.App.Domain.Enums.OTL.DayType
 import org.sparcs.soap.App.Domain.Models.OTL.LectureSearchRequest
 
 data class LectureSearchRequestDTO(
+    @SerialName("keyword")
+    val keyword: String,
+
+    @SerialName("type")
+    val type: List<String>?,
+
+    @SerialName("department")
+    val department: List<Int>?,
+
+    @SerialName("level")
+    val level: List<Int>?,
+
     @SerialName("year")
     val year: Int,
 
     @SerialName("semester")
     val semester: Int,
 
-    @SerialName("keyword")
-    val keyword: String,
+    @SerialName("day")
+    val day: DayType?,
 
-    @SerialName("type")
-    val type: String,
+    @SerialName("begin")
+    val begin: Int?,
 
-    @SerialName("department")
-    val department: String,
+    @SerialName("end")
+    val end: Int?,
 
-    @SerialName("level")
-    val level: String,
+    @SerialName("order")
+    val order: String = "code",
 
     @SerialName("limit")
     val limit: Int,
@@ -34,11 +47,14 @@ data class LectureSearchRequestDTO(
                 year = model.semester.year,
                 semester = model.semester.semesterType.intValue,
                 keyword = model.keyword,
-                type = "ALL",
-                department = "ALL",
-                level = "ALL",
                 limit = model.limit,
-                offset = model.offset
+                offset = model.offset,
+                type = null,
+                department = null,
+                level = null,
+                day = null,
+                begin = null,
+                end = null
             )
         }
     }
