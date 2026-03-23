@@ -33,6 +33,10 @@ jobs:
       - name: Decode Keystore
         run: |
           echo "${{ secrets.STR_KEYSTORE }}" | base64 --decode > ./app/buddy_appKey.jks
+          echo "storeFile=app/buddy_appKey.jks" > keystore.properties
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
 
       - name: Build Release Bundle
         run: ./gradlew bundleRelease
