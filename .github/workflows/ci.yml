@@ -37,7 +37,8 @@ jobs:
           echo -n $STR_KEYSTORE | base64 -di > app/buddy_appKey.jks
 
       - name: Build Release Bundle
-        run: bash ./gradlew bundleRelease \
+        run:
+          ./gradlew bundleRelease \
           -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/buddy_appKey.jks \
           -Pandroid.injected.signing.store.password=KEYSTORE_PASSWORD \
           -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
