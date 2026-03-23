@@ -68,14 +68,16 @@ fun TimetableView(
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
+
     val timetableList by viewModel.timetableList.collectAsState()
     val isEditable by viewModel.isEditable.collectAsState()
 
     val myTableLabel = stringResource(R.string.my_table)
     val untitledLabel = stringResource(R.string.untitled)
 
-    val timetableName = remember(selectedTimetable, timetableList) {
-        if (selectedTimetable == null) {
+    val timetableName = remember(selectedTimetableID, timetableList) {
+        if (selectedTimetableID == null) {
             myTableLabel
         } else {
             val foundTitle = timetableList.find { it.id.toString() == selectedTimetable?.id }?.title
@@ -120,7 +122,7 @@ fun TimetableView(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                CompactTimetableSelector(viewModel)
+                CompactTimetableSelector(viewModel, timetableName)
 
                 Box(
                     modifier = Modifier

@@ -4,7 +4,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Models.OTL.LectureItem
 
 object TimetableConstructor {
-    val hoursWidth = 16.dp
+    val hoursWidth = 20.dp
     val daysHeight = 16.dp
 
     private const val TOP_EXTRA_PX = 14f

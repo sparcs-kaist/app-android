@@ -48,21 +48,8 @@ import org.sparcs.soap.R
 @Composable
 fun CompactTimetableSelector(
     viewModel: TimetableViewModelProtocol,
+    timetableName: String
 ) {
-    val timetableList by viewModel.timetableList.collectAsState()
-    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
-
-    val displayName = remember(selectedTimetable, timetableList) {
-        if (selectedTimetable == null) null
-        else timetableList.find { it.id.toString() == selectedTimetable?.id }?.title
-    }
-
-    val displayTitle = when {
-        displayName == null -> stringResource(R.string.my_table)
-        displayName.isEmpty() -> stringResource(R.string.untitled)
-        else -> displayName
-    }
-
     var showRenameDialog by remember { mutableStateOf(false) }
     var renameText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
@@ -79,9 +66,9 @@ fun CompactTimetableSelector(
 
         TableSelector(
             viewModel = viewModel,
-            displayName = displayTitle,
+            displayName = timetableName,
             onRenameClick = {
-                renameText = if (selectedTimetable == null || displayName.isNullOrEmpty()) "" else displayName
+                renameText = timetableName
                 showRenameDialog = true
             }
         )
@@ -89,12 +76,12 @@ fun CompactTimetableSelector(
     if (showRenameDialog) {
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
-            title = { Text(text = stringResource(R.string.action_rename_user, displayTitle)) },
+            title = { Text(text = stringResource(R.string.action_rename_user, timetableName)) },
             text = {
                 OutlinedTextField(
                     value = renameText,
                     onValueChange = { renameText = it },
-                    placeholder = { Text(displayTitle) },
+                    placeholder = { Text(timetableName) },
                     singleLine = true
                 )
             },
@@ -246,5 +233,5 @@ fun TableSelector(
 @Composable
 @Preview
 private fun Preview() {
-    Theme { CompactTimetableSelector(viewModel = PreviewTimetableViewModel()) }
+    Theme { CompactTimetableSelector(viewModel = PreviewTimetableViewModel(), "") }
 }

@@ -153,10 +153,10 @@ class TimetableViewModel @Inject constructor(
             val list = timetableUseCase.getTimetableList(semester)
             _timetableList.value = list
 
-//            if (_selectedTimetableID.value == null || list.none { it.id == _selectedTimetableID.value }) {
-//                val hasMyTable = list.any { it.id == MY_TABLE_ID }
-//                _selectedTimetableID.value = if (hasMyTable) MY_TABLE_ID else list.firstOrNull()?.id
-//            }
+            if (list.none { it.id == _selectedTimetableID.value }) {
+                _selectedTimetableID.value = null
+            }
+
             loadTimetable(forceRefresh = forceRefresh)
         } catch (e: Exception) {
             handleException(e, ErrorType.FetchData)
@@ -259,6 +259,7 @@ class TimetableViewModel @Inject constructor(
                     }
                 }
                 timetableUseCase.addLecture(tableId, lecture.id)
+                _candidateLecture.value = null
                 loadTimetable()
                 analyticsService.logEvent(TimetableViewEvent.LectureAdded)
             } catch (e: Exception) {
