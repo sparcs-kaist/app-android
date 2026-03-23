@@ -40,9 +40,9 @@ jobs:
         run:
           ./gradlew bundleRelease \
           -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/buddy_appKey.jks \
-          -Pandroid.injected.signing.store.password=KEYSTORE_PASSWORD \
+          -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
           -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
-          -Pandroid.injected.signing.key.password=KEYSTORE_PASSWORD \
+          -Pandroid.injected.signing.key.password=$KEYSTORE_PASSWORD \
           --stacktrace
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
