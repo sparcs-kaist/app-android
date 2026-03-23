@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Search.Components
 
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -26,15 +25,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
-import org.sparcs.soap.App.Domain.Models.OTL.Course
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSummary
 import org.sparcs.soap.App.Domain.Models.SearchScope
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListRow
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import org.sparcs.soap.App.theme.ui.Theme
@@ -91,7 +89,7 @@ fun SearchSection(
 
 @Composable
 fun CourseSection(
-    courses: List<Course>,
+    courses: List<CourseSummary>,
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     navController: NavController,
@@ -114,8 +112,7 @@ fun CourseSection(
                 CourseCell(
                     course = course,
                     onClick = {
-                        val json = Uri.encode(Gson().toJson(course))
-                        navController.navigate(Channel.CourseView.name + "?course_json=$json")
+                        navController.navigate(Channel.CourseView.name + "?courseId=${course.id}")
                     }
                 )
             }
@@ -195,7 +192,7 @@ private fun Preview() {
             searchScope = SearchScope.All,
             targetScope = SearchScope.Rides,
             onScopeChange = {},
-            content = { CourseCell(Course.mock(), {}) }
+            content = { CourseCell(CourseSummary.mock(), {}) }
         )
     }
 }

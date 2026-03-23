@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,14 +34,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -55,11 +54,14 @@ fun TimetableDropDownMenu(
         modifier = Modifier.background(MaterialTheme.colorScheme.surface),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Column {
-            MyTableDropDownItems(viewModel, onDismiss)
+        TimetableListItems(viewModel, onDismiss)
 
-            BottomMenuDropDownItems(viewModel, onDismiss)
-        }
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.lightGray0,
+            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
+        )
+
+        TimetableManagementItems(viewModel, onDismiss)
     }
 }
 
@@ -114,42 +116,58 @@ private fun IconWithText(
 }
 
 @Composable
-fun MyTableDropDownItems(
+fun TimetableListItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
 ) {
-    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
-    Column {
-        viewModel.timetableIDsForSelectedSemester.forEachIndexed { index, id ->
-            val displayName =
-                if (id.contains("myTable")) stringResource(R.string.my_table) else stringResource(
-                    R.string.table_label,
-                    index
-                )
-            val isSelected = id == selectedTimetable?.id
+    val selectedId by viewModel.selectedTimetableID.collectAsState()
+    val timetableList by viewModel.timetableList.collectAsState()
+    val scope = rememberCoroutineScope()
 
-            DropdownMenuItem(
-                text = { Text(displayName) },
-                onClick = { viewModel.selectTimetable(id); onDismiss() },
-                leadingIcon = {
-                    if (isSelected) Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = "Selected"
-                    )
-                }
-            )
+    val isMyTableSelected = selectedId == null || selectedId == -1
+
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.my_table)) },
+        onClick = {
+            scope.launch { viewModel.selectTimetable(-1) }
+            onDismiss()
+        },
+        leadingIcon = {
+            if (isMyTableSelected) Icon(Icons.Default.Check, contentDescription = "Selected")
         }
+    )
+
+    timetableList.forEach { timetableInfo ->
+        val isSelected = selectedId == timetableInfo.id
+
+        DropdownMenuItem(
+            text = {
+                Text(timetableInfo.title.ifEmpty { stringResource(R.string.untitled) })
+            },
+            onClick = {
+                scope.launch {
+                    viewModel.selectTimetable(timetableInfo.id)
+                }
+                onDismiss()
+            },
+            leadingIcon = {
+                if (isSelected) Icon(Icons.Default.Check, contentDescription = "Selected")
+            }
+        )
     }
 }
 
 @Composable
-private fun BottomMenuDropDownItems(
+private fun TimetableManagementItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
 ) {
-    val scope = CoroutineScope(Dispatchers.Main)
-    val deleteColor =
-        if (viewModel.isEditable.collectAsState().value) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
+    val scope = rememberCoroutineScope()
+    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+
+    val isActionEnabled = selectedTimetable != null
+    val deleteColor = if (isActionEnabled) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
+
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
         onClick = {
@@ -175,8 +193,8 @@ private fun BottomMenuDropDownItems(
         text = { Text(stringResource(R.string.timetable_delete), color = deleteColor) },
         onClick = {
             onDismiss()
-            if (viewModel.isEditable.value) {
-                viewModel.deleteTable()
+            if (isActionEnabled) {
+                scope.launch { viewModel.deleteTable() }
             }
         },
         leadingIcon = {
@@ -185,7 +203,8 @@ private fun BottomMenuDropDownItems(
                 contentDescription = null,
                 tint = deleteColor
             )
-        }
+        },
+        enabled = isActionEnabled
     )
 }
 
@@ -197,7 +216,11 @@ private fun Preview() {
             Button(
                 onClick = {}
             ) {
-                TimetableDropDownMenu(expanded = true, onDismiss = {}, MockTimetableViewModel())
+                TimetableDropDownMenu(
+                    expanded = true,
+                    onDismiss = {},
+                    PreviewTimetableViewModel()
+                )
             }
         }
     }

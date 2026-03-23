@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import androidx.room.Room
 import com.google.gson.Gson
 import dagger.Binds
 import dagger.Module
@@ -19,6 +20,8 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
+import org.sparcs.soap.App.Cache.AppDatabase
+import org.sparcs.soap.App.Cache.TimetableCacheDAO
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Helpers.TaxiLocationStorage
 import org.sparcs.soap.App.Domain.Helpers.TaxiLocationStorageProtocol
@@ -50,6 +53,8 @@ import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepository
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLCourseRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepository
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLLectureRepositoryProtocol
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepository
+import org.sparcs.soap.App.Domain.Repositories.OTL.OTLReviewRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepository
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepository
@@ -85,6 +90,12 @@ import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCase
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedProfileUseCase
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedProfileUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.CourseUseCase
+import org.sparcs.soap.App.Domain.Usecases.OTL.CourseUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.LectureUseCase
+import org.sparcs.soap.App.Domain.Usecases.OTL.LectureUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.OTL.ReviewUseCase
+import org.sparcs.soap.App.Domain.Usecases.OTL.ReviewUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackground
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtocol
@@ -111,6 +122,7 @@ import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedProfileApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Feed.FeedUserApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLCourseApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLLectureApi
+import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLReviewApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLTimetableApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.OTL.OTLUserApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiChatApi
@@ -289,6 +301,7 @@ object NetworkModule {
     @Singleton
     @Named("OTLBackend")
     fun otlBackEndURL(
+        @ApplicationContext context: Context,
         gson: Gson,
         tokenStorage: TokenStorageProtocol,
         tokenAuthenticator: TokenAuthenticator
@@ -297,8 +310,10 @@ object NetworkModule {
             .addInterceptor { chain ->
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
+                val languageTag = context.resources.configuration.locales[0].language
                 val newRequest = original.newBuilder()
                     .header("Origin", "sparcsapp")
+                    .header("Accept-Language", languageTag)
                     .header("Content-Type", "application/json")
                     .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
                     .build()
@@ -411,6 +426,12 @@ object NetworkModule {
     @Singleton
     fun provideOTLLectureApi(@Named("OTLBackend") retrofit: Retrofit): OTLLectureApi {
         return retrofit.create(OTLLectureApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideOTLReviewApi(@Named("OTLBackend") retrofit: Retrofit): OTLReviewApi {
+        return retrofit.create(OTLReviewApi::class.java)
     }
 
     @Provides
@@ -546,6 +567,12 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindOTLReviewRepository(
+        impl: OTLReviewRepository
+    ): OTLReviewRepositoryProtocol
+
+    @Binds
+    @Singleton
     abstract fun bindTaxiChatRepository(
         impl: TaxiChatRepository
     ): TaxiChatRepositoryProtocol
@@ -652,6 +679,25 @@ abstract class UseCaseModule {
     abstract fun bindFeedProfileUseCase(
         impl: FeedProfileUseCase
     ): FeedProfileUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindCourseUseCase(
+        impl: CourseUseCase
+    ): CourseUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindReviewUseCase(
+        impl: ReviewUseCase
+    ): ReviewUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindLectureUseCase(
+        impl: LectureUseCase
+    ): LectureUseCaseProtocol
+
 }
 
 @Module
@@ -724,4 +770,26 @@ object AuthUseCaseModule {
     @Provides
     @Singleton
     fun provideAuthUseCaseProtocol(impl: AuthUseCase): AuthUseCaseProtocol = impl
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DatabaseModule {
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "soap_database"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+
+    @Provides
+    fun provideTimetableCacheDAO(database: AppDatabase): TimetableCacheDAO {
+        return database.timetableCacheDao()
+    }
 }

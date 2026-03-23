@@ -17,21 +17,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.App.Domain.Helpers.LocalizedString
-import org.sparcs.soap.App.Domain.Models.OTL.Course
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Domain.Models.OTL.CourseSummary
+import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 
 @Composable
 fun CourseCell(
-    course: Course,
+    course: CourseSummary,
     onClick: () -> Unit,
 ) {
+    val context = LocalContext.current
+
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
@@ -40,7 +42,7 @@ fun CourseCell(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = course.title.localized(),
+                text = course.name,
                 maxLines = 2,
                 fontWeight = FontWeight.SemiBold,
                 style = MaterialTheme.typography.bodyLarge,
@@ -55,7 +57,7 @@ fun CourseCell(
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = course.type.localized(),
+                    text = context.getString(course.type.labelRes),
                     color = MaterialTheme.colorScheme.grayBB,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -144,14 +146,7 @@ fun CourseSkeletonCell() {
 private fun Preview() {
     Theme {
         CourseCell(
-            Course.mock().copy(
-                title = LocalizedString(
-                    mapOf(
-                        "en" to "Hello World",
-                        "ko" to "버디 안드로이드 파이팅"
-                    )
-                )
-            ), {})
+            CourseSummary.mock().copy(name = "Hello World"), {})
     }
 }
 

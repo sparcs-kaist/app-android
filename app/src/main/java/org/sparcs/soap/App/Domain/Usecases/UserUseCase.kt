@@ -3,7 +3,11 @@ package org.sparcs.soap.App.Domain.Usecases
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.sparcs.soap.App.Domain.Helpers.UserStorageProtocol
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
@@ -61,6 +65,17 @@ class UserUseCase @Inject constructor(
     override var otlUser: OTLUser? by mutableStateOf(null)
         private set
 
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+
+    init {
+        scope.launch {
+            araUser = userStorage.getAraUser()
+            taxiUser = userStorage.getTaxiUser()
+            feedUser = userStorage.getFeedUser()
+            otlUser = userStorage.getOTLUser()
+        }
+    }
+
     override suspend fun fetchUsers() {
         supervisorScope {
             val taxi = async { runCatching { fetchTaxiUser() } }
@@ -68,17 +83,14 @@ class UserUseCase @Inject constructor(
             val feed = async { runCatching { fetchFeedUser() } }
             val otl = async { runCatching { fetchOTLUser() } }
 
-            val results = listOf(taxi.await(), ara.await(), feed.await(), otl.await())
-
-            if (results.all { it.isFailure }) {
-                val firstError = results.firstNotNullOfOrNull { it.exceptionOrNull() }
-                Timber.e(firstError, "All fetches failed")
-            } else {
-                results.forEachIndexed { index, result ->
-                    if (result.isFailure) {
-                        Timber.w("Fetch task $index failed: ${result.exceptionOrNull()?.message}")
-                    }
-                }
+            try {
+                taxi.await()
+                ara.await()
+                feed.await()
+                otl.await()
+            } catch (e: Exception) {
+                Timber.e(e, "User data fetch failed - triggering logout")
+                throw e
             }
         }
     }

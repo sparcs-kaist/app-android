@@ -32,7 +32,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListRow
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Ara.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.lightGray0

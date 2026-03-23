@@ -18,7 +18,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -49,9 +48,9 @@ import org.sparcs.soap.App.Features.Timetable.Components.TimetableSummary
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableViewNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.escapeHash
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockLectureSearchViewModel
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureSearchViewModel
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
 @Composable
@@ -68,7 +67,24 @@ fun TimetableView(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
-    val selectedTimetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
+    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
+
+    val timetableList by viewModel.timetableList.collectAsState()
+    val isEditable by viewModel.isEditable.collectAsState()
+
+    val myTableLabel = stringResource(R.string.my_table)
+    val untitledLabel = stringResource(R.string.untitled)
+
+    val timetableName = remember(selectedTimetableID, timetableList) {
+        if (selectedTimetableID == null) {
+            myTableLabel
+        } else {
+            val foundTitle = timetableList.find { it.id.toString() == selectedTimetable?.id }?.title
+
+            if (foundTitle.isNullOrEmpty()) untitledLabel else foundTitle
+        }
+    }
 
     val backStackEvent = {
         navController.navigate(Channel.Start.name) {
@@ -80,17 +96,13 @@ fun TimetableView(
         backStackEvent()
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchData()
-    }
-
     Box(modifier = Modifier.fillMaxSize()) {
 
         Scaffold(
             topBar = {
                 TimetableViewNavigationBar(
                     scrollState = scrollState,
-                    isButtonEnabled = viewModel.isEditable.collectAsState().value,
+                    isButtonEnabled = isEditable,
                     onClick = { expanded = true }
                 )
             },
@@ -110,7 +122,7 @@ fun TimetableView(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                CompactTimetableSelector(viewModel)
+                CompactTimetableSelector(viewModel, timetableName)
 
                 Box(
                     modifier = Modifier
@@ -128,8 +140,8 @@ fun TimetableView(
                             navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                         },
                         showDeleteDialog = { lecture ->
-                            lectureToDelete = lecture
-                            showDeleteDialog = true
+                                lectureToDelete = lecture
+                                showDeleteDialog = true
                         }
                     )
                 }
@@ -149,7 +161,8 @@ fun TimetableView(
                 LectureSearchView(
                     navController = navController,
                     timetableViewModel = viewModel,
-                    lectureSearchViewModel = lectureSearchViewModel
+                    lectureSearchViewModel = lectureSearchViewModel,
+                    timetableName = timetableName,
                 ) {
                     onFold()
                 }
@@ -170,7 +183,7 @@ fun TimetableView(
                     }
                 },
                 title = { Text(stringResource(R.string.delete)) },
-                text = { Text(stringResource(R.string.do_you_really_want_to_delete_this_table,lectureToDelete!!.title.localized())) }
+                text = { Text(stringResource(R.string.do_you_really_want_to_delete_this_table,lectureToDelete!!.name)) }
             )
         }
 
@@ -197,8 +210,8 @@ private fun Preview(){
     Theme {
         TimetableView(
             navController = rememberNavController(),
-            lectureSearchViewModel = MockLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded),
-            viewModel = MockTimetableViewModel()
+            lectureSearchViewModel = PreviewLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded),
+            viewModel = PreviewTimetableViewModel()
         )
     }
 }

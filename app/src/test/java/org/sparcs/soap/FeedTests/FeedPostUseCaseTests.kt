@@ -1,6 +1,5 @@
 package org.sparcs.soap.FeedTests
 
-import MockFeedPostRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -16,6 +15,7 @@ import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCase
 import org.sparcs.soap.BuddyTestSupport.Error.TestError
 import org.sparcs.soap.BuddyTestSupport.Helper.UseCaseTestFixtures
 import org.sparcs.soap.BuddyTestSupport.MockCrashlyticsService
+import org.sparcs.soap.BuddyTestSupport.Repository.MockFeedPostRepository
 
 class FeedPostUseCaseTests : FeedTestBase() {
 

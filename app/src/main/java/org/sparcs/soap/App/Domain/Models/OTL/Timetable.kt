@@ -21,18 +21,18 @@ data class Timetable(
     // Return the minimum start minutes.
     val minMinutes: Int
         get() = lectures
-            .flatMap { it.classTimes }.minOfOrNull { it.begin }
+            .flatMap { it.classes }.minOfOrNull { it.begin }
             ?.let { (it / 60) * 60 } ?: defaultMinMinutes
 
     // Return the maximum end minutes.
     val gappedMaxMinutes: Int
         get() = lectures
-            .flatMap { it.classTimes }.maxOfOrNull { it.end }
+            .flatMap { it.classes }.maxOfOrNull { it.end }
             ?.let { ((it / 60) + 1) * 60 } ?: defaultMaxMinutes
 
     val maxMinutes: Int
         get() = lectures
-            .flatMap { it.classTimes }
+            .flatMap { it.classes }
             .maxOfOrNull { it.end }
             ?: defaultMaxMinutes
 
@@ -46,21 +46,21 @@ data class Timetable(
     // Return visible days. Return all weekdays by default, and check for the need of weekends inclusion.
     val visibleDays: List<DayType>
         get() {
-            val classDays = lectures.flatMap { it.classTimes.map { ct -> ct.day } }
+            val classDays = lectures.flatMap { it.classes.map { ct -> ct.day } }
             return (classDays + DayType.weekdays()).distinct().sorted()
         }
 
     // Get all lectures for day. Return LectureItem that includes index of ClassTime of the Lecture.
     fun getLectures(day: DayType, selectedLecture: Lecture?): List<LectureItem> {
         val lectureItems = lectures.flatMap { lecture ->
-            lecture.classTimes.mapIndexedNotNull { index, ct ->
-                if (ct.day == day) LectureItem(lecture = lecture, index = index) else null
+            lecture.classes.mapIndexedNotNull { index, ct ->
+                if (ct.day == day) LectureItem(lecture = lecture, lectureClass = ct, index = index) else null
             }
         }.toMutableList()
 
         selectedLecture?.let { sel ->
-            val candidateBlocks = sel.classTimes.mapIndexedNotNull { index, ct ->
-                if (ct.day == day) LectureItem(lecture = sel, index = index) else null
+            val candidateBlocks = sel.classes.mapIndexedNotNull { index, ct ->
+                if (ct.day == day) LectureItem(lecture = sel, lectureClass = ct, index = index) else null
             }
             candidateBlocks.forEach { block ->
                 if (lectureItems.none { it.lecture.id == sel.id && it.index == block.index }) {
@@ -70,6 +70,7 @@ data class Timetable(
         }
         return lectureItems
     }
+
 
     /*
      * For Timetable Summary
@@ -81,24 +82,22 @@ data class Timetable(
 
     // Get the sum of AUs
     val creditAUs: Int
-        get() = lectures.sumOf { it.creditAu }
+        get() = lectures.sumOf { it.creditAU }
 
     /*
        * targetCredits: sum of credit and creditAu where reviewTotalWeight is larger than 0. It is use to calculate letter for grade, load, and speech.
        */
     val targetCredits: Int
         get() = lectures
-            .filter { it.reviewTotalWeight > 0.0 }
-            .sumOf { it.credit + it.creditAu }
+            .sumOf { it.credit + it.creditAU }
 
     private fun calculateWeightedAverage(
         selector: (Lecture) -> Double,
         withCredits: Boolean = true,
     ): Double {
-        val relevant = lectures.filter { it.reviewTotalWeight > 0.0 }
         val numerator =
-            relevant.sumOf { selector(it) * (it.credit + if (withCredits) it.creditAu else 0) }
-        val denominator = relevant.sumOf { it.credit + if (withCredits) it.creditAu else 0 }
+            lectures.sumOf { selector(it) * (it.credit + if (withCredits) it.creditAU else 0) }
+        val denominator = lectures.sumOf { it.credit + if (withCredits) it.creditAU else 0 }
         return if (denominator > 0) numerator / denominator else 0.0
     }
 
@@ -122,12 +121,12 @@ data class Timetable(
 
     // Get credits(credits, AUs) for the LectureType
     fun getCreditsFor(type: LectureType): Int =
-        lectures.filter { it.type == type }.sumOf { it.credit + it.creditAu }
+        lectures.filter { it.type == type }.sumOf { it.credit + it.creditAU }
 
     fun hasCollision(newLecture: Lecture): Boolean {
         for (existingLecture in lectures) {
-            for (existingTime in existingLecture.classTimes) {
-                for (newTime in newLecture.classTimes) {
+            for (existingTime in existingLecture.classes) {
+                for (newTime in newLecture.classes) {
                     if (existingTime.day == newTime.day) {
                         // Overlap occurs if start < other.end && end > other.start
                         if (newTime.begin < existingTime.end && newTime.end > existingTime.begin) {
@@ -141,8 +140,8 @@ data class Timetable(
     }
 
     fun hasCollisions(a: Lecture, b: Lecture): Boolean {
-        for (existingTime in b.classTimes) {
-            for (newTime in a.classTimes) {
+        for (existingTime in b.classes) {
+            for (newTime in a.classes) {
                 if (existingTime.day == newTime.day) {
                     if (newTime.begin < existingTime.end && newTime.end > existingTime.begin) {
                         return true

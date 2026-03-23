@@ -18,8 +18,8 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Features.TaxiChat.TaxiChatViewModel
 import org.sparcs.soap.App.Features.TaxiChat.TaxiChatViewModelProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 
 class PreviewTaxiChatViewModel(
     initialState: TaxiChatViewModel.ViewState = TaxiChatViewModel.ViewState.Loaded,
@@ -84,7 +84,7 @@ class PreviewTaxiChatViewModel(
                 showName: Boolean,
                 showAvatar: Boolean,
                 showTime: Boolean,
-                isMine: Boolean
+                isMine: Boolean,
             ): ChatRenderItem {
                 val chat = chats[index]
                 return ChatRenderItem.Message(

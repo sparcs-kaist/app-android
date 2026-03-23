@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Buddy</string>
 
@@ -53,7 +52,9 @@
     <string name="search_by_course">Search by course title, instructor, etc.</string>
     <string name="language">Language</string>
     <string name="competition">Competition</string>
+    <string name="my_review_title">My Review</string>
     <string name="write_a_review">Write a Review</string>
+    <string name="edit_a_review">Edit a Review</string>
     <string name="summarise">Summarise</string>
     <string name="translate">Translate</string>
     <string name="unknown" translatable="false">Unknown</string>
@@ -170,6 +171,7 @@
     <string name="error">Error</string>
     <string name="unexpected_error_reporting_comment">An unexpected error occurred while reporting a comment. Please try again later.</string>
     <string name="unexpected_error_uploading_comment">An unexpected error occurred while uploading a comment. Please try again later.</string>
+    <string name="unexpected_error_uploading_review">An unexpected error occurred while uploading a review. Please try again later.</string>
     <string name="unexpected_error_deleting_post">An unexpected error occurred while deleting a post. Please try again later.</string>
     <string name="hours">Hours</string>
     <string name="lab">Lab</string>
@@ -463,6 +465,22 @@
     <string name="not_supported">Not Supported</string>
     <string name="error_feed_image_update_failed">Failed to update profile.</string>
     <string name="error_feed_nickname_reserved">This nickname is not available.</string>
+    <string name="no_rides_found">No rides found</string>
+    <string name="taxi_no_rooms_from_to">No rides from %1$s to %2$s</string>
+    <string name="taxi_no_rooms_from_any">No rides leaving from %1$s</string>
+    <string name="taxi_no_rooms_to">No rides arriving at %1$s</string>
+    <string name="taxi_no_rooms_this_week">No rides match your filters this week</string>
+    <string name="taxi_no_rooms_on">No rides on %1$s</string>
+    <string name="action_rename_user">Rename \"%1$s\"</string>
+    <string name="action_rename_timetable">Rename \"%1$s\"</string>
+    <string name="error_rename_table">Unable to rename timetable.</string>
+    <string name="action_rename">Rename</string>
+    <string name="lecture_type_br_full">Basic Required</string>
+    <string name="lecture_type_be_full">Basic Elective</string>
+    <string name="lecture_type_mr_full">Major Required</string>
+    <string name="lecture_type_me_full">Major Elective</string>
+    <string name="lecture_type_hse_full">Humanities and Social Elective</string>
+    <string name="lecture_type_etc_full">ETC</string>
     <string name="taxi_room_emoji_description">This emoji is used to identify the room.</string>
     <string name="taxi_room_identifier_title">Room Identifier</string>
     <string name="taxi_check_room_id_notice">Please check the room ID when boarding!</string>

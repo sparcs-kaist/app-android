@@ -6,32 +6,60 @@ import kotlin.math.roundToInt
 
 interface CourseRepresentable {
     val credit: Int
-    val creditAu: Int
+    val creditAU: Int
     val grade: Double
     val load: Double
     val speech: Double
 }
+
 // Letter grade for the grade
 val CourseRepresentable.gradeLetter: String
-    get() = letter(calculateWeightedAverage { it.grade })
+    get() = letter(grade)
 
 // Letter grade for the load
 val CourseRepresentable.loadLetter: String
-    get() = letter(calculateWeightedAverage { it.load })
+    get() = letter(load)
 
 // Letter grade for the speech
 val CourseRepresentable.speechLetter: String
-    get() = letter(calculateWeightedAverage { it.speech })
-
-
-private fun CourseRepresentable.calculateWeightedAverage(selector: (CourseRepresentable) -> Double): Double {
-    val numerator = selector(this) * (credit + creditAu)
-    val denominator = credit + creditAu
-    return if (denominator > 0) numerator / denominator else 0.0
-}
+    get() = letter(speech)
 
 // safely get letter grade string
 private fun CourseRepresentable.letter(value: Double): String {
     val index = value.roundToInt()
     return letters.getOrElse(index) { "?" }
+}
+
+fun List<CourseRepresentable>.gradeLetter(totalCredit: Int): String {
+    if (this.isEmpty()) return "?"
+    val average = this.map { it.grade }.average()
+    return letter(average)
+}
+
+fun List<CourseRepresentable>.loadLetter(totalCredit: Int): String {
+    if (this.isEmpty()) return "?"
+    val average = this.map { it.load }.average()
+    return letter(average)
+}
+
+fun List<CourseRepresentable>.speechLetter(totalCredit: Int): String {
+    if (this.isEmpty()) return "?"
+    val average = this.map { it.speech }.average()
+    return letter(average)
+}
+
+private fun letter(value: Double): String {
+    val index = value.roundToInt()
+    return letters.getOrElse(index) { "?" }
+}
+
+private fun CourseRepresentable.calculateWeightedAverage(value: Double): Double {
+    val totalCredit = (credit + creditAU).toDouble()
+    val numerator = value * totalCredit
+
+    return if (totalCredit > 0.0) {
+        numerator / totalCredit
+    } else {
+        0.0
+    }
 }

@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -39,7 +38,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomCell
@@ -232,45 +231,39 @@ fun LoadedView(
     }
 }
 
-@Preview(showBackground = true, name = "Loading State")
+
+@Preview
 @Composable
-private fun TaxiChatListView_Loading_Preview() {
-    val viewModel = PreviewTaxiChatListViewModel(
-        initialState = TaxiChatListViewModel.ViewState.Loading
-    )
+private fun LoadingPreview(){
     Theme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            TaxiChatListView(viewModel = viewModel, navController = rememberNavController())
-        }
+        TaxiChatListView(
+            PreviewTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Loading),
+            rememberNavController()
+        )
     }
 }
 
-@Preview(showBackground = true, name = "Loaded State")
+@Preview
 @Composable
-private fun TaxiChatListView_Loaded_Preview() {
-    val state = TaxiChatListViewModel.ViewState.Loaded(
-        onGoing = TaxiRoom.mockList().take(3),
-        done = TaxiRoom.mockList().takeLast(5)
-    )
-
-    val viewModel = PreviewTaxiChatListViewModel(initialState = state)
-
+private fun LoadedPreview(){
     Theme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            TaxiChatListView(viewModel = viewModel, navController = rememberNavController())
-        }
+        TaxiChatListView(
+            PreviewTaxiChatListViewModel(
+                TaxiChatListViewModel.ViewState.Loaded(
+                    TaxiRoom.mockList().subList(1, 4),
+                TaxiRoom.mockList().subList(5, 7))),
+            rememberNavController()
+        )
     }
 }
 
-@Preview(showBackground = true, name = "Error State")
+@Preview
 @Composable
-private fun TaxiChatListView_Error_Preview() {
-    val viewModel = PreviewTaxiChatListViewModel(
-        initialState = TaxiChatListViewModel.ViewState.Error("Something went wrong")
-    )
+private fun ErrorPreview(){
     Theme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            TaxiChatListView(viewModel = viewModel, navController = rememberNavController())
-        }
+        TaxiChatListView(
+            PreviewTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Error("Something went wrong")),
+            rememberNavController()
+        )
     }
 }

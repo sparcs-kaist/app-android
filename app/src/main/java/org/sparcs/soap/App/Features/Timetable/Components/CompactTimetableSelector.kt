@@ -2,18 +2,25 @@ package org.sparcs.soap.App.Features.Timetable.Components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,15 +40,20 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.NavigationBar.Animation.AnimatedText
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
 @Composable
 fun CompactTimetableSelector(
     viewModel: TimetableViewModelProtocol,
+    timetableName: String
 ) {
+    var showRenameDialog by remember { mutableStateOf(false) }
+    var renameText by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
+
     Row(
         modifier = Modifier
             .fillMaxWidth(),
@@ -52,7 +64,45 @@ fun CompactTimetableSelector(
 
         Spacer(Modifier.weight(1f))
 
-        TableSelector(viewModel = viewModel)
+        TableSelector(
+            viewModel = viewModel,
+            displayName = timetableName,
+            onRenameClick = {
+                renameText = timetableName
+                showRenameDialog = true
+            }
+        )
+    }
+    if (showRenameDialog) {
+        AlertDialog(
+            onDismissRequest = { showRenameDialog = false },
+            title = { Text(text = stringResource(R.string.action_rename_user, timetableName)) },
+            text = {
+                OutlinedTextField(
+                    value = renameText,
+                    onValueChange = { renameText = it },
+                    placeholder = { Text(timetableName) },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        coroutineScope.launch {
+                            viewModel.renameTable(renameText)
+                            showRenameDialog = false
+                            renameText = ""
+                        }
+                    },
+                    enabled = renameText.isNotBlank()
+                ) { Text(stringResource(R.string.confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRenameDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
 
@@ -114,43 +164,74 @@ fun SemesterSelector(
 }
 
 @Composable
-fun TableSelector(viewModel: TimetableViewModelProtocol) {
+fun TableSelector(
+    viewModel: TimetableViewModelProtocol,
+    displayName: String,
+    onRenameClick: () -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedTimetableDisplayName by viewModel.selectedTimetableDisplayName.collectAsState()
+    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
+    val isDefault = selectedTimetableID == null
 
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(25.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(8.dp),
+            .background(MaterialTheme.colorScheme.surface),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = selectedTimetableDisplayName,
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        )
-
-        Icon(
-            imageVector = Icons.Rounded.MoreHoriz,
-            contentDescription = "Menu",
-            tint = MaterialTheme.colorScheme.onSurface,
+        Row(
             modifier = Modifier
-                .padding(horizontal = 4.dp)
-                .clickable { expanded = true }
+                .clip(RoundedCornerShape(topStart = 25.dp, bottomStart = 25.dp))
+                .clickable(enabled = !isDefault) { onRenameClick() }
+                .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AnimatedText(
+                text = displayName,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            if (!isDefault) {
+                Spacer(Modifier.width(6.dp))
+                Icon(
+                    imageVector = Icons.Rounded.Edit,
+                    contentDescription = "Rename",
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .size(16.dp)
+                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
         )
 
-        TimetableDropDownMenu(
-            expanded = expanded,
-            onDismiss = { expanded = false },
-            viewModel = viewModel
-        )
+        Box {
+            Icon(
+                imageVector = Icons.Rounded.MoreHoriz,
+                contentDescription = "Menu",
+                modifier = Modifier
+                    .clip(RoundedCornerShape(topEnd = 25.dp, bottomEnd = 25.dp))
+                    .clickable { expanded = true }
+                    .padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)
+                    .size(20.dp)
+            )
+
+            TimetableDropDownMenu(
+                expanded = expanded,
+                onDismiss = { expanded = false },
+                viewModel = viewModel
+            )
+        }
     }
 }
 
 @Composable
 @Preview
 private fun Preview() {
-    Theme { CompactTimetableSelector(viewModel = MockTimetableViewModel()) }
+    Theme { CompactTimetableSelector(viewModel = PreviewTimetableViewModel(), "") }
 }

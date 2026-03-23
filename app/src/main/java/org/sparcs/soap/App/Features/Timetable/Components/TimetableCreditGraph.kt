@@ -30,11 +30,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.OTL.mockList
 import org.sparcs.soap.App.theme.ui.Theme
 
 val lectureColors = mapOf(
@@ -45,6 +46,7 @@ val lectureColors = mapOf(
     LectureType.HSE to Color(0xFFE2455C),
     LectureType.ETC to Color(0xFF47D0BA)
 )
+
 @Composable
 fun TimetableCreditGraph(
     timetable: Timetable,
@@ -157,7 +159,7 @@ fun TimetableCreditGraph(
                             )
                             Spacer(modifier = Modifier.width(3.dp))
                             Text(
-                                text = "${type.code.localized()}(${currentCredits.toInt()})",
+                                text = "${stringResource(type.labelRes)}(${currentCredits.toInt()})",
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }

@@ -1,7 +1,6 @@
 package org.sparcs.soap.App.Networking.RetrofitAPI.Ara
 
 import okhttp3.MultipartBody
-import org.sparcs.soap.App.Domain.Repositories.Ara.PostReportRequest
 import org.sparcs.soap.App.Networking.RequestDTO.Ara.AraPostRequestDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraAttachmentDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraBoardDTO
@@ -80,3 +79,8 @@ interface AraBoardApi {
     suspend fun delete(@Path("id") postID: Int): Response<Unit>
 }
 
+data class PostReportRequest(
+    val post_id: Int,
+    val type: String,
+    val content: String,
+)

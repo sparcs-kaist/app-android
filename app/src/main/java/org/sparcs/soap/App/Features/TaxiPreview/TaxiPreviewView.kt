@@ -63,7 +63,7 @@ import org.sparcs.soap.App.Features.TaxiPreview.Components.RouteHeaderView
 import org.sparcs.soap.App.Features.TaxiPreview.Components.TaxiCarrierIndicator
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.formattedString
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiPreviewViewModel
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import org.sparcs.soap.App.theme.ui.Theme

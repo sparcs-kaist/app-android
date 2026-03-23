@@ -12,8 +12,8 @@ import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Domain.Models.Feed.FeedUser
 import org.sparcs.soap.App.Features.FeedPost.FeedPostViewModel
 import org.sparcs.soap.App.Features.FeedPost.FeedPostViewModelProtocol
-import org.sparcs.soap.App.Shared.Mocks.mock
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Feed.mock
+import org.sparcs.soap.App.Shared.Mocks.Feed.mockList
 
 class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPostViewModelProtocol {
 

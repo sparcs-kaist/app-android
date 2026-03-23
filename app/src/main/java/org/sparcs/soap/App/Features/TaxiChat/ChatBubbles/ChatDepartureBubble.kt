@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Shared.Extensions.openUri
-import org.sparcs.soap.App.Shared.Mocks.mock
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 

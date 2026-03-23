@@ -38,9 +38,9 @@ import org.sparcs.soap.App.Domain.Enums.OTL.DayType
 import org.sparcs.soap.App.Domain.Helpers.TimetableConstructor
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
-import org.sparcs.soap.App.Shared.ViewModelMocks.OTL.MockTimetableViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
+import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 
 @Composable
 fun TimetableGrid(
@@ -48,13 +48,14 @@ fun TimetableGrid(
     onLectureSelected: (Lecture) -> Unit = {},
     showDeleteDialog: (Lecture) -> Unit,
 ) {
-    val timetable = viewModel.timetableUseCase?.selectedTimetable?.collectAsState()?.value
+    val timetable by viewModel.selectedTimetable.collectAsState()
+
     val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
 
     val candidateLecture by viewModel.candidateLecture.collectAsState()
     val times = buildList {
-        timetable?.lectures?.forEach { addAll(it.classTimes) }
-        candidateLecture?.let { addAll(it.classTimes) }
+        timetable?.lectures?.forEach { addAll(it.classes) }
+        candidateLecture?.let { addAll(it.classes) }
     }
 
     val minMinutes = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: timetable?.minMinutes ?: TimetableDefaults.defaultMinMinutes
@@ -134,7 +135,7 @@ fun TimetableGrid(
                         )
 
                         TimetableGridCell(
-                            lecture = item.lecture,
+                            lectureItem = item,
                             isCandidate = isCandidate,
                             cellHeight = animatedCellHeight,
                             modifier = Modifier
@@ -264,6 +265,6 @@ object TimetableDefaults {
 @Composable
 private fun Preview() {
     Theme {
-        TimetableGrid(viewModel = MockTimetableViewModel(), onLectureSelected = {}, showDeleteDialog = {})
+        TimetableGrid(viewModel = PreviewTimetableViewModel(), onLectureSelected = {}, showDeleteDialog = {})
     }
 }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Features.BoardList.BoardListViewModel
 import org.sparcs.soap.App.Features.BoardList.BoardListViewModelProtocol
-import org.sparcs.soap.App.Shared.Mocks.mockList
+import org.sparcs.soap.App.Shared.Mocks.Ara.mockList
 
 class PreviewBoardListViewModel(
     initialState: BoardListViewModel.ViewState
