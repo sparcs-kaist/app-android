@@ -50,6 +50,8 @@ class FCMUseCase @Inject constructor(
     }
 
     override suspend fun register(fcmToken: String) {
+        // TODO: 알람 기능 도입 시 아래 코드 활성화
+        return
         val deviceUUID = getEncryptedDeviceID() ?: run {
             val newUUID = UUID.randomUUID().toString()
             saveEncryptedDeviceID(newUUID)

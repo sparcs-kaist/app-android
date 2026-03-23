@@ -153,9 +153,10 @@ class TimetableViewModel @Inject constructor(
             val list = timetableUseCase.getTimetableList(semester)
             _timetableList.value = list
 
-            if (_selectedTimetableID.value == null || list.none { it.id == _selectedTimetableID.value }) {
-                _selectedTimetableID.value = list.firstOrNull()?.id
-            }
+//            if (_selectedTimetableID.value == null || list.none { it.id == _selectedTimetableID.value }) {
+//                val hasMyTable = list.any { it.id == MY_TABLE_ID }
+//                _selectedTimetableID.value = if (hasMyTable) MY_TABLE_ID else list.firstOrNull()?.id
+//            }
             loadTimetable(forceRefresh = forceRefresh)
         } catch (e: Exception) {
             handleException(e, ErrorType.FetchData)
@@ -167,12 +168,16 @@ class TimetableViewModel @Inject constructor(
         val semester = _selectedSemester.value
 
         try {
-            if (id != null) {
-                _timetable.value = timetableUseCase.getTable(id, forceRefresh = forceRefresh)
-            } else if (semester != null) {
-                _timetable.value = timetableUseCase.getMyTable(semester, forceRefresh = forceRefresh)
-            } else {
-                _timetable.value = null
+            when {
+                id == MY_TABLE_ID || (id == null && semester != null) -> {
+                    _timetable.value = timetableUseCase.getMyTable(semester!!, forceRefresh = forceRefresh)
+                }
+                id != null -> {
+                    _timetable.value = timetableUseCase.getTable(id, forceRefresh = forceRefresh)
+                }
+                else -> {
+                    _timetable.value = null
+                }
             }
         } catch (e: Exception) {
             _timetable.value = null

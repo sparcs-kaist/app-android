@@ -41,6 +41,8 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        // TODO: 알람 기능 도입 시 아래 코드 활성화
+        return
         super.onMessageReceived(remoteMessage)
         try {
             val title = remoteMessage.notification?.title ?: remoteMessage.data["title"]

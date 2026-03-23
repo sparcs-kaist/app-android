@@ -120,11 +120,11 @@ fun TimetableListItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
 ) {
-    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+    val selectedId by viewModel.selectedTimetableID.collectAsState()
     val timetableList by viewModel.timetableList.collectAsState()
     val scope = rememberCoroutineScope()
 
-    val isMyTableSelected = selectedTimetable == null
+    val isMyTableSelected = selectedId == null || selectedId == -1
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.my_table)) },
@@ -138,13 +138,11 @@ fun TimetableListItems(
     )
 
     timetableList.forEach { timetableInfo ->
-        val isSelected = selectedTimetable?.let {
-            it.id == timetableInfo.id.toString()
-        } ?: false
+        val isSelected = selectedId == timetableInfo.id
 
         DropdownMenuItem(
             text = {
-                Text(if (timetableInfo.title.isEmpty()) stringResource(R.string.untitled) else timetableInfo.title)
+                Text(timetableInfo.title.ifEmpty { stringResource(R.string.untitled) })
             },
             onClick = {
                 scope.launch {
