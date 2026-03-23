@@ -1,3 +1,4 @@
+import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -10,6 +11,12 @@ plugins {
     id("com.google.firebase.crashlytics")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
+}
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 val properties = Properties().apply {
@@ -24,10 +31,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file("buddy_appKey.jks")
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS")
-            keyPassword = System.getenv("KEY_PASSWORD")
+            storeFile = file(keystoreProperties["storeFile"] as String)
+            storePassword = keystoreProperties["storePassword"] as String
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
         }
     }
 
@@ -37,8 +44,8 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.0.3"
+        versionCode = 9
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
