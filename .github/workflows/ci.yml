@@ -31,8 +31,10 @@ jobs:
         run: chmod +x gradlew
 
       - name: Decode Keystore
+        env:
+          STR_KEYSTORE: ${{ secrets.STR_KEYSTORE }}
         run: |
-          echo "${{ secrets.STR_KEYSTORE }}" | base64 --decode > app/buddy_appKey.jks
+          echo -n $STR_KEYSTORE | base64 -di > app/buddy_appKey.jks
 
       - name: Build Release Bundle
         run: ./gradlew bundleRelease \
