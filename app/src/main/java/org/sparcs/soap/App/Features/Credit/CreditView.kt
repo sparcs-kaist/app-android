@@ -123,7 +123,7 @@ fun CreditView(navController: NavController) {
                         ) {
                             Text(
                                 text = category,
-                                style = MaterialTheme.typography.labelLarge,
+                                style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,
                                 letterSpacing = 1.sp,
@@ -131,9 +131,10 @@ fun CreditView(navController: NavController) {
                             )
 
                             HorizontalDivider(
-                                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(top = 4.dp),
                                 thickness = 1.dp,
-                                color = logoColor
+                                color = MaterialTheme.colorScheme.secondary
                             )
                         }
 
