@@ -51,8 +51,8 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 35
-        versionCode = 9
-        versionName = "1.1.0"
+        versionCode = 10
+        versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
