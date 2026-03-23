@@ -34,17 +34,16 @@ jobs:
         run: |
           echo "${{ secrets.STR_KEYSTORE }}" | base64 --decode > app/buddy_appKey.jks
 
-          echo "storeFile=buddy_appKey.jks" > keystore.properties
-          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" >> keystore.properties
-          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> keystore.properties
-          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> keystore.properties
-
       - name: Build Release Bundle
-        run: ./gradlew bundleRelease
+        run: ./gradlew bundleRelease \
+          -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/buddy_appKey.jks \
+          -Pandroid.injected.signing.store.password=KEYSTORE_PASSWORD \
+          -Pandroid.injected.signing.key.alias=$KEY_ALIAS \
+          -Pandroid.injected.signing.key.password=KEYSTORE_PASSWORD \
+          --stacktrace
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Notify Slack
         if: always()

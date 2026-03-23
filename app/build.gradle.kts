@@ -1,4 +1,3 @@
-import java.io.FileInputStream
 import java.util.Properties
 
 plugins {
@@ -12,12 +11,6 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
 }
-val keystoreProperties = Properties()
-val keystorePropertiesFile = rootProject.file("keystore.properties")
-
-if (keystorePropertiesFile.exists()) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
-}
 
 val properties = Properties().apply {
     load(rootProject.file("local.properties").inputStream())
@@ -29,29 +22,13 @@ android {
     namespace = "org.sparcs.soap"
     compileSdk = 35
 
-    signingConfigs {
-        create("release") {
-            val sFile = keystoreProperties.getProperty("storeFile")
-            val sPass = keystoreProperties.getProperty("storePassword")
-            val kAlias = keystoreProperties.getProperty("keyAlias")
-            val kPass = keystoreProperties.getProperty("keyPassword")
-
-            if (sFile != null) {
-                storeFile = file(sFile)
-                storePassword = sPass
-                keyAlias = kAlias
-                keyPassword = kPass
-            }
-        }
-    }
-
     defaultConfig {
         manifestPlaceholders += mapOf("mapKey" to mapKey)
         manifestPlaceholders += mapOf("sidAuthToken" to sidAuthToken)
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 35
-        versionCode = 10
+        versionCode = 11
         versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -87,7 +64,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
