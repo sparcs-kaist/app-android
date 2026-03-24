@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.json.JSONObject
+import org.sparcs.soap.App.Cache.TaxiRouteCache
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
@@ -37,6 +38,7 @@ class TaxiPreviewViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepository,
     private val userUseCase: UserUseCaseProtocol,
     private val taxiRoomUseCase: TaxiRoomUseCaseProtocol,
+    private val taxiRouteCache: TaxiRouteCache,
 ) : ViewModel(), TaxiPreviewViewModelProtocol {
 
     // MARK: - Properties
@@ -61,6 +63,14 @@ class TaxiPreviewViewModel @Inject constructor(
         source: LatLng,
         destination: LatLng,
     ): List<LatLng> = withContext(Dispatchers.IO) {
+        val cacheKey =
+            "route_${source.latitude},${source.longitude}_${destination.latitude},${destination.longitude}"
+
+        taxiRouteCache.getRoute(cacheKey)?.let {
+            Timber.d("TaxiRoute Cache Hit! key: $cacheKey")
+            return@withContext it
+        }
+
         try {
             val client = OkHttpClient()
 
@@ -85,7 +95,8 @@ class TaxiPreviewViewModel @Inject constructor(
             val json = JSONObject(responseBody)
 
             val routes = json.optJSONArray("routes") ?: return@withContext emptyList()
-            val sections = routes.getJSONObject(0).optJSONArray("sections") ?: return@withContext emptyList()
+            val sections =
+                routes.getJSONObject(0).optJSONArray("sections") ?: return@withContext emptyList()
 
             val points = mutableListOf<LatLng>()
 
@@ -101,10 +112,15 @@ class TaxiPreviewViewModel @Inject constructor(
                 }
             }
 
+            if (points.isNotEmpty()) {
+                taxiRouteCache.store(cacheKey, points)
+                Timber.d("TaxiRoute Cache Stored! key: $cacheKey")
+            }
+
             points
         } catch (e: Exception) {
             Timber.e(e, "Error parsing route: ${e.message}")
-            emptyList()
+            listOf(source, destination)
         }
     }
 

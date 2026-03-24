@@ -41,14 +41,6 @@ android {
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
         buildConfigField("String", "KAKAO_MAP_KEY", "\"$kakaoMapKey\"")
         buildConfigField("String", "KAKAO_NAVI_KEY", "\"$kakaoNaviKey\"")
-
-
-        ndk {
-            abiFilters.add("arm64-v8a")
-            abiFilters.add("armeabi-v7a")
-            abiFilters.add("x86")
-            abiFilters.add("x86_64")
-        }
     }
 
     buildTypes {
@@ -170,8 +162,4 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.kakao.maps)
-
-//
-//    implementation("androidx.compose.ui:ui-text:1.10.5")
-//    implementation("androidx.compose.ui:ui:1.10.5")
 }
