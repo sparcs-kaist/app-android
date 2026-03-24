@@ -56,7 +56,7 @@ fun KakaoMap.drawTaxiRoute(
             LabelOptions.from("end_text", endPos).setStyles(textStyle).setTexts(LabelTextBuilder().setTexts(endLabel)).setRank(200)
         )
 
-        val offsetY = -35f
+        val offsetY = -50f
         startTextLabel?.changePixelOffset(0f, offsetY)
         endTextLabel?.changePixelOffset(0f, offsetY)
     }

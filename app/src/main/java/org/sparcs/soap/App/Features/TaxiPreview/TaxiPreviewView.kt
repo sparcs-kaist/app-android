@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -86,6 +87,7 @@ fun TaxiPreviewView(
     val isPreview = LocalInspectionMode.current
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var isMapLoading by remember { mutableStateOf(true) }
 
     val blockStatus = viewModel.blockStatus.collectAsState().value
     var kakaoMap by remember { mutableStateOf<KakaoMap?>(null) }
@@ -127,6 +129,7 @@ fun TaxiPreviewView(
             startIconColor = downvote.toArgb(),
             endIconColor = upvote.toArgb()
         )
+        isMapLoading = false
     }
 
     Column(
@@ -164,6 +167,19 @@ fun TaxiPreviewView(
                         }
                     }
                 )
+                if (isMapLoading) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.primary,
+                            strokeWidth = 3.dp
+                        )
+                    }
+                }
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

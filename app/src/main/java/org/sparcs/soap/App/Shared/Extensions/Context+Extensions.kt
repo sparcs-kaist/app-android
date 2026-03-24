@@ -41,8 +41,8 @@ fun Context.vectorToBitmap(drawableId: Int, tintColor: Int? = null): Bitmap? {
     }
 
     val bitmap = Bitmap.createBitmap(
-        drawable.intrinsicWidth,
-        drawable.intrinsicHeight,
+        (drawable.intrinsicWidth * 1.5).toInt(),
+        (drawable.intrinsicHeight * 1.5).toInt(),
         Bitmap.Config.ARGB_8888
     )
     val canvas = Canvas(bitmap)
