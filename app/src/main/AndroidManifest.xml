@@ -73,7 +73,7 @@
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="buddy_notification_channel" />
         <meta-data
-            android:name="com.kakao.vectormap.KAKAO_MAP_KEY"
+            android:name="com.kakao.vectormap.${kakaoMapKey}"
             android:value="KAKAO_MAP_KEY"/>
         <activity
             android:name="org.sparcs.soap.App.Features.Main.MainActivity"

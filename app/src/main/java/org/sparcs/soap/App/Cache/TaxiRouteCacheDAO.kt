@@ -1,9 +1,8 @@
 package org.sparcs.soap.App.Cache
 
 import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import java.util.Date
 
 @Dao
@@ -12,7 +11,7 @@ interface TaxiRouteCacheDAO {
     @Query("SELECT * FROM cached_taxiRoute WHERE cacheKey = :key LIMIT 1")
     suspend fun getRoute(key: String): CachedTaxiRoute?
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Upsert
     suspend fun saveRoute(route: CachedTaxiRoute)
 
     @Query("DELETE FROM cached_taxiRoute WHERE cacheKey = :key")

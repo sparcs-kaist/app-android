@@ -110,19 +110,22 @@ fun TaxiPreviewView(
         room.destination.title,
         shareUrl
     )
-
-    LaunchedEffect(room, kakaoMap) {
-        val points = viewModel.calculateRoutePoints(
+    LaunchedEffect(room) {
+        pathPoints = viewModel.calculateRoutePoints(
             LatLng.from(room.source.latitude, room.source.longitude),
             LatLng.from(room.destination.latitude, room.destination.longitude)
         )
-        pathPoints = points
+    }
 
-        kakaoMap?.drawTaxiRoute(
+    LaunchedEffect(kakaoMap, pathPoints) {
+        val map = kakaoMap ?: return@LaunchedEffect
+        if (pathPoints.isEmpty()) return@LaunchedEffect
+
+        map.drawTaxiRoute(
             context = context,
             startPos = LatLng.from(room.source.latitude, room.source.longitude),
             endPos = LatLng.from(room.destination.latitude, room.destination.longitude),
-            pathPoints = points,
+            pathPoints = pathPoints,
             pathColor = pathColor,
             startLabel = sourceString,
             endLabel = destinationString,

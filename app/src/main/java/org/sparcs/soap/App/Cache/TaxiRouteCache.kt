@@ -18,8 +18,8 @@ class TaxiRouteCache @Inject constructor(
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            val thirtyDaysAgo = Date(System.currentTimeMillis() - 15L * 24 * 60 * 60 * 1000)
-            taxiRouteCacheDao.deleteExpired(thirtyDaysAgo)
+            val retentionCutoffDate  = Date(System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000)
+            taxiRouteCacheDao.deleteExpired(retentionCutoffDate )
         }
     }
 

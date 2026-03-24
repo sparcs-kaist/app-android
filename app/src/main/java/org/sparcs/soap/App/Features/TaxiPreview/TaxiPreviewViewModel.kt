@@ -84,40 +84,38 @@ class TaxiPreviewViewModel @Inject constructor(
                 .get()
                 .build()
 
-            val response = client.newCall(request).execute()
-            val responseBody = response.body?.string()
+            client.newCall(request).execute().use { response ->
+                val responseBody = response.body?.string()
 
-            if (!response.isSuccessful || responseBody == null) {
-                Timber.e("HTTP error: ${response.code}")
-                return@withContext emptyList()
-            }
+                if (!response.isSuccessful || responseBody == null) {
+                    Timber.e("HTTP error: ${response.code}")
+                    return@withContext emptyList()
+                }
 
-            val json = JSONObject(responseBody)
+                val json = JSONObject(responseBody)
+                val routes = json.optJSONArray("routes") ?: return@withContext emptyList()
+                val sections = routes.getJSONObject(0).optJSONArray("sections") ?: return@withContext emptyList()
 
-            val routes = json.optJSONArray("routes") ?: return@withContext emptyList()
-            val sections =
-                routes.getJSONObject(0).optJSONArray("sections") ?: return@withContext emptyList()
-
-            val points = mutableListOf<LatLng>()
-
-            for (i in 0 until sections.length()) {
-                val roads = sections.getJSONObject(i).optJSONArray("roads") ?: continue
-                for (j in 0 until roads.length()) {
-                    val vertexes = roads.getJSONObject(j).optJSONArray("vertexes") ?: continue
-                    for (k in 0 until vertexes.length() step 2) {
-                        val lon = vertexes.getDouble(k)
-                        val lat = vertexes.getDouble(k + 1)
-                        points.add(LatLng.from(lat, lon))
+                val points = mutableListOf<LatLng>()
+                for (i in 0 until sections.length()) {
+                    val roads = sections.getJSONObject(i).optJSONArray("roads") ?: continue
+                    for (j in 0 until roads.length()) {
+                        val vertexes = roads.getJSONObject(j).optJSONArray("vertexes") ?: continue
+                        for (k in 0 until vertexes.length() step 2) {
+                            val lon = vertexes.getDouble(k)
+                            val lat = vertexes.getDouble(k + 1)
+                            points.add(LatLng.from(lat, lon))
+                        }
                     }
                 }
-            }
 
-            if (points.isNotEmpty()) {
-                taxiRouteCache.store(cacheKey, points)
-                Timber.d("TaxiRoute Cache Stored! key: $cacheKey")
-            }
+                if (points.isNotEmpty()) {
+                    taxiRouteCache.store(cacheKey, points)
+                    Timber.d("TaxiRoute Cache Stored! key: $cacheKey")
+                }
 
-            points
+                points
+            }
         } catch (e: Exception) {
             Timber.e(e, "Error parsing route: ${e.message}")
             listOf(source, destination)

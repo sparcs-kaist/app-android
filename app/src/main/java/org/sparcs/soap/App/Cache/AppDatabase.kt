@@ -10,7 +10,7 @@ import java.util.Date
     entities = [
         CachedTimetable::class,
         CachedTaxiRoute::class
-    ], version = 1, exportSchema = false
+    ], version = 2, exportSchema = false
 )
 @TypeConverters(DateConverter::class)
 abstract class AppDatabase : RoomDatabase() {
