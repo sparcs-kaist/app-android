@@ -69,13 +69,13 @@ import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.isDateInSameDay
 import org.sparcs.soap.App.Shared.Extensions.weekdaySymbol
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiPreviewViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiListViewModel
+import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiPreviewViewModel
 import org.sparcs.soap.R
 import java.util.Calendar
 import java.util.Date
@@ -581,5 +581,5 @@ private fun TaxiListScreenErrorPreview() {
 @Composable
 private fun MockTaxiListScreen(state: TaxiListViewModel.ViewState) {
     val mockViewModel = remember { PreviewTaxiListViewModel(initialState = state) }
-    TaxiListView(viewModel = mockViewModel, taxiPreviewViewModel = MockTaxiPreviewViewModel(), navController = rememberNavController())
+    TaxiListView(viewModel = mockViewModel, taxiPreviewViewModel = PreviewTaxiPreviewViewModel(), navController = rememberNavController())
 }

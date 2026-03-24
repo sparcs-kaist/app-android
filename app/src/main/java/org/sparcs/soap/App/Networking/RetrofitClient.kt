@@ -21,6 +21,7 @@ import okhttp3.Response
 import okhttp3.Route
 import okhttp3.logging.HttpLoggingInterceptor
 import org.sparcs.soap.App.Cache.AppDatabase
+import org.sparcs.soap.App.Cache.TaxiRouteCacheDAO
 import org.sparcs.soap.App.Cache.TimetableCacheDAO
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Helpers.TaxiLocationStorage
@@ -133,26 +134,34 @@ import org.sparcs.soap.App.Shared.Extensions.AndroidStringProvider
 import org.sparcs.soap.App.Shared.Extensions.StringProvider
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
 
 class TokenAuthenticator @Inject constructor(
-    private val authUseCaseProvider: Provider<AuthUseCaseProtocol>
+    private val authUseCaseProvider: Provider<AuthUseCaseProtocol>,
 ) : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
         if (responseCount(response) >= 2) {
             return null
         }
         val authUseCase = authUseCaseProvider.get()
-        val newToken = runBlocking { authUseCase.getValidAccessToken() }
-        return newToken.let {
+        return try {
+            val newToken = runBlocking {
+                authUseCase.getValidAccessToken()
+            }
+
             response.request.newBuilder()
-                .header("Authorization", "Bearer $it")
+                .header("Authorization", "Bearer $newToken")
                 .build()
+        } catch (e: Exception) {
+            Timber.e(e, "Authentication aborted: Token refresh failed")
+            null
         }
     }
+
     private fun responseCount(response: Response): Int {
         var result = 1
         var prior = response.priorResponse
@@ -181,7 +190,7 @@ object NetworkModule {
     fun taxiBackEndURL(
         gson: Gson,
         tokenStorage: TokenStorageProtocol,
-        tokenAuthenticator: TokenAuthenticator
+        tokenAuthenticator: TokenAuthenticator,
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -238,7 +247,7 @@ object NetworkModule {
     fun araBackEndURL(
         gson: Gson,
         tokenStorage: TokenStorageProtocol,
-        tokenAuthenticator: TokenAuthenticator
+        tokenAuthenticator: TokenAuthenticator,
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -271,7 +280,7 @@ object NetworkModule {
     fun feedBackEndURL(
         gson: Gson,
         tokenStorage: TokenStorageProtocol,
-        tokenAuthenticator: TokenAuthenticator
+        tokenAuthenticator: TokenAuthenticator,
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -304,7 +313,7 @@ object NetworkModule {
         @ApplicationContext context: Context,
         gson: Gson,
         tokenStorage: TokenStorageProtocol,
-        tokenAuthenticator: TokenAuthenticator
+        tokenAuthenticator: TokenAuthenticator,
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor { chain ->
@@ -362,6 +371,7 @@ object NetworkModule {
     fun provideTaxiReportApi(@Named("TaxiBackend") retrofit: Retrofit): TaxiReportApi {
         return retrofit.create(TaxiReportApi::class.java)
     }
+
     @Provides
     @Singleton
     fun provideAraBoardApi(@Named("AraBackend") retrofit: Retrofit): AraBoardApi {
@@ -477,116 +487,116 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindTaxiRoomRepository(
-        impl: TaxiRoomRepository
+        impl: TaxiRoomRepository,
     ): TaxiRoomRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindTaxiUserRepository(
-        impl: TaxiUserRepository
+        impl: TaxiUserRepository,
     ): TaxiUserRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindTaxiReportRepository(
-        impl: TaxiReportRepository
+        impl: TaxiReportRepository,
     ): TaxiReportRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindAraBoardRepository(
-        impl: AraBoardRepository
+        impl: AraBoardRepository,
     ): AraBoardRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindAraCommentRepository(
-        impl: AraCommentRepository
+        impl: AraCommentRepository,
     ): AraCommentRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindAraUserRepository(
-        impl: AraUserRepository
+        impl: AraUserRepository,
     ): AraUserRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindFeedCommentRepository(
-        impl: FeedCommentRepository
+        impl: FeedCommentRepository,
     ): FeedCommentRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindFeedUserRepository(
-        impl: FeedUserRepository
+        impl: FeedUserRepository,
     ): FeedUserRepositoryProtocol
 
 
     @Binds
     @Singleton
     abstract fun bindFeedProfileRepository(
-        impl: FeedProfileRepository
+        impl: FeedProfileRepository,
     ): FeedProfileRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindFeedImageRepository(
-        impl: FeedImageRepository
+        impl: FeedImageRepository,
     ): FeedImageRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindFeedPostRepository(
-        impl: FeedPostRepository
+        impl: FeedPostRepository,
     ): FeedPostRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindOTLUserRepository(
-        impl: OTLUserRepository
+        impl: OTLUserRepository,
     ): OTLUserRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindOTLTimetableRepository(
-        impl: OTLTimetableRepository
+        impl: OTLTimetableRepository,
     ): OTLTimetableRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindOTLCourseRepository(
-        impl: OTLCourseRepository
+        impl: OTLCourseRepository,
     ): OTLCourseRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindOTLLectureRepository(
-        impl: OTLLectureRepository
+        impl: OTLLectureRepository,
     ): OTLLectureRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindOTLReviewRepository(
-        impl: OTLReviewRepository
+        impl: OTLReviewRepository,
     ): OTLReviewRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindTaxiChatRepository(
-        impl: TaxiChatRepository
+        impl: TaxiChatRepository,
     ): TaxiChatRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindFCMRepository(
-        impl: FCMRepository
+        impl: FCMRepository,
     ): FCMRepositoryProtocol
 
     @Binds
     @Singleton
     abstract fun bindAuthRepository(
-        impl: AuthRepository
+        impl: AuthRepository,
     ): AuthRepositoryProtocol
 }
 
@@ -621,81 +631,81 @@ abstract class UseCaseModule {
     @Binds
     @Singleton
     abstract fun bindStringProvider(
-        impl: AndroidStringProvider
+        impl: AndroidStringProvider,
     ): StringProvider
 
     @Binds
     @Singleton
     abstract fun bindFCMUseCase(
-        fcmUseCase: FCMUseCase
+        fcmUseCase: FCMUseCase,
     ): FCMUseCaseProtocol
 
     @Binds
     @Singleton
     abstract fun bindFeedCommentUseCase(
-        impl: FeedCommentUseCase
+        impl: FeedCommentUseCase,
     ): FeedCommentUseCaseProtocol
 
     @Binds
     @Singleton
     abstract fun bindFeedPostUseCase(
-        impl: FeedPostUseCase
+        impl: FeedPostUseCase,
     ): FeedPostUseCaseProtocol
 
 
     @Binds
     @Singleton
     abstract fun bindCrashlyticsService(
-        impl: CrashlyticsService
+        impl: CrashlyticsService,
     ): CrashlyticsServiceProtocol
 
     @Binds
     @Singleton
     abstract fun bindAnalyticsService(
-        impl: AnalyticsService
+        impl: AnalyticsService,
     ): AnalyticsServiceProtocol
 
     @Binds
     @Singleton
     abstract fun bindAraBoardUseCase(
-        impl: AraBoardUseCase
+        impl: AraBoardUseCase,
     ): AraBoardUseCaseProtocol
 
 
     @Binds
     @Singleton
     abstract fun bindFeedImageUseCase(
-        impl: FeedImageUseCase
+        impl: FeedImageUseCase,
     ): FeedImageUseCaseProtocol
 
     @Binds
     @Singleton
     abstract fun bindAraCommentUseCase(
-        impl: AraCommentUseCase
+        impl: AraCommentUseCase,
     ): AraCommentUseCaseProtocol
 
     @Binds
     @Singleton
     abstract fun bindFeedProfileUseCase(
-        impl: FeedProfileUseCase
+        impl: FeedProfileUseCase,
     ): FeedProfileUseCaseProtocol
 
     @Binds
     @Singleton
     abstract fun bindCourseUseCase(
-        impl: CourseUseCase
+        impl: CourseUseCase,
     ): CourseUseCaseProtocol
 
     @Binds
     @Singleton
     abstract fun bindReviewUseCase(
-        impl: ReviewUseCase
+        impl: ReviewUseCase,
     ): ReviewUseCaseProtocol
 
     @Binds
     @Singleton
     abstract fun bindLectureUseCase(
-        impl: LectureUseCase
+        impl: LectureUseCase,
     ): LectureUseCaseProtocol
 
 }
@@ -707,7 +717,7 @@ object ServiceModule {
     @Provides
     @Singleton
     fun provideAuthenticationService(
-        authRepository: AuthRepositoryProtocol
+        authRepository: AuthRepositoryProtocol,
     ): AuthenticationServiceProtocol {
         return AuthenticationService(authRepository)
     }
@@ -726,7 +736,7 @@ object ServiceModule {
     @Singleton
     fun provideTaxiChatService(
         tokenStorage: TokenStorageProtocol,
-        authUseCaseProvider: Provider<AuthUseCaseProtocol>
+        authUseCaseProvider: Provider<AuthUseCaseProtocol>,
     ): TaxiChatService {
         return TaxiChatService(
             tokenStorage = tokenStorage,
@@ -746,7 +756,7 @@ object AuthUseCaseModule {
         araUserRepository: AraUserRepositoryProtocol,
         feedUserRepository: FeedUserRepositoryProtocol,
         otlUserRepository: OTLUserRepositoryProtocol,
-        taxiChatServiceProvider: Provider<TaxiChatService>
+        taxiChatServiceProvider: Provider<TaxiChatService>,
     ): AuthUseCase {
 
         val useCase = AuthUseCase(
@@ -767,6 +777,7 @@ object AuthUseCaseModule {
 
         return useCase
     }
+
     @Provides
     @Singleton
     fun provideAuthUseCaseProtocol(impl: AuthUseCase): AuthUseCaseProtocol = impl
@@ -791,5 +802,10 @@ object DatabaseModule {
     @Provides
     fun provideTimetableCacheDAO(database: AppDatabase): TimetableCacheDAO {
         return database.timetableCacheDao()
+    }
+
+    @Provides
+    fun provideTaxiRouteCacheDAO(database: AppDatabase): TaxiRouteCacheDAO {
+        return database.taxiRouteCacheDao()
     }
 }

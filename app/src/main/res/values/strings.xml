@@ -502,4 +502,6 @@
     <string name="taxi_arrival">Arrived</string>
     <string name="taxi_arrival_complete">Arrived</string>
     <string name="taxi_not_arrived">Not Arrived</string>
+    <string name="source">From</string>
+    <string name="destination">To</string>
 </resources>

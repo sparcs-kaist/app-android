@@ -477,4 +477,6 @@
     <string name="taxi_arrival">도착</string>
     <string name="taxi_arrival_complete">도착 완료</string>
     <string name="taxi_not_arrived">미도착</string>
+    <string name="source">출발</string>
+    <string name="destination">도착</string>
 </resources>
