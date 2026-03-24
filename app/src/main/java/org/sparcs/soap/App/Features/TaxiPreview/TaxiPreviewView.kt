@@ -3,6 +3,7 @@ package org.sparcs.soap.App.Features.TaxiPreview
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,25 +35,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
+import com.kakao.vectormap.KakaoMap
+import com.kakao.vectormap.KakaoMapReadyCallback
+import com.kakao.vectormap.LatLng
+import com.kakao.vectormap.MapLifeCycleCallback
+import com.kakao.vectormap.MapView
+import com.kakao.vectormap.camera.CameraUpdateFactory
 import kotlinx.coroutines.launch
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.BoundingBox
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
-import org.osmdroid.views.overlay.Polyline
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
@@ -62,12 +61,15 @@ import org.sparcs.soap.App.Features.TaxiPreview.Components.InfoRow
 import org.sparcs.soap.App.Features.TaxiPreview.Components.RouteHeaderView
 import org.sparcs.soap.App.Features.TaxiPreview.Components.TaxiCarrierIndicator
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.drawTaxiRoute
 import org.sparcs.soap.App.Shared.Extensions.formattedString
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
-import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiPreviewViewModel
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.App.theme.ui.downvote
 import org.sparcs.soap.App.theme.ui.grayBB
+import org.sparcs.soap.App.theme.ui.upvote
+import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiPreviewViewModel
 import org.sparcs.soap.R
 import timber.log.Timber
 
@@ -84,29 +86,19 @@ fun TaxiPreviewView(
     val isPreview = LocalInspectionMode.current
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
-    var pathPoints by remember { mutableStateOf<List<GeoPoint>>(emptyList()) }
 
     val blockStatus = viewModel.blockStatus.collectAsState().value
-    val routeColor = MaterialTheme.colorScheme.primary.toArgb()
+    var kakaoMap by remember { mutableStateOf<KakaoMap?>(null) }
+    var pathPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
+
+    val pathColor = MaterialTheme.colorScheme.primary.toArgb()
+    val sourceString = stringResource(R.string.source)
+    val destinationString = stringResource(R.string.destination)
 
     val isJoinButtonDisabled: Boolean =
         !viewModel.isJoined(room.participants) && (room.participants.size >= room.capacity ||
                 room.isDeparted ||
                 blockStatus != TaxiRoomBlockStatus.Allow)
-
-    val mapView = remember {
-        if (!isPreview) {
-            Configuration.getInstance().userAgentValue = context.packageName
-            MapView(context).apply {
-                setTileSource(TileSourceFactory.MAPNIK)
-                setMultiTouchControls(false)
-                isClickable = false
-                setBuiltInZoomControls(false)
-                controller.setZoom(15.0)
-                controller.setCenter(GeoPoint(room.source.latitude, room.source.longitude))
-            }
-        } else null
-    }
 
     val shareUrl = "${Constants.taxiInviteURL}${room.id}"
     val shareMessage = stringResource(
@@ -117,26 +109,24 @@ fun TaxiPreviewView(
         shareUrl
     )
 
-    LaunchedEffect(Unit) {
-        try {
-            pathPoints = viewModel.calculateRoutePoints(
-                source = GeoPoint(room.source.latitude, room.source.longitude),
-                destination = GeoPoint(room.destination.latitude, room.destination.longitude)
-            )
+    LaunchedEffect(room, kakaoMap) {
+        val points = viewModel.calculateRoutePoints(
+            LatLng.from(room.source.latitude, room.source.longitude),
+            LatLng.from(room.destination.latitude, room.destination.longitude)
+        )
+        pathPoints = points
 
-        } catch (e: Exception) {
-            Timber.e("Error calculating route points: ${e.message}")
-            errorMessage = e.localizedMessage ?: "Unknown error"
-            showError = true
-        }
-    }
-
-    DisposableEffect(mapView) {
-        mapView?.onResume()
-        onDispose {
-            mapView?.onPause()
-            mapView?.onDetach()
-        }
+        kakaoMap?.drawTaxiRoute(
+            context = context,
+            startPos = LatLng.from(room.source.latitude, room.source.longitude),
+            endPos = LatLng.from(room.destination.latitude, room.destination.longitude),
+            pathPoints = points,
+            pathColor = pathColor,
+            startLabel = sourceString,
+            endLabel = destinationString,
+            startIconColor = downvote.toArgb(),
+            endIconColor = upvote.toArgb()
+        )
     }
 
     Column(
@@ -154,56 +144,37 @@ fun TaxiPreviewView(
             //MAP
             if (!isPreview) {
                 AndroidView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .matchParentSize(),
-                    factory = { mapView!! },
-                    update = { mapView ->
-                        mapView.overlays.clear()
-
-                        val startMarker = Marker(mapView).apply {
-                            position = GeoPoint(room.source.latitude, room.source.longitude)
-                            title = room.source.title.localized()
-                            icon =
-                                ContextCompat.getDrawable(
-                                    mapView.context,
-                                    R.drawable.round_location_on
-                                )
-                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        }
-
-                        val endMarker = Marker(mapView).apply {
-                            position =
-                                GeoPoint(room.destination.latitude, room.destination.longitude)
-                            title = room.destination.title.localized()
-                            icon =
-                                ContextCompat.getDrawable(mapView.context, R.drawable.arrival_point)
-                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                        }
-
-                        mapView.overlays.add(startMarker)
-                        mapView.overlays.add(endMarker)
-
-                        if (pathPoints.isNotEmpty()) {
-                            val bounds = BoundingBox.fromGeoPoints(pathPoints)
-
-                            val polyline = Polyline().apply {
-                                setPoints(pathPoints)
-                                outlinePaint.color = routeColor
-                                outlinePaint.strokeWidth = 8f
-                            }
-                            mapView.overlays.add(polyline)
-
-                            val padding = 50
-                            mapView.zoomToBoundingBox(bounds, true, padding)
+                    modifier = Modifier.fillMaxSize(),
+                    factory = { ctx ->
+                        MapView(ctx).apply {
+                            start(object : MapLifeCycleCallback() {
+                                override fun onMapDestroy() {}
+                                override fun onMapError(e: Exception?) { Timber.e(e) }
+                            }, object : KakaoMapReadyCallback() {
+                                override fun onMapReady(map: KakaoMap) {
+                                    kakaoMap = map
+                                    map.moveCamera(
+                                        CameraUpdateFactory.fitMapPoints(
+                                            arrayOf(LatLng.from(room.source.latitude, room.source.longitude), LatLng.from(room.destination.latitude, room.destination.longitude)),
+                                            100
+                                        )
+                                    )
+                                }
+                            })
                         }
                     }
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTapGestures(onDoubleTap = {}, onTap = {}, onPress = {})
+                        }
                 )
             } else {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
+                        .fillMaxSize()
                         .background(Color.Gray),
                     contentAlignment = Alignment.Center
                 ) {
@@ -311,7 +282,7 @@ private fun Preview() {
     Theme {
         TaxiPreviewView(
             room = TaxiRoom.mockList()[1],
-            viewModel = MockTaxiPreviewViewModel(),
+            viewModel = PreviewTaxiPreviewViewModel(),
             onDismiss = {},
             navController = rememberNavController()
         )

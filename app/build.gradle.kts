@@ -17,14 +17,18 @@ val properties = Properties().apply {
 }
 val mapKey: String = properties.getProperty("map_api_key")
 val sidAuthToken: String = properties.getProperty("otl_sid_auth_token")
+val kakaoMapKey: String = properties.getProperty("KAKAO_MAP_KEY")
+val kakaoNaviKey: String = properties.getProperty("KAKAO_NAVI_KEY")
 
 android {
     namespace = "org.sparcs.soap"
     compileSdk = 35
-
     defaultConfig {
         manifestPlaceholders += mapOf("mapKey" to mapKey)
         manifestPlaceholders += mapOf("sidAuthToken" to sidAuthToken)
+        manifestPlaceholders += mapOf("kakaoMapKey" to kakaoMapKey)
+        manifestPlaceholders += mapOf("kakaoNaviKey" to kakaoNaviKey)
+
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 35
@@ -35,6 +39,16 @@ android {
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
         buildConfigField("String", "MAPS_API_KEY", "\"$mapKey\"")
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
+        buildConfigField("String", "KAKAO_MAP_KEY", "\"$kakaoMapKey\"")
+        buildConfigField("String", "KAKAO_NAVI_KEY", "\"$kakaoNaviKey\"")
+
+
+        ndk {
+            abiFilters.add("arm64-v8a")
+            abiFilters.add("armeabi-v7a")
+            abiFilters.add("x86")
+            abiFilters.add("x86_64")
+        }
     }
 
     buildTypes {
@@ -132,7 +146,6 @@ dependencies {
     implementation(libs.androidx.datastore.preferences)
 
     implementation(libs.osmdroid.android)
-    implementation(libs.osmdroid.android)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics.ndk)
@@ -155,4 +168,10 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
+
+    implementation(libs.kakao.maps)
+
+//
+//    implementation("androidx.compose.ui:ui-text:1.10.5")
+//    implementation("androidx.compose.ui:ui:1.10.5")
 }

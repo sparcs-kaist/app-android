@@ -1,6 +1,7 @@
 [versions]
 aboutlibrariesComposeM3 = "11.2.3"
 agp = "8.8.2"
+kakaoMap = "2.11.0"
 androidxDatastorePreferences = "1.1.1"
 appUpdateKtx = "2.1.0"
 coilCompose = "2.4.0"
@@ -46,6 +47,7 @@ roomRuntimeAndroid = "2.8.4"
 
 [libraries]
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibrariesComposeM3" }
+kakao-maps = { module = "com.kakao.maps.open:android", version.ref = "kakaoMap" }
 androidx-compiler = { module = "androidx.compose.compiler:compiler", version.ref = "compiler" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }

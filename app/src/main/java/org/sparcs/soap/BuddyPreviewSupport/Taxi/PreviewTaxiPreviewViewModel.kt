@@ -1,14 +1,14 @@
-package org.sparcs.soap.App.Shared.ViewModelMocks.Taxi
+package org.sparcs.soap.BuddyPreviewSupport.Taxi
 
+import com.kakao.vectormap.LatLng
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import org.osmdroid.util.GeoPoint
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 
-class MockTaxiPreviewViewModel() : TaxiPreviewViewModelProtocol {
+class PreviewTaxiPreviewViewModel() : TaxiPreviewViewModelProtocol {
 
     private val _taxiUser = MutableStateFlow(null)
     override val taxiUser: StateFlow<TaxiUser?> = _taxiUser
@@ -21,9 +21,9 @@ class MockTaxiPreviewViewModel() : TaxiPreviewViewModelProtocol {
     }
 
     override suspend fun calculateRoutePoints(
-        source: GeoPoint,
-        destination: GeoPoint
-    ): List<GeoPoint> {
+        source: LatLng,
+        destination: LatLng
+    ): List<LatLng> {
         return listOf(source, destination)
     }
 

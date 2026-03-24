@@ -52,8 +52,10 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.kakao.vectormap.KakaoMapSdk
 import dagger.hilt.android.AndroidEntryPoint
 import org.sparcs.soap.App.Domain.Enums.DeepLink
+import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Helpers.PopupManager
 import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Services.AuthenticationCallbackHandler
@@ -93,6 +95,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
+        KakaoMapSdk.init(this, Constants.KAKAO_MAP_KEY)
         helper = InAppUpdateHelper(this, appUpdateLauncher, 4, snackbarHostState, lifecycleScope)
         helper.check()
 

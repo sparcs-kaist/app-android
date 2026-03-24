@@ -113,7 +113,10 @@ object Constants {
         get() = "sparcsapp://otl/timetable"
 
     // MARK: MAPS
-    val mapsURL = "https://api.openrouteservice.org/v2/directions/driving-car?"
+    val mapsURL = "https://apis-navi.kakaomobility.com/v1/directions?"
 
     val formattedPhoneNumberLength = 11 // Assuming a valid phone number has 11 digits (excluding "-")
+
+    const val KAKAO_MAP_KEY = BuildConfig.KAKAO_MAP_KEY
+    const val KAKAO_NAVI_KEY = BuildConfig.KAKAO_NAVI_KEY
 }
