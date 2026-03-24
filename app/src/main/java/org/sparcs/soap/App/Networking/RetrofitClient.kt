@@ -133,6 +133,7 @@ import org.sparcs.soap.App.Shared.Extensions.AndroidStringProvider
 import org.sparcs.soap.App.Shared.Extensions.StringProvider
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
@@ -146,11 +147,17 @@ class TokenAuthenticator @Inject constructor(
             return null
         }
         val authUseCase = authUseCaseProvider.get()
-        val newToken = runBlocking { authUseCase.getValidAccessToken() }
-        return newToken.let {
+        return try {
+            val newToken = runBlocking {
+                authUseCase.getValidAccessToken()
+            }
+
             response.request.newBuilder()
-                .header("Authorization", "Bearer $it")
+                .header("Authorization", "Bearer $newToken")
                 .build()
+        } catch (e: Exception) {
+            Timber.e(e, "Authentication aborted: Token refresh failed")
+            null
         }
     }
     private fun responseCount(response: Response): Int {
