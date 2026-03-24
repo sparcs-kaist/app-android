@@ -31,3 +31,7 @@
 -keep class * extends android.appwidget.AppWidgetProvider { *; }
 -keep class * extends android.widget.RemoteViewsService { *; }
 -keep class org.sparcs.soap.Widget.** { *; }
+
+# Kakao Map
+-keep class com.kakao.vectormap.** { *; }
+-keep interface com.kakao.vectormap.**

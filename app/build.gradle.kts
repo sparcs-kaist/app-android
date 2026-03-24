@@ -15,16 +15,18 @@ plugins {
 val properties = Properties().apply {
     load(rootProject.file("local.properties").inputStream())
 }
-val mapKey: String = properties.getProperty("map_api_key")
 val sidAuthToken: String = properties.getProperty("otl_sid_auth_token")
+val kakaoMapKey: String = properties.getProperty("KAKAO_MAP_KEY")
+val kakaoNaviKey: String = properties.getProperty("KAKAO_NAVI_KEY")
 
 android {
     namespace = "org.sparcs.soap"
     compileSdk = 35
-
     defaultConfig {
-        manifestPlaceholders += mapOf("mapKey" to mapKey)
         manifestPlaceholders += mapOf("sidAuthToken" to sidAuthToken)
+        manifestPlaceholders += mapOf("kakaoMapKey" to kakaoMapKey)
+        manifestPlaceholders += mapOf("kakaoNaviKey" to kakaoNaviKey)
+
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 35
@@ -33,8 +35,9 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
-        buildConfigField("String", "MAPS_API_KEY", "\"$mapKey\"")
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
+        buildConfigField("String", "KAKAO_MAP_KEY", "\"$kakaoMapKey\"")
+        buildConfigField("String", "KAKAO_NAVI_KEY", "\"$kakaoNaviKey\"")
     }
 
     buildTypes {
@@ -131,9 +134,6 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.datastore.preferences)
 
-    implementation(libs.osmdroid.android)
-    implementation(libs.osmdroid.android)
-
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.crashlytics.ndk)
     implementation(libs.firebase.analytics)
@@ -155,4 +155,6 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler)
+
+    implementation(libs.kakao.maps)
 }
