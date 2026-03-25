@@ -152,7 +152,7 @@ private fun TopDropDownItems(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconWithText(
@@ -245,7 +245,7 @@ private fun MiddleDropDownItems(
                 room.participants.forEach { participant ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        modifier = Modifier.padding(vertical = 4.dp, horizontal = 20.dp)
                     ) {
                         Text(
                             text = participant.nickname,

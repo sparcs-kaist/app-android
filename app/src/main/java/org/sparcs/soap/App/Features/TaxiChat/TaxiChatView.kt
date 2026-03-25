@@ -33,6 +33,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Features.FullscreenImage.FullscreenImageView
@@ -43,7 +44,6 @@ import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItemBuilder
 import org.sparcs.soap.App.Features.TaxiChat.Components.DefaultMessagePresentationPolicy
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiChatInputBar
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiChatViewNavigationBar
-import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.openUri

@@ -31,8 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.sparcs.soap.App.Domain.Helpers.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
-import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Shared.Extensions.openUri
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.theme.ui.Theme
