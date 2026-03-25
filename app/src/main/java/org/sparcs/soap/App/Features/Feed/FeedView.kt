@@ -58,7 +58,7 @@ fun FeedView(
     val coroutineScope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
-    var loadedInitialPost = rememberSaveable { mutableStateOf(false) }
+    val loadedInitialPost = rememberSaveable { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
     val listState = rememberLazyListState()
