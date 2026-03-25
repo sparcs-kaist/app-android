@@ -13,6 +13,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import okhttp3.Authenticator
 import okhttp3.OkHttpClient
@@ -144,14 +145,16 @@ class TokenAuthenticator @Inject constructor(
     private val authUseCaseProvider: Provider<AuthUseCaseProtocol>,
 ) : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {
-        if (responseCount(response) >= 2) {
-            return null
-        }
+        if (responseCount(response) >= 2) return null
+
         val authUseCase = authUseCaseProvider.get()
+
         return try {
-            val newToken = runBlocking {
+            val newToken = runBlocking(Dispatchers.IO) {
                 authUseCase.getValidAccessToken()
             }
+
+            if (newToken.isBlank()) return null
 
             response.request.newBuilder()
                 .header("Authorization", "Bearer $newToken")

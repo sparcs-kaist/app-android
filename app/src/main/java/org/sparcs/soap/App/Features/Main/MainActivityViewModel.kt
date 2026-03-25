@@ -3,6 +3,7 @@ package org.sparcs.soap.App.Features.Main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -32,6 +33,7 @@ class MainViewModel @Inject constructor(
     val mustUpdate: StateFlow<Boolean> = _mustUpdate.asStateFlow()
 
     private var lastCheckTime: Long? = null
+    private var activationJob: Job? = null
 
     val isAuthenticated: StateFlow<Boolean?> = authUseCase.isAuthenticatedFlow
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -45,7 +47,12 @@ class MainViewModel @Inject constructor(
     }
 
     fun onActivation(currentVersion: String) {
-        viewModelScope.launch {
+        if (activationJob?.isActive == true) {
+            Timber.d("onActivation: Already running, ignoring duplicate call.")
+            return
+        }
+
+        activationJob = viewModelScope.launch {
             _isLoading.value = true
             try {
                 checkUpdateIfNeeded(currentVersion)
