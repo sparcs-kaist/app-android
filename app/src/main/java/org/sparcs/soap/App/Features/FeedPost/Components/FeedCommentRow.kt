@@ -242,8 +242,10 @@ private fun Content(comment: FeedComment) {
             annotatedContent
         } else {
             val visibleEnd = textLayoutResult!!.getLineEnd(2, visibleEnd = true)
+
             buildAnnotatedString {
-                append(annotatedContent.subSequence(0, visibleEnd.coerceAtMost(annotatedContent.length)))
+                val cutIndex = (visibleEnd - 7).coerceAtLeast(0)
+                append(annotatedContent.subSequence(0, cutIndex))
                 pushStringAnnotation("MORE", "expand")
                 append("… ")
                 withStyle(SpanStyle(color = moreColor, fontWeight = FontWeight.SemiBold)) {
