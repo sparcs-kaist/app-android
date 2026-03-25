@@ -134,7 +134,11 @@ private fun ChatItem(
                     )
             ) {
                 when (item.chat.type) {
-                    TaxiChat.ChatType.TEXT -> ChatBubble(item.chat, item.position, item.sender.isMine)
+                    TaxiChat.ChatType.TEXT -> if (user == null) {
+                        ChatBubbleSkeleton(item.position)
+                    } else {
+                        ChatBubble(item.chat, item.position, item.sender.isMine)
+                    }
                     TaxiChat.ChatType.S3IMG -> ChatImageBubble(id = item.chat.content, onClick = onImageClick)
                     TaxiChat.ChatType.DEPARTURE -> ChatDepartureBubble(room = room)
                     TaxiChat.ChatType.ARRIVAL -> ChatArrivalBubble()
@@ -159,7 +163,7 @@ private fun calculateReadCount(chat: TaxiChat, room: TaxiRoom, user: TaxiUser?):
     return otherParticipants.count { it.readAt <= chat.time }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFFFFFFFF)
+@Preview(showBackground = true)
 @Composable
 private fun ChatCollectionViewPreview() {
     val mockChats = TaxiChat.mockList()
@@ -179,6 +183,35 @@ private fun ChatCollectionViewPreview() {
                 items = items,
                 room = TaxiRoom.mock(),
                 user = TaxiUser.mock(),
+                onCommitPayment = {},
+                onImageClick = {},
+                listState = listState,
+                scrollToBottomTrigger = 0
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ChatCollectionViewSkeletonPreview() {
+    val mockChats = TaxiChat.mockList()
+
+    val builder = ChatRenderItemBuilder(
+        policy = TaxiGroupingPolicy(),
+        positionResolver = ChatBubblePositionResolver(),
+        presentationPolicy = DefaultMessagePresentationPolicy()
+    )
+    val items = builder.build(chats = mockChats, myUserID = "user2")
+
+    val listState = rememberLazyListState()
+
+    Theme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            ChatCollectionView(
+                items = items,
+                room = TaxiRoom.mock(),
+                user = null,
                 onCommitPayment = {},
                 onImageClick = {},
                 listState = listState,

@@ -241,7 +241,7 @@
     <string name="open_kakao_pay">Open Kakao Pay</string>
     <string name="open_toss">Open Toss</string>
     <string name="photo_library">Photo Library</string>
-    <string name="request_settlement">Request Settlement</string>
+    <string name="request_settlement">Settlement Required</string>
     <string name="chat_as_user">Chat as %1$s</string>
     <string name="chats">Chats</string>
     <string name="active_groups">Active Groups</string>
@@ -499,7 +499,7 @@
     <string name="taxi_arrived_question">Have you arrived?</string>
     <string name="taxi_status">Status</string>
     <string name="taxi_arrival_status">Arrival Status</string>
-    <string name="taxi_arrival">Arrived</string>
+    <string name="taxi_arrival">Arrival</string>
     <string name="taxi_arrival_complete">Arrived</string>
     <string name="taxi_not_arrived">Not Arrived</string>
     <string name="source">From</string>

@@ -239,9 +239,6 @@ fun TaxiListView(
                 onDismissRequest = {
                     selectedRoom = null
                     viewModel.roomId = null
-                    coroutineScope.launch {
-                        viewModel.fetchData()
-                    }
                 },
                 sheetState = sheetState,
                 dragHandle = {

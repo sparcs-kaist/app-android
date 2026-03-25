@@ -5,8 +5,17 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
+import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import com.kakao.vectormap.KakaoMap
+import com.kakao.vectormap.KakaoMapReadyCallback
+import com.kakao.vectormap.LatLng
+import com.kakao.vectormap.MapLifeCycleCallback
+import com.kakao.vectormap.MapView
+import com.kakao.vectormap.camera.CameraUpdateFactory
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
+import timber.log.Timber
 
 fun Context.openUri(uri: Uri, packageName: String? = null) {
     try {
@@ -39,14 +48,43 @@ fun Context.vectorToBitmap(drawableId: Int, tintColor: Int? = null): Bitmap? {
     tintColor?.let {
         drawable.setTint(it)
     }
+    val sizeInPx = (32 * resources.displayMetrics.density).toInt()
 
     val bitmap = Bitmap.createBitmap(
-        (drawable.intrinsicWidth * 1.5).toInt(),
-        (drawable.intrinsicHeight * 1.5).toInt(),
+        sizeInPx,
+        sizeInPx,
         Bitmap.Config.ARGB_8888
     )
     val canvas = Canvas(bitmap)
     drawable.setBounds(0, 0, canvas.width, canvas.height)
     drawable.draw(canvas)
     return bitmap
+}
+
+fun Context.createKakaoMap(
+    room: TaxiRoom,
+    onMapReady: (KakaoMap) -> Unit,
+    onError: () -> Unit
+): View {
+    return try {
+        MapView(this).apply {
+            start(object : MapLifeCycleCallback() {
+                override fun onMapDestroy() {}
+                override fun onMapError(e: Exception?) { Timber.e(e); onError() }
+            }, object : KakaoMapReadyCallback() {
+                override fun onMapReady(map: KakaoMap) {
+                    onMapReady(map)
+                    val points = arrayOf(
+                        LatLng.from(room.source.latitude, room.source.longitude),
+                        LatLng.from(room.destination.latitude, room.destination.longitude)
+                    )
+                    map.moveCamera(CameraUpdateFactory.fitMapPoints(points, 100))
+                }
+            })
+        }
+    } catch (e: Throwable) {
+        Timber.e(e, "Kakao Map load failed")
+        onError()
+        View(this)
+    }
 }
