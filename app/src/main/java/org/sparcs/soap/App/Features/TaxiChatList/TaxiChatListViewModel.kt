@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import javax.inject.Inject
 
 interface TaxiChatListViewModelProtocol {
@@ -23,7 +24,8 @@ interface TaxiChatListViewModelProtocol {
 
 @HiltViewModel
 class TaxiChatListViewModel @Inject constructor(
-    private val taxiRoomRepository: TaxiRoomRepositoryProtocol
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
+    private val userUseCase: UserUseCaseProtocol
 ): ViewModel(), TaxiChatListViewModelProtocol {
 
     sealed class ViewState{
@@ -37,6 +39,10 @@ class TaxiChatListViewModel @Inject constructor(
 
     //MARK: - viewModel Properties
     override var taxiUser: TaxiUser? = null
+
+    init {
+        fetchTaxiUser()
+    }
 
     //MARK: - Functions
     override suspend fun fetchData(){
@@ -52,6 +58,12 @@ class TaxiChatListViewModel @Inject constructor(
                     message = e.localizedMessage ?: "Unknown error"
                 )
             }
+        }
+    }
+
+    private fun fetchTaxiUser(){
+        viewModelScope.launch {
+            taxiUser = userUseCase.taxiUser
         }
     }
 }

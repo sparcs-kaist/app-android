@@ -268,7 +268,7 @@ private val PlaceholderItems: List<ChatRenderItem> by lazy {
         positionResolver = ChatBubblePositionResolver(),
         presentationPolicy = DefaultMessagePresentationPolicy()
     )
-    builder.build(chats = TaxiChat.mockList(), myUserID = null)
+    builder.build(chats = TaxiChat.mockList().subList(0, 11), myUserID = null)
 }
 
 @Preview(showBackground = true, name = "Loading State")
