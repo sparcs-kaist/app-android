@@ -63,7 +63,8 @@ class FeedViewModel @Inject constructor(
 
     //Infinite Scroll Properties
     private var nextCursor: String? = null
-    override var isLoadingMore: Boolean = false
+    override var isLoadingMore by mutableStateOf(false)
+
     private var hasNext: Boolean = false
     private var pageSize: Int = 20
 
