@@ -19,13 +19,13 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,7 +34,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Features.Feed.Components.FeedPostRow
@@ -85,6 +84,25 @@ fun FeedView(
         }
     }
 
+    //LoadMore
+    val shouldLoadMore by remember {
+        derivedStateOf {
+            val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+            val totalItemsCount = listState.layoutInfo.totalItemsCount
+
+            lastVisibleItem != null && lastVisibleItem.index >= totalItemsCount - 1
+        }
+    }
+
+    LaunchedEffect(shouldLoadMore) {
+        if (shouldLoadMore &&
+            state is FeedViewModel.ViewState.Loaded &&
+            !viewModel.isLoadingMore
+        ) {
+            viewModel.loadNextPage()
+        }
+    }
+
     Scaffold(
         topBar = {
             FeedViewNavigationBar(
@@ -127,7 +145,10 @@ fun FeedView(
 
                 is FeedViewModel.ViewState.Loaded -> {
                     LazyColumn(state = listState) {
-                        itemsIndexed(viewModel.posts) { index, post ->
+                        itemsIndexed(
+                            items = viewModel.posts,
+                            key = { _, post -> post.id }
+                        ) { index, post ->
                             FeedPostRow(
                                 post = post,
                                 viewModel = viewModel,
@@ -139,16 +160,6 @@ fun FeedView(
                                     navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
                                 }
                             )
-                            LaunchedEffect(listState) {
-                                snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }
-                                    .distinctUntilChanged()
-                                    .collect { lastVisibleIndex ->
-                                        val totalItems = listState.layoutInfo.totalItemsCount
-                                        if (!viewModel.isLoadingMore && lastVisibleIndex != null && lastVisibleIndex >= totalItems - 1) {
-                                            viewModel.loadNextPage()
-                                        }
-                                    }
-                            }
                             HorizontalDivider(Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
                         }
                     }
