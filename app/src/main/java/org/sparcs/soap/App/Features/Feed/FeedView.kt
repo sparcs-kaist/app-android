@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -89,18 +90,20 @@ fun FeedView(
         derivedStateOf {
             val lastVisibleItem = listState.layoutInfo.visibleItemsInfo.lastOrNull()
             val totalItemsCount = listState.layoutInfo.totalItemsCount
-
-            lastVisibleItem != null && lastVisibleItem.index >= totalItemsCount - 1
+            lastVisibleItem != null && lastVisibleItem.index >= totalItemsCount - 2
         }
     }
 
-    LaunchedEffect(shouldLoadMore) {
-        if (shouldLoadMore &&
-            state is FeedViewModel.ViewState.Loaded &&
-            !viewModel.isLoadingMore
-        ) {
-            viewModel.loadNextPage()
-        }
+    LaunchedEffect(Unit) {
+        snapshotFlow { shouldLoadMore }
+            .collect { loadingTriggered ->
+                if (loadingTriggered &&
+                    state is FeedViewModel.ViewState.Loaded &&
+                    !viewModel.isLoadingMore
+                ) {
+                    viewModel.loadNextPage()
+                }
+            }
     }
 
     Scaffold(
