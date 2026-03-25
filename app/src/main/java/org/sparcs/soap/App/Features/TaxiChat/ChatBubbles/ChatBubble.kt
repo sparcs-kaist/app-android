@@ -4,9 +4,15 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
@@ -40,15 +46,18 @@ import org.sparcs.soap.App.theme.ui.Theme
 fun ChatBubble(
     chat: TaxiChat,
     position: ChatBubblePosition,
-    isMine: Boolean
+    isMine: Boolean,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
 
-    val backgroundColor = if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
-    val contentColor = if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
-    val urlColor = if (isMine) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary
+    val backgroundColor =
+        if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+    val contentColor =
+        if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+    val urlColor =
+        if (isMine) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary
 
     val bubbleShape = RoundedCornerShape(
         topStart = 24.dp,
@@ -97,10 +106,41 @@ fun ChatBubble(
     }
 }
 
+@Composable
+fun ChatBubbleSkeleton(
+    position: ChatBubblePosition = ChatBubblePosition.SINGLE,
+) {
+    val skeletonColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        modifier = Modifier.padding(vertical = 4.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .widthIn(min = 100.dp, max = 240.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val widthFactor = remember { (6..10).random() / 10f }
+
+            Box(
+                modifier = Modifier
+                    .height(22.dp)
+                    .fillMaxWidth(
+                        widthFactor
+                    )
+                    .background(skeletonColor, RoundedCornerShape(4.dp))
+            )
+        }
+    }
+}
+
 private fun handleURL(
     context: Context,
     urlString: String,
-    scope: CoroutineScope
+    scope: CoroutineScope,
 ) {
     val uri = Uri.parse(if (!urlString.startsWith("http")) "http://$urlString" else urlString)
     val deepLink = DeepLink.fromUri(uri)
@@ -184,6 +224,18 @@ private fun LinkBubblePreview() {
                 chat = TaxiChat.mockList()[0].copy(content = "링크 포함 메시지: https://www.kaist.ac.kr"),
                 position = ChatBubblePosition.SINGLE,
                 isMine = false
+            )
+        }
+    }
+}
+
+@Preview(name = "Skeleton Bubble", showBackground = true)
+@Composable
+private fun SkeletonBubblePreview() {
+    Theme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            ChatBubbleSkeleton(
+                position = ChatBubblePosition.BOTTOM,
             )
         }
     }

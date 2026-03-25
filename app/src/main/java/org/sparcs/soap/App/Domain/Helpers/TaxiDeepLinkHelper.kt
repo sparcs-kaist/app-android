@@ -1,10 +1,9 @@
-package org.sparcs.soap.App.Features.TaxiChat.Components
+package org.sparcs.soap.App.Domain.Helpers
 
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
-import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 
 object TaxiDeepLinkHelper {

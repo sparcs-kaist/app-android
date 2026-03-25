@@ -206,7 +206,7 @@
     <string name="leave_room_warning">취소 후 다시 참여할 수 있습니다.\n하지만 혼자 탑승 중이라면 방이 사라집니다.</string>
     <string name="yes">네</string>
     <string name="no">아니요</string>
-    <string name="call_taxi">택시 호출하기</string>
+    <string name="call_taxi">택시 호출</string>
     <string name="leave">떠나기</string>
     <string name="room_participants">참가자: %1$d/%2$d</string>
     <string name="taxi_15min_alert">⏰ 택시 출발 15분 전입니다. 동승자들이 모두 모였다면 택시를 호출한 후 출발하세요.</string>

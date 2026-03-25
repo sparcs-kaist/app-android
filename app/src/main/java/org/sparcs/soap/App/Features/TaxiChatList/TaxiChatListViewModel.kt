@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import javax.inject.Inject
 
 interface TaxiChatListViewModelProtocol {
@@ -23,10 +24,11 @@ interface TaxiChatListViewModelProtocol {
 
 @HiltViewModel
 class TaxiChatListViewModel @Inject constructor(
-    private val taxiRoomRepository: TaxiRoomRepositoryProtocol
-): ViewModel(), TaxiChatListViewModelProtocol {
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
+    private val userUseCase: UserUseCaseProtocol,
+) : ViewModel(), TaxiChatListViewModelProtocol {
 
-    sealed class ViewState{
+    sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val onGoing: List<TaxiRoom>, val done: List<TaxiRoom>) : ViewState()
         data class Error(val message: String) : ViewState()
@@ -38,8 +40,12 @@ class TaxiChatListViewModel @Inject constructor(
     //MARK: - viewModel Properties
     override var taxiUser: TaxiUser? = null
 
+    init {
+        fetchTaxiUser()
+    }
+
     //MARK: - Functions
-    override suspend fun fetchData(){
+    override suspend fun fetchData() {
         viewModelScope.launch {
             try {
                 val (onGoingRooms, doneRooms) = taxiRoomRepository.fetchMyRooms()
@@ -53,5 +59,9 @@ class TaxiChatListViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    private fun fetchTaxiUser() {
+        taxiUser = userUseCase.taxiUser
     }
 }

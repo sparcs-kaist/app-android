@@ -48,11 +48,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import com.kakao.vectormap.KakaoMap
-import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
-import com.kakao.vectormap.MapLifeCycleCallback
-import com.kakao.vectormap.MapView
-import com.kakao.vectormap.camera.CameraUpdateFactory
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.App.Domain.Helpers.Constants
@@ -62,6 +58,7 @@ import org.sparcs.soap.App.Features.TaxiPreview.Components.InfoRow
 import org.sparcs.soap.App.Features.TaxiPreview.Components.RouteHeaderView
 import org.sparcs.soap.App.Features.TaxiPreview.Components.TaxiCarrierIndicator
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.createKakaoMap
 import org.sparcs.soap.App.Shared.Extensions.drawTaxiRoute
 import org.sparcs.soap.App.Shared.Extensions.formattedString
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
@@ -72,7 +69,6 @@ import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.upvote
 import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiPreviewViewModel
 import org.sparcs.soap.R
-import timber.log.Timber
 
 @Composable
 fun TaxiPreviewView(
@@ -88,6 +84,7 @@ fun TaxiPreviewView(
     var showError by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
     var isMapLoading by remember { mutableStateOf(true) }
+    var isMapError by remember { mutableStateOf(false) }
 
     val blockStatus = viewModel.blockStatus.collectAsState().value
     var kakaoMap by remember { mutableStateOf<KakaoMap?>(null) }
@@ -148,26 +145,18 @@ fun TaxiPreviewView(
                 .clipToBounds()
         ) {
             //MAP
-            if (!isPreview) {
+            if (!isPreview && !isMapError) {
                 AndroidView(
                     modifier = Modifier.fillMaxSize(),
                     factory = { ctx ->
-                        MapView(ctx).apply {
-                            start(object : MapLifeCycleCallback() {
-                                override fun onMapDestroy() {}
-                                override fun onMapError(e: Exception?) { Timber.e(e) }
-                            }, object : KakaoMapReadyCallback() {
-                                override fun onMapReady(map: KakaoMap) {
-                                    kakaoMap = map
-                                    map.moveCamera(
-                                        CameraUpdateFactory.fitMapPoints(
-                                            arrayOf(LatLng.from(room.source.latitude, room.source.longitude), LatLng.from(room.destination.latitude, room.destination.longitude)),
-                                            100
-                                        )
-                                    )
-                                }
-                            })
-                        }
+                        ctx.createKakaoMap(
+                            room,
+                            onMapReady = { kakaoMap = it },
+                            onError = {
+                                isMapError = true
+                                isMapLoading = false
+                            }
+                        )
                     }
                 )
                 if (isMapLoading) {
@@ -190,7 +179,7 @@ fun TaxiPreviewView(
                             detectTapGestures(onDoubleTap = {}, onTap = {}, onPress = {})
                         }
                 )
-            } else {
+            } else  {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
