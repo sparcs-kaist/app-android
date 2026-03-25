@@ -106,7 +106,10 @@ fun TaxiChatViewNavigationBar(
                 Column(
                     Modifier.onGloballyPositioned { coordinates ->
                         val heightInDp = with(density) { coordinates.size.height.toDp() }
-                        titleHeightDp = heightInDp + 56.dp
+                        val newTitleHeight = heightInDp + 56.dp
+                        if (titleHeightDp != newTitleHeight) {
+                            titleHeightDp = newTitleHeight
+                        }
                     },
                 ) {
                     Row(
@@ -340,7 +343,7 @@ fun TaxiArrivalStatusContent(participants: List<TaxiParticipant>) {
                     )
 
                     Text(
-                        text = if (participant.isArrived) stringResource(R.string.taxi_arrival) else stringResource(
+                        text = if (participant.isArrived) stringResource(R.string.taxi_arrival_complete) else stringResource(
                             R.string.taxi_not_arrived
                         ),
                         color = if (participant.isArrived) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,

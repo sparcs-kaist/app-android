@@ -499,7 +499,7 @@
     <string name="taxi_arrived_question">Have you arrived?</string>
     <string name="taxi_status">Status</string>
     <string name="taxi_arrival_status">Arrival Status</string>
-    <string name="taxi_arrival">Arrive</string>
+    <string name="taxi_arrival">Arrival</string>
     <string name="taxi_arrival_complete">Arrived</string>
     <string name="taxi_not_arrived">Not Arrived</string>
     <string name="source">From</string>

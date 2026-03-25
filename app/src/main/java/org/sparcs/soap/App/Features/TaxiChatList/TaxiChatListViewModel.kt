@@ -25,10 +25,10 @@ interface TaxiChatListViewModelProtocol {
 @HiltViewModel
 class TaxiChatListViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
-    private val userUseCase: UserUseCaseProtocol
-): ViewModel(), TaxiChatListViewModelProtocol {
+    private val userUseCase: UserUseCaseProtocol,
+) : ViewModel(), TaxiChatListViewModelProtocol {
 
-    sealed class ViewState{
+    sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val onGoing: List<TaxiRoom>, val done: List<TaxiRoom>) : ViewState()
         data class Error(val message: String) : ViewState()
@@ -45,7 +45,7 @@ class TaxiChatListViewModel @Inject constructor(
     }
 
     //MARK: - Functions
-    override suspend fun fetchData(){
+    override suspend fun fetchData() {
         viewModelScope.launch {
             try {
                 val (onGoingRooms, doneRooms) = taxiRoomRepository.fetchMyRooms()
@@ -61,9 +61,7 @@ class TaxiChatListViewModel @Inject constructor(
         }
     }
 
-    private fun fetchTaxiUser(){
-        viewModelScope.launch {
-            taxiUser = userUseCase.taxiUser
-        }
+    private fun fetchTaxiUser() {
+        taxiUser = userUseCase.taxiUser
     }
 }
