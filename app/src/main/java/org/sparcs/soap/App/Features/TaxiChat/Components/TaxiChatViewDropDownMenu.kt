@@ -58,6 +58,7 @@ import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.darkGray
 import org.sparcs.soap.App.theme.ui.gray64
+import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.R
 
@@ -71,7 +72,7 @@ fun TaxiChatViewDropDownMenu(
     onClickReport: () -> Unit,
     onClickLeave: () -> Unit,
     onCarrierToggle: (Boolean) -> Unit,
-    isEnabled: Boolean
+    isLeaveAvailable: Boolean
 ) {
     var expanded by remember { mutableStateOf(false) }
     var showLeaveDialog by remember { mutableStateOf(false) }
@@ -95,7 +96,8 @@ fun TaxiChatViewDropDownMenu(
             TopDropDownItems(
                 onClickShare = { onClickShare() },
                 onClickCallTaxi = { onClickCallTaxi() },
-                onClickReport = { onClickReport() }
+                onClickReport = { onClickReport() },
+                isEnabled = room.participants.size > 1
             )
             MiddleDropDownItems(
                 room = room,
@@ -104,7 +106,7 @@ fun TaxiChatViewDropDownMenu(
             )
             BottomDropDownItems(
                 onClickLeave = { showLeaveDialog = true },
-                isEnabled = isEnabled
+                isLeaveAvailable = isLeaveAvailable
             )
         }
     }
@@ -148,6 +150,7 @@ private fun TopDropDownItems(
     onClickShare: () -> Unit,
     onClickCallTaxi: () -> Unit,
     onClickReport: () -> Unit,
+    isEnabled: Boolean
 ) {
     Row(
         modifier = Modifier
@@ -168,7 +171,8 @@ private fun TopDropDownItems(
         IconWithText(
             icon = Icons.Rounded.ReportProblem,
             text = stringResource(R.string.report),
-            onClick = { onClickReport() }
+            onClick = { onClickReport() },
+            isEnabled = isEnabled
         )
     }
     HorizontalDivider(
@@ -324,21 +328,21 @@ private fun MiddleDropDownItems(
 @Composable
 private fun BottomDropDownItems(
     onClickLeave: () -> Unit,
-    isEnabled: Boolean
+    isLeaveAvailable: Boolean
 ){
     DropdownMenuItem(
         text = {
             Text(
                 text = stringResource(R.string.leave),
-                color = MaterialTheme.colorScheme.error
+                color = if(isLeaveAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.grayBB
             ) },
         onClick = { onClickLeave() },
-        enabled = isEnabled,
+        enabled = isLeaveAvailable,
         leadingIcon = {
             Icon(
                 imageVector = Icons.AutoMirrored.Rounded.Logout,
                 contentDescription = "Leave Room",
-                tint = MaterialTheme.colorScheme.error
+                tint = if(isLeaveAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.grayBB
             )
         }
     )
@@ -349,22 +353,33 @@ private fun BottomDropDownItems(
 private fun IconWithText(
     icon: ImageVector,
     text: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    isEnabled: Boolean = true
 ) {
+    val contentColor = if (isEnabled) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.grayBB
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .padding(8.dp)
-            .clickable { onClick() }
+            .clickable(
+                enabled = isEnabled,
+                onClick = onClick
+            )
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = text
+            contentDescription = text,
+            tint = contentColor
         )
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = contentColor
         )
     }
 }

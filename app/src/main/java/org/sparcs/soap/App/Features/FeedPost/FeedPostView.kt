@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -96,7 +97,7 @@ fun FeedPostView(
     var isWritingCommentFocusState by remember { mutableStateOf(false) }
     var targetComment by remember { mutableStateOf<FeedComment?>(null) }
     var isRefreshing by remember { mutableStateOf(false) }
-    var isUploadingComment by remember { mutableStateOf(false) }
+    val isUploadingComment by remember { mutableStateOf(false) }
     val pullState = rememberPullToRefreshState()
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
@@ -347,7 +348,8 @@ private fun InputBar(
                                         else
                                             stringResource(R.string.write_a_comment),
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                        style = MaterialTheme.typography.bodyMedium
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        overflow = TextOverflow.Ellipsis
                                     )
                                 }
                                 innerTextField()

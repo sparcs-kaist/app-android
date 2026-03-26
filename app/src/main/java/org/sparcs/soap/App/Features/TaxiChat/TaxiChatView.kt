@@ -3,14 +3,18 @@ package org.sparcs.soap.App.Features.TaxiChat
 import android.net.Uri
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -22,12 +26,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -100,7 +104,7 @@ fun TaxiChatView(
                 },
                 onCarrierToggle = { coroutineScope.launch { viewModel.toggleCarrier(it) } },
                 onArrivalToggle = { coroutineScope.launch { viewModel.updateArrival(it) } },
-                isEnabled = viewModel.isLeaveRoomAvailable
+                isLeaveAvailable = viewModel.isLeaveRoomAvailable
             )
         },
         bottomBar = {
@@ -125,9 +129,11 @@ fun TaxiChatView(
         },
         modifier = Modifier.analyticsScreen("Taxi Chat")
     ) { innerPadding ->
-        Box(modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize()
+        ) {
             Crossfade(
                 targetState = state,
                 animationSpec = tween(300),
@@ -175,23 +181,43 @@ fun TaxiChatView(
             onDismissRequest = { showCallTaxiAlert = false },
             title = { Text(stringResource(R.string.call_taxi)) },
             text = {
-                Text(stringResource(R.string.taxi_launch_info))
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showCallTaxiAlert = false
-                }) { Text(stringResource(R.string.cancel)) }
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        stringResource(
+                            R.string.taxi_launch_info,
+                            room.source.title,
+                            room.destination.title
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            val uri = TaxiDeepLinkHelper.getKakaoTUri(room.source, room.destination)
+                            context.openUri(uri, "com.kakao.taxi")
+                            showCallTaxiAlert = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.open_kakao_t))
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            val uberUri = TaxiDeepLinkHelper.getUberUri(room.source, room.destination)
+                            context.openUri(uberUri, "com.ubercab")
+                            showCallTaxiAlert = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.open_uber))
+                    }
+                }
             },
             confirmButton = {
-                Row {
-                    TextButton(onClick = {
-                        val uri = TaxiDeepLinkHelper.getKakaoTUri(room.source, room.destination)
-                        context.openUri(uri, "com.kakao.taxi")
-                    }) { Text(stringResource(R.string.open_kakao_t)) }
-                    TextButton(onClick = {
-                        val uberUri = TaxiDeepLinkHelper.getUberUri(room.source, room.destination)
-                        context.openUri(uberUri, "com.ubercab")
-                    }) { Text(stringResource(R.string.open_uber)) }
+                TextButton(onClick = { showCallTaxiAlert = false }) {
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )
@@ -200,32 +226,46 @@ fun TaxiChatView(
     if (showPayMoneyAlert) {
         AlertDialog(
             onDismissRequest = { showPayMoneyAlert = false },
-            dismissButton = {
-                Button(onClick = { showPayMoneyAlert = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
             title = { Text(stringResource(R.string.send_payment)) },
             text = {
-                Text(stringResource(R.string.payment_send_instructions))
-            },
-            confirmButton = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    TextButton(onClick = {
-                        val uri = TaxiDeepLinkHelper.getKakaoPayUri(context, viewModel.account)
-                        context.openUri(uri, "com.kakao.talk")
-                    }) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.payment_send_instructions))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            val uri = TaxiDeepLinkHelper.getKakaoPayUri(context, viewModel.account)
+                            context.openUri(uri, "com.kakao.talk")
+                            showPayMoneyAlert = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(stringResource(R.string.open_kakao_pay))
                     }
-                    TextButton(onClick = {
-                        val uri = TaxiDeepLinkHelper.getTossUri(viewModel.account)
-                        context.openUri(uri, "viva.republica.toss")
-                    }) {
+                    OutlinedButton(
+                        onClick = {
+                            val uri = TaxiDeepLinkHelper.getTossUri(viewModel.account)
+                            context.openUri(uri, "viva.republica.toss")
+                            showPayMoneyAlert = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(stringResource(R.string.open_toss))
                     }
-                    TextButton(onClick = { coroutineScope.launch { viewModel.commitPayment() } }) {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch { viewModel.commitPayment() }
+                            showPayMoneyAlert = false
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text(stringResource(R.string.already_sent))
                     }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPayMoneyAlert = false }) {
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

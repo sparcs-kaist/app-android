@@ -15,8 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Shared.Extensions.formattedDate
+import org.sparcs.soap.App.Shared.Extensions.toDate
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun ChatDaySeparator(date: LocalDate) {
@@ -26,7 +27,7 @@ fun ChatDaySeparator(date: LocalDate) {
     ) {
         DashedDivider(modifier = Modifier.weight(1f))
         Text(
-            text = date.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")),
+            text = date.toDate().formattedDate(),
             fontWeight = FontWeight.Medium,
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 8.dp),
