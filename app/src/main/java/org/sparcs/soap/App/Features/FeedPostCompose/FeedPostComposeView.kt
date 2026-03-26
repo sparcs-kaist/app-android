@@ -291,8 +291,11 @@ private fun Header(
     ) {
         ProfileImage(viewModel)
         Spacer(modifier = Modifier.width(8.dp))
-        ComposeTypePicker(viewModel)
-        Spacer(modifier = Modifier.weight(1f))
+        Box(
+            modifier = Modifier.weight(1f)
+        ) {
+            ComposeTypePicker(viewModel)
+        }
         TermsOfUseButton()
     }
 }
@@ -352,11 +355,13 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                AnimatedAlphabetText(
-                    from = previousText,
-                    to = displayText,
-                    singleLine = true
-                )
+                Box(modifier = Modifier.weight(1f, fill = false)) {
+                    AnimatedAlphabetText(
+                        from = previousText,
+                        to = displayText,
+                        singleLine = true
+                    )
+                }
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     imageVector = Icons.Rounded.ArrowDropDown,
