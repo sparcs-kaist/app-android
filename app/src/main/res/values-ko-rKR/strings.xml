@@ -71,7 +71,7 @@
     <string name="system_default">시스템 기본 설정</string>
     <string name="white_mode">화이트 모드</string>
     <string name="miscellaneous">기타</string>
-    <string name="ara">아라</string>
+    <string name="ara">Ara</string>
     <string name="sign_out">로그아웃</string>
     <string name="settings">설정</string>
     <string name="services">서비스</string>
@@ -84,7 +84,7 @@
     <string name="no_results">검색 결과가 없습니다.</string>
     <string name="no_results_for">%1$s에 대한 결과가 없습니다.</string>
     <string name="taxi_settings">택시 설정</string>
-    <string name="ara_settings">아라 설정</string>
+    <string name="ara_settings">Ara 설정</string>
     <string name="otl_settings">OTL 설정</string>
     <string name="allow_nsfw">성인글 허용</string>
     <string name="allow_political">정치글 허용</string>
