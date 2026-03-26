@@ -1,22 +1,9 @@
 package org.sparcs.soap.App.Networking.ResponseDTO
 
 import com.google.gson.Gson
-import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Error.NetworkError
 import org.sparcs.soap.App.Domain.Helpers.NetworkErrorMapper
 import retrofit2.HttpException
-
-data class ApiErrorResponse(
-    @SerializedName("error")
-    val error: String
-) : Exception() {
-
-    override val message: String
-        get() = error
-}
-
-class ApiException(override val message: String) : Exception(message)
-
 
 object AuthRetryConfig {
     var tokenRefresher: (suspend () -> Unit)? = null
