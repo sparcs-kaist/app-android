@@ -157,4 +157,5 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.kakao.maps)
+    implementation(libs.play.services.wearable)
 }
