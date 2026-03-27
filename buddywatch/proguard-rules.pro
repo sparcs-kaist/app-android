@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-keep class org.sparcs.soap.data.Lecture
+-keep class org.sparcs.soap.data.Timetable
+-keep class org.sparcs.soap.data.LectureClass

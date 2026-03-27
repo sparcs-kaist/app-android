@@ -3,8 +3,9 @@ package org.sparcs.soap.App.Wearable
 import android.content.Context
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import timber.log.Timber
 import javax.inject.Inject
@@ -12,18 +13,21 @@ import javax.inject.Singleton
 
 @Singleton
 class WearableDataManager @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val gson: Gson
+    @ApplicationContext private val context: Context
 ) {
     companion object {
         private const val TIMETABLE_PATH = "/timetable/current"
         private const val TIMETABLE_KEY = "timetable_json"
     }
 
+    private val json = Json { ignoreUnknownKeys = true }
+
     fun sendTimetableToWatch(timetable: Timetable) {
-        val json = gson.toJson(timetable)
+        val watchModel = timetable.toWatchModel()
+        val jsonString = json.encodeToString(watchModel)
+        
         val putDataMapReq = PutDataMapRequest.create(TIMETABLE_PATH)
-        putDataMapReq.dataMap.putString(TIMETABLE_KEY, json)
+        putDataMapReq.dataMap.putString(TIMETABLE_KEY, jsonString)
         putDataMapReq.dataMap.putLong("timestamp", System.currentTimeMillis())
         
         val putDataReq = putDataMapReq.asPutDataRequest()

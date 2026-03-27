@@ -1,10 +1,15 @@
 <resources>
-    <string name="app_name">Buddy for Watch</string>
-    <!--
-    This string is used for square devices and overridden by hello_world in
-    values-round/strings.xml for round devices.
-    -->
-    <string name="hello_world">From the Square world,\nHello, %1$s!</string>
-    <string name="tile_label">Example tile</string>
-    <string name="complication_label">Example complication</string>
+    <string name="app_name">Buddy</string>
+    <string name="tile_label">Upcoming Class</string>
+    <string name="up_next">Up Next</string>
+    <string name="no_more_classes">No more class today!</string>
+    <string name="enjoy_day">Have a nice day!</string>
+    <string name="today_schedule">Today\'s Schedule</string>
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
 </resources>
