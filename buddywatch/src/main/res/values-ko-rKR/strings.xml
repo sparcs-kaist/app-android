@@ -13,4 +13,5 @@
     <string name="friday">금요일</string>
     <string name="saturday">토요일</string>
     <string name="sunday">일요일</string>
+    <string name="no_sync">데이터 동기화를 위하여, 휴대폰 앱을 실행한 후 시간표 탭을 클릭해주세요!</string>
 </resources>

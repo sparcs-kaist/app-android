@@ -4,14 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,23 +19,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.*
 import org.sparcs.soap.R
 import org.sparcs.soap.data.Lecture
 import org.sparcs.soap.data.LectureClass
 import org.sparcs.soap.data.Timetable
 import org.sparcs.soap.data.WatchDataStore
 import org.sparcs.soap.presentation.theme.SoapTheme
-import java.util.Calendar
-import java.util.Locale
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,7 +84,7 @@ fun TimetableList(timetable: Timetable?) {
             Calendar.FRIDAY -> "FRI"
             else -> ""
         }
-
+        
         timetable?.lectures?.flatMap { lecture ->
             lecture.classes
                 .filter { it.day == dayOfWeekString }
@@ -113,22 +99,22 @@ fun TimetableList(timetable: Timetable?) {
     ) {
         item {
             val today = Calendar.getInstance()
-            val dayName = when (today.get(Calendar.DAY_OF_WEEK)) {
-                Calendar.MONDAY -> stringResource(R.string.monday)
-                Calendar.TUESDAY -> stringResource(R.string.tuesday)
-                Calendar.WEDNESDAY -> stringResource(R.string.wednesday)
-                Calendar.THURSDAY -> stringResource(R.string.thursday)
-                Calendar.FRIDAY -> stringResource(R.string.friday)
-                Calendar.SATURDAY -> stringResource(R.string.saturday)
-                Calendar.SUNDAY -> stringResource(R.string.sunday)
-                else -> ""
+            val dayRes = when (today.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> R.string.monday
+                Calendar.TUESDAY -> R.string.tuesday
+                Calendar.WEDNESDAY -> R.string.wednesday
+                Calendar.THURSDAY -> R.string.thursday
+                Calendar.FRIDAY -> R.string.friday
+                Calendar.SATURDAY -> R.string.saturday
+                Calendar.SUNDAY -> R.string.sunday
+                else -> R.string.monday
             }
             Column(
                 modifier = Modifier.padding(top = 24.dp, bottom = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = dayName,
+                    text = stringResource(dayRes),
                     style = MaterialTheme.typography.caption2,
                     color = MaterialTheme.colors.primary
                 )
@@ -139,7 +125,16 @@ fun TimetableList(timetable: Timetable?) {
             }
         }
 
-        if (todayLectures.isEmpty()) {
+        if (timetable == null) {
+            item {
+                Text(
+                    text = stringResource(R.string.no_sync),
+                    style = MaterialTheme.typography.body2,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 20.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else if (todayLectures.isEmpty()) {
             item {
                 Text(
                     text = stringResource(R.string.no_more_classes),
@@ -164,8 +159,8 @@ fun TimetableList(timetable: Timetable?) {
 fun LectureItem(lecture: Lecture, cl: LectureClass) {
     val accentColor = remember(lecture.color) {
         try {
-            lecture.color?.let { Color(it.toColorInt()) } ?: Color(0xFF4A90E2)
-        } catch (_: IllegalArgumentException) {
+            lecture.color?.let { Color(android.graphics.Color.parseColor(it)) } ?: Color(0xFF4A90E2)
+        } catch (e: Exception) {
             Color(0xFF4A90E2)
         }
     }
@@ -217,13 +212,6 @@ fun LectureItem(lecture: Lecture, cl: LectureClass) {
 }
 
 private fun formatTimeRange(begin: Int, end: Int): String {
-    fun Int.toTime(): String = String.format(Locale.getDefault(), "%02d:%02d", (this / 60) % 24, this % 60)
+    fun Int.toTime(): String = String.format("%02d:%02d", (this / 60) % 24, this % 60)
     return "${begin.toTime()} - ${end.toTime()}"
-}
-
-@Composable
-private fun Box(modifier: Modifier, contentAlignment: Alignment = Alignment.TopStart, content: @Composable () -> Unit = {}) {
-    androidx.compose.foundation.layout.Box(modifier, contentAlignment) {
-        content()
-    }
 }

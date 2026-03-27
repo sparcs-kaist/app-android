@@ -1,10 +1,9 @@
 package org.sparcs.soap.tile
 
 import android.content.Context
-import android.util.Log
 import androidx.core.graphics.toColorInt
-import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.ColorBuilders.argb
+import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.ResourceBuilders
 import androidx.wear.protolayout.TimelineBuilders
@@ -24,8 +23,7 @@ import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.data.Timetable
 import org.sparcs.soap.data.WatchDataStore
-import java.util.Calendar
-import java.util.Locale
+import java.util.*
 
 private const val RESOURCES_VERSION = "0"
 
@@ -108,7 +106,18 @@ private fun tileLayout(
         ?.filter { (_, cl) -> cl.end > currentMinutes }
         ?.minByOrNull { (_, cl) -> cl.begin }
 
-    val content = if (nextLectureData != null) {
+    val content = if (timetable == null) {
+        LayoutElementBuilders.Column.Builder()
+            .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
+            .addContent(
+                Text.Builder(context, context.getString(R.string.no_sync))
+                    .setColor(argb(Colors.DEFAULT.onSurface))
+                    .setTypography(Typography.TYPOGRAPHY_CAPTION2)
+                    .setMaxLines(3)
+                    .build()
+            )
+            .build()
+    } else if (nextLectureData != null) {
         val (lecture, cl) = nextLectureData
         val accentColor = try {
             lecture.color?.toColorInt() ?: Colors.DEFAULT.primary

@@ -12,4 +12,5 @@
     <string name="friday">Friday</string>
     <string name="saturday">Saturday</string>
     <string name="sunday">Sunday</string>
+    <string name="no_sync">For data synchronization, run phone app and click timetable tab.</string>
 </resources>
