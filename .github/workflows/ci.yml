@@ -41,9 +41,21 @@ jobs:
         run: |
           echo "$STR_KEYSTORE" | base64 -di > app/buddy_appKey.jks
 
-      - name: Build Release Bundle
+      - name: Build Release Bundle (app module)
         run: |
-          ./gradlew bundleRelease \
+          ./gradlew app:bundleRelease \
+            -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/buddy_appKey.jks \
+            -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
+            -Pandroid.injected.signing.key.password=${{ secrets.KEYSTORE_PASSWORD }} \
+            --stacktrace
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+
+      - name: Build Release APK (buddywatch module)
+        run: |
+          ./gradlew buddywatch:assembleRelease \
             -Pandroid.injected.signing.store.file=${{ github.workspace }}/app/buddy_appKey.jks \
             -Pandroid.injected.signing.store.password=${{ secrets.KEYSTORE_PASSWORD }} \
             -Pandroid.injected.signing.key.alias=${{ secrets.KEY_ALIAS }} \
