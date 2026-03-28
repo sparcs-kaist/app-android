@@ -34,7 +34,7 @@ fun Timetable.toWatchModel(): WatchTimetable {
         lectures = lectures.map { lecture ->
             WatchLecture(
                 id = lecture.id,
-                name = lecture.name,
+                name = lecture.name + lecture.subtitle,
                 classes = lecture.classes.map { cl ->
                     WatchLectureClass(
                         day = cl.day.name,
