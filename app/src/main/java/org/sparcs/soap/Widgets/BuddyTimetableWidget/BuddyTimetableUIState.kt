@@ -24,8 +24,8 @@ fun Timetable.toWidgetUiState(): TimetableUiState {
     val widgetItems = this.lectures.flatMap { lecture ->
         lecture.classes.map { ct ->
             WidgetLectureEntry(
-                title = lecture.name,
-                classroom = "${ct.buildingCode}${ct.roomName}",
+                title = lecture.name + lecture.subtitle,
+                classroom = "(${ct.buildingCode}) ${ct.roomName}",
                 day = ct.day,
                 startMinutes = ct.begin,
                 durationMinutes = ct.end - ct.begin,

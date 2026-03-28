@@ -44,6 +44,17 @@ constraintlayout = "2.2.1"
 lifecycleProcess = "2.10.0"
 roomCommonJvm = "2.8.4"
 roomRuntimeAndroid = "2.8.4"
+playServicesWearable = "19.0.0"
+composeMaterial = "1.2.1"
+composeFoundation = "1.2.1"
+wearToolingPreview = "1.0.0"
+tiles = "1.4.0"
+tilesMaterial = "1.4.0"
+tilesTooling = "1.4.0"
+tilesToolingPreview = "1.4.0"
+horologistComposeTools = "0.6.17"
+horologistTiles = "0.6.17"
+watchfaceComplicationsDataSourceKtx = "1.2.1"
 
 [libraries]
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibrariesComposeM3" }
@@ -110,6 +121,17 @@ timber = { module = "com.jakewharton.timber:timber", version.ref = "timber" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 androidx-room-common-jvm = { group = "androidx.room", name = "room-common-jvm", version.ref = "roomCommonJvm" }
 androidx-room-runtime-android = { group = "androidx.room", name = "room-runtime-android", version.ref = "roomRuntimeAndroid" }
+play-services-wearable = { group = "com.google.android.gms", name = "play-services-wearable", version.ref = "playServicesWearable" }
+androidx-compose-material = { group = "androidx.wear.compose", name = "compose-material", version.ref = "composeMaterial" }
+androidx-compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "composeFoundation" }
+androidx-wear-tooling-preview = { group = "androidx.wear", name = "wear-tooling-preview", version.ref = "wearToolingPreview" }
+androidx-tiles = { group = "androidx.wear.tiles", name = "tiles", version.ref = "tiles" }
+androidx-tiles-material = { group = "androidx.wear.tiles", name = "tiles-material", version.ref = "tilesMaterial" }
+androidx-tiles-tooling = { group = "androidx.wear.tiles", name = "tiles-tooling", version.ref = "tilesTooling" }
+androidx-tiles-tooling-preview = { group = "androidx.wear.tiles", name = "tiles-tooling-preview", version.ref = "tilesToolingPreview" }
+horologist-compose-tools = { group = "com.google.android.horologist", name = "horologist-compose-tools", version.ref = "horologistComposeTools" }
+horologist-tiles = { group = "com.google.android.horologist", name = "horologist-tiles", version.ref = "horologistTiles" }
+androidx-watchface-complications-data-source-ktx = { group = "androidx.wear.watchface", name = "watchface-complications-data-source-ktx", version.ref = "watchfaceComplicationsDataSourceKtx" }
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

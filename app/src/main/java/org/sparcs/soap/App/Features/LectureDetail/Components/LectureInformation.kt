@@ -49,7 +49,7 @@ fun LectureInformation(lecture: Lecture){
 
         LectureDetailRow(
             title = stringResource(R.string.classroom),
-            description = lecture.classes.firstOrNull()?.let { "${it.buildingCode} ${it.roomName}" }
+            description = lecture.classes.firstOrNull()?.let { "${it.buildingName} ${it.roomName}" }
                 ?: stringResource(R.string.unknown)
         )
 
