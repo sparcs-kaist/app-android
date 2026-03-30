@@ -24,9 +24,10 @@ import org.sparcs.soap.R
 import org.sparcs.soap.data.WatchDataStore
 import org.sparcs.soap.data.models.Timetable
 import org.sparcs.soap.shared.formatTimeRange
-import java.util.Calendar
+import java.util.*
 
 private const val RESOURCES_VERSION = "0"
+private const val FRESHNESS_INTERVAL_MILLIS = 60L * 60 * 1000
 
 @OptIn(ExperimentalHorologistApi::class)
 class MainTileService : SuspendingTileService() {
@@ -66,21 +67,100 @@ private fun tile(
     context: Context,
     timetable: Timetable?,
 ): TileBuilders.Tile {
-    val singleTileTimeline = TimelineBuilders.Timeline.Builder()
-        .addTimelineEntry(
+    val timelineBuilder = TimelineBuilders.Timeline.Builder()
+
+    val now = Calendar.getInstance()
+    val today = when (now.get(Calendar.DAY_OF_WEEK)) {
+        Calendar.MONDAY -> "MON"
+        Calendar.TUESDAY -> "TUE"
+        Calendar.WEDNESDAY -> "WED"
+        Calendar.THURSDAY -> "THU"
+        Calendar.FRIDAY -> "FRI"
+        else -> ""
+    }
+
+    if (timetable != null && today.isNotEmpty()) {
+        val todayClasses = timetable.lectures
+            .flatMap { lecture -> lecture.classes.map { cl -> lecture to cl } }
+            .filter { (_, cl) -> cl.day == today }
+            .sortedBy { (_, cl) -> cl.end }
+
+        var lastTransitionMillis = 0L
+
+        todayClasses.forEach { (_, cl) ->
+            val transitionCalendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, cl.end / 60)
+                set(Calendar.MINUTE, cl.end % 60)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val transitionMillis = transitionCalendar.timeInMillis
+
+            if (transitionMillis > System.currentTimeMillis()) {
+                val entryTime = Calendar.getInstance().apply {
+                    timeInMillis = if (lastTransitionMillis == 0L) {
+                        System.currentTimeMillis()
+                    } else {
+                        lastTransitionMillis + 1000 // Just after the last transition
+                    }
+                }
+
+                timelineBuilder.addTimelineEntry(
+                    TimelineBuilders.TimelineEntry.Builder()
+                        .setValidity(
+                            TimelineBuilders.TimeInterval.Builder()
+                                .setStartMillis(entryTime.timeInMillis)
+                                .setEndMillis(transitionMillis)
+                                .build()
+                        )
+                        .setLayout(
+                            LayoutElementBuilders.Layout.Builder()
+                                .setRoot(tileLayout(requestParams, context, timetable, entryTime))
+                                .build()
+                        )
+                        .build()
+                )
+                lastTransitionMillis = transitionMillis
+            }
+        }
+
+        // Add the final entry for "No more classes"
+        val finalEntryTime = Calendar.getInstance().apply {
+            if (lastTransitionMillis != 0L) {
+                timeInMillis = lastTransitionMillis + 1000
+            }
+        }
+        timelineBuilder.addTimelineEntry(
             TimelineBuilders.TimelineEntry.Builder()
+                .setValidity(
+                    TimelineBuilders.TimeInterval.Builder()
+                        .setStartMillis(finalEntryTime.timeInMillis)
+                        .build()
+                )
                 .setLayout(
                     LayoutElementBuilders.Layout.Builder()
-                        .setRoot(tileLayout(requestParams, context, timetable))
+                        .setRoot(tileLayout(requestParams, context, timetable, finalEntryTime))
                         .build()
                 )
                 .build()
         )
-        .build()
+    } else {
+        // Fallback for no timetable or weekend
+        timelineBuilder.addTimelineEntry(
+            TimelineBuilders.TimelineEntry.Builder()
+                .setLayout(
+                    LayoutElementBuilders.Layout.Builder()
+                        .setRoot(tileLayout(requestParams, context, timetable, now))
+                        .build()
+                )
+                .build()
+        )
+    }
 
     return TileBuilders.Tile.Builder()
         .setResourcesVersion(RESOURCES_VERSION)
-        .setTileTimeline(singleTileTimeline)
+        .setTileTimeline(timelineBuilder.build())
+        .setFreshnessIntervalMillis(FRESHNESS_INTERVAL_MILLIS)
         .build()
 }
 
@@ -88,8 +168,8 @@ private fun tileLayout(
     requestParams: RequestBuilders.TileRequest,
     context: Context,
     timetable: Timetable?,
+    now: Calendar,
 ): LayoutElementBuilders.LayoutElement {
-    val now = Calendar.getInstance()
     val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {
         Calendar.MONDAY -> "MON"
         Calendar.TUESDAY -> "TUE"
