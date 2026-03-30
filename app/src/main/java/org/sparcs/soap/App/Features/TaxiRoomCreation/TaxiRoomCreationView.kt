@@ -56,6 +56,8 @@ fun TaxiRoomCreationView(
     taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol = hiltViewModel(),
 ) {
     var title by remember { mutableStateOf("") }
+    val randomRoomName = remember { Constants.taxiDefaultRoomNames.random() }
+
     val locations by taxiListViewModel.locations.collectAsState()
     val (isEnabled, validationMessage) = remember(
         title,
@@ -80,7 +82,7 @@ fun TaxiRoomCreationView(
                 isEnabled = isEnabled,
                 viewModel = taxiListViewModel,
                 taxiRoomCreationViewModel = taxiRoomCreationViewModel,
-                title = title
+                title = title.ifBlank { randomRoomName }
             )
         },
         modifier = Modifier.analyticsScreen("Taxi Room Creation")
@@ -112,6 +114,13 @@ fun TaxiRoomCreationView(
 
             Spacer(Modifier.padding(16.dp))
 
+            Text(
+                text = stringResource(R.string.title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+            )
+
             Card(
                 colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                 shape = RoundedCornerShape(16.dp)
@@ -129,7 +138,7 @@ fun TaxiRoomCreationView(
                     decorationBox = { innerTextField ->
                         if (title.isEmpty()) {
                             Text(
-                                text = stringResource(R.string.title),
+                                text = randomRoomName,
                                 color = MaterialTheme.colorScheme.grayBB,
                                 style = MaterialTheme.typography.bodyLarge
                             )
@@ -209,10 +218,10 @@ private fun isValid(
 
     val source = viewModel.source
     val destination = viewModel.destination
-    if (source == null || destination == null || title.isBlank()) return false to null
+    if (source == null || destination == null) return false to null
 
     if (source == destination) return false to R.string.error_source_equals_destination
-    if (!isTitleValid(title)) return false to R.string.error_invalid_title
+    if (title.isNotBlank() && !isTitleValid(title)) return false to R.string.error_invalid_title
     if (viewModel.roomDepartureTime <= Date()) return false to R.string.error_departure_in_past
 
     return true to null
