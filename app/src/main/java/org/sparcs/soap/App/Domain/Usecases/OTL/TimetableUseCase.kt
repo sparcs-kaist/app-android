@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Domain.Usecases.OTL
 
-import androidx.compose.runtime.mutableStateOf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -16,7 +15,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.TimetableCreation
 import org.sparcs.soap.App.Domain.Models.OTL.TimetableSummary
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
-import org.sparcs.soap.App.Wearable.WearableDataManager
+import org.sparcs.soap.Wearable.WearableDataManager
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -49,7 +48,6 @@ class TimetableUseCase @Inject constructor(
     private val crashlyticsService: CrashlyticsServiceProtocol? = null,
     private val timetableCache: TimetableCache,
     private val wearableDataManager: WearableDataManager,
-//    private val sessionBridgeService: SessionBridgeServiceProtocol? = null
 ) : TimetableUseCaseProtocol {
     // MARK: - Properties
     private val feature: String = "Timetable"

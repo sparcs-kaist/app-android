@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Wearable
+package org.sparcs.soap.Wearable
 
 import androidx.compose.ui.graphics.toArgb
 import kotlinx.serialization.SerialName

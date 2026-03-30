@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Wearable
+package org.sparcs.soap.Wearable
 
 import android.content.Context
 import com.google.android.gms.wearable.PutDataMapRequest
