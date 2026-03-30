@@ -21,9 +21,10 @@ import com.google.android.horologist.tiles.SuspendingTileService
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
-import org.sparcs.soap.data.Timetable
 import org.sparcs.soap.data.WatchDataStore
-import java.util.*
+import org.sparcs.soap.data.models.Timetable
+import org.sparcs.soap.shared.formatTimeRange
+import java.util.Calendar
 
 private const val RESOURCES_VERSION = "0"
 
@@ -33,11 +34,11 @@ class MainTileService : SuspendingTileService() {
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun resourcesRequest(
-        requestParams: RequestBuilders.ResourcesRequest
+        requestParams: RequestBuilders.ResourcesRequest,
     ) = resources(requestParams)
 
     override suspend fun tileRequest(
-        requestParams: RequestBuilders.TileRequest
+        requestParams: RequestBuilders.TileRequest,
     ): TileBuilders.Tile {
         val timetableJson = watchDataStore.timetableJsonFlow.first()
         val timetable = timetableJson?.let {
@@ -53,7 +54,7 @@ class MainTileService : SuspendingTileService() {
 
 @Suppress("UNUSED_PARAMETER")
 private fun resources(
-    requestParams: RequestBuilders.ResourcesRequest
+    requestParams: RequestBuilders.ResourcesRequest,
 ): ResourceBuilders.Resources {
     return ResourceBuilders.Resources.Builder()
         .setVersion(RESOURCES_VERSION)
@@ -63,7 +64,7 @@ private fun resources(
 private fun tile(
     requestParams: RequestBuilders.TileRequest,
     context: Context,
-    timetable: Timetable?
+    timetable: Timetable?,
 ): TileBuilders.Tile {
     val singleTileTimeline = TimelineBuilders.Timeline.Builder()
         .addTimelineEntry(
@@ -86,7 +87,7 @@ private fun tile(
 private fun tileLayout(
     requestParams: RequestBuilders.TileRequest,
     context: Context,
-    timetable: Timetable?
+    timetable: Timetable?,
 ): LayoutElementBuilders.LayoutElement {
     val now = Calendar.getInstance()
     val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {
@@ -191,13 +192,8 @@ private fun tileLayout(
         .build()
 }
 
-private fun formatTimeRange(begin: Int, end: Int): String {
-    fun Int.toTime(): String = String.format(Locale.US, "%02d:%02d", (this / 60) % 24, this % 60)
-    return "${begin.toTime()} - ${end.toTime()}"
-}
-
 @Preview(device = WearDevices.SMALL_ROUND)
 @Preview(device = WearDevices.LARGE_ROUND)
-fun tilePreview(context: Context) = TilePreviewData(::resources) {
+private fun tilePreview(context: Context) = TilePreviewData(::resources) {
     tile(it, context, null)
 }
