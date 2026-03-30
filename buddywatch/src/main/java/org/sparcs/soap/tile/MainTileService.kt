@@ -24,7 +24,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.data.WatchDataStore
 import org.sparcs.soap.data.models.Timetable
 import org.sparcs.soap.shared.formatTimeRange
-import java.util.*
+import java.util.Calendar
 
 private const val RESOURCES_VERSION = "0"
 private const val FRESHNESS_INTERVAL_MILLIS = 60L * 60 * 1000
@@ -76,7 +76,7 @@ private fun tile(
         Calendar.WEDNESDAY -> "WED"
         Calendar.THURSDAY -> "THU"
         Calendar.FRIDAY -> "FRI"
-        else -> ""
+        else -> "MON"
     }
 
     if (timetable != null && today.isNotEmpty()) {
@@ -97,25 +97,35 @@ private fun tile(
             val transitionMillis = transitionCalendar.timeInMillis
 
             if (transitionMillis > System.currentTimeMillis()) {
-                val entryTime = Calendar.getInstance().apply {
-                    timeInMillis = if (lastTransitionMillis == 0L) {
-                        System.currentTimeMillis()
-                    } else {
-                        lastTransitionMillis + 1000 // Just after the last transition
-                    }
+                val entryBuilder = TimelineBuilders.TimelineEntry.Builder()
+                if (lastTransitionMillis == 0L) {
+                    entryBuilder.setValidity(
+                        TimelineBuilders.TimeInterval.Builder()
+                            .setEndMillis(transitionMillis)
+                            .build()
+                    )
+                } else {
+                    entryBuilder.setValidity(
+                        TimelineBuilders.TimeInterval.Builder()
+                            .setStartMillis(lastTransitionMillis + 1000)
+                            .setEndMillis(transitionMillis)
+                            .build()
+                    )
                 }
-
                 timelineBuilder.addTimelineEntry(
-                    TimelineBuilders.TimelineEntry.Builder()
-                        .setValidity(
-                            TimelineBuilders.TimeInterval.Builder()
-                                .setStartMillis(entryTime.timeInMillis)
-                                .setEndMillis(transitionMillis)
-                                .build()
-                        )
+                    entryBuilder
                         .setLayout(
                             LayoutElementBuilders.Layout.Builder()
-                                .setRoot(tileLayout(requestParams, context, timetable, entryTime))
+                                .setRoot(
+                                    tileLayout(
+                                        requestParams,
+                                        context,
+                                        timetable,
+                                        Calendar.getInstance().apply {
+                                            timeInMillis =
+                                                if (lastTransitionMillis == 0L) System.currentTimeMillis() else lastTransitionMillis + 5000
+                                        })
+                                )
                                 .build()
                         )
                         .build()
@@ -125,21 +135,19 @@ private fun tile(
         }
 
         // Add the final entry for "No more classes"
-        val finalEntryTime = Calendar.getInstance().apply {
-            if (lastTransitionMillis != 0L) {
-                timeInMillis = lastTransitionMillis + 1000
-            }
+        val finalEntryBuilder = TimelineBuilders.TimelineEntry.Builder()
+        if (lastTransitionMillis != 0L) {
+            finalEntryBuilder.setValidity(
+                TimelineBuilders.TimeInterval.Builder()
+                    .setStartMillis(lastTransitionMillis + 1000)
+                    .build()
+            )
         }
         timelineBuilder.addTimelineEntry(
-            TimelineBuilders.TimelineEntry.Builder()
-                .setValidity(
-                    TimelineBuilders.TimeInterval.Builder()
-                        .setStartMillis(finalEntryTime.timeInMillis)
-                        .build()
-                )
+            finalEntryBuilder
                 .setLayout(
                     LayoutElementBuilders.Layout.Builder()
-                        .setRoot(tileLayout(requestParams, context, timetable, finalEntryTime))
+                        .setRoot(tileLayout(requestParams, context, timetable, now))
                         .build()
                 )
                 .build()
