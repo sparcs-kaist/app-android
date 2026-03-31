@@ -30,6 +30,7 @@ import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePositionResolv
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItemBuilder
 import org.sparcs.soap.App.Features.TaxiChat.Components.DefaultMessagePresentationPolicy
 import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.Date
@@ -251,10 +252,7 @@ class TaxiChatViewModel @Inject constructor(
                 taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
             }
         } catch (e: Exception) {
-            this.alertState = AlertState(
-                titleResId = R.string.error_settlement_failed,
-                message = e.localizedMessage ?: "Unknown error"
-            )
+            this.alertState = e.toAlertState(R.string.error_settlement_failed)
             this.isAlertPresented = true
 
             Timber.e(e, "commitSettlement failed")
@@ -267,10 +265,7 @@ class TaxiChatViewModel @Inject constructor(
             val newRoom = taxiRoomRepository.commitPayment(room.value.id)
             _room.value = newRoom
         } catch (e: Exception) {
-            this.alertState = AlertState(
-                titleResId = R.string.error_payment_failed,
-                message = e.localizedMessage ?: "Unknown error"
-            )
+            this.alertState = e.toAlertState(R.string.error_payment_failed)
             this.isAlertPresented = true
             Timber.e(e, "Failed to commit payment")
         }
@@ -288,10 +283,7 @@ class TaxiChatViewModel @Inject constructor(
             taxiChatUseCase.setRoom(updatedRoom)
 
         } catch (e: Exception) {
-            this.alertState = AlertState(
-                titleResId = R.string.error_toggle_carrier_failed,
-                message = e.localizedMessage ?: "Failed to update carrier status"
-            )
+            this.alertState = e.toAlertState(R.string.error_toggle_carrier_failed)
             this.isAlertPresented = true
             Timber.e(e, "toggleCarrier failed")
         }
@@ -309,10 +301,7 @@ class TaxiChatViewModel @Inject constructor(
             taxiChatUseCase.setRoom(updatedRoom)
 
         } catch (e: Exception) {
-            this.alertState = AlertState(
-                titleResId = R.string.error_update_arrival_failed,
-                message = e.localizedMessage ?: "Failed to update arrival status"
-            )
+            this.alertState = e.toAlertState(R.string.error_update_arrival_failed)
             this.isAlertPresented = true
             Timber.e(e, "updateArrival failed")
         }

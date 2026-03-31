@@ -20,6 +20,7 @@ import org.sparcs.soap.App.Domain.Services.CrashlyticsService
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedProfileUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Features.Settings.Feed.ViewState.FeedProfileImageState
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.App.Shared.Extensions.toMultipartBody
 import org.sparcs.soap.R
 import timber.log.Timber
@@ -118,11 +119,7 @@ class FeedSettingsViewModel @Inject constructor(
                 if (useCaseError is FeedProfileUseCaseError.NicknameConflict) {
                     nicknameError = R.string.nickname_error_conflict
                 } else {
-                    alertState = AlertState(
-                        titleResId = R.string.error,
-                        messageResId = useCaseError?.messageRes
-                            ?: R.string.nickname_error_update_failed
-                    )
+                    alertState = e.toAlertState(R.string.nickname_error_update_failed)
                     isAlertPresented = true
                 }
                 onComplete(false)
@@ -149,10 +146,7 @@ class FeedSettingsViewModel @Inject constructor(
                 _profileImageState.value = FeedProfileImageState.NoChange
 
                 val useCaseError = e as? FeedProfileUseCaseError
-                alertState = AlertState(
-                    titleResId = R.string.error,
-                    messageResId = useCaseError?.messageRes ?: R.string.error_feed_image_update_failed
-                )
+                alertState = e.toAlertState(useCaseError?.messageRes ?: R.string.error_feed_image_update_failed)
                 isAlertPresented = true
                 Timber.e(e, "Image update failed")
                 crashlyticsService.recordException(e)

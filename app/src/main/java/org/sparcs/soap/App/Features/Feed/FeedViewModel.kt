@@ -17,6 +17,7 @@ import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.App.Features.Feed.Event.FeedPostRowEvent
 import org.sparcs.soap.App.Features.Feed.Event.FeedViewEvent
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.R
 import timber.log.Timber
 import javax.inject.Inject
@@ -50,7 +51,7 @@ class FeedViewModel @Inject constructor(
     sealed interface ViewState {
         data object Loading : ViewState
         data class Loaded(val posts: List<FeedPost>) : ViewState
-        data class Error(val message: String) : ViewState
+        data class Error(val e: Exception) : ViewState
     }
 
     // MARK: - Properties
@@ -79,7 +80,7 @@ class FeedViewModel @Inject constructor(
             _state.value = ViewState.Loaded(posts)
         } catch (e: Exception) {
             Timber.e(e, "failed to fetch data")
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            _state.value = ViewState.Error(e)
         }
     }
 
@@ -94,10 +95,7 @@ class FeedViewModel @Inject constructor(
             _state.value = ViewState.Loaded(posts)
             isLoadingMore = false
         } catch (e: Exception) {
-            this.alertState = AlertState(
-                titleResId = R.string.error,
-                messageResId = R.string.unable_to_load_more_posts
-            )
+            this.alertState = e.toAlertState(R.string.unable_to_load_more_posts)
             this.isAlertPresented = true
             isLoadingMore = false
         }
@@ -109,11 +107,7 @@ class FeedViewModel @Inject constructor(
             this.posts = this.posts.filterNot { it.id == postID }
         } catch (e: Exception) {
             val useCaseError = e as? FeedPostUseCaseError
-
-            this.alertState = AlertState(
-                titleResId = R.string.error,
-                messageResId = useCaseError?.messageRes ?: R.string.unexpected_error_deleting_post,
-            )
+            this.alertState = e.toAlertState(useCaseError?.messageRes ?: R.string.unexpected_error_deleting_post)
             this.isAlertPresented = true
         }
     }
@@ -152,10 +146,7 @@ class FeedViewModel @Inject constructor(
             analyticsService.logEvent(FeedPostRowEvent.PostUpVoted)
         } catch (e: Exception) {
             this.posts = prevPosts
-            this.alertState = AlertState(
-                titleResId = R.string.error_failed_to_upvote,
-                message = e.localizedMessage ?: "Unknown error"
-            )
+            this.alertState = e.toAlertState(R.string.error_failed_to_upvote)
             this.isAlertPresented = true
             crashlyticsService.recordException(e)
         }
@@ -193,10 +184,7 @@ class FeedViewModel @Inject constructor(
             analyticsService.logEvent(FeedPostRowEvent.PostDownVoted)
         } catch (e: Exception) {
             this.posts = prevPosts
-            this.alertState = AlertState(
-                titleResId = R.string.error_failed_to_downvote,
-                message = e.localizedMessage ?: "Unknown error"
-            )
+            this.alertState = e.toAlertState(R.string.error_failed_to_downvote)
             this.isAlertPresented = true
             crashlyticsService.recordException(e)
         }

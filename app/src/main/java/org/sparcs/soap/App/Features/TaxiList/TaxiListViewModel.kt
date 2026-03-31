@@ -11,12 +11,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiCreateRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.ceilToNextTenMinutes
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
+import org.sparcs.soap.R
 import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
@@ -39,6 +42,9 @@ interface TaxiListViewModelProtocol {
     // MARK: - Functions
     var roomDepartureTime: Date
     var roomCapacity: Int
+
+    var alertState: AlertState?
+    var isAlertPresented: Boolean
 
     suspend fun fetchData()
     suspend fun createRoom(title: String): String?
@@ -85,6 +91,9 @@ class TaxiListViewModel @Inject constructor(
     override var roomCapacity: Int by mutableStateOf(4)
     override var roomHasCarrier: Boolean by mutableStateOf(false)
 
+    override var alertState by mutableStateOf<AlertState?>(null)
+    override var isAlertPresented by mutableStateOf(false)
+
     // MARK: - Functions
     override suspend fun fetchData() {
         viewModelScope.launch {
@@ -122,7 +131,9 @@ class TaxiListViewModel @Inject constructor(
             return newRoom.id
         } catch (e: Exception) {
             _state.value = ViewState.Error(e.message ?: "Unknown error")
-            throw e
+            alertState = e.toAlertState(R.string.error_failed_to_create_taxi_room)
+            isAlertPresented = true
+            return null
         }
     }
 

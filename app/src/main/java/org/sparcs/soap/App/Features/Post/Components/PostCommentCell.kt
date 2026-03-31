@@ -24,7 +24,6 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -33,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +42,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,7 +55,9 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.App.Shared.Mocks.Ara.mock
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.R
@@ -79,7 +78,6 @@ fun PostCommentCell(
 ) {
     val scope = rememberCoroutineScope()
     val isDeleted = comment.content == null
-    val context = LocalContext.current
 
     var alertState by remember { mutableStateOf<AlertState?>(null) }
     var isAlertPresented by remember { mutableStateOf(false) }
@@ -116,7 +114,7 @@ fun PostCommentCell(
                             onReport(type)
                             alertState = AlertState(titleResId = R.string.report_submitted, messageResId = R.string.report_submitted_message)
                         } catch (e: Exception) {
-                            alertState = AlertState(titleResId = R.string.error_unable_to_submit_report, message = e.localizedMessage ?: context.getString(R.string.error_unknown_try_again))
+                            alertState = e.toAlertState(R.string.error_unable_to_submit_report)
                         } finally {
                             isAlertPresented = true
                         }
@@ -149,24 +147,11 @@ fun PostCommentCell(
         }
     }
 
-    if (isAlertPresented) {
-        AlertDialog(
-            onDismissRequest = { isAlertPresented = false },
-            title = { Text(stringResource(alertState?.titleResId ?: R.string.error_unknown_try_again)) },
-            text = {
-                alertState?.message?.let { Text(it) } ?: alertState?.messageResId?.let {
-                    Text(
-                        stringResource(it)
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { isAlertPresented = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            }
-        )
-    }
+    GlobalAlertDialog(
+        isPresented = isAlertPresented,
+        state = alertState,
+        onDismiss = { isAlertPresented = false }
+    )
 }
 
 @Composable

@@ -74,7 +74,6 @@ import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
@@ -93,10 +92,12 @@ import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.formattedString
 import org.sparcs.soap.App.Shared.Extensions.postfixEuroRo
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.App.Shared.Mocks.Ara.mock
 import org.sparcs.soap.App.Shared.Mocks.Ara.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
@@ -215,16 +216,12 @@ fun PostView(
                                 }
                             }
                         } catch (e: Exception) {
-                            viewModel.alertState = AlertState(
-                                titleResId = R.string.unexpected_error_uploading_comment,
-                                message = e.localizedMessage
-                                    ?: context.getString(R.string.error_unknown_try_again)
-                            )
+                            viewModel.alertState = e.toAlertState(R.string.unexpected_error_uploading_comment)
                             viewModel.isAlertPresented = true
                         } finally {
                             isUploadingComment = false
                         }
-                    }
+                    }//TODO 리팩토링
                 },
                 profilePicture = { ProfilePicture(post, true) },
                 placeholder = placeholder(viewModel, targetComment, commentOnEdit),
@@ -330,10 +327,7 @@ fun PostView(
                                         ?.set("listNeedsRefresh", true)
                                     navController.popBackStack()
                                 } catch (e: Exception) {
-                                    viewModel.alertState = AlertState(
-                                        titleResId = R.string.error,
-                                        messageResId = R.string.unexpected_error_deleting_post
-                                    )
+                                    viewModel.alertState = e.toAlertState(R.string.unexpected_error_deleting_post)
                                     viewModel.isAlertPresented = true
                                     showDeleteConfirmation = false
                                 }
@@ -358,28 +352,11 @@ fun PostView(
                 text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
             )
         }
-        if (viewModel.isAlertPresented) {
-            AlertDialog(
-                onDismissRequest = { viewModel.isAlertPresented = false },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.isAlertPresented = false }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                title = {
-                    viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
-                },
-                text = {
-                    viewModel.alertState?.let { state ->
-                        Text(
-                            state.message ?: stringResource(
-                                state.messageResId ?: R.string.unexpected_error
-                            )
-                        )
-                    }
-                }
-            )
-        }
+        GlobalAlertDialog(
+            isPresented = viewModel.isAlertPresented,
+            state = viewModel.alertState,
+            onDismiss = { viewModel.isAlertPresented = false }
+        )
     }
 }
 

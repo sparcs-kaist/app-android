@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Post
 
-import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -21,6 +20,7 @@ import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCaseProtocol
 import org.sparcs.soap.App.Features.Post.Event.PostCommentCellEvent
 import org.sparcs.soap.App.Features.Post.Event.PostViewEvent
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.R
 import timber.log.Timber
 import javax.inject.Inject
@@ -111,7 +111,8 @@ class PostViewModel @Inject constructor(
             if (isFirstTime) _state.value = ViewState.Loaded
         } catch (e: Exception) {
             if (isFirstTime) _state.value = ViewState.Error(e.localizedMessage ?: "Error")
-            presentAlert(R.string.unable_to_fetch_post, e.localizedMessage ?: "")
+            alertState = e.toAlertState(R.string.unable_to_fetch_post)
+            isAlertPresented = true
         }
     }
 
@@ -398,10 +399,5 @@ class PostViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    private fun presentAlert(@StringRes titleRes: Int, message: String) {
-        alertState = AlertState(titleResId = titleRes, message = message)
-        isAlertPresented = true
     }
 }

@@ -29,6 +29,7 @@ import org.sparcs.soap.App.Domain.Usecases.Feed.FeedImageUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Features.FeedPostCompose.Event.FeedPostComposeViewEvent
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.UUID
@@ -133,10 +134,7 @@ class FeedPostComposeViewModel @Inject constructor(
             true
         } catch (e: Exception) {
             handleException(e)
-            alertState = AlertState(
-                titleResId = R.string.unexpected_error_uploading_post,
-                message = e.localizedMessage ?: "Unknown error"
-            )
+            alertState = e.toAlertState(R.string.unexpected_error_uploading_post)
             isAlertPresented = true
             false
         } finally {

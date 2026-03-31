@@ -8,12 +8,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -28,7 +25,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -46,9 +42,9 @@ import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.Feed.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
-import org.sparcs.soap.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -171,7 +167,7 @@ fun FeedView(
                 is FeedViewModel.ViewState.Error -> {
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = (state as FeedViewModel.ViewState.Error).message,
+                        message = (state as FeedViewModel.ViewState.Error).e,
                         onRetry = {
                             coroutineScope.launch {
                                 viewModel.fetchInitialData()
@@ -182,28 +178,11 @@ fun FeedView(
             }
         }
     }
-    if (viewModel.isAlertPresented) {
-        AlertDialog(
-            onDismissRequest = { viewModel.isAlertPresented = false },
-            confirmButton = {
-                TextButton(onClick = { viewModel.isAlertPresented = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = {
-                viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
-            },
-            text = {
-                viewModel.alertState?.let { state ->
-                    Text(
-                        state.message ?: stringResource(
-                            state.messageResId ?: R.string.unexpected_error
-                        )
-                    )
-                }
-            }
-        )
-    }
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 }
 
 // MARK: - Previews
@@ -231,7 +210,7 @@ private fun PreviewLoaded() {
 @Composable
 private fun PreviewError() {
     val viewModel = PreviewFeedViewModel(
-        initialState = FeedViewModel.ViewState.Error("Something went wrong")
+        initialState = FeedViewModel.ViewState.Error(Exception("Error"))
     )
     Theme { FeedView(viewModel, rememberNavController()) }
 }

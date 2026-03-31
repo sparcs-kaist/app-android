@@ -479,4 +479,6 @@
     <string name="taxi_not_arrived">미도착</string>
     <string name="source">출발</string>
     <string name="destination">도착</string>
+    <string name="error_failed_to_join_taxi_room">택시 팟 참여에 실패했습니다.</string>
+    <string name="error_failed_to_create_taxi_room">택시 방 개설에 실패했습니다.</string>
 </resources>

@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.TaxiReport
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -30,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,8 +64,8 @@ import org.sparcs.soap.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.soap.App.Features.TaxiChat.TaxiChatViewModel
 import org.sparcs.soap.App.Features.TaxiReport.Components.TaxiReportUser
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiReportViewModel
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
@@ -86,16 +83,6 @@ fun TaxiReportView(
     val userUseCase: UserUseCaseProtocol =
         if (!isPreview) hiltViewModel<TaxiChatViewModel>().userUseCase else MockUserUseCase()
     val room by viewModel.room.collectAsState()
-
-    var showAlert by remember { mutableStateOf(false) }
-    @StringRes var alertTitle: Int by remember { mutableStateOf(0) }
-    @StringRes var alertMessage: Int by remember { mutableStateOf(0) }
-
-    fun showAlert(@StringRes title: Int, @StringRes message: Int) {
-        alertTitle = title
-        alertMessage = message
-        showAlert = true
-    }
 
     LaunchedEffect(Unit) {
         taxiUser = userUseCase.taxiUser
@@ -162,25 +149,7 @@ fun TaxiReportView(
                         scope.launch {
                             try {
                                 viewModel.createReport(room.id)
-
-                                showAlert(
-                                    title = R.string.report_submitted,
-                                    message = R.string.reported_successfully
-                                )
-                                navController.popBackStack()
-
-                            } catch (e: Exception) {
-                                val message = if (e.isNetworkError()) {
-                                    R.string.network_connection_error
-                                } else {
-                                    R.string.unexpected_error_reporting_user
-                                }
-
-                                showAlert(
-                                    title = R.string.error,
-                                    message = message
-                                )
-                            }
+                            } catch (_: Exception) { }
                         }
                     },
                     enabled = isValid
@@ -194,16 +163,20 @@ fun TaxiReportView(
             }
         }
     }
-    if (showAlert) {
-        AlertDialog(
-            onDismissRequest = { showAlert = false },
-            confirmButton = {
-                TextButton(onClick = { showAlert = false }) { Text(stringResource(R.string.ok)) }
-            },
-            title = { Text(stringResource(alertTitle)) },
-            text = { Text(stringResource(alertMessage)) }
-        )
-    }
+
+    GlobalAlertDialog(
+    isPresented = viewModel.isAlertPresented,
+    state = viewModel.alertState,
+        onDismiss = {
+            val isSuccess = viewModel.alertState?.titleResId == R.string.report_submitted
+
+            viewModel.isAlertPresented = false
+
+            if (isSuccess) {
+                navController.popBackStack()
+            }
+        }
+    )
 }
 
 @Composable

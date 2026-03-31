@@ -29,7 +29,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -73,6 +72,7 @@ import org.sparcs.soap.App.Shared.Mocks.Feed.mock
 import org.sparcs.soap.App.Shared.Mocks.Feed.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
@@ -86,9 +86,6 @@ fun FeedPostView(
     navController: NavController,
 ) {
     val postState by viewModel.state.collectAsState()
-    val isAlertPresented = viewModel.isAlertPresented
-    val alertState = viewModel.alertState
-
     val coroutineScope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
 
@@ -250,24 +247,12 @@ fun FeedPostView(
             }
         }
     }
-    if (isAlertPresented && alertState != null) {
-        AlertDialog(
-            onDismissRequest = { viewModel.isAlertPresented = false },
-            confirmButton = {
-                TextButton(onClick = { viewModel.isAlertPresented = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = { Text(stringResource(alertState.titleResId)) },
-            text = {
-                alertState.message?.let { Text(it) } ?: alertState.messageResId?.let {
-                    Text(
-                        stringResource(it)
-                    )
-                }
-            }
-        )
-    }
+
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 }
 
 

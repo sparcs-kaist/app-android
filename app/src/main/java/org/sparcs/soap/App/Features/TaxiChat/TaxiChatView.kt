@@ -53,6 +53,7 @@ import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.openUri
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiChatViewModel
 import org.sparcs.soap.R
@@ -271,28 +272,11 @@ fun TaxiChatView(
         )
     }
 
-    if (viewModel.isAlertPresented) {
-        AlertDialog(
-            onDismissRequest = { viewModel.isAlertPresented = false },
-            confirmButton = {
-                TextButton(onClick = { viewModel.isAlertPresented = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = {
-                viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
-            },
-            text = {
-                viewModel.alertState?.let { state ->
-                    Text(
-                        state.message ?: stringResource(
-                            state.messageResId ?: R.string.unexpected_error
-                        )
-                    )
-                }
-            }
-        )
-    }
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 
     if (tappedImageID != null) {
         FullscreenImageView(

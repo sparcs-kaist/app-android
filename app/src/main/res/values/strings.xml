@@ -504,4 +504,6 @@
     <string name="taxi_not_arrived">Not Arrived</string>
     <string name="source">From</string>
     <string name="destination">To</string>
+    <string name="error_failed_to_join_taxi_room">Failed to join the taxi group.</string>
+    <string name="error_failed_to_create_taxi_room">Failed to create the taxi room.</string>
 </resources>

@@ -27,6 +27,7 @@ import org.sparcs.soap.App.Domain.Usecases.Feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Features.Feed.Event.FeedPostRowEvent
 import org.sparcs.soap.App.Features.FeedPost.Event.FeedPostViewEvent
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.R
 import javax.inject.Inject
 
@@ -154,10 +155,7 @@ class FeedPostViewModel @Inject constructor(
             text = ""
             uploaded
         } catch (e: Exception) {
-            alertState = AlertState(
-                titleResId = R.string.unexpected_error_uploading_comment,
-                message = e.localizedMessage ?: "Unknown error"
-            )
+            alertState = e.toAlertState(R.string.unexpected_error_uploading_comment)
             isAlertPresented = true
             crashlyticsService.recordException(e)
             null
@@ -187,10 +185,7 @@ class FeedPostViewModel @Inject constructor(
             isAlertPresented = true
             analyticsService.logEvent(FeedPostRowEvent.PostReported(reason.name))
         } catch (e: Exception) {
-            alertState = AlertState(
-                titleResId = R.string.error,
-                messageResId = R.string.error_unable_to_submit_report
-            )
+            alertState = e.toAlertState(R.string.error_unable_to_submit_report)
             isAlertPresented = true
             crashlyticsService.recordException(e)
         }
@@ -225,10 +220,7 @@ class FeedPostViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 this@FeedPostViewModel.comments = prevComments
-                alertState = AlertState(
-                    titleResId = R.string.error,
-                    messageResId = R.string.error_failed_to_upvote
-                )
+                alertState = e.toAlertState(R.string.error_failed_to_upvote)
                 isAlertPresented = true
             }
         }
@@ -241,11 +233,8 @@ class FeedPostViewModel @Inject constructor(
         } catch (e: Exception) {
             updateCommentLocally(comment.id) { it.copy(isDeleted = false) }
             val useCaseError = e as? FeedCommentUseCaseError
-            alertState = AlertState(
-                titleResId = R.string.error,
-                messageResId = useCaseError?.messageRes
-                    ?: R.string.unexpected_error_deleting_comment
-            )
+            alertState = e.toAlertState(useCaseError?.messageRes
+                ?: R.string.unexpected_error_deleting_comment)
             isAlertPresented = true
         }
     }
@@ -259,10 +248,7 @@ class FeedPostViewModel @Inject constructor(
             )
             isAlertPresented = true
         } catch (e: Exception) {
-            alertState = AlertState(
-                titleResId = R.string.error,
-                messageResId = R.string.error_unable_to_submit_report
-            )
+            alertState = e.toAlertState(R.string.error_unable_to_submit_report)
             isAlertPresented = true
         }
     }

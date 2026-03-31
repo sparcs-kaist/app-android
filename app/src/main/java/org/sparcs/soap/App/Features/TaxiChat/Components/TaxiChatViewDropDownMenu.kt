@@ -97,7 +97,7 @@ fun TaxiChatViewDropDownMenu(
                 onClickShare = { onClickShare() },
                 onClickCallTaxi = { onClickCallTaxi() },
                 onClickReport = { onClickReport() },
-                isEnabled = room.participants.size > 1
+                isReportAvailable = room.participants.size > 1
             )
             MiddleDropDownItems(
                 room = room,
@@ -150,7 +150,7 @@ private fun TopDropDownItems(
     onClickShare: () -> Unit,
     onClickCallTaxi: () -> Unit,
     onClickReport: () -> Unit,
-    isEnabled: Boolean
+    isReportAvailable: Boolean
 ) {
     Row(
         modifier = Modifier
@@ -172,7 +172,7 @@ private fun TopDropDownItems(
             icon = Icons.Rounded.ReportProblem,
             text = stringResource(R.string.report),
             onClick = { onClickReport() },
-            isEnabled = isEnabled
+            isEnabled = isReportAvailable
         )
     }
     HorizontalDivider(

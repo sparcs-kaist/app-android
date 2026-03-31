@@ -12,12 +12,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiCreateReport
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiReport
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiReportRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.CrashlyticsService
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
+import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
@@ -28,6 +31,9 @@ interface TaxiReportViewModelProtocol {
     val selectedReason: StateFlow<TaxiReport.Reason?>
     val maxEtcDetailsLength: Int
     var etcDetails: String
+
+    var alertState: AlertState?
+    var isAlertPresented: Boolean
 
     fun setSelectedUser(user: TaxiParticipant?)
     fun setSelectedReason(reason: TaxiReport.Reason?)
@@ -63,6 +69,9 @@ class TaxiReportViewModel @Inject constructor(
     override var etcDetails by mutableStateOf("")
     override val maxEtcDetailsLength = 30 // Restricted by Taxi backend
 
+    override var alertState by mutableStateOf<AlertState?>(null)
+    override var isAlertPresented by mutableStateOf(false)
+
     // MARK: - Functions
     override fun setSelectedUser(user: TaxiParticipant?) {
         _selectedUser.value = user
@@ -91,8 +100,15 @@ class TaxiReportViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 taxiReportRepository.createReport(requestModel)
-            } catch (e: Throwable) {
+                alertState = AlertState(
+                    titleResId = R.string.report_submitted,
+                    messageResId = R.string.reported_successfully
+                )
+            } catch (e: Exception) {
                 Timber.e("createReport: $e")
+                alertState = e.toAlertState(R.string.unexpected_error_reporting_user)
+                isAlertPresented = true
+                throw e
             }
         }
     }

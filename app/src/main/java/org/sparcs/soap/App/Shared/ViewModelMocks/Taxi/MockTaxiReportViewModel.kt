@@ -2,6 +2,7 @@ package org.sparcs.soap.App.Shared.ViewModelMocks.Taxi
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiReport
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
@@ -21,6 +22,9 @@ class MockTaxiReportViewModel : TaxiReportViewModelProtocol {
 
     override val maxEtcDetailsLength: Int = 200
     override var etcDetails: String = ""
+
+    override var alertState: AlertState? = null
+    override var isAlertPresented: Boolean = false
 
     override fun setSelectedUser(user: TaxiParticipant?) {}
     override fun setSelectedReason(reason: TaxiReport.Reason?) {}

@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import org.sparcs.soap.App.Domain.Error.NetworkError
 import org.sparcs.soap.App.Domain.Helpers.NetworkErrorMapper
 import retrofit2.HttpException
+import timber.log.Timber
 
 object AuthRetryConfig {
     var tokenRefresher: (suspend () -> Unit)? = null
@@ -68,7 +69,7 @@ suspend fun <T> handleApiError(
                 errorMessage = json.get("error").asString
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            Timber.e(e, "Error parsing error body")
         }
     }
 

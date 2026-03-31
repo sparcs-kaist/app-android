@@ -165,8 +165,7 @@ fun AnimatedAlphabetText(
                     fontWeight = FontWeight.SemiBold,
                     color = color,
                     maxLines = if (singleLine == true) 1 else Int.MAX_VALUE,
-                    overflow = TextOverflow.Ellipsis,
-                    softWrap = false
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
