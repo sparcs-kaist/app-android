@@ -1,13 +1,7 @@
 package org.sparcs.soap.App.Features.Timetable.Components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -49,7 +43,7 @@ fun TimetableGridCell(
 
             Column(modifier = Modifier.fillMaxSize()) {
                 Text(
-                    text = lectureItem.lecture.name,
+                    text = lectureItem.lecture.name + lectureItem.lecture.subtitle,
                     color = lectureItem.lecture.textColor,
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 3,
@@ -58,7 +52,7 @@ fun TimetableGridCell(
                 )
 
                 Text(
-                    text = lectureItem.lectureClass.buildingCode + lectureItem.lectureClass.roomName,
+                    text = "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName,
                     color = if (isCandidate) MaterialTheme.colorScheme.onPrimary else lectureItem.lecture.textColor,
                     style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                     maxLines = 2,

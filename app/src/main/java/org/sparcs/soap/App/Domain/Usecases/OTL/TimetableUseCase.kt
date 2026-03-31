@@ -15,6 +15,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.TimetableCreation
 import org.sparcs.soap.App.Domain.Models.OTL.TimetableSummary
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.Wearable.WearableDataManager
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -46,7 +47,7 @@ class TimetableUseCase @Inject constructor(
     private val otlTimetableRepository: OTLTimetableRepositoryProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol? = null,
     private val timetableCache: TimetableCache,
-//    private val sessionBridgeService: SessionBridgeServiceProtocol? = null
+    private val wearableDataManager: WearableDataManager,
 ) : TimetableUseCaseProtocol {
     // MARK: - Properties
     private val feature: String = "Timetable"
@@ -59,13 +60,7 @@ class TimetableUseCase @Inject constructor(
     override suspend fun getSemesters(): List<Semester> {
         val context = CrashContext(feature)
         return execute(context) {
-            semesterCache.getSemesters()?.let { cached ->
-                externalScope.launch {
-                    runCatching { otlTimetableRepository.getSemesters() }
-                        .onSuccess { semesterCache.setSemesters(it) }
-                }
-                cached
-            } ?: run {
+            semesterCache.getSemesters() ?: run {
                 val result = otlTimetableRepository.getSemesters()
                 semesterCache.setSemesters(result)
                 result
@@ -77,13 +72,7 @@ class TimetableUseCase @Inject constructor(
     override suspend fun getCurrentSemester(): Semester {
         val context = CrashContext(feature)
         return execute(context) {
-            semesterCache.getCurrentSemester()?.let { cached ->
-                externalScope.launch {
-                    runCatching { otlTimetableRepository.getCurrentSemester() }
-                        .onSuccess { semesterCache.setCurrentSemester(it) }
-                }
-                cached
-            } ?: run {
+            semesterCache.getCurrentSemester() ?: run {
                 val result = otlTimetableRepository.getCurrentSemester()
                 semesterCache.setCurrentSemester(result)
                 result
@@ -151,6 +140,9 @@ class TimetableUseCase @Inject constructor(
                         fresh?.let {
                             timetableCache.store(it, key)
                         }
+                        if (current?.let { it.year == semester.year && it.semesterType == semester.semesterType} == true) {
+                            fresh?.let { wearableDataManager.sendTimetableToWatch(it) }
+                        }
                     }
                     return@execute cached
                 }
@@ -162,7 +154,7 @@ class TimetableUseCase @Inject constructor(
             launchUpdate(key) {
                 val current = runCatching { otlTimetableRepository.getCurrentSemester() }.getOrNull()
                 if (current?.year == semester.year && current.semesterType == semester.semesterType) {
-                    // sessionBridgeService?.updateTimetable(result)
+                    wearableDataManager.sendTimetableToWatch(result)
                 }
             }
             result
