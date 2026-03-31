@@ -19,13 +19,12 @@ fun Timetable.toWidgetUiState(): TimetableUiState {
 
     val calculatedMin = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: (9 * 60)
     val calculatedMax = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: (18 * 60)
-    val visibleDays = times.map { it.day }.distinct().sorted()
 
     val widgetItems = this.lectures.flatMap { lecture ->
         lecture.classes.map { ct ->
             WidgetLectureEntry(
-                title = lecture.name,
-                classroom = "${ct.buildingCode}${ct.roomName}",
+                title = lecture.name + lecture.subtitle,
+                classroom = "(${ct.buildingCode}) ${ct.roomName}",
                 day = ct.day,
                 startMinutes = ct.begin,
                 durationMinutes = ct.end - ct.begin,

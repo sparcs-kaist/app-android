@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Buddy</string>
+    <string name="tile_label">Upcoming Class</string>
+    <string name="up_next">Up Next</string>
+    <string name="no_more_classes">No more class today!</string>
+    <string name="enjoy_day">Have a nice day!</string>
+    <string name="today_schedule">Today\'s Schedule</string>
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
+    <string name="no_sync">For data synchronization, run phone app and click timetable tab.</string>
+</resources>

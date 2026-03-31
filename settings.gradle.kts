@@ -22,4 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "soap"
 include(":app")
- 
+include(":buddywatch")
