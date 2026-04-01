@@ -31,5 +31,5 @@ class PreviewTaxiPreviewViewModel() : TaxiPreviewViewModelProtocol {
         return listOf(source, destination)
     }
 
-    override fun joinRoom(id: String) {}
+    override suspend fun joinRoom(id: String) {}
 }

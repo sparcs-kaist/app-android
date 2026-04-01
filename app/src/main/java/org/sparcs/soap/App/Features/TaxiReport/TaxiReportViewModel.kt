@@ -5,13 +5,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiCreateReport
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
@@ -97,19 +95,18 @@ class TaxiReportViewModel @Inject constructor(
             roomID = roomID
         )
 
-        viewModelScope.launch {
-            try {
-                taxiReportRepository.createReport(requestModel)
-                alertState = AlertState(
-                    titleResId = R.string.report_submitted,
-                    messageResId = R.string.reported_successfully
-                )
-            } catch (e: Exception) {
-                Timber.e("createReport: $e")
-                alertState = e.toAlertState(R.string.unexpected_error_reporting_user)
-                isAlertPresented = true
-                throw e
-            }
+        try {
+            taxiReportRepository.createReport(requestModel)
+            alertState = AlertState(
+                titleResId = R.string.report_submitted,
+                messageResId = R.string.reported_successfully
+            )
+            isAlertPresented = true
+        } catch (e: Exception) {
+            Timber.e("createReport: $e")
+            alertState = e.toAlertState(R.string.unexpected_error_reporting_user)
+            isAlertPresented = true
+            throw e
         }
     }
 

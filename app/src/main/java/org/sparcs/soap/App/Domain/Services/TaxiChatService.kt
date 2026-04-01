@@ -151,10 +151,6 @@ class TaxiChatService @Inject constructor(
 
         socket?.on(Socket.EVENT_DISCONNECT) {
             isConnected = false
-
-            if (!hasAttemptedReconnect) {
-                Timber.d("[TaxiChatService] Socket disconnected (hasAttemptedReconnect=false)")
-            }
         }
 
 

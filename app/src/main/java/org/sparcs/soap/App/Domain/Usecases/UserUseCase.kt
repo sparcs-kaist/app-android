@@ -68,10 +68,18 @@ class UserUseCase @Inject constructor(
             val feed = async { runCatching { fetchFeedUser() } }
             val otl = async { runCatching { fetchOTLUser() } }
 
-            taxi.await()
-            ara.await()
-            feed.await()
-            otl.await()
+            taxi.await().onFailure { throwable ->
+                Timber.e(throwable, "Failed to fetch Taxi user in fetchUsers()")
+            }
+            ara.await().onFailure { throwable ->
+                Timber.e(throwable, "Failed to fetch Ara user in fetchUsers()")
+            }
+            feed.await().onFailure { throwable ->
+                Timber.e(throwable, "Failed to fetch Feed user in fetchUsers()")
+            }
+            otl.await().onFailure { throwable ->
+                Timber.e(throwable, "Failed to fetch OTL user in fetchUsers()")
+            }
         }
     }
 

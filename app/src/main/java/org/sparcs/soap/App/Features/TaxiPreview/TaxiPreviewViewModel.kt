@@ -38,7 +38,7 @@ interface TaxiPreviewViewModelProtocol {
 
     fun isJoined(participants: List<TaxiParticipant>): Boolean
     suspend fun calculateRoutePoints(source: LatLng, destination: LatLng): List<LatLng>
-    fun joinRoom(id: String)
+    suspend fun joinRoom(id: String)
 }
 
 
@@ -106,7 +106,8 @@ class TaxiPreviewViewModel @Inject constructor(
 
                 val json = JSONObject(responseBody)
                 val routes = json.optJSONArray("routes") ?: return@withContext emptyList()
-                val sections = routes.getJSONObject(0).optJSONArray("sections") ?: return@withContext emptyList()
+                val sections = routes.getJSONObject(0).optJSONArray("sections")
+                    ?: return@withContext emptyList()
 
                 val points = mutableListOf<LatLng>()
                 for (i in 0 until sections.length()) {
@@ -134,16 +135,14 @@ class TaxiPreviewViewModel @Inject constructor(
         }
     }
 
-    override fun joinRoom(id: String) {
-        viewModelScope.launch {
-            try {
-                taxiRoomRepository.joinRoom(id)
-            } catch (e: Exception) {
-                Timber.e("Error joining room: ${e.message}")
-                alertState = e.toAlertState(R.string.error_failed_to_join_taxi_room)
-                isAlertPresented = true
-                throw e
-            }
+    override suspend fun joinRoom(id: String) {
+        try {
+            taxiRoomRepository.joinRoom(id)
+        } catch (e: Exception) {
+            Timber.e("Error joining room: ${e.message}")
+            alertState = e.toAlertState(R.string.error_failed_to_join_taxi_room)
+            isAlertPresented = true
+            throw e
         }
     }
 

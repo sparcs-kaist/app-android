@@ -9,7 +9,13 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 
 fun Exception.isNetworkError(): Boolean {
-    if (this is NetworkError) return true
+    if (this is NetworkError) {
+        return when (this) {
+            is NetworkError.NoConnection,
+            is NetworkError.Timeout -> true
+            else -> false
+        }
+    }
 
     val isStandardNetworkError = when (this) {
         is UnknownHostException,
