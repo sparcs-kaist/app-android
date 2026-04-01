@@ -191,7 +191,7 @@ class LectureDetailViewModel @Inject constructor(
                             .trim() == currentSemester.semesterType.toString().trim()
 
             _canWriteReview.value = if (isCurrentSemester) {
-                val dropDeadline = currentSemester.eventDate?.dropDeadlineDate
+                val dropDeadline = currentSemester.eventDate.dropDeadlineDate
                 val now = Date()
                 val isAfter = dropDeadline?.before(now) ?: false
                 isAfter

@@ -30,6 +30,8 @@ class PreviewUserPostListViewModel(
     private val _isLoadingMore = MutableStateFlow(initialIsLoadingMore)
     override val isLoadingMore: StateFlow<Boolean> = _isLoadingMore.asStateFlow()
 
+    override var lastClickedPostId: Int? = null
+
     override fun onSearchTextChange(text: String) {
         _searchKeyword.value = text
     }

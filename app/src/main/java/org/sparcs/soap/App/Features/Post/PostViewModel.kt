@@ -15,7 +15,6 @@ import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
 import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
-import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCaseProtocol
 import org.sparcs.soap.App.Features.Post.Event.PostCommentCellEvent
@@ -56,7 +55,6 @@ class PostViewModel @Inject constructor(
     private val araBoardUseCase: AraBoardUseCaseProtocol,
     val araCommentUseCase: AraCommentUseCaseProtocol,
 //    private val foundationModelsUseCase: FoundationModelsUseCaseProtocol
-    private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
 ) : ViewModel(), PostViewModelProtocol {
 

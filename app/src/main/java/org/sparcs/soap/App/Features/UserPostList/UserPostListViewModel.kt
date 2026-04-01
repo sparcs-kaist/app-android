@@ -34,6 +34,8 @@ interface UserPostListViewModelProtocol {
     val isLoadingMore: StateFlow<Boolean>
     var hasMorePages: Boolean
 
+    var lastClickedPostId: Int?
+
     fun onSearchTextChange(text: String)
 
     suspend fun fetchInitialPosts()
@@ -71,6 +73,8 @@ class UserPostListViewModel @Inject constructor(
 
     private val _posts = MutableStateFlow<List<AraPost>>(emptyList())
     override var posts: StateFlow<List<AraPost>> = _posts.asStateFlow()
+
+    override var lastClickedPostId: Int? = null
 
     //Mark - Search
     private val _searchKeyword = MutableStateFlow("")

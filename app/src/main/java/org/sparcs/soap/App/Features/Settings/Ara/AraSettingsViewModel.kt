@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
-import org.sparcs.soap.App.Features.Settings.Feed.FeedSettingsViewModel.ViewState
 import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.Calendar
@@ -71,7 +70,10 @@ class AraSettingsViewModel @Inject constructor(
         try {
             val fetchedUser = userUseCase.araUser
             if (fetchedUser == null) {
-                _state.value = ViewState.Error(NoSuchElementException(), resId = R.string.error_ara_user_not_found)
+                _state.value = ViewState.Error(
+                    NoSuchElementException(),
+                    resId = R.string.error_ara_user_not_found
+                )
                 return
             }
 

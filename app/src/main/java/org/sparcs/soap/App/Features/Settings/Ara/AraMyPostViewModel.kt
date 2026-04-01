@@ -30,6 +30,8 @@ interface AraMyPostViewModelProtocol {
     var user: AraUser?
     val searchKeyword: StateFlow<String>
 
+    var lastClickedPostId: Int?
+
     fun onSearchTextChange(text: String)
     fun bind()
     suspend fun fetchInitialPosts()
@@ -55,6 +57,8 @@ class AraMyPostViewModel @Inject constructor(
 
     private val _posts = MutableStateFlow<List<AraPost>>(emptyList())
     override val posts: StateFlow<List<AraPost>> = _posts
+
+    override var lastClickedPostId: Int? = null
 
     enum class PostType { ALL, BOOKMARK }
 

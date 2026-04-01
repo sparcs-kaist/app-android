@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
@@ -89,7 +91,10 @@ class AuthUseCase @Inject constructor(
                 override fun onStart(owner: LifecycleOwner) {
                     coroutineScope.launch {
                         if (_isAuthenticated.value) {
-                            try { refreshAccessToken(force = false) } catch (e: Exception) { /* ignore */ }
+                            try {
+                                refreshAccessToken(force = false)
+                            } catch (e: Exception) { /* ignore */
+                            }
                         }
                     }
                 }
@@ -102,7 +107,8 @@ class AuthUseCase @Inject constructor(
 
         val expirationDate = tokenStorage.getTokenExpirationDate() ?: return
         val bufferMillis = TimeUnit.MINUTES.toMillis(5)
-        val delayMillis = (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
+        val delayMillis =
+            (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
 
         scheduledRefreshJob = coroutineScope.launch {
             if (delayMillis > 0) delay(delayMillis)
@@ -135,13 +141,18 @@ class AuthUseCase @Inject constructor(
             throw AuthUseCaseError.NoAccessToken
         }
     }
+
     override suspend fun refreshAccessToken(force: Boolean) {
         // If a refresh is already in-flight, coalesce by awaiting it
-        refreshJob?.let {
-            if (it.isActive) {
-                it.await()
-                return
+        if (!force) {
+            refreshJob?.let {
+                if (it.isActive) {
+                    it.await()
+                    return
+                }
             }
+        } else {
+            refreshJob?.cancel()
         }
 
         if (System.currentTimeMillis() - lastRefreshFailure < refreshCooldownMillis) {
@@ -188,33 +199,35 @@ class AuthUseCase @Inject constructor(
     }
 
     override suspend fun signIn(activity: Activity) {
-        try {
-            val tokenResponse = (authenticationService as AuthenticationService).authenticate(activity as ComponentActivity)
-            tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
-
-            // MARK - Sign up Ara
-            val userInfo: AraSignInResponseDTO =
-                araUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+        val tokenResponse =
+            (authenticationService as AuthenticationService).authenticate(activity as ComponentActivity)
+        withContext(Dispatchers.IO + NonCancellable) {
             try {
-                araUserRepository.agreeTOS(userID = userInfo.userID)
+                tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
+
+                // MARK - Sign up Ara
+                val userInfo: AraSignInResponseDTO =
+                    araUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+                try {
+                    araUserRepository.agreeTOS(userID = userInfo.userID)
+                } catch (e: Exception) {
+                    Timber.e("Failed to Sign in. agreeTOS failed: ${e.message}")
+                }
+
+                // MARK - Sign up Feed
+                feedUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+
+                // MARK - Sign up OTL
+                otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+                _isAuthenticated.value = true
+                scheduleRefreshToken()
+
             } catch (e: Exception) {
-                Timber.e("Failed to Sign in. agreeTOS failed: ${e.message}")
+                tokenStorage.clearTokens()
+                _isAuthenticated.value = false
+                cancelRefreshToken()
+                throw AuthUseCaseError.SignInFailed(e)
             }
-
-            // MARK - Sign up Feed
-            feedUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
-
-            // MARK - Sign up OTL
-            otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
-
-            _isAuthenticated.value = true
-            scheduleRefreshToken()
-
-        } catch (e: Exception) {
-            tokenStorage.clearTokens()
-            _isAuthenticated.value = false
-            cancelRefreshToken()
-            throw AuthUseCaseError.SignInFailed(e)
         }
     }
 

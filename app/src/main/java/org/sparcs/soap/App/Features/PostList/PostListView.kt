@@ -189,7 +189,6 @@ fun PostListView(
                                 viewModel.lastClickedPostId = post.id
                                 navController.navigate(Channel.PostView.name + "?postId=${post.id}")
                             },
-                            onPostDisappear = { postID -> viewModel.refreshItem(postID) },
                             isRefreshing = isRefreshing,
                             keyword = searchKeyword
                         )
