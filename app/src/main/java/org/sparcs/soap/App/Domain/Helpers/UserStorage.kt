@@ -1,7 +1,5 @@
 package org.sparcs.soap.App.Domain.Helpers
 
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
 import org.sparcs.soap.App.Domain.Models.Feed.FeedUser
 import org.sparcs.soap.App.Domain.Models.OTL.OTLUser
@@ -11,66 +9,67 @@ import javax.inject.Inject
 interface UserStorageProtocol {
 
     suspend fun setAraUser(user: AraUser?)
-    suspend fun getAraUser(): AraUser?
+    fun getAraUser(): AraUser?
 
     suspend fun setTaxiUser(user: TaxiUser?)
-    suspend fun getTaxiUser(): TaxiUser?
+    fun getTaxiUser(): TaxiUser?
 
     suspend fun setFeedUser(user: FeedUser?)
-    suspend fun getFeedUser(): FeedUser?
+    fun getFeedUser(): FeedUser?
 
     suspend fun setOTLUser(user: OTLUser?)
-    suspend fun getOTLUser(): OTLUser?
+    fun getOTLUser(): OTLUser?
 }
 
 class UserStorage @Inject constructor(
 
-): UserStorageProtocol {
+) : UserStorageProtocol {
+    @Volatile
     private var araUser: AraUser? = null
+    @Volatile
     private var taxiUser: TaxiUser? = null
+    @Volatile
     private var feedUser: FeedUser? = null
-    private val mutex = Mutex()
+    @Volatile
+    private var otlUser: OTLUser? = null
+
+    private val lock = Any()
 
     //Mark: Ara
     override suspend fun setAraUser(user: AraUser?) {
-        mutex.withLock {
+        synchronized(lock) {
             araUser = user
         }
     }
-    override suspend fun getAraUser(): AraUser? {
-        return mutex.withLock { araUser }
+
+    override fun getAraUser(): AraUser? {
+        return synchronized(lock) { araUser }
     }
 
     //Mark: Taxi
     override suspend fun setTaxiUser(user: TaxiUser?) {
-        mutex.withLock {
-            taxiUser = user
-        }
+        synchronized(lock) { taxiUser = user }
     }
-    override suspend fun getTaxiUser(): TaxiUser? {
-        return mutex.withLock { taxiUser }
+
+    override fun getTaxiUser(): TaxiUser? {
+        return synchronized(lock) { taxiUser }
     }
 
     //Mark: Feed
     override suspend fun setFeedUser(user: FeedUser?) {
-        mutex.withLock {
-            feedUser = user
-        }
+        synchronized(lock) { feedUser = user }
     }
-    override suspend fun getFeedUser(): FeedUser? {
-        return mutex.withLock { feedUser }
+
+    override fun getFeedUser(): FeedUser? {
+        return synchronized(lock) { feedUser }
     }
 
     //MARK: OTL User
-    private var otlUser: OTLUser? = null
-
     override suspend fun setOTLUser(user: OTLUser?) {
-        mutex.withLock {
-            otlUser = user
-        }
+        synchronized(lock) { otlUser = user }
     }
 
-    override suspend fun getOTLUser(): OTLUser? {
-        return mutex.withLock { otlUser }
+    override fun getOTLUser(): OTLUser? {
+        return synchronized(lock) { otlUser }
     }
 }

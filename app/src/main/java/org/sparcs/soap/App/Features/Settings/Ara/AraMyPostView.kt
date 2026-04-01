@@ -145,7 +145,7 @@ private fun MyPostView(
     searchKeyword: String,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
-    onPostClick: (Int) -> Unit
+    onPostClick: (Int) -> Unit,
 ) {
     if (searchKeyword.isNotEmpty() && posts.isEmpty()) {
         UnavailableView(
@@ -181,7 +181,7 @@ private fun BookmarkPostView(
     posts: List<AraPost>,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
-    onPostClick: (Int) -> Unit
+    onPostClick: (Int) -> Unit,
 ) {
     when (state) {
         is AraMyPostViewModel.ViewState.Loading -> LoadingView()
@@ -215,15 +215,23 @@ private fun LoadedView(
     posts: List<AraPost>,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
-    onPostClick: (Int) -> Unit
+    onPostClick: (Int) -> Unit,
 ) {
-    PostList(
-        posts = posts,
-        onRefresh = onRefresh,
-        onLoadMore = onLoadMore,
-        onPostClick = { post ->
-           onPostClick(post.id)
-        },
-        isRefreshing = false
-    )
+    if (posts.isEmpty()) {
+        UnavailableView(
+            icon = Icons.Default.Clear,
+            title = stringResource(R.string.no_posts),
+            description = ""
+        )
+    } else {
+        PostList(
+            posts = posts,
+            onRefresh = onRefresh,
+            onLoadMore = onLoadMore,
+            onPostClick = { post ->
+                onPostClick(post.id)
+            },
+            isRefreshing = false
+        )
+    }
 }
