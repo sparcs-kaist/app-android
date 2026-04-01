@@ -20,32 +20,35 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.sparcs.soap.App.Shared.Extensions.isNetworkError
 import org.sparcs.soap.App.theme.ui.Theme
-import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
 
 
 @Composable
-fun ErrorView(icon: ImageVector = Icons.Default.Warning, message: String, onRetry: () -> Unit) {
-    val context = LocalContext.current
-    val networkErrorText = context.getString(R.string.network_connection_error)
+fun ErrorView(
+    icon: ImageVector = Icons.Default.Warning,
+    error: Exception,
+    defaultMessageResId: Int? = null,
+    onRetry: () -> Unit,
+) {
+    val isNetworkError = error.isNetworkError()
 
-    val isNetworkError = message == networkErrorText ||
-                message.contains("host", ignoreCase = true) ||
-                message.contains("connection", ignoreCase = true)
+    val displayIcon = if (isNetworkError) Icons.Rounded.WifiOff else icon
+    val iconSize = if (isNetworkError) 60.dp else 48.dp
+    val iconTint =
+        if (isNetworkError) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.error
 
-    val iconPainter = if (isNetworkError) {
-        Icons.Rounded.WifiOff
-    } else {
-        icon
+    val errorMessage = when {
+        isNetworkError -> stringResource(R.string.network_connection_error)
+        defaultMessageResId != null -> stringResource(defaultMessageResId)
+        else -> error.localizedMessage ?: stringResource(R.string.something_went_wrong)
     }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -54,10 +57,10 @@ fun ErrorView(icon: ImageVector = Icons.Default.Warning, message: String, onRetr
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = iconPainter,
-            contentDescription = "Error",
-            modifier = Modifier.size(if (isNetworkError) 80.dp else 48.dp),
-            tint = if (isNetworkError) MaterialTheme.colorScheme.grayBB else MaterialTheme.colorScheme.error
+            imageVector = displayIcon,
+            contentDescription = null,
+            modifier = Modifier.size(iconSize),
+            tint = iconTint
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -71,10 +74,7 @@ fun ErrorView(icon: ImageVector = Icons.Default.Warning, message: String, onRetr
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
-            text = if (isNetworkError)
-                stringResource(R.string.network_connection_error)
-            else
-                message,
+            text = errorMessage,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -99,7 +99,7 @@ private fun Preview() {
     Theme {
         ErrorView(
             icon = Icons.Default.Warning,
-            message = "Error",
+            error = Exception(),
             onRetry = {}
         )
     }

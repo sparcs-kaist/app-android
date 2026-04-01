@@ -33,7 +33,6 @@ import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
@@ -44,7 +43,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -80,6 +78,7 @@ import org.sparcs.soap.App.Features.PostCompose.TermsOfUseButton
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostComposeViewModel
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
@@ -257,28 +256,12 @@ fun FeedPostComposeView(
             showPhotosPicker = false
         }
     }
-    if (viewModel.isAlertPresented) {
-        AlertDialog(
-            onDismissRequest = { viewModel.isAlertPresented = false },
-            confirmButton = {
-                TextButton(onClick = { viewModel.isAlertPresented = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = {
-                viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
-            },
-            text = {
-                viewModel.alertState?.let { state ->
-                    Text(
-                        state.message ?: stringResource(
-                            state.messageResId ?: R.string.unexpected_error
-                        )
-                    )
-                }
-            }
-        )
-    }
+
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 }
 
 @Composable
@@ -291,8 +274,11 @@ private fun Header(
     ) {
         ProfileImage(viewModel)
         Spacer(modifier = Modifier.width(8.dp))
-        ComposeTypePicker(viewModel)
-        Spacer(modifier = Modifier.weight(1f))
+        Box(
+            modifier = Modifier.weight(1f)
+        ) {
+            ComposeTypePicker(viewModel)
+        }
         TermsOfUseButton()
     }
 }
@@ -352,11 +338,13 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                AnimatedAlphabetText(
-                    from = previousText,
-                    to = displayText,
-                    singleLine = true
-                )
+                Box(modifier = Modifier.weight(1f, fill = false)) {
+                    AnimatedAlphabetText(
+                        from = previousText,
+                        to = displayText,
+                        singleLine = true
+                    )
+                }
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
                     imageVector = Icons.Rounded.ArrowDropDown,

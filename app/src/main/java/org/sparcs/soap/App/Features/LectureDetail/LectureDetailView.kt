@@ -162,5 +162,5 @@ private fun LoadedPreview() {
 @Composable
 @Preview
 private fun ErrorPreview() {
-    Theme { MockView(LectureDetailViewModel.ViewState.Error("Error Message")) }
+    Theme { MockView(LectureDetailViewModel.ViewState.Error(Exception())) }
 }

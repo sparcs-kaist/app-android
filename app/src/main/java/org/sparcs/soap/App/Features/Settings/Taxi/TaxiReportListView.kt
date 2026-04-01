@@ -104,11 +104,11 @@ fun TaxiReportListView(
                 is TaxiReportListViewModel.ViewState.Loading -> LoadingView()
                 is TaxiReportListViewModel.ViewState.Loaded -> LoadedView(viewModel, taxiReportType)
                 is TaxiReportListViewModel.ViewState.Error -> {
-                    val message =
-                        (viewModel.state.collectAsState().value as TaxiReportListViewModel.ViewState.Error).message
+                    val error =
+                        (viewModel.state.collectAsState().value as TaxiReportListViewModel.ViewState.Error).error
                     ErrorView(
                         Icons.Default.Warning,
-                        message
+                        error
                     ) { coroutineScope.launch { viewModel.fetchReports() } }
                 }
             }
@@ -239,6 +239,6 @@ private fun LoadedPreview() {
 @Composable
 private fun ErrorPreview() {
     val viewModel =
-        MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Error("Network error"))
+        MockTaxiReportListViewModel(TaxiReportListViewModel.ViewState.Error(Exception()))
     Theme { TaxiReportListView(viewModel, rememberNavController()) }
 }

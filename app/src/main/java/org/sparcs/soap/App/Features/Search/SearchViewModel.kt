@@ -56,7 +56,7 @@ class SearchViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -171,7 +171,7 @@ class SearchViewModel @Inject constructor(
             _state.value = ViewState.Loaded
 
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            _state.value = ViewState.Error(e)
         }
     }
 
@@ -194,7 +194,7 @@ class SearchViewModel @Inject constructor(
             _state.value = ViewState.Loaded
 
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            _state.value = ViewState.Error(e)
             isLoadingMore = false
         }
     }

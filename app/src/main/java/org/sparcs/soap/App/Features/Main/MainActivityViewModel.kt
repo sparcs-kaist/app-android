@@ -41,27 +41,20 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             authUseCase.isAuthenticatedFlow.collect { authStatus ->
-                _isLoading.value = false
+                Timber.d("Auth Status changed: $authStatus")
             }
         }
     }
 
     fun onActivation(currentVersion: String) {
-        if (activationJob?.isActive == true) {
-            Timber.d("onActivation: Already running, ignoring duplicate call.")
-            return
-        }
+        if (activationJob?.isActive == true) return
 
         activationJob = viewModelScope.launch {
             _isLoading.value = true
             try {
                 checkUpdateIfNeeded(currentVersion)
-
-                authUseCase.refreshAccessToken(force = true)
-                userUseCase.fetchUsers()
-
             } catch (e: Exception) {
-                authUseCase.signOut()
+                Timber.e(e, "Update check failed")
             } finally {
                 if (!_mustUpdate.value) {
                     _isLoading.value = false
@@ -70,6 +63,23 @@ class MainViewModel @Inject constructor(
         }
     }
 
+    fun fetchUsersIfNeeded() {
+        viewModelScope.launch {
+            if (userUseCase.araUser != null && userUseCase.feedUser != null && userUseCase.taxiUser != null) {
+                Timber.d("Users already fetched, skipping...")
+                return@launch
+            }
+
+            if (isAuthenticated.value == false) return@launch
+
+            try {
+                Timber.d("Fetching users on activation/resume")
+                userUseCase.fetchUsers()
+            } catch (e: Exception) {
+                Timber.e(e, "User fetch failed")
+            }
+        }
+    }
     private suspend fun checkUpdateIfNeeded(currentVersion: String) {
         val now = System.currentTimeMillis()
         val oneHourInMillis = 3600 * 1000L

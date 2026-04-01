@@ -25,7 +25,7 @@ class TaxiReportListViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     // MARK: - Properties
@@ -40,7 +40,7 @@ class TaxiReportListViewModel @Inject constructor(
             reports = taxiReportRepository.fetchMyReports()
             _state.value = ViewState.Loaded
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            _state.value = ViewState.Error(e)
             Timber.e("Failed to fetch reports: ${e.localizedMessage}")
         }
     }

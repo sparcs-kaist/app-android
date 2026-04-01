@@ -26,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -67,7 +66,7 @@ fun BoardListView(
     }
 
     LaunchedEffect(Unit) {
-        scope.launch { viewModel.fetchBoards() }
+        viewModel.fetchBoards()
     }
 
     Scaffold(
@@ -110,11 +109,12 @@ fun BoardListView(
                 }
 
                 is BoardListViewModel.ViewState.Error -> {
-                    val messageResId = (state as BoardListViewModel.ViewState.Error).message
+                    val error = (state as BoardListViewModel.ViewState.Error).error
 
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = stringResource(messageResId),
+                        error = error,
+                        defaultMessageResId = R.string.error_fetch_boards,
                         onRetry = { scope.launch { viewModel.fetchBoards() } }
                     )
                 }
@@ -192,7 +192,7 @@ fun PreviewBoardListLoaded() {
 @Composable
 fun PreviewBoardListError() {
     val viewModel = PreviewBoardListViewModel(
-        initialState = BoardListViewModel.ViewState.Error(message = R.string.error_fetch_boards)
+        initialState = BoardListViewModel.ViewState.Error(Exception())
     )
     BoardListView(viewModel, rememberNavController())
 }

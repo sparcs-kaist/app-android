@@ -48,8 +48,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
+import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
+import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
 
@@ -217,7 +221,8 @@ fun TaxiChatInputBar(
                                 Text(
                                     text = stringResource(R.string.chat_as_user, nickname),
                                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                             innerTextField()
@@ -259,4 +264,23 @@ fun TaxiChatInputBar(
         }
     }
 
+}
+
+@Composable
+@Preview
+private fun Preview(){
+    Theme {
+        TaxiChatInputBar(
+            text = "text",
+            onTextChange = {},
+            onSendText = {},
+            onSendImage = {},
+            isUploading = false,
+            isCommitPaymentAvailable = true,
+            isCommitSettlementAvailable = true,
+            onCommitPayment = {},
+            onCommitSettlement = {},
+            taxiUser = TaxiUser.mock()
+        )
+    }
 }

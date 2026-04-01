@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Post
 
-import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -16,11 +15,11 @@ import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
 import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
-import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraCommentUseCaseProtocol
 import org.sparcs.soap.App.Features.Post.Event.PostCommentCellEvent
 import org.sparcs.soap.App.Features.Post.Event.PostViewEvent
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.R
 import timber.log.Timber
 import javax.inject.Inject
@@ -56,14 +55,13 @@ class PostViewModel @Inject constructor(
     private val araBoardUseCase: AraBoardUseCaseProtocol,
     val araCommentUseCase: AraCommentUseCaseProtocol,
 //    private val foundationModelsUseCase: FoundationModelsUseCaseProtocol
-    private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
 ) : ViewModel(), PostViewModelProtocol {
 
     sealed interface ViewState {
         data object Loading : ViewState
         data object Loaded : ViewState
-        data class Error(val message: String) : ViewState
+        data class Error(val error: Exception) : ViewState
     }
 
     // MARK: - Properties
@@ -110,8 +108,9 @@ class PostViewModel @Inject constructor(
             _post.value = fetchedPost
             if (isFirstTime) _state.value = ViewState.Loaded
         } catch (e: Exception) {
-            if (isFirstTime) _state.value = ViewState.Error(e.localizedMessage ?: "Error")
-            presentAlert(R.string.unable_to_fetch_post, e.localizedMessage ?: "")
+            if (isFirstTime) _state.value = ViewState.Error(e)
+            alertState = e.toAlertState(R.string.unable_to_fetch_post)
+            isAlertPresented = true
         }
     }
 
@@ -398,10 +397,5 @@ class PostViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    private fun presentAlert(@StringRes titleRes: Int, message: String) {
-        alertState = AlertState(titleResId = titleRes, message = message)
-        isAlertPresented = true
     }
 }

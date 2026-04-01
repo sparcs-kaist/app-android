@@ -15,14 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,6 +60,7 @@ import org.sparcs.soap.App.Shared.Extensions.createKakaoMap
 import org.sparcs.soap.App.Shared.Extensions.drawTaxiRoute
 import org.sparcs.soap.App.Shared.Extensions.formattedString
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.Components.TaxiParticipantsIndicator
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.downvote
@@ -81,8 +80,6 @@ fun TaxiPreviewView(
     val context = LocalContext.current
 
     val isPreview = LocalInspectionMode.current
-    var showError by remember { mutableStateOf(false) }
-    var errorMessage by remember { mutableStateOf("") }
     var isMapLoading by remember { mutableStateOf(true) }
     var isMapError by remember { mutableStateOf(false) }
 
@@ -245,10 +242,7 @@ fun TaxiPreviewView(
                                 onDismiss()
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
-                            } catch (e: Exception) {
-                                errorMessage = e.message ?: "Unknown error"
-                                showError = true
-                            }
+                            } catch (_: Exception) { }
                         }
                     },
                     modifier = Modifier.weight(1f),
@@ -268,18 +262,12 @@ fun TaxiPreviewView(
             }
         }
     }
-    if (showError) {
-        AlertDialog(
-            onDismissRequest = { showError = false },
-            confirmButton = {
-                TextButton(onClick = { showError = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = { Text(stringResource(R.string.error)) },
-            text = { Text(errorMessage) }
-        )
-    }
+
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 }
 
 //______________________________________________________

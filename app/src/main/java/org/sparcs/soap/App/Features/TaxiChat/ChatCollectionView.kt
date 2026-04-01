@@ -135,7 +135,7 @@ private fun ChatItem(
             ) {
                 when (item.chat.type) {
                     TaxiChat.ChatType.TEXT -> if (user == null) {
-                        ChatBubbleSkeleton(item.position)
+                        ChatBubbleSkeleton()
                     } else {
                         ChatBubble(item.chat, item.position, item.sender.isMine)
                     }

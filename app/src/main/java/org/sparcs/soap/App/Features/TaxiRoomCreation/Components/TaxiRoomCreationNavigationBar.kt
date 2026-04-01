@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.TaxiRoomCreation.Components
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -9,11 +8,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -23,9 +18,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiRoomBlockStatus
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModelProtocol
 import org.sparcs.soap.App.Features.TaxiRoomCreation.TaxiRoomCreationViewModelProtocol
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
@@ -39,14 +36,6 @@ fun TaxiRoomCreationNavigationBar(
     taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol,
     title: String,
 ) {
-    var showAlert by remember { mutableStateOf(false) }
-    var alertMessage by remember { mutableStateOf("") }
-    var alertTitle by remember { mutableStateOf("") }
-
-    val error = stringResource(R.string.error)
-    val notice = stringResource(R.string.notice_board)
-    val notPaid = stringResource(R.string.not_paid_message)
-    val tooManyRooms = stringResource(R.string.too_many_rooms_message)
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = onDismiss) },
 
@@ -61,11 +50,6 @@ fun TaxiRoomCreationNavigationBar(
             SendButton(
                 isEnabled = isEnabled,
                 onClick = onDismiss,
-                onError = {
-                    alertMessage = it
-                    showAlert = true
-                    alertTitle = error
-                },
                 viewModel = viewModel,
                 title = title
             )
@@ -75,50 +59,45 @@ fun TaxiRoomCreationNavigationBar(
         )
     )
 
-    if (showAlert) {
-        AlertDialog(
-            onDismissRequest = { showAlert = false },
-            title = { Text(alertTitle) },
-            text = { Text(alertMessage) },
-            confirmButton = {
-                TextButton(onClick = { showAlert = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            }
-        )
-    }
     LaunchedEffect(Unit) {
         taxiRoomCreationViewModel.fetchBlockStatus()
         when (val status = taxiRoomCreationViewModel.blockStatus.value) {
             is TaxiRoomBlockStatus.Error -> {
-                alertTitle = error
-                alertMessage = status.errorMessage
-                showAlert = true
+                viewModel.alertState = AlertState(message = status.errorMessage)
+                viewModel.isAlertPresented = true
             }
 
             TaxiRoomBlockStatus.NotPaid -> {
-                alertTitle = notice
-                alertMessage = notPaid
-                showAlert = true
+                viewModel.alertState = AlertState(
+                    titleResId = R.string.notice_board,
+                    messageResId = R.string.not_paid_message
+                )
+                viewModel.isAlertPresented = true
             }
 
             TaxiRoomBlockStatus.TooManyRooms -> {
-                alertTitle = notice
-                alertMessage = tooManyRooms
-                showAlert = true
+                viewModel.alertState = AlertState(
+                    titleResId = R.string.notice_board,
+                    messageResId = R.string.too_many_rooms_message
+                )
+                viewModel.isAlertPresented = true
             }
 
             else -> {}
         }
     }
 
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 }
 
 @Composable
 private fun SendButton(
     isEnabled: Boolean,
     onClick: () -> Unit,
-    onError: (String) -> Unit,
     viewModel: TaxiListViewModelProtocol,
     title: String,
 ) {
@@ -126,18 +105,12 @@ private fun SendButton(
     TextButton(
         onClick = {
             coroutineScope.launch {
-                try {
-                    val newRoomId = viewModel.createRoom(title)
+                val newRoomId = viewModel.createRoom(title)
 
-                    if (!newRoomId.isNullOrBlank()) {
-                        viewModel.toggleCarrier(newRoomId, viewModel.roomHasCarrier)
-                        viewModel.fetchData()
-                        onClick()
-                    } else {
-                        throw Exception("Room creation failed")
-                    }
-                } catch (e: Exception) {
-                    onError(e.localizedMessage ?: "Unknown error")
+                if (!newRoomId.isNullOrBlank()) {
+                    viewModel.toggleCarrier(newRoomId, viewModel.roomHasCarrier)
+                    viewModel.fetchData()
+                    onClick()
                 }
             }
         },

@@ -40,6 +40,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -134,7 +135,13 @@ private fun Header(
     ) {
         ProfileImage(post)
         Spacer(Modifier.width(8.dp))
-        Text(authorName, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = authorName,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.weight(1f, false),
+            overflow = TextOverflow.Ellipsis,
+            maxLines = 1
+        )
         Spacer(Modifier.width(8.dp))
         if (post.isKaistIP) {
             InfoTooltip(
@@ -226,10 +233,11 @@ private fun Content(
                 }
             },
             onClick = { offset ->
-                displayText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { annotation ->
-                    handleURL(context, annotation.item, scope)
-                    return@ClickableText
-                }
+                displayText.getStringAnnotations("URL", offset, offset).firstOrNull()
+                    ?.let { annotation ->
+                        handleURL(context, annotation.item, scope)
+                        return@ClickableText
+                    }
 
                 displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()?.let {
                     expanded = true
@@ -365,7 +373,7 @@ fun FeedPostRowSkeleton() {
 private fun handleURL(
     context: Context,
     urlString: String,
-    scope: CoroutineScope
+    scope: CoroutineScope,
 ) {
     val uri = Uri.parse(if (!urlString.startsWith("http")) "http://$urlString" else urlString)
 

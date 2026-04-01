@@ -107,9 +107,7 @@ fun ChatBubble(
 }
 
 @Composable
-fun ChatBubbleSkeleton(
-    position: ChatBubblePosition = ChatBubblePosition.SINGLE,
-) {
+fun ChatBubbleSkeleton() {
     val skeletonColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
 
     Surface(
@@ -234,9 +232,7 @@ private fun LinkBubblePreview() {
 private fun SkeletonBubblePreview() {
     Theme {
         Box(modifier = Modifier.padding(16.dp)) {
-            ChatBubbleSkeleton(
-                position = ChatBubblePosition.BOTTOM,
-            )
+            ChatBubbleSkeleton()
         }
     }
 }

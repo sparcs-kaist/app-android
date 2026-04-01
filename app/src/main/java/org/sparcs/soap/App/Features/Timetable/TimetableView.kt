@@ -61,30 +61,14 @@ fun TimetableView(
 ) {
     var selectedLecture by remember { mutableStateOf<Lecture?>(null) }
     val scrollState = rememberScrollState()
-
     var expanded by rememberSaveable { mutableStateOf(false) }
     var lectureToDelete by remember { mutableStateOf<Lecture?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
-    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
-
-    val timetableList by viewModel.timetableList.collectAsState()
     val isEditable by viewModel.isEditable.collectAsState()
-
-    val myTableLabel = stringResource(R.string.my_table)
-    val untitledLabel = stringResource(R.string.untitled)
-
-    val timetableName = remember(selectedTimetableID, timetableList) {
-        if (selectedTimetableID == null) {
-            myTableLabel
-        } else {
-            val foundTitle = timetableList.find { it.id.toString() == selectedTimetable?.id }?.title
-
-            if (foundTitle.isNullOrEmpty()) untitledLabel else foundTitle
-        }
-    }
+    val timetableName by viewModel.timetableName.collectAsState()
 
     val backStackEvent = {
         navController.navigate(Channel.Start.name) {

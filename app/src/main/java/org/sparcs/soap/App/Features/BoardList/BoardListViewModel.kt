@@ -10,8 +10,6 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoardGroup
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
-import org.sparcs.soap.App.Shared.Extensions.isNetworkError
-import org.sparcs.soap.R
 import javax.inject.Inject
 
 interface BoardListViewModelProtocol {
@@ -27,7 +25,7 @@ class BoardListViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val boards: List<AraBoard>, val groups: List<AraBoardGroup>) : ViewState()
-        data class Error(val message: Int) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     // MARK: - Properties
@@ -52,11 +50,7 @@ class BoardListViewModel @Inject constructor(
                 groups = uniqueGroups
                 _state.value = ViewState.Loaded(sortedBoards, uniqueGroups)
             } catch (e: Exception) {
-                if(e.isNetworkError()) {
-                    _state.value = ViewState.Error(R.string.network_connection_error)
-                } else {
-                    _state.value = ViewState.Error(R.string.error_fetch_boards)
-                }
+                _state.value = ViewState.Error(e)
             }
         }
     }

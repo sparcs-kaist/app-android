@@ -19,6 +19,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
@@ -53,6 +55,18 @@ fun UserPostListView(
 
     LaunchedEffect(Unit) {
         viewModel.bind()
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
+
+    LaunchedEffect(lifecycleState) {
+        if (lifecycleState == Lifecycle.State.RESUMED) {
+            viewModel.lastClickedPostId?.let { id ->
+                viewModel.refreshItem(id)
+                viewModel.lastClickedPostId = null
+            }
+        }
     }
 
     Scaffold(
@@ -97,6 +111,7 @@ fun UserPostListView(
                         PostList(
                             posts = posts,
                             onPostClick = { post ->
+                                viewModel.lastClickedPostId = post.id
                                 navController.navigate(Channel.PostView.name + "?postId=${post.id}")
                             },
                             onRefresh = {
@@ -110,16 +125,15 @@ fun UserPostListView(
                             onLoadMore = {
                                 coroutineScope.launch { viewModel.loadNextPage() }
                             },
-                            onPostDisappear = { postID -> viewModel.refreshItem(postID) },
                             isRefreshing = isRefreshing
                         )
                     }
 
                     is UserPostListViewModel.ViewState.Error -> {
-                        val message = (state as UserPostListViewModel.ViewState.Error).message
+                        val error = (state as UserPostListViewModel.ViewState.Error).error
                         ErrorView(
                             icon = Icons.Default.Warning,
-                            message = message,
+                            error = error,
                             onRetry = {
                                 coroutineScope.launch { viewModel.fetchInitialPosts() }
                             }
@@ -161,7 +175,7 @@ private fun PreviewUserPostListLoaded() {
 @Composable
 private fun PreviewUserPostListError() {
     val viewModel = PreviewUserPostListViewModel(
-        initialState = UserPostListViewModel.ViewState.Error("Something went wrong"),
+        initialState = UserPostListViewModel.ViewState.Error(Exception()),
         user = AraPostAuthor.previewAuthor
     )
     Theme {

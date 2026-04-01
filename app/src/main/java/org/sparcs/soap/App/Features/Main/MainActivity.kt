@@ -131,6 +131,7 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(isAuthenticated) {
                         if (isAuthenticated == true) {
+                            viewModel.fetchUsersIfNeeded()
                             deepLinkViewModel.checkPendingDeepLink(true)
                         }
                     }
@@ -141,6 +142,7 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(Unit) {
                         viewModel.onActivation(currentVersion)
+
                     }
 
                     LaunchedEffect(mustUpdate) {
