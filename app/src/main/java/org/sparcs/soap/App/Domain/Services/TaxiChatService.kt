@@ -89,7 +89,9 @@ class TaxiChatService @Inject constructor(
     }
 
     private fun reconnectSocketWithToken(token: String?) {
-        disconnect()
+        socket?.off()
+        socket?.disconnect()
+        socket = null
 
         if (token == null) {
             Timber.e("Token is null, cannot reconnect.")
@@ -99,11 +101,14 @@ class TaxiChatService @Inject constructor(
         val opts = IO.Options().apply {
             forceNew = true
             reconnection = true
+            reconnectionAttempts = 5
+            reconnectionDelay = 2000
             extraHeaders = mutableMapOf(
                 "Origin" to listOf("taxi.sparcs.org"),
                 "Authorization" to listOf("Bearer $token")
             )
         }
+
         try {
             socket = IO.socket(Constants.taxiSocketURL, opts)
             setupSocketEvents()
@@ -146,11 +151,6 @@ class TaxiChatService @Inject constructor(
 
         socket?.on(Socket.EVENT_DISCONNECT) {
             isConnected = false
-
-            if (!this.hasAttemptedReconnect) {
-                this.hasAttemptedReconnect = true
-                this.reconnect()
-            }
         }
 
 

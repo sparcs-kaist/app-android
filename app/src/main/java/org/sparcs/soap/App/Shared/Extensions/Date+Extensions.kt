@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Shared.Extensions
 
+import android.text.format.DateFormat
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -173,26 +174,24 @@ fun weekdayNameIfWithinAWeek(date: Date): String? {
     }
 }
 
-fun Date.formattedString(): String{
-    val formatter = java.text.DateFormat.getDateTimeInstance(
-        java.text.DateFormat.LONG,
-        java.text.DateFormat.SHORT,
-        Locale.getDefault()
-    )
+fun Date.formattedString(): String {
+    val pattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), "yMMMMdEEEjm")
+    val formatter = SimpleDateFormat(pattern, Locale.getDefault())
     return formatter.format(this)
 }
 
-fun Date.formattedTime(): String{
+fun Date.formattedTime(): String {
     val formatter = SimpleDateFormat("h:mm a", Locale.getDefault())
     return formatter.format(this)
 }
 
 fun Date.formattedDate(): String {
-    val formatter = SimpleDateFormat("MMMM d, EEE", Locale.getDefault())
+    val pattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), "MMMMdEEE")
+    val formatter = SimpleDateFormat(pattern, Locale.getDefault())
     return formatter.format(this)
 }
 
-fun Date.weekdaySymbol(): String{
+fun Date.weekdaySymbol(): String {
     val weekdaySymbols = SimpleDateFormat("EEEE", Locale.getDefault())
     return weekdaySymbols.format(this)
 }
@@ -200,12 +199,12 @@ fun Date.weekdaySymbol(): String{
 @Composable
 fun DayOfWeek.toShortString(): String {
     return when (this) {
-        DayOfWeek.MONDAY    -> stringResource(R.string.mon)
-        DayOfWeek.TUESDAY   -> stringResource(R.string.tue)
+        DayOfWeek.MONDAY -> stringResource(R.string.mon)
+        DayOfWeek.TUESDAY -> stringResource(R.string.tue)
         DayOfWeek.WEDNESDAY -> stringResource(R.string.wed)
-        DayOfWeek.THURSDAY  -> stringResource(R.string.thu)
-        DayOfWeek.FRIDAY    -> stringResource(R.string.fri)
-        DayOfWeek.SATURDAY  -> stringResource(R.string.sat)
-        DayOfWeek.SUNDAY    -> stringResource(R.string.sun)
+        DayOfWeek.THURSDAY -> stringResource(R.string.thu)
+        DayOfWeek.FRIDAY -> stringResource(R.string.fri)
+        DayOfWeek.SATURDAY -> stringResource(R.string.sat)
+        DayOfWeek.SUNDAY -> stringResource(R.string.sun)
     }
 }

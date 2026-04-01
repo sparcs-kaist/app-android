@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
@@ -55,6 +57,18 @@ fun AraMyPostView(
         if (!loadedInitialPosts) {
             viewModel.bind()
             loadedInitialPosts = true
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
+
+    LaunchedEffect(lifecycleState) {
+        if (lifecycleState == Lifecycle.State.RESUMED) {
+            viewModel.lastClickedPostId?.let { id ->
+                viewModel.refreshItem(id)
+                viewModel.lastClickedPostId = null
+            }
         }
     }
 
@@ -100,8 +114,10 @@ fun AraMyPostView(
                         searchKeyword = searchKeyword,
                         onRefresh = { coroutineScope.launch { viewModel.fetchInitialPosts() } },
                         onLoadMore = { coroutineScope.launch { viewModel.loadNextPage() } },
-                        onPostDisappear = { postID -> viewModel.refreshItem(postID) },
-                        navController = navController
+                        onPostClick = { postID ->
+                            viewModel.lastClickedPostId = postID
+                            navController.navigate(Channel.PostView.name + "?postId=${postID}")
+                        }
                     )
                 }
 
@@ -111,8 +127,10 @@ fun AraMyPostView(
                         posts = posts,
                         onRefresh = { coroutineScope.launch { viewModel.fetchInitialPosts() } },
                         onLoadMore = { coroutineScope.launch { viewModel.loadNextPage() } },
-                        onPostDisappear = { postID -> viewModel.refreshItem(postID) },
-                        navController = navController
+                        onPostClick = { postID ->
+                            viewModel.lastClickedPostId = postID
+                            navController.navigate(Channel.PostView.name + "?postId=${postID}")
+                        }
                     )
                 }
             }
@@ -127,8 +145,7 @@ private fun MyPostView(
     searchKeyword: String,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
-    onPostDisappear: (Int) -> Unit,
-    navController: NavController,
+    onPostClick: (Int) -> Unit,
 ) {
     if (searchKeyword.isNotEmpty() && posts.isEmpty()) {
         UnavailableView(
@@ -146,13 +163,12 @@ private fun MyPostView(
                 posts = posts,
                 onRefresh = onRefresh,
                 onLoadMore = onLoadMore,
-                onPostDisappear = onPostDisappear,
-                navController = navController
+                onPostClick = { onPostClick(it) }
             )
 
             is AraMyPostViewModel.ViewState.Error -> ErrorView(
                 icon = Icons.Default.Warning,
-                message = state.message,
+                error = state.error,
                 onRetry = onRefresh
             )
         }
@@ -165,8 +181,7 @@ private fun BookmarkPostView(
     posts: List<AraPost>,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
-    navController: NavController,
-    onPostDisappear: (Int) -> Unit,
+    onPostClick: (Int) -> Unit,
 ) {
     when (state) {
         is AraMyPostViewModel.ViewState.Loading -> LoadingView()
@@ -174,13 +189,12 @@ private fun BookmarkPostView(
             posts = posts,
             onRefresh = onRefresh,
             onLoadMore = onLoadMore,
-            onPostDisappear = onPostDisappear,
-            navController = navController
+            onPostClick = { onPostClick(it) }
         )
 
         is AraMyPostViewModel.ViewState.Error -> ErrorView(
             icon = Icons.Default.Clear,
-            message = state.message,
+            error = state.error,
             onRetry = onRefresh
         )
     }
@@ -201,17 +215,23 @@ private fun LoadedView(
     posts: List<AraPost>,
     onRefresh: () -> Unit,
     onLoadMore: () -> Unit,
-    onPostDisappear: (Int) -> Unit,
-    navController: NavController,
+    onPostClick: (Int) -> Unit,
 ) {
-    PostList(
-        posts = posts,
-        onRefresh = onRefresh,
-        onLoadMore = onLoadMore,
-        onPostClick = { post ->
-            navController.navigate(Channel.PostView.name + "?postId=${post.id}")
-        },
-        onPostDisappear = onPostDisappear,
-        isRefreshing = false
-    )
+    if (posts.isEmpty()) {
+        UnavailableView(
+            icon = Icons.Default.Clear,
+            title = stringResource(R.string.no_posts),
+            description = ""
+        )
+    } else {
+        PostList(
+            posts = posts,
+            onRefresh = onRefresh,
+            onLoadMore = onLoadMore,
+            onPostClick = { post ->
+                onPostClick(post.id)
+            },
+            isRefreshing = false
+        )
+    }
 }

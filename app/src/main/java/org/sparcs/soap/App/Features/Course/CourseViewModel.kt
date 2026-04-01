@@ -43,7 +43,7 @@ class CourseViewModel @Inject constructor(
             val reviewPage: LectureReviewPage
         ) : ViewState()
 
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     private val courseId: Int? = savedStateHandle.get<String>("courseId")?.toIntOrNull()
@@ -69,7 +69,7 @@ class CourseViewModel @Inject constructor(
 
             } catch (e: Exception) {
                 crashlyticsService.recordException(e)
-                _state.value = ViewState.Error(e.localizedMessage ?: "Failed")
+                _state.value = ViewState.Error(e)
             }
         }
     }
@@ -94,7 +94,7 @@ class CourseViewModel @Inject constructor(
                 analyticsService.logEvent(CourseViewEvent.ReviewsLoaded)
             } catch (e: Exception) {
                 crashlyticsService.recordException(e)
-                _state.value = ViewState.Error("Reviews load failed")
+                _state.value = ViewState.Error(e)
             }
         }
     }

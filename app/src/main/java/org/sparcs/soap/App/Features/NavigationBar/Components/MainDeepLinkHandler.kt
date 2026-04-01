@@ -75,7 +75,7 @@ fun MainDeepLinkHandler(
             title = { Text(stringResource(viewModel.alertState?.titleResId ?: R.string.error)) },
             text = { Text(stringResource(viewModel.alertState?.messageResId ?: R.string.post_not_found_message)) },
             confirmButton = {
-                TextButton(onClick = { viewModel.isAlertPresented = false }) { Text("OK") }
+                TextButton(onClick = { viewModel.isAlertPresented = false }) { Text(stringResource(R.string.ok)) }
             }
         )
     }

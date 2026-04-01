@@ -1,13 +1,6 @@
 package org.sparcs.soap.App.Domain.Usecases
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
 import org.sparcs.soap.App.Domain.Helpers.UserStorageProtocol
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
@@ -56,25 +49,17 @@ class UserUseCase @Inject constructor(
     private val userStorage: UserStorageProtocol,
 ) : UserUseCaseProtocol {
 
-    override var araUser: AraUser? by mutableStateOf(null)
-        private set
-    override var taxiUser: TaxiUser? by mutableStateOf(null)
-        private set
-    override var feedUser: FeedUser? by mutableStateOf(null)
-        private set
-    override var otlUser: OTLUser? by mutableStateOf(null)
-        private set
+    override val araUser: AraUser?
+        get() = userStorage.getAraUser()
 
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    override val taxiUser: TaxiUser?
+        get() = userStorage.getTaxiUser()
 
-    init {
-        scope.launch {
-            araUser = userStorage.getAraUser()
-            taxiUser = userStorage.getTaxiUser()
-            feedUser = userStorage.getFeedUser()
-            otlUser = userStorage.getOTLUser()
-        }
-    }
+    override val feedUser: FeedUser?
+        get() = userStorage.getFeedUser()
+
+    override val otlUser: OTLUser?
+        get() = userStorage.getOTLUser()
 
     override suspend fun fetchUsers() {
         supervisorScope {
@@ -83,14 +68,17 @@ class UserUseCase @Inject constructor(
             val feed = async { runCatching { fetchFeedUser() } }
             val otl = async { runCatching { fetchOTLUser() } }
 
-            try {
-                taxi.await()
-                ara.await()
-                feed.await()
-                otl.await()
-            } catch (e: Exception) {
-                Timber.e(e, "User data fetch failed - triggering logout")
-                throw e
+            taxi.await().onFailure { throwable ->
+                Timber.e(throwable, "Failed to fetch Taxi user in fetchUsers()")
+            }
+            ara.await().onFailure { throwable ->
+                Timber.e(throwable, "Failed to fetch Ara user in fetchUsers()")
+            }
+            feed.await().onFailure { throwable ->
+                Timber.e(throwable, "Failed to fetch Feed user in fetchUsers()")
+            }
+            otl.await().onFailure { throwable ->
+                Timber.e(throwable, "Failed to fetch OTL user in fetchUsers()")
             }
         }
     }
@@ -99,7 +87,6 @@ class UserUseCase @Inject constructor(
         Timber.d("Fetching Ara User")
         val user = araUserRepository.fetchUser()
         userStorage.setAraUser(user)
-        araUser = user
     }
 
     override suspend fun updateAraUser(params: Map<String, Any>) {
@@ -111,19 +98,16 @@ class UserUseCase @Inject constructor(
     override suspend fun fetchTaxiUser() {
         val user = taxiUserRepository.fetchUser()
         userStorage.setTaxiUser(user)
-        taxiUser = user
     }
 
     override suspend fun fetchFeedUser() {
         val user = feedUserRepository.getUser()
         userStorage.setFeedUser(user)
-        feedUser = user
     }
 
     override suspend fun fetchOTLUser() {
         val user = otlUserRepository.fetchUser()
         userStorage.setOTLUser(user)
-        otlUser = user
     }
 }
 
@@ -139,6 +123,5 @@ class MockUserUseCase : UserUseCaseProtocol {
     override suspend fun updateAraUser(params: Map<String, Any>) {}
     override suspend fun fetchFeedUser() {}
     override suspend fun fetchTaxiUser() {}
-
     override suspend fun fetchOTLUser() {}
 }

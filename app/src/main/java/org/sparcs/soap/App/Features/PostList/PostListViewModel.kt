@@ -61,7 +61,7 @@ class PostListViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val posts: List<AraPost>) : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -119,7 +119,7 @@ class PostListViewModel @Inject constructor(
             _state.value = ViewState.Loaded(posts)
             analyticsService.logEvent(PostListViewEvent.PostsRefreshed)
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
+            _state.value = ViewState.Error(e)
         }
     }
 

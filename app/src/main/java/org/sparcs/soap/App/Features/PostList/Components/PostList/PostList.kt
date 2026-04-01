@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -41,18 +40,18 @@ import org.sparcs.soap.R
 @Composable
 fun PostList(
     posts: List<AraPost>?,
-    onRefresh: ( () -> Unit),
-    onLoadMore: ( () -> Unit),
+    onRefresh: (() -> Unit),
+    onLoadMore: (() -> Unit),
     onPostClick: (AraPost) -> Unit,
-    onPostDisappear: (Int) -> Unit,
     isRefreshing: Boolean,
-    keyword: String? = ""
+    keyword: String? = "",
 ) {
     if (posts != null && posts.isEmpty() && keyword == null) {
         //그냥 empty한 경우 (keyword == null)
         ErrorView(
             icon = Icons.Default.Clear,
-            message = stringResource(R.string.nothing_here) + "\n" + stringResource(R.string.no_posts),
+            defaultMessageResId = R.string.empty_posts_default,
+            error = Exception(),
             onRetry = { onRefresh() }//TODO - 번역?
         )
     }
@@ -67,7 +66,6 @@ fun PostList(
                 onLoadMore = { onLoadMore() },
                 onPostClick = onPostClick,
                 onRefresh = onRefresh,
-                onPostDisappear = onPostDisappear,
                 isRefreshing = isRefreshing
             )
         }
@@ -78,11 +76,10 @@ fun PostList(
 @Composable
 private fun LoadedView(
     posts: List<AraPost>,
-    onLoadMore: ( () -> Unit),
+    onLoadMore: (() -> Unit),
     onPostClick: (AraPost) -> Unit,
-    onRefresh: ( () -> Unit),
-    onPostDisappear: (Int) -> Unit,
-    isRefreshing: Boolean
+    onRefresh: (() -> Unit),
+    isRefreshing: Boolean,
 ) {
 
     var isLoadingMore by remember { mutableStateOf(false) }
@@ -150,24 +147,30 @@ private fun LoadingView() {
 
 @Composable
 @Preview
-private fun LoadingPreview(){
+private fun LoadingPreview() {
     Theme {
-        PostList(posts = null, onRefresh = {}, onLoadMore = {}, onPostClick = {}, onPostDisappear = {}, false)
+        PostList(posts = null, onRefresh = {}, onLoadMore = {}, onPostClick = {}, false)
     }
 }
 
 @Composable
 @Preview
-private fun EmptyPreview(){
+private fun EmptyPreview() {
     Theme {
-        PostList(posts = emptyList(), onRefresh = {}, onLoadMore = {},onPostClick = {}, onPostDisappear = {}, false)
+        PostList(posts = emptyList(), onRefresh = {}, onLoadMore = {}, onPostClick = {}, false)
     }
 }
 
 @Composable
 @Preview
-private fun LoadedPreview(){
+private fun LoadedPreview() {
     Theme {
-        PostList(posts = AraPost.mockList(), onRefresh = {}, onLoadMore = {}, onPostClick = {}, onPostDisappear = {}, isRefreshing= false)
+        PostList(
+            posts = AraPost.mockList(),
+            onRefresh = {},
+            onLoadMore = {},
+            onPostClick = {},
+            isRefreshing = false
+        )
     }
 }

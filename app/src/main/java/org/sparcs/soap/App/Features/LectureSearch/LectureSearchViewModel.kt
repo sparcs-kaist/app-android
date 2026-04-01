@@ -42,7 +42,7 @@ class LectureSearchViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loaded)
@@ -108,7 +108,7 @@ class LectureSearchViewModel @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "Search failed")
                 crashlyticsService.recordException(e)
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown Error")
+                _state.value = ViewState.Error(e)
             }
         }
     }

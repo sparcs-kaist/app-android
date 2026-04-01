@@ -90,7 +90,7 @@ fun FeedCommentRow(
             )
         }
 
-        Column(modifier = Modifier.weight(1f)) {
+        Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.padding(vertical = 4.dp)
@@ -130,7 +130,6 @@ fun FeedCommentRow(
         }
     }
 }
-
 @Composable
 private fun Header(
     comment: FeedComment,
@@ -139,40 +138,54 @@ private fun Header(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    val author =
-        if (comment.isAnonymous) {
-            val number = comment.authorName.substringAfter("Anonymous", "").trim()
-            "${stringResource(R.string.anonymous)} $number"
-        } else {
-            comment.authorName
-        }
+    val author = if (comment.isAnonymous) {
+        val number = comment.authorName.substringAfter("Anonymous", "").trim()
+        "${stringResource(R.string.anonymous)} $number"
+    } else {
+        comment.authorName
+    }
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         ProfileImage(comment)
         Spacer(Modifier.width(8.dp))
-        Text(
-            text = if (comment.isAuthor) "$author (${stringResource(R.string.author)})" else author,
-            fontWeight = FontWeight.SemiBold,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else Color.Unspecified
-        )
-        Spacer(Modifier.width(8.dp))
-        if (comment.isKaistIP) {
-            InfoTooltip(
-                tooltipText = stringResource(R.string.kaist_ip_verified),
-                icon = painterResource(R.drawable.checkmark_seal_fill),
-                tint = MaterialTheme.colorScheme.primary,
-                iconSize = 15.dp
-            )
-            Spacer(Modifier.width(8.dp))
-        }
-        Text(
-            text = comment.createdAt.timeAgoDisplay(),
-            color = MaterialTheme.colorScheme.grayBB,
-            style = MaterialTheme.typography.bodyMedium
-        )
 
-        Spacer(modifier = Modifier.weight(1f))
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (comment.isAuthor) "$author (${stringResource(R.string.author)})" else author,
+                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (comment.isAuthor) MaterialTheme.colorScheme.primary else Color.Unspecified,
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1,
+                modifier = Modifier.weight(1f, fill = false)
+            )
+
+            if (comment.isKaistIP) {
+                Spacer(Modifier.width(4.dp))
+                InfoTooltip(
+                    tooltipText = stringResource(R.string.kaist_ip_verified),
+                    icon = painterResource(R.drawable.checkmark_seal_fill),
+                    tint = MaterialTheme.colorScheme.primary,
+                    iconSize = 15.dp
+                )
+            }
+
+            Spacer(Modifier.width(8.dp))
+
+            Text(
+                text = comment.createdAt.timeAgoDisplay(),
+                color = MaterialTheme.colorScheme.grayBB,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                softWrap = false
+            )
+        }
 
         if (!comment.isDeleted) {
             PostCommentActionsMenu(
@@ -187,6 +200,7 @@ private fun Header(
                 onTranslate = {/*Todo - translate*/ },
                 isComment = true
             )
+            Spacer(Modifier.width(8.dp))
         }
     }
 }

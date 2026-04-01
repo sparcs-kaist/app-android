@@ -23,7 +23,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -32,7 +31,6 @@ import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +58,7 @@ import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBa
 import org.sparcs.soap.App.Features.Settings.Feed.ViewState.FeedProfileImageState
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedSettingsViewModel
@@ -114,10 +113,11 @@ fun FeedSettingsView(
                 )
 
                 is FeedSettingsViewModel.ViewState.Error -> {
-                    val message = (state as FeedSettingsViewModel.ViewState.Error).message
+                    val error = (state as FeedSettingsViewModel.ViewState.Error).error
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = message,
+                        error = error,
+                        defaultMessageResId = (state as FeedSettingsViewModel.ViewState.Error).resId,
                         onRetry = { scope.launch { viewModel.fetchUser() } }
                     )
                 }
@@ -133,28 +133,11 @@ fun FeedSettingsView(
             }
         }
 
-        if (viewModel.isAlertPresented) {
-            AlertDialog(
-                onDismissRequest = { viewModel.isAlertPresented = false },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.isAlertPresented = false }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                title = {
-                    viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
-                },
-                text = {
-                    viewModel.alertState?.let { state ->
-                        Text(
-                            state.message ?: stringResource(
-                                state.messageResId ?: R.string.unexpected_error
-                            )
-                        )
-                    }
-                }
-            )
-        }
+        GlobalAlertDialog(
+            isPresented = viewModel.isAlertPresented,
+            state = viewModel.alertState,
+            onDismiss = { viewModel.isAlertPresented = false }
+        )
     }
 }
 
@@ -382,7 +365,7 @@ private fun LoadingPreview() {
 @Composable
 private fun ErrorPreview() {
     Theme {
-        val viewModel = PreviewFeedSettingsViewModel(FeedSettingsViewModel.ViewState.Error("ERROR"))
+        val viewModel = PreviewFeedSettingsViewModel(FeedSettingsViewModel.ViewState.Error(Exception()))
         FeedSettingsView(viewModel = viewModel, navController = rememberNavController())
     }
 }

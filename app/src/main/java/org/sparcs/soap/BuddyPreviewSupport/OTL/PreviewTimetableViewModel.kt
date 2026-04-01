@@ -43,6 +43,9 @@ class PreviewTimetableViewModel : TimetableViewModelProtocol {
     private val _isEditable = MutableStateFlow(true)
     override val isEditable: StateFlow<Boolean> = _isEditable.asStateFlow()
 
+    private val _timetableName = MutableStateFlow("My Table")
+    override val timetableName: StateFlow<String> = _timetableName.asStateFlow()
+
     override var showAlert: Boolean = false
     override var alertMessageRes: Int? = null
 

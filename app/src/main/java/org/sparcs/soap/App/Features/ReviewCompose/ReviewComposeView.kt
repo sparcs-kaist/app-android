@@ -26,14 +26,12 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -66,6 +64,7 @@ import org.sparcs.soap.App.Features.ReviewCompose.Components.ReviewComposeNaviga
 import org.sparcs.soap.App.Networking.ResponseDTO.OTL.ratingToString
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureDetailViewModel
@@ -197,28 +196,11 @@ fun ReviewComposeView(
             }
         }
     }
-    if (viewModel.isAlertPresented) {
-        AlertDialog(
-            onDismissRequest = { viewModel.isAlertPresented = false },
-            confirmButton = {
-                TextButton(onClick = { viewModel.isAlertPresented = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = {
-                viewModel.alertState?.titleResId?.let { Text(stringResource(it)) }
-            },
-            text = {
-                viewModel.alertState?.let { state ->
-                    Text(
-                        state.message ?: stringResource(
-                            state.messageResId ?: R.string.unexpected_error
-                        )
-                    )
-                }
-            }
-        )
-    }
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 }
 
 @Composable

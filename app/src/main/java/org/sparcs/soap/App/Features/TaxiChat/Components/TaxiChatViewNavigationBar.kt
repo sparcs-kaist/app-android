@@ -74,7 +74,7 @@ fun TaxiChatViewNavigationBar(
     onClickLeave: () -> Unit,
     onCarrierToggle: (Boolean) -> Unit,
     onArrivalToggle: (Boolean) -> Unit,
-    isEnabled: Boolean,
+    isLeaveAvailable: Boolean,
 ) {
     val context = LocalContext.current
     val shareUrl = "${Constants.taxiInviteURL}${room.id}"
@@ -152,7 +152,7 @@ fun TaxiChatViewNavigationBar(
                     onClickReport = { onReport() },
                     onClickLeave = { onClickLeave() },
                     onCarrierToggle = onCarrierToggle,
-                    isEnabled = isEnabled
+                    isLeaveAvailable = isLeaveAvailable
                 )
             },
             colors = TopAppBarDefaults.mediumTopAppBarColors(
@@ -166,7 +166,7 @@ fun TaxiChatViewNavigationBar(
             arrivedCount = arrivedCount,
             totalCount = totalCount,
             isArrived = isArrived,
-            isEnabled = isEnabled,
+            isEnabled = isLeaveAvailable,
             onStatusClick = { showArrivalSheet = !showArrivalSheet },
             onArrivalToggle = onArrivalToggle
         )

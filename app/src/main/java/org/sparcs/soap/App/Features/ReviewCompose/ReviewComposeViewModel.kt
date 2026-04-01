@@ -17,6 +17,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.ReviewUseCaseProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.OTL.ratingToString
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.R
 import javax.inject.Inject
 
@@ -90,10 +91,7 @@ class ReviewComposeViewModel @Inject constructor(
             )
         } catch (e: Exception) {
             handleException(e)
-            alertState = AlertState(
-                titleResId = R.string.unexpected_error_uploading_review,
-                message = e.localizedMessage ?: "Unknown error"
-            )
+            this.alertState = e.toAlertState(R.string.unexpected_error_uploading_review)
             isAlertPresented = true
             null
         } finally {

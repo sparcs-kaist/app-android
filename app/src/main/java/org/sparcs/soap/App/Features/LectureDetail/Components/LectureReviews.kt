@@ -166,10 +166,10 @@ fun LectureReviews(
                 }
 
                 is LectureDetailViewModel.ViewState.Error -> {
-                    val message = (state as LectureDetailViewModel.ViewState.Error).message
+                    val error = (state as LectureDetailViewModel.ViewState.Error).error
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = message
+                        error = error
                     ) {
                         viewModel.fetchReviews(lecture)
                     }
@@ -208,5 +208,5 @@ private fun LoadedPreview() {
 @Composable
 @Preview
 private fun ErrorPreview() {
-    Theme { MockView(LectureDetailViewModel.ViewState.Error("Error Message")) }
+    Theme { MockView(LectureDetailViewModel.ViewState.Error(Exception())) }
 }

@@ -1,11 +1,13 @@
 package org.sparcs.soap.App.Features.Timetable
 
+import android.content.Context
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -39,6 +41,7 @@ interface TimetableViewModelProtocol {
     val isCandidateOverlapping: StateFlow<Boolean>
     val overlappingLecture: StateFlow<Lecture?>
     val isEditable: StateFlow<Boolean>
+    val timetableName: StateFlow<String>
 
     var showAlert: Boolean
     var alertMessageRes: Int?
@@ -61,6 +64,7 @@ class TimetableViewModel @Inject constructor(
     override val timetableUseCase: TimetableUseCase,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
+    @ApplicationContext private val context: Context,
 ) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
@@ -127,6 +131,22 @@ class TimetableViewModel @Inject constructor(
                 initialValue = null
             )
 
+    override val timetableName: StateFlow<String> = combine(
+        _selectedTimetableID,
+        _timetableList
+    ) { id, list ->
+        when {
+            id == null || id == MY_TABLE_ID -> context.getString(R.string.my_table)
+            else -> {
+                val title = list.find { it.id == id }?.title
+                if (title.isNullOrEmpty()) context.getString(R.string.untitled) else title
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = context.getString(R.string.my_table)
+    )
 
     init { fetchData() }
     // MARK: - Functions

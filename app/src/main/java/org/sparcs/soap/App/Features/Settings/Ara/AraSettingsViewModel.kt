@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraUser
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.Calendar
 import java.util.Date
@@ -42,7 +43,7 @@ class AraSettingsViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception, val resId: Int? = null) : ViewState()
     }
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -69,7 +70,10 @@ class AraSettingsViewModel @Inject constructor(
         try {
             val fetchedUser = userUseCase.araUser
             if (fetchedUser == null) {
-                _state.value = ViewState.Error("Ara User Information Not Found.")
+                _state.value = ViewState.Error(
+                    NoSuchElementException(),
+                    resId = R.string.error_ara_user_not_found
+                )
                 return
             }
 
@@ -79,7 +83,7 @@ class AraSettingsViewModel @Inject constructor(
             nickname = fetchedUser.nickname
             _state.value = ViewState.Loaded
         } catch (e: Exception) {
-            _state.value = ViewState.Error("Failed to fetch user: ${e.message}")
+            _state.value = ViewState.Error(e)
             Timber.e(e, "Failed to fetch user")
         }
     }
@@ -89,7 +93,7 @@ class AraSettingsViewModel @Inject constructor(
             try {
                 userUseCase.updateAraUser(mapOf("nickname" to nickname))
             } catch (e: Exception) {
-                _state.value = ViewState.Error("Failed to update nickname: ${e.message}")
+                _state.value = ViewState.Error(e)
                 Timber.e(e, "Failed to update nickname")
             }
         }
@@ -105,7 +109,7 @@ class AraSettingsViewModel @Inject constructor(
                     )
                 )
             } catch (e: Exception) {
-                _state.value = ViewState.Error("Failed to update content preference: ${e.message}")
+                _state.value = ViewState.Error(e)
                 Timber.e(e, "Failed to update content preference")
             }
         }

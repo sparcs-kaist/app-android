@@ -15,7 +15,8 @@ sealed class NetworkError : Exception(), SourcedError, Serializable {
         private fun readResolve(): Any = Timeout
     }
 
-    data class ServerError(val code: Int) : NetworkError()
+    data class ServerError(val code: Int, override val message: String? = null) : NetworkError()
+
     object Unauthorized : NetworkError() {
         private fun readResolve(): Any = Unauthorized
     }

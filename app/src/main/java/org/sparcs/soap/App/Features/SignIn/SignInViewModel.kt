@@ -6,7 +6,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import javax.inject.Inject
 
 interface SignInViewModelProtocol {
@@ -17,6 +21,7 @@ interface SignInViewModelProtocol {
 @HiltViewModel
 class SignInViewModel @Inject constructor(
     private val authUseCase: AuthUseCaseProtocol,
+    private val userUseCase: UserUseCaseProtocol,
 ) : ViewModel(), SignInViewModelProtocol {
 
     override var isLoading by mutableStateOf(false)
@@ -25,6 +30,9 @@ class SignInViewModel @Inject constructor(
         isLoading = true
         try {
             authUseCase.signIn(activity)
+            withContext(Dispatchers.IO + NonCancellable) {
+                userUseCase.fetchUsers()
+            }
         } finally {
             isLoading = false
         }

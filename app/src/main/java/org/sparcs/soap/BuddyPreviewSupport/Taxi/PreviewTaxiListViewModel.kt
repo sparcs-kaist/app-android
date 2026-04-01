@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Helpers.LocalizedString
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
@@ -70,6 +71,9 @@ class PreviewTaxiListViewModel(
     override var roomDepartureTime: Date by mutableStateOf(Date())
     override var roomCapacity by mutableIntStateOf(4)
     override var roomHasCarrier: Boolean by mutableStateOf(false)
+
+    override var alertState by mutableStateOf<AlertState?>(null)
+    override var isAlertPresented by mutableStateOf(false)
 
     override suspend fun fetchData() {}
     override suspend fun createRoom(title: String): String? {
