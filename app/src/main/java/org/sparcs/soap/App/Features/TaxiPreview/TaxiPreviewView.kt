@@ -237,12 +237,21 @@ fun TaxiPreviewView(
                 Button(
                     onClick = {
                         scope.launch {
-                            try {
-                                viewModel.joinRoom(id = room.id)
-                                onDismiss()
+                            val isAlreadyJoined = viewModel.isJoined(room.participants)
+
+                            if (isAlreadyJoined) {
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
-                            } catch (_: Exception) { }
+                                onDismiss()
+                            } else {
+                                try {
+                                    viewModel.joinRoom(id = room.id)
+                                    onDismiss()
+                                    val json = Uri.encode(Gson().toJson(room))
+                                    navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
+                                } catch (_: Exception) {
+                                }
+                            }
                         }
                     },
                     modifier = Modifier.weight(1f),
