@@ -51,7 +51,7 @@ class FeedViewModel @Inject constructor(
     sealed interface ViewState {
         data object Loading : ViewState
         data class Loaded(val posts: List<FeedPost>) : ViewState
-        data class Error(val e: Exception) : ViewState
+        data class Error(val error: Exception) : ViewState
     }
 
     // MARK: - Properties

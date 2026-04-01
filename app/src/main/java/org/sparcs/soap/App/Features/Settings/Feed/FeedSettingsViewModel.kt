@@ -55,7 +55,10 @@ class FeedSettingsViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(
+            val error: Exception,
+            val resId: Int? = null
+        ) : ViewState()
     }
 
     // MARK: - Properties
@@ -86,7 +89,7 @@ class FeedSettingsViewModel @Inject constructor(
         try {
             val fetchedUser = userUseCase.feedUser
             if (fetchedUser == null) {
-                _state.value = ViewState.Error("Feed User Information Not Found.")
+                _state.value = ViewState.Error(NoSuchElementException(), resId = R.string.error_feed_user_not_found)
                 return
             }
             _user.value = fetchedUser
@@ -95,7 +98,7 @@ class FeedSettingsViewModel @Inject constructor(
             _profileImageState.value = FeedProfileImageState.NoChange
             _state.value = ViewState.Loaded
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.message ?: "Unknown Error")
+            _state.value = ViewState.Error(e)
         }
     }
 

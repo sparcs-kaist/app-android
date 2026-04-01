@@ -94,7 +94,7 @@ fun TaxiChatListView(
                 val error = state as TaxiChatListViewModel.ViewState.Error
                 ErrorView(
                     icon = Icons.Default.Warning,
-                    message = error.message,
+                    error = error.error,
                     onRetry = {
                         CoroutineScope(Dispatchers.IO).launch {
                             viewModel.fetchData()
@@ -262,7 +262,7 @@ private fun LoadedPreview(){
 private fun ErrorPreview(){
     Theme {
         TaxiChatListView(
-            PreviewTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Error("Something went wrong")),
+            PreviewTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Error(Exception())),
             rememberNavController()
         )
     }

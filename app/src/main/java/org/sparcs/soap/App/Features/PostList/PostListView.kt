@@ -196,10 +196,10 @@ fun PostListView(
                     }
 
                     is PostListViewModel.ViewState.Error -> {
-                        val error = (state).message
+                        val error = (state).error
                         ErrorView(
                             icon = Icons.Default.Warning,
-                            message = error,
+                            error = error,
                             onRetry = {
                                 coroutineScope.launch {
                                     viewModel.fetchInitialPosts()
@@ -328,7 +328,7 @@ private fun PreviewPostListLoaded() {
 @Composable
 private fun PreviewPostListError() {
     val viewModel = PreviewPostListViewModel(
-        initialState = PostListViewModel.ViewState.Error("Something went wrong"),
+        initialState = PostListViewModel.ViewState.Error(Exception()),
         board = AraBoard.mock()
     )
     Theme { PostListView(viewModel = viewModel, rememberNavController()) }

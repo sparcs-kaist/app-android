@@ -62,7 +62,7 @@ class TaxiListViewModel @Inject constructor(
         data object Loading : ViewState()
         data class Loaded(val rooms: List<TaxiRoom>, val locations: List<TaxiLocation>) : ViewState()
         data class Empty(val locations: List<TaxiLocation>) : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     // MARK: - ViewModel Properties
@@ -111,7 +111,7 @@ class TaxiListViewModel @Inject constructor(
                     ViewState.Loaded(_rooms.value, _locations.value)
                 }
             } catch (e: Exception) {
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+                _state.value = ViewState.Error(e)
             }
         }
     }
@@ -130,7 +130,7 @@ class TaxiListViewModel @Inject constructor(
             this.roomId = newRoom.id
             return newRoom.id
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.message ?: "Unknown error")
+            _state.value = ViewState.Error(e)
             alertState = e.toAlertState(R.string.error_failed_to_create_taxi_room)
             isAlertPresented = true
             return null
@@ -141,7 +141,7 @@ class TaxiListViewModel @Inject constructor(
         try {
             taxiRoomRepository.toggleCarrier(roomID, hasCarrier)
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.message ?: "Unknown error")
+            _state.value = ViewState.Error(e)
         }
     }
 }

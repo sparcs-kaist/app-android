@@ -47,7 +47,7 @@ class AraMyPostViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val posts: List<AraPost>) : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -118,7 +118,7 @@ class AraMyPostViewModel @Inject constructor(
             _state.value = ViewState.Loaded(_posts.value)
 
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.message ?: "Unknown error")
+            _state.value = ViewState.Error(e)
             Timber.e("fetchInitialPosts failed$e")
         }
     }
@@ -150,7 +150,7 @@ class AraMyPostViewModel @Inject constructor(
                 hasMorePages = currentPage < totalPages
                 _state.value = ViewState.Loaded(_posts.value)
             } catch (e: Exception) {
-                _state.value = ViewState.Error(e.message ?: "Unknown error")
+                _state.value = ViewState.Error(e)
             } finally {
                 isLoadingMore = false
             }

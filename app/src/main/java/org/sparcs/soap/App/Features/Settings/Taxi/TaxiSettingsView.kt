@@ -200,10 +200,11 @@ fun TaxiSettingsView(
                 )
 
                 is TaxiSettingsViewModel.ViewState.Error -> {
-                    val message = (state as TaxiSettingsViewModel.ViewState.Error).messageRes
+                    val error = (state as TaxiSettingsViewModel.ViewState.Error).error
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = stringResource(message),
+                        defaultMessageResId = (state as TaxiSettingsViewModel.ViewState.Error).resId,
+                        error = error,
                         onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
                     )
                 }

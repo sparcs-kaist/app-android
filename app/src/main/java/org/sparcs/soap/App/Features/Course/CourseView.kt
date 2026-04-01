@@ -97,10 +97,11 @@ fun CourseView(
                 }
 
                 is CourseViewModel.ViewState.Error -> {
-                    val message = (state as CourseViewModel.ViewState.Error).message
+                    val error = (state as CourseViewModel.ViewState.Error).error
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = message,
+                        defaultMessageResId = R.string.failed_to_load_course,
+                        error = error,
                         onRetry = { viewModel.loadCourse() }
                     )
                 }
@@ -371,7 +372,7 @@ private fun PreviewLoaded() {
 @Composable
 private fun PreviewError() {
     val viewModel = PreviewCourseViewModel(
-        CourseViewModel.ViewState.Error("강의 정보를 불러오는 중 오류가 발생했습니다.")
+        CourseViewModel.ViewState.Error(Exception())
     )
     Theme {
         CourseView(viewModel = viewModel, navController = rememberNavController())

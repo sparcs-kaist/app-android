@@ -116,10 +116,10 @@ fun UserPostListView(
                     }
 
                     is UserPostListViewModel.ViewState.Error -> {
-                        val message = (state as UserPostListViewModel.ViewState.Error).message
+                        val error = (state as UserPostListViewModel.ViewState.Error).error
                         ErrorView(
                             icon = Icons.Default.Warning,
-                            message = message,
+                            error = error,
                             onRetry = {
                                 coroutineScope.launch { viewModel.fetchInitialPosts() }
                             }
@@ -161,7 +161,7 @@ private fun PreviewUserPostListLoaded() {
 @Composable
 private fun PreviewUserPostListError() {
     val viewModel = PreviewUserPostListViewModel(
-        initialState = UserPostListViewModel.ViewState.Error("Something went wrong"),
+        initialState = UserPostListViewModel.ViewState.Error(Exception()),
         user = AraPostAuthor.previewAuthor
     )
     Theme {

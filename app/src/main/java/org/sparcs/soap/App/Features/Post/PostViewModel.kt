@@ -63,7 +63,7 @@ class PostViewModel @Inject constructor(
     sealed interface ViewState {
         data object Loading : ViewState
         data object Loaded : ViewState
-        data class Error(val message: String) : ViewState
+        data class Error(val error: Exception) : ViewState
     }
 
     // MARK: - Properties
@@ -110,7 +110,7 @@ class PostViewModel @Inject constructor(
             _post.value = fetchedPost
             if (isFirstTime) _state.value = ViewState.Loaded
         } catch (e: Exception) {
-            if (isFirstTime) _state.value = ViewState.Error(e.localizedMessage ?: "Error")
+            if (isFirstTime) _state.value = ViewState.Error(e)
             alertState = e.toAlertState(R.string.unable_to_fetch_post)
             isAlertPresented = true
         }

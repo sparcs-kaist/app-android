@@ -42,7 +42,10 @@ class TaxiSettingsViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()
-        data class Error(val messageRes: Int) : ViewState()
+        data class Error(
+            val error: Exception,
+            val resId: Int? = null,
+        ) : ViewState()
     }
 
     enum class ErrorType {
@@ -68,7 +71,7 @@ class TaxiSettingsViewModel @Inject constructor(
         _state.value = ViewState.Loading
         val fetchedUser = userUseCase.taxiUser
         if (fetchedUser == null) {
-            _state.value = ViewState.Error(R.string.error_taxi_user_not_found)
+            _state.value = ViewState.Error(NoSuchElementException(), R.string.error_taxi_user_not_found)
             return
         }
         user = fetchedUser
@@ -156,7 +159,7 @@ class TaxiSettingsViewModel @Inject constructor(
         }
 
         if (type == ErrorType.FETCH) {
-            _state.value = ViewState.Error(messageRes)
+            _state.value = ViewState.Error(error, messageRes)
         } else {
             alertMessageRes = messageRes
             showAlert = true

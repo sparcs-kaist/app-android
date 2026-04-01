@@ -187,7 +187,7 @@
     </string>
     <string name="add_to_timetable">Add to &quot;%1$s&quot;</string>
     <string name="check_the_spelling">Check the spelling or try a new search</string>
-    <string name="nothing_here">Nothing Here Yet</string>
+    <string name="empty_posts_default">Nothing here yet.\nIt looks like there are no posts on this page right now.</string>
     <string name="no_posts">It looks like there are no posts on this page right now.</string>
     <string name="discard_this_review">Discard Review</string>
     <string name="review_submitted">Review submitted</string>
@@ -506,4 +506,8 @@
     <string name="destination">To</string>
     <string name="error_failed_to_join_taxi_room">Failed to join the taxi group.</string>
     <string name="error_failed_to_create_taxi_room">Failed to create the taxi room.</string>
+    <string name="failed_to_load_course">Failed to load course information.</string>
+    <string name="error_feed_user_not_found">Feed User information not found.</string>
+    <string name="error_ara_user_not_found">Ara User information not found.</string>
+    <string name="something_went_wrong">Something went wrong.\nPlease try again in a moment.</string>
 </resources>

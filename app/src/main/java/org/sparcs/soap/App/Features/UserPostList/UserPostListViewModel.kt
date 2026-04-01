@@ -54,7 +54,7 @@ class UserPostListViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val posts: List<AraPost>) : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     private val initialAuthor: AraPostAuthor by lazy {
@@ -106,7 +106,7 @@ class UserPostListViewModel @Inject constructor(
             hasMorePages = currentPage < totalPages
             _state.value = ViewState.Loaded(page.results)
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            _state.value = ViewState.Error(e)
         }
     }
 
@@ -154,7 +154,7 @@ class UserPostListViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e("Failed to refresh item")
-                _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+                _state.value = ViewState.Error(e)
             }
         }
     }

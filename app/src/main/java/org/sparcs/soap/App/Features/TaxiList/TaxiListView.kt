@@ -222,7 +222,7 @@ fun TaxiListView(
                     is TaxiListViewModel.ViewState.Error -> {
                         ErrorView(
                             icon = Icons.Default.Warning,
-                            message = (uiState as TaxiListViewModel.ViewState.Error).message,
+                            error = (uiState as TaxiListViewModel.ViewState.Error).error,
                             onRetry = {
                                 coroutineScope.launch {
                                     viewModel.fetchData()
@@ -572,7 +572,7 @@ private fun TaxiListScreenEmptyPreview() {
 @Composable
 @Preview
 private fun TaxiListScreenErrorPreview() {
-    Theme { MockTaxiListScreen(TaxiListViewModel.ViewState.Error("Something went wrong")) }
+    Theme { MockTaxiListScreen(TaxiListViewModel.ViewState.Error(Exception())) }
 }
 
 @Composable

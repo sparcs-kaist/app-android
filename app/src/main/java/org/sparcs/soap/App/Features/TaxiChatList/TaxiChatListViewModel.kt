@@ -31,7 +31,7 @@ class TaxiChatListViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data class Loaded(val onGoing: List<TaxiRoom>, val done: List<TaxiRoom>) : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
@@ -54,9 +54,7 @@ class TaxiChatListViewModel @Inject constructor(
                     done = doneRooms
                 )
             } catch (e: Exception) {
-                _state.value = ViewState.Error(
-                    message = e.localizedMessage ?: "Unknown error"
-                )
+                _state.value = ViewState.Error(e)
             }
         }
     }

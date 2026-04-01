@@ -168,7 +168,7 @@ fun TaxiChatView(
 
                     is TaxiChatViewModel.ViewState.Error -> {
                         ErrorView(
-                            message = currentState.message,
+                            error = currentState.error,
                             onRetry = { coroutineScope.launch { viewModel.fetchInitialChats() } }
                         )
                     }
@@ -321,7 +321,7 @@ private fun TaxiChatView_Loaded_Preview() {
 @Composable
 private fun TaxiChatView_Error_Preview() {
     val viewModel = PreviewTaxiChatViewModel(
-        initialState = TaxiChatViewModel.ViewState.Error("Something went wrong")
+        initialState = TaxiChatViewModel.ViewState.Error(Exception())
     )
     Theme {
         TaxiChatView(viewModel = viewModel, navController = rememberNavController())

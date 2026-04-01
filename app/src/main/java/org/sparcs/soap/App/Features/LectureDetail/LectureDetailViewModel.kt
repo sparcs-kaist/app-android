@@ -56,7 +56,7 @@ class LectureDetailViewModel @Inject constructor(
     sealed class ViewState {
         data object Loading : ViewState()
         data object Loaded : ViewState()
-        data class Error(val message: String) : ViewState()
+        data class Error(val error: Exception) : ViewState()
     }
 
     private val initialLecture: Lecture by lazy {
@@ -88,13 +88,16 @@ class LectureDetailViewModel @Inject constructor(
         val json = savedStateHandle.get<String>("lecture_json")?.unescapeHash()
         if (json != null) {
             val initialLecture = Gson().fromJson(json, Lecture::class.java)
-
-            viewModelScope.launch {
-                fetchCourse(initialLecture.courseID)
-                fetchReviews(initialLecture)
+            try {
+                viewModelScope.launch {
+                    fetchCourse(initialLecture.courseID)
+                    fetchReviews(initialLecture)
+                }
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e)
             }
         } else {
-            _state.value = ViewState.Error("Lecture data is missing")
+            _state.value = ViewState.Error(IllegalStateException("Lecture data is missing"))
         }
     }
 
@@ -104,7 +107,7 @@ class LectureDetailViewModel @Inject constructor(
             analyticsService.logEvent(LectureDetailViewEvent.CourseLoaded)
         } catch (e: Exception) {
             crashlyticsService.recordException(e)
-            _state.value = ViewState.Error(message = e.localizedMessage ?: "Unknown Error")
+            _state.value = ViewState.Error(e)
         }
     }
 
@@ -144,7 +147,7 @@ class LectureDetailViewModel @Inject constructor(
                 analyticsService.logEvent(LectureDetailViewEvent.ReviewsLoaded)
             } catch (e: Exception) {
                 crashlyticsService.recordException(e)
-                _state.value = ViewState.Error(message = e.localizedMessage ?: "Unknown Error")
+                _state.value = ViewState.Error(e)
             }
         }
     }

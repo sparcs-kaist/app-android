@@ -67,7 +67,7 @@ class FeedPostViewModel @Inject constructor(
     sealed interface ViewState {
         data object Loading : ViewState
         data class Loaded(val post: FeedPost) : ViewState
-        data class Error(val message: String) : ViewState
+        data class Error(val error: Exception) : ViewState
     }
 
     // MARK: - Properties
@@ -108,7 +108,7 @@ class FeedPostViewModel @Inject constructor(
 
             fetchComments(feedId, initial = true)
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            _state.value = ViewState.Error(e)
         }
     }
 
@@ -121,7 +121,7 @@ class FeedPostViewModel @Inject constructor(
                 analyticsService.logEvent(FeedPostViewEvent.CommentsRefreshed)
             }
         } catch (e: Exception) {
-            _state.value = ViewState.Error(e.localizedMessage ?: "Unknown error")
+            _state.value = ViewState.Error(e)
             crashlyticsService.recordException(e)
         }
     }

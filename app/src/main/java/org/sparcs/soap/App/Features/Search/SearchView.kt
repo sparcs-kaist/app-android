@@ -142,7 +142,7 @@ fun SearchView(
                 state is SearchViewModel.ViewState.Error -> {
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = (state as SearchViewModel.ViewState.Error).message,
+                        error = (state as SearchViewModel.ViewState.Error).error,
                         onRetry = { coroutineScope.launch { viewModel.bind() } }
                     )
                 }
@@ -316,5 +316,5 @@ private fun LoadedPreview() {
 @Composable
 @Preview
 private fun ErrorPreview() {
-    Theme { MockView(SearchViewModel.ViewState.Error("Error Message")) }
+    Theme { MockView(SearchViewModel.ViewState.Error(Exception())) }
 }

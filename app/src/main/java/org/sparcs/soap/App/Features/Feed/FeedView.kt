@@ -167,7 +167,7 @@ fun FeedView(
                 is FeedViewModel.ViewState.Error -> {
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = (state as FeedViewModel.ViewState.Error).e,
+                        error = (state as FeedViewModel.ViewState.Error).error,
                         onRetry = {
                             coroutineScope.launch {
                                 viewModel.fetchInitialData()

@@ -110,7 +110,7 @@ fun FeedPostView(
         is FeedPostViewModel.ViewState.Error -> {
             ErrorView(
                 icon = Icons.Default.Warning,
-                message = state.message,
+                error = state.error,
                 onRetry = {
                     coroutineScope.launch {
                         viewModel.post?.let { viewModel.fetchComments(it.id, initial = true) }
@@ -432,7 +432,7 @@ private fun Comments(
             val coroutineScope = rememberCoroutineScope()
             ErrorView(
                 icon = Icons.Default.Warning,
-                message = state.message,
+                error = state.error,
                 onRetry = {
                     coroutineScope.launch {
                         viewModel.fetchComments(

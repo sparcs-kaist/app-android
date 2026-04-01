@@ -242,7 +242,7 @@ fun PostView(
             is PostViewModel.ViewState.Error -> {
                 ErrorView(
                     icon = Icons.Default.Warning,
-                    message = state.message,
+                    error = state.error,
                     onRetry = { scope.launch { viewModel.fetchPost() } }
                 )
             }

@@ -152,7 +152,7 @@ private fun MyPostView(
 
             is AraMyPostViewModel.ViewState.Error -> ErrorView(
                 icon = Icons.Default.Warning,
-                message = state.message,
+                error = state.error,
                 onRetry = onRefresh
             )
         }
@@ -180,7 +180,7 @@ private fun BookmarkPostView(
 
         is AraMyPostViewModel.ViewState.Error -> ErrorView(
             icon = Icons.Default.Clear,
-            message = state.message,
+            error = state.error,
             onRetry = onRefresh
         )
     }

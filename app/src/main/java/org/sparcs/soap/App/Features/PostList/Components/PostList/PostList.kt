@@ -24,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -52,7 +51,8 @@ fun PostList(
         //그냥 empty한 경우 (keyword == null)
         ErrorView(
             icon = Icons.Default.Clear,
-            message = stringResource(R.string.nothing_here) + "\n" + stringResource(R.string.no_posts),
+            defaultMessageResId = R.string.empty_posts_default,
+            error = Exception(),
             onRetry = { onRefresh() }//TODO - 번역?
         )
     }

@@ -113,10 +113,11 @@ fun FeedSettingsView(
                 )
 
                 is FeedSettingsViewModel.ViewState.Error -> {
-                    val message = (state as FeedSettingsViewModel.ViewState.Error).message
+                    val error = (state as FeedSettingsViewModel.ViewState.Error).error
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = message,
+                        error = error,
+                        defaultMessageResId = (state as FeedSettingsViewModel.ViewState.Error).resId,
                         onRetry = { scope.launch { viewModel.fetchUser() } }
                     )
                 }
@@ -364,7 +365,7 @@ private fun LoadingPreview() {
 @Composable
 private fun ErrorPreview() {
     Theme {
-        val viewModel = PreviewFeedSettingsViewModel(FeedSettingsViewModel.ViewState.Error("ERROR"))
+        val viewModel = PreviewFeedSettingsViewModel(FeedSettingsViewModel.ViewState.Error(Exception()))
         FeedSettingsView(viewModel = viewModel, navController = rememberNavController())
     }
 }

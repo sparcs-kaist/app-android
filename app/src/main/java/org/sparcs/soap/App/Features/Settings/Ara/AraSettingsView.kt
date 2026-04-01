@@ -95,10 +95,11 @@ fun AraSettingsView(
                 ) { showNicknameDialog = true }
 
                 is AraSettingsViewModel.ViewState.Error -> {
-                    val message = (state as AraSettingsViewModel.ViewState.Error).message
+                    val error = (state as AraSettingsViewModel.ViewState.Error).error
                     ErrorView(
                         icon = Icons.Default.Warning,
-                        message = message,
+                        error = error,
+                        defaultMessageResId = (state as AraSettingsViewModel.ViewState.Error).resId,
                         onRetry = { scope.launch { viewModel.fetchUser() } }
                     )
                 }
