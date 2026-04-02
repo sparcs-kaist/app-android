@@ -71,7 +71,7 @@ import org.sparcs.soap.R
 fun FeedPostRow(
     post: FeedPost,
     viewModel: FeedViewModelProtocol,
-    onPostDeleted: (String) -> Unit,
+    onPostDeleted: ((String) -> Unit)?,
     onComment: () -> Unit, //post 또는 comment click
     singleLine: Boolean,
 ) {
@@ -131,7 +131,7 @@ private fun Header(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp)
     ) {
         ProfileImage(post)
         Spacer(Modifier.width(8.dp))
