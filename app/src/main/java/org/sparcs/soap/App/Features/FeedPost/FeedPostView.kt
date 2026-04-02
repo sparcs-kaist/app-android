@@ -190,7 +190,7 @@ fun FeedPostView(
                                 post = post,
                                 viewModel = feedViewModel,
                                 singleLine = false,
-                                onPostDeleted = {},
+                                onPostDeleted = null,
                                 onComment = {
                                     targetComment = null
                                     isWritingCommentFocusState = true
@@ -334,7 +334,8 @@ private fun InputBar(
                                             stringResource(R.string.write_a_comment),
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                         style = MaterialTheme.typography.bodyMedium,
-                                        overflow = TextOverflow.Ellipsis
+                                        overflow = TextOverflow.Ellipsis,
+                                        maxLines = 1
                                     )
                                 }
                                 innerTextField()
@@ -393,7 +394,7 @@ private fun Comments(
         }
 
         is FeedPostViewModel.ViewState.Loaded -> {
-            Column(Modifier.padding(horizontal = 8.dp)) {
+            Column(Modifier.padding(horizontal = 16.dp)) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 4.dp)
                 )

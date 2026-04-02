@@ -27,7 +27,7 @@ fun PostListRowVoteLabel(voteCount: Int){
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(R.drawable.outline_arrow_up),
+                painter = painterResource(R.drawable.baseline_arrow_up_bold),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(upvote),
                 modifier = Modifier.size(15.dp)
@@ -47,7 +47,7 @@ fun PostListRowVoteLabel(voteCount: Int){
         //down voted
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
-                painter = painterResource(R.drawable.outline_arrow_down),
+                painter = painterResource(R.drawable.baseline_arrow_down_bold),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(downvote),
                 modifier = Modifier.size(15.dp)

@@ -625,7 +625,8 @@ private fun InputBar(
                                         text = placeholder,
                                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                         style = MaterialTheme.typography.bodyMedium,
-                                        overflow = TextOverflow.Ellipsis
+                                        overflow = TextOverflow.Ellipsis,
+                                        maxLines = 1
                                     )
                                 }
                                 innerTextField()

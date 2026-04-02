@@ -159,7 +159,7 @@ fun FeedView(
                                     navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
                                 }
                             )
-                            HorizontalDivider(Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
+                            HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
                         }
                     }
                 }
