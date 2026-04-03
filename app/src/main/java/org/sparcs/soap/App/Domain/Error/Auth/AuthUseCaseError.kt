@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Domain.Error.Auth
 
-import android.content.Context
 import org.sparcs.soap.R
 
 sealed class AuthUseCaseError : Exception() {
@@ -16,24 +15,19 @@ sealed class AuthUseCaseError : Exception() {
         private fun readResolve(): Any = NoAccessToken
     }
 
-    fun message(context: Context): String {
-        return when (this) {
-            is SignInFailed -> {
-                error.asServiceError()?.message(context)
-                    ?: context.getString(R.string.error_sign_in_failed, error.localizedMessage)
-            }
-
-            is SignOutFailed -> context.getString(R.string.error_sign_out_failed)
-            is RefreshFailed -> {
-                error.asServiceError()?.message(context)
-                    ?: context.getString(
-                        R.string.error_token_refresh_failed,
-                        error.localizedMessage
-                    )
-            }
-
-            is NoAccessToken -> context.getString(R.string.error_no_access_token)
+    val messageRes: Int
+        get() = when (this) {
+            is SignInFailed -> (error as? AuthenticationServiceError)?.messageRes ?: R.string.error_sign_in_failed
+            is RefreshFailed -> (error as? AuthenticationServiceError)?.messageRes ?: R.string.error_token_refresh_failed
+            is SignOutFailed -> R.string.error_sign_out_failed
+            is NoAccessToken -> R.string.error_no_access_token
         }
+
+    override val message: String?
+        get() = when (this) {
+            is SignInFailed -> error.localizedMessage
+            is RefreshFailed -> error.localizedMessage
+            else -> super.message
     }
 }
 

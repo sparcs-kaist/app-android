@@ -199,10 +199,10 @@ class AuthUseCase @Inject constructor(
     }
 
     override suspend fun signIn(activity: Activity) {
-        val tokenResponse =
-            (authenticationService as AuthenticationService).authenticate(activity as ComponentActivity)
-        withContext(Dispatchers.IO + NonCancellable) {
-            try {
+        try {
+            val tokenResponse =
+                (authenticationService as AuthenticationService).authenticate(activity as ComponentActivity)
+            withContext(Dispatchers.IO + NonCancellable) {
                 tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
 
                 // MARK - Sign up Ara
@@ -221,13 +221,12 @@ class AuthUseCase @Inject constructor(
                 otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
                 _isAuthenticated.value = true
                 scheduleRefreshToken()
-
-            } catch (e: Exception) {
-                tokenStorage.clearTokens()
-                _isAuthenticated.value = false
-                cancelRefreshToken()
-                throw AuthUseCaseError.SignInFailed(e)
             }
+        } catch (e: Exception) {
+            tokenStorage.clearTokens()
+            _isAuthenticated.value = false
+            cancelRefreshToken()
+            throw AuthUseCaseError.SignInFailed(e)
         }
     }
 
