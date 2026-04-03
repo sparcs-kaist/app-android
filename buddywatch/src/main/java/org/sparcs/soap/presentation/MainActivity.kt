@@ -3,18 +3,16 @@ package org.sparcs.soap.presentation
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
+import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import org.sparcs.soap.data.WatchDataStore
 import org.sparcs.soap.presentation.UI.TimetableList
 import org.sparcs.soap.presentation.theme.SoapTheme
@@ -46,15 +44,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WearApp(viewModel: MainViewModel) {
     val timetable by viewModel.timetableState.collectAsState()
+    val listState = rememberScalingLazyListState()
 
     SoapTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colors.background)
+        Scaffold(
+            timeText = { TimeText() },
+            positionIndicator = {
+                PositionIndicator(scalingLazyListState = listState)
+            }
         ) {
-            TimeText()
-            TimetableList(timetable)
+            TimetableList(timetable, listState)
         }
     }
 }

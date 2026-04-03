@@ -1,6 +1,7 @@
 package org.sparcs.soap.presentation.UI
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -8,20 +9,26 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.foundation.rotary.RotaryScrollableDefaults
 import androidx.wear.compose.material.MaterialTheme
-import androidx.wear.compose.material.ScalingLazyColumn
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.items
-import androidx.wear.compose.material.rememberScalingLazyListState
 import androidx.wear.tooling.preview.devices.WearDevices
+import androidx.wear.compose.foundation.rotary.rotaryScrollable
 import org.sparcs.soap.R
 import org.sparcs.soap.data.models.Lecture
 import org.sparcs.soap.data.models.LectureClass
@@ -58,13 +65,17 @@ private fun getDayResource(): Int = when (Calendar.getInstance().get(Calendar.DA
 }
 
 @Composable
-fun TimetableList(timetable: Timetable?) {
-    val listState = rememberScalingLazyListState()
+fun TimetableList(timetable: Timetable?, listState: ScalingLazyListState) {
     val todayLectures = remember(timetable) { getTodayLectures(timetable) }
     val dayRes = remember { getDayResource() }
+    val focusRequester = remember { FocusRequester() }
 
     ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .rotaryScrollable(RotaryScrollableDefaults.behavior(listState), focusRequester)
+            .focusRequester(focusRequester)
+            .focusable(),
         state = listState,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -83,6 +94,10 @@ fun TimetableList(timetable: Timetable?) {
         item {
             Spacer(modifier = Modifier.height(24.dp))
         }
+    }
+
+    LaunchedEffect(Unit) {
+        focusRequester.requestFocus()
     }
 }
 
@@ -118,9 +133,10 @@ private fun EmptyStateMessage(messageRes: Int) {
 @Preview(device = WearDevices.LARGE_ROUND, showSystemUi = true)
 @Composable
 private fun TimetableListPreview() {
+    val listState = rememberScalingLazyListState()
     SoapTheme {
         Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
-            TimetableList(timetable = Timetable.mock())
+            TimetableList(timetable = Timetable.mock(), listState = listState)
         }
     }
 }
