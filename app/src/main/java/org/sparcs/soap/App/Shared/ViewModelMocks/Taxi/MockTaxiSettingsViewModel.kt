@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Shared.ViewModelMocks.Taxi
 
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Features.Settings.Taxi.TaxiSettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Taxi.TaxiSettingsViewModelProtocol
@@ -16,13 +17,13 @@ class MockTaxiSettingsViewModel(initialState: TaxiSettingsViewModel.ViewState):
     override var showBadge: Boolean = true
     override var residence: String = "기숙사"
 
-    override var showAlert: Boolean = false
-    override var alertMessageRes: Int? = 0
+    override val alertState: AlertState? = null
+    override var isAlertPresented: Boolean = false
 
     override var user: TaxiUser? = TaxiUser.mock()
 
     override val state = MutableStateFlow(initialState)
 
     override suspend fun fetchUser() {}
-    override suspend fun editInformation() {}
+    override suspend fun editInformation(onSuccess: () -> Unit) {}
 }

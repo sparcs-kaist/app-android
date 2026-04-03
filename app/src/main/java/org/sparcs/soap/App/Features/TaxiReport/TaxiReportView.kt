@@ -147,9 +147,9 @@ fun TaxiReportView(
                 Button(
                     onClick = {
                         scope.launch {
-                            try {
-                                viewModel.createReport(room.id)
-                            } catch (_: Exception) { }
+                            viewModel.createReport(room.id) {
+                                navController.popBackStack()
+                            }
                         }
                     },
                     enabled = isValid
@@ -165,8 +165,8 @@ fun TaxiReportView(
     }
 
     GlobalAlertDialog(
-    isPresented = viewModel.isAlertPresented,
-    state = viewModel.alertState,
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
         onDismiss = {
             val isSuccess = viewModel.alertState?.titleResId == R.string.report_submitted
 

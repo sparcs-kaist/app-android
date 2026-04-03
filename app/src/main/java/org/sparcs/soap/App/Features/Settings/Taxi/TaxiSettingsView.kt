@@ -69,6 +69,7 @@ import org.sparcs.soap.App.Shared.Extensions.toggle
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiSettingsViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
@@ -170,8 +171,7 @@ fun TaxiSettingsView(
                         showAlert = true
                     } else {
                         coroutineScope.launch {
-                            viewModel.editInformation()
-                            if (!viewModel.showAlert) {
+                            viewModel.editInformation(){
                                 navController.popBackStack()
                             }
                         }
@@ -211,20 +211,10 @@ fun TaxiSettingsView(
             }
         }
     }
-    if (viewModel.showAlert) {
-        AlertDialog(
-            onDismissRequest = { viewModel.showAlert = false },
-            confirmButton = {
-                TextButton(onClick = { viewModel.showAlert = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = { Text(stringResource(R.string.error)) },
-            text = {
-                viewModel.alertMessageRes?.let { Text(stringResource(it)) }
-            }
-        )
-    }
+    GlobalAlertDialog(
+        state = viewModel.alertState,
+        isPresented = viewModel.isAlertPresented
+    ) { viewModel.isAlertPresented = false }
 
     if (showDiscardDialog) {
         AlertDialog(
@@ -254,8 +244,7 @@ fun TaxiSettingsView(
             confirmButton = {
                 TextButton(onClick = {
                     coroutineScope.launch {
-                        viewModel.editInformation()
-                        if (!viewModel.showAlert) {
+                        viewModel.editInformation(){
                             navController.popBackStack()
                         }
                     }

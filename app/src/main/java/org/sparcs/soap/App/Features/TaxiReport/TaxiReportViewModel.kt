@@ -35,7 +35,7 @@ interface TaxiReportViewModelProtocol {
 
     fun setSelectedUser(user: TaxiParticipant?)
     fun setSelectedReason(reason: TaxiReport.Reason?)
-    suspend fun createReport(roomID: String)
+    suspend fun createReport(roomID: String, onSuccess: () -> Unit = {})
     fun handleException(error: Throwable)
 }
 
@@ -79,7 +79,7 @@ class TaxiReportViewModel @Inject constructor(
         _selectedReason.value = reason
     }
 
-    override suspend fun createReport(roomID: String) {
+    override suspend fun createReport(roomID: String, onSuccess: () -> Unit) {
         val user = _selectedUser.value
         val reason = _selectedReason.value
 
@@ -102,6 +102,7 @@ class TaxiReportViewModel @Inject constructor(
                 messageResId = R.string.reported_successfully
             )
             isAlertPresented = true
+            onSuccess()
         } catch (e: Exception) {
             Timber.e("createReport: $e")
             alertState = e.toAlertState(R.string.unexpected_error_reporting_user)

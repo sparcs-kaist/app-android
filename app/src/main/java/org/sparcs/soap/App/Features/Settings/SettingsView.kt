@@ -35,13 +35,13 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,12 +58,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.toggle
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSettingsViewModel
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuildConfig
@@ -76,10 +78,10 @@ fun SettingsView(
     settingsViewModel: SettingsViewModelProtocol = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    var showLogoutError by remember { mutableStateOf(false) }
     val isPreview = LocalInspectionMode.current
     val haptic = LocalHapticFeedback.current
 
+    val scope = rememberCoroutineScope()
     var isCrashlyticsEnabled by remember {
         mutableStateOf(if (!isPreview) FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled else false)
     }
@@ -194,12 +196,10 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
                 SignOutButton {
-                    try {
-                        settingsViewModel.signOut()
-                    } catch (e: Exception) {
-                        showLogoutError = true
-                    } finally {
-                        navController.navigate(Channel.SignOut.name)
+                    scope.launch {
+                        settingsViewModel.signOut() {
+                            navController.navigate(Channel.SignOut.name)
+                        }
                     }
                 }
             }
@@ -224,19 +224,11 @@ fun SettingsView(
         }
     }
 
-    if (showLogoutError) {
-        AlertDialog(
-            onDismissRequest = { showLogoutError = false },
-            confirmButton = {
-                TextButton(onClick = { showLogoutError = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = { Text(stringResource(R.string.error)) },
-            text = {
-                Text(stringResource(R.string.unexpected_error_signing_out))
-            }
-        )
+    GlobalAlertDialog(
+        state = settingsViewModel.alertState,
+        isPresented = settingsViewModel.isAlertPresented,
+    ) {
+        settingsViewModel.isAlertPresented = false
     }
 }
 

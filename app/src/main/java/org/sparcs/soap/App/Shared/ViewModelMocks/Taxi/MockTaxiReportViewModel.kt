@@ -28,6 +28,6 @@ class MockTaxiReportViewModel : TaxiReportViewModelProtocol {
 
     override fun setSelectedUser(user: TaxiParticipant?) {}
     override fun setSelectedReason(reason: TaxiReport.Reason?) {}
-    override suspend fun createReport(roomID: String) {}
+    override suspend fun createReport(roomID: String, onSuccess: () -> Unit) {}
     override fun handleException(error: Throwable) {}
 }

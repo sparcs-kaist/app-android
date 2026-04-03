@@ -38,7 +38,7 @@ interface TaxiPreviewViewModelProtocol {
 
     fun isJoined(participants: List<TaxiParticipant>): Boolean
     suspend fun calculateRoutePoints(source: LatLng, destination: LatLng): List<LatLng>
-    suspend fun joinRoom(id: String)
+    suspend fun joinRoom(id: String, onSuccess: () -> Unit = {})
 }
 
 
@@ -135,9 +135,10 @@ class TaxiPreviewViewModel @Inject constructor(
         }
     }
 
-    override suspend fun joinRoom(id: String) {
+    override suspend fun joinRoom(id: String, onSuccess: () -> Unit) {
         try {
             taxiRoomRepository.joinRoom(id)
+            onSuccess()
         } catch (e: Exception) {
             Timber.e("Error joining room: ${e.message}")
             alertState = e.toAlertState(R.string.error_failed_to_join_taxi_room)

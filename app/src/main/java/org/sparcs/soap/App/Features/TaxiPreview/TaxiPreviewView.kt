@@ -244,12 +244,10 @@ fun TaxiPreviewView(
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
                                 onDismiss()
                             } else {
-                                try {
-                                    viewModel.joinRoom(id = room.id)
+                                viewModel.joinRoom(id = room.id) {
                                     onDismiss()
                                     val json = Uri.encode(Gson().toJson(room))
                                     navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
-                                } catch (_: Exception) {
                                 }
                             }
                         }
