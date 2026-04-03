@@ -37,15 +37,14 @@ import org.sparcs.soap.presentation.theme.SoapTheme
 import java.util.Calendar
 
 private fun getTodayLectures(timetable: Timetable?): List<Pair<Lecture, LectureClass>> {
-//    val dayOfWeekString = when (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
-//        Calendar.MONDAY -> "MON"
-//        Calendar.TUESDAY -> "TUE"
-//        Calendar.WEDNESDAY -> "WED"
-//        Calendar.THURSDAY -> "THU"
-//        Calendar.FRIDAY -> "FRI"
-//        else -> ""
-//    }
-    val dayOfWeekString = "MON"
+    val dayOfWeekString = when (Calendar.getInstance().get(Calendar.DAY_OF_WEEK)) {
+        Calendar.MONDAY -> "MON"
+        Calendar.TUESDAY -> "TUE"
+        Calendar.WEDNESDAY -> "WED"
+        Calendar.THURSDAY -> "THU"
+        Calendar.FRIDAY -> "FRI"
+        else -> ""
+    }
 
     return timetable?.lectures?.flatMap { lecture ->
         lecture.classes
