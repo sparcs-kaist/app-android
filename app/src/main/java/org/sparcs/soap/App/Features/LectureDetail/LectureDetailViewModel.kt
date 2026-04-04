@@ -1,5 +1,8 @@
 package org.sparcs.soap.App.Features.LectureDetail
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureHistory
@@ -22,7 +26,9 @@ import org.sparcs.soap.App.Domain.Usecases.OTL.ReviewUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
 import org.sparcs.soap.App.Features.LectureDetail.Event.LectureDetailViewEvent
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.App.Shared.Extensions.unescapeHash
+import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
@@ -36,7 +42,10 @@ interface LectureDetailViewModelProtocol {
     val writtenReview: StateFlow<LectureReview?>
     val canWriteReview: StateFlow<Boolean>
 
-    suspend fun fetchCourse(courseID: Int)
+    val alertState: AlertState?
+    var isAlertPresented: Boolean
+
+    fun fetchCourse(courseID: Int)
     fun fetchReviews(lecture: Lecture)
     fun toggleReviewLike(review: LectureReview)
     fun updateWrittenReview(newReview: LectureReview)
@@ -84,15 +93,16 @@ class LectureDetailViewModel @Inject constructor(
     private val _canWriteReview = MutableStateFlow(false)
     override val canWriteReview: StateFlow<Boolean> = _canWriteReview.asStateFlow()
 
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
+
     init {
         val json = savedStateHandle.get<String>("lecture_json")?.unescapeHash()
         if (json != null) {
-            val initialLecture = Gson().fromJson(json, Lecture::class.java)
             try {
-                viewModelScope.launch {
-                    fetchCourse(initialLecture.courseID)
-                    fetchReviews(initialLecture)
-                }
+                val initialLecture = Gson().fromJson(json, Lecture::class.java)
+                fetchCourse(initialLecture.courseID)
+                fetchReviews(initialLecture)
             } catch (e: Exception) {
                 _state.value = ViewState.Error(e)
             }
@@ -101,13 +111,15 @@ class LectureDetailViewModel @Inject constructor(
         }
     }
 
-    override suspend fun fetchCourse(courseID: Int) {
-        try {
-            _course.value = courseUseCase.getCourse(courseID = courseID)
-            analyticsService.logEvent(LectureDetailViewEvent.CourseLoaded)
-        } catch (e: Exception) {
-            crashlyticsService.recordException(e)
-            _state.value = ViewState.Error(e)
+    override fun fetchCourse(courseID: Int) {
+        viewModelScope.launch {
+            try {
+                _course.value = courseUseCase.getCourse(courseID = courseID)
+                analyticsService.logEvent(LectureDetailViewEvent.CourseLoaded)
+            } catch (e: Exception) {
+                crashlyticsService.recordException(e)
+                _state.value = ViewState.Error(e)
+            }
         }
     }
 
@@ -239,6 +251,8 @@ class LectureDetailViewModel @Inject constructor(
             } catch (e: Exception) {
                 _reviews.value = currentReviews
                 crashlyticsService.recordException(e)
+                alertState = e.toAlertState(R.string.failed_to_like_review)
+                isAlertPresented = true
             }
         }
     }

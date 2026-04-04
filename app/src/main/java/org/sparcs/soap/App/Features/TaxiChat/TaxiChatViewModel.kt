@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
@@ -65,14 +66,14 @@ interface TaxiChatViewModelProtocol {
 
     suspend fun loadMoreChats()
     suspend fun fetchInitialChats()
-    suspend fun sendChat(message: String, type: TaxiChat.ChatType)
-    suspend fun leaveRoom()
+    fun sendChat(message: String, type: TaxiChat.ChatType)
+    suspend fun leaveRoom(): Boolean
     suspend fun commitSettlement()
     suspend fun commitPayment()
     suspend fun sendImage(image: Bitmap)
     fun switchRoom(newRoom: TaxiRoom)
-    suspend fun toggleCarrier(hasCarrier: Boolean)
-    suspend fun updateArrival(isArrived: Boolean)
+    fun toggleCarrier(hasCarrier: Boolean)
+    fun updateArrival(isArrived: Boolean)
 }
 
 @HiltViewModel
@@ -222,16 +223,24 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     // MARK: - Chat send
-    override suspend fun sendChat(message: String, type: TaxiChat.ChatType) {
+    override fun sendChat(message: String, type: TaxiChat.ChatType) {
         if (type == TaxiChat.ChatType.TEXT && message.isBlank()) return
-        taxiChatUseCase.sendChat(message, type)
-
-        scrollToBottomTrigger += 1
+        viewModelScope.launch {
+            taxiChatUseCase.sendChat(message, type)
+            scrollToBottomTrigger += 1
+        }
     }
 
     // MARK: - Room management
-    override suspend fun leaveRoom() {
-        taxiRoomRepository.leaveRoom(room.value.id)
+    override suspend fun leaveRoom(): Boolean {
+        return try {
+            taxiRoomRepository.leaveRoom(room.value.id)
+            true
+        } catch (e: Exception){
+            this.alertState = e.toAlertState(R.string.error_unknown)
+            this.isAlertPresented = true
+            false
+        }
     }
 
     override val isLeaveRoomAvailable: Boolean
@@ -271,39 +280,43 @@ class TaxiChatViewModel @Inject constructor(
         }
     }
 
-    override suspend fun toggleCarrier(hasCarrier: Boolean) {
-        try {
-            val updatedRoom = taxiRoomRepository.toggleCarrier(
-                id = room.value.id,
-                hasCarrier = hasCarrier
-            )
+    override fun toggleCarrier(hasCarrier: Boolean) {
+        viewModelScope.launch {
+            try {
+                val updatedRoom = taxiRoomRepository.toggleCarrier(
+                    id = room.value.id,
+                    hasCarrier = hasCarrier
+                )
 
-            _room.value = updatedRoom
+                _room.value = updatedRoom
 
-            taxiChatUseCase.setRoom(updatedRoom)
+                taxiChatUseCase.setRoom(updatedRoom)
 
-        } catch (e: Exception) {
-            this.alertState = e.toAlertState(R.string.error_toggle_carrier_failed)
-            this.isAlertPresented = true
-            Timber.e(e, "toggleCarrier failed")
+            } catch (e: Exception) {
+                alertState = e.toAlertState(R.string.error_toggle_carrier_failed)
+                isAlertPresented = true
+                Timber.e(e, "toggleCarrier failed")
+            }
         }
     }
 
-    override suspend fun updateArrival(isArrived: Boolean) {
-        try {
-            val updatedRoom = taxiRoomRepository.updateArrival(
-                id = room.value.id,
-                isArrived = isArrived
-            )
+    override fun updateArrival(isArrived: Boolean) {
+        viewModelScope.launch {
+            try {
+                val updatedRoom = taxiRoomRepository.updateArrival(
+                    id = room.value.id,
+                    isArrived = isArrived
+                )
 
-            _room.value = updatedRoom
+                _room.value = updatedRoom
 
-            taxiChatUseCase.setRoom(updatedRoom)
+                taxiChatUseCase.setRoom(updatedRoom)
 
-        } catch (e: Exception) {
-            this.alertState = e.toAlertState(R.string.error_update_arrival_failed)
-            this.isAlertPresented = true
-            Timber.e(e, "updateArrival failed")
+            } catch (e: Exception) {
+                alertState = e.toAlertState(R.string.error_update_arrival_failed)
+                isAlertPresented = true
+                Timber.e(e, "updateArrival failed")
+            }
         }
     }
 

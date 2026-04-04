@@ -25,5 +25,5 @@ class MockTaxiSettingsViewModel(initialState: TaxiSettingsViewModel.ViewState):
     override val state = MutableStateFlow(initialState)
 
     override suspend fun fetchUser() {}
-    override suspend fun editInformation(onSuccess: () -> Unit) {}
+    override suspend fun editInformation(): Boolean { return false }
 }

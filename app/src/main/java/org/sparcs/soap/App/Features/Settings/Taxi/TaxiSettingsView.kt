@@ -171,7 +171,8 @@ fun TaxiSettingsView(
                         showAlert = true
                     } else {
                         coroutineScope.launch {
-                            viewModel.editInformation(){
+                            val success = viewModel.editInformation()
+                            if (success) {
                                 navController.popBackStack()
                             }
                         }
@@ -244,9 +245,9 @@ fun TaxiSettingsView(
             confirmButton = {
                 TextButton(onClick = {
                     coroutineScope.launch {
-                        viewModel.editInformation(){
-                            navController.popBackStack()
-                        }
+                        viewModel.editInformation()
+                        navController.popBackStack()
+
                     }
                 }) {
                     Text(stringResource(R.string.confirm))

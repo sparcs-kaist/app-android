@@ -35,7 +35,7 @@ interface PostListViewModelProtocol {
 
     var lastClickedPostId: Int?
 
-    suspend fun fetchInitialPosts()
+    fun fetchInitialPosts()
     suspend fun loadNextPage()
     fun refreshItem(postID: Int)
     fun removePost(postID: Int)
@@ -103,23 +103,25 @@ class PostListViewModel @Inject constructor(
         }
     }
 
-    override suspend fun fetchInitialPosts() {
+    override fun fetchInitialPosts() {
         _state.value = ViewState.Loading
-        try {
-            val page = araBoardUseCase.fetchPosts(
-                type = PostListType.Board(boardID = board.id),
-                page = 1,
-                pageSize = pageSize,
-                searchKeyword = _searchKeyword.value.ifBlank { null }
-            )
-            totalPages = page.pages
-            currentPage = page.currentPage
-            posts = page.results
-            hasMorePages = currentPage < totalPages
-            _state.value = ViewState.Loaded(posts)
-            analyticsService.logEvent(PostListViewEvent.PostsRefreshed)
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e)
+        viewModelScope.launch {
+            try {
+                val page = araBoardUseCase.fetchPosts(
+                    type = PostListType.Board(boardID = board.id),
+                    page = 1,
+                    pageSize = pageSize,
+                    searchKeyword = _searchKeyword.value.ifBlank { null }
+                )
+                totalPages = page.pages
+                currentPage = page.currentPage
+                posts = page.results
+                hasMorePages = currentPage < totalPages
+                _state.value = ViewState.Loaded(posts)
+                analyticsService.logEvent(PostListViewEvent.PostsRefreshed)
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e)
+            }
         }
     }
 

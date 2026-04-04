@@ -3,6 +3,7 @@ package org.sparcs.soap.App.Shared.ViewModelMocks.Ara
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Helpers.LocalizedString
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoardGroup
@@ -31,7 +32,10 @@ class MockPostComposeViewModel : PostComposeViewModelProtocol {
     override var isNSFW: Boolean = false
     override var isPolitical: Boolean = false
 
-    override suspend fun writePost() {}
+    override var alertState: AlertState? = null
+    override var isAlertPresented: Boolean = false
+
+    override suspend fun writePost(): Boolean { return false }
     override suspend fun updateSelectedImages(context: Context) {}
     override fun removeImage(index: Int) {}
 }

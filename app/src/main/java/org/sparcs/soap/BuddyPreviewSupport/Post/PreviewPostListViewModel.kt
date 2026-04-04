@@ -25,7 +25,7 @@ class PreviewPostListViewModel(
 
     override var lastClickedPostId: Int? = null
 
-    override suspend fun fetchInitialPosts() {}
+    override fun fetchInitialPosts() {}
 
     override suspend fun loadNextPage() {}
 

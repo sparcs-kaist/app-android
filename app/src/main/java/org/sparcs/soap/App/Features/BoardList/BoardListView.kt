@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,7 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
-import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoardGroup
 import org.sparcs.soap.App.Features.BoardList.Components.BoardList
@@ -53,7 +51,6 @@ fun BoardListView(
 ) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
-    val scope = rememberCoroutineScope()
 
     val backStackEvent = {
         navController.navigate(Channel.Start.name) {
@@ -115,7 +112,7 @@ fun BoardListView(
                         icon = Icons.Default.Warning,
                         error = error,
                         defaultMessageResId = R.string.error_fetch_boards,
-                        onRetry = { scope.launch { viewModel.fetchBoards() } }
+                        onRetry = { viewModel.fetchBoards() }
                     )
                 }
             }

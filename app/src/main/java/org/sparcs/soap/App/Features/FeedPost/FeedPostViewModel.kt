@@ -44,14 +44,14 @@ interface FeedPostViewModelProtocol {
     var alertState: AlertState?
     var isAlertPresented: Boolean
 
-    suspend fun fetchComments(postID: String, initial: Boolean)
+    fun fetchComments(postID: String, initial: Boolean)
     suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment?
-    suspend fun reportPost(postID: String, reason: FeedReportType) {}
-    suspend fun fetchFeedUser()
+    fun reportPost(postID: String, reason: FeedReportType) {}
+    fun fetchFeedUser()
 
-    suspend fun voteComment(comment: FeedComment, type: FeedVoteType?)
-    suspend fun deleteComment(comment: FeedComment)
-    suspend fun reportComment(commentID: String, reason: FeedReportType)
+    fun voteComment(comment: FeedComment, type: FeedVoteType?)
+    fun deleteComment(comment: FeedComment)
+    fun reportComment(commentID: String, reason: FeedReportType)
 }
 
 @HiltViewModel
@@ -112,17 +112,19 @@ class FeedPostViewModel @Inject constructor(
         }
     }
 
-    override suspend fun fetchComments(postID: String, initial: Boolean) {
+    override fun fetchComments(postID: String, initial: Boolean) {
         if (_state.value is ViewState.Loading && !initial) return
-        try {
-            val fetchedComments = feedCommentUseCase.fetchComments(postID)
-            this.comments = fetchedComments
-            if (!initial) {
-                analyticsService.logEvent(FeedPostViewEvent.CommentsRefreshed)
+        viewModelScope.launch {
+            try {
+                val fetchedComments = feedCommentUseCase.fetchComments(postID)
+                comments = fetchedComments
+                if (!initial) {
+                    analyticsService.logEvent(FeedPostViewEvent.CommentsRefreshed)
+                }
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e)
+                crashlyticsService.recordException(e)
             }
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e)
-            crashlyticsService.recordException(e)
         }
     }
 
@@ -175,28 +177,31 @@ class FeedPostViewModel @Inject constructor(
         }
     }
 
-    override suspend fun reportPost(postID: String, reason: FeedReportType) {
-        try {
-            feedPostUseCase.reportPost(postID = postID, reason = reason, detail = "")
-            alertState = AlertState(
-                titleResId = R.string.report_submitted_title,
-                messageResId = R.string.report_submitted_message
-            )
-            isAlertPresented = true
-            analyticsService.logEvent(FeedPostRowEvent.PostReported(reason.name))
-        } catch (e: Exception) {
-            alertState = e.toAlertState(R.string.error_unable_to_submit_report)
-            isAlertPresented = true
-            crashlyticsService.recordException(e)
+    override fun reportPost(postID: String, reason: FeedReportType) {
+        viewModelScope.launch {
+            try {
+                feedPostUseCase.reportPost(postID = postID, reason = reason, detail = "")
+                alertState = AlertState(
+                    titleResId = R.string.report_submitted_title,
+                    messageResId = R.string.report_submitted_message
+                )
+                isAlertPresented = true
+                analyticsService.logEvent(FeedPostRowEvent.PostReported(reason.name))
+            } catch (e: Exception) {
+                alertState = e.toAlertState(R.string.error_unable_to_submit_report)
+                isAlertPresented = true
+                crashlyticsService.recordException(e)
+            }
         }
     }
 
-    override suspend fun fetchFeedUser() {
-        this.feedUser = userUseCase.feedUser
+    override fun fetchFeedUser() {
+        viewModelScope.launch {
+            feedUser = userUseCase.feedUser
+        }
     }
 
-    override suspend fun voteComment(comment: FeedComment, type: FeedVoteType?) {
-        viewModelScope.launch {
+    override fun voteComment(comment: FeedComment, type: FeedVoteType?) {
             val prevComments = this@FeedPostViewModel.comments
 
             updateCommentLocally(comment.id) { old ->
@@ -212,6 +217,7 @@ class FeedPostViewModel @Inject constructor(
                 old.copy(myVote = type, upVotes = newUp, downVotes = newDown)
             }
 
+        viewModelScope.launch {
             try {
                 if (type == null) {
                     feedCommentUseCase.deleteVote(comment.id)
@@ -226,30 +232,40 @@ class FeedPostViewModel @Inject constructor(
         }
     }
 
-    override suspend fun deleteComment(comment: FeedComment) {
+    override fun deleteComment(comment: FeedComment) {
         updateCommentLocally(comment.id) { it.copy(isDeleted = true) }
-        try {
-            feedCommentUseCase.deleteComment(comment.id)
-        } catch (e: Exception) {
-            updateCommentLocally(comment.id) { it.copy(isDeleted = false) }
-            val useCaseError = e as? FeedCommentUseCaseError
-            alertState = e.toAlertState(useCaseError?.messageRes
-                ?: R.string.unexpected_error_deleting_comment)
-            isAlertPresented = true
+        viewModelScope.launch {
+            try {
+                feedCommentUseCase.deleteComment(comment.id)
+            } catch (e: Exception) {
+                updateCommentLocally(comment.id) { it.copy(isDeleted = false) }
+                val useCaseError = e as? FeedCommentUseCaseError
+                alertState = e.toAlertState(
+                    useCaseError?.messageRes
+                        ?: R.string.unexpected_error_deleting_comment
+                )
+                isAlertPresented = true
+            }
         }
     }
 
-    override suspend fun reportComment(commentID: String, reason: FeedReportType) {
-        try {
-            feedCommentUseCase.reportComment(commentID = commentID, reason = reason, detail = "")
-            alertState = AlertState(
-                titleResId = R.string.report_submitted_title,
-                messageResId = R.string.report_submitted_message
-            )
-            isAlertPresented = true
-        } catch (e: Exception) {
-            alertState = e.toAlertState(R.string.error_unable_to_submit_report)
-            isAlertPresented = true
+    override fun reportComment(commentID: String, reason: FeedReportType) {
+        viewModelScope.launch {
+            try {
+                feedCommentUseCase.reportComment(
+                    commentID = commentID,
+                    reason = reason,
+                    detail = ""
+                )
+                alertState = AlertState(
+                    titleResId = R.string.report_submitted_title,
+                    messageResId = R.string.report_submitted_message
+                )
+                isAlertPresented = true
+            } catch (e: Exception) {
+                alertState = e.toAlertState(R.string.error_unable_to_submit_report)
+                isAlertPresented = true
+            }
         }
     }
 

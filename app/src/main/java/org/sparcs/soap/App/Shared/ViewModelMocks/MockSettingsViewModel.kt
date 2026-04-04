@@ -19,6 +19,6 @@ class MockSettingsViewModel : SettingsViewModelProtocol {
     override var isAlertPresented: Boolean by mutableStateOf(false)
 
     override fun setTheme(mode: String) {}
-    override fun signOut(onSuccess: () -> Unit) {}
+    override suspend fun signOut(): Boolean { return false }
     override fun handleException(error: Throwable) {}
 }

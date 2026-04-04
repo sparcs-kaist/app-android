@@ -1,14 +1,19 @@
 package org.sparcs.soap.App.Features.Course
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReviewPage
@@ -17,10 +22,16 @@ import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.CourseUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.ReviewUseCaseProtocol
 import org.sparcs.soap.App.Features.Course.Event.CourseViewEvent
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
+import org.sparcs.soap.R
 import javax.inject.Inject
 
 interface CourseViewModelProtocol {
     val state: StateFlow<CourseViewModel.ViewState>
+
+    val alertState: AlertState?
+    var isAlertPresented: Boolean
+
     fun loadCourse()
     fun toggleReviewLike(review: LectureReview)
 }
@@ -48,6 +59,9 @@ class CourseViewModel @Inject constructor(
 
     private val courseId: Int? = savedStateHandle.get<String>("courseId")?.toIntOrNull()
 
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
+
     // MARK: - State
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state = _state.asStateFlow()
@@ -74,8 +88,8 @@ class CourseViewModel @Inject constructor(
         }
     }
 
-    private fun fetchReviews(id: Int, course: Course) {
-        viewModelScope.launch {
+    private suspend fun fetchReviews(id: Int, course: Course) {
+        coroutineScope {
             try {
                 val allReviewsDeferred = async { reviewUseCase.fetchReviews(id, null, 0, 100) }
                 val myTotalReviewsDeferred = async { reviewUseCase.getWrittenReviews() }
@@ -93,8 +107,7 @@ class CourseViewModel @Inject constructor(
 
                 analyticsService.logEvent(CourseViewEvent.ReviewsLoaded)
             } catch (e: Exception) {
-                crashlyticsService.recordException(e)
-                _state.value = ViewState.Error(e)
+                throw e
             }
         }
     }
@@ -141,6 +154,8 @@ class CourseViewModel @Inject constructor(
             } catch (e: Exception) {
                 _state.value = currentState
                 crashlyticsService.recordException(e)
+                alertState = e.toAlertState(R.string.failed_to_like_review)
+                isAlertPresented = true
             }
         }
     }

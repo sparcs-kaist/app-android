@@ -46,7 +46,6 @@ fun SearchSection(
     onScopeChange: (SearchScope) -> Unit,
     content: @Composable () -> Unit,
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -93,7 +92,7 @@ fun CourseSection(
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     navController: NavController,
-    onLoadMore: (suspend () -> Unit)? = null,
+    onLoadMore: (() -> Unit)? = null,
     isSkeleton: Boolean,
 ) {
     SearchSection(
@@ -125,7 +124,7 @@ fun PostSection(
     posts: List<AraPost>,
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
-    onLoadMore: suspend () -> Unit,
+    onLoadMore: () -> Unit,
     navController: NavController,
     isSkeleton: Boolean,
 ) {
@@ -159,7 +158,7 @@ fun TaxiSection(
     searchScope: SearchScope,
     onScopeChange: (SearchScope) -> Unit,
     onTaxiClick: (TaxiRoom) -> Unit,
-    onLoadMore: (suspend () -> Unit)? = null,
+    onLoadMore: (() -> Unit)? = null,
     isSkeleton: Boolean,
 ) {
     SearchSection(

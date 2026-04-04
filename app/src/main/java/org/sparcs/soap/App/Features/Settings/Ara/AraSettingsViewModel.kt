@@ -29,10 +29,10 @@ interface AraSettingsViewModelProtocol {
     suspend fun fetchUser() {}
 
     @Throws(Exception::class)
-    suspend fun updateNickname() {
+    fun updateNickname() {
     }
 
-    suspend fun updateContentPreference() {}
+    fun updateContentPreference() {}
 }
 
 
@@ -88,7 +88,7 @@ class AraSettingsViewModel @Inject constructor(
         }
     }
 
-    override suspend fun updateNickname() {
+    override fun updateNickname() {
         viewModelScope.launch {
             try {
                 userUseCase.updateAraUser(mapOf("nickname" to nickname))
@@ -99,7 +99,7 @@ class AraSettingsViewModel @Inject constructor(
         }
     }
 
-    override suspend fun updateContentPreference() {
+    override fun updateContentPreference() {
         viewModelScope.launch {
             try {
                 userUseCase.updateAraUser(

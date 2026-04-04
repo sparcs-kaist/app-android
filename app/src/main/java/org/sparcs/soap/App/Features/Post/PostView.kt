@@ -92,7 +92,6 @@ import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.formattedString
 import org.sparcs.soap.App.Shared.Extensions.postfixEuroRo
-import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.App.Shared.Mocks.Ara.mock
 import org.sparcs.soap.App.Shared.Mocks.Ara.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostViewModel
@@ -138,6 +137,12 @@ fun PostView(
         viewModel.fetchPost()
     }
 
+    LaunchedEffect(viewModel.isAlertPresented) {
+        if (viewModel.isAlertPresented) {
+            isUploadingComment = false
+        }
+    }
+
     LaunchedEffect(tappedURL) {
         tappedURL?.let { uri ->
             try {
@@ -168,7 +173,7 @@ fun PostView(
                 onClick = { navController.popBackStack() },
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { type ->
-                    scope.launch { viewModel.report(type) }
+                    viewModel.report(type)
                 },
                 onTranslate = {
                     showTranslationView = true
@@ -192,36 +197,40 @@ fun PostView(
                 onUploadComment = {
                     scope.launch {
                         isUploadingComment = true
+
                         try {
-                            val uploadedComment = when {
-                                commentOnEdit != null -> viewModel.editComment(
-                                    commentOnEdit!!.id,
-                                    comment
-                                )
+                            val isSuccess = when {
+                                commentOnEdit != null -> {
+                                    viewModel.editComment(commentOnEdit!!.id, comment)
+                                    true
+                                }
 
-                                targetComment != null -> viewModel.writeThreadedComment(
-                                    targetComment!!.id,
-                                    comment
-                                )
+                                targetComment != null -> {
+                                    viewModel.writeThreadedComment(
+                                        targetComment!!.id,
+                                        comment
+                                    ) != null
+                                }
 
-                                else -> viewModel.writeComment(comment)
-                            }
-
-                            comment = ""; targetComment = null; commentOnEdit = null
-                            keyboardController?.hide()
-
-                            uploadedComment.let { comment ->
-                                scope.launch {
-                                    proxy.scrollToItem(comment.id)
+                                else -> {
+                                    viewModel.writeComment(comment)
+                                    true
                                 }
                             }
-                        } catch (e: Exception) {
-                            viewModel.alertState = e.toAlertState(R.string.unexpected_error_uploading_comment)
-                            viewModel.isAlertPresented = true
+
+                            if (isSuccess) {
+                                comment = ""
+                                targetComment = null
+                                commentOnEdit = null
+                                keyboardController?.hide()
+
+                                proxy.animateScrollToItem(proxy.layoutInfo.totalItemsCount)
+                            }
+                        } catch (_: Exception) {
                         } finally {
                             isUploadingComment = false
                         }
-                    }//TODO 리팩토링
+                    }
                 },
                 profilePicture = { ProfilePicture(post, true) },
                 placeholder = placeholder(viewModel, targetComment, commentOnEdit),
@@ -318,25 +327,20 @@ fun PostView(
                 confirmButton = {
                     Button(
                         onClick = {
+                            showDeleteConfirmation = false
+
                             scope.launch {
-                                try {
-                                    viewModel.deletePost()
-                                    showDeleteConfirmation = false
+                                val success = viewModel.deletePost()
+                                if (success) {
                                     navController.previousBackStackEntry
-                                        ?.savedStateHandle
-                                        ?.set("listNeedsRefresh", true)
+                                        ?.savedStateHandle?.set("listNeedsRefresh", true)
                                     navController.popBackStack()
-                                } catch (e: Exception) {
-                                    viewModel.alertState = e.toAlertState(R.string.unexpected_error_deleting_post)
-                                    viewModel.isAlertPresented = true
-                                    showDeleteConfirmation = false
+
                                 }
                             }
-
                         },
                         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
-                    )
-                    {
+                    ) {
                         Text(
                             text = stringResource(R.string.delete),
                             color = MaterialTheme.colorScheme.error
@@ -556,7 +560,6 @@ private fun InputBar(
     placeholder: String,
     focusRequester: FocusRequester,
 ) {
-    val scope = rememberCoroutineScope()
     val isWritingState by remember { mutableStateOf(isWritingComment) }
 
     val showProfile = (!isWritingState && comment.isEmpty())
@@ -644,9 +647,7 @@ private fun InputBar(
             MoveToLeftFadeIn(!showProfile) {
                 Button(
                     onClick = {
-                        scope.launch {
-                            onUploadComment()
-                        }
+                        onUploadComment()
                     },
                     enabled = !isUploadingComment && comment.isNotEmpty()
                 ) {

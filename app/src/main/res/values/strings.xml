@@ -510,4 +510,6 @@
     <string name="error_feed_user_not_found">Feed User information not found.</string>
     <string name="error_ara_user_not_found">Ara User information not found.</string>
     <string name="something_went_wrong">Something went wrong.\nPlease try again in a moment.</string>
+    <string name="failed_to_like_review">Failed to like the review.</string>
+    <string name="unexpected_error_editing_comment">An unexpected error occurred while editing the comment. Please try again later.</string>
 </resources>

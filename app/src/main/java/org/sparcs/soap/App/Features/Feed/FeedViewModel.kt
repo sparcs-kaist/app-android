@@ -4,10 +4,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.soap.App.Domain.Error.Feed.FeedPostUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.AlertState
@@ -29,15 +31,14 @@ interface FeedViewModelProtocol {
     var isAlertPresented: Boolean
     var isLoadingMore: Boolean
 
-    suspend fun fetchInitialData()
+    fun fetchInitialData()
     suspend fun loadNextPage()
-    suspend fun deletePost(postID: String)
-
-    suspend fun upVote(postId: String)
-    suspend fun downVote(postId: String)
+    suspend fun deletePost(postID: String): Boolean
+    fun upVote(postId: String)
+    fun downVote(postId: String)
+    fun refreshFeed()
 
     fun openSettingsTapped()
-    suspend fun refreshFeed()
     fun writeFeedButtonTapped()
 }
 
@@ -70,17 +71,19 @@ class FeedViewModel @Inject constructor(
     private var pageSize: Int = 20
 
     // MARK: - Functions
-    override suspend fun fetchInitialData() {
+    override fun fetchInitialData() {
         _state.value = ViewState.Loading
-        try {
-            val page = feedPostUseCase.fetchPosts(cursor = null, page = pageSize)
-            posts = page.items
-            nextCursor = page.nextCursor
-            hasNext = page.hasNext
-            _state.value = ViewState.Loaded(posts)
-        } catch (e: Exception) {
-            Timber.e(e, "failed to fetch data")
-            _state.value = ViewState.Error(e)
+        viewModelScope.launch {
+            try {
+                val page = feedPostUseCase.fetchPosts(cursor = null, page = pageSize)
+                posts = page.items
+                nextCursor = page.nextCursor
+                hasNext = page.hasNext
+                _state.value = ViewState.Loaded(posts)
+            } catch (e: Exception) {
+                Timber.e(e, "failed to fetch data")
+                _state.value = ViewState.Error(e)
+            }
         }
     }
 
@@ -93,27 +96,31 @@ class FeedViewModel @Inject constructor(
             nextCursor = page.nextCursor
             hasNext = page.hasNext
             _state.value = ViewState.Loaded(posts)
-            isLoadingMore = false
         } catch (e: Exception) {
-            this.alertState = e.toAlertState(R.string.unable_to_load_more_posts)
-            this.isAlertPresented = true
+            alertState = e.toAlertState(R.string.unable_to_load_more_posts)
+            isAlertPresented = true
+        } finally {
             isLoadingMore = false
         }
     }
 
-    override suspend fun deletePost(postID: String) {
-        try {
+    override suspend fun deletePost(postID: String): Boolean {
+        return try {
             feedPostUseCase.deletePost(postID = postID)
-            this.posts = this.posts.filterNot { it.id == postID }
+            posts = posts.filterNot { it.id == postID }
+            true
         } catch (e: Exception) {
             val useCaseError = e as? FeedPostUseCaseError
-            this.alertState = e.toAlertState(useCaseError?.messageRes ?: R.string.unexpected_error_deleting_post)
-            this.isAlertPresented = true
+            alertState = e.toAlertState(
+                useCaseError?.messageRes ?: R.string.unexpected_error_deleting_post
+            )
+            isAlertPresented = true
+            false
         }
     }
 
     // MARK: - Functions
-    override suspend fun upVote(postId: String) {
+    override fun upVote(postId: String) {
         val prevPosts = this.posts
         val current = prevPosts.firstOrNull { it.id == postId } ?: return
 
@@ -136,23 +143,24 @@ class FeedViewModel @Inject constructor(
             if (it.id == postId) updatedPost else it
         }
 
-
-        try {
-            if (current.myVote == FeedVoteType.UP) {
-                feedPostUseCase.deleteVote(postID = postId)
-            } else {
-                feedPostUseCase.vote(postID = postId, type = FeedVoteType.UP)
+        viewModelScope.launch {
+            try {
+                if (current.myVote == FeedVoteType.UP) {
+                    feedPostUseCase.deleteVote(postID = postId)
+                } else {
+                    feedPostUseCase.vote(postID = postId, type = FeedVoteType.UP)
+                }
+                analyticsService.logEvent(FeedPostRowEvent.PostUpVoted)
+            } catch (e: Exception) {
+                posts = prevPosts
+                alertState = e.toAlertState(R.string.error_failed_to_upvote)
+                isAlertPresented = true
+                crashlyticsService.recordException(e)
             }
-            analyticsService.logEvent(FeedPostRowEvent.PostUpVoted)
-        } catch (e: Exception) {
-            this.posts = prevPosts
-            this.alertState = e.toAlertState(R.string.error_failed_to_upvote)
-            this.isAlertPresented = true
-            crashlyticsService.recordException(e)
         }
     }
 
-    override suspend fun downVote(postId: String) {
+    override fun downVote(postId: String) {
         val prevPosts = this.posts
         val current = prevPosts.firstOrNull { it.id == postId } ?: return
 
@@ -174,19 +182,20 @@ class FeedViewModel @Inject constructor(
         this.posts = prevPosts.map {
             if (it.id == postId) updatedPost else it
         }
-
-        try {
-            if (current.myVote == FeedVoteType.DOWN) {
-                feedPostUseCase.deleteVote(postID = postId)
-            } else {
-                feedPostUseCase.vote(postID = postId, type = FeedVoteType.DOWN)
+        viewModelScope.launch {
+            try {
+                if (current.myVote == FeedVoteType.DOWN) {
+                    feedPostUseCase.deleteVote(postID = postId)
+                } else {
+                    feedPostUseCase.vote(postID = postId, type = FeedVoteType.DOWN)
+                }
+                analyticsService.logEvent(FeedPostRowEvent.PostDownVoted)
+            } catch (e: Exception) {
+                posts = prevPosts
+                alertState = e.toAlertState(R.string.error_failed_to_downvote)
+                isAlertPresented = true
+                crashlyticsService.recordException(e)
             }
-            analyticsService.logEvent(FeedPostRowEvent.PostDownVoted)
-        } catch (e: Exception) {
-            this.posts = prevPosts
-            this.alertState = e.toAlertState(R.string.error_failed_to_downvote)
-            this.isAlertPresented = true
-            crashlyticsService.recordException(e)
         }
     }
 
@@ -194,8 +203,8 @@ class FeedViewModel @Inject constructor(
         analyticsService.logEvent(FeedViewEvent.OpenSettingsButtonTapped)
     }
 
-    override suspend fun refreshFeed() {
-        fetchInitialData()
+    override fun refreshFeed() {
+        viewModelScope.launch { fetchInitialData() }
         analyticsService.logEvent(FeedViewEvent.FeedRefreshed)
     }
 

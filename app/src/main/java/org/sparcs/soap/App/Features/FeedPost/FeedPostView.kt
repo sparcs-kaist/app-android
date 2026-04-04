@@ -86,8 +86,8 @@ fun FeedPostView(
     navController: NavController,
 ) {
     val postState by viewModel.state.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
     val proxy = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
     val focusRequester = remember { FocusRequester() }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -112,9 +112,7 @@ fun FeedPostView(
                 icon = Icons.Default.Warning,
                 error = state.error,
                 onRetry = {
-                    coroutineScope.launch {
-                        viewModel.post?.let { viewModel.fetchComments(it.id, initial = true) }
-                    }
+                    viewModel.post?.let { viewModel.fetchComments(it.id, initial = true) }
                 }
             )
         }
@@ -128,9 +126,7 @@ fun FeedPostView(
                         navController = navController,
                         onDelete = { showDeleteConfirmation = true },
                         onReport = { reason ->
-                            coroutineScope.launch {
-                                viewModel.reportPost(post.id, reason)
-                            }
+                            viewModel.reportPost(post.id, reason)
                         },
                         onTranslate = {/*Todo - translate*/ },
                         isMine = post.isAuthor
@@ -143,7 +139,7 @@ fun FeedPostView(
                         isWritingCommentFocusState = isWritingCommentFocusState,
                         onCommentUploaded = {
                             if (viewModel.text.isEmpty()) return@InputBar
-                            coroutineScope.launch {
+                            scope.launch {
                                 val uploaded = viewModel.submitComment(post.id, targetComment)
                                 if (uploaded != null) {
                                     post.commentCount += 1
@@ -173,7 +169,7 @@ fun FeedPostView(
                     isRefreshing = isRefreshing,
                     onRefresh = {
                         isRefreshing = true
-                        coroutineScope.launch {
+                        scope.launch {
                             viewModel.fetchComments(postID = post.id, initial = false)
                             delay(500)
                             isRefreshing = false
@@ -224,13 +220,12 @@ fun FeedPostView(
                         confirmButton = {
                             Button(
                                 onClick = {
-                                    coroutineScope.launch {
-                                        try {
-                                            feedViewModel.deletePost(post.id)
-                                            showDeleteConfirmation = false
+                                    showDeleteConfirmation = false
+
+                                    scope.launch {
+                                        val success = feedViewModel.deletePost(post.id)
+                                        if (success) {
                                             navController.popBackStack()
-                                        } catch (e: Exception) {
-                                            showDeleteConfirmation = false
                                         }
                                     }
                                 },
@@ -265,6 +260,12 @@ private fun InputBar(
     focusRequester: FocusRequester,
     isUploadingComment: Boolean,
 ) {
+    LaunchedEffect(isWritingCommentFocusState) {
+        if (isWritingCommentFocusState) {
+            focusRequester.requestFocus()
+        }
+    }
+
     var isFocused by remember { mutableStateOf(isWritingCommentFocusState) }
     val haptic = LocalHapticFeedback.current
     val rawName = targetComment?.authorName ?: ""
@@ -413,13 +414,13 @@ private fun Comments(
                         viewModel
                     )
                     comment.replies.forEach { reply ->
-                            FeedCommentRow(
-                                comment = reply,
-                                isReply = true,
-                                onReply = {},
-                                viewModel
-                            )
-                        }
+                        FeedCommentRow(
+                            comment = reply,
+                            isReply = true,
+                            onReply = {},
+                            viewModel
+                        )
+                    }
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.lightGray0,

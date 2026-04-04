@@ -197,7 +197,8 @@ fun SettingsView(
                 )
                 SignOutButton {
                     scope.launch {
-                        settingsViewModel.signOut() {
+                        val success = settingsViewModel.signOut()
+                        if (success) {
                             navController.navigate(Channel.SignOut.name)
                         }
                     }

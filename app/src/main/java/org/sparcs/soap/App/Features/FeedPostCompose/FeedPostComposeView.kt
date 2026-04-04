@@ -89,7 +89,7 @@ fun FeedPostComposeView(
     navController: NavController,
 ) {
     var showPhotosPicker by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     val contentFocusRequester = remember { FocusRequester() }
 
@@ -104,7 +104,7 @@ fun FeedPostComposeView(
         val line = cursorLine ?: return@LaunchedEffect
         val lineTopPx = layout.getLineTop(line)
         val scrollOffset = maxOf(lineTopPx - keyboardPaddingPx, 0f)
-        coroutineScope.launch { scrollState.animateScrollTo(scrollOffset.toInt()) }
+        scope.launch { scrollState.animateScrollTo(scrollOffset.toInt()) }
     }
 
     LaunchedEffect(Unit) {
@@ -125,10 +125,9 @@ fun FeedPostComposeView(
                 navController = navController,
                 isDoneEnabled = viewModel.text.isNotEmpty() && viewModel.text.length <= 280,
                 onDoneClick = {
-                    coroutineScope.launch {
-                        val isSuccess = viewModel.submitPost()
-
-                        if (isSuccess) {
+                    scope.launch {
+                        val success = viewModel.submitPost()
+                        if (success) {
                             navController.previousBackStackEntry
                                 ?.savedStateHandle
                                 ?.set("listNeedsRefresh", true)

@@ -46,9 +46,9 @@ interface TaxiListViewModelProtocol {
     var alertState: AlertState?
     var isAlertPresented: Boolean
 
-    suspend fun fetchData()
+    fun fetchData()
     suspend fun createRoom(title: String): String?
-    suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean)
+    fun toggleCarrier(roomID: String, hasCarrier: Boolean)
 }
 
 @HiltViewModel
@@ -95,7 +95,7 @@ class TaxiListViewModel @Inject constructor(
     override var isAlertPresented by mutableStateOf(false)
 
     // MARK: - Functions
-    override suspend fun fetchData() {
+    override fun fetchData() {
         viewModelScope.launch {
             _state.value = ViewState.Loading
             try {
@@ -137,11 +137,13 @@ class TaxiListViewModel @Inject constructor(
         }
     }
 
-    override suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean) {
-        try {
-            taxiRoomRepository.toggleCarrier(roomID, hasCarrier)
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e)
+    override fun toggleCarrier(roomID: String, hasCarrier: Boolean) {
+        viewModelScope.launch {
+            try {
+                taxiRoomRepository.toggleCarrier(roomID, hasCarrier)
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e)
+            }
         }
     }
 }

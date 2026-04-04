@@ -31,15 +31,15 @@ class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPos
     override var isAlertPresented: Boolean = false
     override val feedUser: FeedUser? = null
 
-    override suspend fun fetchComments(postID: String, initial: Boolean) {}
+    override fun fetchComments(postID: String, initial: Boolean) {}
     override suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment? {
         return null
     }
-    override suspend fun reportPost(postID: String, reason: FeedReportType) {}
-    override suspend fun fetchFeedUser() {}
+    override fun reportPost(postID: String, reason: FeedReportType) {}
+    override fun fetchFeedUser() {}
 
-    override suspend fun voteComment(comment: FeedComment, type: FeedVoteType?) {}
-    override suspend fun deleteComment(comment: FeedComment) {}
-    override suspend fun reportComment(commentID: String, reason: FeedReportType) {}
+    override fun voteComment(comment: FeedComment, type: FeedVoteType?) {}
+    override fun deleteComment(comment: FeedComment) {}
+    override fun reportComment(commentID: String, reason: FeedReportType) {}
 
 }

@@ -1,8 +1,12 @@
 package org.sparcs.soap.BuddyPreviewSupport.OTL
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
@@ -32,7 +36,10 @@ class PreviewLectureDetailViewModel(initialState: LectureDetailViewModel.ViewSta
     private val _canWriteReview = MutableStateFlow(false)
     override val canWriteReview: StateFlow<Boolean> = _canWriteReview.asStateFlow()
 
-    override suspend fun fetchCourse(courseID: Int) {}
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
+
+    override fun fetchCourse(courseID: Int) {}
     override fun fetchReviews(lecture: Lecture) {}
 
     override fun toggleReviewLike(review: LectureReview) {

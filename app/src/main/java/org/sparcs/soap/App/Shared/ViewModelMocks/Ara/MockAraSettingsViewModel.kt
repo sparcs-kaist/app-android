@@ -31,7 +31,7 @@ class MockAraSettingsViewModel(initialState: AraSettingsViewModel.ViewState) :
 
     override suspend fun fetchUser() {}
 
-    override suspend fun updateNickname() {}
+    override fun updateNickname() {}
 
-    override suspend fun updateContentPreference() {}
+    override fun updateContentPreference() {}
 }

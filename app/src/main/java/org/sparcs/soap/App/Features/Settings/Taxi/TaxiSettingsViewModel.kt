@@ -31,7 +31,7 @@ interface TaxiSettingsViewModelProtocol {
     val state: StateFlow<TaxiSettingsViewModel.ViewState>
 
     suspend fun fetchUser()
-    suspend fun editInformation(onSuccess: () -> Unit = {})
+    suspend fun editInformation(): Boolean
 }
 
 @HiltViewModel
@@ -87,8 +87,8 @@ class TaxiSettingsViewModel @Inject constructor(
     }
 
 
-    override suspend fun editInformation(onSuccess: () -> Unit) {
-        try {
+    override suspend fun editInformation(): Boolean {
+        return try {
             bankName?.let { name ->
                 if (name.isNotEmpty() && bankNumber.isNotEmpty()) {
                     editBankAccount(name, bankNumber)
@@ -104,10 +104,11 @@ class TaxiSettingsViewModel @Inject constructor(
                 registerResidence(residence)
             }
             userUseCase.fetchTaxiUser()
-            onSuccess()
+            true
         } catch (e: Exception) {
             Timber.e("Failed to fetch user: ${e.message}")
             handleException(e, ErrorType.FETCH)
+            false
         }
     }
 

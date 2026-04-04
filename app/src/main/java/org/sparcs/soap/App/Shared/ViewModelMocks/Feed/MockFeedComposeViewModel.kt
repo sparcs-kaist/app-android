@@ -21,10 +21,7 @@ class MockFeedPostComposeViewModel : FeedPostComposeViewModelProtocol {
     override var isUploading: Boolean = false
 
     override fun fetchFeedUser() {}
-    override suspend fun writePost() {}
-    override suspend fun submitPost(): Boolean {
-        return true
-    }
+    override suspend fun submitPost(): Boolean { return true }
 
     override fun removeImage(index: Int) {}
     override fun handleException(error: Throwable) {}

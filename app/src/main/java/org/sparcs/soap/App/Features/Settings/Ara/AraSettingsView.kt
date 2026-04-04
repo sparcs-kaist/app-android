@@ -60,8 +60,8 @@ fun AraSettingsView(
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
-    val scope = rememberCoroutineScope()
     var showNicknameDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
@@ -112,7 +112,7 @@ fun AraSettingsView(
                 confirmButton = {
                     TextButton(onClick = {
                         showNicknameDialog = false
-                        scope.launch { viewModel.updateNickname() }
+                        viewModel.updateNickname()
                     }) { Text(stringResource(R.string.confirm)) }
                 },
                 dismissButton = {

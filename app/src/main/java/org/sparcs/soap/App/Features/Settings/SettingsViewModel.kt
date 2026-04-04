@@ -6,13 +6,11 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Repositories.Settings.SettingsRepository
@@ -29,7 +27,7 @@ interface SettingsViewModelProtocol {
     var isAlertPresented: Boolean
 
     fun setTheme(mode: String)
-    fun signOut(onSuccess: () -> Unit = {})
+    suspend fun signOut(): Boolean
     fun handleException(error: Throwable)
 }
 
@@ -64,23 +62,21 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    override fun signOut(onSuccess: () -> Unit) {
-        viewModelScope.launch {
-            try {
-                authUseCase.signOut()
-                withContext(NonCancellable) {
-                    onSuccess()
-                }
-            } catch (e: Exception) {
-                val authError = e as? AuthUseCaseError
-                alertState = e.toAlertState(
-                    authError?.messageRes ?: R.string.unexpected_error_signing_out
-                )
-                isAlertPresented = true
-                handleException(e)
-            }
+    override suspend fun signOut(): Boolean {
+        return try {
+            authUseCase.signOut()
+            true
+        } catch (e: Exception) {
+            val authError = e as? AuthUseCaseError
+            alertState = e.toAlertState(
+                authError?.messageRes ?: R.string.unexpected_error_signing_out
+            )
+            isAlertPresented = true
+            handleException(e)
+            false
         }
     }
+
 
     override fun handleException(error: Throwable) {
         crashlyticsService.recordException(error)

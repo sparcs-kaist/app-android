@@ -147,7 +147,8 @@ fun TaxiReportView(
                 Button(
                     onClick = {
                         scope.launch {
-                            viewModel.createReport(room.id) {
+                            val success = viewModel.createReport(room.id)
+                            if (success) {
                                 navController.popBackStack()
                             }
                         }

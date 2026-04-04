@@ -49,8 +49,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
@@ -80,7 +78,7 @@ fun PostListView(
     val searchKeyword by viewModel.searchKeyword.collectAsState()
     var showSearchBar by remember { mutableStateOf(false) }
 
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
     val state = viewModel.state.collectAsState().value
 
@@ -173,13 +171,11 @@ fun PostListView(
                         PostList(
                             posts = state.posts,
                             onLoadMore = {
-                                coroutineScope.launch {
-                                    viewModel.loadNextPage()
-                                }
+                                scope.launch { viewModel.loadNextPage() }
                             },
                             onRefresh = {
                                 isRefreshing = true
-                                coroutineScope.launch {
+                                scope.launch {
                                     viewModel.fetchInitialPosts()
                                     delay(500)
                                     isRefreshing = false
@@ -200,10 +196,8 @@ fun PostListView(
                             icon = Icons.Default.Warning,
                             error = error,
                             onRetry = {
-                                coroutineScope.launch {
-                                    viewModel.fetchInitialPosts()
-                                    viewModel.bind()
-                                }
+                                scope.launch { viewModel.fetchInitialPosts() }
+                                viewModel.bind()
                             }
                         )
                     }
@@ -215,10 +209,8 @@ fun PostListView(
                 EmptyView(
                     searchText = searchKeyword,
                     onClear = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            viewModel.onSearchTextChange("")
-                            viewModel.fetchInitialPosts()
-                        }
+                        viewModel.onSearchTextChange("")
+                        scope.launch { viewModel.fetchInitialPosts() }
                     }
                 )
             }

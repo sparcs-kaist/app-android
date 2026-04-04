@@ -95,16 +95,14 @@ fun TaxiChatView(
                 },
                 onClickLeave = {
                     coroutineScope.launch {
-                        try {
-                            viewModel.leaveRoom()
+                        val success = viewModel.leaveRoom()
+                        if (success) {
                             navController.popBackStack()
-                        } catch (e: Exception) {
-                            viewModel.isAlertPresented = true
                         }
                     }
                 },
-                onCarrierToggle = { coroutineScope.launch { viewModel.toggleCarrier(it) } },
-                onArrivalToggle = { coroutineScope.launch { viewModel.updateArrival(it) } },
+                onCarrierToggle = { viewModel.toggleCarrier(it) },
+                onArrivalToggle = { viewModel.updateArrival(it) },
                 isLeaveAvailable = viewModel.isLeaveRoomAvailable
             )
         },
@@ -117,7 +115,7 @@ fun TaxiChatView(
                 isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable,
                 isCommitSettlementAvailable = viewModel.isCommitSettlementAvailable,
                 onSendText = { message ->
-                    coroutineScope.launch { viewModel.sendChat(message, TaxiChat.ChatType.TEXT) }
+                   viewModel.sendChat(message, TaxiChat.ChatType.TEXT)
                 },
                 onSendImage = { bitmap ->
                     coroutineScope.launch { viewModel.sendImage(bitmap) }
@@ -206,7 +204,8 @@ fun TaxiChatView(
 
                     OutlinedButton(
                         onClick = {
-                            val uberUri = TaxiDeepLinkHelper.getUberUri(room.source, room.destination)
+                            val uberUri =
+                                TaxiDeepLinkHelper.getUberUri(room.source, room.destination)
                             context.openUri(uberUri, "com.ubercab")
                             showCallTaxiAlert = false
                         },

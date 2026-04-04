@@ -48,7 +48,6 @@ interface FeedPostComposeViewModelProtocol {
     var isUploading: Boolean
 
     fun fetchFeedUser()
-    suspend fun writePost()
     suspend fun submitPost(): Boolean
     fun removeImage(index: Int)
     fun handleException(error: Throwable)
@@ -102,7 +101,7 @@ class FeedPostComposeViewModel @Inject constructor(
         }
     }
 
-    override suspend fun writePost() {
+    private suspend fun writePost() {
         val uploadedImages = coroutineScope {
             selectedImages.mapIndexed { idx, item ->
                 async {
@@ -122,6 +121,8 @@ class FeedPostComposeViewModel @Inject constructor(
     }
 
     override suspend fun submitPost(): Boolean {
+        if (isUploading) return false
+
         isUploading = true
         return try {
             writePost()

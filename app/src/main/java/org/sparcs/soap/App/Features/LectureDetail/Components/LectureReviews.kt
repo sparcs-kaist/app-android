@@ -38,6 +38,7 @@ import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
@@ -177,6 +178,11 @@ fun LectureReviews(
             }
         }
     }
+    GlobalAlertDialog(
+        state = viewModel.alertState,
+        isPresented = viewModel.isAlertPresented,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 }
 
 

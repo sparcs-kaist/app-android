@@ -19,7 +19,7 @@ interface TaxiChatListViewModelProtocol {
     var taxiUser: TaxiUser?
 
     // MARK: - Functions
-    suspend fun fetchData()
+    fun fetchData()
 }
 
 @HiltViewModel
@@ -45,7 +45,7 @@ class TaxiChatListViewModel @Inject constructor(
     }
 
     //MARK: - Functions
-    override suspend fun fetchData() {
+    override fun fetchData() {
         viewModelScope.launch {
             try {
                 val (onGoingRooms, doneRooms) = taxiRoomRepository.fetchMyRooms()

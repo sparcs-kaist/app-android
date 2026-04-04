@@ -76,7 +76,6 @@ fun FeedPostRow(
     singleLine: Boolean,
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
 
     Column(Modifier
         .fillMaxWidth()
@@ -88,7 +87,7 @@ fun FeedPostRow(
             showDeleteConfirmation,
         ) { showDeleteConfirmation = it }
         Content(post, singleLine, onComment)
-        Footer(post, viewModel, onComment, coroutineScope)
+        Footer(post, viewModel, onComment)
     }
 }
 
@@ -260,7 +259,6 @@ private fun Footer(
     post: FeedPost,
     viewModel: FeedViewModelProtocol,
     onComment: () -> Unit,
-    coroutineScope: CoroutineScope,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -276,14 +274,10 @@ private fun Footer(
             },
             votes = post.upVotes - post.downVotes,
             onUpVote = {
-                coroutineScope.launch {
-                    viewModel.upVote(post.id)
-                }
+                viewModel.upVote(post.id)
             },
             onDownVote = {
-                coroutineScope.launch {
-                    viewModel.downVote(post.id)
-                }
+                viewModel.downVote(post.id)
             },
             enabled = true
         )
