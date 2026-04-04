@@ -22,7 +22,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,7 +36,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSignInViewModel
@@ -51,7 +49,6 @@ fun SignInView(
     viewModel: SignInViewModelProtocol = hiltViewModel<SignInViewModel>(),
 ) {
     val isLoading = viewModel.isLoading
-    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
     val mobisInlineLogoRes = if (MaterialTheme.colorScheme.isDark()) {
@@ -104,9 +101,7 @@ fun SignInView(
 
         Button(
             onClick = {
-                coroutineScope.launch {
-                    viewModel.signIn(context as Activity)
-                }
+                viewModel.signIn(context as Activity)
             }, enabled = !isLoading, modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 8.dp)

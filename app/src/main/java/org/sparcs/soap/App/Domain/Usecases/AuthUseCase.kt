@@ -231,8 +231,10 @@ class AuthUseCase @Inject constructor(
     }
 
     override suspend fun signOut() {
-        tokenStorage.clearTokens()
-        _isAuthenticated.value = false
-        scheduledRefreshJob?.cancel()
+        withContext(Dispatchers.IO + NonCancellable) {
+            tokenStorage.clearTokens()
+            scheduledRefreshJob?.cancel()
+            _isAuthenticated.value = false
+        }
     }
 }

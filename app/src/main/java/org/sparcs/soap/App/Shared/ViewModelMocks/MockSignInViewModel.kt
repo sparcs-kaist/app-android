@@ -11,5 +11,5 @@ class MockSignInViewModel : SignInViewModelProtocol {
     override var alertState: AlertState? = null
     override var isAlertPresented: Boolean = false
 
-    override suspend fun signIn(activity: Activity) {}
+    override fun signIn(activity: Activity) {}
 }

@@ -41,7 +41,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +57,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
@@ -81,7 +79,6 @@ fun SettingsView(
     val isPreview = LocalInspectionMode.current
     val haptic = LocalHapticFeedback.current
 
-    val scope = rememberCoroutineScope()
     var isCrashlyticsEnabled by remember {
         mutableStateOf(if (!isPreview) FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled else false)
     }
@@ -196,13 +193,9 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
                 SignOutButton {
-                    scope.launch {
-                        val success = settingsViewModel.signOut()
-                        if (success) {
-                            navController.navigate(Channel.SignOut.name)
-                        }
+                        settingsViewModel.signOut()
                     }
-                }
+
             }
         }
         if (BuildConfig.DEBUG) {

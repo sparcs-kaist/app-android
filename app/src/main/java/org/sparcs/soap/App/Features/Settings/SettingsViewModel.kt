@@ -27,7 +27,7 @@ interface SettingsViewModelProtocol {
     var isAlertPresented: Boolean
 
     fun setTheme(mode: String)
-    suspend fun signOut(): Boolean
+    fun signOut()
     fun handleException(error: Throwable)
 }
 
@@ -62,18 +62,18 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    override suspend fun signOut(): Boolean {
-        return try {
-            authUseCase.signOut()
-            true
-        } catch (e: Exception) {
-            val authError = e as? AuthUseCaseError
-            alertState = e.toAlertState(
-                authError?.messageRes ?: R.string.unexpected_error_signing_out
-            )
-            isAlertPresented = true
-            handleException(e)
-            false
+    override fun signOut() {
+        viewModelScope.launch {
+            try {
+                authUseCase.signOut()
+            } catch (e: Exception) {
+                val authError = e as? AuthUseCaseError
+                alertState = e.toAlertState(
+                    authError?.messageRes ?: R.string.unexpected_error_signing_out
+                )
+                isAlertPresented = true
+                handleException(e)
+            }
         }
     }
 
