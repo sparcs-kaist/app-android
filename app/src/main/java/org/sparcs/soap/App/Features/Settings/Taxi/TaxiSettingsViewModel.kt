@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiUserRepository
 import org.sparcs.soap.App.Domain.Services.CrashlyticsService
@@ -22,14 +23,15 @@ interface TaxiSettingsViewModelProtocol {
     var phoneNumber: String
     var showBadge: Boolean
     var residence: String
-    var showAlert: Boolean
-    var alertMessageRes: Int?
+
+    val alertState: AlertState?
+    var isAlertPresented: Boolean
 
     val user: TaxiUser?
     val state: StateFlow<TaxiSettingsViewModel.ViewState>
 
     suspend fun fetchUser()
-    suspend fun editInformation()
+    suspend fun editInformation(): Boolean
 }
 
 @HiltViewModel
@@ -59,8 +61,8 @@ class TaxiSettingsViewModel @Inject constructor(
     override var showBadge by mutableStateOf(false)
     override var residence by mutableStateOf("")
 
-    override var showAlert by mutableStateOf(false)
-    override var alertMessageRes by mutableStateOf<Int?>(null)
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     override var user by mutableStateOf<TaxiUser?>(null)
 
@@ -85,8 +87,8 @@ class TaxiSettingsViewModel @Inject constructor(
     }
 
 
-    override suspend fun editInformation() {
-        try {
+    override suspend fun editInformation(): Boolean {
+        return try {
             bankName?.let { name ->
                 if (name.isNotEmpty() && bankNumber.isNotEmpty()) {
                     editBankAccount(name, bankNumber)
@@ -102,9 +104,11 @@ class TaxiSettingsViewModel @Inject constructor(
                 registerResidence(residence)
             }
             userUseCase.fetchTaxiUser()
+            true
         } catch (e: Exception) {
             Timber.e("Failed to fetch user: ${e.message}")
             handleException(e, ErrorType.FETCH)
+            false
         }
     }
 
@@ -161,8 +165,8 @@ class TaxiSettingsViewModel @Inject constructor(
         if (type == ErrorType.FETCH) {
             _state.value = ViewState.Error(error, messageRes)
         } else {
-            alertMessageRes = messageRes
-            showAlert = true
+            alertState = AlertState(messageResId = messageRes)
+            isAlertPresented = true
         }
     }
 }

@@ -30,6 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,9 +47,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.OTL.DayType
-import org.sparcs.soap.App.Shared.Extensions.toDate
 import org.sparcs.soap.App.Shared.Extensions.toLocalDate
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.darkGray
@@ -58,7 +59,6 @@ import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
@@ -82,15 +82,8 @@ fun TaxiDepartureTimePicker(
     val dateFormatter = remember { SimpleDateFormat("MM/dd", Locale.getDefault()) }
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
 
-    val dateText = remember { mutableStateOf(dateFormatter.format(calendar.time)) }
-    val timeText = remember {
-        mutableStateOf(timeFormatter.format(calendar.apply {
-            set(
-                Calendar.MINUTE,
-                (get(Calendar.MINUTE) / 10 + 1) * 10
-            ); set(Calendar.SECOND, 0)
-        }.time))
-    }
+    val dateText = remember { mutableStateOf(dateFormatter.format(departureTime)) }
+    val timeText = remember { mutableStateOf(timeFormatter.format(departureTime)) }
 
     LaunchedEffect(departureTime) {
         calendar.time = departureTime
@@ -151,13 +144,11 @@ fun TaxiDepartureTimePicker(
                 selectedDate = selectedDate,
                 onDateSelected = {
                     selectedDate = it
-                    calendar.set(Calendar.DATE, selectedDate.dayOfMonth)
-                    calendar.set(Calendar.MONTH, selectedDate.monthValue - 1)
+                    calendar.set(Calendar.YEAR, it.year)
+                    calendar.set(Calendar.MONTH, it.monthValue - 1)
+                    calendar.set(Calendar.DAY_OF_MONTH, it.dayOfMonth)
                     dateText.value = DateTimeFormatter.ofPattern("MM/dd").format(it)
-                    onDepartureTimeChange(
-                        calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime()
-                            .toDate()
-                    )
+                    onDepartureTimeChange(calendar.time)
                 }
             )
         }
@@ -171,9 +162,7 @@ fun TaxiDepartureTimePicker(
                 calendar.set(Calendar.MINUTE, minute)
                 calendar.set(Calendar.SECOND, 0)
                 timeText.value = timeFormatter.format(calendar.time)
-                onDepartureTimeChange(
-                    calendar.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().toDate()
-                )
+                onDepartureTimeChange(calendar.time)
             }
         }
     }
@@ -185,21 +174,21 @@ fun CircularTimePicker(
     minute: Int,
     onTimeSelected: (Int, Int) -> Unit,
 ) {
-    val hours = (0..23).toList()
-    val minutes = (0..59 step 10).toList()
-
-    val displayHours = listOf("") + hours.map { it.toString().padStart(2, '0') } + listOf("")
-    val displayMinutes = listOf("") + minutes.map { it.toString().padStart(2, '0') } + listOf("")
+    val hours = remember { (0..23).toList() }
+    val minutes = remember { (0..59 step 10).toList() }
 
     val itemHeight = 30.dp
     val hourState = rememberLazyListState(initialFirstVisibleItemIndex = hour)
-    val minuteState =
-        rememberLazyListState(initialFirstVisibleItemIndex = minutes.indexOfFirst { it >= minute })
+    val minuteState = rememberLazyListState(
+        initialFirstVisibleItemIndex = minutes.indexOfFirst { it >= minute }.coerceAtLeast(0)
+    )
 
-    LaunchedEffect(hourState.firstVisibleItemIndex, minuteState.firstVisibleItemIndex) {
-        val selectedHour = (hourState.firstVisibleItemIndex).coerceIn(0, hours.lastIndex)
-        val selectedMinute = (minuteState.firstVisibleItemIndex).coerceIn(0, minutes.lastIndex)
-        onTimeSelected(hours[selectedHour], minutes[selectedMinute])
+    LaunchedEffect(hourState.isScrollInProgress, minuteState.isScrollInProgress) {
+        if (!hourState.isScrollInProgress && !minuteState.isScrollInProgress) {
+            val selectedHour = hourState.firstVisibleItemIndex.coerceIn(0, hours.lastIndex)
+            val selectedMinIdx = minuteState.firstVisibleItemIndex.coerceIn(0, minutes.lastIndex)
+            onTimeSelected(hours[selectedHour], minutes[selectedMinIdx])
+        }
     }
 
     Row(
@@ -210,14 +199,14 @@ fun CircularTimePicker(
         verticalAlignment = Alignment.CenterVertically
     ) {
         PickerWheel(
-            items = displayHours,
+            items = hours.map { it.toString().padStart(2, '0') },
             listState = hourState,
             itemHeight = itemHeight,
             text = stringResource(R.string.hour_label)
         )
 
         PickerWheel(
-            items = displayMinutes,
+            items = minutes.map { it.toString().padStart(2, '0') },
             listState = minuteState,
             itemHeight = itemHeight,
             text = stringResource(R.string.minute_label)
@@ -234,69 +223,78 @@ fun PickerWheel(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    Row {
+    Row(verticalAlignment = Alignment.CenterVertically) {
         Box(
             modifier = Modifier
                 .width(60.dp)
                 .height(itemHeight * 5)
         ) {
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                contentPadding = PaddingValues(vertical = itemHeight),
-                flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
-            ) {
-                itemsIndexed(items) { index, item ->
-                    val centerIndex = listState.firstVisibleItemIndex + 1
-                    val distanceFromCenter = abs(index - centerIndex)
-                    val alpha = when (distanceFromCenter) {
-                        0 -> 1f
-                        1 -> 0.5f
-                        2 -> 0.2f
-                        else -> 0.1f
-                    }
-
-                    Text(
-                        text = item,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(itemHeight)
-                            .alpha(alpha)
-                            .clickable {
-                                coroutineScope.launch {
-                                    listState.animateScrollToItem(index - 1)
-                                }
-                            },
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
             Box(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .fillMaxWidth()
                     .height(itemHeight)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(MaterialTheme.colorScheme.grayBB.copy(alpha = 0.3f))
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.grayBB.copy(alpha = 0.2f))
             )
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = itemHeight * 2),
+                flingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
+            ) {
+                itemsIndexed(items) { index, item ->
+                    val alpha by remember {
+                        derivedStateOf {
+                            val layoutInfo = listState.layoutInfo
+                            val viewportStart = layoutInfo.viewportStartOffset
+                            val viewportEnd = layoutInfo.viewportEndOffset
+                            val viewportHeight = (viewportEnd - viewportStart).toFloat()
+
+                            val center = viewportStart + viewportHeight / 2f
+                            val itemInfo = layoutInfo.visibleItemsInfo.find { it.index == index }
+
+                            if (itemInfo != null && viewportHeight > 0) {
+                                val itemCenter = itemInfo.offset + itemInfo.size / 2f
+                                val dist = abs(itemCenter - center)
+                                (1f - (dist / (viewportHeight / 2f))).coerceIn(0.2f, 1f)
+                            } else 0.2f
+                        }
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(itemHeight)
+                            .clickable {
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(index)
+                                }
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = item,
+                            modifier = Modifier.alpha(alpha),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            textAlign = TextAlign.Center,
+                            style = MaterialTheme.typography.bodyLarge,
+                            lineHeight = itemHeight.value.sp
+                        )
+                    }
+                }
+            }
         }
 
-        Spacer(Modifier.padding(4.dp))
+        Spacer(Modifier.width(4.dp))
 
-        Box(
-            modifier = Modifier.height(itemHeight * 5)
-        ) {
-            Text(
-                text = text,
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium
+        )
     }
 }
-
 
 @Composable
 fun CustomDatePicker(
@@ -304,11 +302,8 @@ fun CustomDatePicker(
     onDateSelected: (LocalDate) -> Unit,
 ) {
     val today = LocalDate.now()
-    val startDate = if (today.dayOfWeek == DayOfWeek.SUNDAY) {
-        today
-    } else {
-        today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
-    }
+    val startDate = if (today.dayOfWeek == DayOfWeek.SUNDAY) today
+    else today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
     val endDate = today.plusWeeks(2).with(DayOfWeek.SATURDAY)
     val days = (0L..ChronoUnit.DAYS.between(startDate, endDate)).map { startDate.plusDays(it) }
 
@@ -327,22 +322,17 @@ fun CustomDatePicker(
                 Icon(
                     imageVector = Icons.Filled.DateRange,
                     contentDescription = null,
-                    modifier = Modifier
-                        .padding(end = 8.dp)
-                        .size(15.dp),
+                    modifier = Modifier.padding(end = 8.dp).size(15.dp),
                     tint = MaterialTheme.colorScheme.grayBB
                 )
                 Text(
-                    stringResource(
-                        R.string.date_label,
-                        selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
-                    ),
+                    stringResource(R.string.date_label, selectedDate.format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))),
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
 
-        Spacer(Modifier.padding(8.dp))
+        Spacer(Modifier.height(16.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             DayType.entries.forEach { dayType ->
@@ -360,7 +350,7 @@ fun CustomDatePicker(
             }
         }
 
-        Spacer(Modifier.padding(8.dp))
+        Spacer(Modifier.height(8.dp))
 
         days.chunked(7).forEach { week ->
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -371,7 +361,7 @@ fun CustomDatePicker(
 
                     val bgColor = when {
                         isSelected -> MaterialTheme.colorScheme.primary
-                        isDisabled -> MaterialTheme.colorScheme.grayBB
+                        isDisabled -> MaterialTheme.colorScheme.grayBB.copy(alpha = 0.2f)
                         else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                     }
 
@@ -383,8 +373,6 @@ fun CustomDatePicker(
                         else -> MaterialTheme.colorScheme.onSurface
                     }
 
-                    val dot = day == today
-
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -394,30 +382,18 @@ fun CustomDatePicker(
                             .clickable(enabled = !isDisabled) { onDateSelected(day) },
                         contentAlignment = Alignment.Center
                     ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center,
-                            modifier = Modifier.padding(vertical = 2.dp)
-                        ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = day.dayOfMonth.toString(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = textColor,
-                                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                             )
-                            if (dot) {
-                                Spacer(modifier = Modifier.padding(2.dp))
+                            if (day == today) {
+                                Spacer(modifier = Modifier.height(2.dp))
                                 Box(
-                                    modifier = Modifier
-                                        .size(4.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            if (isSelected) {
-                                                MaterialTheme.colorScheme.onPrimary
-                                            } else {
-                                                MaterialTheme.colorScheme.primary
-                                            }
-                                        )
+                                    modifier = Modifier.size(4.dp).clip(CircleShape)
+                                        .background(if (isSelected) Color.White else MaterialTheme.colorScheme.primary)
                                 )
                             }
                         }
@@ -429,19 +405,12 @@ fun CustomDatePicker(
     }
 }
 
-
 @Composable
 @Preview
 private fun Preview() {
     Theme {
         Box(Modifier.background(MaterialTheme.colorScheme.surface)) {
-            var time by remember {
-                mutableStateOf(
-                    Date.from(
-                        Instant.now().plus(1, ChronoUnit.DAYS)
-                    )
-                )
-            }
+            var time by remember { mutableStateOf(Date.from(Instant.now().plus(1, ChronoUnit.DAYS))) }
             TaxiDepartureTimePicker(
                 departureTime = time,
                 onDepartureTimeChange = { time = it }

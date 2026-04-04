@@ -16,13 +16,13 @@ class PreviewFeedViewModel(
     override var isAlertPresented: Boolean = false
     override var isLoadingMore: Boolean = false
 
-    override suspend fun fetchInitialData() {}
+    override fun fetchInitialData() {}
     override suspend fun loadNextPage() {}
-    override suspend fun deletePost(postID: String) {}
-    override suspend fun upVote(postId: String) {}
-    override suspend fun downVote(postId: String) {}
+    override suspend fun deletePost(postID: String): Boolean { return false }
+    override fun upVote(postId: String) {}
+    override fun downVote(postId: String) {}
 
     override fun openSettingsTapped() {}
-    override suspend fun refreshFeed() {}
+    override fun refreshFeed() {}
     override fun writeFeedButtonTapped() {}
 }

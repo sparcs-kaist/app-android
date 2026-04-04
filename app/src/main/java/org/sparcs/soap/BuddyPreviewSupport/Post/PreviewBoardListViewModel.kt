@@ -15,7 +15,7 @@ class PreviewBoardListViewModel(
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<BoardListViewModel.ViewState> = _state.asStateFlow()
 
-    override suspend fun fetchBoards() { }
+    override fun fetchBoards() { }
 
     companion object {
         fun loadedState(): BoardListViewModel.ViewState {

@@ -27,7 +27,7 @@ class PreviewTaxiChatListViewModel(
     override val state: StateFlow<TaxiChatListViewModel.ViewState> = _state.asStateFlow()
 
     // MARK: - Functions
-    override suspend fun fetchData() {
+    override fun fetchData() {
         _state.value =
             TaxiChatListViewModel.ViewState.Loaded(TaxiRoom.mockList(), TaxiRoom.mockList())
     }

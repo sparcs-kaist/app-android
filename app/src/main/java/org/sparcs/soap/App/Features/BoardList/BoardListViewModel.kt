@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 interface BoardListViewModelProtocol {
     val state: StateFlow<BoardListViewModel.ViewState>
-    suspend fun fetchBoards()
+    fun fetchBoards()
 }
 
 @HiltViewModel
@@ -37,7 +37,7 @@ class BoardListViewModel @Inject constructor(
     private var groups: List<AraBoardGroup> = emptyList()
         private set
 
-    override suspend fun fetchBoards() {
+    override fun fetchBoards() {
         viewModelScope.launch {
             try {
                 val fetchedBoards = araBoardUseCase.fetchBoards()

@@ -1,4 +1,5 @@
 package org.sparcs.soap.App.Features.PostCompose
+
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -79,6 +80,7 @@ import org.sparcs.soap.App.Features.PostCompose.Components.TopicSelector
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostComposeViewModel
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
@@ -86,7 +88,7 @@ import org.sparcs.soap.R
 @Composable
 fun PostComposeView(
     viewModel: PostComposeViewModelProtocol = hiltViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
@@ -96,7 +98,8 @@ fun PostComposeView(
 
     var isUploading by remember { mutableStateOf(false) }
 
-    val isDoneEnabled = viewModel.title.isNotBlank() && viewModel.content.isNotBlank() && !isUploading
+    val isDoneEnabled =
+        viewModel.title.isNotBlank() && viewModel.content.isNotBlank() && !isUploading
 
     val context = LocalContext.current
 
@@ -133,17 +136,18 @@ fun PostComposeView(
                 onDoneClick = {
                     coroutineScope.launch {
                         isUploading = true
-                        try {
-                            viewModel.writePost()
-                        } finally {
-                            isUploading = false
+
+                        val isSuccess = viewModel.writePost()
+                        isUploading = false
+
+                        if (isSuccess) {
                             navController.previousBackStackEntry
                                 ?.savedStateHandle
                                 ?.set("listNeedsRefresh", true)
                             navController.popBackStack()
                         }
                     }
-                              },
+                },
                 isUploading = isUploading
             )
         },
@@ -153,10 +157,12 @@ fun PostComposeView(
                     .fillMaxWidth()
                     .padding(end = 8.dp),
                 contentAlignment = Alignment.CenterEnd
-            ){
+            ) {
                 PostOptionsRow(
                     writeAsAnonymous = viewModel.writeAsAnonymous,
-                    onAnonymousChange = { viewModel.writeAsAnonymous = !viewModel.writeAsAnonymous },
+                    onAnonymousChange = {
+                        viewModel.writeAsAnonymous = !viewModel.writeAsAnonymous
+                    },
                     isNSFW = viewModel.isNSFW,
                     onNSFWChange = { viewModel.isNSFW = !viewModel.isNSFW },
                     isPolitical = viewModel.isPolitical,
@@ -186,7 +192,7 @@ fun PostComposeView(
                 onValueChange = {
                     titleField = it
                     viewModel.title = it.text
-                                },
+                },
                 singleLine = true,
                 textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
@@ -248,7 +254,7 @@ fun PostComposeView(
 
                 Spacer(Modifier.padding(4.dp))
 
-                if(viewModel.selectedImages.isNotEmpty()){
+                if (viewModel.selectedImages.isNotEmpty()) {
                     LazyRow(
                         contentPadding = PaddingValues(vertical = 8.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -295,6 +301,12 @@ fun PostComposeView(
         launcher.launch("image/*")
         showPhotosPicker = false
     }
+
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        onDismiss = { viewModel.isAlertPresented = false },
+        state = viewModel.alertState
+    )
 }
 
 @Composable
@@ -306,7 +318,7 @@ fun PostOptionsRow(
     isPolitical: Boolean,
     onPoliticalChange: () -> Unit,
     isUploading: Boolean,
-    onPhotoButton: () -> Unit
+    onPhotoButton: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -391,14 +403,14 @@ fun PostOptionsRow(
 }
 
 @Composable
-fun TermsOfUseButton(){
+fun TermsOfUseButton() {
     val context = LocalContext.current
     TextButton(
         onClick = {
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.termsOfUseURL))
             context.startActivity(intent)
         }
-    ){
+    ) {
         Text(
             text = stringResource(R.string.terms_of_use),
             style = MaterialTheme.typography.bodySmall,
@@ -412,5 +424,5 @@ fun TermsOfUseButton(){
 @Composable
 @Preview
 fun PostComposeViewPreview() {
-    Theme { PostComposeView( MockPostComposeViewModel(), rememberNavController()) }
+    Theme { PostComposeView(MockPostComposeViewModel(), rememberNavController()) }
 }

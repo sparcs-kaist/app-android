@@ -31,7 +31,7 @@ import org.sparcs.soap.R
 fun <T : Any> SearchContent(
     results: List<T>,
     loadMoreThreshold: Double = 0.8,
-    onLoadMore: (suspend () -> Unit)? = null,
+    onLoadMore: ( () -> Unit)? = null,
     cell: @Composable (T) -> Unit,
 ) {
     var isLoadingMore by remember { mutableStateOf(false) }

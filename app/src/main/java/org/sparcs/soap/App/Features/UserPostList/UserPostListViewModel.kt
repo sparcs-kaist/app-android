@@ -38,7 +38,7 @@ interface UserPostListViewModelProtocol {
 
     fun onSearchTextChange(text: String)
 
-    suspend fun fetchInitialPosts()
+    fun fetchInitialPosts()
     suspend fun loadNextPage()
     fun refreshItem(postID: Int)
     fun removePost(postID: Int)
@@ -94,23 +94,25 @@ class UserPostListViewModel @Inject constructor(
         _searchKeyword.value = text
     }
 
-    override suspend fun fetchInitialPosts() {
+    override fun fetchInitialPosts() {
         val userID = user.id.toDoubleOrNull()?.toInt() ?: return
         _state.value = ViewState.Loading
-        try {
-            val page = araBoardUseCase.fetchPosts(
-                type = PostListType.User(userID),
-                page = 1,
-                pageSize = pageSize,
-                searchKeyword = _searchKeyword.value.ifBlank { null }
-            )
-            totalPages = page.pages
-            currentPage = page.currentPage
-            _posts.value = page.results
-            hasMorePages = currentPage < totalPages
-            _state.value = ViewState.Loaded(page.results)
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e)
+        viewModelScope.launch {
+            try {
+                val page = araBoardUseCase.fetchPosts(
+                    type = PostListType.User(userID),
+                    page = 1,
+                    pageSize = pageSize,
+                    searchKeyword = _searchKeyword.value.ifBlank { null }
+                )
+                totalPages = page.pages
+                currentPage = page.currentPage
+                _posts.value = page.results
+                hasMorePages = currentPage < totalPages
+                _state.value = ViewState.Loaded(page.results)
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e)
+            }
         }
     }
 

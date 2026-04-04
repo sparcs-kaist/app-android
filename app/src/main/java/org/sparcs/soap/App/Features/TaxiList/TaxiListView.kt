@@ -224,9 +224,7 @@ fun TaxiListView(
                             icon = Icons.Default.Warning,
                             error = (uiState as TaxiListViewModel.ViewState.Error).error,
                             onRetry = {
-                                coroutineScope.launch {
-                                    viewModel.fetchData()
-                                }
+                                viewModel.fetchData()
                             }
                         )
                     }
@@ -264,8 +262,9 @@ fun TaxiListView(
                         selectedRoom = null
                         coroutineScope.launch {
                             sheetState.hide()
-                            viewModel.fetchData()
                         }
+                        viewModel.fetchData()
+
                     },
                     navController = navController
                 )
@@ -438,7 +437,7 @@ private fun EmptyView(navController: NavController) {
 private fun EmptyResultView(
     description: String,
     navController: NavController,
-    onClear: () -> Unit
+    onClear: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -499,7 +498,7 @@ private fun EmptyResultView(
 private fun getTaxiFilterDescription(
     sourceTitle: LocalizedString?,
     destinationTitle: LocalizedString?,
-    selectedDate: Date?
+    selectedDate: Date?,
 ): String {
     val daySymbol = selectedDate?.weekdaySymbol()
     val src = sourceTitle?.toString()
@@ -578,5 +577,9 @@ private fun TaxiListScreenErrorPreview() {
 @Composable
 private fun MockTaxiListScreen(state: TaxiListViewModel.ViewState) {
     val mockViewModel = remember { PreviewTaxiListViewModel(initialState = state) }
-    TaxiListView(viewModel = mockViewModel, taxiPreviewViewModel = PreviewTaxiPreviewViewModel(), navController = rememberNavController())
+    TaxiListView(
+        viewModel = mockViewModel,
+        taxiPreviewViewModel = PreviewTaxiPreviewViewModel(),
+        navController = rememberNavController()
+    )
 }

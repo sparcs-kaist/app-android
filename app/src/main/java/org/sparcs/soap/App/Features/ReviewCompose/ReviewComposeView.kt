@@ -117,13 +117,21 @@ fun ReviewComposeView(
                 navController = navController,
                 onDoneClick = {
                     scope.launch {
-                        val updatedReview = viewModel.submitReview(contentField.text, grade, load, speech)
-                        if (viewModel.alertState == null) {
-                            if (updatedReview != null) {
-                                lectureDetailViewModel.updateWrittenReview(updatedReview)
+                        val isSuccess = viewModel.submitReview(
+                            content = contentField.text,
+                            grade = grade,
+                            load = load,
+                            speech = speech
+                        )
+
+                        if (isSuccess) {
+                            val review = viewModel.writtenReview.value
+                            if (review != null) {
+                                lectureDetailViewModel.updateWrittenReview(review)
                             } else {
                                 lectureDetailViewModel.fetchReviews(lecture = viewModel.lecture)
                             }
+
                             navController.popBackStack()
                         }
                     }

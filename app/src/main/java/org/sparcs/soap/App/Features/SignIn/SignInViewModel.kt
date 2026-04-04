@@ -5,17 +5,24 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
+import org.sparcs.soap.R
 import javax.inject.Inject
 
 interface SignInViewModelProtocol {
     var isLoading: Boolean
-    suspend fun signIn(activity: Activity)
+
+    val alertState: AlertState?
+    var isAlertPresented: Boolean
+
+    fun signIn(activity: Activity)
 }
 
 @HiltViewModel
@@ -26,15 +33,24 @@ class SignInViewModel @Inject constructor(
 
     override var isLoading by mutableStateOf(false)
 
-    override suspend fun signIn(activity: Activity) {
-        isLoading = true
-        try {
-            authUseCase.signIn(activity)
-            withContext(Dispatchers.IO + NonCancellable) {
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
+
+    override fun signIn(activity: Activity) {
+        viewModelScope.launch {
+            isLoading = true
+            try {
+                authUseCase.signIn(activity)
                 userUseCase.fetchUsers()
+            } catch (e: Exception) {
+                val authError = e as? AuthUseCaseError
+                alertState = e.toAlertState(
+                    authError?.messageRes ?: R.string.unexpected_error
+                )
+                isAlertPresented = true
+            } finally {
+                isLoading = false
             }
-        } finally {
-            isLoading = false
         }
     }
 }

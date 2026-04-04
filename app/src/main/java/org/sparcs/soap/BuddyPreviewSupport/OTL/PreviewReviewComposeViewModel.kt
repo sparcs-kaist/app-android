@@ -22,9 +22,9 @@ class PreviewReviewComposeViewModel(
     override var isAlertPresented: Boolean = false
     override var isUploading: Boolean = false
 
-    override suspend fun submitReview(content: String, grade: Int, load: Int, speech: Int): LectureReview? {
+    override suspend fun submitReview(content: String, grade: Int, load: Int, speech: Int): Boolean {
         isUploading = true
-        return LectureReview.mock()
+        return true
     }
 
     override fun handleException(error: Throwable) {}

@@ -36,7 +36,7 @@ class PreviewUserPostListViewModel(
         _searchKeyword.value = text
     }
 
-    override suspend fun fetchInitialPosts() { }
+    override fun fetchInitialPosts() { }
     override suspend fun loadNextPage() { }
 
     override fun refreshItem(postID: Int) { }

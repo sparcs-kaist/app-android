@@ -54,8 +54,8 @@ class PreviewTaxiChatViewModel(
     override suspend fun setup() {}
     override suspend fun loadMoreChats() {}
     override suspend fun fetchInitialChats() {}
-    override suspend fun sendChat(message: String, type: TaxiChat.ChatType) {}
-    override suspend fun leaveRoom() {}
+    override fun sendChat(message: String, type: TaxiChat.ChatType) {}
+    override suspend fun leaveRoom(): Boolean { return false }
     override suspend fun commitSettlement() {}
     override suspend fun commitPayment() {}
     override suspend fun sendImage(image: Bitmap) {}
@@ -63,8 +63,8 @@ class PreviewTaxiChatViewModel(
         _room.value = newRoom
     }
 
-    override suspend fun toggleCarrier(hasCarrier: Boolean) {}
-    override suspend fun updateArrival(isArrived: Boolean) {}
+    override fun toggleCarrier(hasCarrier: Boolean) {}
+    override fun updateArrival(isArrived: Boolean) {}
 
     companion object {
         private val mockRenderItems: List<ChatRenderItem> by lazy {

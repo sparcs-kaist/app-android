@@ -32,7 +32,7 @@ class MockSearchViewModel(initialState: SearchViewModel.ViewState) : SearchViewM
 
     override suspend fun bind() {}
     override suspend fun fetchInitialData() {}
-    override suspend fun loadAraNextPage() {}
+    override fun loadAraNextPage() {}
     override fun loadFull() {}
     override suspend fun scopedFetch() {}
     override fun onSearchTextChange(text: String) {}

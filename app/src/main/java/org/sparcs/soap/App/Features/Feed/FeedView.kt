@@ -52,7 +52,7 @@ fun FeedView(
     viewModel: FeedViewModelProtocol = hiltViewModel(),
     navController: NavController,
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     val state by viewModel.state.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
     val loadedInitialPost = rememberSaveable { mutableStateOf(false) }
@@ -123,7 +123,7 @@ fun FeedView(
             isRefreshing = isRefreshing,
             onRefresh = {
                 isRefreshing = true
-                coroutineScope.launch {
+                scope.launch {
                     viewModel.refreshFeed()
                     delay(500)
                     isRefreshing = false
@@ -153,7 +153,7 @@ fun FeedView(
                                 viewModel = viewModel,
                                 singleLine = true,
                                 onPostDeleted = { postID ->
-                                    coroutineScope.launch { viewModel.deletePost(postID) }
+                                   scope.launch { viewModel.deletePost(postID) }
                                 },
                                 onComment = {
                                     navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
@@ -169,9 +169,7 @@ fun FeedView(
                         icon = Icons.Default.Warning,
                         error = (state as FeedViewModel.ViewState.Error).error,
                         onRetry = {
-                            coroutineScope.launch {
-                                viewModel.fetchInitialData()
-                            }
+                            scope.launch { viewModel.fetchInitialData() }
                         },
                     )
                 }

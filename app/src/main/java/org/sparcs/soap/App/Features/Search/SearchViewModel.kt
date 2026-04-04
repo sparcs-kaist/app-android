@@ -4,14 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Ara.PostListType
@@ -37,7 +35,7 @@ interface SearchViewModelProtocol {
 
     suspend fun bind()
     suspend fun fetchInitialData()
-    suspend fun loadAraNextPage()
+    fun loadAraNextPage()
     fun loadFull()
     suspend fun scopedFetch()
     fun onSearchTextChange(text: String)
@@ -52,14 +50,7 @@ class SearchViewModel @Inject constructor(
     private val courseUseCase: CourseUseCaseProtocol,
 ) : ViewModel(), SearchViewModelProtocol {
 
-    // MARK: - Properties
-    sealed class ViewState {
-        data object Loading : ViewState()
-        data object Loaded : ViewState()
-        data class Error(val error: Exception) : ViewState()
-    }
-
-    private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
+    private val _state = MutableStateFlow<ViewState>(ViewState.Loaded)
     override val state: StateFlow<ViewState> = _state
 
     private val _courses = MutableStateFlow<List<CourseSummary>>(emptyList())
@@ -77,126 +68,135 @@ class SearchViewModel @Inject constructor(
     private val _searchScope = MutableStateFlow(SearchScope.All)
     override val searchScope: StateFlow<SearchScope> = _searchScope
 
-    private val searchKeywordFlow = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    private var araPagination = PaginationInfo()
 
-    // Infinite scroll vars
-    private var isLoadingMore = false
-    private var hasMorePages = true
-    private var currentPage = 1
-    private var totalPages = 0
-    private var pageSize = 30
+    sealed class ViewState {
+        data object Loading : ViewState()
+        data object Loaded : ViewState()
+        data class Error(val error: Exception) : ViewState()
+    }
+
+    data class PaginationInfo(
+        var currentPage: Int = 1,
+        var totalPages: Int = 0,
+        var isLoading: Boolean = false,
+    ) {
+        val hasMore: Boolean get() = currentPage < totalPages
+    }
+
+    init {
+        setupSearchSubscription()
+    }
+
+    @OptIn(FlowPreview::class)
+    private fun setupSearchSubscription() {
+        _searchText
+            .debounce(350)
+            .filter { it.isNotBlank() }
+            .distinctUntilChanged()
+            .onEach { performSearch(it) }
+            .launchIn(viewModelScope)
+    }
+
+    private suspend fun performSearch(keyword: String) {
+        _state.value = ViewState.Loading
+        resetSearchState()
+
+        try {
+            val jobs = listOf(
+                viewModelScope.launch { searchAra(keyword) },
+                viewModelScope.launch { searchTaxi(keyword) },
+                viewModelScope.launch { searchCourses(keyword) }
+            )
+            jobs.forEach { it.join() }
+            _state.value = ViewState.Loaded
+        } catch (e: Exception) {
+            _state.value = ViewState.Error(e)
+        }
+    }
+
+    private suspend fun searchAra(keyword: String, page: Int = 1) {
+        val postPage = araBoardUseCase.fetchPosts(
+            type = PostListType.All,
+            page = page,
+            pageSize = 30,
+            searchKeyword = keyword
+        )
+        araPagination = araPagination.copy(
+            currentPage = postPage.currentPage,
+            totalPages = postPage.pages
+        )
+
+        if (page == 1) {
+            _posts.value = postPage.results
+        } else {
+            _posts.value += postPage.results
+        }
+    }
+
+    private suspend fun searchTaxi(keyword: String) {
+        val allRooms = taxiRoomRepository.fetchRooms()
+        val matchedLocations = taxiLocationUseCase.queryLocation(keyword)
+        val searchKeyword = keyword.lowercase().trim()
+
+        _taxiRooms.value = allRooms.filter { room ->
+            val matchesLocation =
+                matchedLocations.any { it.id == room.source.id || it.id == room.destination.id }
+            val matchesTitle = room.title.lowercase().contains(searchKeyword)
+            matchesLocation || matchesTitle
+        }.distinctBy { it.id }
+    }
+
+    private suspend fun searchCourses(keyword: String) {
+        _courses.value = courseUseCase.searchCourse(
+            CourseSearchRequest(keyword = keyword, offset = 0, limit = 150)
+        )
+    }
 
     override fun onSearchTextChange(text: String) {
         _searchText.value = text
-        viewModelScope.launch {
-            if (text.isNotBlank()) scopedFetch()
-        }
     }
 
     override fun onScopeChange(scope: SearchScope) {
         _searchScope.value = scope
-        searchKeywordFlow.tryEmit(searchText.value)
+
+        val currentSearchText = _searchText.value
+        if (currentSearchText.isBlank()) return
+
+        viewModelScope.launch {
+            performSearch(currentSearchText)
+        }
     }
 
-    @OptIn(FlowPreview::class)
+    override fun loadAraNextPage() {
+        if (araPagination.isLoading || !araPagination.hasMore) return
+
+        viewModelScope.launch {
+            araPagination.isLoading = true
+            try {
+                searchAra(_searchText.value, araPagination.currentPage + 1)
+            } finally {
+                araPagination.isLoading = false
+            }
+        }
+    }
+
+    private fun resetSearchState() {
+        _courses.value = emptyList()
+        _posts.value = emptyList()
+        _taxiRooms.value = emptyList()
+        araPagination = PaginationInfo()
+    }
+
     override suspend fun bind() {
-        searchKeywordFlow
-            .map { it.trim() }
-            .distinctUntilChanged()
-            .onEach { text ->
-                if (text.isNotEmpty()) _state.value = ViewState.Loading
-            }
-            .debounce(350)
-            .filter { it.isNotEmpty() }
-            .onEach {
-                _courses.value = emptyList()
-                _posts.value = emptyList()
-                _taxiRooms.value = emptyList()
-                scopedFetch()
-            }
-            .launchIn(viewModelScope)
+        val currentText = _searchText.value
+        if (currentText.isNotBlank()) {
+            performSearch(currentText)
+        }
     }
 
     override suspend fun fetchInitialData() {
-        _state.value = ViewState.Loading
-
-        try {
-            val keyword = searchText.value
-
-            val postPage = araBoardUseCase.fetchPosts(
-                type = PostListType.All,
-                page = 1,
-                pageSize = pageSize,
-                searchKeyword = keyword
-            )
-
-            totalPages = postPage.pages
-            currentPage = postPage.currentPage
-            _posts.value = postPage.results
-            hasMorePages = currentPage < totalPages
-
-            val fetchedRooms = taxiRoomRepository.fetchRooms()
-
-            taxiLocationUseCase.fetchLocations()
-            val matchedLocations = taxiLocationUseCase.queryLocation(keyword)
-
-            val added = mutableSetOf<TaxiRoom>()
-            val matchedRooms = mutableListOf<TaxiRoom>()
-
-            fetchedRooms.forEach { room ->
-                matchedLocations.forEach { location ->
-                    if ((room.source.id == location.id || room.destination.id == location.id) && added.add(
-                            room
-                        )
-                    ) {
-                        matchedRooms.add(room)
-                    }
-                }
-                if (room.title.lowercase()
-                        .contains(keyword.lowercase().trim()) && added.add(room)
-                ) {
-                    matchedRooms.add(room)
-                }
-            }
-
-            _taxiRooms.value = matchedRooms
-
-            _courses.value = courseUseCase.searchCourse(
-                CourseSearchRequest(
-                    keyword = keyword,
-                    offset = 0,
-                    limit = 150
-                )
-            )
-            _state.value = ViewState.Loaded
-
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e)
-        }
-    }
-
-    override suspend fun loadAraNextPage() {
-        if (isLoadingMore || !hasMorePages) return
-        isLoadingMore = true
-
-        try {
-            val nextPage = currentPage + 1
-            val page = araBoardUseCase.fetchPosts(
-                type = PostListType.All,
-                page = nextPage,
-                pageSize = pageSize,
-                searchKeyword = searchText.value
-            )
-            currentPage = page.currentPage
-            _posts.value += page.results
-            hasMorePages = currentPage < totalPages
-            isLoadingMore = false
-            _state.value = ViewState.Loaded
-
-        } catch (e: Exception) {
-            _state.value = ViewState.Error(e)
-            isLoadingMore = false
-        }
+        performSearch(_searchText.value)
     }
 
     override fun loadFull() {
@@ -204,9 +204,6 @@ class SearchViewModel @Inject constructor(
     }
 
     override suspend fun scopedFetch() {
-        fetchInitialData()
-        if (searchScope.value != SearchScope.All) {
-            loadFull()
-        }
+        performSearch(_searchText.value)
     }
 }

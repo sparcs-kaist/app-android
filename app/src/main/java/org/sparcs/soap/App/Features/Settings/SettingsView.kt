@@ -35,7 +35,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,6 +63,7 @@ import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBa
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.toggle
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSettingsViewModel
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuildConfig
@@ -76,7 +76,6 @@ fun SettingsView(
     settingsViewModel: SettingsViewModelProtocol = hiltViewModel(),
 ) {
     val context = LocalContext.current
-    var showLogoutError by remember { mutableStateOf(false) }
     val isPreview = LocalInspectionMode.current
     val haptic = LocalHapticFeedback.current
 
@@ -194,14 +193,9 @@ fun SettingsView(
                     modifier = Modifier.padding(8.dp)
                 )
                 SignOutButton {
-                    try {
                         settingsViewModel.signOut()
-                    } catch (e: Exception) {
-                        showLogoutError = true
-                    } finally {
-                        navController.navigate(Channel.SignOut.name)
                     }
-                }
+
             }
         }
         if (BuildConfig.DEBUG) {
@@ -224,19 +218,11 @@ fun SettingsView(
         }
     }
 
-    if (showLogoutError) {
-        AlertDialog(
-            onDismissRequest = { showLogoutError = false },
-            confirmButton = {
-                TextButton(onClick = { showLogoutError = false }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            title = { Text(stringResource(R.string.error)) },
-            text = {
-                Text(stringResource(R.string.unexpected_error_signing_out))
-            }
-        )
+    GlobalAlertDialog(
+        state = settingsViewModel.alertState,
+        isPresented = settingsViewModel.isAlertPresented,
+    ) {
+        settingsViewModel.isAlertPresented = false
     }
 }
 

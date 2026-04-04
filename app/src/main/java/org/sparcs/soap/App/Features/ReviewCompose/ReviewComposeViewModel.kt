@@ -34,7 +34,7 @@ interface ReviewComposeViewModelProtocol {
         grade: Int,
         load: Int,
         speech: Int,
-    ): LectureReview?
+    ): Boolean
 
     fun handleException(error: Throwable)
 }
@@ -70,8 +70,8 @@ class ReviewComposeViewModel @Inject constructor(
         grade: Int,
         load: Int,
         speech: Int,
-    ): LectureReview? {
-        if (content.isBlank()) return null
+    ): Boolean {
+        if (content.isBlank()) return false
         isUploading = true
 
         return try {
@@ -83,17 +83,19 @@ class ReviewComposeViewModel @Inject constructor(
                 reviewUseCase.writeReview(lecture.id, content, grade, load, speech)
             }
 
-            currentReview?.copy(
+            _writtenReview.value = currentReview?.copy(
                 content = content,
                 grade = ratingToString(grade),
                 load = ratingToString(load),
                 speech = ratingToString(speech)
             )
+
+            true
         } catch (e: Exception) {
             handleException(e)
             this.alertState = e.toAlertState(R.string.unexpected_error_uploading_review)
             isAlertPresented = true
-            null
+            false
         } finally {
             isUploading = false
         }

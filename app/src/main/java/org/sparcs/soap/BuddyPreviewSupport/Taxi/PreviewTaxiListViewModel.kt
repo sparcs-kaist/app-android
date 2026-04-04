@@ -75,10 +75,10 @@ class PreviewTaxiListViewModel(
     override var alertState by mutableStateOf<AlertState?>(null)
     override var isAlertPresented by mutableStateOf(false)
 
-    override suspend fun fetchData() {}
+    override fun fetchData() {}
     override suspend fun createRoom(title: String): String? {
         return null
     }
 
-    override suspend fun toggleCarrier(roomID: String, hasCarrier: Boolean) {}
+    override fun toggleCarrier(roomID: String, hasCarrier: Boolean) {}
 }

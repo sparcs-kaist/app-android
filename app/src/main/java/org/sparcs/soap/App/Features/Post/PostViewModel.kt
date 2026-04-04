@@ -5,10 +5,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Ara.AraContentReportType
 import org.sparcs.soap.App.Domain.Enums.Ara.PostOrigin
 import org.sparcs.soap.App.Domain.Helpers.AlertState
@@ -32,21 +34,26 @@ interface PostViewModelProtocol {
     var alertState: AlertState?
     var isAlertPresented: Boolean
 
-    suspend fun fetchPost()
-    suspend fun upVote()
-    suspend fun downVote()
-    suspend fun report(type: AraContentReportType)
-    suspend fun summarisedContent(): String
-    suspend fun deletePost()
-    suspend fun toggleBookmark()
+    fun fetchPost()
+    fun upVote()
+    fun downVote()
+    fun report(type: AraContentReportType)
+    suspend fun deletePost(): Boolean
+    fun toggleBookmark()
 
-    suspend fun writeComment(content: String): AraPostComment
-    suspend fun writeThreadedComment(commentID: Int, content: String): AraPostComment
-    suspend fun editComment(commentID: Int, content: String): AraPostComment
-    suspend fun upVoteComment(comment: AraPostComment)
-    suspend fun downVoteComment(comment: AraPostComment)
-    suspend fun reportComment(commentID: Int, type: AraContentReportType)
-    suspend fun deleteComment(comment: AraPostComment)
+    suspend fun summarisedContent(): String
+
+    suspend fun writeComment(content: String): AraPostComment?
+    suspend fun writeThreadedComment(
+        commentID: Int,
+        content: String,
+    ): AraPostComment?
+    suspend fun editComment(commentID: Int, content: String): AraPostComment?
+
+    fun upVoteComment(comment: AraPostComment)
+    fun downVoteComment(comment: AraPostComment)
+    fun reportComment(commentID: Int, type: AraContentReportType)
+    fun deleteComment(comment: AraPostComment)
 }
 
 @HiltViewModel
@@ -97,158 +104,188 @@ class PostViewModel @Inject constructor(
     }
 
     // MARK: - Functions
-    override suspend fun fetchPost() {
+    override fun fetchPost() {
         val isFirstTime = _post.value == null // Case: Deep link entry (PostOrigin.All)
         val origin = if (isFirstTime) PostOrigin.All else PostOrigin.Board
 
         if (isFirstTime) _state.value = ViewState.Loading
 
-        try {
-            val fetchedPost = araBoardUseCase.fetchPost(origin = origin, postID = postId)
-            _post.value = fetchedPost
-            if (isFirstTime) _state.value = ViewState.Loaded
-        } catch (e: Exception) {
-            if (isFirstTime) _state.value = ViewState.Error(e)
-            alertState = e.toAlertState(R.string.unable_to_fetch_post)
-            isAlertPresented = true
+        viewModelScope.launch {
+            try {
+                val fetchedPost = araBoardUseCase.fetchPost(origin = origin, postID = postId)
+                _post.value = fetchedPost
+                if (isFirstTime) _state.value = ViewState.Loaded
+            } catch (e: Exception) {
+                if (isFirstTime) _state.value = ViewState.Error(e)
+                alertState = e.toAlertState(R.string.unable_to_fetch_post)
+                isAlertPresented = true
+            }
         }
     }
 
-    override suspend fun upVote() {
+    override fun upVote() {
         val currentPost = _post.value ?: return
         val previousMyVote = currentPost.myVote
         val previousUpVotes = currentPost.upVotes
         val previousDownVotes = currentPost.downVotes
 
-        try {
-            if (previousMyVote == true) {
-                // cancel upvote
-                val updatedComments = currentPost.comments.toList().toMutableList()
-                _post.value = currentPost.copy(
-                    myVote = null,
-                    upVotes = previousUpVotes - 1,
-                    comments = updatedComments
-                )
-                araBoardUseCase.cancelVote(currentPost.id)
-            } else {
-                // upvote
-                val newDownVotes =
-                    if (previousMyVote == false) previousDownVotes - 1 else previousDownVotes
-                val updatedComments = currentPost.comments.toList().toMutableList()
-                _post.value = currentPost.copy(
-                    myVote = true,
-                    upVotes = previousUpVotes + 1,
-                    downVotes = newDownVotes,
-                    comments = updatedComments
-                )
-                araBoardUseCase.upVotePost(currentPost.id)
-            }
-            analyticsService.logEvent(PostViewEvent.PostUpVoted)
-        } catch (e: Exception) {
-            val recoveryComments = currentPost.comments.toList().toMutableList()
-            _post.value = currentPost.copy(
-                myVote = previousMyVote,
-                upVotes = previousUpVotes,
-                downVotes = previousDownVotes,
-                comments = recoveryComments
-            )
-        }
-    }
-
-    override suspend fun downVote() {
-        val currentPost = _post.value ?: return
-        val previousMyVote = currentPost.myVote
-        val previousUpVotes = currentPost.upVotes
-        val previousDownVotes = currentPost.downVotes
-
-        try {
-            if (previousMyVote == false) {
-                // cancel downvote
-                val updatedComments = currentPost.comments.toList().toMutableList()
-                _post.value = currentPost.copy(
-                    myVote = null,
-                    downVotes = previousDownVotes - 1,
-                    comments = updatedComments
-                )
-                araBoardUseCase.cancelVote(currentPost.id)
-            } else {
-                // downvote
-                val newUpVotes =
-                    if (previousMyVote == true) previousUpVotes - 1 else previousUpVotes
-                val updatedComments = currentPost.comments.toList().toMutableList()
-                _post.value = currentPost.copy(
-                    myVote = false,
-                    downVotes = previousDownVotes + 1,
-                    upVotes = newUpVotes,
-                    comments = updatedComments
-                )
-                araBoardUseCase.downVotePost(currentPost.id)
-            }
-            analyticsService.logEvent(PostViewEvent.PostDownVoted)
-        } catch (e: Exception) {
-            val recoveryComments = currentPost.comments.toList().toMutableList()
-            _post.value = currentPost.copy(
-                myVote = previousMyVote,
-                upVotes = previousUpVotes,
-                downVotes = previousDownVotes,
-                comments = recoveryComments
-            )
-        }
-    }
-
-    override suspend fun writeComment(content: String): AraPostComment {
-        val current = _post.value ?: throw IllegalStateException("Post not loaded")
-        val comment = araCommentUseCase.writeComment(postID = current.id, content = content)
-        comment.isMine = true
-        current.comments.add(comment)
-        current.commentCount += 1
-        analyticsService.logEvent(PostViewEvent.CommentSubmitted)
-        return comment
-    }
-
-    override suspend fun writeThreadedComment(commentID: Int, content: String): AraPostComment {
-        val current = _post.value ?: throw IllegalStateException("Post not loaded")
-        val comment =
-            araCommentUseCase.writeThreadedComment(commentID = commentID, content = content)
-        comment.isMine = true
-
-        // insert threaded comments
-        val comments = current.comments.toMutableList()
-        insertThreadedComment(comments, comment)
-        current.comments = comments
-        current.commentCount += 1
-        analyticsService.logEvent(PostViewEvent.CommentSubmitted)
-        return comment
-    }
-
-    override suspend fun editComment(commentID: Int, content: String): AraPostComment {
-        val current = _post.value ?: throw IllegalStateException("Post not loaded")
-        val comment = araCommentUseCase.editComment(commentID = commentID, content = content)
-        comment.isMine = true
-
-        for (i in current.comments.indices) {
-            if (current.comments[i].id == commentID) {
-                current.comments[i].content = content
-                return current.comments[i]
-            }
-
-            // scan through threads
-            for (j in current.comments[i].comments.indices) {
-                if (current.comments[i].comments[j].id == commentID) {
-                    current.comments[i].comments[j].content = content
-                    return current.comments[i].comments[j]
+        viewModelScope.launch {
+            try {
+                if (previousMyVote == true) {
+                    // cancel upvote
+                    val updatedComments = currentPost.comments.toList().toMutableList()
+                    _post.value = currentPost.copy(
+                        myVote = null,
+                        upVotes = previousUpVotes - 1,
+                        comments = updatedComments
+                    )
+                    araBoardUseCase.cancelVote(currentPost.id)
+                } else {
+                    // upvote
+                    val newDownVotes =
+                        if (previousMyVote == false) previousDownVotes - 1 else previousDownVotes
+                    val updatedComments = currentPost.comments.toList().toMutableList()
+                    _post.value = currentPost.copy(
+                        myVote = true,
+                        upVotes = previousUpVotes + 1,
+                        downVotes = newDownVotes,
+                        comments = updatedComments
+                    )
+                    araBoardUseCase.upVotePost(currentPost.id)
                 }
+                analyticsService.logEvent(PostViewEvent.PostUpVoted)
+            } catch (e: Exception) {
+                val recoveryComments = currentPost.comments.toList().toMutableList()
+                _post.value = currentPost.copy(
+                    myVote = previousMyVote,
+                    upVotes = previousUpVotes,
+                    downVotes = previousDownVotes,
+                    comments = recoveryComments
+                )
             }
         }
-
-        return comment
     }
 
-    override suspend fun report(type: AraContentReportType) {
-        val current = _post.value ?: return
-        araBoardUseCase.reportPost(postID = current.id, type = type)
+    override fun downVote() {
+        val currentPost = _post.value ?: return
+        val previousMyVote = currentPost.myVote
+        val previousUpVotes = currentPost.upVotes
+        val previousDownVotes = currentPost.downVotes
 
-        analyticsService.logEvent(PostViewEvent.PostReported(type.name))
+        viewModelScope.launch {
+            try {
+                if (previousMyVote == false) {
+                    // cancel downvote
+                    val updatedComments = currentPost.comments.toList().toMutableList()
+                    _post.value = currentPost.copy(
+                        myVote = null,
+                        downVotes = previousDownVotes - 1,
+                        comments = updatedComments
+                    )
+                    araBoardUseCase.cancelVote(currentPost.id)
+                } else {
+                    // downvote
+                    val newUpVotes =
+                        if (previousMyVote == true) previousUpVotes - 1 else previousUpVotes
+                    val updatedComments = currentPost.comments.toList().toMutableList()
+                    _post.value = currentPost.copy(
+                        myVote = false,
+                        downVotes = previousDownVotes + 1,
+                        upVotes = newUpVotes,
+                        comments = updatedComments
+                    )
+                    araBoardUseCase.downVotePost(currentPost.id)
+                }
+                analyticsService.logEvent(PostViewEvent.PostDownVoted)
+            } catch (e: Exception) {
+                val recoveryComments = currentPost.comments.toList().toMutableList()
+                _post.value = currentPost.copy(
+                    myVote = previousMyVote,
+                    upVotes = previousUpVotes,
+                    downVotes = previousDownVotes,
+                    comments = recoveryComments
+                )
+            }
+        }
+    }
+
+    override suspend fun writeComment(content: String): AraPostComment? {
+        val current = _post.value ?: return null
+        return try {
+            val comment = araCommentUseCase.writeComment(postID = current.id, content = content)
+            comment.isMine = true
+
+            val updatedComments = current.comments.toMutableList().apply { add(comment) }
+            _post.value = current.copy(
+                comments = updatedComments,
+                commentCount = current.commentCount + 1
+            )
+            analyticsService.logEvent(PostViewEvent.CommentSubmitted)
+            comment
+        } catch (e: Exception) {
+            alertState = e.toAlertState(R.string.unexpected_error_uploading_comment)
+            isAlertPresented = true
+            null
+        }
+    }
+
+    override suspend fun writeThreadedComment(
+        commentID: Int,
+        content: String,
+    ): AraPostComment? {
+        val current = _post.value ?: return null
+        return try {
+            // insert threaded comments
+            val comment = araCommentUseCase.writeThreadedComment(commentID = commentID, content = content)
+            comment.isMine = true
+
+            val updatedComments = current.comments.toMutableList()
+            insertThreadedComment(updatedComments, comment)
+
+            _post.value = current.copy(
+                comments = updatedComments,
+                commentCount = current.commentCount + 1
+            )
+            analyticsService.logEvent(PostViewEvent.CommentSubmitted)
+            comment
+        } catch (e: Exception) {
+            alertState = e.toAlertState(R.string.unexpected_error_uploading_comment)
+            isAlertPresented = true
+            null
+        }
+    }
+
+    override suspend fun editComment(commentID: Int, content: String): AraPostComment? {
+        val current = _post.value ?: return null
+        try {
+            val editedComment =
+                araCommentUseCase.editComment(commentID = commentID, content = content)
+            editedComment.isMine = true
+
+            val updatedComments = updateCommentInList(current.comments, commentID) { target ->
+                target.copy(content = content)
+            }
+
+            _post.value = current.copy(comments = updatedComments.toMutableList())
+            return editedComment
+        } catch (e: Exception) {
+            alertState = e.toAlertState(R.string.unexpected_error_editing_comment)
+            isAlertPresented = true
+            return null
+        }
+    }
+
+    override fun report(type: AraContentReportType) {
+        val current = _post.value ?: return
+        viewModelScope.launch {
+            try {
+                araBoardUseCase.reportPost(postID = current.id, type = type)
+                analyticsService.logEvent(PostViewEvent.PostReported(type.name))
+            } catch (e: Exception) {
+                alertState = e.toAlertState(R.string.error_unable_to_submit_report)
+                isAlertPresented = true
+            }
+        }
     }
 
     override suspend fun summarisedContent(): String {
@@ -256,14 +293,19 @@ class PostViewModel @Inject constructor(
         return ""
     }
 
-    override suspend fun deletePost() {
-        val current = _post.value ?: return
-        araBoardUseCase.deletePost(postID = current.id)
-
-        analyticsService.logEvent(PostViewEvent.PostDeleted)
+    override suspend fun deletePost(): Boolean {
+        val current = _post.value ?: return false
+        return try {
+            araBoardUseCase.deletePost(postID = current.id)
+            true
+        } catch (e: Exception) {
+            alertState = e.toAlertState(R.string.unexpected_error_deleting_post)
+            isAlertPresented = true
+            false
+        }
     }
 
-    override suspend fun toggleBookmark() {
+    override fun toggleBookmark() {
         if (isToggling) return
         val current = _post.value ?: return
         val previous = current.myScrap
@@ -272,32 +314,34 @@ class PostViewModel @Inject constructor(
 
         _post.value = current.copy(myScrap = !previous)
 
-        try {
-            if (previous) {
-                val scrapId = originalScrapId ?: return
-                araBoardUseCase.removeBookmark(scrapId)
-                _post.value = _post.value?.copy(scrapID = null)
-            } else {
-                val newScrapId = araBoardUseCase.addBookmark(current.id)
-                _post.value = _post.value?.copy(scrapID = newScrapId)
-            }
+        viewModelScope.launch {
+            try {
+                if (previous) {
+                    val scrapId = originalScrapId ?: return@launch
+                    araBoardUseCase.removeBookmark(scrapId)
+                    _post.value = _post.value?.copy(scrapID = null)
+                } else {
+                    val newScrapId = araBoardUseCase.addBookmark(current.id)
+                    _post.value = _post.value?.copy(scrapID = newScrapId)
+                }
 
-            analyticsService.logEvent(
-                PostViewEvent.BookmarkToggled(_post.value?.myScrap ?: false),
-            )
-        } catch (e: Exception) {
-            Timber.e(e, "toggleBookmark error")
-            _post.value = current.copy(
-                myScrap = previous,
-                scrapID = originalScrapId
-            )
-        } finally {
-            isToggling = false
+                analyticsService.logEvent(
+                    PostViewEvent.BookmarkToggled(_post.value?.myScrap ?: false),
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "toggleBookmark error")
+                _post.value = current.copy(
+                    myScrap = previous,
+                    scrapID = originalScrapId
+                )
+            } finally {
+                isToggling = false
+            }
         }
     }
 
     // MARK: - Comment Operations
-    override suspend fun upVoteComment(comment: AraPostComment) {
+    override fun upVoteComment(comment: AraPostComment) {
         val currentPost = _post.value ?: return
         val previousMyVote = comment.myVote
         val previousUpVotes = comment.upVotes
@@ -314,19 +358,21 @@ class PostViewModel @Inject constructor(
         }
         _post.value = currentPost.copy(comments = updatedComments.toMutableList())
 
-        try {
-            if (previousMyVote == true) {
-                araCommentUseCase.cancelVote(comment.id)
-            } else {
-                araCommentUseCase.upVoteComment(comment.id)
+        viewModelScope.launch {
+            try {
+                if (previousMyVote == true) {
+                    araCommentUseCase.cancelVote(comment.id)
+                } else {
+                    araCommentUseCase.upVoteComment(comment.id)
+                }
+                analyticsService.logEvent(PostCommentCellEvent.CommentUpVoted)
+            } catch (e: Exception) {
+                _post.value = currentPost
             }
-            analyticsService.logEvent(PostCommentCellEvent.CommentUpVoted)
-        } catch (e: Exception) {
-            _post.value = currentPost
         }
     }
 
-    override suspend fun downVoteComment(comment: AraPostComment) {
+    override fun downVoteComment(comment: AraPostComment) {
         val currentPost = _post.value ?: return
         val previousMyVote = comment.myVote
         val previousUpVotes = comment.upVotes
@@ -343,28 +389,32 @@ class PostViewModel @Inject constructor(
         }
         _post.value = currentPost.copy(comments = updatedComments.toMutableList())
 
-        try {
-            if (previousMyVote == false) {
-                araCommentUseCase.cancelVote(comment.id)
-            } else {
-                araCommentUseCase.downVoteComment(comment.id)
+        viewModelScope.launch {
+            try {
+                if (previousMyVote == false) {
+                    araCommentUseCase.cancelVote(comment.id)
+                } else {
+                    araCommentUseCase.downVoteComment(comment.id)
+                }
+                analyticsService.logEvent(PostCommentCellEvent.CommentDownVoted)
+            } catch (e: Exception) {
+                _post.value = currentPost
             }
-            analyticsService.logEvent(PostCommentCellEvent.CommentDownVoted)
-        } catch (e: Exception) {
-            _post.value = currentPost
         }
     }
 
-    override suspend fun reportComment(commentID: Int, type: AraContentReportType) {
-        try {
-            araCommentUseCase.reportComment(commentID = commentID, type = type)
-            analyticsService.logEvent(PostCommentCellEvent.CommentReported(type.name))
-        } catch (e: Exception) {
-            Timber.e(e, "Error during report: ${e.message}")
+    override fun reportComment(commentID: Int, type: AraContentReportType) {
+        viewModelScope.launch {
+            try {
+                araCommentUseCase.reportComment(commentID = commentID, type = type)
+                analyticsService.logEvent(PostCommentCellEvent.CommentReported(type.name))
+            } catch (e: Exception) {
+                Timber.e(e, "Error during report: ${e.message}")
+            }
         }
     }
 
-    override suspend fun deleteComment(comment: AraPostComment) {
+    override fun deleteComment(comment: AraPostComment) {
         val currentPost = _post.value ?: return
 
         val updatedComments = updateCommentInList(currentPost.comments, comment.id) { target ->
@@ -372,12 +422,14 @@ class PostViewModel @Inject constructor(
         }
         _post.value = currentPost.copy(comments = updatedComments.toMutableList())
 
-        try {
-            araCommentUseCase.deleteComment(commentID = comment.id)
-            analyticsService.logEvent(PostCommentCellEvent.CommentDeleted)
-        } catch (e: Exception) {
-            Timber.e(e, "Error during delete: ${e.message}")
-            _post.value = currentPost
+        viewModelScope.launch {
+            try {
+                araCommentUseCase.deleteComment(commentID = comment.id)
+                analyticsService.logEvent(PostCommentCellEvent.CommentDeleted)
+            } catch (e: Exception) {
+                Timber.e(e, "Error during delete: ${e.message}")
+                _post.value = currentPost
+            }
         }
     }
 

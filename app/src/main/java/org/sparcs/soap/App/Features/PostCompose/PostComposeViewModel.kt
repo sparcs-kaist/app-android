@@ -19,12 +19,15 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Enums.Ara.AraPostNicknameType
+import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoardTopic
 import org.sparcs.soap.App.Domain.Models.Ara.AraCreatePost
 import org.sparcs.soap.App.Domain.Services.AnalyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Features.PostCompose.Event.PostComposeViewEvent
+import org.sparcs.soap.App.Shared.Extensions.toAlertState
+import org.sparcs.soap.R
 import javax.inject.Inject
 
 interface PostComposeViewModelProtocol {
@@ -39,7 +42,11 @@ interface PostComposeViewModelProtocol {
     var isNSFW: Boolean
     var isPolitical: Boolean
 
-    suspend fun writePost()
+    val alertState: AlertState?
+    var isAlertPresented: Boolean
+
+
+    suspend fun writePost(): Boolean
     suspend fun updateSelectedImages(context: Context)
     fun removeImage(index: Int)
 }
@@ -79,6 +86,9 @@ class PostComposeViewModel @Inject constructor(
     override var isNSFW: Boolean by mutableStateOf(false)
     override var isPolitical: Boolean by mutableStateOf(false)
 
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
+
     override suspend fun updateSelectedImages(context: Context) {
         val bitmaps = withContext(Dispatchers.IO) {
             selectedItems.mapNotNull { uri ->
@@ -93,7 +103,8 @@ class PostComposeViewModel @Inject constructor(
         selectedImages = bitmaps
     }
 
-    override suspend fun writePost() {
+    override suspend fun writePost(): Boolean {
+        return try {
         val attachments = selectedImages.map { bitmap ->
             viewModelScope.async { araBoardUseCase.uploadImage(bitmap) }
         }.awaitAll()
@@ -111,6 +122,12 @@ class PostComposeViewModel @Inject constructor(
 
         araBoardUseCase.writePost(request)
         analyticsService.logEvent(PostComposeViewEvent.PostSubmitted)
+            true
+        } catch (e: Exception) {
+            alertState = e.toAlertState(R.string.unexpected_error_uploading_post)
+            isAlertPresented = true
+            false
+        }
     }
 
     override fun removeImage(index: Int) {

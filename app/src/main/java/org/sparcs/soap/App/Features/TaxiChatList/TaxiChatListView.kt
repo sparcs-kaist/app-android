@@ -31,9 +31,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiChatList.Components.TaxiChatListViewNavigationBar
@@ -96,9 +93,7 @@ fun TaxiChatListView(
                     icon = Icons.Default.Warning,
                     error = error.error,
                     onRetry = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            viewModel.fetchData()
-                        }
+                        viewModel.fetchData()
                     }
                 )
             }
