@@ -80,6 +80,7 @@ import org.sparcs.soap.App.Features.PostCompose.Components.TopicSelector
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostComposeViewModel
+import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.R
@@ -137,7 +138,6 @@ fun PostComposeView(
                         isUploading = true
 
                         val isSuccess = viewModel.writePost()
-
                         isUploading = false
 
                         if (isSuccess) {
@@ -301,6 +301,12 @@ fun PostComposeView(
         launcher.launch("image/*")
         showPhotosPicker = false
     }
+
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        onDismiss = { viewModel.isAlertPresented = false },
+        state = viewModel.alertState
+    )
 }
 
 @Composable

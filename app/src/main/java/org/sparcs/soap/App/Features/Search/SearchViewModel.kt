@@ -159,7 +159,13 @@ class SearchViewModel @Inject constructor(
 
     override fun onScopeChange(scope: SearchScope) {
         _searchScope.value = scope
-        viewModelScope.launch { performSearch(_searchText.value) }
+
+        val currentSearchText = _searchText.value
+        if (currentSearchText.isBlank()) return
+
+        viewModelScope.launch {
+            performSearch(currentSearchText)
+        }
     }
 
     override fun loadAraNextPage() {
@@ -182,7 +188,13 @@ class SearchViewModel @Inject constructor(
         araPagination = PaginationInfo()
     }
 
-    override suspend fun bind() {}
+    override suspend fun bind() {
+        val currentText = _searchText.value
+        if (currentText.isNotBlank()) {
+            performSearch(currentText)
+        }
+    }
+
     override suspend fun fetchInitialData() {
         performSearch(_searchText.value)
     }

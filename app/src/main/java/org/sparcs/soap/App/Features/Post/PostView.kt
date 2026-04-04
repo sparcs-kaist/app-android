@@ -201,8 +201,7 @@ fun PostView(
                         try {
                             val isSuccess = when {
                                 commentOnEdit != null -> {
-                                    viewModel.editComment(commentOnEdit!!.id, comment)
-                                    true
+                                    viewModel.editComment(commentOnEdit!!.id, comment) != null
                                 }
 
                                 targetComment != null -> {
