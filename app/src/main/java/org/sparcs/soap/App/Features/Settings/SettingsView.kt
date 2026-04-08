@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
@@ -111,10 +112,10 @@ fun SettingsView(
                 AppSettings(context)
 
                 //TODO - 알림 기능
-//                ServiceNavButton(
-//                    text = stringResource(R.string.notifications_title),
-//                    icon = { Icon(Icons.Outlined.Notifications, null) }
-//                ) { navController.navigate(Channel.NotificationSettings.name) }
+                ServiceNavButton(
+                    text = stringResource(R.string.notifications_title),
+                    icon = { Icon(Icons.Outlined.Notifications, null) }
+                ) { navController.navigate(Channel.NotificationSettings.name) }
 
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)

@@ -17,6 +17,9 @@ data class RegisterDeviceRequestDTO(
 )
 
 data class ManageAlertRequestDTO(
+    @SerializedName("device_uuid")
+    val deviceUUID: String,
+
     @SerializedName("service")
     val service: Int,
 

@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
@@ -57,6 +59,7 @@ class AuthUseCase @Inject constructor(
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
     private val otlUserRepository: OTLUserRepositoryProtocol,
+    private val fcmUseCase: FCMUseCaseProtocol
 ) : AuthUseCaseProtocol {
 
     private val _isAuthenticated = MutableStateFlow(tokenStorage.getRefreshToken() != null)
@@ -219,6 +222,10 @@ class AuthUseCase @Inject constructor(
 
                 // MARK - Sign up OTL
                 otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+
+                val fcmToken = FirebaseMessaging.getInstance().token.await()
+                fcmUseCase.register(fcmToken)
+
                 _isAuthenticated.value = true
                 scheduleRefreshToken()
             }
