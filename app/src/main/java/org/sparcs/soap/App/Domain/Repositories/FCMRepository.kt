@@ -15,6 +15,7 @@ interface FCMRepositoryProtocol {
         language: String
     )
     suspend fun manage(
+        deviceUUID: String,
         service: FeatureType,
         isActive: Boolean
     )
@@ -44,10 +45,12 @@ class FCMRepository @Inject constructor(
     }
 
     override suspend fun manage(
+        deviceUUID: String,
         service: FeatureType,
         isActive: Boolean
     ) {
         val request = ManageAlertRequestDTO(
+            deviceUUID = deviceUUID,
             service = service.rawValue,
             isActive = isActive
         )
