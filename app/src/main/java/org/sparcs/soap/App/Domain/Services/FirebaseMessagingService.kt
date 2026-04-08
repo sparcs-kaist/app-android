@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Usecases.FCMUseCaseProtocol
 import org.sparcs.soap.R
 import timber.log.Timber
@@ -27,27 +28,40 @@ class FCMService : FirebaseMessagingService() {
     @Inject
     lateinit var fcmUseCase: FCMUseCaseProtocol
 
+    @Inject
+    lateinit var tokenStorage: TokenStorageProtocol
+
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
         serviceScope.launch {
-            try {
-                fcmUseCase.register(token)
-            } catch (e: Exception) {
-                Timber.e(e, "Registration failed")
+            if (tokenStorage.getRefreshToken() != null) {
+                try {
+                    fcmUseCase.register(token)
+                } catch (e: Exception) {
+                    Timber.e(e, "Registration failed")
+                }
             }
         }
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        // TODO: 알람 기능 도입 시 아래 코드 활성화
-        return
+//        // TODO: 알람 기능 도입 시 아래 코드 활성화
+//        return
         super.onMessageReceived(remoteMessage)
         try {
-            val title = remoteMessage.notification?.title ?: remoteMessage.data["title"]
+            var title = remoteMessage.notification?.title ?: remoteMessage.data["title"]
             val body = remoteMessage.notification?.body ?: remoteMessage.data["body"]
 
+            val locKey = remoteMessage.notification?.titleLocalizationKey ?: remoteMessage.data["title_loc_key"]
+
+            if (locKey != null) {
+                val resId = resources.getIdentifier(locKey.lowercase(), "string", packageName)
+                if (resId != 0) {
+                    title = getString(resId)
+                }
+            }
             if (title != null && body != null) {
                 showNotification(title, body)
             }

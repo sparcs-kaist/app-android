@@ -760,6 +760,7 @@ object AuthUseCaseModule {
         feedUserRepository: FeedUserRepositoryProtocol,
         otlUserRepository: OTLUserRepositoryProtocol,
         taxiChatServiceProvider: Provider<TaxiChatService>,
+        fcmUseCase: FCMUseCaseProtocol
     ): AuthUseCase {
 
         val useCase = AuthUseCase(
@@ -768,6 +769,7 @@ object AuthUseCaseModule {
             araUserRepository,
             feedUserRepository,
             otlUserRepository,
+            fcmUseCase
         )
 
         AuthRetryConfig.tokenRefresher = {
