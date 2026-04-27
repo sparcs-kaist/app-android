@@ -85,6 +85,11 @@ class AuthUseCase @Inject constructor(
 
         scheduleRefreshToken()
         observeForeground()
+        if (_isAuthenticated.value) {
+            coroutineScope.launch(Dispatchers.IO) {
+                syncFcmTokenIfAuthenticated()
+            }
+        }
     }
 
     // MARK: - Foreground Refresh
@@ -126,6 +131,17 @@ class AuthUseCase @Inject constructor(
     private fun cancelRefreshToken() {
         refreshJob?.cancel()
         refreshJob = null
+    }
+
+    private suspend fun syncFcmTokenIfAuthenticated() {
+        if (tokenStorage.getRefreshToken() == null) return
+
+        try {
+            val fcmToken = FirebaseMessaging.getInstance().token.await()
+            fcmUseCase.register(fcmToken)
+        } catch (e: Exception) {
+            Timber.e(e, "FCM token sync failed")
+        }
     }
 
     override fun getAccessToken(): String? {
@@ -185,8 +201,8 @@ class AuthUseCase @Inject constructor(
                 lastRefreshFailure = 0
                 scheduleRefreshToken() // set timer on success
                 onTokenRefresh?.invoke()
+                syncFcmTokenIfAuthenticated()
 
-                Unit
             } catch (e: Exception) {
                 lastRefreshFailure = System.currentTimeMillis()
                 if ((e as? HttpException)?.code() == 401) {
@@ -223,8 +239,7 @@ class AuthUseCase @Inject constructor(
                 // MARK - Sign up OTL
                 otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
 
-                val fcmToken = FirebaseMessaging.getInstance().token.await()
-                fcmUseCase.register(fcmToken)
+                syncFcmTokenIfAuthenticated()
 
                 _isAuthenticated.value = true
                 scheduleRefreshToken()
