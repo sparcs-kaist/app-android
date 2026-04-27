@@ -6,7 +6,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
@@ -45,32 +44,38 @@ class FCMService : FirebaseMessagingService() {
         super.onMessageReceived(remoteMessage)
 
         try {
-            val title = remoteMessage.notification?.title ?: remoteMessage.data["title"]
-            val body = remoteMessage.notification?.body ?: remoteMessage.data["body"]
-
-            if (title != null && body != null) {
-                showNotification(title, body)
-            }
-
             val data = remoteMessage.data
             if (data["type"] == "live_activity_update") {
                 val step = data["step"]?.toIntOrNull() ?: 1
                 val lectureName = data["lectureName"] ?: "수업 정보 없음"
                 val nextLecture = data["nextLecture"] ?: "없음"
                 val progress = data["progress"]?.toIntOrNull() ?: 0
+                val location = data["location"] ?: data["place"] ?: "미지정"
+                val kind = data["kind"] ?: ""
+                val remainingMinutes = data["remainingMinutes"]?.toIntOrNull() ?: -1
+                val remainingText = data["remainingText"] ?: ""
 
                 val intent = Intent(this, LiveActivityService::class.java).apply {
                     putExtra("step", step)
                     putExtra("lectureName", lectureName)
                     putExtra("nextLecture", nextLecture)
                     putExtra("progress", progress)
+                    putExtra("location", location)
+                    putExtra("kind", kind)
+                    putExtra("remainingMinutes", remainingMinutes)
+                    putExtra("remainingText", remainingText)
                 }
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    ContextCompat.startForegroundService(this, intent)
-                } else {
-                    startService(intent)
-                }
+                ContextCompat.startForegroundService(this, intent)
+
+                return
+            }
+
+            val title = remoteMessage.notification?.title ?: data["title"]
+            val body = remoteMessage.notification?.body ?: data["body"]
+
+            if (title != null && body != null) {
+                showNotification(title, body)
             }
 
         } catch (e: Exception) {
@@ -95,18 +100,16 @@ class FCMService : FirebaseMessagingService() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channelName = "Buddy"
-                val channel = NotificationChannel(
-                    channelId,
-                    channelName,
-                    NotificationManager.IMPORTANCE_HIGH
-                ).apply {
-                    enableLights(true)
-                    enableVibration(true)
-                }
-                notificationManager.createNotificationChannel(channel)
+            val channelName = "Buddy"
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                enableLights(true)
+                enableVibration(true)
             }
+            notificationManager.createNotificationChannel(channel)
 
             val largeIcon = BitmapFactory.decodeResource(resources, R.mipmap.ic_launcher)
 
