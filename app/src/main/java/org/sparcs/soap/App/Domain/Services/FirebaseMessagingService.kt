@@ -8,6 +8,7 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -41,9 +42,8 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        // TODO: 알람 기능 도입 시 아래 코드 활성화
-        return
         super.onMessageReceived(remoteMessage)
+
         try {
             val title = remoteMessage.notification?.title ?: remoteMessage.data["title"]
             val body = remoteMessage.notification?.body ?: remoteMessage.data["body"]
@@ -51,6 +51,28 @@ class FCMService : FirebaseMessagingService() {
             if (title != null && body != null) {
                 showNotification(title, body)
             }
+
+            val data = remoteMessage.data
+            if (data["type"] == "live_activity_update") {
+                val step = data["step"]?.toIntOrNull() ?: 1
+                val lectureName = data["lectureName"] ?: "수업 정보 없음"
+                val nextLecture = data["nextLecture"] ?: "없음"
+                val progress = data["progress"]?.toIntOrNull() ?: 0
+
+                val intent = Intent(this, LiveActivityService::class.java).apply {
+                    putExtra("step", step)
+                    putExtra("lectureName", lectureName)
+                    putExtra("nextLecture", nextLecture)
+                    putExtra("progress", progress)
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    ContextCompat.startForegroundService(this, intent)
+                } else {
+                    startService(intent)
+                }
+            }
+
         } catch (e: Exception) {
             Timber.e(e, "Message processing failed")
         }

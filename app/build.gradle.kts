@@ -21,7 +21,7 @@ val kakaoNaviKey: String = properties.getProperty("KAKAO_NAVI_KEY")
 
 android {
     namespace = "org.sparcs.soap"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         manifestPlaceholders += mapOf("sidAuthToken" to sidAuthToken)
         manifestPlaceholders += mapOf("kakaoMapKey" to kakaoMapKey)
@@ -29,7 +29,7 @@ android {
 
         applicationId = "org.sparcs.soap"
         minSdk = 31
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 22
         versionName = "1.2.0"
 
