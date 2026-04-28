@@ -2,10 +2,11 @@ package org.sparcs.soap.Widgets.BuddyTimetableWidget
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -29,7 +30,6 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -91,16 +91,12 @@ class TimetableWidget : GlanceAppWidget() {
                             modifier = GlanceModifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                context.getString(R.string.login_required),
-                                style = TextStyle(
-                                    color = ColorProvider(
-                                        GlanceTheme.colors.onSurface.getColor(
-                                            context
-                                        )
+                                Text(
+                                    context.getString(R.string.login_required),
+                                    style = TextStyle(
+                                        color = GlanceTheme.colors.onSurface
                                     )
                                 )
-                            )
                         }
                     } else if (state.timetable == null) {
                         Box(
@@ -111,22 +107,14 @@ class TimetableWidget : GlanceAppWidget() {
                                 Text(
                                     context.getString(R.string.loading_data),
                                     style = TextStyle(
-                                        color = ColorProvider(
-                                            GlanceTheme.colors.onSurface.getColor(
-                                                context
-                                            )
-                                        )
+                                        color = GlanceTheme.colors.onSurface
                                     )
                                 )
                                 Text(
                                     context.getString(R.string.wait_moment),
                                     style = TextStyle(
                                         fontSize = 12.sp,
-                                        color = ColorProvider(
-                                            GlanceTheme.colors.grayBB.getColor(
-                                                context
-                                            )
-                                        )
+                                        color = GlanceTheme.colors.grayBB
                                     )
                                 )
                             }
@@ -163,14 +151,16 @@ class TimetableWidgetSyncManager @Inject constructor(
 
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
-                    prefs.toMutablePreferences().apply {
-                        this[stringPreferencesKey("timetable_state")] = jsonString
-                    }
+                    mutablePreferencesOf(
+                        stringPreferencesKey("theme_mode") to (prefs[stringPreferencesKey("theme_mode")] ?: "System"),
+                        floatPreferencesKey("background_transparency") to (prefs[floatPreferencesKey("background_transparency")] ?: 1f),
+                        stringPreferencesKey("timetable_state") to jsonString,
+                    )
                 }
             }
             TimetableWidget().updateAll(context)
-        } catch (e: Exception) {
-            Timber.tag("WidgetSync").e("${e.message}")
+        } catch (_: Exception) {
+            Timber.tag("WidgetSync").e("Timetable widget sync failed")
         }
     }
 }
@@ -199,8 +189,8 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
 
             syncManager.sync(timetable)
             Result.success()
-        } catch (e: Exception) {
-            Timber.e("TimetableUpdateWorker Error: ${e.message}")
+        } catch (_: Exception) {
+            Timber.e("TimetableUpdateWorker Error")
             Result.retry()
         }
     }
@@ -214,7 +204,7 @@ object TimetableStateParser {
         if (!jsonString.isNullOrBlank()) {
             return try {
                 Json.decodeFromString<TimetableUiState>(jsonString)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 TimetableUiState(signInRequired = true)
             }
         }
@@ -257,7 +247,7 @@ class RefreshTimetableAction : ActionCallback {
         val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         } else {
-            Intent(Intent.ACTION_VIEW, Uri.parse(Constants.otlShareURL))
+            Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
         }
 
         intent?.apply {

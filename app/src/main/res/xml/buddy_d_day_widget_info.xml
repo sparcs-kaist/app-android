@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:minWidth="60dp"
+    android:minHeight="60dp"
+    android:minResizeWidth="40dp"
+    android:minResizeHeight="40dp"
+    android:configure="org.sparcs.soap.Widgets.BuddyDDayWidget.BuddyDDayWidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:previewImage="@drawable/buddy_d_day_widget_preview"
+    android:resizeMode="horizontal|vertical"
+    android:description="@string/d_day_widget_desc"
+    android:updatePeriodMillis="3600000"
+    android:widgetCategory="home_screen" />
+

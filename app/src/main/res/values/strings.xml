@@ -89,10 +89,10 @@
     <string name="ara_my_post_settings" translatable="false">My Posts</string>
     <string name="taxi_report_settings" translatable="false">Taxi Report Settings</string>
     <string name="taxi_report_view" translatable="false">TaxiReportView</string>
-    <string name="dark_mode">Dark Mode</string>
-    <string name="system_default">System default</string>
-    <string name="white_mode">White Mode</string>
-    <string name="miscellaneous">Miscellaneous</string>
+    <string name="widget_dark_mode">Dark Mode</string>
+    <string name="widget_system_default">System default</string>
+    <string name="widget_white_mode">White Mode</string>
+    <string name="widget_miscellaneous">Miscellaneous</string>
     <string name="ara">Ara</string>
     <string name="services">Services</string>
     <string name="change_language">Change Language</string>
@@ -336,10 +336,6 @@
     <string name="change_applied">The changes have been successfully applied.</string>
     <string name="no_past_groups">No previously joined rooms.</string>
     <string name="no_active_groups">No active rooms.</string>
-    <string name="spring">Spring</string>
-    <string name="summer">Summer</string>
-    <string name="autumn">Autumn</string>
-    <string name="winter">Winter</string>
     <string name="credit_people">Credit</string>
     <string name="members_with_this_badge">Members with this badge can resolve issues through SPARCS mediation when they arise.</string>
     <string name="error_source_equals_destination">Departure and destination cannot be the same.</string>
@@ -363,13 +359,7 @@
     <string name="discard_this_settings">You have unsaved changes. Are you sure you want to discard them and leave?</string>
     <string name="exit">Discard</string>
     <string name="keep_editing">Keep Editing</string>
-    <string name="login_required">Login required.</string>
-    <string name="loading_data">Fetching data…</string>
-    <string name="wait_moment">Please wait a moment.</string>
-    <string name="up_next">Up Next</string>
     <string name="login_required_long">Sign in to see upcoming classes.</string>
-    <string name="no_more_classes">No more classes</string>
-    <string name="enjoy_day">Enjoy your day</string>
     <string name="open_app_prompt">Open the app to continue.</string>
     <string name="zero_left">0 left</string>
     <string name="feed_settings">Feed Settings</string>
@@ -378,18 +368,6 @@
     <string name="nickname_error_conflict">This nickname is already taken.</string>
     <string name="nickname_error_invalid">Nickname contains forbidden words.</string>
     <string name="nickname_error_update_failed">Failed to update nickname. Please try again.</string>
-    <string name="widget_settings">Widget Settings</string>
-    <string name="theme_mode">Theme Mode</string>
-    <string name="transparency">Transparency</string>
-    <string name="save_configuration">Save Configuration</string>
-    <string name="preview_lecture_title">Data Structure</string>
-    <string name="preview_lecture_time">10:30 – 11:00</string>
-    <string name="preview_lecture_location">(E3–1) #1501</string>
-    <string name="preview">Preview</string>
-    <string name="upcoming_class_widget_title">Buddy Upcoming Class</string>
-    <string name="timetable_widget_title">Buddy Timetable</string>
-    <string name="upcoming_class_widget_desc">Check your next class time and location at a glance.</string>
-    <string name="timetable_widget_desc">View your timetable on your home screen.</string>
     <string name="never_show_again">Don\'t show again</string>
     <string name="sponsored_by_splash_screen" translatable="false">SPONSORED BY</string>
     <string name="hyundai_mobis_icon" translatable="false">Hyundai Mobis Icon</string>
@@ -512,4 +490,47 @@
     <string name="something_went_wrong">Something went wrong.\nPlease try again in a moment.</string>
     <string name="failed_to_like_review">Failed to like the review.</string>
     <string name="unexpected_error_editing_comment">An unexpected error occurred while editing the comment. Please try again later.</string>
+    <string name="login_required">Login required.</string>
+    <string name="loading_data">Fetching data…</string>
+    <string name="wait_moment">Please wait a moment.</string>
+    <string name="no_sync">Open the phone app and sync your timetable first.</string>
+    <string name="d_day_widget_title">D-Day widget</string>
+    <string name="d_day_widget_desc">Track semester D-Day on your home screen.</string>
+    <string name="d_day_widget_sign_in_required">Sign in to view D-Day.</string>
+    <string name="d_day_widget_error">Unable to load D-Day.</string>
+    <string name="d_day_widget_starts_in">Semester Starts</string>
+    <string name="d_day_widget_ends_in">Semester Ends</string>
+    <string name="d_day_widget_d_minus">D-%1$d</string>
+    <string name="d_day_widget_d_plus">D+%1$d</string>
+    <string name="d_day_widget_d_day">D-Day</string>
+    <string name="d_day_widget_sync_required">Open the phone app to sync data.</string>
+    <string name="d_day_widget_loading">Loading D-Day</string>
+    <string name="d_day_widget_loading_failed">Unable to load widget content</string>
+    <string name="d_day_widget_wait_moment">Please wait while the semester data is being fetched.</string>
+    <string name="d_day_widget_ends_in_days">Ends in %1$d days</string>
+    <string name="d_day_widget_starts_in_days">Starts in %1$d days</string>
+    <string name="d_day_widget_current_semester">Current semester</string>
+    <string name="upcoming_class_widget_title">Upcoming class widget</string>
+    <string name="upcoming_class_widget_desc">Check your next class time and location at a glance.</string>
+    <string name="timetable_widget_title">Timetable widget</string>
+    <string name="timetable_widget_desc">View your timetable on your home screen.</string>
+    <string name="widget_settings">Widget settings</string>
+    <string name="preview">Preview</string>
+    <string name="save_configuration">Save configuration</string>
+    <string name="theme_mode">Theme mode</string>
+    <string name="transparency">Transparency</string>
+    <string name="up_next">Up next</string>
+    <string name="no_more_classes">No more classes</string>
+    <string name="enjoy_day">Enjoy your day</string>
+    <string name="preview_lecture_title">System Programming</string>
+    <string name="preview_lecture_time">13:00 – 14:15</string>
+    <string name="preview_lecture_location">E3 304</string>
+    <string name="preview_d_day_semester_label">2026 Spring</string>
+    <string name="preview_time_text">19:49</string>
+    <string name="preview_no_more_classes">No more classes</string>
+    <string name="spring">Spring</string>
+    <string name="summer">Summer</string>
+    <string name="autumn">Autumn</string>
+    <string name="winter">Winter</string>
+
 </resources>

@@ -5,7 +5,10 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.POST_PROMOTED_NOTIFICATIONS" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
     <application
         android:name="org.sparcs.soap.App.MyApplication"
@@ -40,6 +43,17 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/buddy_upcoming_class_widget_info" />
+        </receiver>
+        <receiver
+            android:name="org.sparcs.soap.Widgets.BuddyDDayWidget.BuddyDDayWidgetReceiver"
+            android:exported="true"
+            android:label="@string/d_day_widget_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/buddy_d_day_widget_info" />
         </receiver>
         <provider
             android:name="androidx.startup.InitializationProvider"
@@ -147,6 +161,14 @@
         </activity>
         <activity
             android:name="org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.BuddyUpcomingClassConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Soap">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.sparcs.soap.Widgets.BuddyDDayWidget.BuddyDDayWidgetConfigActivity"
             android:exported="true"
             android:theme="@style/Theme.Soap">
             <intent-filter>

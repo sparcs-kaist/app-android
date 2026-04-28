@@ -1,4 +1,4 @@
-package org.sparcs.soap.Widgets.BuddyTimetableWidget
+package org.sparcs.soap.Widgets.BuddyDDayWidget
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
@@ -26,6 +26,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -45,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -52,15 +54,13 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
-import org.sparcs.soap.App.Features.Timetable.Components.TimetableGrid
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.theme_dark_surface
 import org.sparcs.soap.App.theme.ui.theme_light_surface
-import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
-class TimetableWidgetConfigActivity : ComponentActivity() {
+class BuddyDDayWidgetConfigActivity : ComponentActivity() {
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -84,14 +84,16 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                 var transparency by remember { mutableFloatStateOf(1f) }
 
                 LaunchedEffect(Unit) {
-                    val manager = GlanceAppWidgetManager(this@TimetableWidgetConfigActivity)
+                    val manager = GlanceAppWidgetManager(this@BuddyDDayWidgetConfigActivity)
                     val glanceId = manager.getGlanceIdBy(appWidgetId)
 
-                    updateAppWidgetState(this@TimetableWidgetConfigActivity, glanceId) { prefs ->
+                    updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
+                        prefs
                     }
                 }
+
                 Scaffold(
                     topBar = {
                         SettingsViewNavigationBar(
@@ -250,7 +252,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             Slider(
                 value = transparency,
                 onValueChange = onTransparencyChange,
-                valueRange = 0.0f..1f,
+                valueRange = 0.0f..1.0f,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
@@ -258,13 +260,13 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
 
     private fun saveAndFinish(theme: String, transparency: Float) {
         lifecycleScope.launch {
-            val manager = GlanceAppWidgetManager(this@TimetableWidgetConfigActivity)
+            val manager = GlanceAppWidgetManager(this@BuddyDDayWidgetConfigActivity)
             val glanceId = manager.getGlanceIdBy(appWidgetId)
-            updateAppWidgetState(this@TimetableWidgetConfigActivity, glanceId) { prefs ->
+            updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
                 prefs[stringPreferencesKey("theme_mode")] = theme
                 prefs[floatPreferencesKey("background_transparency")] = transparency
             }
-            TimetableWidget().update(this@TimetableWidgetConfigActivity, glanceId)
+            BuddyDDayWidget().update(this@BuddyDDayWidgetConfigActivity, glanceId)
             val resultValue = Intent().apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }
@@ -303,17 +305,97 @@ private fun WidgetPreviewSection(selectedTheme: String, transparency: Float) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp)
+                    .height(260.dp)
                     .clip(RoundedCornerShape(28.dp))
                     .background(surfaceColor.copy(alpha = transparency))
-                    .padding(8.dp)
+                    .padding(16.dp)
             ) {
-                TimetableGrid(
-                    viewModel = PreviewTimetableViewModel(),
-                    onLectureSelected = {},
-                    showDeleteDialog = {}
-                )
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .width(64.dp)
+                                .height(64.dp)
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(MaterialTheme.colorScheme.primary),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "D-54",
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "•",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = stringResource(R.string.preview_d_day_semester_label),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 14.sp,
+                                    maxLines = 1
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = stringResource(R.string.d_day_widget_ends_in_days, 54),
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Medium,
+                                fontSize = 15.sp,
+                                maxLines = 2
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(14.dp))
+                    Text(
+                        text = stringResource(R.string.preview_time_text),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 34.sp,
+                        maxLines = 1
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = stringResource(R.string.preview_no_more_classes),
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.sp,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = stringResource(R.string.enjoy_day),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontSize = 14.sp,
+                        maxLines = 1
+                    )
+
+                    Spacer(modifier = Modifier.weight(1f))
+                    LinearProgressIndicator(
+                        progress = { 0.62f },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                    )
+                }
             }
         }
     }
 }
+
+
+
+
