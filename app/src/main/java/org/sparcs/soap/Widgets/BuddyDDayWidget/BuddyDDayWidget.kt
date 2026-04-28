@@ -61,10 +61,12 @@ import javax.inject.Singleton
 
 class BuddyDDayWidget : GlanceAppWidget() {
 
+    override val stateDefinition = PreferencesGlanceStateDefinition
+
     override val sizeMode = SizeMode.Responsive(
         setOf(
             DpSize(60.dp, 60.dp),
-            DpSize(150.dp, 50.dp),
+            DpSize(150.dp, 60.dp),
             DpSize(150.dp, 110.dp),
         )
     )

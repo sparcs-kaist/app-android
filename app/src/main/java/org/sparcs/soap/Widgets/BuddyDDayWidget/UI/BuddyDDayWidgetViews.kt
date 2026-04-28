@@ -2,11 +2,11 @@ package org.sparcs.soap.Widgets.BuddyDDayWidget.UI
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.color.ColorProvider
@@ -111,7 +111,7 @@ fun DDayRectangleWidgetView(entry: DDayWidgetEntry) {
                 ),
                 maxLines = 1
             )
-            Spacer(modifier = GlanceModifier.fillMaxWidth())
+            Spacer(modifier = GlanceModifier.defaultWeight())
             Text(
                 text = formatDDay(entry.days),
                 style = TextStyle(
@@ -173,7 +173,7 @@ fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
                 ),
                 maxLines = 1
             )
-            Spacer(modifier = GlanceModifier.fillMaxWidth())
+            Spacer(modifier = GlanceModifier.defaultWeight())
             Text(
                 text = formatDDay(entry.days),
                 style = TextStyle(
@@ -196,40 +196,44 @@ fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
             maxLines = 2
         )
 
-        Spacer(modifier = GlanceModifier.fillMaxWidth())
+        Spacer(modifier = GlanceModifier.defaultWeight())
         DDayProgressBar(progress = entry.progress)
     }
 }
 
 @Composable
 fun DDayLoadingView() {
+    val context = LocalContext.current
     DDayStatusColumn(
-        title = stringResource(R.string.d_day_widget_loading),
-        subtitle = stringResource(R.string.d_day_widget_wait_moment)
+        title = context.getString(R.string.d_day_widget_loading),
+        subtitle = context.getString(R.string.d_day_widget_wait_moment)
     )
 }
 
 @Composable
 fun DDaySignInRequiredView() {
+    val context = LocalContext.current
     DDayStatusColumn(
-        title = stringResource(R.string.d_day_widget_sign_in_required),
-        subtitle = stringResource(R.string.d_day_widget_sync_required)
+        title = context.getString(R.string.d_day_widget_sign_in_required),
+        subtitle = context.getString(R.string.d_day_widget_sync_required)
     )
 }
 
 @Composable
 fun DDayErrorView() {
+    val context = LocalContext.current
     DDayStatusColumn(
-        title = stringResource(R.string.d_day_widget_error),
-        subtitle = stringResource(R.string.d_day_widget_loading_failed)
+        title = context.getString(R.string.d_day_widget_error),
+        subtitle = context.getString(R.string.d_day_widget_loading_failed)
     )
 }
 
 @Composable
 fun DDayFinishedView() {
+    val context = LocalContext.current
     DDayStatusColumn(
-        title = stringResource(R.string.no_more_classes),
-        subtitle = stringResource(R.string.enjoy_day)
+        title = context.getString(R.string.no_more_classes),
+        subtitle = context.getString(R.string.enjoy_day)
     )
 }
 
@@ -290,19 +294,21 @@ private fun DDayProgressBar(progress: Float) {
 
 @Composable
 private fun subtitleText(entry: DDayWidgetEntry): String {
+    val context = LocalContext.current
     return when (entry.type) {
-        DDayType.START_OF_SEMESTER -> stringResource(R.string.d_day_widget_starts_in_days, kotlin.math.abs(entry.days))
-        DDayType.END_OF_SEMESTER -> stringResource(R.string.d_day_widget_ends_in_days, kotlin.math.abs(entry.days))
-        DDayType.ERROR -> stringResource(R.string.d_day_widget_error)
+        DDayType.START_OF_SEMESTER -> context.getString(R.string.d_day_widget_starts_in_days, kotlin.math.abs(entry.days))
+        DDayType.END_OF_SEMESTER -> context.getString(R.string.d_day_widget_ends_in_days, kotlin.math.abs(entry.days))
+        DDayType.ERROR -> context.getString(R.string.d_day_widget_error)
     }
 }
 
 @Composable
 private fun formatDDay(days: Int): String {
+    val context = LocalContext.current
     return when {
-        days > 0 -> stringResource(R.string.d_day_widget_d_minus, days)
-        days < 0 -> stringResource(R.string.d_day_widget_d_plus, kotlin.math.abs(days))
-        else -> stringResource(R.string.d_day_widget_d_day)
+        days > 0 -> context.getString(R.string.d_day_widget_d_minus, days)
+        days < 0 -> context.getString(R.string.d_day_widget_d_plus, kotlin.math.abs(days))
+        else -> context.getString(R.string.d_day_widget_d_day)
     }
 }
 
