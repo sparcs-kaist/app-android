@@ -134,7 +134,6 @@ private fun tile(
             }
         }
 
-        // Add the final entry for "No more classes"
         val finalEntryBuilder = TimelineBuilders.TimelineEntry.Builder()
         if (lastTransitionMillis != 0L) {
             finalEntryBuilder.setValidity(
@@ -153,7 +152,6 @@ private fun tile(
                 .build()
         )
     } else {
-        // Fallback for no timetable or weekend
         timelineBuilder.addTimelineEntry(
             TimelineBuilders.TimelineEntry.Builder()
                 .setLayout(

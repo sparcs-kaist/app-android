@@ -2,7 +2,6 @@ package org.sparcs.soap.Widgets.BuddyDDayWidget
 
 import android.content.Context
 import android.content.Intent
-import android.util.Log
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -149,45 +148,28 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
         val tokenStorage = entryPoint.tokenStorage()
         val timetableUseCase = entryPoint.timetableUseCase()
 
-        Log.d("SOAP_DEBUG", "DDayUpdateWorker: Starting work")
-
         return try {
             val token = tokenStorage.getAccessToken()
             if (token == null || tokenStorage.isTokenExpired()) {
-                Log.w("SOAP_DEBUG", "DDayUpdateWorker: Token invalid or expired")
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
 
-            var semester = try {
+            val semester = try {
                 timetableUseCase.getCurrentSemester()
-            } catch (e: Exception) {
-                Log.e("SOAP_DEBUG", "DDayUpdateWorker: Error fetching semester directly", e)
+            } catch (_: Exception) {
                 null
             }
 
             if (semester == null) {
-                Log.d("SOAP_DEBUG", "DDayUpdateWorker: Trying fallback")
-                try {
-                    timetableUseCase.getCurrentMyTable()
-                    semester = timetableUseCase.getCurrentSemester()
-                } catch (e: Exception) {
-                    Log.e("SOAP_DEBUG", "DDayUpdateWorker: Fallback failed", e)
-                }
-            }
-
-            if (semester == null) {
-                Log.e("SOAP_DEBUG", "DDayUpdateWorker: Could not retrieve semester data")
                 syncManager.syncError()
                 return Result.success()
             }
 
-            Log.d("SOAP_DEBUG", "DDayUpdateWorker: Fetched semester: ${semester.year} ${semester.semesterType}")
             val entry = buildDDayEntry(applicationContext, semester)
             syncManager.sync(entry)
             Result.success()
-        } catch (e: Exception) {
-            Log.e("SOAP_DEBUG", "DDayUpdateWorker: Failed", e)
+        } catch (_: Exception) {
             Result.retry()
         }
     }
@@ -210,9 +192,9 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
                 progress = 0f,
             )
         } else {
-            val totalDuration = (end.time - begin.time).coerceAtLeast(TimeUnit.DAYS.toMillis(1))
-            val elapsed = (now.time - begin.time).coerceAtLeast(0L)
-            val progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
+            val totalDays = daysBetween(begin, end).coerceAtLeast(1)
+            val elapsedDays = daysBetween(begin, now).coerceAtLeast(0)
+            val progress = (elapsedDays.toFloat() / totalDays.toFloat()).coerceIn(0f, 1f)
 
             DDayWidgetEntry(
                 semesterLabel = semesterLabel,

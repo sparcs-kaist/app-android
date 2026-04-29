@@ -45,7 +45,7 @@ fun DDayCircularWidgetView(entry: DDayWidgetEntry) {
             Text(
                 text = formatDDay(entry.days),
                 style = TextStyle(
-                    fontSize = 13.sp,
+                    fontSize = 10.sp,
                     color = GlanceTheme.colors.onPrimary,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,

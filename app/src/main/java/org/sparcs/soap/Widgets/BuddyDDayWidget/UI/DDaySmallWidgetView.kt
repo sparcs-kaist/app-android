@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -17,10 +18,13 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import org.sparcs.soap.R
 import org.sparcs.soap.Widgets.BuddyDDayWidget.DDayWidgetEntry
 
 @Composable
 fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
+    val context = LocalContext.current
+
     if (isFinished(entry)) {
         DDayFinishedView()
         return
@@ -37,7 +41,7 @@ fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
             text = subtitleText(entry).uppercase(),
             style = TextStyle(
                 color = GlanceTheme.colors.primary,
-                fontSize = 10.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
             )
         )
@@ -47,16 +51,16 @@ fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
                 text = "${entry.days}",
                 style = TextStyle(
                     color = GlanceTheme.colors.onSurface,
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
                 )
             )
             Spacer(modifier = GlanceModifier.width(4.dp))
             Text(
-                text = "days",
+                text = context.getString(R.string.days_suffix),
                 style = TextStyle(
                     color = GlanceTheme.colors.onSurface,
-                    fontSize = 12.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
                 ),
                 modifier = GlanceModifier.padding(bottom = 6.dp)
@@ -69,7 +73,7 @@ fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
             text = entry.semesterLabel,
             style = TextStyle(
                 color = GlanceTheme.colors.primary,
-                fontSize = 12.sp,
+                fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
             )
         )

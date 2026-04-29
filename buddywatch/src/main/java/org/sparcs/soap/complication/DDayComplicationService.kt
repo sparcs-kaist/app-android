@@ -1,5 +1,6 @@
 package org.sparcs.soap.complication
 
+import android.graphics.drawable.Icon
 import androidx.wear.watchface.complications.data.ComplicationData
 import androidx.wear.watchface.complications.data.ComplicationType
 import androidx.wear.watchface.complications.data.LongTextComplicationData
@@ -28,7 +29,11 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
         val semesterJson = watchDataStore.semesterJsonFlow.firstOrNull()
         val semester = semesterJson?.let {
-            try { json.decodeFromString<Semester>(it) } catch (_: Exception) { null }
+            try {
+                json.decodeFromString<Semester>(it)
+            } catch (_: Exception) {
+                null
+            }
         }
 
         if (semester == null) {
@@ -52,7 +57,9 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
             dDayLabel = "D-$daysUntil"
         } else {
             val daysLeft = daysBetween(now, Date(end))
-            dDayLabel = if (daysLeft == 0) "D-Day" else if (daysLeft > 0) "D-$daysLeft" else "D+${Math.abs(daysLeft)}"
+            dDayLabel = if (daysLeft == 0) "D-Day" else if (daysLeft > 0) "D-$daysLeft" else "D+${
+                Math.abs(daysLeft)
+            }"
         }
 
         return createComplicationData(dDayLabel, description, request.complicationType)
@@ -61,38 +68,52 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
     private fun createComplicationData(
         label: String,
         desc: String,
-        type: ComplicationType
+        type: ComplicationType,
     ): ComplicationData? {
         val icon = MonochromaticImage.Builder(
-            image = android.graphics.drawable.Icon.createWithResource(applicationContext, R.drawable.buddy_icon_flat)
+            image = Icon.createWithResource(applicationContext, R.drawable.buddy_icon_flat)
         ).build()
 
         return when (type) {
             ComplicationType.SHORT_TEXT -> {
                 ShortTextComplicationData.Builder(
                     text = PlainComplicationText.Builder(label).build(),
-                    contentDescription = PlainComplicationText.Builder(getString(R.string.d_day_mock_title)).build()
+                    contentDescription = PlainComplicationText.Builder(getString(R.string.d_day_mock_title))
+                        .build()
                 )
                     .setTitle(PlainComplicationText.Builder(desc).build())
                     .setMonochromaticImage(icon)
                     .build()
             }
+
             ComplicationType.LONG_TEXT -> {
                 LongTextComplicationData.Builder(
                     text = PlainComplicationText.Builder(label).build(),
-                    contentDescription = PlainComplicationText.Builder(getString(R.string.d_day_mock_title)).build()
+                    contentDescription = PlainComplicationText.Builder(getString(R.string.d_day_mock_title))
+                        .build()
                 )
                     .setTitle(PlainComplicationText.Builder(desc).build())
                     .setMonochromaticImage(icon)
                     .build()
             }
+
             else -> null
         }
     }
 
     private fun daysBetween(from: Date, to: Date): Int {
-        val f = Calendar.getInstance().apply { time = from; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }
-        val t = Calendar.getInstance().apply { time = to; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }
+        val f = Calendar.getInstance().apply {
+            time = from; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(
+            Calendar.SECOND,
+            0
+        ); set(Calendar.MILLISECOND, 0)
+        }
+        val t = Calendar.getInstance().apply {
+            time = to; set(Calendar.HOUR_OF_DAY, 0); set(
+            Calendar.MINUTE,
+            0
+        ); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
         return TimeUnit.MILLISECONDS.toDays(t.timeInMillis - f.timeInMillis).toInt()
     }
 }

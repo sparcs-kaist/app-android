@@ -67,7 +67,7 @@ class UpcomingClassComplicationService : SuspendingComplicationDataSourceService
         val (lecture, cl) = nextLectureData
         val isOngoing = currentMinutes >= cl.begin
         val timeLabel = if (isOngoing) getString(R.string.comp_ongoing) else formatTime(cl.begin)
-        
+
         val displayTitle = lecture.code.ifEmpty { lecture.name }
         val icon = MonochromaticImage.Builder(
             image = Icon.createWithResource(applicationContext, R.drawable.buddy_icon_flat)
@@ -75,27 +75,25 @@ class UpcomingClassComplicationService : SuspendingComplicationDataSourceService
 
         return when (request.complicationType) {
             ComplicationType.SHORT_TEXT -> {
-                val shortTitle = if (lecture.code.isNotEmpty()) lecture.code else lecture.name
                 ShortTextComplicationData.Builder(
                     text = PlainComplicationText.Builder(timeLabel).build(),
                     contentDescription = PlainComplicationText.Builder(
                         getString(R.string.comp_next_class_desc, lecture.name, timeLabel)
                     ).build()
                 )
-                    .setTitle(PlainComplicationText.Builder(truncateText(shortTitle, 10)).build())
+                    .setTitle(PlainComplicationText.Builder(truncateText(displayTitle, 10)).build())
                     .setMonochromaticImage(icon)
                     .build()
             }
             ComplicationType.LONG_TEXT -> {
-                // LongText는 공간이 넓으므로 전체 이름을 사용
                 val detailText = "$timeLabel | ${cl.location}"
                 LongTextComplicationData.Builder(
-                    text = PlainComplicationText.Builder(truncateText(lecture.name, 20)).build(),
+                    text = PlainComplicationText.Builder(detailText).build(),
                     contentDescription = PlainComplicationText.Builder(
                         getString(R.string.comp_next_class_desc, lecture.name, timeLabel)
                     ).build()
                 )
-                    .setTitle(PlainComplicationText.Builder(detailText).build())
+                    .setTitle(PlainComplicationText.Builder(truncateText(lecture.name, 20)).build())
                     .setMonochromaticImage(icon)
                     .build()
             }

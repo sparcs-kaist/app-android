@@ -29,4 +29,5 @@
     <string name="comp_dday_title">디데이</string>
     <string name="comp_upcoming_title">다음 수업</string>
     <string name="d_day_mock_title">26 봄</string>
+    <string name="days_suffix">일</string>
 </resources>

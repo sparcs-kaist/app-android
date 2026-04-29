@@ -532,5 +532,5 @@
     <string name="summer">Summer</string>
     <string name="autumn">Autumn</string>
     <string name="winter">Winter</string>
-
+    <string name="days_suffix">days</string>
 </resources>
