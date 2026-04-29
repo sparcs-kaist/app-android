@@ -15,5 +15,14 @@ data class DDayWidgetEntry(
     val type: DDayType,
     val days: Int,
     val progress: Float,
-)
+) {
+    companion object {
+        fun mock() = DDayWidgetEntry(
+            semesterLabel = "2024 Fall",
+            type = DDayType.END_OF_SEMESTER,
+            days = 42,
+            progress = 0.65f
+        )
+    }
+}
 

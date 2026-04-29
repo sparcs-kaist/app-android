@@ -6,7 +6,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -151,11 +150,9 @@ class TimetableWidgetSyncManager @Inject constructor(
 
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
-                    mutablePreferencesOf(
-                        stringPreferencesKey("theme_mode") to (prefs[stringPreferencesKey("theme_mode")] ?: "System"),
-                        floatPreferencesKey("background_transparency") to (prefs[floatPreferencesKey("background_transparency")] ?: 1f),
-                        stringPreferencesKey("timetable_state") to jsonString,
-                    )
+                    prefs.toMutablePreferences().apply {
+                        this[stringPreferencesKey("timetable_state")] = jsonString
+                    }
                 }
             }
             TimetableWidget().updateAll(context)

@@ -8,7 +8,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -202,11 +201,9 @@ class UpComingWidgetSyncManager @Inject constructor(
 
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
-                    mutablePreferencesOf(
-                        stringPreferencesKey("theme_mode") to (prefs[stringPreferencesKey("theme_mode")] ?: "System"),
-                        floatPreferencesKey("background_transparency") to (prefs[floatPreferencesKey("background_transparency")] ?: 1f),
-                        stringPreferencesKey("upcoming_class_state") to jsonString,
-                    )
+                    prefs.toMutablePreferences().apply {
+                        this[stringPreferencesKey("upcoming_class_state")] = jsonString
+                    }
                 }
             }
             BuddyUpcomingClassWidget().updateAll(context)

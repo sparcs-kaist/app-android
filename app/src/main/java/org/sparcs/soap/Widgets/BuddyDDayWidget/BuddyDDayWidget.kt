@@ -2,12 +2,12 @@ package org.sparcs.soap.Widgets.BuddyDDayWidget
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -65,9 +65,9 @@ class BuddyDDayWidget : GlanceAppWidget() {
 
     override val sizeMode = SizeMode.Responsive(
         setOf(
-            DpSize(60.dp, 60.dp),
-            DpSize(150.dp, 60.dp),
-            DpSize(150.dp, 110.dp),
+            DpSize(60.dp, 60.dp),   // Circular
+            DpSize(110.dp, 50.dp),  // Rectangle (4x1)
+            DpSize(150.dp, 110.dp), // Small (2x2)
         )
     )
 
@@ -100,17 +100,16 @@ class BuddyDDayWidget : GlanceAppWidget() {
                         modifier = GlanceModifier
                             .fillMaxSize()
                             .background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
-                            .padding(4.dp)
                     ) {
                         when {
                             state.signInRequired -> DDaySignInRequiredView()
                             state.entry == null -> DDayLoadingView()
                             state.entry.type == DDayType.ERROR -> DDayErrorView()
                             else -> {
-                                    val size = LocalSize.current
-                                    val entry = state.entry
+                                val size = LocalSize.current
+                                val entry = state.entry
                                 when {
-                                    size.width >= 110.dp && size.height >= 110.dp -> DDaySmallWidgetView(entry)
+                                    size.width >= 140.dp && size.height >= 100.dp -> DDaySmallWidgetView(entry)
                                     size.width >= 110.dp -> DDayRectangleWidgetView(entry)
                                     else -> DDayCircularWidgetView(entry)
                                 }
@@ -144,46 +143,54 @@ class BuddyDDayWidget : GlanceAppWidget() {
 
 class DDayUpdateWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
-
     override suspend fun doWork(): Result {
-        val glanceManager = GlanceAppWidgetManager(applicationContext)
-        val glanceIds = glanceManager.getGlanceIds(BuddyDDayWidget::class.java)
-
-        if (glanceIds.isEmpty()) {
-            Timber.d("No installed D-Day widgets found. Stopping worker.")
-            return Result.success()
-        }
-
-        val entryPoint = EntryPointAccessors.fromApplication(
-            applicationContext,
-            WidgetEntryPoint::class.java
-        )
+        val entryPoint = EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
         val syncManager = entryPoint.dDaySyncManager()
         val tokenStorage = entryPoint.tokenStorage()
         val timetableUseCase = entryPoint.timetableUseCase()
 
+        Log.d("SOAP_DEBUG", "DDayUpdateWorker: Starting work")
+
         return try {
             val token = tokenStorage.getAccessToken()
             if (token == null || tokenStorage.isTokenExpired()) {
+                Log.w("SOAP_DEBUG", "DDayUpdateWorker: Token invalid or expired")
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
 
-            val semester = timetableUseCase.getCurrentSemester()
+            var semester = try {
+                timetableUseCase.getCurrentSemester()
+            } catch (e: Exception) {
+                Log.e("SOAP_DEBUG", "DDayUpdateWorker: Error fetching semester directly", e)
+                null
+            }
+
             if (semester == null) {
+                Log.d("SOAP_DEBUG", "DDayUpdateWorker: Trying fallback")
+                try {
+                    timetableUseCase.getCurrentMyTable()
+                    semester = timetableUseCase.getCurrentSemester()
+                } catch (e: Exception) {
+                    Log.e("SOAP_DEBUG", "DDayUpdateWorker: Fallback failed", e)
+                }
+            }
+
+            if (semester == null) {
+                Log.e("SOAP_DEBUG", "DDayUpdateWorker: Could not retrieve semester data")
                 syncManager.syncError()
                 return Result.success()
             }
 
+            Log.d("SOAP_DEBUG", "DDayUpdateWorker: Fetched semester: ${semester.year} ${semester.semesterType}")
             val entry = buildDDayEntry(applicationContext, semester)
             syncManager.sync(entry)
             Result.success()
         } catch (e: Exception) {
-            Timber.e(e, "DDayUpdateWorker failed")
+            Log.e("SOAP_DEBUG", "DDayUpdateWorker: Failed", e)
             Result.retry()
         }
     }
-
     private fun buildDDayEntry(context: Context, semester: Semester): DDayWidgetEntry {
         val now = Date()
         val semesterLabel = runCatching {
@@ -266,11 +273,9 @@ class DDayWidgetSyncManager @Inject constructor(
 
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
-                    mutablePreferencesOf(
-                        stringPreferencesKey("theme_mode") to (prefs[stringPreferencesKey("theme_mode")] ?: "System"),
-                        floatPreferencesKey("background_transparency") to (prefs[floatPreferencesKey("background_transparency")] ?: 1f),
-                        stringPreferencesKey("d_day_state") to jsonString,
-                    )
+                    prefs.toMutablePreferences().apply {
+                        this[stringPreferencesKey("d_day_state")] = jsonString
+                    }
                 }
             }
             BuddyDDayWidget().updateAll(context)
@@ -342,5 +347,3 @@ class RefreshAndOpenDDayAction : ActionCallback {
         }
     }
 }
-
-

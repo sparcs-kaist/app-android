@@ -26,7 +26,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -85,12 +84,13 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     val manager = GlanceAppWidgetManager(this@BuddyDDayWidgetConfigActivity)
-                    val glanceId = manager.getGlanceIdBy(appWidgetId)
+                    val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (e: Exception) { null }
 
-                    updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
-                        selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
-                        transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
-                        prefs
+                    if (glanceId != null) {
+                        updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
+                            selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
+                            transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
+                        }
                     }
                 }
 
@@ -258,15 +258,90 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
         }
     }
 
+    @Composable
+    private fun WidgetPreviewSection(selectedTheme: String, transparency: Float) {
+        val isDark = when (selectedTheme) {
+            "Dark" -> true
+            "Light" -> false
+            else -> isSystemInDarkTheme()
+        }
+
+        val surfaceColor = if (isDark) theme_dark_surface else theme_light_surface
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.preview),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+            )
+            Theme(darkTheme = isDark) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .width(160.dp)
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(surfaceColor.copy(alpha = transparency))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.d_day_widget_ends_in).uppercase(),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(
+                                text = "54",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Medium,
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "days",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = stringResource(R.string.preview_d_day_semester_label),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun saveAndFinish(theme: String, transparency: Float) {
         lifecycleScope.launch {
             val manager = GlanceAppWidgetManager(this@BuddyDDayWidgetConfigActivity)
-            val glanceId = manager.getGlanceIdBy(appWidgetId)
-            updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
-                prefs[stringPreferencesKey("theme_mode")] = theme
-                prefs[floatPreferencesKey("background_transparency")] = transparency
+            val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (e: Exception) { null }
+            
+            if (glanceId != null) {
+                updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
+                    prefs[stringPreferencesKey("theme_mode")] = theme
+                    prefs[floatPreferencesKey("background_transparency")] = transparency
+                }
+                BuddyDDayWidget().update(this@BuddyDDayWidgetConfigActivity, glanceId)
             }
-            BuddyDDayWidget().update(this@BuddyDDayWidgetConfigActivity, glanceId)
+            
             val resultValue = Intent().apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }
@@ -275,127 +350,3 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
         }
     }
 }
-
-@Composable
-private fun WidgetPreviewSection(selectedTheme: String, transparency: Float) {
-    val isDark = when (selectedTheme) {
-        "Dark" -> true
-        "Light" -> false
-        else -> isSystemInDarkTheme()
-    }
-
-    val surfaceColor = if (isDark) {
-        theme_dark_surface
-    } else {
-        theme_light_surface
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 24.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.preview),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
-        )
-        Theme(darkTheme = isDark) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(260.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(surfaceColor.copy(alpha = transparency))
-                    .padding(16.dp)
-            ) {
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .width(64.dp)
-                                .height(64.dp)
-                                .clip(RoundedCornerShape(999.dp))
-                                .background(MaterialTheme.colorScheme.primary),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "D-54",
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.SemiBold,
-                                fontSize = 14.sp
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(12.dp))
-
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(
-                                    text = "•",
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = stringResource(R.string.preview_d_day_semester_label),
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontWeight = FontWeight.SemiBold,
-                                    fontSize = 14.sp,
-                                    maxLines = 1
-                                )
-                            }
-
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = stringResource(R.string.d_day_widget_ends_in_days, 54),
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontWeight = FontWeight.Medium,
-                                fontSize = 15.sp,
-                                maxLines = 2
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(14.dp))
-                    Text(
-                        text = stringResource(R.string.preview_time_text),
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 34.sp,
-                        maxLines = 1
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = stringResource(R.string.preview_no_more_classes),
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.sp,
-                        maxLines = 1
-                    )
-                    Text(
-                        text = stringResource(R.string.enjoy_day),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 14.sp,
-                        maxLines = 1
-                    )
-
-                    Spacer(modifier = Modifier.weight(1f))
-                    LinearProgressIndicator(
-                        progress = { 0.62f },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(999.dp))
-                    )
-                }
-            }
-        }
-    }
-}
-
-
-
-

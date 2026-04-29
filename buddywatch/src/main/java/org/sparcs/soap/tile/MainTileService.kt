@@ -54,7 +54,7 @@ class MainTileService : SuspendingTileService() {
 }
 
 @Suppress("UNUSED_PARAMETER")
-private fun resources(
+fun resources(
     requestParams: RequestBuilders.ResourcesRequest,
 ): ResourceBuilders.Resources {
     return ResourceBuilders.Resources.Builder()
@@ -107,7 +107,7 @@ private fun tile(
                 } else {
                     entryBuilder.setValidity(
                         TimelineBuilders.TimeInterval.Builder()
-                            .setStartMillis(lastTransitionMillis + 1000)
+                            .setStartMillis(lastTransitionMillis)
                             .setEndMillis(transitionMillis)
                             .build()
                     )
@@ -123,7 +123,7 @@ private fun tile(
                                         timetable,
                                         Calendar.getInstance().apply {
                                             timeInMillis =
-                                                if (lastTransitionMillis == 0L) System.currentTimeMillis() else lastTransitionMillis + 5000
+                                                if (lastTransitionMillis == 0L) System.currentTimeMillis() else lastTransitionMillis
                                         })
                                 )
                                 .build()
@@ -139,7 +139,7 @@ private fun tile(
         if (lastTransitionMillis != 0L) {
             finalEntryBuilder.setValidity(
                 TimelineBuilders.TimeInterval.Builder()
-                    .setStartMillis(lastTransitionMillis + 1000)
+                    .setStartMillis(lastTransitionMillis)
                     .build()
             )
         }

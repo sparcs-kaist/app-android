@@ -27,6 +27,53 @@
         </service>
 
         <service
+                android:name=".tile.DDayTileService"
+                android:exported="true"
+                android:label="@string/d_day_widget_title"
+                android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER"/>
+            </intent-filter>
+
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_dday_preview"/>
+        </service>
+
+        <service
+        android:name=".complication.UpcomingClassComplicationService"
+        android:exported="true"
+        android:icon="@drawable/buddy_icon_flat"
+        android:label="@string/comp_upcoming_title"
+        android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+        <intent-filter>
+            <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+        </intent-filter>
+
+        <meta-data
+            android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+            android:value="SHORT_TEXT,LONG_TEXT" />
+        <meta-data
+            android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+            android:value="600" /> </service>
+
+        <service
+            android:name=".complication.DDayComplicationService"
+            android:exported="true"
+            android:icon="@drawable/buddy_icon_flat"
+            android:label="@string/comp_dday_title"
+            android:permission="com.google.android.wearable.permission.BIND_COMPLICATION_PROVIDER">
+            <intent-filter>
+                <action android:name="android.support.wearable.complications.ACTION_COMPLICATION_UPDATE_REQUEST" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.support.wearable.complications.SUPPORTED_TYPES"
+                android:value="SHORT_TEXT,LONG_TEXT" />
+            <meta-data
+                android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
+                android:value="3600" /> </service>
+        <service
                 android:name=".data.WearableDataListenerService"
                 android:exported="true">
             <intent-filter>
