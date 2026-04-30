@@ -27,6 +27,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 interface PostViewModelProtocol {
+    val postId: Int
     val post: StateFlow<AraPost?>
     val state: StateFlow<PostViewModel.ViewState>
     val isFoundationModelsAvailable: Boolean
@@ -75,7 +76,7 @@ class PostViewModel @Inject constructor(
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
-    private val postId: Int = savedStateHandle.get<Int>("postId")
+    override val postId: Int = savedStateHandle.get<Int>("postId")
         ?: throw IllegalArgumentException("postId is missing")
 
     private val _post = MutableStateFlow<AraPost?>(null)

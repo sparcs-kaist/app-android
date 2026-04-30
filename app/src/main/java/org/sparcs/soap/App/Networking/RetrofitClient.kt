@@ -133,6 +133,7 @@ import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiUserApi
 import org.sparcs.soap.App.Shared.Extensions.AndroidStringProvider
 import org.sparcs.soap.App.Shared.Extensions.StringProvider
+import org.sparcs.soap.BuildConfig
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
@@ -327,7 +328,12 @@ object NetworkModule {
                     .header("Origin", "sparcsapp")
                     .header("Accept-Language", languageTag)
                     .header("Content-Type", "application/json")
-                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
+                    .apply {
+                        if (BuildConfig.DEBUG) {
+                            addHeader("X-SID-AUTH-TOKEN", BuildConfig.OTL_SID_AUTH_TOKEN)
+                        }
+                        accessToken?.let { header("Authorization", "Bearer $it") }
+                    }
                     .build()
                 chain.proceed(newRequest)
             }

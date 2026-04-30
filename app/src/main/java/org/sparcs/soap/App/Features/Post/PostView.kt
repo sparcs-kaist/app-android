@@ -287,11 +287,11 @@ fun PostView(
                         }
                         item {
                             Content(
+                                postId = viewModel.postId,
                                 summarisedContent = summarisedContent,
                                 htmlHeight = htmlHeight,
                                 onHtmlHeightChange = { htmlHeight = it },
-                                onLinkTapped = { tappedURL = Uri.parse(it) },
-                                post = post
+                                onLinkTapped = { tappedURL = Uri.parse(it) }
                             )
                         }
                         item {
@@ -419,11 +419,11 @@ private fun Header(
 
 @Composable
 private fun Content(
+    postId: Int,
     summarisedContent: String?,
     htmlHeight: Dp,
     onHtmlHeightChange: (Dp) -> Unit,
     onLinkTapped: (String) -> Unit,
-    post: AraPost,
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -433,28 +433,16 @@ private fun Content(
 //            SummarisationView(text = summarisedContent)
             Spacer(modifier = Modifier.height(8.dp))
         }
-        val postContent = post.content
-        if (!postContent.isNullOrEmpty()) {
-            DynamicHeightWebView(
-                htmlString = postContent,
-                modifier = Modifier
-                    .height(htmlHeight)
-                    .fillMaxWidth(),
-                onHeightChanged = { pxHeight ->
-                    onHtmlHeightChange(pxHeight.dp)
-                },
-                onLinkTapped = onLinkTapped
-            )
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        }
+        DynamicHeightWebView(
+            url = "${Constants.araBackendURL}users/exchange/?next=/web_view/PostFrame/$postId",
+            modifier = Modifier
+                .height(htmlHeight)
+                .fillMaxWidth(),
+            onHeightChanged = { pxHeight ->
+                onHtmlHeightChange(pxHeight.dp)
+            },
+            onLinkTapped = onLinkTapped
+        )
     }
 }
 
