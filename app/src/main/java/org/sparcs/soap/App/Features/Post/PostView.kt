@@ -80,13 +80,15 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
 import org.sparcs.soap.App.Features.NavigationBar.Animation.MoveToLeftFadeIn
 import org.sparcs.soap.App.Features.NavigationBar.Animation.MoveToLeftFadeOut
 import org.sparcs.soap.App.Features.NavigationBar.Channel
+import org.sparcs.soap.App.Features.Post.Components.CommentSkeleton
 import org.sparcs.soap.App.Features.Post.Components.DynamicHeightWebView
+import org.sparcs.soap.App.Features.Post.Components.FooterSkeleton
+import org.sparcs.soap.App.Features.Post.Components.HeaderSkeleton
 import org.sparcs.soap.App.Features.Post.Components.PostBookmarkButton
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostCommentsSection
 import org.sparcs.soap.App.Features.Post.Components.PostNavigationBar
 import org.sparcs.soap.App.Features.Post.Components.PostShareButton
-import org.sparcs.soap.App.Features.Post.Components.PostViewSkeleton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
@@ -242,41 +244,33 @@ fun PostView(
             "has_comments" to ((post?.commentCount ?: 0) > 0)
         ),
     ) { innerPadding ->
-        when (state) {
-            is PostViewModel.ViewState.Loading -> {
-                PostViewSkeleton()
-            }
-
-            is PostViewModel.ViewState.Error -> {
-                ErrorView(
-                    icon = Icons.Default.Warning,
-                    error = state.error,
-                    onRetry = { scope.launch { viewModel.fetchPost() } }
-                )
-            }
-
-            is PostViewModel.ViewState.Loaded -> {
-                if (post == null) {
-                    PostViewSkeleton()
-                    return@Scaffold
-                }
-                PullToRefreshBox(
-                    isRefreshing = isRefreshing,
-                    onRefresh = {
-                        isRefreshing = true
-                        scope.launch {
-                            viewModel.fetchPost()
-                            delay(500)
-                            isRefreshing = false
-                        }
-                    },
-                    state = pullState,
-                    modifier = Modifier
-                        .padding(innerPadding)
-                        .padding(16.dp)
-                ) {
-                    LazyColumn(state = proxy) {
-                        item {
+        if (state is PostViewModel.ViewState.Error) {
+            ErrorView(
+                icon = Icons.Default.Warning,
+                error = state.error,
+                onRetry = { scope.launch { viewModel.fetchPost() } }
+            )
+        } else {
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    isRefreshing = true
+                    scope.launch {
+                        viewModel.fetchPost()
+                        delay(500)
+                        isRefreshing = false
+                    }
+                },
+                state = pullState,
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .padding(16.dp)
+            ) {
+                LazyColumn(state = proxy) {
+                    item {
+                        if (post == null) {
+                            HeaderSkeleton()
+                        } else {
                             Header(
                                 post = post,
                                 onAuthorClick = {
@@ -285,22 +279,30 @@ fun PostView(
                                 }
                             )
                         }
-                        item {
-                            Content(
-                                postId = viewModel.postId,
-                                summarisedContent = summarisedContent,
-                                htmlHeight = htmlHeight,
-                                onHtmlHeightChange = { htmlHeight = it },
-                                onLinkTapped = { tappedURL = Uri.parse(it) }
-                            )
-                        }
-                        item {
+                    }
+                    item {
+                        Content(
+                            postId = viewModel.postId,
+                            summarisedContent = summarisedContent,
+                            htmlHeight = htmlHeight,
+                            onHtmlHeightChange = { htmlHeight = it },
+                            onLinkTapped = { tappedURL = Uri.parse(it) }
+                        )
+                    }
+                    item {
+                        if (post == null) {
+                            FooterSkeleton()
+                        } else {
                             Footer(viewModel, scope = scope, post = post) {
                                 targetComment = null
                                 focusRequester.requestFocus()
                                 keyboardController?.show()
                             }
                         }
+                    }
+                    if (post == null) {
+                        items(2) { CommentSkeleton() }
+                    } else {
                         item {
                             Comments(
                                 post = post,
@@ -314,8 +316,8 @@ fun PostView(
                                 keyboardController = keyboardController
                             )
                         }
-                        item { Spacer(modifier = Modifier.height(64.dp)) }
                     }
+                    item { Spacer(modifier = Modifier.height(64.dp)) }
                 }
             }
         }
