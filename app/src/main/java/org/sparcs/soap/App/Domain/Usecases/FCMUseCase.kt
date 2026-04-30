@@ -5,6 +5,7 @@ import android.os.Build
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.sparcs.soap.App.Domain.Helpers.FeatureType
 import org.sparcs.soap.App.Domain.Repositories.FCMRepositoryProtocol
@@ -55,42 +56,7 @@ class FCMUseCase @Inject constructor(
             keyGenerator.generateKey()
         }
     }
-//
-//    override suspend fun register(fcmToken: String) {
-////        // TODO: 알람 기능 도입 시 아래 코드 활성화
-////        return
-//        val savedToken = prefs.getString("last_registered_token", null)
-//        if (savedToken == fcmToken) {
-//            Timber.d("FCM: Token already successfully registered with server. Skipping.")
-//            return
-//        }
-//
-//        if (isRegistering) return
-//        isRegistering = true
-//
-//        try {
-//            val deviceUUID = getEncryptedDeviceID() ?: run {
-//                val newUUID = UUID.randomUUID().toString()
-//                saveEncryptedDeviceID(newUUID)
-//                newUUID
-//            }
-//
-//            fcmRepository.register(
-//                deviceUUID = deviceUUID,
-//                fcmToken = fcmToken,
-//                deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
-//                language = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ko"
-//            )
-//
-//            prefs.edit().putString("last_registered_token", fcmToken).apply()
-//            Timber.d("FCM: Registration successful and token cached.")
-//
-//        } catch (e: Exception) {
-//            Timber.e(e, "FCM: Registration failed.")
-//        } finally {
-//            isRegistering = false
-//        }
-//    }
+
 override suspend fun register(fcmToken: String) {
     val savedToken = prefs.getString("last_registered_token", null)
     if (savedToken == fcmToken) {
@@ -122,7 +88,7 @@ override suspend fun register(fcmToken: String) {
             Timber.d("FCM: Existing device token updated.")
         }
 
-        prefs.edit().putString("last_registered_token", fcmToken).apply()
+        prefs.edit { putString("last_registered_token", fcmToken) }
 
     } catch (e: Exception) {
         Timber.e(e, "FCM: Operation failed.")
@@ -154,7 +120,7 @@ override suspend fun register(fcmToken: String) {
         val iv = cipher.iv
         val encrypted = cipher.doFinal(uuid.toByteArray())
         val combined = Base64.encodeToString(iv + encrypted, Base64.NO_WRAP)
-        prefs.edit().putString(FCM_DEVICE_ID_KEY, combined).apply()
+        prefs.edit { putString(FCM_DEVICE_ID_KEY, combined) }
     }
 
     private fun getEncryptedDeviceID(): String? {
