@@ -319,7 +319,7 @@ object NetworkModule {
         tokenStorage: TokenStorageProtocol,
         tokenAuthenticator: TokenAuthenticator,
     ): Retrofit {
-        val okHttpClient = OkHttpClient.Builder()
+        val okHttpClientBuilder = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
@@ -341,11 +341,30 @@ object NetworkModule {
             .addInterceptor(HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             })
-            .build()
+
+        if (BuildConfig.DEBUG) {
+            try {
+                val trustAllCerts = arrayOf<javax.net.ssl.TrustManager>(
+                    object : javax.net.ssl.X509TrustManager {
+                        @android.annotation.SuppressLint("TrustAllX509TrustManager")
+                        override fun checkClientTrusted(chain: Array<out java.security.cert.X509Certificate>?, authType: String?) {}
+                        @android.annotation.SuppressLint("TrustAllX509TrustManager")
+                        override fun checkServerTrusted(chain: Array<out java.security.cert.X509Certificate>?, authType: String?) {}
+                        override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> = arrayOf()
+                    }
+                )
+                val sslContext = javax.net.ssl.SSLContext.getInstance("SSL")
+                sslContext.init(null, trustAllCerts, java.security.SecureRandom())
+                okHttpClientBuilder.sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as javax.net.ssl.X509TrustManager)
+                okHttpClientBuilder.hostnameVerifier { _, _ -> true }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to create unsafe SSL context for OTL")
+            }
+        }
 
         return Retrofit.Builder()
             .baseUrl(Constants.otlBackendURL)
-            .client(okHttpClient)
+            .client(okHttpClientBuilder.build())
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
     }

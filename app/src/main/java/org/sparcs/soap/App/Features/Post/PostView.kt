@@ -84,6 +84,7 @@ import org.sparcs.soap.App.Features.Post.Components.CommentSkeleton
 import org.sparcs.soap.App.Features.Post.Components.DynamicHeightWebView
 import org.sparcs.soap.App.Features.Post.Components.FooterSkeleton
 import org.sparcs.soap.App.Features.Post.Components.HeaderSkeleton
+import org.sparcs.soap.App.Features.Post.Components.PostAttachmentsSection
 import org.sparcs.soap.App.Features.Post.Components.PostBookmarkButton
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostCommentsSection
@@ -288,6 +289,12 @@ fun PostView(
                             onHtmlHeightChange = { htmlHeight = it },
                             onLinkTapped = { tappedURL = Uri.parse(it) }
                         )
+                    }
+                    if (post != null && !post.attachments.isNullOrEmpty()) {
+                        item {
+                            PostAttachmentsSection(attachments = post.attachments)
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
                     }
                     item {
                         if (post == null) {
