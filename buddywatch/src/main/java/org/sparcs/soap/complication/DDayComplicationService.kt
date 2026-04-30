@@ -1,11 +1,13 @@
 package org.sparcs.soap.complication
 
+import android.app.PendingIntent
 import android.graphics.drawable.Icon
 import androidx.wear.watchface.complications.data.ComplicationData
 import androidx.wear.watchface.complications.data.ComplicationType
 import androidx.wear.watchface.complications.data.LongTextComplicationData
 import androidx.wear.watchface.complications.data.MonochromaticImage
 import androidx.wear.watchface.complications.data.PlainComplicationText
+import androidx.wear.watchface.complications.data.RangedValueComplicationData
 import androidx.wear.watchface.complications.data.ShortTextComplicationData
 import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
@@ -22,8 +24,23 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
     private val watchDataStore by lazy { WatchDataStore(applicationContext) }
     private val json = Json { ignoreUnknownKeys = true }
 
+    private val tapActionIntent: PendingIntent? by lazy {
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+        PendingIntent.getActivity(
+            this, 101, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
     override fun getPreviewData(type: ComplicationType): ComplicationData? {
-        return createComplicationData("D-54", "Spring", type)
+        return when (type) {
+            ComplicationType.RANGED_VALUE -> {
+                createComplicationData("D-54", "", type, 40f)
+            }
+            else -> {
+                createComplicationData("D-54", "26 Spring", type, 40f)
+            }
+        }
     }
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
@@ -37,82 +54,98 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
         }
 
         if (semester == null) {
-            return createComplicationData("—", "No Sync", request.complicationType)
+            return createComplicationData("—", "No Sync", request.complicationType, 0f)
         }
 
-        val now = Date()
+        val now = Date().time
         val begin = semester.beginDateMillis
         val end = semester.endDateMillis
 
-        val dDayLabel: String
-        val description: String
-
+        val dDayLabel = calculateDDayLabel(now, begin, end)
         val nameParts = semester.name.split(" ")
         val yearShort = if (nameParts.isNotEmpty()) nameParts.first().takeLast(2) else ""
         val season = if (nameParts.size > 1) nameParts.last() else ""
-        description = "$yearShort $season"
+        val description = "$yearShort $season"
 
-        if (now.time < begin) {
-            val daysUntil = daysBetween(now, Date(begin))
-            dDayLabel = "D-$daysUntil"
-        } else {
-            val daysLeft = daysBetween(now, Date(end))
-            dDayLabel = if (daysLeft == 0) "D-Day" else if (daysLeft > 0) "D-$daysLeft" else "D+${
-                Math.abs(daysLeft)
-            }"
-        }
+        val totalRange = end - begin
+        val progress = if (totalRange > 0) {
+            ((now - begin).toFloat() / totalRange.toFloat() * 100f).coerceIn(0f, 100f)
+        } else 0f
 
-        return createComplicationData(dDayLabel, description, request.complicationType)
+        return createComplicationData(dDayLabel, description, request.complicationType, progress)
     }
 
     private fun createComplicationData(
         label: String,
         desc: String,
         type: ComplicationType,
+        progress: Float
     ): ComplicationData? {
         val icon = MonochromaticImage.Builder(
             image = Icon.createWithResource(applicationContext, R.drawable.buddy_icon_flat)
         ).build()
 
+        val textContent = PlainComplicationText.Builder(label).build()
+        val titleContent = PlainComplicationText.Builder(desc).build()
+
         return when (type) {
-            ComplicationType.SHORT_TEXT -> {
-                ShortTextComplicationData.Builder(
-                    text = PlainComplicationText.Builder(label).build(),
-                    contentDescription = PlainComplicationText.Builder(getString(R.string.d_day_mock_title))
-                        .build()
+            ComplicationType.RANGED_VALUE -> {
+                RangedValueComplicationData.Builder(
+                    value = progress,
+                    min = 0f,
+                    max = 100f,
+                    contentDescription = PlainComplicationText.Builder("Semester Progress").build()
                 )
-                    .setTitle(PlainComplicationText.Builder(desc).build())
+                    .setText(textContent)
                     .setMonochromaticImage(icon)
+                    .setTapAction(tapActionIntent)
                     .build()
             }
-
+            ComplicationType.SHORT_TEXT -> {
+                ShortTextComplicationData.Builder(
+                    text = textContent,
+                    contentDescription = PlainComplicationText.Builder("D-Day").build()
+                )
+                    .setTitle(titleContent)
+                    .setMonochromaticImage(icon)
+                    .setTapAction(tapActionIntent)
+                    .build()
+            }
             ComplicationType.LONG_TEXT -> {
                 LongTextComplicationData.Builder(
                     text = PlainComplicationText.Builder(label).build(),
                     contentDescription = PlainComplicationText.Builder(getString(R.string.d_day_mock_title))
                         .build()
                 )
-                    .setTitle(PlainComplicationText.Builder(desc).build())
+                    .setTitle(titleContent)
                     .setMonochromaticImage(icon)
+                    .setTapAction(tapActionIntent)
                     .build()
             }
-
             else -> null
+        }
+    }
+
+    private fun calculateDDayLabel(now: Long, begin: Long, end: Long): String {
+        return if (now < begin) {
+            val daysUntil = daysBetween(Date(now), Date(begin))
+            "D-$daysUntil"
+        } else {
+            val daysLeft = daysBetween(Date(now), Date(end))
+            when {
+                daysLeft == 0 -> "D-Day"
+                daysLeft > 0 -> "D-$daysLeft"
+                else -> "D+${Math.abs(daysLeft)}"
+            }
         }
     }
 
     private fun daysBetween(from: Date, to: Date): Int {
         val f = Calendar.getInstance().apply {
-            time = from; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(
-            Calendar.SECOND,
-            0
-        ); set(Calendar.MILLISECOND, 0)
+            time = from; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }
         val t = Calendar.getInstance().apply {
-            time = to; set(Calendar.HOUR_OF_DAY, 0); set(
-            Calendar.MINUTE,
-            0
-        ); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+            time = to; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
         }
         return TimeUnit.MILLISECONDS.toDays(t.timeInMillis - f.timeInMillis).toInt()
     }
