@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Domain.Usecases.OTL
 
+import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Domain.Repositories.OTL.OTLTimetableRepositoryProtocol
 import javax.inject.Inject
@@ -7,6 +8,7 @@ import javax.inject.Singleton
 
 interface TimetableUseCaseBackgroundProtocol {
     suspend fun getCurrentMyTable(): Timetable
+    suspend fun getCurrentSemester(): Semester?
 }
 
 @Singleton
@@ -26,6 +28,14 @@ class TimetableUseCaseBackground @Inject constructor(
                 id = "-myTable",
                 lectures = emptyList()
             )
+        }
+    }
+
+    override suspend fun getCurrentSemester(): Semester? {
+        return try {
+            otlTimetableRepository.getCurrentSemester()
+        } catch (_: Exception) {
+            null
         }
     }
 }

@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -20,7 +21,6 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import org.sparcs.soap.R
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.mock
@@ -51,7 +51,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
             Text(
                 text = context.getString(R.string.up_next),
                 style = TextStyle(
-                    color = ColorProvider(backgroundColor),
+                    color = ColorProvider(day = backgroundColor, night = backgroundColor),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium
                 )
@@ -72,7 +72,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
             Text(
                 text = entry.formattedTimeRange,
                 style = TextStyle(
-                    color = ColorProvider(backgroundColor),
+                    color = ColorProvider(day = backgroundColor, night = backgroundColor),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium
                 )

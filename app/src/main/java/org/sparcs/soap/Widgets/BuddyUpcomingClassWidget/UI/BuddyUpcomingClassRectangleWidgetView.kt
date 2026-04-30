@@ -10,6 +10,7 @@ import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -25,7 +26,6 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import org.sparcs.soap.R
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.mock
@@ -49,7 +49,7 @@ fun UpcomingClassRectangleWidgetView(entry: WidgetLectureEntry) {
                 Box(
                     modifier = GlanceModifier
                         .size(8.dp)
-                        .background(ColorProvider(backgroundColor))
+                        .background(ColorProvider(day = backgroundColor, night = backgroundColor))
                         .cornerRadius(5.dp)
                 ) {}
 
@@ -58,7 +58,7 @@ fun UpcomingClassRectangleWidgetView(entry: WidgetLectureEntry) {
                 Text(
                     text = entry.formattedTimeRange,
                     style = TextStyle(
-                        color = ColorProvider(backgroundColor),
+                        color = ColorProvider(day = backgroundColor, night = backgroundColor),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Bold
                     ),
