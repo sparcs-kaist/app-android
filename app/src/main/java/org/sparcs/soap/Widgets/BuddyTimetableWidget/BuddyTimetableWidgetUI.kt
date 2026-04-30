@@ -15,6 +15,7 @@ import androidx.glance.LocalSize
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -61,14 +62,14 @@ private fun TimetableGridCell(
                 .fillMaxSize()
                 .padding(6.dp)
                 .cornerRadius(4.dp)
-                .background(ColorProvider(backgroundColor)),
+                .background(ColorProvider(day = backgroundColor, night = backgroundColor)),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.Start
         ) {
             Text(
                 text = lecture.title,
                 style = TextStyle(
-                    color = ColorProvider(textColor),
+                    color = ColorProvider(day = textColor, night = textColor),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold
                 ),
@@ -80,7 +81,7 @@ private fun TimetableGridCell(
                 Text(
                     text = lecture.classroom,
                     style = TextStyle(
-                        color = ColorProvider(textColor.copy(alpha = 0.8f)),
+                        color = ColorProvider(day = textColor.copy(alpha = 0.8f), night = textColor.copy(alpha = 0.8f)),
                         fontSize = 8.sp
                     ),
                     maxLines = 2
@@ -216,7 +217,7 @@ private fun HorizontalLine(
             .fillMaxWidth()
             .padding(1.dp)
             .height(1.dp)
-            .background(ColorProvider(color.getColor(context).copy(alpha)))
+            .background(ColorProvider(day = color.getColor(context).copy(alpha), night = color.getColor(context).copy(alpha)))
     ) {}
 }
 
@@ -238,7 +239,7 @@ private fun DashedHorizontalLine(
 @Preview(widthDp = 300, heightDp = 600)
 @Composable
 private fun TimetableGridPreview() {
-    Column(modifier = GlanceModifier.fillMaxSize().background(ColorProvider(Color.White))) {
+    Column(modifier = GlanceModifier.fillMaxSize().background(ColorProvider(day = Color.White, night = Color.White))) {
         TimetableLargeWidgetView(
             timetable = WidgetTimetableEntry.mock()
         )

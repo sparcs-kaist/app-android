@@ -9,6 +9,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtocol
+import org.sparcs.soap.Widgets.BuddyDDayWidget.DDayWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UpComingWidgetSyncManager
 import javax.inject.Qualifier
@@ -21,6 +22,10 @@ annotation class UpcomingWidget
 @Retention(AnnotationRetention.BINARY)
 annotation class TimetableWidget
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class DDayWidget
+
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
@@ -30,6 +35,10 @@ interface WidgetEntryPoint {
 
     @TimetableWidget
     fun timetableSyncManager(): TimetableWidgetSyncManager
+
+    @DDayWidget
+    fun dDaySyncManager(): DDayWidgetSyncManager
+
     fun timetableUseCase(): TimetableUseCaseBackgroundProtocol
 }
 
@@ -47,5 +56,11 @@ object WidgetModule {
     @Provides
     fun provideTimetableSyncManager(@ApplicationContext context: Context): TimetableWidgetSyncManager {
         return TimetableWidgetSyncManager(context)
+    }
+
+    @DDayWidget
+    @Provides
+    fun provideDDaySyncManager(@ApplicationContext context: Context): DDayWidgetSyncManager {
+        return DDayWidgetSyncManager(context)
     }
 }

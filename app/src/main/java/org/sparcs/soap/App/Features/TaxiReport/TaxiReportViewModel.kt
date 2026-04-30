@@ -61,7 +61,7 @@ class TaxiReportViewModel @Inject constructor(
     private val _selectedUser = MutableStateFlow<TaxiParticipant?>(null)
     override val selectedUser: StateFlow<TaxiParticipant?> get() = _selectedUser
 
-    private val _selectedReason = MutableStateFlow<TaxiReport.Reason?>(null)
+    private val _selectedReason = MutableStateFlow<TaxiReport.Reason?>(TaxiReport.Reason.NO_SETTLEMENT)
     override val selectedReason: StateFlow<TaxiReport.Reason?> get() = _selectedReason
 
     override var etcDetails by mutableStateOf("")

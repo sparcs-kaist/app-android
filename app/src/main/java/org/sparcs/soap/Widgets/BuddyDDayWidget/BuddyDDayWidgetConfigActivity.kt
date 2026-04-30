@@ -1,4 +1,4 @@
-package org.sparcs.soap.Widgets.BuddyTimetableWidget
+package org.sparcs.soap.Widgets.BuddyDDayWidget
 
 import android.appwidget.AppWidgetManager
 import android.content.Intent
@@ -45,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -52,15 +53,13 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
-import org.sparcs.soap.App.Features.Timetable.Components.TimetableGrid
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.theme_dark_surface
 import org.sparcs.soap.App.theme.ui.theme_light_surface
-import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
-class TimetableWidgetConfigActivity : ComponentActivity() {
+class BuddyDDayWidgetConfigActivity : ComponentActivity() {
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -84,14 +83,17 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                 var transparency by remember { mutableFloatStateOf(1f) }
 
                 LaunchedEffect(Unit) {
-                    val manager = GlanceAppWidgetManager(this@TimetableWidgetConfigActivity)
-                    val glanceId = manager.getGlanceIdBy(appWidgetId)
+                    val manager = GlanceAppWidgetManager(this@BuddyDDayWidgetConfigActivity)
+                    val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (e: Exception) { null }
 
-                    updateAppWidgetState(this@TimetableWidgetConfigActivity, glanceId) { prefs ->
-                        selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
-                        transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
+                    if (glanceId != null) {
+                        updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
+                            selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
+                            transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
+                        }
                     }
                 }
+
                 Scaffold(
                     topBar = {
                         SettingsViewNavigationBar(
@@ -250,70 +252,101 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             Slider(
                 value = transparency,
                 onValueChange = onTransparencyChange,
-                valueRange = 0.0f..1f,
+                valueRange = 0.0f..1.0f,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
     }
 
+    @Composable
+    private fun WidgetPreviewSection(selectedTheme: String, transparency: Float) {
+        val isDark = when (selectedTheme) {
+            "Dark" -> true
+            "Light" -> false
+            else -> isSystemInDarkTheme()
+        }
+
+        val surfaceColor = if (isDark) theme_dark_surface else theme_light_surface
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.preview),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+            )
+            Theme(darkTheme = isDark) {
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .width(160.dp)
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(surfaceColor.copy(alpha = transparency))
+                        .padding(16.dp),
+                    contentAlignment = Alignment.TopStart
+                ) {
+                    Column {
+                        Text(
+                            text = stringResource(R.string.d_day_widget_ends_in).uppercase(),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+
+                        Row(verticalAlignment = Alignment.Bottom) {
+                            Text(
+                                text = "54",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 36.sp,
+                                fontWeight = FontWeight.Medium,
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "days",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.weight(1f))
+
+                        Text(
+                            text = stringResource(R.string.preview_d_day_semester_label),
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun saveAndFinish(theme: String, transparency: Float) {
         lifecycleScope.launch {
-            val manager = GlanceAppWidgetManager(this@TimetableWidgetConfigActivity)
-            val glanceId = manager.getGlanceIdBy(appWidgetId)
-            updateAppWidgetState(this@TimetableWidgetConfigActivity, glanceId) { prefs ->
-                prefs[stringPreferencesKey("theme_mode")] = theme
-                prefs[floatPreferencesKey("background_transparency")] = transparency
+            val manager = GlanceAppWidgetManager(this@BuddyDDayWidgetConfigActivity)
+            val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (e: Exception) { null }
+            
+            if (glanceId != null) {
+                updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
+                    prefs[stringPreferencesKey("theme_mode")] = theme
+                    prefs[floatPreferencesKey("background_transparency")] = transparency
+                }
+                BuddyDDayWidget().update(this@BuddyDDayWidgetConfigActivity, glanceId)
             }
-            TimetableWidget().update(this@TimetableWidgetConfigActivity, glanceId)
+            
             val resultValue = Intent().apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }
             setResult(RESULT_OK, resultValue)
             finish()
-        }
-    }
-}
-
-@Composable
-private fun WidgetPreviewSection(selectedTheme: String, transparency: Float) {
-    val isDark = when (selectedTheme) {
-        "Dark" -> true
-        "Light" -> false
-        else -> isSystemInDarkTheme()
-    }
-
-    val surfaceColor = if (isDark) {
-        theme_dark_surface
-    } else {
-        theme_light_surface
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 24.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.preview),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
-        )
-        Theme(darkTheme = isDark) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp)
-                    .clip(RoundedCornerShape(28.dp))
-                    .background(surfaceColor.copy(alpha = transparency))
-                    .padding(8.dp)
-            ) {
-                TimetableGrid(
-                    viewModel = PreviewTimetableViewModel(),
-                    onLectureSelected = {},
-                    showDeleteDialog = {}
-                )
-            }
         }
     }
 }

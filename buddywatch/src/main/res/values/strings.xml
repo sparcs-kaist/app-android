@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Buddy</string>
     <string name="tile_label">Upcoming Class</string>
-    <string name="up_next">Up Next</string>
-    <string name="no_more_classes">No more class today!</string>
-    <string name="enjoy_day">Have a nice day!</string>
+    <string name="up_next">Up next</string>
+    <string name="no_more_classes">No more classes</string>
+    <string name="enjoy_day">Enjoy your day</string>
     <string name="today_schedule">Today\'s Schedule</string>
     <string name="monday">Monday</string>
     <string name="tuesday">Tuesday</string>
@@ -12,5 +12,21 @@
     <string name="friday">Friday</string>
     <string name="saturday">Saturday</string>
     <string name="sunday">Sunday</string>
-    <string name="no_sync">For data synchronization, run phone app and click timetable tab.</string>
+    <string name="no_sync">Open the phone app and sync your timetable first.</string>
+    <string name="d_day_widget_title">D-Day</string>
+    <string name="d_day_widget_ends_in_days">Ends in %1$d days</string>
+    <string name="d_day_widget_starts_in_days">Starts in %1$d days</string>
+    <string name="d_day_widget_ends_in">Semester Ends</string>
+    <string name="d_day_widget_starts_in">Semester Starts</string>
+    <string name="d_day_widget_d_minus">D-%1$d</string>
+    <string name="d_day_widget_d_plus">D+%1$d</string>
+    <string name="d_day_widget_d_day">D-Day</string>
+    <string name="d_day_widget_no_data">No data available</string>
+    <string name="comp_no_class">End</string>
+    <string name="comp_ongoing">Now</string>
+    <string name="comp_next_class_desc">Next: %1$s at %2$s</string>
+    <string name="comp_dday_title">D-Day</string>
+    <string name="comp_upcoming_title">Upcoming</string>
+    <string name="d_day_mock_title">26 Spring</string>
+    <string name="days_suffix">days</string>
 </resources>
