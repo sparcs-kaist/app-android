@@ -20,6 +20,8 @@ class MockPostViewModel(initialState: PostViewModel.ViewState, post: AraPost) : 
     override var alertState: AlertState? = null
     override var isAlertPresented: Boolean = false
 
+    override val postId: Int = post.id
+
     private val _post = MutableStateFlow(post)
     override val post: StateFlow<AraPost?> = _post.asStateFlow()
 

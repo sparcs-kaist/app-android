@@ -36,7 +36,7 @@ fun PostViewSkeleton() {
 }
 
 @Composable
-private fun HeaderSkeleton() {
+fun HeaderSkeleton() {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(
             Modifier
@@ -128,7 +128,7 @@ private fun ContentSkeleton() {
 }
 
 @Composable
-private fun FooterSkeleton() {
+fun FooterSkeleton() {
     Row(
         Modifier
             .fillMaxWidth()
@@ -153,7 +153,7 @@ private fun FooterSkeleton() {
 }
 
 @Composable
-private fun CommentSkeleton() {
+fun CommentSkeleton() {
     Column(
         Modifier
             .fillMaxWidth()
