@@ -1,10 +1,10 @@
 package org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI
 
-import android.graphics.Color.parseColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
@@ -30,7 +30,7 @@ import java.util.Locale
 @Composable
 fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
     val context = LocalContext.current
-    val backgroundColor = Color(parseColor(entry.bgColor))
+    val backgroundColor = Color(entry.bgColor.toColorInt())
 
     if (entry.signInRequired) {
         Box(
@@ -102,16 +102,16 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
                 ).uppercase(),
                 style = TextStyle(
                     color = GlanceTheme.colors.primary,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
                 )
             )
 
             Text(
                 text = today.dayOfMonth.toString(),
                 style = TextStyle(
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontSize = 40.sp,
+                    fontWeight = FontWeight.Bold,
                     color = GlanceTheme.colors.onSurface
                 )
             )
@@ -122,8 +122,8 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
                 text = context.getString(R.string.no_more_classes),
                 style = TextStyle(
                     color = GlanceTheme.colors.primary,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
                 )
             )
 
@@ -131,7 +131,8 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
                 text = context.getString(R.string.enjoy_day),
                 maxLines = 1,
                 style = TextStyle(
-                    fontSize = 12.sp,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Medium,
                     color = GlanceTheme.colors.onSurfaceVariant
                 )
             )

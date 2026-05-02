@@ -2,10 +2,10 @@ package org.sparcs.soap.Widgets.BuddyUpcomingClassWidget
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -58,7 +58,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
     override val sizeMode = SizeMode.Responsive(
         setOf(
             DpSize(60.dp, 60.dp),   // Circular
-            DpSize(150.dp, 110.dp), // Small
+            DpSize(150.dp, 130.dp), // Small
             DpSize(150.dp, 50.dp),  // Rectangle
         )
     )
@@ -140,7 +140,10 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         return try {
             val token = tokenStorage.getAccessToken()
 
-            if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
+            if (token == null || tokenStorage.isTokenExpired()) {
+                syncManager.syncSignInRequired()
+                return Result.success()
+            }
 
             val timetable = timetableUseCase.getCurrentMyTable()
 
@@ -193,9 +196,17 @@ class UpComingWidgetSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     suspend fun sync(entry: WidgetLectureEntry) {
+        val newState = entry.toUpcomingWidgetUiState()
+        syncState(newState)
+    }
+
+    suspend fun syncSignInRequired() {
+        syncState(UpcomingClassUiState(signInRequired = true))
+    }
+
+    private suspend fun syncState(state: UpcomingClassUiState) {
         try {
-            val newState = entry.toUpcomingWidgetUiState()
-            val jsonString = Json.encodeToString(newState)
+            val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
             val glanceIds = manager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
 
@@ -265,7 +276,7 @@ class RefreshAndOpenAppAction : ActionCallback {
         val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         } else {
-            Intent(Intent.ACTION_VIEW, Uri.parse(Constants.otlShareURL))
+            Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
         }
 
         intent?.apply {

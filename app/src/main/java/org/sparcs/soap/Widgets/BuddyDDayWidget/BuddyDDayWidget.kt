@@ -66,7 +66,7 @@ class BuddyDDayWidget : GlanceAppWidget() {
         setOf(
             DpSize(60.dp, 60.dp),   // Circular
             DpSize(110.dp, 50.dp),  // Rectangle (4x1)
-            DpSize(150.dp, 110.dp), // Small (2x2)
+            DpSize(150.dp, 130.dp), // Small (2x2)
         )
     )
 
