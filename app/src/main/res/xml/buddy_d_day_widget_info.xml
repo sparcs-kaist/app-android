@@ -9,7 +9,7 @@
     android:widgetFeatures="reconfigurable|configuration_optional"
     android:previewImage="@drawable/dday_widget_preview"
     android:resizeMode="horizontal|vertical"
-    android:maxResizeHeight="110dp"
+    android:maxResizeHeight="130dp"
     android:description="@string/d_day_widget_desc"
     android:updatePeriodMillis="3600000"
     android:widgetCategory="home_screen" />

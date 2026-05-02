@@ -1,10 +1,10 @@
 package org.sparcs.soap.Widgets.BuddyTimetableWidget
 
-import android.graphics.Color.parseColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -49,8 +49,8 @@ private fun TimetableGridCell(
 ) {
     if (lecture.title == null || lecture.classroom == null || lecture.startMinutes == null || lecture.durationMinutes == null) return
 
-    val backgroundColor = Color(parseColor(lecture.bgColor))
-    val textColor = Color(parseColor(lecture.textColor))
+    val backgroundColor = Color(lecture.bgColor.toColorInt())
+    val textColor = Color(lecture.textColor.toColorInt())
     Box(
         modifier = modifier
             .fillMaxWidth()
