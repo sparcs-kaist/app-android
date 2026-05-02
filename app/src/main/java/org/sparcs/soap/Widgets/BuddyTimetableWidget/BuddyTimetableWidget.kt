@@ -142,9 +142,17 @@ class TimetableWidgetSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     suspend fun sync(timetable: Timetable) {
+        val newState = timetable.toWidgetUiState()
+        syncState(newState)
+    }
+
+    suspend fun syncSignInRequired() {
+        syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
+    }
+
+    private suspend fun syncState(state: TimetableUiState) {
         try {
-            val newState = timetable.toWidgetUiState()
-            val jsonString = Json.encodeToString(newState)
+            val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
             val glanceIds = manager.getGlanceIds(TimetableWidget::class.java)
 
@@ -180,7 +188,10 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
 
         return try {
             val token = tokenStorage.getAccessToken()
-            if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
+            if (token == null || tokenStorage.isTokenExpired()) {
+                syncManager.syncSignInRequired()
+                return Result.success()
+            }
 
             val timetable = timetableUseCase.getCurrentMyTable()
 

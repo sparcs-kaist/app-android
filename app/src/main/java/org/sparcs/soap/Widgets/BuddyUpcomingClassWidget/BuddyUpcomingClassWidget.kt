@@ -140,7 +140,10 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         return try {
             val token = tokenStorage.getAccessToken()
 
-            if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
+            if (token == null || tokenStorage.isTokenExpired()) {
+                syncManager.syncSignInRequired()
+                return Result.success()
+            }
 
             val timetable = timetableUseCase.getCurrentMyTable()
 
@@ -193,9 +196,17 @@ class UpComingWidgetSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     suspend fun sync(entry: WidgetLectureEntry) {
+        val newState = entry.toUpcomingWidgetUiState()
+        syncState(newState)
+    }
+
+    suspend fun syncSignInRequired() {
+        syncState(UpcomingClassUiState(signInRequired = true))
+    }
+
+    private suspend fun syncState(state: UpcomingClassUiState) {
         try {
-            val newState = entry.toUpcomingWidgetUiState()
-            val jsonString = Json.encodeToString(newState)
+            val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
             val glanceIds = manager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
 

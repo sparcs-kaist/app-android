@@ -26,6 +26,7 @@ import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCase
 import org.sparcs.soap.App.Features.Timetable.Event.TimetableViewEvent
 import org.sparcs.soap.R
+import org.sparcs.soap.Widgets.WidgetSyncHelper
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -65,6 +66,7 @@ class TimetableViewModel @Inject constructor(
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
     @ApplicationContext private val context: Context,
+    private val widgetSyncHelper: WidgetSyncHelper
 ) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
@@ -199,6 +201,7 @@ class TimetableViewModel @Inject constructor(
                     _timetable.value = null
                 }
             }
+            widgetSyncHelper.refreshAllWidgets()
         } catch (e: Exception) {
             _timetable.value = null
             handleException(e, ErrorType.FetchData)

@@ -133,6 +133,7 @@ import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiRoomApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiUserApi
 import org.sparcs.soap.App.Shared.Extensions.AndroidStringProvider
 import org.sparcs.soap.App.Shared.Extensions.StringProvider
+import org.sparcs.soap.Widgets.WidgetSyncHelper
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
@@ -760,7 +761,8 @@ object AuthUseCaseModule {
         feedUserRepository: FeedUserRepositoryProtocol,
         otlUserRepository: OTLUserRepositoryProtocol,
         taxiChatServiceProvider: Provider<TaxiChatService>,
-        fcmUseCase: FCMUseCaseProtocol
+        fcmUseCase: FCMUseCaseProtocol,
+        widgetSyncHelper: WidgetSyncHelper
     ): AuthUseCase {
 
         val useCase = AuthUseCase(
@@ -769,7 +771,8 @@ object AuthUseCaseModule {
             araUserRepository,
             feedUserRepository,
             otlUserRepository,
-            fcmUseCase
+            fcmUseCase,
+            widgetSyncHelper
         )
 
         AuthRetryConfig.tokenRefresher = {

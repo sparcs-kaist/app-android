@@ -28,6 +28,7 @@ import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.AuthenticationService
 import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraSignInResponseDTO
+import org.sparcs.soap.Widgets.WidgetSyncHelper
 import retrofit2.HttpException
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
@@ -59,7 +60,8 @@ class AuthUseCase @Inject constructor(
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
     private val otlUserRepository: OTLUserRepositoryProtocol,
-    private val fcmUseCase: FCMUseCaseProtocol
+    private val fcmUseCase: FCMUseCaseProtocol,
+    private val widgetSyncHelper: WidgetSyncHelper
 ) : AuthUseCaseProtocol {
 
     private val _isAuthenticated = MutableStateFlow(tokenStorage.getRefreshToken() != null)
@@ -241,6 +243,7 @@ class AuthUseCase @Inject constructor(
 
                 syncFcmTokenIfAuthenticated()
 
+                widgetSyncHelper.refreshAllWidgets()
                 _isAuthenticated.value = true
                 scheduleRefreshToken()
             }
@@ -256,6 +259,7 @@ class AuthUseCase @Inject constructor(
         withContext(Dispatchers.IO + NonCancellable) {
             tokenStorage.clearTokens()
             scheduledRefreshJob?.cancel()
+            widgetSyncHelper.clearAllWidgets()
             _isAuthenticated.value = false
         }
     }
