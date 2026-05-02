@@ -8,7 +8,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
+import org.sparcs.soap.App.Domain.Usecases.Ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtocol
+import org.sparcs.soap.Widgets.AraPortalWidget.AraPortalWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyDDayWidget.DDayWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UpComingWidgetSyncManager
@@ -26,6 +28,10 @@ annotation class TimetableWidget
 @Retention(AnnotationRetention.BINARY)
 annotation class DDayWidget
 
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class AraPortal
+
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
@@ -39,7 +45,11 @@ interface WidgetEntryPoint {
     @DDayWidget
     fun dDaySyncManager(): DDayWidgetSyncManager
 
+    @AraPortal
+    fun araPortalSyncManager(): AraPortalWidgetSyncManager
+
     fun timetableUseCase(): TimetableUseCaseBackgroundProtocol
+    fun araBoardUseCase(): AraBoardUseCaseProtocol
 }
 
 @Module
@@ -62,5 +72,11 @@ object WidgetModule {
     @Provides
     fun provideDDaySyncManager(@ApplicationContext context: Context): DDayWidgetSyncManager {
         return DDayWidgetSyncManager(context)
+    }
+
+    @AraPortal
+    @Provides
+    fun provideAraPortalSyncManager(@ApplicationContext context: Context): AraPortalWidgetSyncManager {
+        return AraPortalWidgetSyncManager(context)
     }
 }

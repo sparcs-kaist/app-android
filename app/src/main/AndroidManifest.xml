@@ -55,6 +55,17 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/buddy_d_day_widget_info" />
         </receiver>
+        <receiver
+            android:name="org.sparcs.soap.Widgets.AraPortalWidget.AraPortalWidgetReceiver"
+            android:exported="true"
+            android:label="@string/ara_portal_widget_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/ara_portal_widget_info" />
+        </receiver>
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -169,6 +180,14 @@
         </activity>
         <activity
             android:name="org.sparcs.soap.Widgets.BuddyDDayWidget.BuddyDDayWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Soap">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.sparcs.soap.Widgets.AraPortalWidget.AraPortalWidgetConfigActivity"
             android:exported="true"
             android:theme="@style/Theme.Soap">
             <intent-filter>

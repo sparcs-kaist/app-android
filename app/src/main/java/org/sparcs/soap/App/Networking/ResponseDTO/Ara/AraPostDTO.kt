@@ -61,7 +61,6 @@ data class AraPostDTO(
     @SerializedName("negative_vote_count")
     val downVotes: Int,
 
-    // for detailed
     @SerializedName("attachments")
     val attachments: List<AraPostAttachmentDTO>?,
 
@@ -96,7 +95,7 @@ data class AraPostDTO(
         communicationArticleStatus = communicationArticleStatus?.let { statusValue -> AraPost.CommunicationArticleStatus.entries.find { enum -> enum.code == statusValue  } },
         createdAt = try {
             Date.from(Instant.parse(createdAt))
-        } catch (e: DateTimeParseException) {
+        } catch (_: DateTimeParseException) {
             Date()
         },
         isNSFW = isNSFW,

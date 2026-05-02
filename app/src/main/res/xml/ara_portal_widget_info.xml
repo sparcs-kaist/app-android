@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:minWidth="180dp"
+    android:minHeight="60dp"
+    android:minResizeWidth="160dp"
+    android:minResizeHeight="150dp"
+    android:maxResizeHeight="120dp"
+    android:configure="org.sparcs.soap.Widgets.AraPortalWidget.AraPortalWidgetConfigActivity"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:previewImage="@drawable/ara_notice_widget_preview"
+    android:resizeMode="horizontal|vertical"
+    android:description="@string/ara_portal_widget_desc"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

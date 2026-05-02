@@ -15,6 +15,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraCreatePost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostPage
 import org.sparcs.soap.App.Networking.RequestDTO.Ara.AraPostRequestDTO
+import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraPortalNoticeDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.AraBoardApi
 import org.sparcs.soap.App.Networking.RetrofitAPI.Ara.PostReportRequest
@@ -42,6 +43,14 @@ interface AraBoardRepositoryProtocol {
     suspend fun deletePost(postID: Int)
     suspend fun addBookmark(postID: Int): Int
     suspend fun removeBookmark(bookmarkID: Int)
+
+    suspend fun fetchPortalNotices(
+        boardId: Int? = null,
+        page: Int = 1,
+        pageSize: Int = 10
+    ): List<AraPortalNoticeDTO>
+
+    suspend fun fetchTrendingPortalNotices(): List<AraPortalNoticeDTO>
 }
 
 
@@ -132,5 +141,17 @@ class AraBoardRepository @Inject constructor(
     override suspend fun removeBookmark(bookmarkID: Int) = safeApiCall(gson) {
         val response = api.removeBookmark(bookmarkID)
         if (!response.isSuccessful) throw retrofit2.HttpException(response)
+    }
+
+    override suspend fun fetchPortalNotices(
+        boardId: Int?,
+        page: Int,
+        pageSize: Int
+    ): List<AraPortalNoticeDTO> = safeApiCall(gson) {
+        api.fetchPortalNotices(boardId, page, pageSize)
+    }
+
+    override suspend fun fetchTrendingPortalNotices(): List<AraPortalNoticeDTO> = safeApiCall(gson) {
+        api.fetchTrendingPortalNotices()
     }
 }
