@@ -14,6 +14,7 @@ import org.sparcs.soap.App.Domain.Models.Ara.AraPost
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostPage
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraBoardRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.CrashlyticsServiceProtocol
+import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraPortalNoticeDTO
 import javax.inject.Inject
 
 interface AraBoardUseCaseProtocol {
@@ -48,6 +49,14 @@ interface AraBoardUseCaseProtocol {
     suspend fun deletePost(postID: Int)
     suspend fun addBookmark(postID: Int): Int
     suspend fun removeBookmark(bookmarkID: Int)
+
+    suspend fun fetchPortalNotices(
+        boardId: Int? = null,
+        page: Int = 1,
+        pageSize: Int = 5
+    ): List<AraPortalNoticeDTO>
+
+    suspend fun fetchTrendingPortalNotices(): List<AraPortalNoticeDTO>
 }
 
 class AraBoardUseCase @Inject constructor(
@@ -171,6 +180,31 @@ class AraBoardUseCase @Inject constructor(
     override suspend fun removeBookmark(bookmarkID: Int) {
         val context = CrashContext(feature = feature, metadata = mapOf("bookmarkID" to bookmarkID.toString()))
         execute(context) { araBoardRepository.removeBookmark(bookmarkID) }
+    }
+
+    override suspend fun fetchPortalNotices(
+        boardId: Int?,
+        page: Int,
+        pageSize: Int
+    ): List<AraPortalNoticeDTO> {
+        val context = CrashContext(
+            feature = feature,
+            metadata = mapOf(
+                "boardId" to (boardId?.toString() ?: "null"),
+                "page" to page.toString(),
+                "pageSize" to pageSize.toString()
+            )
+        )
+        return execute(context) {
+            araBoardRepository.fetchPortalNotices(boardId, page, pageSize)
+        }
+    }
+
+    override suspend fun fetchTrendingPortalNotices(): List<AraPortalNoticeDTO> {
+        val context = CrashContext(feature = feature, metadata = emptyMap())
+        return execute(context) {
+            araBoardRepository.fetchTrendingPortalNotices()
+        }
     }
 
     private suspend fun <T> execute(

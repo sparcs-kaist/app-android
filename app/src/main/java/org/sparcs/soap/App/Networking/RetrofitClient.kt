@@ -136,6 +136,7 @@ import org.sparcs.soap.App.Shared.Extensions.StringProvider
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
@@ -253,6 +254,9 @@ object NetworkModule {
         tokenAuthenticator: TokenAuthenticator,
     ): Retrofit {
         val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(90, TimeUnit.SECONDS)
+            .readTimeout(90, TimeUnit.SECONDS)
+            .writeTimeout(90, TimeUnit.SECONDS)
             .addInterceptor { chain ->
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
@@ -265,7 +269,7 @@ object NetworkModule {
             }
             .authenticator(tokenAuthenticator)
             .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = HttpLoggingInterceptor.Level.HEADERS
             })
             .build()
 
