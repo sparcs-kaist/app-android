@@ -12,15 +12,26 @@ val Context.dataStore by preferencesDataStore(name = "watch_data")
 class WatchDataStore(private val context: Context) {
     companion object {
         private val TIMETABLE_JSON_KEY = stringPreferencesKey("timetable_json")
+        private val SEMESTER_JSON_KEY = stringPreferencesKey("semester_json")
     }
 
     val timetableJsonFlow: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[TIMETABLE_JSON_KEY]
     }
 
+    val semesterJsonFlow: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[SEMESTER_JSON_KEY]
+    }
+
     suspend fun saveTimetableJson(json: String) {
         context.dataStore.edit { preferences ->
             preferences[TIMETABLE_JSON_KEY] = json
+        }
+    }
+
+    suspend fun saveSemesterJson(json: String) {
+        context.dataStore.edit { preferences ->
+            preferences[SEMESTER_JSON_KEY] = json
         }
     }
 }

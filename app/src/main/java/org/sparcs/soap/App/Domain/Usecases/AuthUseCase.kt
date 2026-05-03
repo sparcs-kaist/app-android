@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
@@ -26,6 +28,7 @@ import org.sparcs.soap.App.Domain.Repositories.OTL.OTLUserRepositoryProtocol
 import org.sparcs.soap.App.Domain.Services.AuthenticationService
 import org.sparcs.soap.App.Domain.Services.AuthenticationServiceProtocol
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraSignInResponseDTO
+import org.sparcs.soap.Widgets.WidgetSyncHelper
 import retrofit2.HttpException
 import timber.log.Timber
 import java.util.concurrent.TimeUnit
@@ -57,6 +60,8 @@ class AuthUseCase @Inject constructor(
     private val araUserRepository: AraUserRepositoryProtocol,
     private val feedUserRepository: FeedUserRepositoryProtocol,
     private val otlUserRepository: OTLUserRepositoryProtocol,
+    private val fcmUseCase: FCMUseCaseProtocol,
+    private val widgetSyncHelper: WidgetSyncHelper
 ) : AuthUseCaseProtocol {
 
     private val _isAuthenticated = MutableStateFlow(tokenStorage.getRefreshToken() != null)
@@ -82,6 +87,11 @@ class AuthUseCase @Inject constructor(
 
         scheduleRefreshToken()
         observeForeground()
+        if (_isAuthenticated.value) {
+            coroutineScope.launch(Dispatchers.IO) {
+                syncFcmTokenIfAuthenticated()
+            }
+        }
     }
 
     // MARK: - Foreground Refresh
@@ -123,6 +133,17 @@ class AuthUseCase @Inject constructor(
     private fun cancelRefreshToken() {
         refreshJob?.cancel()
         refreshJob = null
+    }
+
+    private suspend fun syncFcmTokenIfAuthenticated() {
+        if (tokenStorage.getRefreshToken() == null) return
+
+        try {
+            val fcmToken = FirebaseMessaging.getInstance().token.await()
+            fcmUseCase.register(fcmToken)
+        } catch (e: Exception) {
+            Timber.e(e, "FCM token sync failed")
+        }
     }
 
     override fun getAccessToken(): String? {
@@ -182,8 +203,8 @@ class AuthUseCase @Inject constructor(
                 lastRefreshFailure = 0
                 scheduleRefreshToken() // set timer on success
                 onTokenRefresh?.invoke()
+                syncFcmTokenIfAuthenticated()
 
-                Unit
             } catch (e: Exception) {
                 lastRefreshFailure = System.currentTimeMillis()
                 if ((e as? HttpException)?.code() == 401) {
@@ -219,6 +240,10 @@ class AuthUseCase @Inject constructor(
 
                 // MARK - Sign up OTL
                 otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+
+                syncFcmTokenIfAuthenticated()
+
+                widgetSyncHelper.refreshAllWidgets()
                 _isAuthenticated.value = true
                 scheduleRefreshToken()
             }
@@ -234,6 +259,7 @@ class AuthUseCase @Inject constructor(
         withContext(Dispatchers.IO + NonCancellable) {
             tokenStorage.clearTokens()
             scheduledRefreshJob?.cancel()
+            widgetSyncHelper.clearAllWidgets()
             _isAuthenticated.value = false
         }
     }

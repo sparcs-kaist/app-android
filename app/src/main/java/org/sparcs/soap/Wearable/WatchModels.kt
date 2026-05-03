@@ -13,9 +13,17 @@ data class WatchTimetable(
 )
 
 @Serializable
+data class WatchSemester(
+    val name: String,
+    val beginDateMillis: Long,
+    val endDateMillis: Long
+)
+
+@Serializable
 data class WatchLecture(
     val id: Int,
     val name: String,
+    val code: String,
     val classes: List<WatchLectureClass>,
     val color: String? = null
 )
@@ -28,6 +36,8 @@ data class WatchLectureClass(
     @SerialName("location") val location: String
 )
 
+// ...
+
 fun Timetable.toWatchModel(): WatchTimetable {
     return WatchTimetable(
         id = id,
@@ -35,6 +45,7 @@ fun Timetable.toWatchModel(): WatchTimetable {
             WatchLecture(
                 id = lecture.id,
                 name = lecture.name + lecture.subtitle,
+                code = lecture.code,
                 classes = lecture.classes.map { cl ->
                     WatchLectureClass(
                         day = cl.day.name,

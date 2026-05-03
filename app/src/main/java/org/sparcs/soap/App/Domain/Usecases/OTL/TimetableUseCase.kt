@@ -141,7 +141,7 @@ class TimetableUseCase @Inject constructor(
                             timetableCache.store(it, key)
                         }
                         if (current?.let { it.year == semester.year && it.semesterType == semester.semesterType} == true) {
-                            fresh?.let { wearableDataManager.sendTimetableToWatch(it) }
+                            fresh?.let { wearableDataManager.sendTimetableToWatch(it, semester) }
                         }
                     }
                     return@execute cached
@@ -154,7 +154,7 @@ class TimetableUseCase @Inject constructor(
             launchUpdate(key) {
                 val current = runCatching { otlTimetableRepository.getCurrentSemester() }.getOrNull()
                 if (current?.year == semester.year && current.semesterType == semester.semesterType) {
-                    wearableDataManager.sendTimetableToWatch(result)
+                    wearableDataManager.sendTimetableToWatch(result, semester)
                 }
             }
             result

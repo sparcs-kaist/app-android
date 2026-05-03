@@ -202,7 +202,7 @@ private fun Content(
         if (expanded || !isOverflowing || textLayoutResult == null) {
             annotatedContent
         } else {
-            val visibleEnd = textLayoutResult!!.getLineEnd(1, visibleEnd = true)
+            val visibleEnd = textLayoutResult!!.getLineEnd(4, visibleEnd = true)
 
             buildAnnotatedString {
                 val cutIndex = (visibleEnd - 7).coerceAtLeast(0)
@@ -224,7 +224,7 @@ private fun Content(
             style = MaterialTheme.typography.bodyMedium.copy(
                 color = MaterialTheme.colorScheme.onSurface
             ),
-            maxLines = if (!expanded && singleLine) 2 else Int.MAX_VALUE,
+            maxLines = if (!expanded && singleLine) 5 else Int.MAX_VALUE,
             onTextLayout = { layoutResult ->
                 if (textLayoutResult == null && !expanded) {
                     isOverflowing = layoutResult.hasVisualOverflow

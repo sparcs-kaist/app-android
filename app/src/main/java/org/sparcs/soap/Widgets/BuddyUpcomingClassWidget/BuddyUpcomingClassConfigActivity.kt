@@ -89,7 +89,6 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                     updateAppWidgetState(this@BuddyUpcomingClassConfigActivity, glanceId) { prefs ->
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
-                        prefs
                     }
                 }
 
@@ -112,7 +111,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                                 UpcomingClassPreviewSection(selectedTheme, transparency)
                                 Spacer(modifier = Modifier.height(24.dp))
                                 Text(
-                                    text = stringResource(R.string.miscellaneous),
+                                    text = stringResource(R.string.widget_miscellaneous),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(8.dp)
@@ -198,9 +197,9 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
     private fun WidgetThemeRow(selectedTheme: String, onThemeSelected: (String) -> Unit) {
         var showDialog by remember { mutableStateOf(false) }
         val currentModeText = when (selectedTheme) {
-            "Light" -> stringResource(R.string.white_mode)
-            "Dark" -> stringResource(R.string.dark_mode)
-            else -> stringResource(R.string.system_default)
+            "Light" -> stringResource(R.string.widget_white_mode)
+            "Dark" -> stringResource(R.string.widget_dark_mode)
+            else -> stringResource(R.string.widget_system_default)
         }
         Row(
             modifier = Modifier
@@ -236,15 +235,15 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                 text = {
                     Column {
                         ThemeOptionRow(
-                            stringResource(R.string.system_default),
+                            stringResource(R.string.widget_system_default),
                             selectedTheme == "System"
                         ) { onThemeSelected("System"); showDialog = false }
                         ThemeOptionRow(
-                            stringResource(R.string.white_mode),
+                            stringResource(R.string.widget_white_mode),
                             selectedTheme == "Light"
                         ) { onThemeSelected("Light"); showDialog = false }
                         ThemeOptionRow(
-                            stringResource(R.string.dark_mode),
+                            stringResource(R.string.widget_dark_mode),
                             selectedTheme == "Dark"
                         ) { onThemeSelected("Dark"); showDialog = false }
                     }

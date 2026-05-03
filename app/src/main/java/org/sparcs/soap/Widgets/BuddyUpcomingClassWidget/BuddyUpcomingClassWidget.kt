@@ -2,24 +2,39 @@ package org.sparcs.soap.Widgets.BuddyUpcomingClassWidget
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.glance.*
+import androidx.glance.GlanceId
+import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
+import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
-import androidx.glance.appwidget.*
+import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.appwidget.updateAll
+import androidx.glance.background
+import androidx.glance.currentState
 import androidx.glance.layout.Box
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.state.PreferencesGlanceStateDefinition
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.encodeToString
@@ -34,7 +49,7 @@ import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassSmallWid
 import org.sparcs.soap.Widgets.WidgetEntryPoint
 import org.sparcs.soap.Widgets.theme.ui.WidgetTheme
 import timber.log.Timber
-import java.util.*
+import java.util.Calendar
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -43,7 +58,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
     override val sizeMode = SizeMode.Responsive(
         setOf(
             DpSize(60.dp, 60.dp),   // Circular
-            DpSize(150.dp, 110.dp), // Small
+            DpSize(150.dp, 130.dp), // Small
             DpSize(150.dp, 50.dp),  // Rectangle
         )
     )
@@ -125,7 +140,10 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         return try {
             val token = tokenStorage.getAccessToken()
 
-            if (token == null || tokenStorage.isTokenExpired()) return Result.failure()
+            if (token == null || tokenStorage.isTokenExpired()) {
+                syncManager.syncSignInRequired()
+                return Result.success()
+            }
 
             val timetable = timetableUseCase.getCurrentMyTable()
 
@@ -178,9 +196,17 @@ class UpComingWidgetSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     suspend fun sync(entry: WidgetLectureEntry) {
+        val newState = entry.toUpcomingWidgetUiState()
+        syncState(newState)
+    }
+
+    suspend fun syncSignInRequired() {
+        syncState(UpcomingClassUiState(signInRequired = true))
+    }
+
+    private suspend fun syncState(state: UpcomingClassUiState) {
         try {
-            val newState = entry.toUpcomingWidgetUiState()
-            val jsonString = Json.encodeToString(newState)
+            val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
             val glanceIds = manager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
 
@@ -250,7 +276,7 @@ class RefreshAndOpenAppAction : ActionCallback {
         val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         } else {
-            Intent(Intent.ACTION_VIEW, Uri.parse(Constants.otlShareURL))
+            Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
         }
 
         intent?.apply {

@@ -4,7 +4,7 @@
     <string name="tile_label">다음 수업</string>
     <string name="up_next">다음 수업</string>
     <string name="no_more_classes">오늘 수업 끝!</string>
-    <string name="enjoy_day">즐거운 하루 보내세요!</string>
+    <string name="enjoy_day">즐거운 하루 보내세요</string>
     <string name="today_schedule">오늘의 시간표</string>
     <string name="monday">월요일</string>
     <string name="tuesday">화요일</string>
@@ -13,5 +13,21 @@
     <string name="friday">금요일</string>
     <string name="saturday">토요일</string>
     <string name="sunday">일요일</string>
-    <string name="no_sync">데이터 동기화를 위하여, 휴대폰 앱을 실행한 후 시간표 탭을 클릭해주세요!</string>
+    <string name="no_sync">먼저 휴대폰 앱을 열어 시간표를 동기화해 주세요.</string>
+    <string name="d_day_widget_title">디데이</string>
+    <string name="d_day_widget_ends_in_days">종료까지 %1$d일</string>
+    <string name="d_day_widget_starts_in_days">시작까지 %1$d일</string>
+    <string name="d_day_widget_ends_in">종료까지</string>
+    <string name="d_day_widget_starts_in">개강까지</string>
+    <string name="d_day_widget_d_minus">D-%1$d</string>
+    <string name="d_day_widget_d_plus">D+%1$d</string>
+    <string name="d_day_widget_d_day">D-Day</string>
+    <string name="d_day_widget_no_data">데이터가 없습니다.</string>
+    <string name="comp_no_class">종료</string>
+    <string name="comp_ongoing">진행중</string>
+    <string name="comp_next_class_desc">다음 수업: %1$s (%2$s)</string>
+    <string name="comp_dday_title">디데이</string>
+    <string name="comp_upcoming_title">다음 수업</string>
+    <string name="d_day_mock_title">26 봄</string>
+    <string name="days_suffix">일</string>
 </resources>

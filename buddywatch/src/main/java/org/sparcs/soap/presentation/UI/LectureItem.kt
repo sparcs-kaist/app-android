@@ -20,6 +20,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
@@ -33,7 +34,7 @@ import org.sparcs.soap.shared.formatTimeRange
 fun LectureItem(lecture: Lecture, cl: LectureClass) {
     val accentColor = remember(lecture.color) {
         try {
-            lecture.color?.let { Color(android.graphics.Color.parseColor(it)) } ?: Color(0xFF4A90E2)
+            lecture.color?.let { Color(it.toColorInt()) } ?: Color(0xFF4A90E2)
         } catch (e: Exception) {
             Color(0xFF4A90E2)
         }

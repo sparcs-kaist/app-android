@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
@@ -103,7 +104,7 @@ fun SettingsView(
         ) {
             item {
                 Text(
-                    text = stringResource(R.string.miscellaneous),
+                    text = stringResource(R.string.widget_miscellaneous),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.padding(8.dp)
@@ -111,10 +112,10 @@ fun SettingsView(
                 AppSettings(context)
 
                 //TODO - 알림 기능
-//                ServiceNavButton(
-//                    text = stringResource(R.string.notifications_title),
-//                    icon = { Icon(Icons.Outlined.Notifications, null) }
-//                ) { navController.navigate(Channel.NotificationSettings.name) }
+                ServiceNavButton(
+                    text = stringResource(R.string.notifications_title),
+                    icon = { Icon(Icons.Outlined.Notifications, null) }
+                ) { navController.navigate(Channel.NotificationSettings.name) }
 
                 ThemeSwitcherButton(settingsViewModel)
                 FeedbackButton(context)
@@ -474,9 +475,9 @@ private fun ThemeSwitcherButton(
     var showDialog by remember { mutableStateOf(false) }
     val darkMode by settingsViewModel.darkModeSetting.collectAsState(initial = null)
     val currentModeText = when (darkMode) {
-        true -> stringResource(R.string.dark_mode)
-        false -> stringResource(R.string.white_mode)
-        null -> stringResource(R.string.system_default)
+        true -> stringResource(R.string.widget_dark_mode)
+        false -> stringResource(R.string.widget_white_mode)
+        null -> stringResource(R.string.widget_system_default)
     }
     Row(
         modifier = Modifier
@@ -495,7 +496,7 @@ private fun ThemeSwitcherButton(
 
         Column(modifier = Modifier.padding(vertical = 8.dp)) {
             Text(
-                text = stringResource(R.string.dark_mode),
+                text = stringResource(R.string.widget_dark_mode),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
             )
@@ -511,7 +512,7 @@ private fun ThemeSwitcherButton(
         AlertDialog(
             onDismissRequest = { showDialog = false },
             containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text(stringResource(R.string.dark_mode)) },
+            title = { Text(stringResource(R.string.widget_dark_mode)) },
             text = {
                 Column {
                     Row(
@@ -524,7 +525,7 @@ private fun ThemeSwitcherButton(
                             selected = darkMode == null,
                             onClick = { settingsViewModel.setTheme("system"); showDialog = false }
                         )
-                        Text(stringResource(R.string.system_default))
+                        Text(stringResource(R.string.widget_system_default))
                     }
 
                     Row(
@@ -537,7 +538,7 @@ private fun ThemeSwitcherButton(
                             selected = darkMode == false,
                             onClick = { settingsViewModel.setTheme("light"); showDialog = false }
                         )
-                        Text(stringResource(R.string.white_mode))
+                        Text(stringResource(R.string.widget_white_mode))
                     }
 
                     Row(
@@ -549,7 +550,7 @@ private fun ThemeSwitcherButton(
                         RadioButton(
                             selected = darkMode == true,
                             onClick = { settingsViewModel.setTheme("dark"); showDialog = false })
-                        Text(stringResource(R.string.dark_mode))
+                        Text(stringResource(R.string.widget_dark_mode))
                     }
                 }
             },

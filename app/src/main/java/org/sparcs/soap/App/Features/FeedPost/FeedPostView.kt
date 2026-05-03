@@ -61,6 +61,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Features.Feed.Components.FeedPostRow
+import org.sparcs.soap.App.Features.Feed.FeedViewModel
 import org.sparcs.soap.App.Features.Feed.FeedViewModelProtocol
 import org.sparcs.soap.App.Features.FeedPost.Components.FeedCommentRow
 import org.sparcs.soap.App.Features.FeedPost.Components.FeedPostNavigationBar
@@ -81,8 +82,8 @@ import org.sparcs.soap.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedPostView(
-    viewModel: FeedPostViewModelProtocol = hiltViewModel(),
-    feedViewModel: FeedViewModelProtocol = hiltViewModel(),
+    viewModel: FeedPostViewModelProtocol = hiltViewModel<FeedPostViewModel>(),
+    feedViewModel: FeedViewModelProtocol = hiltViewModel<FeedViewModel>(),
     navController: NavController,
 ) {
     val postState by viewModel.state.collectAsState()
@@ -247,6 +248,12 @@ fun FeedPostView(
         isPresented = viewModel.isAlertPresented,
         state = viewModel.alertState,
         onDismiss = { viewModel.isAlertPresented = false }
+    )
+
+    GlobalAlertDialog(
+        isPresented = feedViewModel.isAlertPresented,
+        state = feedViewModel.alertState,
+        onDismiss = { feedViewModel.isAlertPresented = false }
     )
 }
 
