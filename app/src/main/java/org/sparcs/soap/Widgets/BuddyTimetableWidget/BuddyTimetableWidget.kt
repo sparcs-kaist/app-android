@@ -188,7 +188,16 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
 
         return try {
             val token = tokenStorage.getAccessToken()
-            if (token == null || tokenStorage.isTokenExpired()) {
+            if (token != null && tokenStorage.isTokenExpired()) {
+                try {
+                    entryPoint.authUseCase().refreshAccessToken(force = true)
+                } catch (e: Exception) {
+                    Timber.e(e, "Token refresh failed")
+                }
+            }
+
+            val newToken = tokenStorage.getAccessToken()
+            if (newToken == null || tokenStorage.isTokenExpired()) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
