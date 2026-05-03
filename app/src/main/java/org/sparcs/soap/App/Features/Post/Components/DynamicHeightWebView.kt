@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Features.Post.Components
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
@@ -9,6 +10,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.annotation.Keep
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,10 +18,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import org.sparcs.soap.App.Domain.Helpers.TokenStorage
-import org.sparcs.soap.App.theme.ui.isDark
 import kotlin.math.abs
 
 @Composable
@@ -33,29 +35,21 @@ fun DynamicHeightWebView(
     val tokenStorage = remember { TokenStorage(context) }
     
     val accessToken = remember { tokenStorage.getAccessToken() }
-    val isDark = MaterialTheme.colorScheme.isDark()
+    val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
+    val linkColor = MaterialTheme.colorScheme.primary.toArgb()
     
-    val textColor = if (isDark) "#e0e0e0" else "#1a1a1a"
-    val linkColor = if (isDark) "#80bfff" else "#0066cc"
+    val textColorHex = "#%06X".format(textColor and 0xFFFFFF)
+    val linkColorHex = "#%06X".format(linkColor and 0xFFFFFF)
     
     var currentHeight by remember { mutableStateOf(0) }
     var heightReportCount by remember { mutableStateOf(0) }
     var isFitted by remember { mutableStateOf(false) }
 
     val webAppInterface = remember {
-        object {
-            @JavascriptInterface
-            fun postMessage(heightStr: String) {
-                val height = heightStr.toDoubleOrNull()?.toInt() ?: 0
-                
-                if (height > 0 && Math.abs(height - currentHeight) > 10) {
-                    Handler(Looper.getMainLooper()).post {
-                        if (height > 0 && Math.abs(height - currentHeight) > 10) {
-                            currentHeight = height
-                            onHeightChanged(height)
-                        }
-                    }
-                }
+        WebHeightInterface { height ->
+            if (abs(height - currentHeight) > 10) {
+                currentHeight = height
+                onHeightChanged(height)
             }
         }
     }
@@ -77,9 +71,9 @@ fun DynamicHeightWebView(
               background-color: transparent !important;
             }
             body, body * {
-              color: $textColor !important;
+              color: $textColorHex !important;
             }
-            a, a * { color: $linkColor !important; }
+            a, a * { color: $linkColorHex !important; }
             img { max-width: 100% !important; height: auto !important; }
           `;
           document.head.appendChild(s);
@@ -146,7 +140,8 @@ fun DynamicHeightWebView(
 
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                
+
+                @SuppressLint("JavascriptInterface")
                 addJavascriptInterface(webAppInterface, "HeightChannel")
 
                 webViewClient = object : WebViewClient() {
@@ -204,4 +199,17 @@ fun DynamicHeightWebView(
         },
         modifier = modifier
     )
+}
+
+class WebHeightInterface(private val onHeightUpdate: (Int) -> Unit) {
+    @JavascriptInterface
+    @Keep
+    fun postMessage(heightStr: String) {
+        val height = heightStr.toDoubleOrNull()?.toInt() ?: 0
+        if (height > 0) {
+            Handler(Looper.getMainLooper()).post {
+                onHeightUpdate(height)
+            }
+        }
+    }
 }

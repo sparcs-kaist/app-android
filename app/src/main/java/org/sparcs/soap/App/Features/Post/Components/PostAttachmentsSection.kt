@@ -27,9 +27,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostAttachment
+import org.sparcs.soap.R
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -45,7 +47,7 @@ fun PostAttachmentsSection(attachments: List<AraPostAttachment>) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "첨부파일",
+            text = stringResource(id = R.string.attachments),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
@@ -99,7 +101,7 @@ private fun AttachmentItem(attachment: AraPostAttachment) {
         IconButton(onClick = { downloadAttachment(context, attachment) }) {
             Icon(
                 imageVector = Icons.Default.Download,
-                contentDescription = "Download",
+                contentDescription = stringResource(id = R.string.download),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
@@ -110,7 +112,7 @@ private fun downloadAttachment(context: Context, attachment: AraPostAttachment) 
     val url = attachment.file?.toString() ?: return
     val request = DownloadManager.Request(Uri.parse(url))
         .setTitle(attachment.filename)
-        .setDescription("다운로드 중...")
+        .setDescription(context.getString(R.string.downloading))
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
         .setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, attachment.filename)
         .setAllowedOverMetered(true)
