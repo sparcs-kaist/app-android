@@ -192,7 +192,8 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
                 try {
                     entryPoint.authUseCase().refreshAccessToken(force = true)
                 } catch (e: Exception) {
-                    Timber.e(e, "Token refresh failed")
+                    Timber.e(e, "Token refresh failed in widget worker. Skipping sync.")
+                    return Result.retry()
                 }
             }
 
