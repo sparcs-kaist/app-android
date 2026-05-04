@@ -1,10 +1,10 @@
 package org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI
 
-import android.graphics.Color.parseColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.toColorInt
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.LocalContext
@@ -33,7 +33,7 @@ import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.mock
 @Composable
 fun UpcomingClassRectangleWidgetView(entry: WidgetLectureEntry) {
     val context = LocalContext.current
-    val backgroundColor = Color(parseColor(entry.bgColor))
+    val backgroundColor = Color(entry.bgColor.toColorInt())
 
     if (entry.signInRequired) {
         RectangleStatusView(

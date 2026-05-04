@@ -3,6 +3,7 @@ package org.sparcs.soap.Widgets.BuddyTimetableWidget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.ui.unit.sp
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -266,7 +267,7 @@ class RefreshTimetableAction : ActionCallback {
         if (now - last < MIN_REFRESH_INTERVAL_MS) {
             return false
         }
-        prefs.edit().putLong(KEY_LAST_REFRESH, now).apply()
+        prefs.edit { putLong(KEY_LAST_REFRESH, now) }
         return true
     }
 
