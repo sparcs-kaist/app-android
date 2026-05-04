@@ -204,7 +204,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             }
 
             val token = tokenStorage.getAccessToken()
-            if (token == null || tokenStorage.isTokenExpired()) {
+            if (token == null) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -215,7 +215,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "TimetableUpdateWorker Error")
-            Result.success()
+            return Result.retry()
         }
     }
 }
@@ -251,7 +251,7 @@ class RefreshTimetableAction : ActionCallback {
             WidgetEntryPoint::class.java
         )
         val tokenStorage = entryPoint.tokenStorage()
-        if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
+        if (tokenStorage.getAccessToken() != null) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -268,7 +268,7 @@ class RefreshTimetableAction : ActionCallback {
             )
         }
 
-        val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
+        val intent = if (tokenStorage.getAccessToken() == null) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         } else {
             Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())

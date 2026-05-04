@@ -193,8 +193,9 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
                 return Result.retry()
             }
 
+            // After refresh, only check if token exists. isTokenExpired() may be unreliable right after refresh.
             val token = tokenStorage.getAccessToken()
-            if (token == null || tokenStorage.isTokenExpired()) {
+            if (token == null) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -241,7 +242,8 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "UpcomingClassUpdateWorker Error")
-            Result.success()
+            // Don't immediately mark as sign-in required. Let it retry on network/auth failures.
+            return Result.retry()
         }
     }
 }
@@ -310,8 +312,7 @@ class RefreshAndOpenAppAction : ActionCallback {
             WidgetEntryPoint::class.java
         )
         val tokenStorage = entryPoint.tokenStorage()
-        if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-
+        if (tokenStorage.getAccessToken() != null) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -328,7 +329,7 @@ class RefreshAndOpenAppAction : ActionCallback {
             )
         }
 
-        val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
+        val intent = if (tokenStorage.getAccessToken() == null) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         } else {
             Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())

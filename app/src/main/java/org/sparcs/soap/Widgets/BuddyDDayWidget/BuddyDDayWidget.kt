@@ -167,7 +167,7 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
             }
 
             val token = tokenStorage.getAccessToken()
-            if (token == null || tokenStorage.isTokenExpired()) {
+            if (token == null) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -188,7 +188,7 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "DDayUpdateWorker Error")
-            Result.success()
+            return Result.retry()
         }
     }
     private fun buildDDayEntry(context: Context, semester: Semester): DDayWidgetEntry {
@@ -317,7 +317,7 @@ class RefreshAndOpenDDayAction : ActionCallback {
         )
         val tokenStorage = entryPoint.tokenStorage()
 
-        if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
+        if (tokenStorage.getAccessToken() != null) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -334,7 +334,7 @@ class RefreshAndOpenDDayAction : ActionCallback {
             )
         }
 
-        val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
+        val intent = if (tokenStorage.getAccessToken() == null) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         } else {
             Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
