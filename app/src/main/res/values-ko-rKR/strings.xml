@@ -508,4 +508,7 @@
     <string name="autumn">가을</string>
     <string name="winter">겨울</string>
     <string name="days_suffix">일</string>
+    <string name="attachments">첨부파일</string>
+    <string name="downloading">다운로드 중...</string>
+    <string name="download">다운로드</string>
 </resources>

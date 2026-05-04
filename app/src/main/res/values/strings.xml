@@ -533,4 +533,7 @@
     <string name="autumn">Autumn</string>
     <string name="winter">Winter</string>
     <string name="days_suffix">days</string>
+    <string name="attachments">Attachments</string>
+    <string name="downloading">Downloading...</string>
+    <string name="download">Download</string>
 </resources>
