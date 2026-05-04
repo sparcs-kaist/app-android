@@ -469,6 +469,7 @@ object NetworkModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("unused")
 abstract class StorageModule {
 
     @Binds
@@ -486,6 +487,7 @@ abstract class StorageModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("unused")
 abstract class RepositoryModule {
 
     @Binds
@@ -606,6 +608,7 @@ abstract class RepositoryModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("unused")
 abstract class UseCaseModule {
 
     @Binds
@@ -803,7 +806,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "soap_database"
         )
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(false)
             .build()
     }
 
