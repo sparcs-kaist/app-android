@@ -494,6 +494,7 @@ object NetworkModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("unused")
 abstract class StorageModule {
 
     @Binds
@@ -511,6 +512,7 @@ abstract class StorageModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("unused")
 abstract class RepositoryModule {
 
     @Binds
@@ -631,6 +633,7 @@ abstract class RepositoryModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
+@Suppress("unused")
 abstract class UseCaseModule {
 
     @Binds
@@ -801,7 +804,7 @@ object AuthUseCaseModule {
         )
 
         AuthRetryConfig.tokenRefresher = {
-            useCase.refreshAccessToken(force = true)
+            useCase.refreshAccessToken(force = false)
         }
 
         useCase.onTokenRefresh = {
@@ -828,7 +831,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "soap_database"
         )
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(false)
             .build()
     }
 

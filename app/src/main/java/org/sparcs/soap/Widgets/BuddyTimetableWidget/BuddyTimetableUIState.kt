@@ -12,6 +12,7 @@ data class TimetableUiState(
     val signInRequired: Boolean = true,
     val timetable: WidgetTimetableEntry? = null,
     val lastUpdated: Long = 0L,
+    val isLoading: Boolean = false,
 )
 
 fun Timetable.toWidgetUiState(): TimetableUiState {

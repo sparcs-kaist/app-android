@@ -34,7 +34,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
 
     if (entry.signInRequired) {
         Box(
-            modifier = GlanceModifier.fillMaxSize().padding(8.dp),
+            modifier = GlanceModifier.fillMaxSize().padding(12.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(

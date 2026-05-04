@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -25,9 +26,14 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.currentState
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
+import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.padding
 import androidx.glance.state.PreferencesGlanceStateDefinition
+import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -43,6 +49,7 @@ import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Models.OTL.backgroundColor
 import org.sparcs.soap.App.Domain.Models.OTL.textColor
+import org.sparcs.soap.R
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassCircularWidgetView
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassRectangleWidgetView
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassSmallWidgetView
@@ -54,6 +61,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 class BuddyUpcomingClassWidget : GlanceAppWidget() {
+    override val stateDefinition = PreferencesGlanceStateDefinition
 
     override val sizeMode = SizeMode.Responsive(
         setOf(
@@ -76,36 +84,55 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
-            if (state.entry == null && !state.signInRequired) {
-                val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
-                    .addTag("upcoming_one_time_sync")
-                    .build()
-
-                WorkManager.getInstance(appContext).enqueueUniqueWork(
-                    "upcoming_one_time_sync",
-                    ExistingWorkPolicy.KEEP,
-                    request
-                )
-            }
-
             WidgetTheme(themeMode = themeMode) {
                 Box(
                     modifier = GlanceModifier.fillMaxSize().background(
                         GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency)
                     )
                 ) {
-                    val entry = state.entry ?: WidgetLectureEntry.empty(state.signInRequired)
-                    val size = LocalSize.current
                     when {
-                        size.width >= 110.dp && size.height < 110.dp -> {
-                            UpcomingClassRectangleWidgetView(entry)
+                        state.signInRequired -> {
+                            val entry = WidgetLectureEntry.empty(true)
+                            val size = LocalSize.current
+                            when {
+                                size.width >= 110.dp && size.height < 110.dp -> UpcomingClassRectangleWidgetView(entry)
+                                size.width >= 110.dp && size.height >= 110.dp -> UpcomingClassSmallWidgetView(entry)
+                                else -> UpcomingClassCircularWidgetView(entry)
+                            }
                         }
 
-                        size.width >= 110.dp && size.height >= 110.dp -> {
-                            UpcomingClassSmallWidgetView(entry)
+                        state.isLoading -> {
+                            Column(
+                                modifier = GlanceModifier.fillMaxSize().padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    context.getString(R.string.loading_data),
+                                    style = TextStyle(color = GlanceTheme.colors.onSurface)
+                                )
+                                Text(
+                                    context.getString(R.string.wait_moment),
+                                    style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant)
+                                )
+                            }
                         }
 
-                        else -> UpcomingClassCircularWidgetView(entry)
+                        else -> {
+                            val entry = state.entry ?: WidgetLectureEntry.empty(false)
+                            val size = LocalSize.current
+                            when {
+                                size.width >= 110.dp && size.height < 110.dp -> {
+                                    UpcomingClassRectangleWidgetView(entry)
+                                }
+
+                                size.width >= 110.dp && size.height >= 110.dp -> {
+                                    UpcomingClassSmallWidgetView(entry)
+                                }
+
+                                else -> UpcomingClassCircularWidgetView(entry)
+                            }
+                        }
                     }
                 }
                 Box(
@@ -138,10 +165,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val token = tokenStorage.getAccessToken()
-
-            if (token == null || tokenStorage.isTokenExpired()) {
-                syncManager.syncSignInRequired()
+            if (tokenStorage.getAccessToken() == null) {
                 return Result.success()
             }
 
@@ -186,7 +210,8 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
             syncManager.sync(widgetEntry)
             Result.success()
         } catch (e: Exception) {
-            Result.retry()
+            Timber.e(e, "UpcomingClassUpdateWorker Error")
+            return Result.success()
         }
     }
 }
@@ -228,16 +253,21 @@ object UpcomingClassStateParser {
     private val STATE_KEY = stringPreferencesKey("upcoming_class_state")
 
     fun parse(prefs: Preferences, tokenStorage: TokenStorageProtocol): UpcomingClassUiState {
+        val hasRefreshToken = tokenStorage.getRefreshToken() != null
         val jsonString = prefs[STATE_KEY]
         if (!jsonString.isNullOrBlank()) {
-            return try {
+            val decoded = try {
                 Json.decodeFromString<UpcomingClassUiState>(jsonString)
             } catch (e: Exception) {
                 UpcomingClassUiState(signInRequired = true)
             }
+            if (hasRefreshToken && decoded.signInRequired) {
+                return UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true)
+            }
+            return decoded
         }
-        return if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-            UpcomingClassUiState(signInRequired = false, entry = null)
+        return if (hasRefreshToken) {
+            UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true)
         } else {
             UpcomingClassUiState(signInRequired = true)
         }
@@ -255,8 +285,7 @@ class RefreshAndOpenAppAction : ActionCallback {
             WidgetEntryPoint::class.java
         )
         val tokenStorage = entryPoint.tokenStorage()
-        if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-
+        if (tokenStorage.getAccessToken() != null && shouldEnqueueRefresh(context)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -273,8 +302,10 @@ class RefreshAndOpenAppAction : ActionCallback {
             )
         }
 
-        val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
-            context.packageManager.getLaunchIntentForPackage(context.packageName)
+        val intent = if (tokenStorage.getAccessToken() == null) {
+            context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                putExtra(EXTRA_FROM_WIDGET, true)
+            }
         } else {
             Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
         }
@@ -283,5 +314,23 @@ class RefreshAndOpenAppAction : ActionCallback {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(this)
         }
+    }
+
+    private fun shouldEnqueueRefresh(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(REFRESH_PREFS, Context.MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        val last = prefs.getLong(KEY_LAST_REFRESH, 0L)
+        if (now - last < MIN_REFRESH_INTERVAL_MS) {
+            return false
+        }
+        prefs.edit { putLong(KEY_LAST_REFRESH, now) }
+        return true
+    }
+
+    private companion object {
+        private const val REFRESH_PREFS = "widget_refresh"
+        private const val KEY_LAST_REFRESH = "upcoming_last_refresh"
+        private const val MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000L
+        private const val EXTRA_FROM_WIDGET = "extra_from_widget"
     }
 }

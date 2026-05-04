@@ -73,7 +73,9 @@ class AuthUseCase @Inject constructor(
 
     // Cooldown: skip refresh attempts for 10s after a failure
     private var lastRefreshFailure: Long = 0
-    private val refreshCooldownMillis = 10_000L
+    private var lastRefreshSuccess: Long = 0
+    private val refreshCooldownMillis = TimeUnit.SECONDS.toMillis(10)
+    private val minRefreshIntervalMillis = TimeUnit.MINUTES.toMillis(5)
 
     // Called after a successful token refresh
     var onTokenRefresh: (() -> Unit)? = null
@@ -103,8 +105,7 @@ class AuthUseCase @Inject constructor(
                         if (_isAuthenticated.value) {
                             try {
                                 refreshAccessToken(force = false)
-                            } catch (e: Exception) { /* ignore */
-                            }
+                            } catch (_: Exception) { /* ignore */ }
                         }
                     }
                 }
@@ -117,11 +118,11 @@ class AuthUseCase @Inject constructor(
 
         val expirationDate = tokenStorage.getTokenExpirationDate() ?: return
         val bufferMillis = TimeUnit.MINUTES.toMillis(5)
-        val delayMillis =
-            (expirationDate.time - System.currentTimeMillis() - bufferMillis).coerceAtLeast(0)
+        val rawDelayMillis = expirationDate.time - System.currentTimeMillis() - bufferMillis
+        val delayMillis = rawDelayMillis.coerceAtLeast(minRefreshIntervalMillis)
 
         scheduledRefreshJob = coroutineScope.launch {
-            if (delayMillis > 0) delay(delayMillis)
+            delay(delayMillis)
             try {
                 refreshAccessToken(force = true)
             } catch (e: Exception) {
@@ -157,8 +158,7 @@ class AuthUseCase @Inject constructor(
                 refreshAccessToken()
             }
             tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken
-        } catch (e: Exception) {
-            _isAuthenticated.value = false
+        } catch (_: Exception) {
             throw AuthUseCaseError.NoAccessToken
         }
     }
@@ -176,7 +176,13 @@ class AuthUseCase @Inject constructor(
             refreshJob?.cancel()
         }
 
-        if (System.currentTimeMillis() - lastRefreshFailure < refreshCooldownMillis) {
+        val now = System.currentTimeMillis()
+        if (now - lastRefreshSuccess < minRefreshIntervalMillis) {
+            scheduleRefreshToken()
+            return
+        }
+
+        if (now - lastRefreshFailure < refreshCooldownMillis) {
             throw AuthUseCaseError.RefreshFailed(Exception("Refresh on cooldown"))
         }
 
@@ -201,6 +207,7 @@ class AuthUseCase @Inject constructor(
 
                 _isAuthenticated.value = true
                 lastRefreshFailure = 0
+                lastRefreshSuccess = System.currentTimeMillis()
                 scheduleRefreshToken() // set timer on success
                 onTokenRefresh?.invoke()
                 syncFcmTokenIfAuthenticated()

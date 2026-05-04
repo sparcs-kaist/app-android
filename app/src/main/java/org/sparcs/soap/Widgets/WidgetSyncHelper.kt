@@ -8,7 +8,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.sparcs.soap.Widgets.BuddyDDayWidget.DDayUpdateWorker
-import org.sparcs.soap.Widgets.BuddyDDayWidget.DDayWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyTimetableWidget.TimetableUpdateWorker
 import org.sparcs.soap.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UpComingWidgetSyncManager
@@ -19,7 +18,6 @@ import javax.inject.Singleton
 @Singleton
 class WidgetSyncHelper @Inject constructor(
     @ApplicationContext private val context: Context,
-    @DDayWidget private val dDaySyncManager: DDayWidgetSyncManager,
     @TimetableWidget private val timetableSyncManager: TimetableWidgetSyncManager,
     @UpcomingWidget private val upComingSyncManager: UpComingWidgetSyncManager,
 ) {
@@ -65,7 +63,6 @@ class WidgetSyncHelper @Inject constructor(
     }
 
     suspend fun clearAllWidgets() {
-        dDaySyncManager.syncSignInRequired()
         timetableSyncManager.syncSignInRequired()
         upComingSyncManager.syncSignInRequired()
     }

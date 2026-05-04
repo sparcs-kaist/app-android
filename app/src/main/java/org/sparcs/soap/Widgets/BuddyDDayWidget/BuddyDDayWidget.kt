@@ -41,13 +41,11 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.App.Domain.Helpers.Constants
-import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.Widgets.BuddyDDayWidget.UI.DDayCircularWidgetView
 import org.sparcs.soap.Widgets.BuddyDDayWidget.UI.DDayErrorView
 import org.sparcs.soap.Widgets.BuddyDDayWidget.UI.DDayLoadingView
 import org.sparcs.soap.Widgets.BuddyDDayWidget.UI.DDayRectangleWidgetView
-import org.sparcs.soap.Widgets.BuddyDDayWidget.UI.DDaySignInRequiredView
 import org.sparcs.soap.Widgets.BuddyDDayWidget.UI.DDaySmallWidgetView
 import org.sparcs.soap.Widgets.WidgetEntryPoint
 import org.sparcs.soap.Widgets.theme.ui.WidgetTheme
@@ -71,28 +69,15 @@ class BuddyDDayWidget : GlanceAppWidget() {
     )
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val appContext = context.applicationContext
         runCatching {
-            val entryPoint = EntryPointAccessors.fromApplication(appContext, WidgetEntryPoint::class.java)
-            val tokenStorage = entryPoint.tokenStorage()
 
             provideContent {
                 val prefs = currentState<Preferences>()
-                val state = DDayStateParser.parse(prefs, tokenStorage)
+                val state = DDayStateParser.parse(prefs)
 
                 val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                 val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
-                if (state.entry == null && !state.signInRequired) {
-                    val request = OneTimeWorkRequestBuilder<DDayUpdateWorker>()
-                        .addTag("d_day_one_time_sync")
-                        .build()
-                    WorkManager.getInstance(appContext).enqueueUniqueWork(
-                        "d_day_one_time_sync",
-                        ExistingWorkPolicy.KEEP,
-                        request
-                    )
-                }
 
                 WidgetTheme(themeMode = themeMode) {
                     Box(
@@ -101,7 +86,6 @@ class BuddyDDayWidget : GlanceAppWidget() {
                             .background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
                     ) {
                         when {
-                            state.signInRequired -> DDaySignInRequiredView()
                             state.entry == null -> DDayLoadingView()
                             state.entry.type == DDayType.ERROR -> DDayErrorView()
                             else -> {
@@ -145,16 +129,9 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
     override suspend fun doWork(): Result {
         val entryPoint = EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
         val syncManager = entryPoint.dDaySyncManager()
-        val tokenStorage = entryPoint.tokenStorage()
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val token = tokenStorage.getAccessToken()
-            if (token == null || tokenStorage.isTokenExpired()) {
-                syncManager.syncSignInRequired()
-                return Result.success()
-            }
-
             val semester = try {
                 timetableUseCase.getCurrentSemester()
             } catch (_: Exception) {
@@ -169,10 +146,12 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
             val entry = buildDDayEntry(applicationContext, semester)
             syncManager.sync(entry)
             Result.success()
-        } catch (_: Exception) {
-            Result.retry()
+        } catch (e: Exception) {
+            Timber.e(e, "DDayUpdateWorker Error")
+            Result.success()
         }
     }
+
     private fun buildDDayEntry(context: Context, semester: Semester): DDayWidgetEntry {
         val now = Date()
         val semesterLabel = runCatching {
@@ -233,15 +212,9 @@ class DDayWidgetSyncManager @Inject constructor(
         val newState = entry.toDDayWidgetUiState()
         syncState(newState)
     }
-
-    suspend fun syncSignInRequired() {
-        syncState(BuddyDDayUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
-    }
-
     suspend fun syncError() {
         val state = BuddyDDayUiState(
             entry = DDayWidgetEntry("", DDayType.ERROR, 0, 0f),
-            signInRequired = false,
             lastUpdated = System.currentTimeMillis()
         )
         syncState(state)
@@ -270,21 +243,16 @@ class DDayWidgetSyncManager @Inject constructor(
 object DDayStateParser {
     private val STATE_KEY = stringPreferencesKey("d_day_state")
 
-    fun parse(prefs: Preferences, tokenStorage: TokenStorageProtocol): BuddyDDayUiState {
+    fun parse(prefs: Preferences): BuddyDDayUiState {
         val jsonString = prefs[STATE_KEY]
         if (!jsonString.isNullOrBlank()) {
             return try {
                 Json.decodeFromString<BuddyDDayUiState>(jsonString)
             } catch (_: Exception) {
-                BuddyDDayUiState(signInRequired = true)
+                BuddyDDayUiState()
             }
         }
-
-        return if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-            BuddyDDayUiState(signInRequired = false, entry = null)
-        } else {
-            BuddyDDayUiState(signInRequired = true)
-        }
+        return BuddyDDayUiState(entry = null)
     }
 }
 
@@ -300,22 +268,21 @@ class RefreshAndOpenDDayAction : ActionCallback {
         )
         val tokenStorage = entryPoint.tokenStorage()
 
-        if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-            val constraints = Constraints.Builder()
-                .setRequiredNetworkType(NetworkType.CONNECTED)
-                .build()
-
-            val request = OneTimeWorkRequestBuilder<DDayUpdateWorker>()
-                .setConstraints(constraints)
-                .addTag("d_day_one_time_sync")
-                .build()
-
-            WorkManager.getInstance(context).enqueueUniqueWork(
-                "d_day_one_time_sync",
-                ExistingWorkPolicy.REPLACE,
-                request
+        val request = OneTimeWorkRequestBuilder<DDayUpdateWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
             )
-        }
+            .addTag("d_day_one_time_sync")
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "d_day_one_time_sync",
+            ExistingWorkPolicy.REPLACE,
+            request
+        )
+
 
         val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)

@@ -49,9 +49,14 @@ import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.appwidget.updateAll
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
@@ -84,13 +89,19 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     val manager = GlanceAppWidgetManager(this@BuddyDDayWidgetConfigActivity)
-                    val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (e: Exception) { null }
+                    val glanceId = try {
+                        manager.getGlanceIdBy(appWidgetId)
+                    } catch (_: Exception) {
+                        null
+                    }
 
                     if (glanceId != null) {
-                        updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
-                            selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
-                            transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
-                        }
+                        val prefs = getAppWidgetState(
+                            this@BuddyDDayWidgetConfigActivity,
+                            PreferencesGlanceStateDefinition, glanceId
+                        )
+                        selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
+                        transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
                     }
                 }
 
@@ -330,18 +341,32 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
     }
 
     private fun saveAndFinish(theme: String, transparency: Float) {
+        val appContext = applicationContext
         lifecycleScope.launch {
-            val manager = GlanceAppWidgetManager(this@BuddyDDayWidgetConfigActivity)
-            val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (e: Exception) { null }
-            
-            if (glanceId != null) {
-                updateAppWidgetState(this@BuddyDDayWidgetConfigActivity, glanceId) { prefs ->
-                    prefs[stringPreferencesKey("theme_mode")] = theme
-                    prefs[floatPreferencesKey("background_transparency")] = transparency
+            withContext(Dispatchers.IO) {
+                val manager = GlanceAppWidgetManager(appContext)
+                val glanceId = try {
+                    manager.getGlanceIdBy(appWidgetId)
+                } catch (_: Exception) {
+                    null
                 }
-                BuddyDDayWidget().update(this@BuddyDDayWidgetConfigActivity, glanceId)
+
+                if (glanceId != null) {
+                    updateAppWidgetState(
+                        appContext,
+                        PreferencesGlanceStateDefinition,
+                        glanceId
+                    ) { prefs ->
+                        prefs.toMutablePreferences().apply {
+                            this[stringPreferencesKey("theme_mode")] = theme
+                            this[floatPreferencesKey("background_transparency")] = transparency
+                        }
+                    }
+                    BuddyDDayWidget().update(appContext, glanceId)
+                } else {
+                    BuddyDDayWidget().updateAll(appContext)
+                }
             }
-            
             val resultValue = Intent().apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }
