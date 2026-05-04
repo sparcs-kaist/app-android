@@ -34,7 +34,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
 
     if (entry.signInRequired) {
         Box(
-            modifier = GlanceModifier.fillMaxSize().padding(16.dp),
+            modifier = GlanceModifier.fillMaxSize().padding(12.dp),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -44,7 +44,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
         }
     } else if (entry.title != null && entry.classroom != null) {
         Column(
-            modifier = GlanceModifier.fillMaxSize().padding(16.dp),
+            modifier = GlanceModifier.fillMaxSize().padding(12.dp),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.Start
         ) {
@@ -89,7 +89,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
         }
     } else {
         Column(
-            modifier = GlanceModifier.fillMaxSize().padding(16.dp),
+            modifier = GlanceModifier.fillMaxSize().padding(12.dp),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.Start
         ) {

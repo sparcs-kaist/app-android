@@ -83,18 +83,6 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
-            if (state.entry == null && !state.signInRequired && !state.isLoading) {
-                val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
-                    .addTag("upcoming_one_time_sync")
-                    .build()
-
-                WorkManager.getInstance(appContext).enqueueUniqueWork(
-                    "upcoming_one_time_sync",
-                    ExistingWorkPolicy.KEEP,
-                    request
-                )
-            }
-
             WidgetTheme(themeMode = themeMode) {
                 Box(
                     modifier = GlanceModifier.fillMaxSize().background(
@@ -176,27 +164,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val refreshToken = tokenStorage.getRefreshToken()
-            if (refreshToken == null) {
-                syncManager.syncSignInRequired()
-                return Result.success()
-            }
-
-            try {
-                entryPoint.authUseCase().refreshAccessToken(force = false)
-            } catch (e: Exception) {
-                Timber.e(e, "Token refresh failed")
-                if (tokenStorage.getRefreshToken() == null) {
-                    syncManager.syncSignInRequired()
-                    return Result.success()
-                }
-                return Result.retry()
-            }
-
-            // After refresh, only check if token exists. isTokenExpired() may be unreliable right after refresh.
-            val token = tokenStorage.getAccessToken()
-            if (token == null) {
-                syncManager.syncSignInRequired()
+            if (tokenStorage.getAccessToken() == null) {
                 return Result.success()
             }
 
@@ -242,8 +210,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "UpcomingClassUpdateWorker Error")
-            // Don't immediately mark as sign-in required. Let it retry on network/auth failures.
-            return Result.retry()
+            return Result.success()
         }
     }
 }
@@ -285,15 +252,20 @@ object UpcomingClassStateParser {
     private val STATE_KEY = stringPreferencesKey("upcoming_class_state")
 
     fun parse(prefs: Preferences, tokenStorage: TokenStorageProtocol): UpcomingClassUiState {
+        val hasRefreshToken = tokenStorage.getRefreshToken() != null
         val jsonString = prefs[STATE_KEY]
         if (!jsonString.isNullOrBlank()) {
-            return try {
+            val decoded = try {
                 Json.decodeFromString<UpcomingClassUiState>(jsonString)
             } catch (e: Exception) {
                 UpcomingClassUiState(signInRequired = true)
             }
+            if (hasRefreshToken && decoded.signInRequired) {
+                return UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true)
+            }
+            return decoded
         }
-        return if (tokenStorage.getRefreshToken() != null) {
+        return if (hasRefreshToken) {
             UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true)
         } else {
             UpcomingClassUiState(signInRequired = true)
@@ -312,7 +284,7 @@ class RefreshAndOpenAppAction : ActionCallback {
             WidgetEntryPoint::class.java
         )
         val tokenStorage = entryPoint.tokenStorage()
-        if (tokenStorage.getAccessToken() != null) {
+        if (tokenStorage.getAccessToken() != null && shouldEnqueueRefresh(context)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -324,13 +296,15 @@ class RefreshAndOpenAppAction : ActionCallback {
 
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "upcoming_one_time_sync",
-                ExistingWorkPolicy.REPLACE,
+                ExistingWorkPolicy.KEEP,
                 request
             )
         }
 
         val intent = if (tokenStorage.getAccessToken() == null) {
-            context.packageManager.getLaunchIntentForPackage(context.packageName)
+            context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                putExtra(EXTRA_FROM_WIDGET, true)
+            }
         } else {
             Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
         }
@@ -339,5 +313,23 @@ class RefreshAndOpenAppAction : ActionCallback {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(this)
         }
+    }
+
+    private fun shouldEnqueueRefresh(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(REFRESH_PREFS, Context.MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        val last = prefs.getLong(KEY_LAST_REFRESH, 0L)
+        if (now - last < MIN_REFRESH_INTERVAL_MS) {
+            return false
+        }
+        prefs.edit().putLong(KEY_LAST_REFRESH, now).apply()
+        return true
+    }
+
+    private companion object {
+        private const val REFRESH_PREFS = "widget_refresh"
+        private const val KEY_LAST_REFRESH = "upcoming_last_refresh"
+        private const val MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000L
+        private const val EXTRA_FROM_WIDGET = "extra_from_widget"
     }
 }

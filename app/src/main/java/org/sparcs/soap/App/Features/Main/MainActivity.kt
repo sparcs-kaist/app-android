@@ -67,6 +67,7 @@ import org.sparcs.soap.App.InAppUpdateHelper
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.R
+import org.sparcs.soap.Widgets.WidgetSyncHelper
 import javax.inject.Inject
 
 val LocalAnalytics = staticCompositionLocalOf<AnalyticsServiceProtocol> {
@@ -83,13 +84,16 @@ class MainActivity : ComponentActivity() {
     private lateinit var helper: InAppUpdateHelper
     private val snackbarHostState = SnackbarHostState() // 유연한 인앱 업데이트용 스낵 바
 
+    @Inject
+    lateinit var analyticsService: AnalyticsServiceProtocol
+
+    @Inject
+    lateinit var widgetSyncHelper: WidgetSyncHelper
+
     // 인앱 업데이트 결과 처리 런처
     private val appUpdateLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) { result: ActivityResult -> helper.onActivityResult(result.resultCode) }
-
-    @Inject
-    lateinit var analyticsService: AnalyticsServiceProtocol
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,6 +102,8 @@ class MainActivity : ComponentActivity() {
         KakaoMapSdk.init(this, Constants.KAKAO_MAP_KEY)
         helper = InAppUpdateHelper(this, appUpdateLauncher, 4, snackbarHostState, lifecycleScope)
         helper.check()
+
+        handleWidgetLaunch(intent)
 
         intent?.data?.let { uri ->
             AuthenticationCallbackHandler.handleUri(uri)
@@ -194,10 +200,17 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        handleWidgetLaunch(intent)
         intent.data?.let { uri ->
             AuthenticationCallbackHandler.handleUri(uri)
         }
         intent.data?.let { handleDeepLink(it) }
+    }
+
+    private fun handleWidgetLaunch(intent: Intent?) {
+        if (intent?.getBooleanExtra(EXTRA_FROM_WIDGET, false) == true) {
+            widgetSyncHelper.refreshAllWidgets()
+        }
     }
 
     override fun onResume() {
@@ -274,3 +287,5 @@ fun NoticeDialog(
         }
     }
 }
+
+private const val EXTRA_FROM_WIDGET = "extra_from_widget"

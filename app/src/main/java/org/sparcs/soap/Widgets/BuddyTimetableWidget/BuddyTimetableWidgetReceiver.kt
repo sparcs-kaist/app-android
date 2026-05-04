@@ -1,58 +1,46 @@
 package org.sparcs.soap.Widgets.BuddyTimetableWidget
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.work.Constraints
-import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 
 class BuddyTimetableWidgetReceiver : GlanceAppWidgetReceiver() {
     override val glanceAppWidget: GlanceAppWidget = TimetableWidget()
+
     override fun onEnabled(context: Context) {
         super.onEnabled(context)
-        enqueueWork(context)
+        enqueueInitialFetch(context)
     }
 
     override fun onUpdate(
         context: Context,
-        appWidgetManager: android.appwidget.AppWidgetManager,
+        appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
-        enqueueWork(context)
+        enqueueInitialFetch(context)
     }
 
-    private fun enqueueWork(context: Context) {
+    private fun enqueueInitialFetch(context: Context) {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        val oneTimeRequest = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
+        val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
             .setConstraints(constraints)
-            .addTag("timetable_immediate_work")
+            .addTag("timetable_one_time_sync")
             .build()
 
         WorkManager.getInstance(context).enqueueUniqueWork(
-            "timetable_immediate_work",
-            androidx.work.ExistingWorkPolicy.REPLACE,
-            oneTimeRequest
-        )
-
-        val periodicRequest = PeriodicWorkRequestBuilder<TimetableUpdateWorker>(
-            1, java.util.concurrent.TimeUnit.HOURS
-        )
-            .setConstraints(constraints)
-            .addTag("timetable_widget_sync_work")
-            .build()
-
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "timetable_widget_sync_work",
-            ExistingPeriodicWorkPolicy.UPDATE,
-            periodicRequest
+            "timetable_one_time_sync",
+            ExistingWorkPolicy.KEEP,
+            request
         )
     }
 }

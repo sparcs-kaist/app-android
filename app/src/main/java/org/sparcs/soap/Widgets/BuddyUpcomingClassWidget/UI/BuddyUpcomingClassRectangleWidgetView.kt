@@ -42,7 +42,7 @@ fun UpcomingClassRectangleWidgetView(entry: WidgetLectureEntry) {
         )
     } else if (entry.title != null && entry.classroom != null) {
         Column(
-            modifier = GlanceModifier.fillMaxSize().padding(2.dp),
+            modifier = GlanceModifier.fillMaxSize().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -99,7 +99,7 @@ fun UpcomingClassRectangleWidgetView(entry: WidgetLectureEntry) {
 @Composable
 private fun RectangleStatusView(title: String, description: String) {
     Column(
-        modifier = GlanceModifier.fillMaxSize().padding(2.dp),
+        modifier = GlanceModifier.fillMaxSize().padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

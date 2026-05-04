@@ -83,16 +83,7 @@ class BuddyDDayWidget : GlanceAppWidget() {
                 val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                 val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
-                if (state.entry == null && !state.signInRequired && !state.isLoading) {
-                    val request = OneTimeWorkRequestBuilder<DDayUpdateWorker>()
-                        .addTag("d_day_one_time_sync")
-                        .build()
-                    WorkManager.getInstance(appContext).enqueueUniqueWork(
-                        "d_day_one_time_sync",
-                        ExistingWorkPolicy.KEEP,
-                        request
-                    )
-                }
+                // No automatic refresh here; manual refresh only.
 
                 WidgetTheme(themeMode = themeMode) {
                     Box(
@@ -149,26 +140,7 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val refreshToken = tokenStorage.getRefreshToken()
-            if (refreshToken == null) {
-                syncManager.syncSignInRequired()
-                return Result.success()
-            }
-
-            try {
-                entryPoint.authUseCase().refreshAccessToken(force = false)
-            } catch (e: Exception) {
-                Timber.e(e, "Token refresh failed")
-                if (tokenStorage.getRefreshToken() == null) {
-                    syncManager.syncSignInRequired()
-                    return Result.success()
-                }
-                return Result.retry()
-            }
-
-            val token = tokenStorage.getAccessToken()
-            if (token == null) {
-                syncManager.syncSignInRequired()
+            if (tokenStorage.getAccessToken() == null) {
                 return Result.success()
             }
 
@@ -188,9 +160,10 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "DDayUpdateWorker Error")
-            return Result.retry()
+            Result.success()
         }
     }
+
     private fun buildDDayEntry(context: Context, semester: Semester): DDayWidgetEntry {
         val now = Date()
         val semesterLabel = runCatching {
@@ -288,17 +261,22 @@ object DDayStateParser {
     private val STATE_KEY = stringPreferencesKey("d_day_state")
 
     fun parse(prefs: Preferences, tokenStorage: TokenStorageProtocol): BuddyDDayUiState {
+        val hasRefreshToken = tokenStorage.getRefreshToken() != null
         val jsonString = prefs[STATE_KEY]
         if (!jsonString.isNullOrBlank()) {
-            return try {
+            val decoded = try {
                 Json.decodeFromString<BuddyDDayUiState>(jsonString)
             } catch (_: Exception) {
                 BuddyDDayUiState(signInRequired = true)
             }
+            if (hasRefreshToken && decoded.signInRequired) {
+                return BuddyDDayUiState(signInRequired = false, entry = null, isLoading = true)
+            }
+            return decoded
         }
 
-        return if (tokenStorage.getRefreshToken() != null) {
-            BuddyDDayUiState(signInRequired = false, entry = null, isLoading = false)
+        return if (hasRefreshToken) {
+            BuddyDDayUiState(signInRequired = false, entry = null, isLoading = true)
         } else {
             BuddyDDayUiState(signInRequired = true)
         }
@@ -317,7 +295,7 @@ class RefreshAndOpenDDayAction : ActionCallback {
         )
         val tokenStorage = entryPoint.tokenStorage()
 
-        if (tokenStorage.getAccessToken() != null) {
+        if (tokenStorage.getAccessToken() != null && shouldEnqueueRefresh(context)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -329,13 +307,15 @@ class RefreshAndOpenDDayAction : ActionCallback {
 
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "d_day_one_time_sync",
-                ExistingWorkPolicy.REPLACE,
+                ExistingWorkPolicy.KEEP,
                 request
             )
         }
 
         val intent = if (tokenStorage.getAccessToken() == null) {
-            context.packageManager.getLaunchIntentForPackage(context.packageName)
+            context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                putExtra(EXTRA_FROM_WIDGET, true)
+            }
         } else {
             Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
         }
@@ -344,5 +324,23 @@ class RefreshAndOpenDDayAction : ActionCallback {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(this)
         }
+    }
+
+    private fun shouldEnqueueRefresh(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(REFRESH_PREFS, Context.MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        val last = prefs.getLong(KEY_LAST_REFRESH, 0L)
+        if (now - last < MIN_REFRESH_INTERVAL_MS) {
+            return false
+        }
+        prefs.edit().putLong(KEY_LAST_REFRESH, now).apply()
+        return true
+    }
+
+    private companion object {
+        private const val REFRESH_PREFS = "widget_refresh"
+        private const val KEY_LAST_REFRESH = "d_day_last_refresh"
+        private const val MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000L
+        private const val EXTRA_FROM_WIDGET = "extra_from_widget"
     }
 }

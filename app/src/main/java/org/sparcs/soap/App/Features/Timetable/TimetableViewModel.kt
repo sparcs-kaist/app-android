@@ -201,7 +201,6 @@ class TimetableViewModel @Inject constructor(
                     _timetable.value = null
                 }
             }
-            widgetSyncHelper.refreshAllWidgets()
         } catch (e: Exception) {
             _timetable.value = null
             handleException(e, ErrorType.FetchData)
