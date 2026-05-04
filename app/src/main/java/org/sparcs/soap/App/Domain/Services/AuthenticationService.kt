@@ -3,6 +3,7 @@ package org.sparcs.soap.App.Domain.Services
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.ComponentActivity
+import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CoroutineScope
@@ -91,7 +92,7 @@ class AuthenticationService @Inject constructor(
             try {
                 activity.lifecycle.addObserver(observer)
 
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(authURL))
+                val intent = Intent(Intent.ACTION_VIEW, authURL.toUri())
                 activity.startActivity(intent)
 
                 AuthenticationCallbackHandler.setCallback { uri ->
@@ -127,7 +128,7 @@ class AuthenticationService @Inject constructor(
                     activity.lifecycle.removeObserver(observer)
                 }
 
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 if (continuation.isActive) {
                     continuation.resumeWithException(AuthenticationServiceError.Unknown)
                 }
