@@ -68,7 +68,7 @@ class TimetableWidget : GlanceAppWidget() {
             val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
-            if (state.timetable == null && !state.signInRequired) {
+            if (state.timetable == null && !state.signInRequired && !state.isLoading) {
                 val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>().build()
                 WorkManager.getInstance(appContext).enqueueUniqueWork(
                     "one_time_sync",
@@ -150,6 +150,10 @@ class TimetableWidgetSyncManager @Inject constructor(
         syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
 
+    suspend fun syncLoading() {
+        syncState(TimetableUiState(signInRequired = false, timetable = null, isLoading = true, lastUpdated = System.currentTimeMillis()))
+    }
+
     private suspend fun syncState(state: TimetableUiState) {
         try {
             val jsonString = Json.encodeToString(state)
@@ -187,18 +191,25 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val token = tokenStorage.getAccessToken()
-            if (token != null && tokenStorage.isTokenExpired()) {
-                try {
-                    entryPoint.authUseCase().refreshAccessToken(force = true)
-                } catch (e: Exception) {
-                    Timber.e(e, "Token refresh failed in widget worker. Skipping sync.")
-                    return Result.retry()
-                }
+            val refreshToken = tokenStorage.getRefreshToken()
+            if (refreshToken == null) {
+                syncManager.syncSignInRequired()
+                return Result.success()
             }
 
-            val newToken = tokenStorage.getAccessToken()
-            if (newToken == null || tokenStorage.isTokenExpired()) {
+            try {
+                entryPoint.authUseCase().refreshAccessToken(force = false)
+            } catch (e: Exception) {
+                Timber.e(e, "Token refresh failed in widget worker.")
+                if (tokenStorage.getRefreshToken() == null) {
+                    syncManager.syncSignInRequired()
+                    return Result.success()
+                }
+                return Result.retry()
+            }
+
+            val token = tokenStorage.getAccessToken()
+            if (token == null || tokenStorage.isTokenExpired()) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -207,9 +218,9 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
 
             syncManager.sync(timetable)
             Result.success()
-        } catch (_: Exception) {
-            Timber.e("TimetableUpdateWorker Error")
-            Result.retry()
+        } catch (e: Exception) {
+            Timber.e(e, "TimetableUpdateWorker Error")
+            Result.success()
         }
     }
 }
@@ -226,8 +237,8 @@ object TimetableStateParser {
                 TimetableUiState(signInRequired = true)
             }
         }
-        return if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-            TimetableUiState(signInRequired = false, timetable = null)
+        return if (tokenStorage.getRefreshToken() != null) {
+            TimetableUiState(signInRequired = false, timetable = null, isLoading = false)
         } else {
             TimetableUiState(signInRequired = true)
         }

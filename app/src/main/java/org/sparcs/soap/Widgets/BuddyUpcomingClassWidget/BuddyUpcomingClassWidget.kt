@@ -25,9 +25,14 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.currentState
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
+import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.padding
 import androidx.glance.state.PreferencesGlanceStateDefinition
+import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -43,6 +48,7 @@ import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Models.OTL.backgroundColor
 import org.sparcs.soap.App.Domain.Models.OTL.textColor
+import org.sparcs.soap.R
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassCircularWidgetView
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassRectangleWidgetView
 import org.sparcs.soap.Widgets.BuddyUpcomingClassWidget.UI.UpcomingClassSmallWidgetView
@@ -54,6 +60,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 class BuddyUpcomingClassWidget : GlanceAppWidget() {
+    override val stateDefinition = PreferencesGlanceStateDefinition
 
     override val sizeMode = SizeMode.Responsive(
         setOf(
@@ -76,7 +83,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
-            if (state.entry == null && !state.signInRequired) {
+            if (state.entry == null && !state.signInRequired && !state.isLoading) {
                 val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
                     .addTag("upcoming_one_time_sync")
                     .build()
@@ -94,18 +101,49 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
                         GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency)
                     )
                 ) {
-                    val entry = state.entry ?: WidgetLectureEntry.empty(state.signInRequired)
-                    val size = LocalSize.current
                     when {
-                        size.width >= 110.dp && size.height < 110.dp -> {
-                            UpcomingClassRectangleWidgetView(entry)
+                        state.signInRequired -> {
+                            val entry = WidgetLectureEntry.empty(true)
+                            val size = LocalSize.current
+                            when {
+                                size.width >= 110.dp && size.height < 110.dp -> UpcomingClassRectangleWidgetView(entry)
+                                size.width >= 110.dp && size.height >= 110.dp -> UpcomingClassSmallWidgetView(entry)
+                                else -> UpcomingClassCircularWidgetView(entry)
+                            }
                         }
 
-                        size.width >= 110.dp && size.height >= 110.dp -> {
-                            UpcomingClassSmallWidgetView(entry)
+                        state.isLoading -> {
+                            Column(
+                                modifier = GlanceModifier.fillMaxSize().padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    context.getString(R.string.loading_data),
+                                    style = TextStyle(color = GlanceTheme.colors.onSurface)
+                                )
+                                Text(
+                                    context.getString(R.string.wait_moment),
+                                    style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant)
+                                )
+                            }
                         }
 
-                        else -> UpcomingClassCircularWidgetView(entry)
+                        else -> {
+                            val entry = state.entry ?: WidgetLectureEntry.empty(false)
+                            val size = LocalSize.current
+                            when {
+                                size.width >= 110.dp && size.height < 110.dp -> {
+                                    UpcomingClassRectangleWidgetView(entry)
+                                }
+
+                                size.width >= 110.dp && size.height >= 110.dp -> {
+                                    UpcomingClassSmallWidgetView(entry)
+                                }
+
+                                else -> UpcomingClassCircularWidgetView(entry)
+                            }
+                        }
                     }
                 }
                 Box(
@@ -138,17 +176,25 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val token = tokenStorage.getAccessToken()
-            if (token != null && tokenStorage.isTokenExpired()) {
-                try {
-                    entryPoint.authUseCase().refreshAccessToken(force = true)
-                } catch (e: Exception) {
-                    Timber.e(e, "Token refresh failed")
-                }
+            val refreshToken = tokenStorage.getRefreshToken()
+            if (refreshToken == null) {
+                syncManager.syncSignInRequired()
+                return Result.success()
             }
 
-            val newToken = tokenStorage.getAccessToken()
-            if (newToken == null || tokenStorage.isTokenExpired()) {
+            try {
+                entryPoint.authUseCase().refreshAccessToken(force = false)
+            } catch (e: Exception) {
+                Timber.e(e, "Token refresh failed")
+                if (tokenStorage.getRefreshToken() == null) {
+                    syncManager.syncSignInRequired()
+                    return Result.success()
+                }
+                return Result.retry()
+            }
+
+            val token = tokenStorage.getAccessToken()
+            if (token == null || tokenStorage.isTokenExpired()) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -194,7 +240,8 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
             syncManager.sync(widgetEntry)
             Result.success()
         } catch (e: Exception) {
-            Result.retry()
+            Timber.e(e, "UpcomingClassUpdateWorker Error")
+            Result.success()
         }
     }
 }
@@ -210,6 +257,10 @@ class UpComingWidgetSyncManager @Inject constructor(
 
     suspend fun syncSignInRequired() {
         syncState(UpcomingClassUiState(signInRequired = true))
+    }
+
+    suspend fun syncLoading() {
+        syncState(UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true))
     }
 
     private suspend fun syncState(state: UpcomingClassUiState) {
@@ -244,8 +295,8 @@ object UpcomingClassStateParser {
                 UpcomingClassUiState(signInRequired = true)
             }
         }
-        return if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-            UpcomingClassUiState(signInRequired = false, entry = null)
+        return if (tokenStorage.getRefreshToken() != null) {
+            UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true)
         } else {
             UpcomingClassUiState(signInRequired = true)
         }

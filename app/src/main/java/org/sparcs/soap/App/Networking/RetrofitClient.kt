@@ -776,7 +776,7 @@ object AuthUseCaseModule {
         )
 
         AuthRetryConfig.tokenRefresher = {
-            useCase.refreshAccessToken(force = true)
+            useCase.refreshAccessToken(force = false)
         }
 
         useCase.onTokenRefresh = {

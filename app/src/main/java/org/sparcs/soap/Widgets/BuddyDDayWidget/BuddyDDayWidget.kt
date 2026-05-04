@@ -83,7 +83,7 @@ class BuddyDDayWidget : GlanceAppWidget() {
                 val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                 val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
-                if (state.entry == null && !state.signInRequired) {
+                if (state.entry == null && !state.signInRequired && !state.isLoading) {
                     val request = OneTimeWorkRequestBuilder<DDayUpdateWorker>()
                         .addTag("d_day_one_time_sync")
                         .build()
@@ -149,17 +149,25 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val token = tokenStorage.getAccessToken()
-            if (token != null && tokenStorage.isTokenExpired()) {
-                try {
-                    entryPoint.authUseCase().refreshAccessToken(force = true)
-                } catch (e: Exception) {
-                    Timber.e(e, "Token refresh failed")
-                }
+            val refreshToken = tokenStorage.getRefreshToken()
+            if (refreshToken == null) {
+                syncManager.syncSignInRequired()
+                return Result.success()
             }
 
-            val newToken = tokenStorage.getAccessToken()
-            if (newToken == null || tokenStorage.isTokenExpired()) {
+            try {
+                entryPoint.authUseCase().refreshAccessToken(force = false)
+            } catch (e: Exception) {
+                Timber.e(e, "Token refresh failed")
+                if (tokenStorage.getRefreshToken() == null) {
+                    syncManager.syncSignInRequired()
+                    return Result.success()
+                }
+                return Result.retry()
+            }
+
+            val token = tokenStorage.getAccessToken()
+            if (token == null || tokenStorage.isTokenExpired()) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -178,8 +186,9 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
             val entry = buildDDayEntry(applicationContext, semester)
             syncManager.sync(entry)
             Result.success()
-        } catch (_: Exception) {
-            Result.retry()
+        } catch (e: Exception) {
+            Timber.e(e, "DDayUpdateWorker Error")
+            Result.success()
         }
     }
     private fun buildDDayEntry(context: Context, semester: Semester): DDayWidgetEntry {
@@ -247,6 +256,10 @@ class DDayWidgetSyncManager @Inject constructor(
         syncState(BuddyDDayUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
 
+    suspend fun syncLoading() {
+        syncState(BuddyDDayUiState(signInRequired = false, entry = null, isLoading = true, lastUpdated = System.currentTimeMillis()))
+    }
+
     suspend fun syncError() {
         val state = BuddyDDayUiState(
             entry = DDayWidgetEntry("", DDayType.ERROR, 0, 0f),
@@ -289,8 +302,8 @@ object DDayStateParser {
             }
         }
 
-        return if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
-            BuddyDDayUiState(signInRequired = false, entry = null)
+        return if (tokenStorage.getRefreshToken() != null) {
+            BuddyDDayUiState(signInRequired = false, entry = null, isLoading = false)
         } else {
             BuddyDDayUiState(signInRequired = true)
         }
