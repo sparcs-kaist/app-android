@@ -61,6 +61,15 @@ fun DDayLoadingView() {
 }
 
 @Composable
+fun DDaySignInRequiredView() {
+    val context = LocalContext.current
+    DDayStatusColumn(
+        title = context.getString(R.string.d_day_widget_sign_in_required),
+        subtitle = context.getString(R.string.d_day_widget_sync_required)
+    )
+}
+
+@Composable
 fun DDayErrorView() {
     val context = LocalContext.current
     DDayStatusColumn(
