@@ -105,8 +105,7 @@ class AuthUseCase @Inject constructor(
                         if (_isAuthenticated.value) {
                             try {
                                 refreshAccessToken(force = false)
-                            } catch (e: Exception) { /* ignore */
-                            }
+                            } catch (_: Exception) { /* ignore */ }
                         }
                     }
                 }
@@ -160,7 +159,6 @@ class AuthUseCase @Inject constructor(
             }
             tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken
         } catch (e: Exception) {
-            _isAuthenticated.value = false
             throw AuthUseCaseError.NoAccessToken
         }
     }
