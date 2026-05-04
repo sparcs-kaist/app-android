@@ -39,7 +39,7 @@ class BuddyTimetableWidgetReceiver : GlanceAppWidgetReceiver() {
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "timetable_one_time_sync",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             request
         )
     }

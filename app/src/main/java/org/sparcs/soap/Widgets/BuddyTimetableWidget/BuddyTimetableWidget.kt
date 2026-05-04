@@ -241,7 +241,7 @@ class RefreshTimetableAction : ActionCallback {
 
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "one_time_sync",
-                ExistingWorkPolicy.KEEP,
+                ExistingWorkPolicy.REPLACE,
                 request
             )
         }

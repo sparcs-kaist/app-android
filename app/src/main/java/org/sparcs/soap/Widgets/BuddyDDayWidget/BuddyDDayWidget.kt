@@ -308,7 +308,7 @@ class RefreshAndOpenDDayAction : ActionCallback {
 
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "d_day_one_time_sync",
-                ExistingWorkPolicy.KEEP,
+                ExistingWorkPolicy.REPLACE,
                 request
             )
         }

@@ -47,19 +47,19 @@ class WidgetSyncHelper @Inject constructor(
         
         workManager.enqueueUniqueWork(
             "d_day_one_time_sync",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             dDayRequest
         )
         
         workManager.enqueueUniqueWork(
             "upcoming_one_time_sync",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             upcomingRequest
         )
         
         workManager.enqueueUniqueWork(
             "timetable_one_time_sync",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             timetableRequest
         )
     }

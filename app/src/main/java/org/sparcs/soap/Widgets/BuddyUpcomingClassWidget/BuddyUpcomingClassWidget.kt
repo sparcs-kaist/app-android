@@ -297,7 +297,7 @@ class RefreshAndOpenAppAction : ActionCallback {
 
             WorkManager.getInstance(context).enqueueUniqueWork(
                 "upcoming_one_time_sync",
-                ExistingWorkPolicy.KEEP,
+                ExistingWorkPolicy.REPLACE,
                 request
             )
         }

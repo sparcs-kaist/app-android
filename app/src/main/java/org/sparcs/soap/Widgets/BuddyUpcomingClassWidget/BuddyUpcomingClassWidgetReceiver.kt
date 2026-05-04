@@ -39,7 +39,7 @@ class BuddyUpcomingClassWidgetReceiver : GlanceAppWidgetReceiver() {
 
         WorkManager.getInstance(context).enqueueUniqueWork(
             "upcoming_one_time_sync",
-            ExistingWorkPolicy.KEEP,
+            ExistingWorkPolicy.REPLACE,
             request
         )
     }
