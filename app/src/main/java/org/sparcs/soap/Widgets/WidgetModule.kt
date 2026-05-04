@@ -8,7 +8,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
-import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtocol
 import org.sparcs.soap.Widgets.BuddyDDayWidget.DDayWidgetSyncManager
 import org.sparcs.soap.Widgets.BuddyTimetableWidget.TimetableWidgetSyncManager
@@ -31,7 +30,6 @@ annotation class DDayWidget
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
     fun tokenStorage(): TokenStorageProtocol
-    fun authUseCase(): AuthUseCaseProtocol
     @UpcomingWidget
     fun upComingSyncManager(): UpComingWidgetSyncManager
 
