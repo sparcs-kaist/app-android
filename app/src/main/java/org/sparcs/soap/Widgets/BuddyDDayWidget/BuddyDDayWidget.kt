@@ -143,14 +143,20 @@ class BuddyDDayWidget : GlanceAppWidget() {
 class DDayUpdateWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
+        val glanceManager = GlanceAppWidgetManager(applicationContext)
+        val glanceIds = glanceManager.getGlanceIds(BuddyDDayWidget::class.java)
+
+        if (glanceIds.isEmpty()) {
+            Timber.d("No installed widgets found. Stopping worker.")
+            return Result.success()
+        }
         val entryPoint = EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
         val syncManager = entryPoint.dDaySyncManager()
         val tokenStorage = entryPoint.tokenStorage()
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val token = tokenStorage.getAccessToken()
-            if (token == null || tokenStorage.isTokenExpired()) {
+            if (tokenStorage.getRefreshToken() == null) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -280,7 +286,7 @@ object DDayStateParser {
             }
         }
 
-        return if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
+        return if (tokenStorage.getRefreshToken() != null) {
             BuddyDDayUiState(signInRequired = false, entry = null)
         } else {
             BuddyDDayUiState(signInRequired = true)

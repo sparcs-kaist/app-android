@@ -55,6 +55,8 @@ import javax.inject.Singleton
 
 class BuddyUpcomingClassWidget : GlanceAppWidget() {
 
+    override val stateDefinition = PreferencesGlanceStateDefinition
+
     override val sizeMode = SizeMode.Responsive(
         setOf(
             DpSize(60.dp, 60.dp),   // Circular
@@ -138,9 +140,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            val token = tokenStorage.getAccessToken()
-
-            if (token == null || tokenStorage.isTokenExpired()) {
+            if (tokenStorage.getRefreshToken() == null) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -236,7 +236,7 @@ object UpcomingClassStateParser {
                 UpcomingClassUiState(signInRequired = true)
             }
         }
-        return if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
+        return if (tokenStorage.getRefreshToken() != null) {
             UpcomingClassUiState(signInRequired = false, entry = null)
         } else {
             UpcomingClassUiState(signInRequired = true)
