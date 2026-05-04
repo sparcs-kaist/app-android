@@ -187,7 +187,8 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            if (tokenStorage.getRefreshToken() == null) {
+            val token = tokenStorage.getAccessToken()
+            if (token == null || tokenStorage.isTokenExpired()) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -215,7 +216,7 @@ object TimetableStateParser {
                 TimetableUiState(signInRequired = true)
             }
         }
-        return if (tokenStorage.getRefreshToken() != null) {
+        return if (tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
             TimetableUiState(signInRequired = false, timetable = null)
         } else {
             TimetableUiState(signInRequired = true)
