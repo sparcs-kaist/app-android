@@ -259,10 +259,6 @@ class UpComingWidgetSyncManager @Inject constructor(
         syncState(UpcomingClassUiState(signInRequired = true))
     }
 
-    suspend fun syncLoading() {
-        syncState(UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true))
-    }
-
     private suspend fun syncState(state: UpcomingClassUiState) {
         try {
             val jsonString = Json.encodeToString(state)

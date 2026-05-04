@@ -149,11 +149,6 @@ class TimetableWidgetSyncManager @Inject constructor(
     suspend fun syncSignInRequired() {
         syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
-
-    suspend fun syncLoading() {
-        syncState(TimetableUiState(signInRequired = false, timetable = null, isLoading = true, lastUpdated = System.currentTimeMillis()))
-    }
-
     private suspend fun syncState(state: TimetableUiState) {
         try {
             val jsonString = Json.encodeToString(state)

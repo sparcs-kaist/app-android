@@ -255,11 +255,6 @@ class DDayWidgetSyncManager @Inject constructor(
     suspend fun syncSignInRequired() {
         syncState(BuddyDDayUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
-
-    suspend fun syncLoading() {
-        syncState(BuddyDDayUiState(signInRequired = false, entry = null, isLoading = true, lastUpdated = System.currentTimeMillis()))
-    }
-
     suspend fun syncError() {
         val state = BuddyDDayUiState(
             entry = DDayWidgetEntry("", DDayType.ERROR, 0, 0f),
