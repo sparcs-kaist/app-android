@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -67,15 +70,24 @@ fun TaxiChatView(
     val taxiUser by viewModel.taxiUser.collectAsState()
     val room by viewModel.room.collectAsState()
     val isUploading by viewModel.isUploading.collectAsState()
+    val totalAmount by viewModel.totalAmount.collectAsState()
 
     var text by remember { mutableStateOf("") }
     var showCallTaxiAlert by remember { mutableStateOf(false) }
     var showPayMoneyAlert by remember { mutableStateOf(false) }
+    var showSettlementAlert by remember { mutableStateOf(false) }
+    var settlementAmountText by remember { mutableStateOf("") }
     var tappedImageID by remember { mutableStateOf<String?>(null) }
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val individualAmount = remember(totalAmount, room.participants.size) {
+        val total = totalAmount ?: return@remember null
+        val count = room.participants.size
+        if (count > 0) total / count else 0
+    }
 
     LaunchedEffect(Unit) {
         viewModel.setup()
@@ -121,7 +133,7 @@ fun TaxiChatView(
                     coroutineScope.launch { viewModel.sendImage(bitmap) }
                 },
                 onCommitSettlement = {
-                    coroutineScope.launch { viewModel.commitSettlement() }
+                    showSettlementAlert = true
                 },
                 onCommitPayment = { showPayMoneyAlert = true }
             )
@@ -146,6 +158,8 @@ fun TaxiChatView(
                             user = null,
                             onImageClick = {},
                             onCommitPayment = {},
+                            totalAmount = null,
+                            individualAmount = null,
                             listState = rememberLazyListState(),
                             scrollToBottomTrigger = 0,
                             modifier = Modifier.alpha(0.5f)
@@ -159,6 +173,8 @@ fun TaxiChatView(
                             user = taxiUser,
                             onImageClick = { tappedImageID = it },
                             onCommitPayment = { showPayMoneyAlert = true },
+                            totalAmount = totalAmount,
+                            individualAmount = individualAmount,
                             listState = listState,
                             scrollToBottomTrigger = viewModel.scrollToBottomTrigger
                         )
@@ -276,6 +292,47 @@ fun TaxiChatView(
         state = viewModel.alertState,
         onDismiss = { viewModel.isAlertPresented = false }
     )
+
+    if (showSettlementAlert) {
+        AlertDialog(
+            onDismissRequest = { showSettlementAlert = false },
+            title = { Text(stringResource(R.string.request_settlement)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(stringResource(R.string.taxi_settlement_prompt))
+                    OutlinedTextField(
+                        value = settlementAmountText,
+                        onValueChange = { if (it.all { char -> char.isDigit() }) settlementAmountText = it },
+                        label = { Text(stringResource(R.string.taxi_settlement_amount_placeholder)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val amount = settlementAmountText.toIntOrNull() ?: 0
+                        coroutineScope.launch { viewModel.commitSettlement(amount) }
+                        showSettlementAlert = false
+                        settlementAmountText = ""
+                    },
+                    enabled = settlementAmountText.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.taxi_settlement_request))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showSettlementAlert = false
+                    settlementAmountText = ""
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 
     if (tappedImageID != null) {
         FullscreenImageView(

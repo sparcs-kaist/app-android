@@ -40,6 +40,9 @@ class PreviewTaxiChatViewModel(
     private val _room = MutableStateFlow(TaxiRoom.mock())
     override val room: StateFlow<TaxiRoom> = _room.asStateFlow()
 
+    private val _totalAmount = MutableStateFlow<Int?>(10000)
+    override val totalAmount: StateFlow<Int?> = _totalAmount.asStateFlow()
+
     private val _isUploading = MutableStateFlow(false)
     override val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
 
@@ -56,7 +59,7 @@ class PreviewTaxiChatViewModel(
     override suspend fun fetchInitialChats() {}
     override fun sendChat(message: String, type: TaxiChat.ChatType) {}
     override suspend fun leaveRoom(): Boolean { return false }
-    override suspend fun commitSettlement() {}
+    override suspend fun commitSettlement(amount: Int) {}
     override suspend fun commitPayment() {}
     override suspend fun sendImage(image: Bitmap) {}
     override fun switchRoom(newRoom: TaxiRoom) {

@@ -484,6 +484,12 @@
     <string name="taxi_not_arrived">미도착</string>
     <string name="source">출발</string>
     <string name="destination">도착</string>
+    <string name="taxi_settlement_total">총 금액: %1$,d원</string>
+    <string name="taxi_settlement_individual">보낼 금액: %1$,d원</string>
+    <string name="requested_settlement">정산 요청함</string>
+    <string name="taxi_settlement_prompt">택시 요금을 입력해 주세요.</string>
+    <string name="taxi_settlement_amount_placeholder">금액 (원)</string>
+    <string name="taxi_settlement_request">요청</string>
     <string name="error_failed_to_join_taxi_room">택시 팟 참여에 실패했습니다.</string>
     <string name="error_failed_to_create_taxi_room">택시 방 개설에 실패했습니다.</string>
     <string name="failed_to_load_course">강의 정보를 불러오지 못했습니다.</string>

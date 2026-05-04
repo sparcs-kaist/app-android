@@ -20,7 +20,7 @@ interface TaxiRoomRepositoryProtocol {
     suspend fun leaveRoom(id: String): TaxiRoom
     suspend fun getRoom(id: String): TaxiRoom
     suspend fun getPublicRoom(id: String): TaxiRoom
-    suspend fun commitSettlement(id: String): TaxiRoom
+    suspend fun commitSettlement(id: String, amount: Int?): TaxiRoom
     suspend fun commitPayment(id: String): TaxiRoom
     suspend fun toggleCarrier(id: String, hasCarrier: Boolean): TaxiRoom
     suspend fun updateArrival(id: String, isArrived: Boolean): TaxiRoom
@@ -35,7 +35,7 @@ class FakeTaxiRoomRepository : TaxiRoomRepositoryProtocol {
     override suspend fun leaveRoom(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun getRoom(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun getPublicRoom(id: String): TaxiRoom = TaxiRoom.mock()
-    override suspend fun commitSettlement(id: String): TaxiRoom = TaxiRoom.mock()
+    override suspend fun commitSettlement(id: String, amount: Int?): TaxiRoom = TaxiRoom.mock()
     override suspend fun commitPayment(id: String): TaxiRoom = TaxiRoom.mock()
     override suspend fun toggleCarrier(id: String, hasCarrier: Boolean): TaxiRoom = TaxiRoom.mock()
     override suspend fun updateArrival(id: String, isArrived: Boolean): TaxiRoom = TaxiRoom.mock()
@@ -84,8 +84,10 @@ class TaxiRoomRepository @Inject constructor(
         taxiRoomApi.getPublicRoom(id)
     }.toModel()
 
-    override suspend fun commitSettlement(id: String): TaxiRoom = safeApiCall(gson) {
-        taxiRoomApi.commitSettlement(mapOf("roomId" to id))
+    override suspend fun commitSettlement(id: String, amount: Int?): TaxiRoom = safeApiCall(gson) {
+        val body = mutableMapOf<String, Any>("roomId" to id)
+        amount?.let { body["settlementAmount"] = it }
+        taxiRoomApi.commitSettlement(body)
     }.toModel()
 
     override suspend fun commitPayment(id: String): TaxiRoom = safeApiCall(gson) {
