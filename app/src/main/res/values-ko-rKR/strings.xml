@@ -193,6 +193,12 @@
     </string>
     <string name="settlement">정산</string>
     <string name="account_parse_failed">계좌 번호를 불러오는 데 실패했습니다.</string>
+    <string name="total_amount">총 금액</string>
+    <string name="send_amount">보낼 금액</string>
+    <string name="currency_unit">원</string>
+    <string name="enter_settlement_amount">정산 금액 입력</string>
+    <string name="settlement_amount_hint">총 결제 금액을 입력해 주세요.</string>
+    <string name="invalid_amount">올바른 금액을 입력해 주세요.</string>
     <string name="send_payment">송금하기</string>
     <string name="already_sent">이미 송금함</string>
     <string name="i_sent_the_money">결제자에게 송금했어요!</string>

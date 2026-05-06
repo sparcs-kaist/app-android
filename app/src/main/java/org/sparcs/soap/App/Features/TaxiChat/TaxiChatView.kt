@@ -71,6 +71,8 @@ fun TaxiChatView(
     var text by remember { mutableStateOf("") }
     var showCallTaxiAlert by remember { mutableStateOf(false) }
     var showPayMoneyAlert by remember { mutableStateOf(false) }
+    var showSettlementAmountDialog by remember { mutableStateOf(false) }
+    var settlementAmountText by remember { mutableStateOf("") }
     var tappedImageID by remember { mutableStateOf<String?>(null) }
 
     val listState = rememberLazyListState()
@@ -121,7 +123,7 @@ fun TaxiChatView(
                     coroutineScope.launch { viewModel.sendImage(bitmap) }
                 },
                 onCommitSettlement = {
-                    coroutineScope.launch { viewModel.commitSettlement() }
+                    showSettlementAmountDialog = true
                 },
                 onCommitPayment = { showPayMoneyAlert = true }
             )
@@ -265,6 +267,58 @@ fun TaxiChatView(
             },
             confirmButton = {
                 TextButton(onClick = { showPayMoneyAlert = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showSettlementAmountDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSettlementAmountDialog = false
+                settlementAmountText = ""
+            },
+            title = { Text(stringResource(R.string.enter_settlement_amount)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    androidx.compose.material3.OutlinedTextField(
+                        value = settlementAmountText,
+                        onValueChange = {
+                            if (it.all { char -> char.isDigit() }) {
+                                settlementAmountText = it
+                            }
+                        },
+                        label = { Text(stringResource(R.string.settlement_amount_hint)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                        ),
+                        singleLine = true,
+                        suffix = { Text(stringResource(R.string.currency_unit)) }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val amount = settlementAmountText.toIntOrNull()
+                        if (amount != null && amount > 0) {
+                            viewModel.commitSettlement(amount)
+                            showSettlementAmountDialog = false
+                            settlementAmountText = ""
+                        }
+                    },
+                    enabled = settlementAmountText.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showSettlementAmountDialog = false
+                    settlementAmountText = ""
+                }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
