@@ -39,8 +39,6 @@ fun ChatCollectionView(
     user: TaxiUser?,
     onCommitPayment: () -> Unit,
     onImageClick: (String) -> Unit,
-    totalAmount: Int?,
-    individualAmount: Int?,
     listState: LazyListState,
     scrollToBottomTrigger: Int,
     modifier: Modifier = Modifier
@@ -49,19 +47,33 @@ fun ChatCollectionView(
         room.participants.associate { it.id to it.badge }
     }
 
-    val isCommitPaymentAvailable = remember(room, user?.oid, totalAmount) {
-        val me = room.participants.find { it.id == user?.oid }
-        room.isDeparted && totalAmount != null && totalAmount != 0 &&
-                me?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired
+    val isCommitPaymentAvailable = remember(room, user?.oid) {
+        val departed = room.isDeparted
+        val myParticipantInfo = user?.let { currentUser ->
+            room.participants.find { it.id == currentUser.oid }
+        }
+        val paymentRequired = myParticipantInfo?.isSettlement?.let {
+            it == TaxiParticipant.SettlementType.PaymentRequired
+        } ?: false
+        departed && paymentRequired
     }
 
-    LaunchedEffect(items.isNotEmpty(), scrollToBottomTrigger) {
+    val latestSettlementMeta = remember(items) {
+        items.filterIsInstance<ChatRenderItem.Message>()
+            .map { it.chat }
+            .lastOrNull { it.type == TaxiChat.ChatType.SETTLEMENT }
+            ?.settlementMeta
+    }
+
+    LaunchedEffect(scrollToBottomTrigger) {
         if (items.isNotEmpty()) {
-            if (scrollToBottomTrigger <= 1) {
-                listState.scrollToItem(items.size - 1)
-            } else {
-                listState.animateScrollToItem(items.size - 1)
-            }
+            listState.animateScrollToItem(items.size - 1)
+        }
+    }
+
+    LaunchedEffect(items.isNotEmpty()) {
+        if (items.isNotEmpty()) {
+            listState.scrollToItem(items.size - 1)
         }
     }
 
@@ -78,10 +90,9 @@ fun ChatCollectionView(
                 item = item,
                 room = room,
                 user = user,
-                onCommitPayment = { onCommitPayment() },
                 isCommitPaymentAvailable = isCommitPaymentAvailable,
-                totalAmount = totalAmount,
-                individualAmount = individualAmount,
+                settlementMeta = latestSettlementMeta,
+                onCommitPayment = { onCommitPayment() },
                 onImageClick = onImageClick,
                 hasBadge = { authorID -> authorID?.let { badgeByAuthorID[it] } ?: false }
             )
@@ -95,8 +106,7 @@ private fun ChatItem(
     room: TaxiRoom,
     user: TaxiUser?,
     isCommitPaymentAvailable: Boolean,
-    totalAmount: Int?,
-    individualAmount: Int?,
+    settlementMeta: TaxiChat.SettlementMeta?,
     onCommitPayment: () -> Unit,
     onImageClick: (String) -> Unit,
     hasBadge: (String?) -> Boolean
@@ -143,17 +153,13 @@ private fun ChatItem(
                     TaxiChat.ChatType.ARRIVAL -> ChatArrivalBubble()
                     TaxiChat.ChatType.SETTLEMENT -> ChatSettlementBubble()
                     TaxiChat.ChatType.PAYMENT -> ChatPaymentBubble()
-                    TaxiChat.ChatType.ACCOUNT -> {
-                        val isPayer = item.chat.authorID == user?.oid
-                        ChatAccountBubble(
-                            content = item.chat.content,
-                            isCommitPaymentAvailable = isCommitPaymentAvailable,
-                            isPayer = isPayer,
-                            totalAmount = totalAmount,
-                            individualAmount = individualAmount
-                        ) {
-                            onCommitPayment()
-                        }
+                    TaxiChat.ChatType.ACCOUNT -> ChatAccountBubble(
+                        content = item.chat.content,
+                        totalAmount = settlementMeta?.total,
+                        perPersonAmount = settlementMeta?.perPerson,
+                        isCommitPaymentAvailable = isCommitPaymentAvailable
+                    ) {
+                        onCommitPayment()
                     }
                     TaxiChat.ChatType.SHARE -> ChatShareBubble(room = room)
                     else -> Text(stringResource(R.string.not_supported))
@@ -190,8 +196,6 @@ private fun ChatCollectionViewPreview() {
                 user = TaxiUser.mock(),
                 onCommitPayment = {},
                 onImageClick = {},
-                totalAmount = 10000,
-                individualAmount = 2500,
                 listState = listState,
                 scrollToBottomTrigger = 0
             )
@@ -221,8 +225,6 @@ private fun ChatCollectionViewSkeletonPreview() {
                 user = null,
                 onCommitPayment = {},
                 onImageClick = {},
-                totalAmount = null,
-                individualAmount = null,
                 listState = listState,
                 scrollToBottomTrigger = 0
             )

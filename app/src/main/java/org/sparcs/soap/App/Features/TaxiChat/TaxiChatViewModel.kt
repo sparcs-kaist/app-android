@@ -12,14 +12,11 @@ import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
@@ -54,7 +51,6 @@ interface TaxiChatViewModelProtocol {
 
     val room: StateFlow<TaxiRoom>
     val isUploading: StateFlow<Boolean>
-    val totalAmount: StateFlow<Int?>
 
     // MARK: - Computed Properties
     val isLeaveRoomAvailable: Boolean
@@ -72,7 +68,7 @@ interface TaxiChatViewModelProtocol {
     suspend fun fetchInitialChats()
     fun sendChat(message: String, type: TaxiChat.ChatType)
     suspend fun leaveRoom(): Boolean
-    suspend fun commitSettlement(amount: Int)
+    fun commitSettlement(amount: Int)
     suspend fun commitPayment()
     suspend fun sendImage(image: Bitmap)
     fun switchRoom(newRoom: TaxiRoom)
@@ -109,14 +105,6 @@ class TaxiChatViewModel @Inject constructor(
 
     private val _taxiUser = MutableStateFlow<TaxiUser?>(null)
     override val taxiUser: StateFlow<TaxiUser?> = _taxiUser.asStateFlow()
-
-    override val totalAmount: StateFlow<Int?> = taxiChatUseCase.chats
-        .map { chats ->
-            chats.filter { it.type == TaxiChat.ChatType.SETTLEMENT }
-                .mapNotNull { it.content.toIntOrNull() }
-                .lastOrNull()
-        }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
     override var topChatID: String? = null
         private set
@@ -184,7 +172,7 @@ class TaxiChatViewModel @Inject constructor(
 
                 _renderItems.value = builtItems
 
-                if (newLastItemId != null && lastItemId != newLastItemId) {
+                if (lastItemId != null && lastItemId != newLastItemId) {
                     scrollToBottomTrigger += 1
                 }
 
@@ -259,25 +247,26 @@ class TaxiChatViewModel @Inject constructor(
         get() = !room.value.isDeparted
 
     override val isCommitSettlementAvailable: Boolean
-        get() = room.value.isDeparted && room.value.settlementTotal == 0
+        get() = room.value.isDeparted && room.value.settlementTotal == null
 
 
-    override suspend fun commitSettlement(amount: Int) {
-        try {
-            val newRoom = taxiRoomRepository.commitSettlement(room.value.id, amount)
-            _room.value = newRoom
+    override fun commitSettlement(amount: Int) {
+        viewModelScope.launch {
+            try {
+                val newRoom = taxiRoomRepository.commitSettlement(room.value.id, amount)
+                _room.value = newRoom
 
-            val me = newRoom.participants.firstOrNull { it.id == taxiUser.value?.oid }
-            if (me?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement) {
-                taxiChatUseCase.sendChat(amount.toString(), TaxiChat.ChatType.SETTLEMENT)
-                val myAccount = _taxiUser.value?.account
-                taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
+                val me = newRoom.participants.firstOrNull { it.id == taxiUser.value?.oid }
+                if (me?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement) {
+                    val myAccount = _taxiUser.value?.account
+                    taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
+                }
+            } catch (e: Exception) {
+                alertState = e.toAlertState(R.string.error_settlement_failed)
+                isAlertPresented = true
+
+                Timber.e(e, "commitSettlement failed")
             }
-        } catch (e: Exception) {
-            this.alertState = e.toAlertState(R.string.error_settlement_failed)
-            this.isAlertPresented = true
-
-            Timber.e(e, "commitSettlement failed")
         }
     }
 
@@ -336,9 +325,7 @@ class TaxiChatViewModel @Inject constructor(
     override val isCommitPaymentAvailable: Boolean
         get() {
             val me = room.value.participants.firstOrNull { it.id == taxiUser.value?.oid }
-            return room.value.isDeparted &&
-                    room.value.settlementTotal != null &&
-                    room.value.settlementTotal != 0 &&
+            return room.value.isDeparted && room.value.settlementTotal != 0 &&
                     (me?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired)
         }
 

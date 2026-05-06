@@ -14,8 +14,15 @@ data class TaxiChat(
     val content: String,
     val time: Date,
     val isValid: Boolean,
-    val inOutNames: List<String>?
+    val inOutNames: List<String>?,
+    val settlementMeta: SettlementMeta? = null
 ) {
+    data class SettlementMeta(
+        val total: Int,
+        val perPerson: Int,
+        val participantCount: Int
+    )
+
     enum class ChatType(val type: String) {
         // User sent type
         TEXT("text"),               // normal message

@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -70,24 +67,17 @@ fun TaxiChatView(
     val taxiUser by viewModel.taxiUser.collectAsState()
     val room by viewModel.room.collectAsState()
     val isUploading by viewModel.isUploading.collectAsState()
-    val totalAmount by viewModel.totalAmount.collectAsState()
 
     var text by remember { mutableStateOf("") }
     var showCallTaxiAlert by remember { mutableStateOf(false) }
     var showPayMoneyAlert by remember { mutableStateOf(false) }
-    var showSettlementAlert by remember { mutableStateOf(false) }
+    var showSettlementAmountDialog by remember { mutableStateOf(false) }
     var settlementAmountText by remember { mutableStateOf("") }
     var tappedImageID by remember { mutableStateOf<String?>(null) }
 
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
-    val individualAmount = remember(totalAmount, room.participants.size) {
-        val total = totalAmount ?: return@remember null
-        val count = room.participants.size
-        if (count > 0) total / count else 0
-    }
 
     LaunchedEffect(Unit) {
         viewModel.setup()
@@ -133,7 +123,7 @@ fun TaxiChatView(
                     coroutineScope.launch { viewModel.sendImage(bitmap) }
                 },
                 onCommitSettlement = {
-                    showSettlementAlert = true
+                    showSettlementAmountDialog = true
                 },
                 onCommitPayment = { showPayMoneyAlert = true }
             )
@@ -158,8 +148,6 @@ fun TaxiChatView(
                             user = null,
                             onImageClick = {},
                             onCommitPayment = {},
-                            totalAmount = null,
-                            individualAmount = null,
                             listState = rememberLazyListState(),
                             scrollToBottomTrigger = 0,
                             modifier = Modifier.alpha(0.5f)
@@ -173,8 +161,6 @@ fun TaxiChatView(
                             user = taxiUser,
                             onImageClick = { tappedImageID = it },
                             onCommitPayment = { showPayMoneyAlert = true },
-                            totalAmount = totalAmount,
-                            individualAmount = individualAmount,
                             listState = listState,
                             scrollToBottomTrigger = viewModel.scrollToBottomTrigger
                         )
@@ -287,45 +273,50 @@ fun TaxiChatView(
         )
     }
 
-    GlobalAlertDialog(
-        isPresented = viewModel.isAlertPresented,
-        state = viewModel.alertState,
-        onDismiss = { viewModel.isAlertPresented = false }
-    )
-
-    if (showSettlementAlert) {
+    if (showSettlementAmountDialog) {
         AlertDialog(
-            onDismissRequest = { showSettlementAlert = false },
-            title = { Text(stringResource(R.string.request_settlement)) },
+            onDismissRequest = {
+                showSettlementAmountDialog = false
+                settlementAmountText = ""
+            },
+            title = { Text(stringResource(R.string.enter_settlement_amount)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.taxi_settlement_prompt))
-                    OutlinedTextField(
+                    androidx.compose.material3.OutlinedTextField(
                         value = settlementAmountText,
-                        onValueChange = { if (it.all { char -> char.isDigit() }) settlementAmountText = it },
-                        label = { Text(stringResource(R.string.taxi_settlement_amount_placeholder)) },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        onValueChange = {
+                            if (it.all { char -> char.isDigit() }) {
+                                settlementAmountText = it
+                            }
+                        },
+                        label = { Text(stringResource(R.string.settlement_amount_hint)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                        ),
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        suffix = { Text(stringResource(R.string.currency_unit)) }
                     )
                 }
             },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        val amount = settlementAmountText.toIntOrNull() ?: 0
-                        coroutineScope.launch { viewModel.commitSettlement(amount) }
-                        showSettlementAlert = false
-                        settlementAmountText = ""
+                        val amount = settlementAmountText.toIntOrNull()
+                        if (amount != null && amount > 0) {
+                            viewModel.commitSettlement(amount)
+                            showSettlementAmountDialog = false
+                            settlementAmountText = ""
+                        }
                     },
                     enabled = settlementAmountText.isNotBlank()
                 ) {
-                    Text(stringResource(R.string.taxi_settlement_request))
+                    Text(stringResource(R.string.confirm))
                 }
             },
             dismissButton = {
                 TextButton(onClick = {
-                    showSettlementAlert = false
+                    showSettlementAmountDialog = false
                     settlementAmountText = ""
                 }) {
                     Text(stringResource(R.string.cancel))
@@ -333,6 +324,12 @@ fun TaxiChatView(
             }
         )
     }
+
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = { viewModel.isAlertPresented = false }
+    )
 
     if (tappedImageID != null) {
         FullscreenImageView(

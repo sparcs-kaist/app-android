@@ -35,6 +35,7 @@ import org.sparcs.soap.R
 @Composable
 fun ChatAccountBubble(
     content: String,
+    perPersonAmount: Int? = null,
     isCommitPaymentAvailable: Boolean,
     isPayer: Boolean = false,
     totalAmount: Int? = null,
@@ -122,6 +123,48 @@ fun ChatAccountBubble(
             }
         }
 
+        if (totalAmount != null || perPersonAmount != null) {
+            Column(
+                modifier = Modifier.padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (totalAmount != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.total_amount),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "${totalAmount}${stringResource(R.string.currency_unit)}",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                if (perPersonAmount != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = stringResource(R.string.send_amount),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "${perPersonAmount}${stringResource(R.string.currency_unit)}",
+                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+        }
+
         Button(
             onClick = { markAsSent() },
             enabled = isCommitPaymentAvailable && !isPayer,
@@ -177,6 +220,7 @@ private fun PreviewSendPayment() {
     Theme {
         ChatAccountBubble(
             content = "KB국민 90415338958",
+            perPersonAmount = 2500,
             isCommitPaymentAvailable = true,
             isPayer = false,
             totalAmount = 10000,
@@ -192,6 +236,7 @@ private fun PreviewAlreadySent() {
     Theme {
         ChatAccountBubble(
             content = "KB국민 90415338958",
+            perPersonAmount = 2500,
             isCommitPaymentAvailable = false,
             isPayer = false,
             totalAmount = 10000,

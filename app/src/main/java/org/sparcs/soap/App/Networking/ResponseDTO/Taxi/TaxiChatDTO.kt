@@ -35,8 +35,22 @@ data class TaxiChatDTO(
     val isValid: Boolean,
 
     @SerializedName("inOutNames")
-    val inOutNames: List<String>?
+    val inOutNames: List<String>?,
+
+    @SerializedName("settlementMeta")
+    val settlementMeta: SettlementMetaDTO?
 ) {
+    data class SettlementMetaDTO(
+        @SerializedName("total")
+        val total: Int,
+
+        @SerializedName("perPerson")
+        val perPerson: Int,
+
+        @SerializedName("participantCount")
+        val participantCount: Int
+    )
+
     fun toModel(): TaxiChat {
         val identityString = "${authorID ?: "system"}_${content}_${time}"
         val deterministicId = UUID.nameUUIDFromBytes(identityString.toByteArray())
@@ -52,7 +66,14 @@ data class TaxiChatDTO(
             content = content,
             time = time.toDate() ?: Date(),
             isValid = isValid,
-            inOutNames = inOutNames
+            inOutNames = inOutNames,
+            settlementMeta = settlementMeta?.let {
+                TaxiChat.SettlementMeta(
+                    total = it.total,
+                    perPerson = it.perPerson,
+                    participantCount = it.participantCount
+                )
+            }
         )
     }
 }
