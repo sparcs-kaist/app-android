@@ -50,8 +50,8 @@ fun FullscreenImagesViewer(
         pageCount = { images.size }
     )
 
-    val scales = remember { mutableStateListOf<Float>().apply { images.forEach { _ -> add(1f) } } }
-    val offsets = remember { mutableStateListOf<Offset>().apply { images.forEach { _ -> add(Offset.Zero) } } }
+    val scales = remember(images) { mutableStateListOf<Float>().apply { images.forEach { _ -> add(1f) } } }
+    val offsets = remember(images) { mutableStateListOf<Offset>().apply { images.forEach { _ -> add(Offset.Zero) } } }
 
     Box(
         modifier = Modifier
