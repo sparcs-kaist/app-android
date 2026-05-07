@@ -49,7 +49,7 @@ import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedView(
-    viewModel: FeedViewModelProtocol = hiltViewModel(),
+    viewModel: FeedViewModelProtocol = hiltViewModel<FeedViewModel>(),
     navController: NavController,
 ) {
     val scope = rememberCoroutineScope()

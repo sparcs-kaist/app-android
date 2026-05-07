@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
@@ -40,7 +40,11 @@ import org.sparcs.soap.App.Domain.Models.Feed.FeedImage
 import org.sparcs.soap.R
 
 @Composable
-fun PostImagesStrip(images: List<FeedImage>, onComment: () -> Unit) {
+fun PostImagesStrip(
+    images: List<FeedImage>,
+    onComment: () -> Unit,
+    onImageClick: ((List<FeedImage>, Int) -> Unit)? = null
+) {
     val hPadding = 16.dp
     val spacing = 12.dp
     val minW = 100.dp
@@ -58,15 +62,18 @@ fun PostImagesStrip(images: List<FeedImage>, onComment: () -> Unit) {
             modifier = Modifier.height(height)
         ) {
 
-            items(images) { item ->
+            itemsIndexed(images) { index, item ->
                 var showSpoiler by remember { mutableStateOf(item.spoiler) }
 
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
                         .clickable {
-                            if(showSpoiler == true) showSpoiler = false
-                        else onComment()
+                            if (showSpoiler == true) showSpoiler = false
+                            else {
+                                // 우선 이미지 전체화면 요청 콜백이 있으면 호출하고, 없으면 onComment 호출
+                                onImageClick?.invoke(images, index) ?: onComment()
+                            }
                         }
                 ) {
                     SubcomposeAsyncImage(
