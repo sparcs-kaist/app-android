@@ -37,8 +37,8 @@ fun FullscreenImageView(
     id: String?,
     onDismiss: () -> Unit,
 ) {
-    val imageUrl = Constants.taxiChatImageURL + id
     if (id != null) {
+        val imageUrl = Constants.taxiChatImageURL + id
         var scale by remember { mutableFloatStateOf(1f) }
         var offset by remember { mutableStateOf(Offset.Zero) }
 
