@@ -64,7 +64,7 @@ fun LectureItem(lecture: Lecture, cl: LectureClass) {
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 ),
-                maxLines = 1,
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
         }

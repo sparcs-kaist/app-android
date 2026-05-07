@@ -44,6 +44,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -52,6 +54,7 @@ import org.sparcs.soap.App.Domain.Enums.DeepLinkEventBus
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedVoteType
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Features.Feed.FeedViewModelProtocol
+import org.sparcs.soap.App.Features.FullscreenImage.FullscreenImagesViewer
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
@@ -250,7 +253,26 @@ private fun Content(
     }
 
     if (post.images.isNotEmpty()) {
-        PostImagesStrip(images = post.images, onComment)
+        var fullscreenRequest by remember { mutableStateOf<Pair<List<org.sparcs.soap.App.Domain.Models.Feed.FeedImage>, Int>?>(null) }
+
+        PostImagesStrip(
+            images = post.images,
+            onComment = onComment,
+            onImageClick = { images, index -> fullscreenRequest = images to index }
+        )
+
+        fullscreenRequest?.let { (images, startIndex) ->
+            Dialog(
+                onDismissRequest = { fullscreenRequest = null },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                FullscreenImagesViewer(
+                    images = images,
+                    startIndex = startIndex,
+                    onDismiss = { fullscreenRequest = null }
+                )
+            }
+        }
     }
 }
 
