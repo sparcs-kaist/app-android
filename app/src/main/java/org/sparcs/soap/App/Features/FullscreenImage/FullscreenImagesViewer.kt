@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -33,6 +34,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import org.sparcs.soap.App.Domain.Models.Feed.FeedImage
 
@@ -143,7 +145,9 @@ fun FullscreenImagesViewer(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 24.dp),
+                .statusBarsPadding()
+                .padding(top = 24.dp)
+                .zIndex(1f),
             contentAlignment = Alignment.TopCenter
         ) {
             Text(
@@ -156,7 +160,9 @@ fun FullscreenImagesViewer(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 12.dp, end = 12.dp),
+                .statusBarsPadding()
+                .padding(top = 12.dp, end = 12.dp)
+                .zIndex(2f),
             contentAlignment = Alignment.TopEnd
         ) {
             IconButton(onClick = onDismiss) {
