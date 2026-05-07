@@ -247,7 +247,7 @@ class TaxiChatViewModel @Inject constructor(
         get() = !room.value.isDeparted
 
     override val isCommitSettlementAvailable: Boolean
-        get() = room.value.isDeparted && room.value.settlementTotal == null
+        get() = room.value.isDeparted && (room.value.settlementTotal == null || room.value.settlementTotal == 0)
 
 
     override fun commitSettlement(amount: Int) {

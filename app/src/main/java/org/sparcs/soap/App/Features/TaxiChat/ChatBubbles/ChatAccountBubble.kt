@@ -35,11 +35,10 @@ import org.sparcs.soap.R
 @Composable
 fun ChatAccountBubble(
     content: String,
+    totalAmount: Int? = null,
     perPersonAmount: Int? = null,
     isCommitPaymentAvailable: Boolean,
     isPayer: Boolean = false,
-    totalAmount: Int? = null,
-    individualAmount: Int? = null,
     markAsSent: () -> Unit,
 ) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
@@ -103,9 +102,9 @@ fun ChatAccountBubble(
             }
         }
 
-        if (totalAmount != null || individualAmount != null) {
+        if (totalAmount != null || perPersonAmount != null) {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (totalAmount != null) {
                     Text(
                         text = stringResource(R.string.taxi_settlement_total, totalAmount),
@@ -113,54 +112,12 @@ fun ChatAccountBubble(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                if (individualAmount != null) {
+                if (perPersonAmount != null) {
                     Text(
-                        text = stringResource(R.string.taxi_settlement_individual, individualAmount),
+                        text = stringResource(R.string.taxi_settlement_individual, perPersonAmount),
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                }
-            }
-        }
-
-        if (totalAmount != null || perPersonAmount != null) {
-            Column(
-                modifier = Modifier.padding(vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                if (totalAmount != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = stringResource(R.string.total_amount),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "${totalAmount}${stringResource(R.string.currency_unit)}",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                }
-                if (perPersonAmount != null) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = stringResource(R.string.send_amount),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = "${perPersonAmount}${stringResource(R.string.currency_unit)}",
-                            style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
                 }
             }
         }
@@ -220,11 +177,10 @@ private fun PreviewSendPayment() {
     Theme {
         ChatAccountBubble(
             content = "KB국민 90415338958",
+            totalAmount = 10000,
             perPersonAmount = 2500,
             isCommitPaymentAvailable = true,
             isPayer = false,
-            totalAmount = 10000,
-            individualAmount = 2500,
             markAsSent = { println("mark as sent") }
         )
     }
@@ -236,11 +192,10 @@ private fun PreviewAlreadySent() {
     Theme {
         ChatAccountBubble(
             content = "KB국민 90415338958",
+            totalAmount = 10000,
             perPersonAmount = 2500,
             isCommitPaymentAvailable = false,
             isPayer = false,
-            totalAmount = 10000,
-            individualAmount = 2500,
             markAsSent = { println("mark as sent") }
         )
     }
@@ -252,10 +207,10 @@ private fun PreviewRequestedSettlement() {
     Theme {
         ChatAccountBubble(
             content = "KB국민 90415338958",
+            totalAmount = 10000,
+            perPersonAmount = 2500,
             isCommitPaymentAvailable = false,
             isPayer = true,
-            totalAmount = 10000,
-            individualAmount = 2500,
             markAsSent = { println("mark as sent") }
         )
     }

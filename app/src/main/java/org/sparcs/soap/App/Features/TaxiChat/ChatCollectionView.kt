@@ -58,6 +58,13 @@ fun ChatCollectionView(
         departed && paymentRequired
     }
 
+    val isPayer = remember(room, user?.oid) {
+        val myParticipantInfo = user?.let { currentUser ->
+            room.participants.find { it.id == currentUser.oid }
+        }
+        myParticipantInfo?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement
+    }
+
     val latestSettlementMeta = remember(items) {
         items.filterIsInstance<ChatRenderItem.Message>()
             .map { it.chat }
@@ -91,6 +98,7 @@ fun ChatCollectionView(
                 room = room,
                 user = user,
                 isCommitPaymentAvailable = isCommitPaymentAvailable,
+                isPayer = isPayer,
                 settlementMeta = latestSettlementMeta,
                 onCommitPayment = { onCommitPayment() },
                 onImageClick = onImageClick,
@@ -106,6 +114,7 @@ private fun ChatItem(
     room: TaxiRoom,
     user: TaxiUser?,
     isCommitPaymentAvailable: Boolean,
+    isPayer: Boolean,
     settlementMeta: TaxiChat.SettlementMeta?,
     onCommitPayment: () -> Unit,
     onImageClick: (String) -> Unit,
@@ -157,7 +166,8 @@ private fun ChatItem(
                         content = item.chat.content,
                         totalAmount = settlementMeta?.total,
                         perPersonAmount = settlementMeta?.perPerson,
-                        isCommitPaymentAvailable = isCommitPaymentAvailable
+                        isCommitPaymentAvailable = isCommitPaymentAvailable,
+                        isPayer = isPayer
                     ) {
                         onCommitPayment()
                     }
