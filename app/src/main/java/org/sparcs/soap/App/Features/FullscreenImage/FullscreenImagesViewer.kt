@@ -92,7 +92,7 @@ fun FullscreenImagesViewer(
                                             offsets[page] + panChange
                                         }
 
-                                        event.changes.forEach { it.consume() }
+                                        event.changes.forEach { it.consumeAllChanges() }
                                     }
 
                                     scales[page] > 1f && pressedCount == 1 -> {
