@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -60,7 +63,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun TaxiChatView(
-    viewModel: TaxiChatViewModelProtocol = hiltViewModel(),
+    viewModel: TaxiChatViewModelProtocol = hiltViewModel<TaxiChatViewModel>(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
@@ -282,7 +285,7 @@ fun TaxiChatView(
             title = { Text(stringResource(R.string.enter_settlement_amount)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = settlementAmountText,
                         onValueChange = {
                             if (it.all { char -> char.isDigit() }) {
@@ -291,8 +294,8 @@ fun TaxiChatView(
                         },
                         label = { Text(stringResource(R.string.settlement_amount_hint)) },
                         modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                            keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
                         ),
                         singleLine = true,
                         suffix = { Text(stringResource(R.string.currency_unit)) }
