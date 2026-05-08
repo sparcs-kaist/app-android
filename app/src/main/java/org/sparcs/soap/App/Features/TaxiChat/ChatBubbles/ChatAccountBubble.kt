@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Payment
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,7 +35,10 @@ import org.sparcs.soap.R
 @Composable
 fun ChatAccountBubble(
     content: String,
+    totalAmount: Int? = null,
+    perPersonAmount: Int? = null,
     isCommitPaymentAvailable: Boolean,
+    isPayer: Boolean = false,
     markAsSent: () -> Unit,
 ) {
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
@@ -44,58 +48,99 @@ fun ChatAccountBubble(
                 color = MaterialTheme.colorScheme.surfaceVariant,
                 shape = RoundedCornerShape(24.dp)
             )
-            .padding(12.dp)
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = stringResource(R.string.settlement).uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+        Column {
+            Text(
+                text = stringResource(R.string.settlement).uppercase(),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
-        )
 
-        val parts = content.split(" ", limit = 2)
-        if (parts.size == 2) {
-            val bank = parts[0]
-            val accountNumber = parts[1]
-            // use bank and accountNumber here
+            val parts = content.split(" ", limit = 2)
+            if (parts.size == 2) {
+                val bank = parts[0]
+                val accountNumber = parts[1]
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                modifier = Modifier.combinedClickable(
-                    onClick = { clipboardManager.setText(AnnotatedString("$bank $accountNumber")) },
-                    onLongClick = {
-                        clipboardManager.setText(AnnotatedString("$bank $accountNumber"))
-                    }
-                )) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.combinedClickable(
+                        onClick = {
+                            clipboardManager.setText(
+                                AnnotatedString(
+                                    "$bank $accountNumber"
+                                )
+                            )
+                        },
+                        onLongClick = {
+                            clipboardManager.setText(AnnotatedString("$bank $accountNumber"))
+                        }
+                    )) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = bank, fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        accountNumber,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            } else {
                 Text(
-                    text = bank, fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    accountNumber,
+                    stringResource(R.string.account_parse_failed),
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-        } else {
-            Text(
-                stringResource(R.string.account_parse_failed),
-                color = MaterialTheme.colorScheme.onSurface
-            )
+        }
+
+        if (totalAmount != null || perPersonAmount != null) {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (totalAmount != null) {
+                    Text(
+                        text = stringResource(R.string.taxi_settlement_total, totalAmount),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (perPersonAmount != null) {
+                    Text(
+                        text = stringResource(R.string.taxi_settlement_individual, perPersonAmount),
+                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
         }
 
         Button(
             onClick = { markAsSent() },
-            enabled = isCommitPaymentAvailable,
+            enabled = isCommitPaymentAvailable && !isPayer,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if (isCommitPaymentAvailable) {
+            if (isPayer) {
+                Icon(
+                    imageVector = Icons.Rounded.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.requested_settlement),
+                    fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else if (isCommitPaymentAvailable) {
                 Icon(
                     imageVector = Icons.Rounded.Payment,
                     contentDescription = null,
@@ -132,7 +177,10 @@ private fun PreviewSendPayment() {
     Theme {
         ChatAccountBubble(
             content = "KB국민 90415338958",
+            totalAmount = 10000,
+            perPersonAmount = 2500,
             isCommitPaymentAvailable = true,
+            isPayer = false,
             markAsSent = { println("mark as sent") }
         )
     }
@@ -144,9 +192,26 @@ private fun PreviewAlreadySent() {
     Theme {
         ChatAccountBubble(
             content = "KB국민 90415338958",
+            totalAmount = 10000,
+            perPersonAmount = 2500,
             isCommitPaymentAvailable = false,
+            isPayer = false,
             markAsSent = { println("mark as sent") }
         )
     }
 }
 
+@Preview
+@Composable
+private fun PreviewRequestedSettlement() {
+    Theme {
+        ChatAccountBubble(
+            content = "KB국민 90415338958",
+            totalAmount = 10000,
+            perPersonAmount = 2500,
+            isCommitPaymentAvailable = false,
+            isPayer = true,
+            markAsSent = { println("mark as sent") }
+        )
+    }
+}

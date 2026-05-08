@@ -68,7 +68,7 @@ interface TaxiChatViewModelProtocol {
     suspend fun fetchInitialChats()
     fun sendChat(message: String, type: TaxiChat.ChatType)
     suspend fun leaveRoom(): Boolean
-    suspend fun commitSettlement()
+    fun commitSettlement(amount: Int)
     suspend fun commitPayment()
     suspend fun sendImage(image: Bitmap)
     fun switchRoom(newRoom: TaxiRoom)
@@ -247,24 +247,26 @@ class TaxiChatViewModel @Inject constructor(
         get() = !room.value.isDeparted
 
     override val isCommitSettlementAvailable: Boolean
-        get() = room.value.isDeparted && room.value.settlementTotal == 0
+        get() = room.value.isDeparted && (room.value.settlementTotal == null || room.value.settlementTotal == 0)
 
 
-    override suspend fun commitSettlement() {
-        try {
-            val newRoom = taxiRoomRepository.commitSettlement(room.value.id)
-            _room.value = newRoom
+    override fun commitSettlement(amount: Int) {
+        viewModelScope.launch {
+            try {
+                val newRoom = taxiRoomRepository.commitSettlement(room.value.id, amount)
+                _room.value = newRoom
 
-            val me = newRoom.participants.firstOrNull { it.id == taxiUser.value?.oid }
-            if (me?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement) {
-                val myAccount = _taxiUser.value?.account
-                taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
+                val me = newRoom.participants.firstOrNull { it.id == taxiUser.value?.oid }
+                if (me?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement) {
+                    val myAccount = _taxiUser.value?.account
+                    taxiChatUseCase.sendChat(myAccount, TaxiChat.ChatType.ACCOUNT)
+                }
+            } catch (e: Exception) {
+                alertState = e.toAlertState(R.string.error_settlement_failed)
+                isAlertPresented = true
+
+                Timber.e(e, "commitSettlement failed")
             }
-        } catch (e: Exception) {
-            this.alertState = e.toAlertState(R.string.error_settlement_failed)
-            this.isAlertPresented = true
-
-            Timber.e(e, "commitSettlement failed")
         }
     }
 

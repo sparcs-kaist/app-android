@@ -47,15 +47,29 @@ fun ChatCollectionView(
         room.participants.associate { it.id to it.badge }
     }
 
-    val isCommitSettlementAvailable = remember(room, user?.oid) {
+    val isCommitPaymentAvailable = remember(room, user?.oid) {
         val departed = room.isDeparted
         val myParticipantInfo = user?.let { currentUser ->
             room.participants.find { it.id == currentUser.oid }
         }
-        val iHaveNotSettled = myParticipantInfo?.isSettlement?.let {
-            it != TaxiParticipant.SettlementType.PaymentSent
+        val paymentRequired = myParticipantInfo?.isSettlement?.let {
+            it == TaxiParticipant.SettlementType.PaymentRequired
         } ?: false
-        departed && iHaveNotSettled
+        departed && paymentRequired
+    }
+
+    val isPayer = remember(room, user?.oid) {
+        val myParticipantInfo = user?.let { currentUser ->
+            room.participants.find { it.id == currentUser.oid }
+        }
+        myParticipantInfo?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement
+    }
+
+    val latestSettlementMeta = remember(items) {
+        items.filterIsInstance<ChatRenderItem.Message>()
+            .map { it.chat }
+            .lastOrNull { it.type == TaxiChat.ChatType.SETTLEMENT }
+            ?.settlementMeta
     }
 
     LaunchedEffect(scrollToBottomTrigger) {
@@ -83,8 +97,10 @@ fun ChatCollectionView(
                 item = item,
                 room = room,
                 user = user,
+                isCommitPaymentAvailable = isCommitPaymentAvailable,
+                isPayer = isPayer,
+                settlementMeta = latestSettlementMeta,
                 onCommitPayment = { onCommitPayment() },
-                isCommitSettlementAvailable = isCommitSettlementAvailable,
                 onImageClick = onImageClick,
                 hasBadge = { authorID -> authorID?.let { badgeByAuthorID[it] } ?: false }
             )
@@ -97,7 +113,9 @@ private fun ChatItem(
     item: ChatRenderItem,
     room: TaxiRoom,
     user: TaxiUser?,
-    isCommitSettlementAvailable: Boolean,
+    isCommitPaymentAvailable: Boolean,
+    isPayer: Boolean,
+    settlementMeta: TaxiChat.SettlementMeta?,
     onCommitPayment: () -> Unit,
     onImageClick: (String) -> Unit,
     hasBadge: (String?) -> Boolean
@@ -146,7 +164,10 @@ private fun ChatItem(
                     TaxiChat.ChatType.PAYMENT -> ChatPaymentBubble()
                     TaxiChat.ChatType.ACCOUNT -> ChatAccountBubble(
                         content = item.chat.content,
-                        isCommitPaymentAvailable = isCommitSettlementAvailable
+                        totalAmount = settlementMeta?.total,
+                        perPersonAmount = settlementMeta?.perPerson,
+                        isCommitPaymentAvailable = isCommitPaymentAvailable,
+                        isPayer = isPayer
                     ) {
                         onCommitPayment()
                     }

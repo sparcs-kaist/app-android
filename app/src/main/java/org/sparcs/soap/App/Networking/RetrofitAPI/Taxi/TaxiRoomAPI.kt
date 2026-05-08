@@ -38,7 +38,7 @@ interface TaxiRoomApi {
     ): TaxiRoomDTO
 
     @POST("rooms/commitSettlement")
-    suspend fun commitSettlement(@Body body: Map<String, String>): TaxiRoomDTO
+    suspend fun commitSettlement(@Body body: Map<String, @JvmSuppressWildcards Any>): TaxiRoomDTO
 
     @POST("rooms/commitPayment")
     suspend fun commitPayment(@Body body: Map<String, String>): TaxiRoomDTO

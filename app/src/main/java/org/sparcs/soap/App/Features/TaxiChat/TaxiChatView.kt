@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -60,7 +63,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun TaxiChatView(
-    viewModel: TaxiChatViewModelProtocol = hiltViewModel(),
+    viewModel: TaxiChatViewModelProtocol = hiltViewModel<TaxiChatViewModel>(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
@@ -71,6 +74,8 @@ fun TaxiChatView(
     var text by remember { mutableStateOf("") }
     var showCallTaxiAlert by remember { mutableStateOf(false) }
     var showPayMoneyAlert by remember { mutableStateOf(false) }
+    var showSettlementAmountDialog by remember { mutableStateOf(false) }
+    var settlementAmountText by remember { mutableStateOf("") }
     var tappedImageID by remember { mutableStateOf<String?>(null) }
 
     val listState = rememberLazyListState()
@@ -121,7 +126,7 @@ fun TaxiChatView(
                     coroutineScope.launch { viewModel.sendImage(bitmap) }
                 },
                 onCommitSettlement = {
-                    coroutineScope.launch { viewModel.commitSettlement() }
+                    showSettlementAmountDialog = true
                 },
                 onCommitPayment = { showPayMoneyAlert = true }
             )
@@ -265,6 +270,58 @@ fun TaxiChatView(
             },
             confirmButton = {
                 TextButton(onClick = { showPayMoneyAlert = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    if (showSettlementAmountDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSettlementAmountDialog = false
+                settlementAmountText = ""
+            },
+            title = { Text(stringResource(R.string.enter_settlement_amount)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = settlementAmountText,
+                        onValueChange = {
+                            if (it.all { char -> char.isDigit() }) {
+                                settlementAmountText = it
+                            }
+                        },
+                        label = { Text(stringResource(R.string.settlement_amount_hint)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number
+                        ),
+                        singleLine = true,
+                        suffix = { Text(stringResource(R.string.currency_unit)) }
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val amount = settlementAmountText.toIntOrNull()
+                        if (amount != null && amount > 0) {
+                            viewModel.commitSettlement(amount)
+                            showSettlementAmountDialog = false
+                            settlementAmountText = ""
+                        }
+                    },
+                    enabled = settlementAmountText.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showSettlementAmountDialog = false
+                    settlementAmountText = ""
+                }) {
                     Text(stringResource(R.string.cancel))
                 }
             }

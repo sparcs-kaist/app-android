@@ -213,6 +213,12 @@
     </string>
     <string name="settlement">settlement</string>
     <string name="account_parse_failed">Failed to parse account information.</string>
+    <string name="total_amount">Total Amount</string>
+    <string name="send_amount">Amount to Send</string>
+    <string name="currency_unit">₩</string>
+    <string name="enter_settlement_amount">Enter Settlement Amount</string>
+    <string name="settlement_amount_hint">Please enter the total payment amount.</string>
+    <string name="invalid_amount">Please enter a valid amount.</string>
     <string name="send_payment">Send Payment</string>
     <string name="already_sent">Already Sent</string>
     <string name="i_sent_the_money">I sent the money!</string>
@@ -482,6 +488,12 @@
     <string name="taxi_not_arrived">Not Arrived</string>
     <string name="source">From</string>
     <string name="destination">To</string>
+    <string name="taxi_settlement_total">Total Amount: %1$,d KRW</string>
+    <string name="taxi_settlement_individual">Amount to Send: %1$,d KRW</string>
+    <string name="requested_settlement">Settlement Requested</string>
+    <string name="taxi_settlement_prompt">Please enter the taxi fare.</string>
+    <string name="taxi_settlement_amount_placeholder">Amount (KRW)</string>
+    <string name="taxi_settlement_request">Request</string>
     <string name="error_failed_to_join_taxi_room">Failed to join the taxi group.</string>
     <string name="error_failed_to_create_taxi_room">Failed to create the taxi room.</string>
     <string name="failed_to_load_course">Failed to load course information.</string>

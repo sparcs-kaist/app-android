@@ -56,7 +56,7 @@ class PreviewTaxiChatViewModel(
     override suspend fun fetchInitialChats() {}
     override fun sendChat(message: String, type: TaxiChat.ChatType) {}
     override suspend fun leaveRoom(): Boolean { return false }
-    override suspend fun commitSettlement() {}
+    override fun commitSettlement(amount: Int) {}
     override suspend fun commitPayment() {}
     override suspend fun sendImage(image: Bitmap) {}
     override fun switchRoom(newRoom: TaxiRoom) {
