@@ -101,20 +101,20 @@ private fun Label(
                 painter = iconPainter,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.secondary
+                tint = MaterialTheme.colorScheme.outline
             )
         } else if (iconImageVector != null) {
             Icon(
                 imageVector = iconImageVector,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.secondary
+                tint = MaterialTheme.colorScheme.outline
             )
         }
         Text(
             text = text,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.outline,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
