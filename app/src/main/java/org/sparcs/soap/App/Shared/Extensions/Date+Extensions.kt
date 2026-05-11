@@ -10,11 +10,11 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
-import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun Date.timeAgoDisplay(): String {
@@ -56,12 +56,9 @@ fun Date.timeAgoDisplay(): String {
 }
 
 fun Date.toISO8601(): String {
-    val instant = this.toInstant()
-    val formatter = DateTimeFormatter
-        .ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
-        .withZone(ZoneOffset.UTC)
-
-    return formatter.format(instant)
+    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+    simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
+    return simpleDateFormat.format(this)
 }
 
 fun Date.toLocalDate(): LocalDate =

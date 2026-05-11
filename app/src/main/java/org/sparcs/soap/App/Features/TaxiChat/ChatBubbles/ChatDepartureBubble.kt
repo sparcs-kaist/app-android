@@ -39,9 +39,16 @@ import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
 @Composable
-fun ChatDepartureBubble(room: TaxiRoom) {
+fun ChatDepartureBubble(room: TaxiRoom, chatTime: java.util.Date) {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
+
+    val diffMinutes = (room.departAt.time - chatTime.time) / (60 * 1000)
+    val alertText = when {
+        diffMinutes <= 7 -> stringResource(R.string.taxi_5min_alert)
+        diffMinutes <= 12 -> stringResource(R.string.taxi_10min_alert)
+        else -> stringResource(R.string.taxi_15min_alert)
+    }
 
     Column(
         modifier = Modifier
@@ -53,7 +60,7 @@ fun ChatDepartureBubble(room: TaxiRoom) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = stringResource(R.string.taxi_15min_alert)
+            text = alertText
         )
 
         Surface(
@@ -145,5 +152,5 @@ fun ChatDepartureBubble(room: TaxiRoom) {
 @Preview
 @Composable
 private fun Preview() {
-    Theme { ChatDepartureBubble(room = TaxiRoom.mock()) }
+    Theme { ChatDepartureBubble(room = TaxiRoom.mock(), chatTime = java.util.Date()) }
 }

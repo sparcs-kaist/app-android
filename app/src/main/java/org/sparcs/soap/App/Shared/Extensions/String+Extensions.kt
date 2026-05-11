@@ -10,7 +10,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import dagger.hilt.android.qualifiers.ApplicationContext
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -18,18 +17,23 @@ import java.util.TimeZone
 import javax.inject.Inject
 
 fun String.toDate(): Date? {
-    val simpleDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-        Locale.US)
+    val formats = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
+        "yyyy-MM-dd'T'HH:mm:ssZ"
+    )
 
-    simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
-
-    return try {
-        simpleDateFormat.parse(this)
-    } catch (e: ParseException) {
-        null
-    } catch (e: Exception) {
-        null
+    for (format in formats) {
+        val simpleDateFormat = SimpleDateFormat(format, Locale.US)
+        simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        try {
+            return simpleDateFormat.parse(this)
+        } catch (_: Exception) {
+            // continue
+        }
     }
+    return null
 }
 
 fun String.toHTMLParagraphs(): String =
