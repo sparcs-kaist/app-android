@@ -23,11 +23,13 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +41,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
@@ -60,6 +64,7 @@ import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyPreviewSupport.Taxi.PreviewTaxiChatViewModel
 import org.sparcs.soap.R
+import java.util.Date
 
 @Composable
 fun TaxiChatView(
@@ -78,6 +83,23 @@ fun TaxiChatView(
     var settlementAmountText by remember { mutableStateOf("") }
     var tappedImageID by remember { mutableStateOf<String?>(null) }
 
+    fun dismissCallTaxiAlert() {
+        showCallTaxiAlert = false
+    }
+
+    fun dismissPayMoneyAlert() {
+        showPayMoneyAlert = false
+    }
+
+    fun resetSettlementDialog() {
+        showSettlementAmountDialog = false
+        settlementAmountText = ""
+    }
+
+    fun dismissFullscreenImage() {
+        tappedImageID = null
+    }
+
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -85,6 +107,16 @@ fun TaxiChatView(
     LaunchedEffect(Unit) {
         viewModel.setup()
         viewModel.fetchInitialChats()
+    }
+
+    // Trigger recomposition when departure time is reached
+    var now by remember { mutableStateOf(Date()) }
+    LaunchedEffect(room.departAt) {
+        val delayMs = room.departAt.time - Date().time
+        if (delayMs > 0) {
+            delay(delayMs + 1000)
+            now = Date()
+        }
     }
 
     Scaffold(
@@ -158,6 +190,23 @@ fun TaxiChatView(
                     }
 
                     is TaxiChatViewModel.ViewState.Loaded -> {
+                        val shouldLoadMore by remember {
+                            derivedStateOf {
+                                listState.layoutInfo.totalItemsCount > 0 &&
+                                    listState.firstVisibleItemIndex <= 2
+                            }
+                        }
+
+                        LaunchedEffect(Unit) {
+                            snapshotFlow { shouldLoadMore }
+                                .distinctUntilChanged()
+                                .collect { loadMore ->
+                                    if (loadMore) {
+                                        viewModel.loadMoreChats()
+                                    }
+                                }
+                        }
+
                         ChatCollectionView(
                             items = viewModel.renderItems.collectAsState().value,
                             room = room,
@@ -182,7 +231,7 @@ fun TaxiChatView(
 
     if (showCallTaxiAlert) {
         AlertDialog(
-            onDismissRequest = { showCallTaxiAlert = false },
+            onDismissRequest = { dismissCallTaxiAlert() },
             title = { Text(stringResource(R.string.call_taxi)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -200,7 +249,7 @@ fun TaxiChatView(
                         onClick = {
                             val uri = TaxiDeepLinkHelper.getKakaoTUri(room.source, room.destination)
                             context.openUri(uri, "com.kakao.taxi")
-                            showCallTaxiAlert = false
+                            dismissCallTaxiAlert()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -212,7 +261,7 @@ fun TaxiChatView(
                             val uberUri =
                                 TaxiDeepLinkHelper.getUberUri(room.source, room.destination)
                             context.openUri(uberUri, "com.ubercab")
-                            showCallTaxiAlert = false
+                            dismissCallTaxiAlert()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -221,7 +270,7 @@ fun TaxiChatView(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showCallTaxiAlert = false }) {
+                TextButton(onClick = { dismissCallTaxiAlert() }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -230,7 +279,7 @@ fun TaxiChatView(
 
     if (showPayMoneyAlert) {
         AlertDialog(
-            onDismissRequest = { showPayMoneyAlert = false },
+            onDismissRequest = { dismissPayMoneyAlert() },
             title = { Text(stringResource(R.string.send_payment)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -241,7 +290,7 @@ fun TaxiChatView(
                         onClick = {
                             val uri = TaxiDeepLinkHelper.getKakaoPayUri(context, viewModel.account)
                             context.openUri(uri, "com.kakao.talk")
-                            showPayMoneyAlert = false
+                            dismissPayMoneyAlert()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -251,7 +300,7 @@ fun TaxiChatView(
                         onClick = {
                             val uri = TaxiDeepLinkHelper.getTossUri(viewModel.account)
                             context.openUri(uri, "viva.republica.toss")
-                            showPayMoneyAlert = false
+                            dismissPayMoneyAlert()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -260,7 +309,7 @@ fun TaxiChatView(
                     Button(
                         onClick = {
                             coroutineScope.launch { viewModel.commitPayment() }
-                            showPayMoneyAlert = false
+                            dismissPayMoneyAlert()
                         },
                         modifier = Modifier.fillMaxWidth()
                     ) {
@@ -269,7 +318,7 @@ fun TaxiChatView(
                 }
             },
             confirmButton = {
-                TextButton(onClick = { showPayMoneyAlert = false }) {
+                TextButton(onClick = { dismissPayMoneyAlert() }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -278,10 +327,7 @@ fun TaxiChatView(
 
     if (showSettlementAmountDialog) {
         AlertDialog(
-            onDismissRequest = {
-                showSettlementAmountDialog = false
-                settlementAmountText = ""
-            },
+            onDismissRequest = { resetSettlementDialog() },
             title = { Text(stringResource(R.string.enter_settlement_amount)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -308,8 +354,7 @@ fun TaxiChatView(
                         val amount = settlementAmountText.toIntOrNull()
                         if (amount != null && amount > 0) {
                             viewModel.commitSettlement(amount)
-                            showSettlementAmountDialog = false
-                            settlementAmountText = ""
+                                resetSettlementDialog()
                         }
                     },
                     enabled = settlementAmountText.isNotBlank()
@@ -318,10 +363,7 @@ fun TaxiChatView(
                 }
             },
             dismissButton = {
-                TextButton(onClick = {
-                    showSettlementAmountDialog = false
-                    settlementAmountText = ""
-                }) {
+                TextButton(onClick = { resetSettlementDialog() }) {
                     Text(stringResource(R.string.cancel))
                 }
             }
@@ -337,7 +379,7 @@ fun TaxiChatView(
     if (tappedImageID != null) {
         FullscreenImageView(
             id = tappedImageID!!,
-            onDismiss = { tappedImageID = null }
+            onDismiss = { dismissFullscreenImage() }
         )
     }
 }

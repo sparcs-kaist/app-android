@@ -158,7 +158,7 @@ private fun ChatItem(
                         ChatBubble(item.chat, item.position, item.sender.isMine)
                     }
                     TaxiChat.ChatType.S3IMG -> ChatImageBubble(id = item.chat.content, onClick = onImageClick)
-                    TaxiChat.ChatType.DEPARTURE -> ChatDepartureBubble(room = room)
+                    TaxiChat.ChatType.DEPARTURE -> ChatDepartureBubble(room = room, chatTime = item.chat.time)
                     TaxiChat.ChatType.ARRIVAL -> ChatArrivalBubble()
                     TaxiChat.ChatType.SETTLEMENT -> ChatSettlementBubble()
                     TaxiChat.ChatType.PAYMENT -> ChatPaymentBubble()
