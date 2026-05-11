@@ -42,7 +42,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.TaxiDeepLinkHelper
 import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
@@ -199,7 +198,7 @@ fun TaxiChatView(
 
                         LaunchedEffect(Unit) {
                             snapshotFlow { shouldLoadMore }
-                                .distinctUntilChanged()
+//                                .distinctUntilChanged()
                                 .collect { loadMore ->
                                     if (loadMore) {
                                         viewModel.loadMoreChats()
