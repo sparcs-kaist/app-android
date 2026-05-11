@@ -73,24 +73,27 @@ fun ChatCollectionView(
     }
 
     LaunchedEffect(scrollToBottomTrigger) {
-        if (items.isNotEmpty()) {
-            listState.animateScrollToItem(items.size - 1)
+        if (items.isNotEmpty() && scrollToBottomTrigger > 0) {
+            listState.animateScrollToItem(0)
         }
     }
 
     LaunchedEffect(items.isNotEmpty()) {
-        if (items.isNotEmpty()) {
-            listState.scrollToItem(items.size - 1)
+        if (items.isNotEmpty() && listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) {
+            listState.scrollToItem(0)
         }
     }
+
+    val reversedItems = remember(items) { items.reversed() }
 
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 8.dp)
+        contentPadding = PaddingValues(top = 8.dp),
+        reverseLayout = true
     ) {
         items(
-            items = items,
+            items = reversedItems,
             key = { it.id }
         ) { item ->
             ChatItem(

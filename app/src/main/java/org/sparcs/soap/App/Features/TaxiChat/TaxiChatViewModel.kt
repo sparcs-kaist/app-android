@@ -133,6 +133,7 @@ class TaxiChatViewModel @Inject constructor(
         fetchTaxiUser()
         taxiChatUseCase.setRoom(room.value)
         bind()
+        taxiChatUseCase.refreshRoom()
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
@@ -348,12 +349,9 @@ class TaxiChatViewModel @Inject constructor(
             val userOid = taxiUser.value?.oid ?: return false
             val currentRoom = room.value
             val me = currentRoom.participants.firstOrNull { it.id == userOid }
-            val isAlreadySettled = (currentRoom.settlementTotal ?: 0) > 0
-            val isTimeDeparted = java.util.Date().after(currentRoom.departAt)
-
-            return (currentRoom.isDeparted || isTimeDeparted || isAlreadySettled) &&
-                    isAlreadySettled &&
-                    (me?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired)
+            val isSettled = (currentRoom.settlementTotal ?: 0) > 0
+            
+            return isSettled && (me?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired)
         }
 
     override val account: String?

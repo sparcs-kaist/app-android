@@ -191,14 +191,14 @@ fun TaxiChatView(
                     is TaxiChatViewModel.ViewState.Loaded -> {
                         val shouldLoadMore by remember {
                             derivedStateOf {
-                                listState.layoutInfo.totalItemsCount > 0 &&
-                                    listState.firstVisibleItemIndex <= 2
+                                val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                                val totalCount = listState.layoutInfo.totalItemsCount
+                                totalCount > 0 && lastVisibleIndex >= totalCount - 3
                             }
                         }
 
                         LaunchedEffect(Unit) {
                             snapshotFlow { shouldLoadMore }
-//                                .distinctUntilChanged()
                                 .collect { loadMore ->
                                     if (loadMore) {
                                         viewModel.loadMoreChats()
