@@ -548,4 +548,9 @@
     <string name="attachments">Attachments</string>
     <string name="downloading">Downloading...</string>
     <string name="download">Download</string>
+    <string name="favorite_routes">Favorite Routes</string>
+    <string name="add_to_favorites">Add to Favorites</string>
+    <string name="delete_favorite">Delete Favorite</string>
+    <string name="no_favorite_routes">No favorite routes</string>
+    <string name="route_already_exists">This route already exists in favorites</string>
 </resources>

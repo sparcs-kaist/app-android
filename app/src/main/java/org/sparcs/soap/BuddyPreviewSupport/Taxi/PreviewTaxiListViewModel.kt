@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Helpers.LocalizedString
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiFavoriteRoute
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.TaxiList.TaxiListViewModel
@@ -64,6 +65,9 @@ class PreviewTaxiListViewModel(
     )
     override val locations: StateFlow<List<TaxiLocation>> = _locations.asStateFlow()
 
+    private val _favoriteRoutes = MutableStateFlow<List<TaxiFavoriteRoute>>(emptyList())
+    override val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>> = _favoriteRoutes.asStateFlow()
+
     override var source: TaxiLocation? by mutableStateOf(null)
     override var destination: TaxiLocation? by mutableStateOf(null)
     override var selectedDate: Date? by mutableStateOf(Date())
@@ -81,4 +85,24 @@ class PreviewTaxiListViewModel(
     }
 
     override fun toggleCarrier(roomID: String, hasCarrier: Boolean) {}
+
+    override fun addFavoriteRoute() {
+        val from = source ?: return
+        val to = destination ?: return
+        val newFavorite = TaxiFavoriteRoute(
+            id = UUID.randomUUID().toString(),
+            from = from,
+            to = to
+        )
+        _favoriteRoutes.value = _favoriteRoutes.value + newFavorite
+    }
+
+    override fun deleteFavoriteRoute(id: String) {
+        _favoriteRoutes.value = _favoriteRoutes.value.filter { it.id != id }
+    }
+
+    override fun selectFavoriteRoute(favoriteRoute: TaxiFavoriteRoute) {
+        source = favoriteRoute.from
+        destination = favoriteRoute.to
+    }
 }

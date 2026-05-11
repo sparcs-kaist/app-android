@@ -153,6 +153,7 @@ fun TaxiListView(
                         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
                         shape = RoundedCornerShape(16.dp)
                     ) {
+                        val favoriteRoutes by viewModel.favoriteRoutes.collectAsState()
                         TaxiDestinationPicker(
                             source = viewModel.source,
                             destination = viewModel.destination,
@@ -162,7 +163,11 @@ fun TaxiListView(
                             },
                             onDestinationChange = { newDestination ->
                                 viewModel.destination = newDestination
-                            }
+                            },
+                            favoriteRoutes = favoriteRoutes,
+                            onFavoriteSelect = { viewModel.selectFavoriteRoute(it) },
+                            onFavoriteDelete = { viewModel.deleteFavoriteRoute(it) },
+                            onFavoriteAdd = { viewModel.addFavoriteRoute() }
                         )
                     }
 
@@ -272,7 +277,8 @@ fun TaxiListView(
         }
 
         LaunchedEffect(Unit) {
-            viewModel.fetchData()
+            // Already called in init, but keeping this for explicit refresh when returning to screen if needed
+            // viewModel.fetchData()
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Domain.Repositories.Taxi
 
 import com.google.gson.Gson
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiFavoriteRoute
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Networking.ResponseDTO.safeApiCall
 import org.sparcs.soap.App.Networking.RetrofitAPI.Taxi.TaxiUserApi
@@ -12,13 +13,19 @@ interface TaxiUserRepositoryProtocol {
     suspend fun editBankAccount(account: String)
     suspend fun registerPhoneNumber(phoneNumber: String)
     suspend fun registerResidence(residence: String)
+    suspend fun fetchFavoriteRoutes(): List<TaxiFavoriteRoute>
+    suspend fun createFavoriteRoute(fromId: String, toId: String)
+    suspend fun deleteFavoriteRoute(id: String)
 }
 
 enum class TaxiUserErrorCode(val code: Int) {
     EDIT_BANK_ACCOUNT_FAILED(2001),
     EDIT_BADGE_FAILED(2002),
     REGISTER_PHONE_NUMBER_FAILED(2003),
-    REGISTER_RESIDENCE_FAILED(2004)
+    REGISTER_RESIDENCE_FAILED(2004),
+    FETCH_FAVORITE_FAILED(2005),
+    CREATE_FAVORITE_FAILED(2006),
+    DELETE_FAVORITE_FAILED(2007)
 }
 
 class TaxiUserRepository @Inject constructor(
@@ -59,6 +66,28 @@ class TaxiUserRepository @Inject constructor(
             if (!response.isSuccessful) {
                 throw Exception("Failed to register residence (code=${TaxiUserErrorCode.REGISTER_RESIDENCE_FAILED.code})")
             }
+        }
+    }
+
+    override suspend fun fetchFavoriteRoutes(): List<TaxiFavoriteRoute> = safeApiCall(gson) {
+        val response = api.getFavoriteRoutes()
+        if (!response.isSuccessful) {
+            throw Exception("Failed to fetch favorite routes (code=${TaxiUserErrorCode.FETCH_FAVORITE_FAILED.code})")
+        }
+        response.body()?.map { it.toModel() } ?: emptyList()
+    }
+
+    override suspend fun createFavoriteRoute(fromId: String, toId: String) = safeApiCall(gson) {
+        val response = api.createFavorite(mapOf("from" to fromId, "to" to toId))
+        if (!response.isSuccessful) {
+            throw Exception("Failed to create favorite route (code=${TaxiUserErrorCode.CREATE_FAVORITE_FAILED.code})")
+        }
+    }
+
+    override suspend fun deleteFavoriteRoute(id: String) = safeApiCall(gson) {
+        val response = api.deleteFavorite(id)
+        if (!response.isSuccessful) {
+            throw Exception("Failed to delete favorite route (code=${TaxiUserErrorCode.DELETE_FAVORITE_FAILED.code})")
         }
     }
 }
