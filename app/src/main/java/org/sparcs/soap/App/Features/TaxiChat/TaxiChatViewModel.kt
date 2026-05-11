@@ -117,7 +117,12 @@ class TaxiChatViewModel @Inject constructor(
     private var isFetching = false
     private var fetchedBeforeTimestamps: MutableSet<Long> = mutableSetOf()
     private var isInitialFetching = false
-    override var scrollToBottomTrigger by mutableStateOf(0)
+    private val _scrollToBottomTrigger = MutableStateFlow(0)
+    override var scrollToBottomTrigger: Int
+        get() = _scrollToBottomTrigger.value
+        set(value) {
+            _scrollToBottomTrigger.value = value
+        }
     private val isBound = AtomicBoolean(false)
 
     private val builder = ChatRenderItemBuilder(
