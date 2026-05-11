@@ -167,12 +167,12 @@ class TaxiChatUseCase @Inject constructor(
             try {
                 val request = TaxiChatRequest(room.id, type, content)
                 taxiChatRepository.sendChat(request)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
                 synchronized(this) {
                     this.flatChats = this.flatChats.filter { it.id != optimisticChat.id }
                 }
                 _chats.emit(this.flatChats)
-                Timber.tag("TaxiChatUseCase").e("Failed to send chat")
+                Timber.tag("TaxiChatUseCase").e(e, "Failed to send chat")
             }
         }
         }
