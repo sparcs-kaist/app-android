@@ -527,4 +527,5 @@
     <string name="attachments">첨부파일</string>
     <string name="downloading">다운로드 중...</string>
     <string name="download">다운로드</string>
+    <string name="cr">학점</string>
 </resources>

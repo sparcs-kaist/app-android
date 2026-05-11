@@ -1,7 +1,15 @@
 package org.sparcs.soap.App.Features.Timetable.Components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
@@ -77,10 +85,10 @@ fun LectureListRow(lecture: Lecture) {
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             if (lecture.credit > 0) {
-                CreditLabel(credits = lecture.credit, label = "CR")
+                CreditLabel(credits = lecture.credit, label = stringResource(R.string.cr))
             }
             if (lecture.creditAU > 0) {
-                CreditLabel(credits = lecture.creditAU, label = "AU")
+                CreditLabel(credits = lecture.creditAU, label = stringResource(R.string.au))
             }
         }
     }
@@ -130,7 +138,7 @@ private fun CreditLabel(credits: Int, label: String) {
         Text(
             text = credits.toString(),
             style = MaterialTheme.typography.titleMedium.copy(
-                fontFamily = FontFamily.SansSerif, // Close to iOS fontDesign(.rounded)
+                fontFamily = FontFamily.SansSerif,
                 fontSize = 18.sp
             )
         )

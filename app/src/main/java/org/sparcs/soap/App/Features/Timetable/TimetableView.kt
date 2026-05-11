@@ -56,8 +56,8 @@ import org.sparcs.soap.R
 
 @Composable
 fun TimetableView(
-    viewModel: TimetableViewModelProtocol = hiltViewModel(),
-    lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel(),
+    viewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
+    lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
     navController: NavController,
 ) {
     var selectedLecture by remember { mutableStateOf<Lecture?>(null) }
