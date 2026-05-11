@@ -334,7 +334,7 @@
         <item quantity="one">%d Lecture</item>
         <item quantity="other">%d Lectures</item>
     </plurals>
-    <string name="no_lecture_for_timetable">There is no lecture for this timetable.</string>
+    <string name="no_lecture_for_timetable">There are no lectures in this timetable.</string>
     <string name="today_at">Today at %1$s</string>
     <string name="tomorrow_at">Tomorrow at %1$s</string>
     <string name="weekday_at">%1$s at %2$s</string>
