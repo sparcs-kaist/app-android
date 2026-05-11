@@ -29,7 +29,7 @@ fun String.toDate(): Date? {
         simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
         try {
             return simpleDateFormat.parse(this)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // continue
         }
     }
