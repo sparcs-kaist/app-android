@@ -306,6 +306,10 @@
     <plurals name="time_hours_ago">
         <item quantity="other">%d시간 전</item>
     </plurals>
+    <plurals name="lectures_count">
+        <item quantity="other">%d개의 강의</item>
+    </plurals>
+    <string name="no_lecture_for_timetable">이 시간표에는 강의가 없습니다.</string>
     <string name="today_at">오늘 %1$s</string>
     <string name="tomorrow_at">내일 %1$s</string>
     <string name="weekday_at">%1$s %2$s</string>

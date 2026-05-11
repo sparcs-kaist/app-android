@@ -41,6 +41,7 @@ import org.sparcs.soap.App.Features.LectureSearch.LectureSearchViewModelProtocol
 import org.sparcs.soap.App.Features.NavigationBar.AppDownBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Timetable.Components.CompactTimetableSelector
+import org.sparcs.soap.App.Features.Timetable.Components.LectureList
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableBottomSheet
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableCreditGraph
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableGrid
@@ -129,6 +130,24 @@ fun TimetableView(
                         }
                     )
                 }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .padding(horizontal = 20.dp, vertical = 12.dp)
+                ) {
+                    LectureList(
+                        lectures = selectedTimetable?.lectures ?: emptyList(),
+                        onLectureSelected = { lecture ->
+                            selectedLecture = lecture
+                            val json = Gson().toJson(lecture).escapeHash()
+                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                        }
+                    )
+                }
+
                 selectedTimetable?.let { TimetableCreditGraph(it) }
 
                 TimetableSummary(viewModel)
