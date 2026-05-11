@@ -191,7 +191,7 @@ fun TaxiChatView(
                     is TaxiChatViewModel.ViewState.Loaded -> {
                         val shouldLoadMore by remember {
                             derivedStateOf {
-                                val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                                val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.maxOfOrNull { it.index } ?: 0
                                 val totalCount = listState.layoutInfo.totalItemsCount
                                 totalCount > 0 && lastVisibleIndex >= totalCount - 3
                             }
