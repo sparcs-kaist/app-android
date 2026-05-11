@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChatRequest
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
@@ -44,6 +45,7 @@ interface TaxiChatUseCaseProtocol {
     suspend fun sendChat(content: String?, type: TaxiChat.ChatType)
     suspend fun sendImage(content: Bitmap)
     fun switchRoom(newRoomId: String)
+    suspend fun refreshRoom()
 }
 
 class TaxiChatUseCase @Inject constructor(
@@ -74,6 +76,7 @@ class TaxiChatUseCase @Inject constructor(
 
     private var isBound = false
     private var bindJob: Job? = null
+    private var departureRefreshJob: Job? = null
 
     override fun setRoom(room: TaxiRoom) {
         this.room = room
@@ -81,6 +84,34 @@ class TaxiChatUseCase @Inject constructor(
         this.isFirstReadSent = false
         this.hasInitialChatsBeenFetched = false
         taxiChatService.setRoom(room.id)
+        scheduleDepartureRefresh()
+    }
+
+    private fun scheduleDepartureRefresh() {
+        departureRefreshJob?.cancel()
+        val now = Date()
+        val delayMs = room.departAt.time - now.time
+        if (delayMs > 0) {
+            departureRefreshJob = scope.launch {
+                kotlinx.coroutines.delay(delayMs + 1000) // 1s buffer
+                refreshRoom()
+            }
+        } else if (!room.isDeparted) {
+            // Already past departure time but flag is false, refresh once
+            scope.launch { refreshRoom() }
+        }
+    }
+
+    override suspend fun refreshRoom() {
+        try {
+            val updatedRoom = taxiRoomRepository.getRoom(room.id)
+            if (room != updatedRoom) {
+                room = updatedRoom
+                _roomUpdateFlow.emit(updatedRoom)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to refresh room info")
+        }
     }
 
     override fun reconnect() {
@@ -100,12 +131,13 @@ class TaxiChatUseCase @Inject constructor(
     }
 
     override suspend fun fetchChats(before: Date) {
-        scope.launch(Dispatchers.IO) {
-            try {
-                taxiChatRepository.fetchChatsBefore(room.id, before)
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to fetch chats")
+        try {
+            val adjustedDate = Date(before.time - 1)
+            withContext(Dispatchers.IO) {
+                taxiChatRepository.fetchChatsBefore(room.id, adjustedDate)
             }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to fetch chats")
         }
     }
 
@@ -140,6 +172,7 @@ class TaxiChatUseCase @Inject constructor(
                     this.flatChats = this.flatChats.filter { it.id != optimisticChat.id }
                 }
                 _chats.emit(this.flatChats)
+                Timber.tag("TaxiChatUseCase").e(e, "Failed to send chat")
             }
         }
         }
@@ -165,12 +198,17 @@ class TaxiChatUseCase @Inject constructor(
                 .onEach { isConnected ->
                     isSocketConnected = isConnected
                     Timber.d("Socket connected: $isConnected")
+                    if (isConnected) {
+                        refreshRoom() // Sync on reconnect
+                    }
                 }
                 .launchIn(this)
 
             taxiChatService.chatsPublisher
                 .filter { it.isNotEmpty() }
                 .distinctUntilChanged { old, new ->
+                    old.size == new.size &&
+                    old.firstOrNull()?.id == new.firstOrNull()?.id &&
                     old.lastOrNull()?.id == new.lastOrNull()?.id
                 }
                 .onEach { serverChats ->
@@ -182,6 +220,17 @@ class TaxiChatUseCase @Inject constructor(
                     }
 
                     _chats.value = flatChats
+
+                    // Check if any of the new chats should trigger a room refresh
+                    val hasStateChangingChat = serverChats.any { chat ->
+                        chat.type == TaxiChat.ChatType.ACCOUNT ||
+                        chat.type == TaxiChat.ChatType.SETTLEMENT ||
+                        chat.type == TaxiChat.ChatType.PAYMENT
+                    }
+
+                    if (hasStateChangingChat) {
+                        launch { refreshRoom() }
+                    }
 
                     if (latestChatId != null) {
                         if (!isFirstReadSent || latestChatId != lastReadChatId) {
@@ -205,15 +254,7 @@ class TaxiChatUseCase @Inject constructor(
                 .debounce(500L)
                 .onEach { roomId ->
                     if (roomId != room.id) return@onEach
-                    try {
-                        val updatedRoom = taxiRoomRepository.getRoom(roomId)
-                        if (room != updatedRoom) {
-                            room = updatedRoom
-                            _roomUpdateFlow.emit(updatedRoom)
-                        }
-                    } catch (e: Exception) {
-                        Timber.e("Failed to update room: $e")
-                    }
+                    refreshRoom()
                 }
                 .launchIn(this)
         }
@@ -223,6 +264,7 @@ class TaxiChatUseCase @Inject constructor(
         hasInitialChatsBeenFetched = false
         flatChats = emptyList()
         accountChats = emptyList()
+        departureRefreshJob?.cancel()
 
         scope.launch {
             _chats.emit(emptyList())

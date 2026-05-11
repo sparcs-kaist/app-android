@@ -11,6 +11,9 @@ data class LectureClass(
     val buildingName: String,
     val roomName: String,
 ){
+    val location: String
+        get() = "$buildingCode $roomName"
+
     val duration: Int
         get() = end - begin
 
