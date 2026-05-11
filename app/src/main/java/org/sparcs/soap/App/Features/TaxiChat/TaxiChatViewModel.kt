@@ -145,6 +145,7 @@ class TaxiChatViewModel @Inject constructor(
         _room.value = newRoom
         isFetching = false
         fetchedBeforeTimestamps.clear()
+        taxiChatUseCase.setRoom(newRoom)
         taxiChatUseCase.switchRoom(newRoom.id)
     }
 
