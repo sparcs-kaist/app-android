@@ -34,7 +34,6 @@ import org.sparcs.soap.App.Features.TaxiChat.Components.TaxiGroupingPolicy
 import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.R
 import timber.log.Timber
-import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -109,8 +108,6 @@ class TaxiChatViewModel @Inject constructor(
     override var topChatID: String? = null
         private set
 
-    private var fetchedDateSet: MutableSet<Date> = mutableSetOf()
-
     override var alertState: AlertState? by mutableStateOf(null)
     override var isAlertPresented: Boolean by mutableStateOf(false)
 
@@ -118,8 +115,14 @@ class TaxiChatViewModel @Inject constructor(
     override val isUploading: StateFlow<Boolean> = _isUploading.asStateFlow()
 
     private var isFetching = false
+    private var fetchedBeforeTimestamps: MutableSet<Long> = mutableSetOf()
     private var isInitialFetching = false
-    override var scrollToBottomTrigger = 0
+    private val _scrollToBottomTrigger = MutableStateFlow(0)
+    override var scrollToBottomTrigger: Int
+        get() = _scrollToBottomTrigger.value
+        set(value) {
+            _scrollToBottomTrigger.value = value
+        }
     private val isBound = AtomicBoolean(false)
 
     private val builder = ChatRenderItemBuilder(
@@ -135,10 +138,14 @@ class TaxiChatViewModel @Inject constructor(
         fetchTaxiUser()
         taxiChatUseCase.setRoom(room.value)
         bind()
+        taxiChatUseCase.refreshRoom()
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
         _room.value = newRoom
+        isFetching = false
+        fetchedBeforeTimestamps.clear()
+        taxiChatUseCase.setRoom(newRoom)
         taxiChatUseCase.switchRoom(newRoom.id)
     }
 
@@ -194,21 +201,26 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Chat loading
     override suspend fun loadMoreChats() {
-//        if (isFetching) return
-//
-//        val oldestChatTime = renderItems.value.firstOrNull()? ?: return
-//
-//        if (fetchedDateSet.contains(oldestChatTime)) return
-//
-//        isFetching = true
-//        try {
-//            taxiChatUseCase.fetchChats(before = oldestChatTime)
-//            fetchedDateSet.add(oldestChatTime)
-//        } catch (e: Exception) {
-//            Timber.e(e, "loadMoreChats failed")
-//        } finally {
-//            isFetching = false
-//        }
+        if (isFetching) return
+
+        val oldestChatTime = renderItems.value
+            .filterIsInstance<ChatRenderItem.Message>()
+            .firstOrNull()
+            ?.chat
+            ?.time
+            ?: return
+
+        if (fetchedBeforeTimestamps.contains(oldestChatTime.time)) return
+
+        isFetching = true
+        try {
+            taxiChatUseCase.fetchChats(before = oldestChatTime)
+            fetchedBeforeTimestamps.add(oldestChatTime.time)
+        } catch (e: Exception) {
+            Timber.e(e, "loadMoreChats failed")
+        } finally {
+            isFetching = false
+        }
     }
 
     override suspend fun fetchInitialChats() {
@@ -244,10 +256,20 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     override val isLeaveRoomAvailable: Boolean
-        get() = !room.value.isDeparted
+        get() {
+            val currentRoom = room.value
+            val isTimeDeparted = java.util.Date().after(currentRoom.departAt)
+            return !(currentRoom.isDeparted || isTimeDeparted)
+        }
 
     override val isCommitSettlementAvailable: Boolean
-        get() = room.value.isDeparted && (room.value.settlementTotal == null || room.value.settlementTotal == 0)
+        get() {
+            val currentRoom = room.value
+            val isTimeDeparted = java.util.Date().after(currentRoom.departAt)
+            val isAlreadySettled = (currentRoom.settlementTotal ?: 0) > 0
+            
+            return (currentRoom.isDeparted || isTimeDeparted) && !isAlreadySettled
+        }
 
 
     override fun commitSettlement(amount: Int) {
@@ -255,6 +277,9 @@ class TaxiChatViewModel @Inject constructor(
             try {
                 val newRoom = taxiRoomRepository.commitSettlement(room.value.id, amount)
                 _room.value = newRoom
+
+                // Explicitly refresh UseCase state
+                taxiChatUseCase.refreshRoom()
 
                 val me = newRoom.participants.firstOrNull { it.id == taxiUser.value?.oid }
                 if (me?.isSettlement == TaxiParticipant.SettlementType.RequestedSettlement) {
@@ -275,6 +300,9 @@ class TaxiChatViewModel @Inject constructor(
         try {
             val newRoom = taxiRoomRepository.commitPayment(room.value.id)
             _room.value = newRoom
+            
+            // Explicitly refresh UseCase state
+            taxiChatUseCase.refreshRoom()
         } catch (e: Exception) {
             this.alertState = e.toAlertState(R.string.error_payment_failed)
             this.isAlertPresented = true
@@ -324,9 +352,12 @@ class TaxiChatViewModel @Inject constructor(
 
     override val isCommitPaymentAvailable: Boolean
         get() {
-            val me = room.value.participants.firstOrNull { it.id == taxiUser.value?.oid }
-            return room.value.isDeparted && room.value.settlementTotal != 0 &&
-                    (me?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired)
+            val userOid = taxiUser.value?.oid ?: return false
+            val currentRoom = room.value
+            val me = currentRoom.participants.firstOrNull { it.id == userOid }
+            val isSettled = (currentRoom.settlementTotal ?: 0) > 0
+            
+            return isSettled && (me?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired)
         }
 
     override val account: String?

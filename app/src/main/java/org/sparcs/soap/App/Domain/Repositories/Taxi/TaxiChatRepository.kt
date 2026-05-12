@@ -43,19 +43,19 @@ class TaxiChatRepository @Inject constructor(
     private val taxiChatApi: TaxiChatApi,
 ) : TaxiChatRepositoryProtocol {
 
-    override suspend fun fetchChats(roomID: String) {
+    override suspend fun fetchChats(roomID: String) = withContext(Dispatchers.IO) {
         val body = mapOf("roomId" to roomID)
         val result = taxiChatApi.fetchChats(body)
         if (!result.result) throw TaxiChatError.FetchChatsFailed
     }
 
-    override suspend fun fetchChatsBefore(roomID: String, date: Date) {
+    override suspend fun fetchChatsBefore(roomID: String, date: Date) = withContext(Dispatchers.IO) {
         val body = mapOf("roomId" to roomID, "lastMsgDate" to date.toISO8601())
         val result = taxiChatApi.fetchChatsBefore(body)
         if (!result.result) throw TaxiChatError.FetchChatsFailed
     }
 
-    override suspend fun fetchChatsAfter(roomID: String, date: Date) {
+    override suspend fun fetchChatsAfter(roomID: String, date: Date) = withContext(Dispatchers.IO) {
         val body = mapOf("roomId" to roomID, "lastMsgDate" to date.toISO8601())
         val result = taxiChatApi.fetchChatsAfter(body)
         if (!result.result) throw TaxiChatError.FetchChatsFailed

@@ -236,6 +236,8 @@
     <string name="leave">Leave</string>
     <string name="room_participants">Participants: %1$d/%2$d</string>
     <string name="taxi_15min_alert">⏰ It\'s 15 minutes before your taxi leaves! If everyone\'s gathered, go ahead and call the taxi to head out together.</string>
+    <string name="taxi_10min_alert">⏰ It\'s 10 minutes before your taxi leaves! If everyone\'s gathered, go ahead and call the taxi to head out together.</string>
+    <string name="taxi_5min_alert">⏰ It\'s 5 minutes before your taxi leaves! If everyone\'s gathered, go ahead and call the taxi to head out together.</string>
     <string name="taxi_launch_info">
     You can launch the taxi app with the departure and destination already set. Once everyone has gathered at the departure point, press the button to call a taxi from %1$s to %2$s.
     </string>
@@ -330,6 +332,11 @@
         <item quantity="one">%d hour ago</item>
         <item quantity="other">%d hours ago</item>
     </plurals>
+    <plurals name="lectures_count">
+        <item quantity="one">%d Lecture</item>
+        <item quantity="other">%d Lectures</item>
+    </plurals>
+    <string name="no_lecture_for_timetable">There are no lectures in this timetable.</string>
     <string name="today_at">Today at %1$s</string>
     <string name="tomorrow_at">Tomorrow at %1$s</string>
     <string name="weekday_at">%1$s at %2$s</string>
@@ -546,11 +553,12 @@
     <string name="winter">Winter</string>
     <string name="days_suffix">days</string>
     <string name="attachments">Attachments</string>
-    <string name="downloading">Downloading...</string>
+    <string name="downloading">Downloading…</string>
     <string name="download">Download</string>
     <string name="favorite_routes">Favorite Routes</string>
     <string name="add_to_favorites">Add to Favorites</string>
     <string name="delete_favorite">Delete Favorite</string>
     <string name="no_favorite_routes">No favorite routes</string>
     <string name="route_already_exists">This route already exists in favorites</string>
+    <string name="cr">CR</string>
 </resources>

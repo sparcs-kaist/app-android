@@ -216,6 +216,8 @@
     <string name="leave">떠나기</string>
     <string name="room_participants">참가자: %1$d/%2$d</string>
     <string name="taxi_15min_alert">⏰ 택시 출발 15분 전입니다. 동승자들이 모두 모였다면 택시를 호출한 후 출발하세요.</string>
+    <string name="taxi_10min_alert">⏰ 택시 출발 10분 전입니다. 동승자들이 모두 모였다면 택시를 호출한 후 출발하세요.</string>
+    <string name="taxi_5min_alert">⏰ 택시 출발 5분 전입니다. 동승자들이 모두 모였다면 택시를 호출한 후 출발하세요.</string>
     <string name="taxi_launch_info">
     출발지와 도착지가 이미 설정된 상태로 택시 호출 앱을 실행할 수 있습니다. 동승 인원과 출발지에서 모였다면, 버튼을 눌러 %1$s에서 %2$s로 가는 택시를 호출하세요.
     </string>
@@ -306,6 +308,10 @@
     <plurals name="time_hours_ago">
         <item quantity="other">%d시간 전</item>
     </plurals>
+    <plurals name="lectures_count">
+        <item quantity="other">%d개의 강의</item>
+    </plurals>
+    <string name="no_lecture_for_timetable">이 시간표에는 강의가 없습니다.</string>
     <string name="today_at">오늘 %1$s</string>
     <string name="tomorrow_at">내일 %1$s</string>
     <string name="weekday_at">%1$s %2$s</string>
@@ -528,4 +534,5 @@
     <string name="delete_favorite">즐겨찾기 삭제</string>
     <string name="no_favorite_routes">즐겨찾는 경로가 없습니다</string>
     <string name="route_already_exists">이미 즐겨찾기에 등록된 경로입니다</string>
+    <string name="cr">학점</string>
 </resources>
