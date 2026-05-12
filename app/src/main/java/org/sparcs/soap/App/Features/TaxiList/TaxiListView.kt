@@ -276,10 +276,6 @@ fun TaxiListView(
             }
         }
 
-        LaunchedEffect(Unit) {
-            // Already called in init, but keeping this for explicit refresh when returning to screen if needed
-            // viewModel.fetchData()
-        }
     }
 }
 
