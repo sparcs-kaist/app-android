@@ -193,9 +193,7 @@ private fun TimetableManagementItems(
         onClick = {
             onDismiss()
             if (isActionEnabled) {
-                scope.launch {
-                    onRenameClick()
-                }
+                onRenameClick()
             }
         },
         leadingIcon = {
