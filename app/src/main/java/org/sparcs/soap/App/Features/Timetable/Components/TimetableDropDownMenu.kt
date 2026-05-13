@@ -13,10 +13,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -198,7 +198,7 @@ private fun TimetableManagementItems(
         },
         leadingIcon = {
             Icon(
-                imageVector = Icons.Rounded.Edit,
+                imageVector = Icons.Outlined.Edit,
                 contentDescription = null,
                 tint = renameColor
             )
