@@ -104,6 +104,8 @@ import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseBackgroundProtoco
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCase
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiChatUseCaseProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiFavoriteUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiFavoriteUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCase
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiRoomUseCase
@@ -651,6 +653,10 @@ abstract class UseCaseModule {
     @Binds
     @Singleton
     abstract fun bindTaxiLocationUseCase(impl: TaxiLocationUseCase): TaxiLocationUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTaxiFavoriteUseCase(impl: TaxiFavoriteUseCase): TaxiFavoriteUseCaseProtocol
 
     @Binds
     @Singleton

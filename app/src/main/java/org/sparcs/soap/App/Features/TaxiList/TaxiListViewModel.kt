@@ -14,8 +14,11 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiCreateRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiFavoriteRoute
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
+import org.sparcs.soap.App.Domain.Usecases.Taxi.MockTaxiFavoriteUseCase
+import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiFavoriteUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
 import org.sparcs.soap.App.Shared.Extensions.ceilToNextTenMinutes
 import org.sparcs.soap.App.Shared.Extensions.toAlertState
@@ -32,6 +35,7 @@ interface TaxiListViewModelProtocol {
     var roomId: String?
     val rooms: StateFlow<List<TaxiRoom>>
     val locations: StateFlow<List<TaxiLocation>>
+    val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>>
     var roomHasCarrier: Boolean
 
     // MARK: - View Properties
@@ -49,6 +53,10 @@ interface TaxiListViewModelProtocol {
     fun fetchData()
     suspend fun createRoom(title: String): String?
     fun toggleCarrier(roomID: String, hasCarrier: Boolean)
+
+    fun addFavoriteRoute()
+    fun deleteFavoriteRoute(id: String)
+    fun selectFavoriteRoute(favoriteRoute: TaxiFavoriteRoute)
 }
 
 @HiltViewModel
@@ -56,6 +64,7 @@ class TaxiListViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
+    private val taxiFavoriteUseCase: TaxiFavoriteUseCaseProtocol = MockTaxiFavoriteUseCase(),
 ) : ViewModel(), TaxiListViewModelProtocol {
 
     sealed class ViewState {
@@ -81,6 +90,12 @@ class TaxiListViewModel @Inject constructor(
     private val _rooms = MutableStateFlow<List<TaxiRoom>>(emptyList())
     override val rooms: StateFlow<List<TaxiRoom>> get() = _rooms
 
+    override val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>> = taxiFavoriteUseCase.favoriteRoutes
+
+    init {
+        fetchData()
+    }
+
     //MARK: - View Properties
     override var source: TaxiLocation? by mutableStateOf(null)
     override var destination: TaxiLocation? by mutableStateOf(null)
@@ -97,8 +112,12 @@ class TaxiListViewModel @Inject constructor(
     // MARK: - Functions
     override fun fetchData() {
         viewModelScope.launch {
-            _state.value = ViewState.Loading
+            if (_rooms.value.isEmpty()) {
+                _state.value = ViewState.Loading
+            }
             try {
+                taxiFavoriteUseCase.fetchFavoriteRoutes()
+                
                 val roomsDeferred = taxiRoomRepository.fetchRooms()
                 taxiLocationUseCase.fetchLocations()
 
@@ -145,6 +164,47 @@ class TaxiListViewModel @Inject constructor(
                 _state.value = ViewState.Error(e)
             }
         }
+    }
+
+    override fun addFavoriteRoute() {
+        val from = source ?: return
+        val to = destination ?: return
+
+        if (favoriteRoutes.value.any { it.from.id == from.id && it.to.id == to.id }) {
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                taxiFavoriteUseCase.addFavoriteRoute(from.id, to.id)
+            } catch (e: Exception) {
+                val message = e.message ?: ""
+                if (message.contains("already exists", ignoreCase = true)) {
+                    taxiFavoriteUseCase.fetchFavoriteRoutes()
+                } else {
+                    alertState = AlertState(
+                        titleResId = R.string.error,
+                        messageResId = R.string.route_already_exists
+                    )
+                    isAlertPresented = true
+                }
+            }
+        }
+    }
+
+    override fun deleteFavoriteRoute(id: String) {
+        viewModelScope.launch {
+            try {
+                taxiFavoriteUseCase.deleteFavoriteRoute(id)
+            } catch (e: Exception) {
+                taxiFavoriteUseCase.fetchFavoriteRoutes()
+            }
+        }
+    }
+
+    override fun selectFavoriteRoute(favoriteRoute: TaxiFavoriteRoute) {
+        source = favoriteRoute.from
+        destination = favoriteRoute.to
     }
 }
 
