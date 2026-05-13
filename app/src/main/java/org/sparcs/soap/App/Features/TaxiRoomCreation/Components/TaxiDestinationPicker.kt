@@ -36,6 +36,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiFavoriteRoute
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Shared.Extensions.LocalizedText
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
@@ -50,7 +51,11 @@ fun TaxiDestinationPicker(
     onSourceChange: (TaxiLocation?) -> Unit,
     destination: TaxiLocation?,
     onDestinationChange: (TaxiLocation?) -> Unit,
-    locations: List<TaxiLocation>
+    locations: List<TaxiLocation>,
+    favoriteRoutes: List<TaxiFavoriteRoute> = emptyList(),
+    onFavoriteSelect: (TaxiFavoriteRoute) -> Unit = {},
+    onFavoriteDelete: (String) -> Unit = {},
+    onFavoriteAdd: () -> Unit = {}
 ) {
     var isFlipped by remember { mutableStateOf(false) }
     val rotationXState = animateFloatAsState(
@@ -59,54 +64,69 @@ fun TaxiDestinationPicker(
     )
     val haptic = LocalHapticFeedback.current
 
-    Row(
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(
-            modifier = Modifier.weight(1f)
+    val canAddFavorite = source != null && destination != null && source.id != destination.id &&
+            favoriteRoutes.none { it.from.id == source.id && it.to.id == destination.id }
+
+    Column {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            LocationMenu(
-                title = stringResource(R.string.meeting_point),
-                selection = source,
-                onSelectionChange = onSourceChange,
-                locations = locations
-            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                LocationMenu(
+                    title = stringResource(R.string.meeting_point),
+                    selection = source,
+                    onSelectionChange = onSourceChange,
+                    locations = locations
+                )
 
-            HorizontalDivider()
+                HorizontalDivider()
 
-            LocationMenu(
-                title = stringResource(R.string.where_to),
-                selection = destination,
-                onSelectionChange = onDestinationChange,
-                locations = locations
-            )
+                LocationMenu(
+                    title = stringResource(R.string.where_to),
+                    selection = destination,
+                    onSelectionChange = onDestinationChange,
+                    locations = locations
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    .graphicsLayer {
+                        rotationX = rotationXState.value
+                        cameraDistance = 12 * density
+                    }
+                    .animateContentSize()
+                    .clickable {
+                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                        isFlipped = !isFlipped
+                        onSourceChange(destination)
+                        onDestinationChange(source)
+                    }
+                    .padding(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.SwapCalls,
+                    contentDescription = "Swap",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
 
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 4.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                .graphicsLayer {
-                    rotationX = rotationXState.value
-                    cameraDistance = 12 * density
-                }
-                .animateContentSize()
-                .clickable {
-                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                    isFlipped = !isFlipped
-                    onSourceChange(destination)
-                    onDestinationChange(source)
-                }
-                .padding(4.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.SwapCalls,
-                contentDescription = "Swap",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
+        HorizontalDivider()
+
+        FavoriteRouteDropdown(
+            favorites = favoriteRoutes,
+            onSelect = onFavoriteSelect,
+            onDelete = onFavoriteDelete,
+            onAddCurrent = onFavoriteAdd,
+            canAddCurrent = canAddFavorite
+        )
     }
 }
 
@@ -178,7 +198,14 @@ private fun Preview(){
             onSourceChange = { },
             destination = TaxiLocation.mock(),
             onDestinationChange = { },
-            locations = TaxiLocation.mockList()
+            locations = TaxiLocation.mockList(),
+            favoriteRoutes = listOf(
+                TaxiFavoriteRoute(
+                    id = "1",
+                    from = TaxiLocation.mock(),
+                    to = TaxiLocation.mockList()[1]
+                )
+            )
         )
     }
 }

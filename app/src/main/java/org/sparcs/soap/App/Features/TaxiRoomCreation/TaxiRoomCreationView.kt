@@ -59,6 +59,8 @@ fun TaxiRoomCreationView(
     val randomRoomName = remember { Constants.taxiDefaultRoomNames.random() }
 
     val locations by taxiListViewModel.locations.collectAsState()
+    val favoriteRoutes by taxiListViewModel.favoriteRoutes.collectAsState()
+
     val (isEnabled, validationMessage) = remember(
         title,
         taxiListViewModel.source,
@@ -108,7 +110,11 @@ fun TaxiRoomCreationView(
                     },
                     onDestinationChange = { newDestination ->
                         taxiListViewModel.destination = newDestination
-                    }
+                    },
+                    favoriteRoutes = favoriteRoutes,
+                    onFavoriteSelect = { taxiListViewModel.selectFavoriteRoute(it) },
+                    onFavoriteDelete = { taxiListViewModel.deleteFavoriteRoute(it) },
+                    onFavoriteAdd = { taxiListViewModel.addFavoriteRoute() }
                 )
             }
 
