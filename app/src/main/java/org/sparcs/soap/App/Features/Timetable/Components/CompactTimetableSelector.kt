@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
-import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -170,8 +169,6 @@ fun TableSelector(
     onRenameClick: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
-    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
-    val isDefault = selectedTimetableID == null
 
     Row(
         modifier = Modifier
@@ -182,7 +179,6 @@ fun TableSelector(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(topStart = 25.dp, bottomStart = 25.dp))
-                .clickable(enabled = !isDefault) { onRenameClick() }
                 .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -191,16 +187,6 @@ fun TableSelector(
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold
             )
-
-            if (!isDefault) {
-                Spacer(Modifier.width(6.dp))
-                Icon(
-                    imageVector = Icons.Rounded.Edit,
-                    contentDescription = "Rename",
-                    modifier = Modifier.size(14.dp),
-                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
         }
 
         Box(
@@ -224,6 +210,7 @@ fun TableSelector(
             TimetableDropDownMenu(
                 expanded = expanded,
                 onDismiss = { expanded = false },
+                onRenameClick = onRenameClick,
                 viewModel = viewModel
             )
         }
