@@ -201,7 +201,7 @@ private fun TimetableManagementItems(
         leadingIcon = {
             Icon(
                 imageVector = Icons.Rounded.Edit,
-                contentDescription = "Rename",
+                contentDescription = null,
                 tint = renameColor
             )
         },
