@@ -41,6 +41,7 @@ import org.sparcs.soap.App.Features.NavigationBar.AppDownBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
+import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyPreviewSupport.Post.PreviewBoardListViewModel
 import org.sparcs.soap.R
 
@@ -173,7 +174,7 @@ fun systemImage(slug: String): ImageVector {
 @Composable
 fun PreviewBoardListLoading() {
     val viewModel = PreviewBoardListViewModel(initialState = BoardListViewModel.ViewState.Loading)
-    BoardListView(viewModel, rememberNavController())
+    Theme { BoardListView(viewModel, rememberNavController()) }
 }
 
 @Preview(name = "Loaded State", showBackground = true)
@@ -182,7 +183,7 @@ fun PreviewBoardListLoaded() {
     val viewModel = PreviewBoardListViewModel(
         initialState = PreviewBoardListViewModel.loadedState()
     )
-    BoardListView(viewModel, rememberNavController())
+    Theme { BoardListView(viewModel, rememberNavController()) }
 }
 
 @Preview(name = "Error State", showBackground = true)
@@ -191,5 +192,5 @@ fun PreviewBoardListError() {
     val viewModel = PreviewBoardListViewModel(
         initialState = BoardListViewModel.ViewState.Error(Exception())
     )
-    BoardListView(viewModel, rememberNavController())
+    Theme { BoardListView(viewModel, rememberNavController()) }
 }
