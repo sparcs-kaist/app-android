@@ -239,7 +239,7 @@ private fun Preview() {
                     expanded = true,
                     onDismiss = {},
                     onRenameClick = {},
-                    PreviewTimetableViewModel()
+                    viewModel = PreviewTimetableViewModel()
                 )
             }
         }
