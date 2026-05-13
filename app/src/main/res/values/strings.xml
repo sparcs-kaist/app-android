@@ -561,4 +561,5 @@
     <string name="no_favorite_routes">No favorite routes</string>
     <string name="route_already_exists">This route already exists in favorites</string>
     <string name="cr">CR</string>
+    <string name="timetable_rename">Rename</string>
 </resources>

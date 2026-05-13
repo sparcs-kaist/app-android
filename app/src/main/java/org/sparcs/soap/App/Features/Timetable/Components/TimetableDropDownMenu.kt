@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -46,6 +47,7 @@ import org.sparcs.soap.R
 fun TimetableDropDownMenu(
     expanded: Boolean,
     onDismiss: () -> Unit,
+    onRenameClick: () -> Unit,
     viewModel: TimetableViewModelProtocol,
 ) {
     DropdownMenu(
@@ -56,12 +58,7 @@ fun TimetableDropDownMenu(
     ) {
         TimetableListItems(viewModel, onDismiss)
 
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.lightGray0,
-            modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp)
-        )
-
-        TimetableManagementItems(viewModel, onDismiss)
+        TimetableManagementItems(viewModel, onDismiss, onRenameClick)
     }
 }
 
@@ -161,12 +158,14 @@ fun TimetableListItems(
 private fun TimetableManagementItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
+    onRenameClick: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    val selectedTimetable by viewModel.selectedTimetable.collectAsState()
+    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
+    val isActionEnabled = selectedTimetableID != null
 
-    val isActionEnabled = selectedTimetable != null
-    val deleteColor = if (isActionEnabled) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB
+    val deleteColor = if (isActionEnabled) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB.copy(alpha = 0.5f)
+    val renameColor = if (isActionEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB.copy(alpha = 0.5f)
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
@@ -185,8 +184,28 @@ private fun TimetableManagementItems(
     )
 
     HorizontalDivider(
-        color = MaterialTheme.colorScheme.lightGray0,
-        modifier = Modifier.padding(4.dp)
+        modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
+        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+    )
+
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.timetable_rename), color = renameColor) },
+        onClick = {
+            onDismiss()
+            if (isActionEnabled) {
+                scope.launch {
+                    onRenameClick()
+                }
+            }
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Rounded.Edit,
+                contentDescription = "Rename",
+                tint = renameColor
+            )
+        },
+        enabled = isActionEnabled
     )
 
     DropdownMenuItem(
@@ -219,6 +238,7 @@ private fun Preview() {
                 TimetableDropDownMenu(
                     expanded = true,
                     onDismiss = {},
+                    onRenameClick = {},
                     PreviewTimetableViewModel()
                 )
             }
