@@ -85,7 +85,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun FeedPostComposeView(
-    viewModel: FeedPostComposeViewModelProtocol = hiltViewModel(),
+    viewModel: FeedPostComposeViewModelProtocol = hiltViewModel<FeedPostComposeViewModel>(),
     navController: NavController,
 ) {
     var showPhotosPicker by remember { mutableStateOf(false) }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,7 +43,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun UserPostListView(
-    viewModel: UserPostListViewModelProtocol = hiltViewModel(),
+    viewModel: UserPostListViewModelProtocol = hiltViewModel<UserPostListViewModel>(),
     navController: NavController,
 ) {
     val user = viewModel.user
@@ -78,6 +79,7 @@ fun UserPostListView(
                 navController = navController
             )
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier.analyticsScreen(name = "Ara User Post List")
     ) { innerPadding ->
         Box(

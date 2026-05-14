@@ -1,20 +1,23 @@
 package org.sparcs.soap.App.Features.LectureDetail.Components
 
 import android.net.Uri
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -38,7 +41,6 @@ import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
-import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
@@ -59,36 +61,24 @@ fun LectureReviews(
     val textColor =
         if (canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
 
-    Column {
-        Row {
-            Text(
-                text = stringResource(R.string.reviews),
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(Modifier.padding(4.dp))
-        }
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            LectureSummaryRow(
-                title = stringResource(R.string.grade),
-                description = lecture.gradeLetter
+            Text(
+                stringResource(R.string.reviews),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
-
-            Spacer(Modifier.weight(1f))
-
-            LectureSummaryRow(
-                title = stringResource(R.string.load),
-                description = lecture.loadLetter
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            LectureSummaryRow(
-                title = stringResource(R.string.speech),
-                description = lecture.speechLetter
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = (reviews.size + (if (writtenReview != null) 1 else 0)).toString(),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(Modifier.weight(1f))
@@ -103,7 +93,8 @@ fun LectureReviews(
                     }
                 },
                 colors = if (canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface) else
-                    ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
+                    ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0),
+                contentPadding = PaddingValues(horizontal = 8.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.RateReview,
@@ -111,7 +102,7 @@ fun LectureReviews(
                     tint = textColor
                 )
 
-                Spacer(Modifier.padding(4.dp))
+                Spacer(Modifier.padding(2.dp))
 
                 Text(
                     text = if (writtenReview == null) stringResource(R.string.write_a_review) else stringResource(
@@ -122,7 +113,22 @@ fun LectureReviews(
                 )
             }
         }
-        Spacer(Modifier.padding(4.dp))
+
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                ReviewStat(stringResource(R.string.grade), lecture.gradeLetter)
+                ReviewStat(stringResource(R.string.load), lecture.loadLetter)
+                ReviewStat(stringResource(R.string.speech), lecture.speechLetter)
+            }
+        }
 
         Column {
             when (state) {
@@ -134,19 +140,20 @@ fun LectureReviews(
 
                 is LectureDetailViewModel.ViewState.Loaded -> {
                     writtenReview?.let { myReview ->
-                        Text(
-                            text = stringResource(R.string.my_review_title),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                        LectureReviewCell(
-                            lectureReview = myReview,
-                            onLikeClick = { viewModel.toggleReviewLike(myReview) },
-                            isMine = true
-                        )
-                        Spacer(Modifier.padding(8.dp))
-                        HorizontalDivider(thickness = 0.5.dp)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = stringResource(R.string.my_review_title),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(start = 4.dp),
+                                fontWeight = FontWeight.Bold
+                            )
+                            LectureReviewCell(
+                                lectureReview = myReview,
+                                onLikeClick = { viewModel.toggleReviewLike(myReview) },
+                                isMine = true
+                            )
+                        }
                     }
 
                     if (reviews.isEmpty() && writtenReview == null) {
@@ -169,7 +176,6 @@ fun LectureReviews(
                 is LectureDetailViewModel.ViewState.Error -> {
                     val error = (state as LectureDetailViewModel.ViewState.Error).error
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         error = error
                     ) {
                         viewModel.fetchReviews(lecture)
@@ -178,13 +184,24 @@ fun LectureReviews(
             }
         }
     }
-    GlobalAlertDialog(
-        state = viewModel.alertState,
-        isPresented = viewModel.isAlertPresented,
-        onDismiss = { viewModel.isAlertPresented = false }
-    )
 }
 
+@Composable
+private fun ReviewStat(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
 
 /* ____________________________________________________________________*/
 

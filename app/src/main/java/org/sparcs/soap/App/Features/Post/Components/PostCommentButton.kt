@@ -42,7 +42,7 @@ fun PostCommentButton(
     Card(
         shape = CircleShape,
         colors = CardDefaults.cardColors(
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.background
         ),
         modifier = Modifier.clickable {
             haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)

@@ -8,32 +8,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import org.sparcs.soap.App.theme.ui.Theme
-import org.sparcs.soap.App.theme.ui.darkGray
-import org.sparcs.soap.App.theme.ui.grayBB
 
 @Composable
 fun LectureSummaryRow(
     title: String,
-    description: String
-){
-    Column(horizontalAlignment = Alignment.CenterHorizontally){
-        Text(
-            text = title.uppercase(),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.grayBB
-        )
+    description: String,
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = description,
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = MaterialTheme.colorScheme.darkGray
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = title,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Medium
         )
     }
 }
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme { LectureSummaryRow(title = "Language", description = "EN") }
 }

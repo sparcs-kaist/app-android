@@ -68,9 +68,7 @@ fun LectureReviewCell(
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier
-            .padding(vertical = 4.dp),
-        shadowElevation = 2.dp,
+        modifier = Modifier.padding(vertical = 4.dp)
     ) {
         Column(
             modifier = Modifier
@@ -202,9 +200,10 @@ fun LectureReviewCell(
 
 @Composable
 fun LectureReviewSkeletonCell() {
-    Box(
-        Modifier
-            .padding(vertical = 4.dp)
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier.padding(vertical = 4.dp)
     ) {
         Column(
             modifier = Modifier

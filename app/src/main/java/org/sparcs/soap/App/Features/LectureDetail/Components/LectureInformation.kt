@@ -1,10 +1,13 @@
 package org.sparcs.soap.App.Features.LectureDetail.Components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,91 +23,81 @@ import org.sparcs.soap.R
 
 @Composable
 fun LectureInformation(lecture: Lecture){
-    Column {
-        Row {
-            Text(
-                text = stringResource(R.string.information),
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(Modifier.padding(4.dp))
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.information),
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(20.dp)) {
+                LectureDetailRow(
+                    title = stringResource(R.string.code),
+                    description = lecture.code
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                LectureDetailRow(
+                    title = stringResource(R.string.type),
+                    description = stringResource(lecture.type.displayName)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                LectureDetailRow(title = stringResource(R.string.department), description = lecture.department.name)
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                LectureDetailRow(
+                    title = stringResource(R.string.professor),
+                    description = lecture.professors.joinToString("\n") { it.name }.ifEmpty { stringResource(R.string.unknown) }
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                LectureDetailRow(
+                    title = stringResource(R.string.classroom),
+                    description = lecture.classes.firstOrNull()?.let { "${it.buildingName} ${it.roomName}" }
+                        ?: stringResource(R.string.unknown)
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                LectureDetailRow(
+                    title = stringResource(R.string.capacity),
+                    description = lecture.capacity.toString()
+                )
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                )
+                LectureDetailRow(
+                    title = stringResource(R.string.exams),
+                    description = lecture.exams.joinToString("\n") { it.description }
+                        .takeIf { it.isNotBlank() } ?: stringResource(R.string.unknown)
+                )
+            }
         }
-
-        LectureDetailRow(
-            title = stringResource(R.string.code),
-            description = lecture.code
-        )
-
-        LectureDetailRow(
-            title = stringResource(R.string.type),
-            description = stringResource(lecture.type.displayName)
-        )
-
-        LectureDetailRow(title = stringResource(R.string.department), description = lecture.department.name)
-
-        LectureDetailRow(
-            title = stringResource(R.string.professor),
-            description = lecture.professors.joinToString("\n") { it.name }.ifEmpty { stringResource(R.string.unknown) }
-        )
-
-        LectureDetailRow(
-            title = stringResource(R.string.classroom),
-            description = lecture.classes.firstOrNull()?.let { "${it.buildingName} ${it.roomName}" }
-                ?: stringResource(R.string.unknown)
-        )
-
-        LectureDetailRow(
-            title = stringResource(R.string.capacity),
-            description = lecture.capacity.toString()
-        )
-
-        LectureDetailRow(
-            title = stringResource(R.string.exams),
-            description = lecture.exams.joinToString("\n") { it.description }
-                .takeIf { it.isNotBlank() } ?: stringResource(R.string.unknown)
-        )
-
-//        Row(
-//            modifier = Modifier
-//                .padding(vertical = 8.dp)
-//                .clickable {  },
-//            verticalAlignment = Alignment.CenterVertically){
-//
-//            Text(
-//                text = stringResource(R.string.view_dictionary),
-//                style = MaterialTheme.typography.bodyMedium,
-//                color = MaterialTheme.colorScheme.primary
-//            )
-//
-//            Spacer(Modifier.weight(1f))
-//
-//            Icon(
-//                painter = painterResource(R.drawable.rounded_book_2),
-//                contentDescription = null,
-//                tint = MaterialTheme.colorScheme.primary
-//            )
-//        }
-//
-//        Row(
-//            modifier = Modifier
-//                .padding(vertical = 8.dp)
-//                .clickable {  },
-//            verticalAlignment = Alignment.CenterVertically){
-//
-//            Text(
-//                text = stringResource(R.string.view_syllabus),
-//                style = MaterialTheme.typography.bodyMedium,
-//                color = MaterialTheme.colorScheme.primary
-//            )
-//
-//            Spacer(Modifier.weight(1f))
-//
-//            Icon(
-//                painter = painterResource(R.drawable.outline_find_in_page),
-//                contentDescription = null,
-//                tint = MaterialTheme.colorScheme.primary
-//            )
-//        }
     }
 }
 @Composable

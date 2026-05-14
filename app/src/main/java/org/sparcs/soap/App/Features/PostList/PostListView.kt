@@ -70,7 +70,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun PostListView(
-    viewModel: PostListViewModelProtocol = hiltViewModel(),
+    viewModel: PostListViewModelProtocol = hiltViewModel<PostListViewModel>(),
     navController: NavController,
 ) {
     var loadedInitialPost by rememberSaveable { mutableStateOf(false) }
@@ -142,7 +142,8 @@ fun PostListView(
                 )
             }
         },
-        modifier = Modifier.analyticsScreen(name = "Ara Post List")
+        modifier = Modifier.analyticsScreen(name = "Ara Post List"),
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         Box(
             modifier = Modifier

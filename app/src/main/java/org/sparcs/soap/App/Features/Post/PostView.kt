@@ -244,6 +244,7 @@ fun PostView(
             "is_author" to (post?.isMine ?: false),
             "has_comments" to ((post?.commentCount ?: 0) > 0)
         ),
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         if (state is PostViewModel.ViewState.Error) {
             ErrorView(

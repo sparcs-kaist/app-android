@@ -165,6 +165,7 @@ fun FeedPostView(
                         "is_author" to post.isAuthor,
                         "has_comments" to (post.commentCount > 0)
                     ),
+                containerColor = MaterialTheme.colorScheme.surface
             ) { innerPadding ->
                 PullToRefreshBox(
                     isRefreshing = isRefreshing,
