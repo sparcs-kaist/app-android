@@ -26,6 +26,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -64,9 +65,12 @@ fun LectureReviewCell(
     val haptic = LocalHapticFeedback.current
     val unknown = stringResource(R.string.unknown)
 
-    Box(
-        Modifier
-            .padding(vertical = 4.dp)
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .padding(vertical = 4.dp),
+        shadowElevation = 2.dp,
     ) {
         Column(
             modifier = Modifier

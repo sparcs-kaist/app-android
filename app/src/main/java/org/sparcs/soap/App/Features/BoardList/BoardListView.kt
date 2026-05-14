@@ -12,7 +12,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.Drafts
 import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material.icons.rounded.LocalOffer
@@ -23,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
@@ -87,7 +87,9 @@ fun BoardListView(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(scrollState)
-                .padding(innerPadding)
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             when (state) {
                 is BoardListViewModel.ViewState.Loading -> {
@@ -110,7 +112,6 @@ fun BoardListView(
                     val error = (state as BoardListViewModel.ViewState.Error).error
 
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         error = error,
                         defaultMessageResId = R.string.error_fetch_boards,
                         onRetry = { viewModel.fetchBoards() }
