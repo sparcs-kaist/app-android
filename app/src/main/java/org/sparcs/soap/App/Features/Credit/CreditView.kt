@@ -25,7 +25,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -183,7 +182,6 @@ private fun MemberIconCard(
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .padding(6.dp)
-            .shadow(elevation = 3.dp, shape = MaterialTheme.shapes.medium)
     ) {
         Row(
             modifier = Modifier

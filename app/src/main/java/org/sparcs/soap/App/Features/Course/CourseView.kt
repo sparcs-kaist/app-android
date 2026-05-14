@@ -38,6 +38,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReviewPage
 import org.sparcs.soap.App.Features.Course.Components.CourseNavigationBar
+import org.sparcs.soap.App.Features.Course.Components.CourseSummarySkeleton
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewCell
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
@@ -51,7 +52,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun CourseView(
-    viewModel: CourseViewModelProtocol = hiltViewModel(),
+    viewModel: CourseViewModelProtocol = hiltViewModel<CourseViewModel>(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
@@ -65,45 +66,52 @@ fun CourseView(
         },
         modifier = Modifier.analyticsScreen("Course")
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-            when (state) {
-                CourseViewModel.ViewState.Loading -> {
-                    CourseSummarySkeleton()
-                }
+            if (state is CourseViewModel.ViewState.Error) {
+                val error = (state as CourseViewModel.ViewState.Error).error
+                ErrorView(
+                    defaultMessageResId = R.string.failed_to_load_course,
+                    error = error,
+                    onRetry = { viewModel.loadCourse() }
+                )
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    when (state) {
+                        CourseViewModel.ViewState.Loading -> {
+                            CourseSummarySkeleton()
+                        }
 
-                is CourseViewModel.ViewState.Loaded -> {
-                    val course = (state as CourseViewModel.ViewState.Loaded).course
-                    val reviews = (state as CourseViewModel.ViewState.Loaded).reviews
-                    val reviewPage = (state as CourseViewModel.ViewState.Loaded).reviewPage
-                    val writtenReview = (state as CourseViewModel.ViewState.Loaded).writtenReview
+                        is CourseViewModel.ViewState.Loaded -> {
+                            val loadedState = state as CourseViewModel.ViewState.Loaded
+                            val course = loadedState.course
+                            val reviews = loadedState.reviews
+                            val reviewPage = loadedState.reviewPage
+                            val writtenReview = loadedState.writtenReview
 
-                    CourseSummary(course)
-                    Spacer(modifier = Modifier.height(32.dp))
-                    CourseReviewSection(
-                        course = course,
-                        reviews = reviews,
-                        myReview = writtenReview,
-                        reviewPage = reviewPage,
-                        viewModel = viewModel
-                    )
-                    Spacer(modifier = Modifier.height(40.dp))
-                }
+                            CourseSummary(course)
+                            Spacer(modifier = Modifier.height(32.dp))
+                            CourseReviewSection(
+                                course = course,
+                                reviews = reviews,
+                                myReview = writtenReview,
+                                reviewPage = reviewPage,
+                                viewModel = viewModel
+                            )
+                            Spacer(modifier = Modifier.height(40.dp))
+                        }
 
-                is CourseViewModel.ViewState.Error -> {
-                    val error = (state as CourseViewModel.ViewState.Error).error
-                    ErrorView(
-                        defaultMessageResId = R.string.failed_to_load_course,
-                        error = error,
-                        onRetry = { viewModel.loadCourse() }
-                    )
+                        else -> {}
+                    }
                 }
             }
         }
@@ -119,7 +127,7 @@ fun CourseView(
 fun CourseSummary(course: Course) {
     Column(
         modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -136,6 +144,7 @@ fun CourseSummary(course: Course) {
             SummaryStat(creditLabel, creditValue.toString())
         }
 
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             stringResource(R.string.information),
@@ -146,7 +155,6 @@ fun CourseSummary(course: Course) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 2.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
 
@@ -166,10 +174,14 @@ fun CourseSummary(course: Course) {
                 DetailRow(stringResource(R.string.department), course.department.name)
 
                 if (course.summary.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(20.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
                     Text(
                         stringResource(R.string.summary),
-                        style = MaterialTheme.typography.labelMedium,
+                        style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -204,7 +216,7 @@ private fun SummaryStat(label: String, value: String) {
 }
 
 @Composable
-private fun StatSeparator() {
+fun StatSeparator() {
     Box(
         modifier = Modifier
             .height(24.dp)
@@ -234,112 +246,6 @@ private fun DetailRow(label: String, value: String) {
     }
 }
 
-@Composable
-private fun CourseSummarySkeleton() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp)
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            repeat(3) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .height(14.dp)
-                            .width(40.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                    Box(
-                        modifier = Modifier
-                            .height(24.dp)
-                            .width(30.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(
-                modifier = Modifier
-                    .height(28.dp)
-                    .width(100.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
-
-            repeat(3) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .height(16.dp)
-                            .width(60.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                    Box(
-                        modifier = Modifier
-                            .height(16.dp)
-                            .width(120.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Box(
-                modifier = Modifier
-                    .height(14.dp)
-                    .width(70.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                repeat(3) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(14.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun CourseReviewSection(
@@ -349,10 +255,12 @@ fun CourseReviewSection(
     myReview: LectureReview?,
     reviewPage: LectureReviewPage,
 ) {
-    Column {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
         Row(
             modifier = Modifier.padding(horizontal = 4.dp),
-            verticalAlignment = Alignment.Bottom
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 stringResource(R.string.reviews),
@@ -362,18 +270,15 @@ fun CourseReviewSection(
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = (reviews.size + (if (myReview != null) 1 else 0)).toString(),
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surface,
-            shadowElevation = 2.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(
@@ -388,9 +293,7 @@ fun CourseReviewSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column {
             myReview?.let {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
