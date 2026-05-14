@@ -294,7 +294,7 @@ private fun FeedbackButton(context: Context) {
     val sendFeedBack = stringResource(R.string.send_feedback)
     val onClick = {
         val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:app@sparcs.org")
+            data = Uri.parse("mailto:buddy@sparcs.org")
         }
 
         val chooser = Intent.createChooser(emailIntent, sendFeedBack)
