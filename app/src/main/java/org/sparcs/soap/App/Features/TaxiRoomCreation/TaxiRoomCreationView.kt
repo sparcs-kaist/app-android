@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -97,9 +97,14 @@ fun TaxiRoomCreationView(
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
-            Card(
-                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp)
+            ElevatedCard(
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.elevatedCardElevation(
+                    defaultElevation = 1.dp
+                )
             ) {
                 TaxiDestinationPicker(
                     source = taxiListViewModel.source,
@@ -127,9 +132,14 @@ fun TaxiRoomCreationView(
                 modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
             )
 
-            Card(
-                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp)
+            ElevatedCard(
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.elevatedCardElevation(
+                    defaultElevation = 1.dp
+                )
             ) {
                 BasicTextField(
                     value = title,
@@ -156,9 +166,14 @@ fun TaxiRoomCreationView(
 
             Spacer(Modifier.padding(16.dp))
 
-            Card(
-                colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                shape = RoundedCornerShape(16.dp)
+            ElevatedCard(
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.elevatedCardElevation(
+                    defaultElevation = 1.dp
+                )
             ) {
                 Column(Modifier.padding(16.dp)) {
                     TaxiDepartureTimePicker(
@@ -191,10 +206,15 @@ fun TaxiRoomCreationView(
             Spacer(Modifier.padding(16.dp))
 
             if(!isEnabled && validationMessage !== null) {
-                Card(
-                    colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.elevatedCardElevation(
+                        defaultElevation = 1.dp
+                    )
                 ) {
                     Text(
                         text = stringResource(validationMessage),

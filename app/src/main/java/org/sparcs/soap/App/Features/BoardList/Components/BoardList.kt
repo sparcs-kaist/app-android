@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Drafts
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -57,10 +57,15 @@ fun BoardList(
                 style = MaterialTheme.typography.titleLarge
             )
         }
-        Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+        ElevatedCard(
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.elevatedCardElevation(
+                defaultElevation = 1.dp
+            )
         ) {
             Column(
                 modifier = Modifier
@@ -107,11 +112,15 @@ fun BoardListSkeleton(num: Int) {
             )
         }
 
-        Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+        ElevatedCard(
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.elevatedCardElevation(
+                defaultElevation = 1.dp
+            )
         ) {
             Column(
                 modifier = Modifier

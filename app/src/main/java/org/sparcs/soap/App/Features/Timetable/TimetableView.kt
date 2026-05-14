@@ -13,6 +13,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -109,43 +111,55 @@ fun TimetableView(
             ) {
                 CompactTimetableSelector(viewModel, timetableName)
 
-                Box(
+                ElevatedCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(screenHeight * 0.66f)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(8.dp)
-                ) {
-                    TimetableGrid(
-                        viewModel = viewModel,
-                        onLectureSelected = { lecture ->
-                            selectedLecture = lecture
-                            val json = Gson().toJson(lecture).escapeHash()
-                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                        },
-                        showDeleteDialog = { lecture ->
-                                lectureToDelete = lecture
-                                showDeleteDialog = true
-                        }
+                        .height(screenHeight * 0.66f),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.elevatedCardElevation(
+                        defaultElevation = 1.dp
                     )
+                ) {
+                    Box(modifier = Modifier.padding(8.dp)) {
+                        TimetableGrid(
+                            viewModel = viewModel,
+                            onLectureSelected = { lecture ->
+                                selectedLecture = lecture
+                                val json = Gson().toJson(lecture).escapeHash()
+                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                            },
+                            showDeleteDialog = { lecture ->
+                                    lectureToDelete = lecture
+                                    showDeleteDialog = true
+                            }
+                        )
+                    }
                 }
 
-                Box(
+                ElevatedCard(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 20.dp, vertical = 12.dp)
-                ) {
-                    LectureList(
-                        lectures = selectedTimetable?.lectures ?: emptyList(),
-                        onLectureSelected = { lecture ->
-                            selectedLecture = lecture
-                            val json = Gson().toJson(lecture).escapeHash()
-                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                        }
+                        .fillMaxWidth(),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.elevatedCardElevation(
+                        defaultElevation = 1.dp
                     )
+                ) {
+                    Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+                        LectureList(
+                            lectures = selectedTimetable?.lectures ?: emptyList(),
+                            onLectureSelected = { lecture ->
+                                selectedLecture = lecture
+                                val json = Gson().toJson(lecture).escapeHash()
+                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                            }
+                        )
+                    }
                 }
 
                 selectedTimetable?.let { TimetableCreditGraph(it) }

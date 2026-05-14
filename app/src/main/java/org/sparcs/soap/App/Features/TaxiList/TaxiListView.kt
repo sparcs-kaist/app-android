@@ -19,8 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -149,9 +149,14 @@ fun TaxiListView(
                         .padding(horizontal = 16.dp)
                         .fillMaxSize()
                 ) {
-                    Card(
-                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                        shape = RoundedCornerShape(16.dp)
+                    ElevatedCard(
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.elevatedCardElevation(
+                            defaultElevation = 1.dp
+                        )
                     ) {
                         val favoriteRoutes by viewModel.favoriteRoutes.collectAsState()
                         TaxiDestinationPicker(
@@ -173,15 +178,26 @@ fun TaxiListView(
 
                     Spacer(Modifier.padding(8.dp))
 
-                    WeekDaySelector(
-                        week = viewModel.week,
-                        selectedDate = selectedDate,
-                        onSelect = { newDate ->
-                            selectedDate = newDate
-                            viewModel.selectedDate = selectedDate
-                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                        }
-                    )
+                    ElevatedCard(
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = CardDefaults.elevatedCardElevation(
+                            defaultElevation = 1.dp
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        WeekDaySelector(
+                            week = viewModel.week,
+                            selectedDate = selectedDate,
+                            onSelect = { newDate ->
+                                selectedDate = newDate
+                                viewModel.selectedDate = selectedDate
+                                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                            }
+                        )
+                    }
                 }
 
                 Spacer(Modifier.padding(16.dp))
