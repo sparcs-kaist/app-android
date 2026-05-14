@@ -17,8 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,10 +67,15 @@ fun TimetableCreditGraph(
 
     val animatedTotal = animatedCredits.sumOf { it.value.toDouble() }.toFloat().coerceAtLeast(1f)
 
-    Card(
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+    ElevatedCard(
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = 1.dp
+        )
     ) {
         Column(modifier = modifier.padding(16.dp)) {
             Canvas(

@@ -16,9 +16,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -80,17 +83,28 @@ fun FeedPostRow(
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    Column(Modifier
-        .fillMaxWidth()
-        .noRippleClickable { onComment() }
+    ElevatedCard(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 6.dp)
+            .noRippleClickable { onComment() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
-        Header(
-            post,
-            onPostDeleted,
-            showDeleteConfirmation,
-        ) { showDeleteConfirmation = it }
-        Content(post, singleLine, onComment)
-        Footer(post, viewModel, onComment)
+        Column(Modifier.padding(vertical = 8.dp)) {
+            Header(
+                post,
+                onPostDeleted,
+                showDeleteConfirmation,
+            ) { showDeleteConfirmation = it }
+            Content(post, singleLine, onComment)
+            Footer(post, viewModel, onComment)
+        }
     }
 }
 
@@ -311,77 +325,88 @@ private fun Footer(
 
 @Composable
 fun FeedPostRowSkeleton() {
-    Column(
-        Modifier
+    ElevatedCard(
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 6.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.elevatedCardElevation(
+            defaultElevation = 1.dp
+        )
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
+        Column(
+            Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(vertical = 12.dp)
         ) {
-            Box(
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray.copy(alpha = 0.3f))
-            )
-            Spacer(Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .height(14.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
-            Spacer(Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(50.dp)
-                    .height(12.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
-        }
-
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(16.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
                 Box(
                     modifier = Modifier
-                        .size(width = 400.dp, height = 200.dp)
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(Color.LightGray.copy(alpha = 0.3f))
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(14.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(50.dp)
+                        .height(12.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+            }
+
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(16.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+                Spacer(Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
                         .clip(MaterialTheme.shapes.medium)
                         .background(Color.LightGray.copy(alpha = 0.3f))
                 )
             }
-        }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Box(
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .width(60.dp)
-                    .height(32.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
-            Spacer(Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(50.dp)
-                    .height(32.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(32.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(50.dp)
+                        .height(32.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+            }
         }
     }
 }

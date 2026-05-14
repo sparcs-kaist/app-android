@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -112,29 +114,42 @@ fun SearchView(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .padding(innerPadding)
         ) {
-            SearchCustomBar(
-                value = searchText,
-                onValueChange = { value ->
-                    viewModel.onSearchTextChange(value)
-                },
-                onValueClear = {
-                    viewModel.onSearchTextChange("")
-                },
-                placeHolder = stringResource(R.string.search)
-            )
-
-            Row(
-                Modifier
-                    .padding(horizontal = 4.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+            ElevatedCard(
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.elevatedCardElevation(
+                    defaultElevation = 1.dp
+                ),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                SearchScope.entries.forEach { scope ->
-                    FilterChip(
-                        selected = (searchScope == scope),
-                        onClick = { viewModel.onScopeChange(scope) },
-                        label = { Text(stringResource(scope.labelRes)) }
+                Column(modifier = Modifier.padding(8.dp)) {
+                    SearchCustomBar(
+                        value = searchText,
+                        onValueChange = { value ->
+                            viewModel.onSearchTextChange(value)
+                        },
+                        onValueClear = {
+                            viewModel.onSearchTextChange("")
+                        },
+                        placeHolder = stringResource(R.string.search)
                     )
+
+                    Row(
+                        Modifier
+                            .padding(horizontal = 4.dp)
+                            .fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        SearchScope.entries.forEach { scope ->
+                            FilterChip(
+                                selected = (searchScope == scope),
+                                onClick = { viewModel.onScopeChange(scope) },
+                                label = { Text(stringResource(scope.labelRes)) }
+                            )
+                        }
+                    }
                 }
             }
 
