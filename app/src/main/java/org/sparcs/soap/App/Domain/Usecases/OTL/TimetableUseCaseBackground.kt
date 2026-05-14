@@ -8,6 +8,7 @@ import javax.inject.Singleton
 
 interface TimetableUseCaseBackgroundProtocol {
     suspend fun getCurrentMyTable(): Timetable
+    suspend fun getTable(id: Int): Timetable
     suspend fun getCurrentSemester(): Semester?
 }
 
@@ -16,22 +17,31 @@ class TimetableUseCaseBackground @Inject constructor(
     private val otlTimetableRepository: OTLTimetableRepositoryProtocol
 ) : TimetableUseCaseBackgroundProtocol {
     override suspend fun getCurrentMyTable(): Timetable {
-        return try {
-            val currentSemester = otlTimetableRepository.getCurrentSemester()
+            return try {
+                val currentSemester = otlTimetableRepository.getCurrentSemester()
+                otlTimetableRepository.getMyTimetable(
+                    year = currentSemester.year,
+                    semester = currentSemester.semesterType
+                )
+            } catch (e: Exception) {
+                Timetable(
+                    id = "-1",
+                    lectures = emptyList()
+                )
+            }
+            }
 
-            otlTimetableRepository.getMyTimetable(
-                year = currentSemester.year,
-                semester = currentSemester.semesterType
-            )
-        } catch (e: Exception) {
-            Timetable(
-                id = "-myTable",
-                lectures = emptyList()
-            )
-        }
-    }
-
-    override suspend fun getCurrentSemester(): Semester? {
+            override suspend fun getTable(id: Int): Timetable {
+            return try {
+                otlTimetableRepository.getTimetable(id)
+            } catch (e: Exception) {
+                Timetable(
+                    id = "-1",
+                    lectures = emptyList()
+                )
+            }
+            }
+        override suspend fun getCurrentSemester(): Semester? {
         return try {
             otlTimetableRepository.getCurrentSemester()
         } catch (_: Exception) {

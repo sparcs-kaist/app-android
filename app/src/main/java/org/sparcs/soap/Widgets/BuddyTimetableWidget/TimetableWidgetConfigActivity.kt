@@ -20,8 +20,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Lightbulb
+import androidx.compose.material.icons.outlined.List
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -36,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -46,6 +49,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
@@ -53,9 +57,14 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.sparcs.soap.App.Domain.Models.OTL.Semester
+import org.sparcs.soap.App.Domain.Models.OTL.Timetable
+import org.sparcs.soap.App.Domain.Models.OTL.TimetableSummary
+import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableGrid
 import org.sparcs.soap.App.theme.ui.Theme
@@ -64,8 +73,17 @@ import org.sparcs.soap.App.theme.ui.theme_dark_surface
 import org.sparcs.soap.App.theme.ui.theme_light_surface
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class TimetableWidgetConfigActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var timetableUseCase: TimetableUseCaseProtocol
+
+    @Inject
+    @org.sparcs.soap.Widgets.TimetableWidget
+    lateinit var syncManager: TimetableWidgetSyncManager
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -87,6 +105,11 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             Theme {
                 var selectedTheme by remember { mutableStateOf("System") }
                 var transparency by remember { mutableFloatStateOf(1f) }
+                var selectedTimetableId by remember { mutableIntStateOf(-1) }
+                var timetableList by remember { mutableStateOf<List<TimetableSummary>>(emptyList()) }
+                var semesters by remember { mutableStateOf<List<Semester>>(emptyList()) }
+                var selectedSemester by remember { mutableStateOf<Semester?>(null) }
+                var selectedTimetable by remember { mutableStateOf<Timetable?>(null) }
 
                 LaunchedEffect(Unit) {
                     val manager = GlanceAppWidgetManager(this@TimetableWidgetConfigActivity)
@@ -97,8 +120,45 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             PreferencesGlanceStateDefinition, glanceId)
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
+                        selectedTimetableId = prefs[intPreferencesKey("selected_timetable_id")] ?: -1
+                    }
+
+                    try {
+                        semesters = timetableUseCase.getSemesters().sortedDescending()
+                        val current = timetableUseCase.getCurrentSemester()
+                        selectedSemester = current
+                    } catch (e: Exception) {
+                        // Ignore or handle
                     }
                 }
+
+                LaunchedEffect(selectedSemester) {
+                    selectedSemester?.let {
+                        try {
+                            timetableList = timetableUseCase.getTimetableList(it)
+                            if (selectedTimetableId != -1 && timetableList.none { t -> t.id == selectedTimetableId }) {
+                                selectedTimetableId = -1
+                            }
+                        } catch (e: Exception) {
+                            //
+                        }
+                    }
+                }
+
+                LaunchedEffect(selectedTimetableId, selectedSemester) {
+                    selectedSemester?.let {
+                        try {
+                            selectedTimetable = if (selectedTimetableId == -1) {
+                                timetableUseCase.getMyTable(it)
+                            } else {
+                                timetableUseCase.getTable(selectedTimetableId)
+                            }
+                        } catch (e: Exception) {
+                            selectedTimetable = null
+                        }
+                    }
+                }
+
                 Scaffold(
                     topBar = {
                         SettingsViewNavigationBar(
@@ -115,9 +175,18 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                     ) {
                         LazyColumn(modifier = Modifier.padding(16.dp)) {
                             item {
-                                WidgetPreviewSection(selectedTheme, transparency)
+                                WidgetPreviewSection(selectedTheme, transparency, selectedTimetable)
 
                                 Spacer(modifier = Modifier.height(24.dp))
+
+                                Text(
+                                    text = stringResource(R.string.widget_timetable),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                                WidgetSemesterRow(selectedSemester, semesters) { selectedSemester = it }
+                                WidgetTimetableRow(selectedTimetableId, timetableList) { selectedTimetableId = it }
 
                                 Text(
                                     text = stringResource(R.string.widget_miscellaneous),
@@ -127,10 +196,11 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                 )
                                 WidgetThemeRow(selectedTheme) { selectedTheme = it }
                                 WidgetTransparencyRow(transparency) { transparency = it }
+
                                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Button(
-                                    onClick = { saveAndFinish(selectedTheme, transparency) },
+                                    onClick = { saveAndFinish(selectedTheme, transparency, selectedTimetableId, selectedSemester) },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 8.dp)
@@ -142,6 +212,134 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+
+    @Composable
+    private fun WidgetSemesterRow(selectedSemester: Semester?, semesters: List<Semester>, onSemesterSelected: (Semester) -> Unit) {
+        var showDialog by remember { mutableStateOf(false) }
+        val currentModeText = selectedSemester?.description ?: ""
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+                .clickable { showDialog = true },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.CalendarMonth,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.width(8.dp))
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Text(
+                    text = stringResource(R.string.semester),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = currentModeText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.grayBB
+                )
+            }
+        }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                title = { Text(stringResource(R.string.semester)) },
+                text = {
+                    LazyColumn {
+                        items(semesters.size) { index ->
+                            val semester = semesters[index]
+                            ThemeOptionRow(
+                                text = semester.description,
+                                isSelected = selectedSemester?.id == semester.id
+                            ) {
+                                onSemesterSelected(semester)
+                                showDialog = false
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {}
+            )
+        }
+    }
+
+
+    @Composable
+    private fun WidgetTimetableRow(selectedTimetableId: Int, timetableList: List<TimetableSummary>, onTimetableSelected: (Int) -> Unit) {
+        var showDialog by remember { mutableStateOf(false) }
+        val currentModeText = if (selectedTimetableId == -1) {
+            stringResource(R.string.main_timetable)
+        } else {
+            timetableList.find { it.id == selectedTimetableId }?.title ?: stringResource(R.string.main_timetable)
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+                .clickable { showDialog = true },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.List,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.width(8.dp))
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Text(
+                    text = stringResource(R.string.timetable),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = currentModeText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.grayBB
+                )
+            }
+        }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                containerColor = MaterialTheme.colorScheme.surface,
+                title = { Text(stringResource(R.string.timetable)) },
+                text = {
+                    LazyColumn {
+                        item {
+                            ThemeOptionRow(
+                                text = stringResource(R.string.main_timetable),
+                                isSelected = selectedTimetableId == -1
+                            ) {
+                                onTimetableSelected(-1)
+                                showDialog = false
+                            }
+                        }
+                        items(timetableList.size) { index ->
+                            val timetable = timetableList[index]
+                            ThemeOptionRow(
+                                text = timetable.title,
+                                isSelected = selectedTimetableId == timetable.id
+                            ) {
+                                onTimetableSelected(timetable.id)
+                                showDialog = false
+                            }
+                        }
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {}
+            )
         }
     }
 
@@ -263,7 +461,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
         }
     }
 
-    private fun saveAndFinish(theme: String, transparency: Float) {
+    private fun saveAndFinish(theme: String, transparency: Float, selectedTimetableId: Int, selectedSemester: Semester?) {
         val appContext = applicationContext
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -283,9 +481,21 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                         prefs.toMutablePreferences().apply {
                             this[stringPreferencesKey("theme_mode")] = theme
                             this[floatPreferencesKey("background_transparency")] = transparency
+                            this[intPreferencesKey("selected_timetable_id")] = selectedTimetableId
                         }
                     }
                     TimetableWidget().update(appContext, glanceId)
+                    
+                    try {
+                        val timetable = if (selectedTimetableId == -1) {
+                            timetableUseCase.getMyTable(selectedSemester ?: timetableUseCase.getCurrentSemester())
+                        } else {
+                            timetableUseCase.getTable(selectedTimetableId)
+                        }
+                        syncManager.sync(timetable, glanceId)
+                    } catch (e: Exception) {
+                        // ignore
+                    }
                 } else {
                     TimetableWidget().updateAll(appContext)
                 }
@@ -300,7 +510,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
 }
 
 @Composable
-private fun WidgetPreviewSection(selectedTheme: String, transparency: Float) {
+private fun WidgetPreviewSection(selectedTheme: String, transparency: Float, selectedTimetable: Timetable?) {
     val isDark = when (selectedTheme) {
         "Dark" -> true
         "Light" -> false
@@ -333,8 +543,11 @@ private fun WidgetPreviewSection(selectedTheme: String, transparency: Float) {
                     .background(surfaceColor.copy(alpha = transparency))
                     .padding(8.dp)
             ) {
+                val previewViewModel = remember(selectedTimetable) {
+                    PreviewTimetableViewModel(selectedTimetable)
+                }
                 TimetableGrid(
-                    viewModel = PreviewTimetableViewModel(),
+                    viewModel = previewViewModel,
                     onLectureSelected = {},
                     showDeleteDialog = {}
                 )

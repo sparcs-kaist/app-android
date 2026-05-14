@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="main_timetable">내 시간표</string>
+    <string name="semester">학기</string>
     <string name="start">타임라인</string>
     <string name="timetable">시간표</string>
     <string name="taxi">택시</string>
@@ -71,6 +73,7 @@
     <string name="widget_system_default">시스템 기본 설정</string>
     <string name="widget_white_mode">화이트 모드</string>
     <string name="widget_miscellaneous">기타</string>
+    <string name="widget_timetable">시간표</string>
     <string name="ara">Ara</string>
     <string name="sign_out">로그아웃</string>
     <string name="settings">설정</string>

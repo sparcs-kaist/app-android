@@ -133,19 +133,19 @@ class TimetableWidget : GlanceAppWidget() {
 class TimetableWidgetSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    suspend fun sync(timetable: Timetable) {
+    suspend fun sync(timetable: Timetable, glanceId: GlanceId? = null) {
         val newState = timetable.toWidgetUiState()
-        syncState(newState)
+        syncState(newState, glanceId)
     }
 
     suspend fun syncSignInRequired() {
         syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
-    private suspend fun syncState(state: TimetableUiState) {
+    private suspend fun syncState(state: TimetableUiState, specificGlanceId: GlanceId? = null) {
         try {
             val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(TimetableWidget::class.java)
+            val glanceIds = specificGlanceId?.let { listOf(it) } ?: manager.getGlanceIds(TimetableWidget::class.java)
 
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
@@ -154,7 +154,11 @@ class TimetableWidgetSyncManager @Inject constructor(
                     }
                 }
             }
-            TimetableWidget().updateAll(context)
+            if (specificGlanceId != null) {
+                TimetableWidget().update(context, specificGlanceId)
+            } else {
+                TimetableWidget().updateAll(context)
+            }
         } catch (_: Exception) {
             Timber.tag("WidgetSync").e("Timetable widget sync failed")
         }
@@ -182,9 +186,22 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
                 return Result.success()
             }
 
-            val timetable = timetableUseCase.getCurrentMyTable()
+            for (glanceId in glanceIds) {
+                val prefs = androidx.glance.appwidget.state.getAppWidgetState(
+                    applicationContext,
+                    PreferencesGlanceStateDefinition,
+                    glanceId
+                )
+                val selectedTimetableId = prefs[androidx.datastore.preferences.core.intPreferencesKey("selected_timetable_id")] ?: -1
+                
+                val timetable = if (selectedTimetableId == -1) {
+                    timetableUseCase.getCurrentMyTable()
+                } else {
+                    timetableUseCase.getTable(selectedTimetableId)
+                }
 
-            syncManager.sync(timetable)
+                syncManager.sync(timetable, glanceId)
+            }
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "TimetableUpdateWorker Error")

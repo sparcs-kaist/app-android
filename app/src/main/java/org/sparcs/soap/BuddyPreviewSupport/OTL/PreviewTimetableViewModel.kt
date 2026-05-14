@@ -12,7 +12,7 @@ import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Mocks.OTL.mockList
 
-class PreviewTimetableViewModel : TimetableViewModelProtocol {
+class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock()) : TimetableViewModelProtocol {
     override val timetableUseCase: TimetableUseCase? = null
     override val isLoading = MutableStateFlow(false)
 
@@ -22,7 +22,7 @@ class PreviewTimetableViewModel : TimetableViewModelProtocol {
     private val _selectedSemester = MutableStateFlow<Semester?>(Semester.mockList()[9])
     override val selectedSemester: StateFlow<Semester?> = _selectedSemester.asStateFlow()
 
-    private val _selectedTimetable = MutableStateFlow<Timetable?>(Timetable.mock())
+    private val _selectedTimetable = MutableStateFlow<Timetable?>(initialTimetable)
     override val selectedTimetable: StateFlow<Timetable?> = _selectedTimetable.asStateFlow()
 
     private val _timetableList = MutableStateFlow(TimetableSummary.mockList())
