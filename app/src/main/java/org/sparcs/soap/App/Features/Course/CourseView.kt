@@ -69,6 +69,7 @@ fun CourseView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(paddingValues)
         ) {
             if (state is CourseViewModel.ViewState.Error) {
@@ -154,7 +155,7 @@ fun CourseSummary(course: Course) {
 
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.background,
             modifier = Modifier.fillMaxWidth()
         ) {
 
@@ -278,7 +279,7 @@ fun CourseReviewSection(
 
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.background,
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(

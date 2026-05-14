@@ -31,7 +31,7 @@ fun TimetableSummary(
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
 
     Card(
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {

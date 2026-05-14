@@ -21,8 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -115,7 +113,6 @@ fun FeedSettingsView(
                 is FeedSettingsViewModel.ViewState.Error -> {
                     val error = (state as FeedSettingsViewModel.ViewState.Error).error
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         error = error,
                         defaultMessageResId = (state as FeedSettingsViewModel.ViewState.Error).resId,
                         onRetry = { scope.launch { viewModel.fetchUser() } }

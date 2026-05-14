@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
@@ -53,6 +52,7 @@ import org.sparcs.soap.App.Features.Search.Components.PostSection
 import org.sparcs.soap.App.Features.Search.Components.SearchNavigationBar
 import org.sparcs.soap.App.Features.Search.Components.TaxiSection
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewView
+import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSearchViewModel
@@ -66,8 +66,8 @@ import org.sparcs.soap.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchView(
-    viewModel: SearchViewModelProtocol = hiltViewModel(),
-    taxiPreviewViewModel: TaxiPreviewViewModelProtocol = hiltViewModel(),
+    viewModel: SearchViewModelProtocol = hiltViewModel<SearchViewModel>(),
+    taxiPreviewViewModel: TaxiPreviewViewModelProtocol = hiltViewModel<TaxiPreviewViewModel>(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
@@ -111,12 +111,13 @@ fun SearchView(
     ) { innerPadding ->
         Column(
             Modifier
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .padding(innerPadding)
         ) {
             ElevatedCard(
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.elevatedCardElevation(
@@ -156,7 +157,6 @@ fun SearchView(
             when {
                 state is SearchViewModel.ViewState.Error -> {
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         error = (state as SearchViewModel.ViewState.Error).error,
                         onRetry = { coroutineScope.launch { viewModel.bind() } }
                     )

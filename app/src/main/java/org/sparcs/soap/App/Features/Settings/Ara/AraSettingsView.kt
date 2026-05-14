@@ -12,7 +12,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -97,7 +96,6 @@ fun AraSettingsView(
                 is AraSettingsViewModel.ViewState.Error -> {
                     val error = (state as AraSettingsViewModel.ViewState.Error).error
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         error = error,
                         defaultMessageResId = (state as AraSettingsViewModel.ViewState.Error).resId,
                         onRetry = { scope.launch { viewModel.fetchUser() } }

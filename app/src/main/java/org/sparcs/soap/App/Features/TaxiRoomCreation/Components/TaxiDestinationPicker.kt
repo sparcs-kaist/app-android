@@ -165,7 +165,7 @@ fun LocationMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = { expanded = false },
-        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         shape = RoundedCornerShape(16.dp)
     ) {
         DropdownMenuItem(

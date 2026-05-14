@@ -77,7 +77,7 @@ fun FeedPostNavigationBar(
             Spacer(Modifier.padding(4.dp))
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.background
         )
     )
 }

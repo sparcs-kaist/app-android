@@ -3,8 +3,6 @@ package org.sparcs.soap.App.Features.UserPostList
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -134,7 +132,6 @@ fun UserPostListView(
                     is UserPostListViewModel.ViewState.Error -> {
                         val error = (state as UserPostListViewModel.ViewState.Error).error
                         ErrorView(
-                            icon = Icons.Default.Warning,
                             error = error,
                             onRetry = {
                                 coroutineScope.launch { viewModel.fetchInitialPosts() }

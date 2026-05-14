@@ -72,7 +72,7 @@ import org.sparcs.soap.R
 @Composable
 fun TaxiPreviewView(
     room: TaxiRoom,
-    viewModel: TaxiPreviewViewModelProtocol = hiltViewModel(),
+    viewModel: TaxiPreviewViewModelProtocol = hiltViewModel<TaxiPreviewViewModel>(),
     onDismiss: () -> Unit,
     navController: NavController,
 ) {

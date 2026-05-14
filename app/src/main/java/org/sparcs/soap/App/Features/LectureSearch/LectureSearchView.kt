@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Features.LectureSearch
 
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -93,6 +94,7 @@ fun LectureSearchView(
         Column(
             modifier = Modifier
                 .imePadding()
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()
@@ -295,7 +297,7 @@ fun LectureRow(
 @Composable
 private fun CourseSectionHeader(course: CourseLecture) {
     Surface(
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(

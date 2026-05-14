@@ -52,8 +52,8 @@ import java.util.Date
 @Composable
 fun TaxiRoomCreationView(
     navController: NavController,
-    taxiListViewModel: TaxiListViewModelProtocol = hiltViewModel(),
-    taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol = hiltViewModel(),
+    taxiListViewModel: TaxiListViewModelProtocol = hiltViewModel<TaxiListViewModel>(),
+    taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol = hiltViewModel<TaxiRoomCreationViewModel>(),
 ) {
     var title by remember { mutableStateOf("") }
     val randomRoomName = remember { Constants.taxiDefaultRoomNames.random() }
@@ -93,13 +93,13 @@ fun TaxiRoomCreationView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
         ) {
             ElevatedCard(
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.elevatedCardElevation(
@@ -134,7 +134,7 @@ fun TaxiRoomCreationView(
 
             ElevatedCard(
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.elevatedCardElevation(
@@ -168,7 +168,7 @@ fun TaxiRoomCreationView(
 
             ElevatedCard(
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+                    containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
                 elevation = CardDefaults.elevatedCardElevation(

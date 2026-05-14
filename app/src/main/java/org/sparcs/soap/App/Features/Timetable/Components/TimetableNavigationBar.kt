@@ -44,8 +44,8 @@ fun TimetableViewNavigationBar(
             )
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface
         ),
         modifier = Modifier.shadow(scrollState.elevation())
     )

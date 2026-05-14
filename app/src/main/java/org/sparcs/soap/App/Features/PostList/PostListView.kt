@@ -9,15 +9,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.rounded.ClearAll
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -194,7 +194,6 @@ fun PostListView(
                     is PostListViewModel.ViewState.Error -> {
                         val error = (state).error
                         ErrorView(
-                            icon = Icons.Default.Warning,
                             error = error,
                             onRetry = {
                                 scope.launch { viewModel.fetchInitialPosts() }
@@ -232,7 +231,7 @@ private fun EmptyView(
         verticalArrangement = Arrangement.Center
     ) {
         Icon(
-            imageVector = Icons.Outlined.ErrorOutline,
+            imageVector = Icons.Rounded.ErrorOutline,
             contentDescription = stringResource(R.string.no_result),
             modifier = Modifier.size(48.dp),
             tint = MaterialTheme.colorScheme.grayBB
@@ -259,8 +258,14 @@ private fun EmptyView(
 
         Button(
             onClick = { onClear() },
-            modifier = Modifier.fillMaxWidth()
+            shape = RoundedCornerShape(12.dp)
         ) {
+            Icon(
+                imageVector = Icons.Rounded.ClearAll,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(end = 4.dp)
+            )
             Text(stringResource(R.string.clear_search_text))
         }
     }

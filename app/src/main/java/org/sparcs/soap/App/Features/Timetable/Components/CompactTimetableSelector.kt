@@ -120,7 +120,7 @@ fun SemesterSelector(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(25.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -173,7 +173,7 @@ fun TableSelector(
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(25.dp))
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.background),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(

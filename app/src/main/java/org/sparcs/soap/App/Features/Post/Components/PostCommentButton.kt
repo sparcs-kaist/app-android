@@ -44,6 +44,7 @@ fun PostCommentButton(
         colors = CardDefaults.cardColors(
             MaterialTheme.colorScheme.background
         ),
+        elevation = CardDefaults.cardElevation(1.dp),
         modifier = Modifier.clickable {
             haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
             onClick()

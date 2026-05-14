@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -117,8 +116,7 @@ fun FeedView(
             )
         },
         modifier = Modifier
-            .analyticsScreen(name = "Feed"),
-        containerColor = MaterialTheme.colorScheme.surface
+            .analyticsScreen(name = "Feed")
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,

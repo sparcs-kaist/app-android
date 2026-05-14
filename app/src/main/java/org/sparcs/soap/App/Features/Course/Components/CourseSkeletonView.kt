@@ -77,7 +77,7 @@ fun CourseSummarySkeleton() {
 
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.background,
             modifier = Modifier.padding(vertical = 4.dp)
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
@@ -133,7 +133,7 @@ fun CourseSummarySkeleton() {
 
         Surface(
             shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.background,
             modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth()
         ) {
             Row(

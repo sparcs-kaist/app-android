@@ -85,7 +85,7 @@ fun BoardListView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.surface)
                 .verticalScroll(scrollState)
                 .padding(innerPadding),
             verticalArrangement = Arrangement.Center,

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -167,7 +166,6 @@ private fun MyPostView(
             )
 
             is AraMyPostViewModel.ViewState.Error -> ErrorView(
-                icon = Icons.Default.Warning,
                 error = state.error,
                 onRetry = onRefresh
             )

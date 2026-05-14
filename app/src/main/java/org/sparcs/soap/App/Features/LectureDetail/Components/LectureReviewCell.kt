@@ -67,13 +67,13 @@ fun LectureReviewCell(
 
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.padding(vertical = 4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(16.dp))
                 .padding(8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -202,14 +202,14 @@ fun LectureReviewCell(
 fun LectureReviewSkeletonCell() {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.padding(vertical = 4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    MaterialTheme.colorScheme.surface,
+                    MaterialTheme.colorScheme.background,
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(8.dp)

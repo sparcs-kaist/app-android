@@ -25,7 +25,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -109,7 +108,7 @@ import timber.log.Timber
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostView(
-    viewModel: PostViewModelProtocol = hiltViewModel(),
+    viewModel: PostViewModelProtocol = hiltViewModel<PostViewModel>(),
     navController: NavController,
 ) {
     val post = viewModel.post.collectAsState().value
@@ -248,7 +247,6 @@ fun PostView(
     ) { innerPadding ->
         if (state is PostViewModel.ViewState.Error) {
             ErrorView(
-                icon = Icons.Default.Warning,
                 error = state.error,
                 onRetry = { scope.launch { viewModel.fetchPost() } }
             )

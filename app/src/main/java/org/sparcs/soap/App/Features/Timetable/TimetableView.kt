@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -104,6 +103,7 @@ fun TimetableView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(innerPadding)
                     .verticalScroll(scrollState)
                     .padding(16.dp),
@@ -117,7 +117,7 @@ fun TimetableView(
                         .height(screenHeight * 0.66f),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.background
                     ),
                     elevation = CardDefaults.elevatedCardElevation(
                         defaultElevation = 1.dp
@@ -144,7 +144,7 @@ fun TimetableView(
                         .fillMaxWidth(),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.background
                     ),
                     elevation = CardDefaults.elevatedCardElevation(
                         defaultElevation = 1.dp

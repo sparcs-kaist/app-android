@@ -71,7 +71,7 @@ fun WeekDaySelector(
         modifier = Modifier
             .padding(4.dp)
             .clip(RoundedCornerShape(28.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .height(60.dp)
     ) {
         if (selectedBounds != null) {
@@ -120,7 +120,7 @@ fun WeekDaySelector(
                 Text(
                     text = stringResource(R.string.all),
                     style = size.copy(fontWeight = FontWeight.SemiBold),
-                    color = if (selectedDate == null) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
+                    color = if (selectedDate == null) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
                 )
             }
 
@@ -154,13 +154,13 @@ fun WeekDaySelector(
                     Text(
                         text = day.dayOfMonth.toString(),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-                        color = if (isSelected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.onSurface
+                        color = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
                     )
 
                     Text(
                         text = day.dayOfWeek.toShortString().uppercase(),
                         style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                        color = if (isSelected) MaterialTheme.colorScheme.surface else textColor
+                        color = if (isSelected) MaterialTheme.colorScheme.background else textColor
                     )
                 }
             }

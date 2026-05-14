@@ -74,7 +74,7 @@ import timber.log.Timber
 @Composable
 fun SettingsView(
     navController: NavController,
-    settingsViewModel: SettingsViewModelProtocol = hiltViewModel(),
+    settingsViewModel: SettingsViewModelProtocol = hiltViewModel<SettingsViewModel>(),
 ) {
     val context = LocalContext.current
     val isPreview = LocalInspectionMode.current

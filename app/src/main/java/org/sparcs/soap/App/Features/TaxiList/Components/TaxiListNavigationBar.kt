@@ -52,8 +52,8 @@ fun TaxiListNavigationBar(
             ChatButton(onClick = { navController.navigate(Channel.TaxiChatListView.name) })
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            scrolledContainerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.surface,
+            scrolledContainerColor = MaterialTheme.colorScheme.surface
         ),
         modifier = Modifier.shadow(scrollState.elevation())
     )

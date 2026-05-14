@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -73,7 +74,7 @@ import org.sparcs.soap.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiReportView(
-    viewModel: TaxiReportViewModelProtocol = hiltViewModel(),
+    viewModel: TaxiReportViewModelProtocol = hiltViewModel<TaxiReportViewModel>(),
     navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
@@ -106,7 +107,7 @@ fun TaxiReportView(
                 navigationIcon = {
                     DismissButton { navController.popBackStack() }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.background)
+                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.surface)
             )
         },
         modifier = Modifier.analyticsScreen("Taxi Report")
@@ -114,9 +115,10 @@ fun TaxiReportView(
 
         Column(
             modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp)
                 .padding(innerPadding)
-                .fillMaxWidth(),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SectionTitle(stringResource(R.string.who))
@@ -198,7 +200,7 @@ fun ParticipantsCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background)
     ) {
         Column {
             participants.forEach { participant ->
@@ -226,7 +228,7 @@ fun ReasonCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(

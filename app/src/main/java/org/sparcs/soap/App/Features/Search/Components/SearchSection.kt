@@ -78,7 +78,7 @@ fun SearchSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(28.dp))
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(vertical = 8.dp, horizontal = 16.dp)
         ) {
             content()

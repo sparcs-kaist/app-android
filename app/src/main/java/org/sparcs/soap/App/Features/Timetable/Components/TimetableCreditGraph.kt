@@ -69,7 +69,7 @@ fun TimetableCreditGraph(
 
     ElevatedCard(
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.background
         ),
         shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth(),

@@ -73,8 +73,8 @@ import org.sparcs.soap.R
 
 @Composable
 fun ReviewComposeView(
-    viewModel: ReviewComposeViewModelProtocol = hiltViewModel(),
-    lectureDetailViewModel: LectureDetailViewModelProtocol = hiltViewModel(),
+    viewModel: ReviewComposeViewModelProtocol = hiltViewModel<ReviewComposeViewModel>(),
+    lectureDetailViewModel: LectureDetailViewModelProtocol = hiltViewModel<LectureDetailViewModel>(),
     navController: NavController,
 ) {
     val writtenReview by lectureDetailViewModel.writtenReview.collectAsState()
