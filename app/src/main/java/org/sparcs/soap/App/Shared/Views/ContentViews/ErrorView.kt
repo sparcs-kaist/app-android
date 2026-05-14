@@ -10,7 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -32,7 +33,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun ErrorView(
-    icon: ImageVector = Icons.Default.Warning,
+    icon: ImageVector = Icons.Rounded.Warning,
     error: Exception,
     defaultMessageResId: Int? = null,
     onRetry: () -> Unit,
@@ -85,9 +86,15 @@ fun ErrorView(
 
         Button(
             onClick = { onRetry() },
-            modifier = Modifier.fillMaxWidth(0.6f),
+            modifier = Modifier.fillMaxWidth(0.4f),
             shape = RoundedCornerShape(12.dp)
         ) {
+            Icon(
+                imageVector = Icons.Rounded.Refresh,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.padding(end = 4.dp)
+            )
             Text(stringResource(R.string.error_try_again))
         }
     }
@@ -98,7 +105,6 @@ fun ErrorView(
 private fun Preview() {
     Theme {
         ErrorView(
-            icon = Icons.Default.Warning,
             error = Exception(),
             onRetry = {}
         )

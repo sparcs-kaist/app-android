@@ -58,7 +58,7 @@ fun BoardList(
             )
         }
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -108,7 +108,7 @@ fun BoardListSkeleton(num: Int) {
         }
 
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()

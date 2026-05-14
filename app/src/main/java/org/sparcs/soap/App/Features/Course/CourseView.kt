@@ -16,10 +16,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -39,9 +38,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.Course
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReviewPage
 import org.sparcs.soap.App.Features.Course.Components.CourseNavigationBar
-import org.sparcs.soap.App.Features.LectureDetail.Components.LectureDetailRow
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewCell
-import org.sparcs.soap.App.Features.LectureDetail.Components.LectureSummaryRow
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Mocks.OTL.mockList
@@ -73,8 +70,10 @@ fun CourseView(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(24.dp))
             when (state) {
                 CourseViewModel.ViewState.Loading -> {
                     CourseSummarySkeleton()
@@ -87,7 +86,7 @@ fun CourseView(
                     val writtenReview = (state as CourseViewModel.ViewState.Loaded).writtenReview
 
                     CourseSummary(course)
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
                     CourseReviewSection(
                         course = course,
                         reviews = reviews,
@@ -95,12 +94,12 @@ fun CourseView(
                         reviewPage = reviewPage,
                         viewModel = viewModel
                     )
+                    Spacer(modifier = Modifier.height(40.dp))
                 }
 
                 is CourseViewModel.ViewState.Error -> {
                     val error = (state as CourseViewModel.ViewState.Error).error
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         defaultMessageResId = R.string.failed_to_load_course,
                         error = error,
                         onRetry = { viewModel.loadCourse() }
@@ -118,61 +117,120 @@ fun CourseView(
 
 @Composable
 fun CourseSummary(course: Course) {
-    Column(Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         Row(
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SummaryStat(stringResource(R.string.hours), course.classDuration.toString())
+            StatSeparator()
+            SummaryStat(stringResource(R.string.lab), course.expDuration.toString())
+            StatSeparator()
+            val creditLabel =
+                if (course.credit == 0) stringResource(R.string.au) else stringResource(R.string.credit)
+            val creditValue = if (course.credit == 0) course.creditAu else course.credit
+            SummaryStat(creditLabel, creditValue.toString())
+        }
+
+
+        Text(
+            stringResource(R.string.information),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 2.dp,
             modifier = Modifier.fillMaxWidth()
         ) {
-            LectureSummaryRow(
-                stringResource(R.string.hours).uppercase(),
-                course.classDuration.toString()
-            )
-            LectureSummaryRow(
-                stringResource(R.string.lab).uppercase(),
-                course.expDuration.toString()
-            )
-            if (course.credit == 0) {
-                LectureSummaryRow(
-                    stringResource(R.string.au).uppercase(),
-                    course.creditAu.toString()
+
+            Column(modifier = Modifier.padding(20.dp)) {
+                DetailRow(stringResource(R.string.code), course.code)
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
-            } else {
-                LectureSummaryRow(
-                    stringResource(R.string.credit).uppercase(),
-                    course.credit.toString()
+                DetailRow(stringResource(R.string.type), course.type)
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
+                DetailRow(stringResource(R.string.department), course.department.name)
+
+                if (course.summary.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        stringResource(R.string.summary),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        course.summary,
+                        style = MaterialTheme.typography.bodyMedium,
+                        lineHeight = 22.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
+@Composable
+private fun SummaryStat(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.ExtraBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
 
-        Column {
-            Text(
-                text = stringResource(R.string.information),
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge
-            )
-            LectureDetailRow(stringResource(R.string.code), course.code)
-            LectureDetailRow(stringResource(R.string.type), course.type)
-            LectureDetailRow(
-                stringResource(R.string.department),
-                course.department.name
-            )
+@Composable
+private fun StatSeparator() {
+    Box(
+        modifier = Modifier
+            .height(24.dp)
+            .width(1.dp)
+            .background(MaterialTheme.colorScheme.outlineVariant)
+    )
+}
 
-            if (course.summary.isNotEmpty()) {
-                Text(
-                    stringResource(R.string.summary),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                )
-                Text(
-                    course.summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Start
-                )
-            }
-        }
+@Composable
+private fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -291,42 +349,63 @@ fun CourseReviewSection(
     myReview: LectureReview?,
     reviewPage: LectureReviewPage,
 ) {
-
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.reviews), fontSize = 18.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.weight(1f))
-            val totalCredit = course.credit + course.creditAu
-            LectureSummaryRow(
-                stringResource(R.string.grade),
-                reviewPage.getGradeLetter(totalCredit)
+        Row(
+            modifier = Modifier.padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            Text(
+                stringResource(R.string.reviews),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow(stringResource(R.string.load), reviewPage.getLoadLetter(totalCredit))
-            Spacer(modifier = Modifier.weight(1f))
-            LectureSummaryRow(
-                stringResource(R.string.speech),
-                reviewPage.getSpeechLetter(totalCredit)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = (reviews.size + (if (myReview != null) 1 else 0)).toString(),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
             )
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Column {
-            myReview?.let { myReview ->
-                Text(
-                    text = stringResource(R.string.my_review_title),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                LectureReviewCell(
-                    lectureReview = myReview,
-                    onLikeClick = { viewModel.toggleReviewLike(myReview) },
-                    isMine = true
-                )
-                Spacer(Modifier.padding(8.dp))
-                HorizontalDivider(thickness = 0.5.dp)
+        Surface(
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 2.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                val totalCredit = course.credit + course.creditAu
+                ReviewStat(stringResource(R.string.grade), reviewPage.getGradeLetter(totalCredit))
+                ReviewStat(stringResource(R.string.load), reviewPage.getLoadLetter(totalCredit))
+                ReviewStat(stringResource(R.string.speech), reviewPage.getSpeechLetter(totalCredit))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            myReview?.let {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = stringResource(R.string.my_review_title),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(start = 4.dp),
+                        fontWeight = FontWeight.Bold
+                    )
+                    LectureReviewCell(
+                        lectureReview = it,
+                        onLikeClick = { viewModel.toggleReviewLike(it) },
+                        isMine = true
+                    )
+                }
             }
 
             if (reviews.isEmpty() && myReview == null) {
@@ -345,6 +424,23 @@ fun CourseReviewSection(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ReviewStat(label: String, value: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
