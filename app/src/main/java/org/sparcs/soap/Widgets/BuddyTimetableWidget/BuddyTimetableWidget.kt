@@ -195,7 +195,19 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
                 val selectedTimetableId = prefs[androidx.datastore.preferences.core.intPreferencesKey("selected_timetable_id")] ?: -1
                 
                 val timetable = if (selectedTimetableId == -1) {
-                    timetableUseCase.getCurrentMyTable()
+                    val savedYear = prefs[androidx.datastore.preferences.core.intPreferencesKey("selected_semester_year")] ?: -1
+                    val savedTypeInt = prefs[androidx.datastore.preferences.core.intPreferencesKey("selected_semester_type_int")] ?: -1
+                    if (savedYear != -1 && savedTypeInt != -1) {
+                        val savedType = org.sparcs.soap.App.Domain.Enums.OTL.SemesterType.fromRawValue(savedTypeInt)
+                        timetableUseCase.getMyTable(savedYear, savedType)
+                    } else {
+                        val currentSemester = timetableUseCase.getCurrentSemester()
+                        if (currentSemester != null) {
+                            timetableUseCase.getMyTable(currentSemester.year, currentSemester.semesterType)
+                        } else {
+                            Timetable(id = "-1", lectures = emptyList())
+                        }
+                    }
                 } else {
                     timetableUseCase.getTable(selectedTimetableId)
                 }

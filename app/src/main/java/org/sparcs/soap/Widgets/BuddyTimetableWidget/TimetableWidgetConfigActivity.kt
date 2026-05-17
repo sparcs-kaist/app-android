@@ -115,18 +115,28 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                     val manager = GlanceAppWidgetManager(this@TimetableWidgetConfigActivity)
                     val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (_: Exception) { null }
 
+                    var savedSemesterYear = -1
+                    var savedSemesterTypeInt = -1
+
                     if (glanceId != null) {
                         val prefs = getAppWidgetState(this@TimetableWidgetConfigActivity,
                             PreferencesGlanceStateDefinition, glanceId)
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
                         selectedTimetableId = prefs[intPreferencesKey("selected_timetable_id")] ?: -1
+                        savedSemesterYear = prefs[intPreferencesKey("selected_semester_year")] ?: -1
+                        savedSemesterTypeInt = prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
                     }
 
                     try {
                         semesters = timetableUseCase.getSemesters().sortedDescending()
                         val current = timetableUseCase.getCurrentSemester()
-                        selectedSemester = current
+                        if (savedSemesterYear != -1 && savedSemesterTypeInt != -1) {
+                            val savedType = org.sparcs.soap.App.Domain.Enums.OTL.SemesterType.fromRawValue(savedSemesterTypeInt)
+                            selectedSemester = semesters.find { it.year == savedSemesterYear && it.semesterType == savedType } ?: current
+                        } else {
+                            selectedSemester = current
+                        }
                     } catch (e: Exception) {
                         // Ignore or handle
                     }
@@ -482,6 +492,10 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             this[stringPreferencesKey("theme_mode")] = theme
                             this[floatPreferencesKey("background_transparency")] = transparency
                             this[intPreferencesKey("selected_timetable_id")] = selectedTimetableId
+                            selectedSemester?.let {
+                                this[intPreferencesKey("selected_semester_year")] = it.year
+                                this[intPreferencesKey("selected_semester_type_int")] = it.semesterType.intValue
+                            }
                         }
                     }
                     TimetableWidget().update(appContext, glanceId)
