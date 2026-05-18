@@ -201,7 +201,12 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        LazyColumn(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                        LazyColumn(
+                            modifier = Modifier.padding(
+                                horizontal = 16.dp,
+                                vertical = 8.dp
+                            )
+                        ) {
                             item {
                                 WidgetPreviewSection(selectedTheme, transparency, selectedTimetable)
 
@@ -543,7 +548,6 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             }
                         }
                     }
-                    TimetableWidget().update(appContext, glanceId)
 
                     try {
                         val timetable = if (selectedTimetableId == -1) {

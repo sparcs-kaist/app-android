@@ -15,15 +15,16 @@ interface TimetableUseCaseBackgroundProtocol {
 
 @Singleton
 class TimetableUseCaseBackground @Inject constructor(
-    private val otlTimetableRepository: OTLTimetableRepositoryProtocol
+    private val otlTimetableRepository: OTLTimetableRepositoryProtocol,
 ) : TimetableUseCaseBackgroundProtocol {
 
-    override suspend fun getMyTable(year: Int, semesterType: SemesterType): Timetable {        return try {
+    override suspend fun getMyTable(year: Int, semesterType: SemesterType): Timetable {
+        return try {
             otlTimetableRepository.getMyTimetable(
                 year = year,
                 semester = semesterType
             )
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Timetable(
                 id = "-1",
                 lectures = emptyList()
@@ -34,7 +35,7 @@ class TimetableUseCaseBackground @Inject constructor(
     override suspend fun getTable(id: Int): Timetable {
         return try {
             otlTimetableRepository.getTimetable(id)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Timetable(
                 id = "-1",
                 lectures = emptyList()
