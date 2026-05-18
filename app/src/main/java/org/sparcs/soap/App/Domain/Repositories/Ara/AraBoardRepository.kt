@@ -61,6 +61,7 @@ class AraBoardRepository @Inject constructor(
         val boards = safeApiCall(gson) {
             api.fetchBoards()
         }.map { it.toModel() }
+            .filter { !it.slug.contains("internal") } // FIXME: temporary workaround for filtering internal board
 
         mutex.withLock { this.cachedBoards = boards }
         return boards
@@ -73,8 +74,20 @@ class AraBoardRepository @Inject constructor(
         searchKeyword: String?,
     ): AraPostPage = safeApiCall(gson) {
         when (type) {
-            is PostListType.Board -> api.fetchPosts(page, pageSize, parentBoard = type.boardID, searchKeyword = searchKeyword)
-            is PostListType.User -> api.fetchPosts(page, pageSize, createdBy = type.userID, searchKeyword = searchKeyword)
+            is PostListType.Board -> api.fetchPosts(
+                page,
+                pageSize,
+                parentBoard = type.boardID,
+                searchKeyword = searchKeyword
+            )
+
+            is PostListType.User -> api.fetchPosts(
+                page,
+                pageSize,
+                createdBy = type.userID,
+                searchKeyword = searchKeyword
+            )
+
             is PostListType.All -> api.fetchPosts(page, pageSize, searchKeyword = searchKeyword)
         }
     }.toModel()
@@ -90,7 +103,8 @@ class AraBoardRepository @Inject constructor(
     override suspend fun uploadImage(image: Bitmap): AraAttachment = safeApiCall(gson) {
         val compressed = image.compressForUpload(maxSizeMB = 1.0, maxDimension = 500)
             ?: throw IllegalArgumentException("Failed to compress image")
-        val part = MultipartBody.Part.createFormData("file", "image.jpg", compressed.toRequestBody())
+        val part =
+            MultipartBody.Part.createFormData("file", "image.jpg", compressed.toRequestBody())
         api.uploadImage(part)
     }.toModel()
 

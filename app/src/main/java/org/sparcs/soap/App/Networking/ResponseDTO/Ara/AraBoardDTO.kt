@@ -3,6 +3,7 @@ package org.sparcs.soap.App.Networking.ResponseDTO.Ara
 import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Domain.Helpers.LocalizedString
 import org.sparcs.soap.App.Domain.Models.Ara.AraBoard
+import org.sparcs.soap.App.Domain.Models.Ara.AraBoardGroup
 
 data class AraBoardDTO (
     @SerializedName("id")
@@ -21,7 +22,7 @@ data class AraBoardDTO (
     val isReadOnly: Boolean,
 
     @SerializedName("group")
-    val group: AraBoardGroupDTO,
+    val group: AraBoardGroupDTO?,
 
     @SerializedName("topics")
     val topics: List<AraBoardTopicDTO>?,
@@ -43,7 +44,7 @@ data class AraBoardDTO (
                     "en" to enName
                 )
             ),
-            group = group.toModel(),
+            group = group?.toModel() ?: AraBoardGroup.Empty,
             topics = topics?.map { it.toModel() } ?: emptyList(),
             isReadOnly = isReadOnly,
             userReadable = userReadable,
