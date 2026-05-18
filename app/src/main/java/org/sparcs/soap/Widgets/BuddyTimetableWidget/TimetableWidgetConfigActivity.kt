@@ -23,7 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Lightbulb
-import androidx.compose.material.icons.outlined.List
+import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -61,6 +61,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.sparcs.soap.App.Domain.Enums.OTL.SemesterType
 import org.sparcs.soap.App.Domain.Models.OTL.Semester
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Domain.Models.OTL.TimetableSummary
@@ -73,6 +74,7 @@ import org.sparcs.soap.App.theme.ui.theme_dark_surface
 import org.sparcs.soap.App.theme.ui.theme_light_surface
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
+import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -113,32 +115,42 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     val manager = GlanceAppWidgetManager(this@TimetableWidgetConfigActivity)
-                    val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (_: Exception) { null }
+                    val glanceId = try {
+                        manager.getGlanceIdBy(appWidgetId)
+                    } catch (_: Exception) {
+                        null
+                    }
 
                     var savedSemesterYear = -1
                     var savedSemesterTypeInt = -1
 
                     if (glanceId != null) {
-                        val prefs = getAppWidgetState(this@TimetableWidgetConfigActivity,
-                            PreferencesGlanceStateDefinition, glanceId)
+                        val prefs = getAppWidgetState(
+                            this@TimetableWidgetConfigActivity,
+                            PreferencesGlanceStateDefinition, glanceId
+                        )
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
-                        selectedTimetableId = prefs[intPreferencesKey("selected_timetable_id")] ?: -1
+                        selectedTimetableId =
+                            prefs[intPreferencesKey("selected_timetable_id")] ?: -1
                         savedSemesterYear = prefs[intPreferencesKey("selected_semester_year")] ?: -1
-                        savedSemesterTypeInt = prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
+                        savedSemesterTypeInt =
+                            prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
                     }
 
                     try {
                         semesters = timetableUseCase.getSemesters().sortedDescending()
                         val current = timetableUseCase.getCurrentSemester()
                         if (savedSemesterYear != -1 && savedSemesterTypeInt != -1) {
-                            val savedType = org.sparcs.soap.App.Domain.Enums.OTL.SemesterType.fromRawValue(savedSemesterTypeInt)
-                            selectedSemester = semesters.find { it.year == savedSemesterYear && it.semesterType == savedType } ?: current
+                            val savedType = SemesterType.fromRawValue(savedSemesterTypeInt)
+                            selectedSemester =
+                                semesters.find { it.year == savedSemesterYear && it.semesterType == savedType }
+                                    ?: current
                         } else {
                             selectedSemester = current
                         }
                     } catch (e: Exception) {
-                        // Ignore or handle
+                        Timber.e(e, "Failed to load semesters")
                     }
                 }
 
@@ -150,7 +162,9 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                 selectedTimetableId = -1
                             }
                         } catch (e: Exception) {
-                            //
+                            Timber.e(e, "Failed to load timetable list for semester")
+                            timetableList = emptyList()
+                            selectedTimetableId = -1
                         }
                     }
                 }
@@ -165,6 +179,10 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             }
                         } catch (e: Exception) {
                             selectedTimetable = null
+                            Timber.e(
+                                e,
+                                "Failed to load selected timetable with id $selectedTimetableId"
+                            )
                         }
                     }
                 }
@@ -183,11 +201,9 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) {
-                        LazyColumn(modifier = Modifier.padding(16.dp)) {
+                        LazyColumn(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
                             item {
                                 WidgetPreviewSection(selectedTheme, transparency, selectedTimetable)
-
-                                Spacer(modifier = Modifier.height(24.dp))
 
                                 Text(
                                     text = stringResource(R.string.widget_timetable),
@@ -195,8 +211,15 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(8.dp)
                                 )
-                                WidgetSemesterRow(selectedSemester, semesters) { selectedSemester = it }
-                                WidgetTimetableRow(selectedTimetableId, timetableList) { selectedTimetableId = it }
+
+                                WidgetSemesterRow(selectedSemester, semesters) {
+                                    selectedSemester = it
+                                }
+
+                                WidgetTimetableRow(
+                                    selectedTimetableId,
+                                    timetableList
+                                ) { selectedTimetableId = it }
 
                                 Text(
                                     text = stringResource(R.string.widget_miscellaneous),
@@ -210,7 +233,14 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Button(
-                                    onClick = { saveAndFinish(selectedTheme, transparency, selectedTimetableId, selectedSemester) },
+                                    onClick = {
+                                        saveAndFinish(
+                                            selectedTheme,
+                                            transparency,
+                                            selectedTimetableId,
+                                            selectedSemester
+                                        )
+                                    },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 8.dp)
@@ -226,7 +256,11 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun WidgetSemesterRow(selectedSemester: Semester?, semesters: List<Semester>, onSemesterSelected: (Semester) -> Unit) {
+    private fun WidgetSemesterRow(
+        selectedSemester: Semester?,
+        semesters: List<Semester>,
+        onSemesterSelected: (Semester) -> Unit,
+    ) {
         var showDialog by remember { mutableStateOf(false) }
         val currentModeText = selectedSemester?.description ?: ""
 
@@ -284,12 +318,17 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
 
 
     @Composable
-    private fun WidgetTimetableRow(selectedTimetableId: Int, timetableList: List<TimetableSummary>, onTimetableSelected: (Int) -> Unit) {
+    private fun WidgetTimetableRow(
+        selectedTimetableId: Int,
+        timetableList: List<TimetableSummary>,
+        onTimetableSelected: (Int) -> Unit,
+    ) {
         var showDialog by remember { mutableStateOf(false) }
         val currentModeText = if (selectedTimetableId == -1) {
             stringResource(R.string.main_timetable)
         } else {
-            timetableList.find { it.id == selectedTimetableId }?.title ?: stringResource(R.string.main_timetable)
+            timetableList.find { it.id == selectedTimetableId }?.title
+                ?: stringResource(R.string.main_timetable)
         }
 
         Row(
@@ -300,7 +339,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Outlined.List,
+                imageVector = Icons.Outlined.TableChart,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface
             )
@@ -471,7 +510,12 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
         }
     }
 
-    private fun saveAndFinish(theme: String, transparency: Float, selectedTimetableId: Int, selectedSemester: Semester?) {
+    private fun saveAndFinish(
+        theme: String,
+        transparency: Float,
+        selectedTimetableId: Int,
+        selectedSemester: Semester?,
+    ) {
         val appContext = applicationContext
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -494,21 +538,24 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             this[intPreferencesKey("selected_timetable_id")] = selectedTimetableId
                             selectedSemester?.let {
                                 this[intPreferencesKey("selected_semester_year")] = it.year
-                                this[intPreferencesKey("selected_semester_type_int")] = it.semesterType.intValue
+                                this[intPreferencesKey("selected_semester_type_int")] =
+                                    it.semesterType.intValue
                             }
                         }
                     }
                     TimetableWidget().update(appContext, glanceId)
-                    
+
                     try {
                         val timetable = if (selectedTimetableId == -1) {
-                            timetableUseCase.getMyTable(selectedSemester ?: timetableUseCase.getCurrentSemester())
+                            timetableUseCase.getMyTable(
+                                selectedSemester ?: timetableUseCase.getCurrentSemester()
+                            )
                         } else {
                             timetableUseCase.getTable(selectedTimetableId)
                         }
                         syncManager.sync(timetable, glanceId)
                     } catch (e: Exception) {
-                        // ignore
+                        Timber.e(e, "Failed to sync timetable data for widget with id $appWidgetId")
                     }
                 } else {
                     TimetableWidget().updateAll(appContext)
@@ -524,7 +571,11 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
 }
 
 @Composable
-private fun WidgetPreviewSection(selectedTheme: String, transparency: Float, selectedTimetable: Timetable?) {
+private fun WidgetPreviewSection(
+    selectedTheme: String,
+    transparency: Float,
+    selectedTimetable: Timetable?,
+) {
     val isDark = when (selectedTheme) {
         "Dark" -> true
         "Light" -> false
