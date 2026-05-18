@@ -47,6 +47,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
+import org.sparcs.soap.App.Domain.Models.OTL.Timetable
 import org.sparcs.soap.App.Domain.Models.OTL.backgroundColor
 import org.sparcs.soap.App.Domain.Models.OTL.textColor
 import org.sparcs.soap.R
@@ -169,7 +170,12 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
                 return Result.success()
             }
 
-            val timetable = timetableUseCase.getCurrentMyTable()
+            val currentSemester = timetableUseCase.getCurrentSemester()
+            val timetable = if (currentSemester != null) {
+                timetableUseCase.getMyTable(currentSemester.year, currentSemester.semesterType)
+            } else {
+                Timetable(id = "-1", lectures = emptyList())
+            }
 
             val now = Calendar.getInstance()
             val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {
