@@ -87,7 +87,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun PostComposeView(
-    viewModel: PostComposeViewModelProtocol = hiltViewModel(),
+    viewModel: PostComposeViewModelProtocol = hiltViewModel<PostComposeViewModel>(),
     navController: NavController,
 ) {
     val scrollState = rememberScrollState()
@@ -325,6 +325,7 @@ fun PostOptionsRow(
     Surface(
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 1.dp,
         modifier = Modifier
             .navigationBarsPadding()
             .imePadding()

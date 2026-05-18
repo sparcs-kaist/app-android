@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -77,6 +78,7 @@ fun SearchSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .shadow(elevation = 1.dp, shape = RoundedCornerShape(28.dp))
                 .clip(RoundedCornerShape(28.dp))
                 .background(MaterialTheme.colorScheme.background)
                 .padding(vertical = 8.dp, horizontal = 16.dp)
@@ -172,9 +174,9 @@ fun TaxiSection(
             onLoadMore = onLoadMore
         ) { room ->
             if (isSkeleton) {
-                TaxiRoomSkeletonCell()
+                TaxiRoomSkeletonCell(isSearch = true)
             } else {
-                TaxiRoomCell(room = room) {
+                TaxiRoomCell(room = room, isSearch = true) {
                     onTaxiClick(room)
                 }
             }
@@ -183,7 +185,7 @@ fun TaxiSection(
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview() {
     Theme {
         SearchSection(

@@ -117,7 +117,8 @@ fun LectureReviews(
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 1.dp
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

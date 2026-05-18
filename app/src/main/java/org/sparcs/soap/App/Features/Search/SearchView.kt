@@ -88,6 +88,7 @@ fun SearchView(
     BackHandler {
         backStackEvent()
     }
+
     LaunchedEffect(searchScope) {
         if (searchScope == SearchScope.All) {
             if (searchText.isNotEmpty()) {
@@ -120,9 +121,7 @@ fun SearchView(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.elevatedCardElevation(
-                    defaultElevation = 1.dp
-                ),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {

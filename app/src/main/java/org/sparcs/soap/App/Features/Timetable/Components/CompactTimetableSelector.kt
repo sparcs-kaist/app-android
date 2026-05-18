@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -54,8 +55,7 @@ fun CompactTimetableSelector(
     val coroutineScope = rememberCoroutineScope()
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -119,6 +119,7 @@ fun SemesterSelector(
 
     Row(
         modifier = Modifier
+            .shadow(elevation = 1.dp, shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.background)
             .padding(8.dp),
@@ -172,6 +173,7 @@ fun TableSelector(
 
     Row(
         modifier = Modifier
+            .shadow(elevation = 1.dp, shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.background),
         verticalAlignment = Alignment.CenterVertically
@@ -196,7 +198,7 @@ fun TableSelector(
                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
         )
 
-        Box {
+        Box{
             Icon(
                 imageVector = Icons.Rounded.MoreHoriz,
                 contentDescription = "Menu",
@@ -218,7 +220,7 @@ fun TableSelector(
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview() {
     Theme { CompactTimetableSelector(viewModel = PreviewTimetableViewModel(), "") }
 }

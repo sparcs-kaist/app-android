@@ -104,7 +104,7 @@ fun TaxiChatListView(
 @Composable
 private fun LoadingView() {
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         item {
@@ -156,7 +156,7 @@ fun LoadedView(
     onRoomClick: (TaxiRoom) -> Unit
 ) {
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         item {

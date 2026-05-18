@@ -77,7 +77,8 @@ fun LectureSummarySkeleton() {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 1.dp
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 repeat(7) { index ->
@@ -150,7 +151,8 @@ fun LectureSummarySkeleton() {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 1.dp
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -192,7 +194,7 @@ fun LectureSummarySkeleton() {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview(){
     Theme {
         LectureSummarySkeleton()

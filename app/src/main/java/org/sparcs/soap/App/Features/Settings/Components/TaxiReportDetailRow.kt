@@ -16,6 +16,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,8 +35,8 @@ fun TaxiReportDetailRow(
 ) {
     Column(
         modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 16.dp)
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
+            .shadow(1.dp, RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(28.dp))
             .fillMaxWidth()
             .padding(8.dp)
     ) {
@@ -90,8 +91,9 @@ fun TaxiReportDetailSkeletonRow() {
     }
     Column(
         modifier = Modifier
-            .padding(vertical = 4.dp, horizontal = 16.dp)
-            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(28.dp))
+            .padding(vertical = 4.dp)
+            .shadow(1.dp, RoundedCornerShape(28.dp))
+            .background(MaterialTheme.colorScheme.background, RoundedCornerShape(28.dp))
             .fillMaxWidth()
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -108,7 +110,7 @@ private fun Preview() {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             TaxiReportDetailRow(
                 report = TaxiReport.mock(),

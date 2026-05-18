@@ -64,7 +64,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun FeedSettingsView(
-    viewModel: FeedSettingsViewModelProtocol = hiltViewModel(),
+    viewModel: FeedSettingsViewModelProtocol = hiltViewModel<FeedSettingsViewModel>(),
     navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
@@ -212,7 +212,7 @@ private fun LoadingView() {
 
 @Composable
 private fun LoadedView(
-    viewModel: FeedSettingsViewModelProtocol = hiltViewModel(),
+    viewModel: FeedSettingsViewModelProtocol = hiltViewModel<FeedSettingsViewModel>(),
     onUpdateSuccess: () -> Unit,
 ) {
     val userState by viewModel.user.collectAsState()

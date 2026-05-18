@@ -78,7 +78,8 @@ fun CourseSummarySkeleton() {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.padding(vertical = 4.dp)
+            modifier = Modifier.padding(vertical = 4.dp),
+            shadowElevation = 1.dp
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 repeat(4) { index ->
@@ -134,7 +135,8 @@ fun CourseSummarySkeleton() {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth()
+            modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
+            shadowElevation = 1.dp
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),

@@ -47,7 +47,7 @@ fun ChatShareBubble(
     Column(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.surface,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(12.dp),

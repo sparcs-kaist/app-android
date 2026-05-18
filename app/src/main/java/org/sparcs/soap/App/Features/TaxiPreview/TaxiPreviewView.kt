@@ -132,7 +132,7 @@ fun TaxiPreviewView(
     Column(
         Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .analyticsScreen("Taxi Preview")
     ) {
         Box(

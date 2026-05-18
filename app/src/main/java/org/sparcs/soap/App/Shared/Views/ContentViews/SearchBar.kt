@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
@@ -49,8 +50,9 @@ fun SearchCustomBar(
         Box(
             modifier = Modifier
                 .weight(1f)
+                .shadow(elevation = 1.dp, shape = RoundedCornerShape(24.dp))
                 .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
 
@@ -116,7 +118,7 @@ fun SearchCustomBar(
 
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview() {
     Theme {
         SearchCustomBar(

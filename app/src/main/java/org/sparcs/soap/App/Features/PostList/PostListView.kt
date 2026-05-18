@@ -143,7 +143,7 @@ fun PostListView(
             }
         },
         modifier = Modifier.analyticsScreen(name = "Ara Post List"),
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
             modifier = Modifier

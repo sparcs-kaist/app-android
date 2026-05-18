@@ -53,7 +53,7 @@ fun ChatBubble(
     val clipboardManager = LocalClipboardManager.current
 
     val backgroundColor =
-        if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+        if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
     val contentColor =
         if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     val urlColor =
@@ -112,7 +112,7 @@ fun ChatBubbleSkeleton() {
 
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = MaterialTheme.colorScheme.surface,
         modifier = Modifier.padding(vertical = 4.dp)
     ) {
         Column(

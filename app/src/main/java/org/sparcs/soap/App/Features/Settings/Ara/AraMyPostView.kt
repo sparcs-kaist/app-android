@@ -39,7 +39,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun AraMyPostView(
-    viewModel: AraMyPostViewModelProtocol = hiltViewModel(),
+    viewModel: AraMyPostViewModelProtocol = hiltViewModel<AraMyPostViewModel>(),
     navController: NavController,
 ) {
     var loadedInitialPosts by remember { mutableStateOf(false) }

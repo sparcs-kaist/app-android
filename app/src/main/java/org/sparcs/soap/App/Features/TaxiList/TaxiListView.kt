@@ -365,7 +365,8 @@ private fun LoadedView(
 
                 if (roomsForDay.isNotEmpty()) {
                     Column(
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),

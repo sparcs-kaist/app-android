@@ -55,7 +55,7 @@ import java.util.Locale
 
 @Composable
 fun AraSettingsView(
-    viewModel: AraSettingsViewModelProtocol = hiltViewModel(),
+    viewModel: AraSettingsViewModelProtocol = hiltViewModel<AraSettingsViewModel>(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()

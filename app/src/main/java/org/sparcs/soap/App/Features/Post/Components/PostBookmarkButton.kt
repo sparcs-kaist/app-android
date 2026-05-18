@@ -1,6 +1,5 @@
 package org.sparcs.soap.App.Features.Post.Components
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -9,8 +8,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.outlined.BookmarkBorder
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -24,7 +23,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.theme.ui.Theme
-import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.R
 
 @Composable
@@ -34,10 +32,10 @@ fun PostBookmarkButton(
 ){
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
-    Card(
+    ElevatedCard(
         shape = CircleShape,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.lightGray0),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(1.dp),
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
         modifier = Modifier.clickable {
             scope.launch {
                 haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)

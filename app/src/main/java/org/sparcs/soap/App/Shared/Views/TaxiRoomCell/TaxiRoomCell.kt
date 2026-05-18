@@ -43,6 +43,7 @@ import org.sparcs.soap.App.theme.ui.Theme
 @Composable
 fun TaxiRoomCell(
     room: TaxiRoom,
+    isSearch: Boolean = false,
     taxiUser: TaxiUser? = null,
     onClick: () -> Unit = {}
 ) {
@@ -53,7 +54,7 @@ fun TaxiRoomCell(
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.background),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 2.dp)
+        elevation = if (isSearch) CardDefaults.elevatedCardElevation(defaultElevation = 0.dp) else CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -100,14 +101,14 @@ fun TaxiRoomCell(
 }
 
 @Composable
-fun TaxiRoomSkeletonCell() {
+fun TaxiRoomSkeletonCell(isSearch: Boolean = false) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.background),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+        elevation = if(isSearch) CardDefaults.elevatedCardElevation(defaultElevation = 0.dp) else CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -209,5 +210,5 @@ fun IconText(icon: ImageVector, text: String) {
 @Composable
 @Preview
 private fun Preview(){
-    Theme { TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), {}) }
+    Theme { TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), onClick = {}) }
 }

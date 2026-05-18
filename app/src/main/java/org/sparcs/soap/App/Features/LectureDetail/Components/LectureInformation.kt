@@ -36,7 +36,8 @@ fun LectureInformation(lecture: Lecture){
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            shadowElevation = 1.dp
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 LectureDetailRow(

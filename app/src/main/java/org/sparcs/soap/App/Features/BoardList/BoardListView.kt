@@ -47,7 +47,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun BoardListView(
-    viewModel: BoardListViewModelProtocol = hiltViewModel(),
+    viewModel: BoardListViewModelProtocol = hiltViewModel<BoardListViewModel>(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
