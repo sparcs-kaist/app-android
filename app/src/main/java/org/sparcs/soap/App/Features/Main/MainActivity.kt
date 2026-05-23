@@ -54,6 +54,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.kakao.vectormap.KakaoMapSdk
 import dagger.hilt.android.AndroidEntryPoint
+import org.sparcs.soap.App.ChannelManager
 import org.sparcs.soap.App.Domain.Enums.DeepLink
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Domain.Helpers.PopupManager
@@ -125,6 +126,9 @@ class MainActivity : ComponentActivity() {
         setContent {
             val darkMode by settingsViewModel.darkModeSetting.collectAsState(initial = null)
             val useDarkTheme = darkMode ?: isSystemInDarkTheme()
+            LaunchedEffect(useDarkTheme) {
+                ChannelManager.syncAppearance(useDarkTheme)
+            }
             CompositionLocalProvider(LocalAnalytics provides analyticsService) {
                 Theme(darkTheme = useDarkTheme) {
                     val mustUpdate by viewModel.mustUpdate.collectAsState()

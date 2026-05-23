@@ -4,9 +4,6 @@ import android.app.Application
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.FCMUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.UserUseCaseProtocol
@@ -26,13 +23,21 @@ class MyApplication : Application() {
     @Inject
     lateinit var fcmUseCase: FCMUseCaseProtocol
 
-    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-
     override fun onCreate() {
         super.onCreate()
 
         setupLogger()
         setupFirebase()
+
+        try {
+            val name = runCatching { userUseCase.taxiUser?.name }.getOrNull()
+            val email = runCatching { userUseCase.taxiUser?.email }.getOrNull()
+            val phone = runCatching { userUseCase.taxiUser?.phoneNumber }.getOrNull()
+            val memberId = userUseCase.feedUser?.id
+            ChannelManager.initialize(this, BuildConfig.CHANNEL_PLUGIN_KEY, name, email, phone, memberId)
+        } catch (e: Exception) {
+            Timber.e(e, "ChannelManager init from MyApplication failed")
+        }
 
 //        applicationScope.launch {
 //            try {

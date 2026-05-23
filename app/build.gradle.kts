@@ -18,6 +18,7 @@ val properties = Properties().apply {
 val sidAuthToken: String = properties.getProperty("otl_sid_auth_token")
 val kakaoMapKey: String = properties.getProperty("KAKAO_MAP_KEY")
 val kakaoNaviKey: String = properties.getProperty("KAKAO_NAVI_KEY")
+val channelPluginKey: String = properties.getProperty("CHANNEL_PLUGIN_KEY")
 
 android {
     namespace = "org.sparcs.soap"
@@ -38,6 +39,7 @@ android {
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
         buildConfigField("String", "KAKAO_MAP_KEY", "\"$kakaoMapKey\"")
         buildConfigField("String", "KAKAO_NAVI_KEY", "\"$kakaoNaviKey\"")
+        buildConfigField("String", "CHANNEL_PLUGIN_KEY", "\"$channelPluginKey\"")
     }
 
     buildTypes {
@@ -158,4 +160,6 @@ dependencies {
 
     implementation(libs.kakao.maps)
     implementation(libs.play.services.wearable)
+
+    implementation("io.channel:plugin-android:13.3.1")
 }

@@ -35,3 +35,9 @@
 # Kakao Map
 -keep class com.kakao.vectormap.** { *; }
 -keep interface com.kakao.vectormap.**
+
+# ChannelTalk / ChannelIO (recommended for older SDK versions)
+-keep class com.zoyi.** { *; }
+-keep class io.channel.** { *; }
+-dontwarn com.zoyi.**
+-dontwarn io.channel.**
