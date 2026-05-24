@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import org.sparcs.soap.App.ChannelManager
 import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.TokenStorageProtocol
 import org.sparcs.soap.App.Domain.Repositories.Ara.AraUserRepositoryProtocol
@@ -264,6 +265,7 @@ class AuthUseCase @Inject constructor(
 
     override suspend fun signOut() {
         withContext(Dispatchers.IO + NonCancellable) {
+            ChannelManager.clearIdentity()
             tokenStorage.clearTokens()
             scheduledRefreshJob?.cancel()
             widgetSyncHelper.clearAllWidgets()

@@ -80,6 +80,7 @@
     <string name="services">서비스</string>
     <string name="change_language">언어 변경</string>
     <string name="send_feedback">의견 보내기</string>
+    <string name="chat_with_us">채널톡 문의하기</string>
     <string name="app_version">앱 버전</string>
     <string name="privacy_policy">개인정보 처리 방침</string>
     <string name="my_posts">내 게시글</string>
