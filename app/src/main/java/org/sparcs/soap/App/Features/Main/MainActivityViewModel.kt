@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.ChannelManager
 import org.sparcs.soap.App.Domain.Repositories.AppVersionRepository
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.TaxiLocationUseCaseProtocol
@@ -75,6 +76,12 @@ class MainViewModel @Inject constructor(
             try {
                 Timber.d("Fetching users on activation/resume")
                 userUseCase.fetchUsers()
+                ChannelManager.updateProfile(
+                    name = userUseCase.taxiUser?.name,
+                    email = userUseCase.taxiUser?.email,
+                    mobile = userUseCase.taxiUser?.phoneNumber,
+                    memberId = userUseCase.feedUser?.id
+                )
             } catch (e: Exception) {
                 Timber.e(e, "User fetch failed")
             }

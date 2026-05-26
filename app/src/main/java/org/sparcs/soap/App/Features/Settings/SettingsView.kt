@@ -1,6 +1,8 @@
 package org.sparcs.soap.App.Features.Settings
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -58,6 +60,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import org.sparcs.soap.App.ChannelManager
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
@@ -69,7 +72,6 @@ import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.R
-import timber.log.Timber
 
 @Composable
 fun SettingsView(
@@ -77,6 +79,7 @@ fun SettingsView(
     settingsViewModel: SettingsViewModelProtocol = hiltViewModel<SettingsViewModel>(),
 ) {
     val context = LocalContext.current
+    val activity = context.findActivity()
     val isPreview = LocalInspectionMode.current
     val haptic = LocalHapticFeedback.current
 
@@ -118,7 +121,7 @@ fun SettingsView(
                 ) { navController.navigate(Channel.NotificationSettings.name) }
 
                 ThemeSwitcherButton(settingsViewModel)
-                FeedbackButton(context)
+                FeedbackButton(activity)
                 SendCrashReportsButton(isCrashlyticsEnabled) {
                     haptic.toggle(it)
                     isCrashlyticsEnabled = it
@@ -227,6 +230,12 @@ fun SettingsView(
     }
 }
 
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 @Composable
 private fun AppSettings(context: Context) {
     val currentLocale =
@@ -290,26 +299,12 @@ private fun AppSettings(context: Context) {
 }
 
 @Composable
-private fun FeedbackButton(context: Context) {
-    val sendFeedBack = stringResource(R.string.send_feedback)
-    val onClick = {
-        val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:buddy@sparcs.org")
-        }
-
-        val chooser = Intent.createChooser(emailIntent, sendFeedBack)
-
-        try {
-            context.startActivity(chooser)
-        } catch (e: Exception) {
-            Timber.e("Error launching email app")
-        }
-    }
+private fun FeedbackButton(activity: Activity?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable { onClick() },
+            .clickable { activity?.let { ChannelManager.showMessenger(it)} },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -321,7 +316,7 @@ private fun FeedbackButton(context: Context) {
         Spacer(Modifier.width(8.dp))
 
         Text(
-            text = stringResource(R.string.send_feedback),
+            text = stringResource(R.string.chat_with_us),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(vertical = 8.dp)

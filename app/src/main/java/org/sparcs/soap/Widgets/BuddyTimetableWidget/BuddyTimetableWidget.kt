@@ -7,6 +7,7 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -19,6 +20,7 @@ import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.background
@@ -82,12 +84,12 @@ class TimetableWidget : GlanceAppWidget() {
                             modifier = GlanceModifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                                Text(
-                                    context.getString(R.string.login_required),
-                                    style = TextStyle(
-                                        color = GlanceTheme.colors.onSurface
-                                    )
+                            Text(
+                                context.getString(R.string.login_required),
+                                style = TextStyle(
+                                    color = GlanceTheme.colors.onSurface
                                 )
+                            )
                         }
                     } else if (state.timetable == null) {
                         Box(
@@ -133,19 +135,22 @@ class TimetableWidget : GlanceAppWidget() {
 class TimetableWidgetSyncManager @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    suspend fun sync(timetable: Timetable) {
+    suspend fun sync(timetable: Timetable, glanceId: GlanceId? = null) {
         val newState = timetable.toWidgetUiState()
-        syncState(newState)
+        syncState(newState, glanceId)
     }
 
     suspend fun syncSignInRequired() {
         syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
-    private suspend fun syncState(state: TimetableUiState) {
+
+    private suspend fun syncState(state: TimetableUiState, specificGlanceId: GlanceId? = null) {
         try {
             val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(TimetableWidget::class.java)
+            val glanceIds = specificGlanceId?.let { listOf(it) } ?: manager.getGlanceIds(
+                TimetableWidget::class.java
+            )
 
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
@@ -154,7 +159,11 @@ class TimetableWidgetSyncManager @Inject constructor(
                     }
                 }
             }
-            TimetableWidget().updateAll(context)
+            if (specificGlanceId != null) {
+                TimetableWidget().update(context, specificGlanceId)
+            } else {
+                TimetableWidget().updateAll(context)
+            }
         } catch (_: Exception) {
             Timber.tag("WidgetSync").e("Timetable widget sync failed")
         }
@@ -182,9 +191,40 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
                 return Result.success()
             }
 
-            val timetable = timetableUseCase.getCurrentMyTable()
+            for (glanceId in glanceIds) {
+                val prefs = getAppWidgetState(
+                    applicationContext,
+                    PreferencesGlanceStateDefinition,
+                    glanceId
+                )
+                val selectedTimetableId = prefs[intPreferencesKey("selected_timetable_id")] ?: -1
 
-            syncManager.sync(timetable)
+                val timetable = if (selectedTimetableId == -1) {
+                    val savedYear = prefs[intPreferencesKey("selected_semester_year")] ?: -1
+                    val savedTypeInt = prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
+                    if (savedYear != -1 && savedTypeInt != -1) {
+                        val savedType =
+                            org.sparcs.soap.App.Domain.Enums.OTL.SemesterType.fromRawValue(
+                                savedTypeInt
+                            )
+                        timetableUseCase.getMyTable(savedYear, savedType)
+                    } else {
+                        val currentSemester = timetableUseCase.getCurrentSemester()
+                        if (currentSemester != null) {
+                            timetableUseCase.getMyTable(
+                                currentSemester.year,
+                                currentSemester.semesterType
+                            )
+                        } else {
+                            Timetable(id = "-1", lectures = emptyList())
+                        }
+                    }
+                } else {
+                    timetableUseCase.getTable(selectedTimetableId)
+                }
+
+                syncManager.sync(timetable, glanceId)
+            }
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "TimetableUpdateWorker Error")

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.ChannelManager
 import org.sparcs.soap.App.Domain.Error.Auth.AuthUseCaseError
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Usecases.AuthUseCaseProtocol
@@ -42,6 +43,12 @@ class SignInViewModel @Inject constructor(
             try {
                 authUseCase.signIn(activity)
                 userUseCase.fetchUsers()
+                ChannelManager.updateProfile(
+                    name = userUseCase.taxiUser?.name,
+                    email = userUseCase.taxiUser?.email,
+                    mobile = userUseCase.taxiUser?.phoneNumber,
+                    memberId = userUseCase.feedUser?.id
+                )
             } catch (e: Exception) {
                 val authError = e as? AuthUseCaseError
                 alertState = e.toAlertState(

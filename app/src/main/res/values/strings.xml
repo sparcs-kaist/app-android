@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">Buddy</string>
+    <string name="main_timetable">My Timetable</string>
+    <string name="semester">Semester</string>
 
 
     <string name="start">Feed</string>
@@ -93,10 +95,12 @@
     <string name="widget_system_default">System default</string>
     <string name="widget_white_mode">White Mode</string>
     <string name="widget_miscellaneous">Miscellaneous</string>
+    <string name="widget_timetable">Timetable</string>
     <string name="ara">Ara</string>
     <string name="services">Services</string>
     <string name="change_language">Change Language</string>
     <string name="send_feedback">Send Feedback</string>
+    <string name="chat_with_us">Chat with Us</string>
     <string name="app_version">App Version</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="my_posts">My Posts</string>
