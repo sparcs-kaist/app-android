@@ -264,7 +264,7 @@ object UpcomingClassStateParser {
         if (!jsonString.isNullOrBlank()) {
             val decoded = try {
                 Json.decodeFromString<UpcomingClassUiState>(jsonString)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 UpcomingClassUiState(signInRequired = true)
             }
             if (hasRefreshToken && decoded.signInRequired) {

@@ -406,7 +406,7 @@ private fun handleURL(
         try {
             val customTabsIntent = CustomTabsIntent.Builder().build()
             customTabsIntent.launchUrl(context, uri)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
         }
     }
