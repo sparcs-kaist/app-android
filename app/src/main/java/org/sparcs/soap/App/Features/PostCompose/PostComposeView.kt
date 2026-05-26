@@ -78,6 +78,7 @@ import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.PostCompose.Components.PostComposeNavigationBar
 import org.sparcs.soap.App.Features.PostCompose.Components.TopicSelector
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostComposeViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
@@ -323,13 +324,12 @@ fun PostOptionsRow(
     var expanded by remember { mutableStateOf(false) }
 
     Surface(
-        shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 1.dp,
         modifier = Modifier
             .navigationBarsPadding()
             .imePadding()
             .padding(8.dp)
+            .glassBorder(shape = RoundedCornerShape(50.dp))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

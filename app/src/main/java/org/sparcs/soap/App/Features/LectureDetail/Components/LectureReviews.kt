@@ -39,6 +39,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModel
 import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.NavigationBar.Channel
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
@@ -117,8 +118,7 @@ fun LectureReviews(
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 1.dp
+            modifier = Modifier.fillMaxWidth()            .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

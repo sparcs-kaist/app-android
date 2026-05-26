@@ -16,8 +16,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -55,6 +55,7 @@ import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewView
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.ViewModelMocks.MockSearchViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.SearchCustomBar
@@ -116,13 +117,14 @@ fun SearchView(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .padding(innerPadding)
         ) {
-            ElevatedCard(
+            Card(
                 colors = CardDefaults.elevatedCardColors(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .glassBorder(shape = RoundedCornerShape(16.dp))
             ) {
                 Column(modifier = Modifier.padding(8.dp)) {
                     SearchCustomBar(

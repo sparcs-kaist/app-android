@@ -42,7 +42,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -59,6 +58,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.theme_dark_background
@@ -90,11 +90,17 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     val manager = GlanceAppWidgetManager(this@BuddyUpcomingClassConfigActivity)
-                    val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (_: Exception) { null }
+                    val glanceId = try {
+                        manager.getGlanceIdBy(appWidgetId)
+                    } catch (_: Exception) {
+                        null
+                    }
 
                     if (glanceId != null) {
-                        val prefs = getAppWidgetState(this@BuddyUpcomingClassConfigActivity,
-                            PreferencesGlanceStateDefinition, glanceId)
+                        val prefs = getAppWidgetState(
+                            this@BuddyUpcomingClassConfigActivity,
+                            PreferencesGlanceStateDefinition, glanceId
+                        )
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
                     }
@@ -167,10 +173,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                     modifier = Modifier
                         .size(170.dp)
                         .align(Alignment.CenterHorizontally)
-                        .shadow(
-                            elevation = 1.dp,
-                            shape = RoundedCornerShape(28.dp)
-                        )
+                        .glassBorder(shape = RoundedCornerShape(28.dp))
                         .background(
                             color = MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(28.dp)
@@ -296,9 +299,11 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
 
     @Composable
     private fun WidgetTransparencyRow(transparency: Float, onTransparencyChange: (Float) -> Unit) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.Lightbulb,
@@ -338,7 +343,11 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                     null
                 }
                 if (glanceId != null) {
-                    updateAppWidgetState(appContext, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    updateAppWidgetState(
+                        appContext,
+                        PreferencesGlanceStateDefinition,
+                        glanceId
+                    ) { prefs ->
                         prefs.toMutablePreferences().apply {
                             this[stringPreferencesKey("theme_mode")] = theme
                             this[floatPreferencesKey("background_transparency")] = transparency

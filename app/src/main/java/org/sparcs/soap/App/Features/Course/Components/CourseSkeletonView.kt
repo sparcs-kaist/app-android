@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Features.Course.StatSeparator
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 
 
@@ -78,8 +79,9 @@ fun CourseSummarySkeleton() {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.padding(vertical = 4.dp),
-            shadowElevation = 1.dp
+            modifier = Modifier
+                .padding(vertical = 4.dp)
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 repeat(4) { index ->
@@ -135,8 +137,10 @@ fun CourseSummarySkeleton() {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth(),
-            shadowElevation = 1.dp
+            modifier = Modifier
+                .padding(vertical = 4.dp)
+                .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -172,7 +176,7 @@ fun CourseSummarySkeleton() {
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme {
         CourseSummarySkeleton()
     }

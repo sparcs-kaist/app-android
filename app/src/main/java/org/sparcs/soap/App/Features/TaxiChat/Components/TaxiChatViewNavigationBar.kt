@@ -254,7 +254,7 @@ private fun ArrivalStatusSection(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     onClick = onStatusClick,
-                    shape = RoundedCornerShape(8.dp),
+                    shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
                     modifier = Modifier.height(36.dp)
@@ -273,7 +273,7 @@ private fun ArrivalStatusSection(
 
                     Button(
                         onClick = { onArrivalToggle(!isArrived) },
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = buttonBackgroundColor,
                             contentColor = buttonContentColor

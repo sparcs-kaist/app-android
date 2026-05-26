@@ -148,7 +148,8 @@ fun PostListView(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp)
+                .padding(top = 8.dp)
         ) {
             Column {
                 if (showSearchBar) {

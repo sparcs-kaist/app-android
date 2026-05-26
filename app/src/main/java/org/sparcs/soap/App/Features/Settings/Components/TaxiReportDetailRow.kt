@@ -16,13 +16,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Enums.Taxi.TaxiReportType
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiReport
 import org.sparcs.soap.App.Shared.Extensions.formattedString
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
@@ -31,41 +31,61 @@ import org.sparcs.soap.R
 @Composable
 fun TaxiReportDetailRow(
     report: TaxiReport,
-    reportType: TaxiReportType
+    reportType: TaxiReportType,
 ) {
     Column(
         modifier = Modifier
-            .shadow(1.dp, RoundedCornerShape(28.dp))
+            .glassBorder(shape = RoundedCornerShape(28.dp))
             .background(MaterialTheme.colorScheme.background, RoundedCornerShape(28.dp))
             .fillMaxWidth()
             .padding(8.dp)
     ) {
         when (report.reason) {
-            TaxiReport.Reason.ETC_REASON -> RowElementView(title = stringResource(R.string.report_reason), content = stringResource(R.string.other_reasons))
-            TaxiReport.Reason.NO_SHOW -> RowElementView(title = stringResource(R.string.report_reason), content = stringResource(R.string.not_showing_up))
-            TaxiReport.Reason.NO_SETTLEMENT -> RowElementView(title = stringResource(R.string.report_reason), content = stringResource(R.string.no_settlement))
+            TaxiReport.Reason.ETC_REASON -> RowElementView(
+                title = stringResource(R.string.report_reason),
+                content = stringResource(R.string.other_reasons)
+            )
+
+            TaxiReport.Reason.NO_SHOW -> RowElementView(
+                title = stringResource(R.string.report_reason),
+                content = stringResource(R.string.not_showing_up)
+            )
+
+            TaxiReport.Reason.NO_SETTLEMENT -> RowElementView(
+                title = stringResource(R.string.report_reason),
+                content = stringResource(R.string.no_settlement)
+            )
         }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp))
 
         if (reportType == TaxiReportType.OUTGOING) {
-            RowElementView(title = stringResource(R.string.nickname), content = report.reportedUser.nickname)
+            RowElementView(
+                title = stringResource(R.string.nickname),
+                content = report.reportedUser.nickname
+            )
             Spacer(modifier = Modifier.height(4.dp))
         }
 
-        RowElementView(title = stringResource(R.string.date), content = report.time.formattedString())
+        RowElementView(
+            title = stringResource(R.string.date),
+            content = report.time.formattedString()
+        )
         Spacer(modifier = Modifier.height(4.dp))
 
         if (report.reason == TaxiReport.Reason.ETC_REASON) {
-            RowElementView(title = stringResource(R.string.other_reasons), content = report.etcDetails)
+            RowElementView(
+                title = stringResource(R.string.other_reasons),
+                content = report.etcDetails
+            )
         }
     }
 }
 
 @Composable
 fun TaxiReportDetailSkeletonRow() {
-    val row = @Composable{
-        Row{
+    val row = @Composable {
+        Row {
             Box(
                 modifier = Modifier
                     .width((80..120).random().dp)
@@ -92,13 +112,13 @@ fun TaxiReportDetailSkeletonRow() {
     Column(
         modifier = Modifier
             .padding(vertical = 4.dp)
-            .shadow(1.dp, RoundedCornerShape(28.dp))
+            .glassBorder(shape = RoundedCornerShape(28.dp))
             .background(MaterialTheme.colorScheme.background, RoundedCornerShape(28.dp))
             .fillMaxWidth()
             .padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        repeat((2..3).random()){ row() }
+        repeat((2..3).random()) { row() }
     }
 }
 

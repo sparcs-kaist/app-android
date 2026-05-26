@@ -21,7 +21,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -33,6 +32,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListRow
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
@@ -78,7 +78,7 @@ fun SearchSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .shadow(elevation = 1.dp, shape = RoundedCornerShape(28.dp))
+                .glassBorder(shape = RoundedCornerShape(28.dp))
                 .clip(RoundedCornerShape(28.dp))
                 .background(MaterialTheme.colorScheme.background)
                 .padding(vertical = 8.dp, horizontal = 16.dp)

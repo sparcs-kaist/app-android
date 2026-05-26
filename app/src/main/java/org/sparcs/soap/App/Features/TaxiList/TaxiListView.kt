@@ -18,8 +18,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -65,6 +65,7 @@ import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.isDateInSameDay
 import org.sparcs.soap.App.Shared.Extensions.weekdaySymbol
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
@@ -148,14 +149,12 @@ fun TaxiListView(
                         .padding(horizontal = 16.dp)
                         .fillMaxSize()
                 ) {
-                    ElevatedCard(
+                    Card(
                         colors = CardDefaults.elevatedCardColors(
                             containerColor = MaterialTheme.colorScheme.background
                         ),
                         shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.elevatedCardElevation(
-                            defaultElevation = 1.dp
-                        )
+                        modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
                     ) {
                         val favoriteRoutes by viewModel.favoriteRoutes.collectAsState()
                         TaxiDestinationPicker(
@@ -177,15 +176,14 @@ fun TaxiListView(
 
                     Spacer(Modifier.padding(8.dp))
 
-                    ElevatedCard(
+                    Card(
                         colors = CardDefaults.elevatedCardColors(
                             containerColor = MaterialTheme.colorScheme.background
                         ),
                         shape = RoundedCornerShape(16.dp),
-                        elevation = CardDefaults.elevatedCardElevation(
-                            defaultElevation = 1.dp
-                        ),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .glassBorder(shape = RoundedCornerShape(16.dp))
                     ) {
                         WeekDaySelector(
                             week = viewModel.week,

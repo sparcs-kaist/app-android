@@ -41,6 +41,7 @@ import org.sparcs.soap.App.Features.Course.Components.CourseNavigationBar
 import org.sparcs.soap.App.Features.Course.Components.CourseSummarySkeleton
 import org.sparcs.soap.App.Features.LectureDetail.Components.LectureReviewCell
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Mocks.OTL.mockList
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
@@ -156,8 +157,9 @@ fun CourseSummary(course: Course) {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 1.dp
+            modifier = Modifier
+                .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
 
             Column(modifier = Modifier.padding(20.dp)) {
@@ -281,8 +283,9 @@ fun CourseReviewSection(
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 1.dp
+            modifier = Modifier
+                .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

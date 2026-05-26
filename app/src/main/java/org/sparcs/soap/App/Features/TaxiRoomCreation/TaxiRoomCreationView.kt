@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.HorizontalDivider
@@ -41,6 +42,7 @@ import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDepartureTim
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiRoomCreationNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiRoomCreationViewModel
 import org.sparcs.soap.App.theme.ui.Theme
@@ -102,9 +104,7 @@ fun TaxiRoomCreationView(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.elevatedCardElevation(
-                    defaultElevation = 1.dp
-                )
+                modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
             ) {
                 TaxiDestinationPicker(
                     source = taxiListViewModel.source,
@@ -132,14 +132,12 @@ fun TaxiRoomCreationView(
                 modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
             )
 
-            ElevatedCard(
+            Card(
                 colors = CardDefaults.elevatedCardColors(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.elevatedCardElevation(
-                    defaultElevation = 1.dp
-                )
+                modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
             ) {
                 BasicTextField(
                     value = title,
@@ -166,14 +164,12 @@ fun TaxiRoomCreationView(
 
             Spacer(Modifier.padding(16.dp))
 
-            ElevatedCard(
+            Card(
                 colors = CardDefaults.elevatedCardColors(
                     containerColor = MaterialTheme.colorScheme.background
                 ),
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.elevatedCardElevation(
-                    defaultElevation = 1.dp
-                )
+                modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
             ) {
                 Column(Modifier.padding(16.dp)) {
                     TaxiDepartureTimePicker(

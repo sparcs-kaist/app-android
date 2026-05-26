@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Drafts
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 
 @Composable
@@ -57,11 +58,11 @@ fun BoardList(
                 style = MaterialTheme.typography.titleLarge
             )
         }
-        ElevatedCard(
+        Card(
             colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+            modifier = Modifier.fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Column(
                 modifier = Modifier
@@ -108,11 +109,12 @@ fun BoardListSkeleton(num: Int) {
             )
         }
 
-        ElevatedCard(
+        Card(
             colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
             shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.fillMaxWidth(),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 1.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Column(
                 modifier = Modifier

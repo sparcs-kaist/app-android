@@ -33,10 +33,10 @@ import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -76,6 +76,7 @@ import org.sparcs.soap.App.Features.FeedPostCompose.Components.FeedPostComposeNa
 import org.sparcs.soap.App.Features.PostCompose.Components.AnimatedAlphabetText
 import org.sparcs.soap.App.Features.PostCompose.TermsOfUseButton
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostComposeViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
@@ -154,13 +155,14 @@ fun FeedPostComposeView(
         modifier = Modifier
             .analyticsScreen(name = "Feed Compose"),
     ) { innerPadding ->
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .padding(16.dp)
-            .verticalScroll(scrollState)
-            .focusRequester(contentFocusRequester)
-            .noRippleClickable { contentFocusRequester.requestFocus() }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+                .verticalScroll(scrollState)
+                .focusRequester(contentFocusRequester)
+                .noRippleClickable { contentFocusRequester.requestFocus() }
         ) {
             Header(viewModel)
             Spacer(Modifier.padding(4.dp))
@@ -328,11 +330,12 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
     val previousText = typeLabels[previousType] ?: stringResource(R.string.select_type)
 
     Box {
-        ElevatedCard(
+        Card(
             colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.clickable { expanded = !expanded },
-            elevation = CardDefaults.cardElevation(1.dp)
+            modifier = Modifier
+                .clickable { expanded = !expanded }
+                .glassBorder(shape = RoundedCornerShape(20.dp)),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -391,8 +394,8 @@ private fun FeedPostOptionsRow(
         modifier = Modifier
             .navigationBarsPadding()
             .imePadding()
-            .padding(8.dp),
-        shadowElevation = 1.dp
+            .padding(8.dp)
+            .glassBorder(shape = RoundedCornerShape(50.dp))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

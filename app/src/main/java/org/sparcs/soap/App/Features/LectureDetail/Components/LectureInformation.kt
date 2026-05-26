@@ -16,13 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
 
 @Composable
-fun LectureInformation(lecture: Lecture){
+fun LectureInformation(lecture: Lecture) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -36,8 +37,9 @@ fun LectureInformation(lecture: Lecture){
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 1.dp
+            modifier = Modifier
+                .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 LectureDetailRow(
@@ -58,7 +60,10 @@ fun LectureInformation(lecture: Lecture){
                     thickness = 0.5.dp,
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
-                LectureDetailRow(title = stringResource(R.string.department), description = lecture.department.name)
+                LectureDetailRow(
+                    title = stringResource(R.string.department),
+                    description = lecture.department.name
+                )
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 12.dp),
                     thickness = 0.5.dp,
@@ -66,7 +71,8 @@ fun LectureInformation(lecture: Lecture){
                 )
                 LectureDetailRow(
                     title = stringResource(R.string.professor),
-                    description = lecture.professors.joinToString("\n") { it.name }.ifEmpty { stringResource(R.string.unknown) }
+                    description = lecture.professors.joinToString("\n") { it.name }
+                        .ifEmpty { stringResource(R.string.unknown) }
                 )
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 12.dp),
@@ -75,7 +81,8 @@ fun LectureInformation(lecture: Lecture){
                 )
                 LectureDetailRow(
                     title = stringResource(R.string.classroom),
-                    description = lecture.classes.firstOrNull()?.let { "${it.buildingName} ${it.roomName}" }
+                    description = lecture.classes.firstOrNull()
+                        ?.let { "${it.buildingName} ${it.roomName}" }
                         ?: stringResource(R.string.unknown)
                 )
                 HorizontalDivider(
@@ -101,8 +108,9 @@ fun LectureInformation(lecture: Lecture){
         }
     }
 }
+
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme { LectureInformation(lecture = Lecture.mock()) }
 }

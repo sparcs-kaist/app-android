@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
@@ -30,16 +31,18 @@ fun PostShareButton(url: String, context: Context) {
         shape = CircleShape,
         elevation = CardDefaults.cardElevation(1.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
-        modifier = Modifier.clickable {
-            val sendIntent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, url)
-                type = "text/plain"
-            }
+        modifier = Modifier
+            .clickable {
+                val sendIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, url)
+                    type = "text/plain"
+                }
 
-            val shareIntent = Intent.createChooser(sendIntent, null)
-            context.startActivity(shareIntent)
-        }
+                val shareIntent = Intent.createChooser(sendIntent, null)
+                context.startActivity(shareIntent)
+            }
+            .glassBorder(shape = CircleShape)
     ) {
         Row(
             modifier = Modifier.padding(8.dp),

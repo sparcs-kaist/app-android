@@ -44,7 +44,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,6 +67,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.TimetableSummary
 import org.sparcs.soap.App.Domain.Usecases.OTL.TimetableUseCaseProtocol
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableGrid
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.theme_dark_background
@@ -609,10 +609,7 @@ private fun WidgetPreviewSection(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(400.dp)
-                    .shadow(
-                        elevation = 1.dp,
-                        shape = RoundedCornerShape(28.dp)
-                    )
+                    .glassBorder(shape = RoundedCornerShape(28.dp))
                     .background(
                         color = MaterialTheme.colorScheme.surface,
                         shape = RoundedCornerShape(28.dp)

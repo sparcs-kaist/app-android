@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.ReportMailComposer
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.gray64
@@ -68,8 +69,9 @@ fun LectureReviewCell(
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.background,
-        modifier = Modifier.padding(vertical = 4.dp),
-        shadowElevation = 1.dp
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+            .glassBorder(shape = RoundedCornerShape(16.dp))
     ) {
         Column(
             modifier = Modifier
@@ -98,7 +100,7 @@ fun LectureReviewCell(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                if(!isMine){
+                if (!isMine) {
                     Box {
                         Icon(
                             imageVector = Icons.Rounded.MoreHoriz,
@@ -203,9 +205,10 @@ fun LectureReviewCell(
 fun LectureReviewSkeletonCell() {
     Surface(
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.background,
-        modifier = Modifier.padding(vertical = 4.dp),
-        shadowElevation = 1.dp
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .padding(vertical = 4.dp)
+            .glassBorder(shape = RoundedCornerShape(16.dp))
     ) {
         Column(
             modifier = Modifier

@@ -30,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -40,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.NavigationBar.Animation.AnimatedText
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
@@ -48,7 +48,7 @@ import org.sparcs.soap.R
 @Composable
 fun CompactTimetableSelector(
     viewModel: TimetableViewModelProtocol,
-    timetableName: String
+    timetableName: String,
 ) {
     var showRenameDialog by remember { mutableStateOf(false) }
     var renameText by remember { mutableStateOf("") }
@@ -119,7 +119,7 @@ fun SemesterSelector(
 
     Row(
         modifier = Modifier
-            .shadow(elevation = 1.dp, shape = RoundedCornerShape(25.dp))
+            .glassBorder(shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.background)
             .padding(8.dp),
@@ -167,13 +167,13 @@ fun SemesterSelector(
 fun TableSelector(
     viewModel: TimetableViewModelProtocol,
     displayName: String,
-    onRenameClick: () -> Unit
+    onRenameClick: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
-            .shadow(elevation = 1.dp, shape = RoundedCornerShape(25.dp))
+            .glassBorder(shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.background),
         verticalAlignment = Alignment.CenterVertically
@@ -198,7 +198,7 @@ fun TableSelector(
                 .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
         )
 
-        Box{
+        Box {
             Icon(
                 imageVector = Icons.Rounded.MoreHoriz,
                 contentDescription = "Menu",

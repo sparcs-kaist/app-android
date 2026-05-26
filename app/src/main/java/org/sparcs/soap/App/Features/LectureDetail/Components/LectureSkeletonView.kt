@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 
 @Composable
@@ -77,8 +78,9 @@ fun LectureSummarySkeleton() {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 1.dp
+            modifier = Modifier
+                .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 repeat(7) { index ->
@@ -121,7 +123,9 @@ fun LectureSummarySkeleton() {
 
         // Review Section Header
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -151,8 +155,9 @@ fun LectureSummarySkeleton() {
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth(),
-            shadowElevation = 1.dp
+            modifier = Modifier
+                .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Row(
                 modifier = Modifier.padding(16.dp),
@@ -195,7 +200,7 @@ fun LectureSummarySkeleton() {
 
 @Composable
 @Preview(showBackground = true)
-private fun Preview(){
+private fun Preview() {
     Theme {
         LectureSummarySkeleton()
     }

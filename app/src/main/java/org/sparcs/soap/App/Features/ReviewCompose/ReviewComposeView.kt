@@ -63,6 +63,7 @@ import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.ReviewCompose.Components.ReviewComposeNavigationBar
 import org.sparcs.soap.App.Networking.ResponseDTO.OTL.ratingToString
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
@@ -232,6 +233,7 @@ private fun RatingPicker(
         Box {
             Row(
                 Modifier
+                    .glassBorder(shape = RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 8.dp, vertical = 4.dp)

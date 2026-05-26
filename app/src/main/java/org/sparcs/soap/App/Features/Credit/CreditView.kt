@@ -37,6 +37,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.isDark
 import org.sparcs.soap.R
@@ -182,6 +183,7 @@ private fun MemberIconCard(
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .padding(6.dp)
+            .glassBorder(shape = MaterialTheme.shapes.medium)
     ) {
         Row(
             modifier = Modifier

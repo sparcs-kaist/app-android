@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
@@ -50,6 +51,7 @@ import org.sparcs.soap.App.Features.Timetable.Components.TimetableSummary
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableViewNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.escapeHash
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureSearchViewModel
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
@@ -111,17 +113,15 @@ fun TimetableView(
             ) {
                 CompactTimetableSelector(viewModel, timetableName)
 
-                ElevatedCard(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .glassBorder(shape = RoundedCornerShape(28.dp))
                         .height(screenHeight * 0.66f),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.background
                     ),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 1.dp
-                    )
                 ) {
                     Box(modifier = Modifier.padding(8.dp)) {
                         TimetableGrid(
@@ -141,13 +141,11 @@ fun TimetableView(
 
                 ElevatedCard(
                     modifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .glassBorder(shape = RoundedCornerShape(28.dp)),
                     shape = RoundedCornerShape(28.dp),
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.background
-                    ),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 1.dp
                     )
                 ) {
                     Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {

@@ -22,33 +22,35 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
 @Composable
 fun PostBookmarkButton(
     isBookmarked: Boolean,
-    onToggleBookmark: () -> Unit
-){
+    onToggleBookmark: () -> Unit,
+) {
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     ElevatedCard(
         shape = CircleShape,
-        elevation = CardDefaults.cardElevation(1.dp),
         colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
-        modifier = Modifier.clickable {
-            scope.launch {
-                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                onToggleBookmark()
+        modifier = Modifier
+            .clickable {
+                scope.launch {
+                    haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                    onToggleBookmark()
+                }
             }
-        }
-    ){
+            .glassBorder(shape = CircleShape)
+    ) {
         Row(
             modifier = Modifier.padding(8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = if(isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
+                imageVector = if (isBookmarked) Icons.Default.Bookmark else Icons.Outlined.BookmarkBorder,
                 contentDescription = stringResource(R.string.to_bookmark),
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp)
@@ -59,6 +61,6 @@ fun PostBookmarkButton(
 
 @Composable
 @Preview
-private fun Preview(){
+private fun Preview() {
     Theme { PostBookmarkButton(true, {}) }
 }
