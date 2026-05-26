@@ -15,6 +15,7 @@ import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -95,7 +96,7 @@ fun LectureReviews(
                 },
                 colors = if (canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface) else
                     ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0),
-                contentPadding = PaddingValues(horizontal = 8.dp)
+                contentPadding = PaddingValues(horizontal = 8.dp),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.RateReview,
@@ -154,6 +155,7 @@ fun LectureReviews(
                                 onLikeClick = { viewModel.toggleReviewLike(myReview) },
                                 isMine = true
                             )
+                            HorizontalDivider()
                         }
                     }
 
@@ -218,19 +220,19 @@ private fun MockView(state: LectureDetailViewModel.ViewState) {
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun LoadingPreview() {
     Theme { MockView(LectureDetailViewModel.ViewState.Loading) }
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun LoadedPreview() {
     Theme { MockView(LectureDetailViewModel.ViewState.Loaded) }
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun ErrorPreview() {
     Theme { MockView(LectureDetailViewModel.ViewState.Error(Exception())) }
 }

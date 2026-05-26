@@ -314,6 +314,8 @@ fun CourseReviewSection(
                         onLikeClick = { viewModel.toggleReviewLike(it) },
                         isMine = true
                     )
+                    Spacer(Modifier.padding(8.dp))
+                    HorizontalDivider(thickness = 0.5.dp)
                 }
             }
 
