@@ -88,7 +88,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             WidgetTheme(themeMode = themeMode) {
                 Box(
                     modifier = GlanceModifier.fillMaxSize().background(
-                        GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency)
+                        GlanceTheme.colors.background.getColor(context).copy(alpha = transparency)
                     )
                 ) {
                     when {

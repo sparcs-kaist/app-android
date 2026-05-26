@@ -12,8 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Feed
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
@@ -22,7 +20,6 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.TableChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Surface
@@ -31,9 +28,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -194,7 +190,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     popEnterTransition = null,
                     popExitTransition = trendingPopExitTransition()
                 ) { backStackEntry ->
-                    val viewModel: FeedPostViewModelProtocol = hiltViewModel<FeedPostViewModel>(backStackEntry)
+                    val viewModel: FeedPostViewModelProtocol =
+                        hiltViewModel<FeedPostViewModel>(backStackEntry)
                     val parentEntry = remember(backStackEntry) {
                         navController.getBackStackEntry("FeedGraph")
                     }
@@ -675,7 +672,11 @@ fun AppDownBar(
             stringResource(Channel.Boards.title),
             Icons.AutoMirrored.Rounded.FormatListBulleted
         ),
-        Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), Icons.Rounded.TableChart),
+        Triple(
+            Channel.TimeTable,
+            stringResource(Channel.TimeTable.title),
+            Icons.Rounded.TableChart
+        ),
         Triple(Channel.Taxi, stringResource(Channel.Taxi.title), Icons.Rounded.LocalTaxi),
         Triple(Channel.SearchView, stringResource(R.string.search), Icons.Rounded.Search)
     )
@@ -689,7 +690,7 @@ fun AppDownBar(
                 .fillMaxWidth()
                 .navigationBarsPadding()
                 .height(80.dp),
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             items.forEach { (channel, label, icon) ->
@@ -702,12 +703,18 @@ fun AppDownBar(
                             contentDescription = label
                         )
                     },
-                    label = { Text(label) },
+                    label = {
+                        Text(
+                            text = label,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    },
                     colors = NavigationBarItemDefaults.colors(
                         MaterialTheme.colorScheme.primary,
                         indicatorColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
-                    modifier = Modifier.width(76.dp)
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
