@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Comment
+import androidx.compose.material.icons.automirrored.outlined.Comment
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -31,6 +31,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 
 @Composable
@@ -39,22 +40,25 @@ fun PostCommentButton(
     onClick: () -> Unit
 ) {
     val haptic = LocalHapticFeedback.current
+
     Card(
         shape = CircleShape,
         colors = CardDefaults.cardColors(
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.background
         ),
-        modifier = Modifier.clickable {
-            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-            onClick()
-        }
+        modifier = Modifier
+            .clickable {
+                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                onClick()
+            }
+            .glassBorder(shape = CircleShape)
     ) {
         Row(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Outlined.Comment,
+                imageVector = Icons.AutoMirrored.Outlined.Comment,
                 contentDescription = "Comments",
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp)

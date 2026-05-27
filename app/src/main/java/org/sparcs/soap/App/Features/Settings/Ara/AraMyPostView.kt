@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -40,7 +39,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun AraMyPostView(
-    viewModel: AraMyPostViewModelProtocol = hiltViewModel(),
+    viewModel: AraMyPostViewModelProtocol = hiltViewModel<AraMyPostViewModel>(),
     navController: NavController,
 ) {
     var loadedInitialPosts by remember { mutableStateOf(false) }
@@ -91,7 +90,7 @@ fun AraMyPostView(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
         ) {
             if (showSearchBar && type != AraMyPostViewModel.PostType.BOOKMARK) {
                 SearchCustomBar(
@@ -167,7 +166,6 @@ private fun MyPostView(
             )
 
             is AraMyPostViewModel.ViewState.Error -> ErrorView(
-                icon = Icons.Default.Warning,
                 error = state.error,
                 onRetry = onRefresh
             )

@@ -1,4 +1,5 @@
 package org.sparcs.soap.App.Features.PostCompose.Components
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -15,10 +16,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import org.sparcs.soap.App.Domain.Helpers.LocalizedString
 import org.sparcs.soap.App.Features.PostCompose.PostComposeViewModelProtocol
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostComposeViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
@@ -57,11 +59,12 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
     val previousText = previousTopic?.localized() ?: stringResource(R.string.no_topic)
 
     Box {
-        Card(
+        ElevatedCard(
             colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
             modifier = Modifier
                 .clickable { expanded = !expanded }
+                .glassBorder(shape = RoundedCornerShape(20.dp))
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -82,12 +85,12 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
         ) {
             DropdownMenuItem(
                 text = {
                     Text(
-                        text =  stringResource(R.string.no_topic),
+                        text = stringResource(R.string.no_topic),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.grayBB
                     )
@@ -120,7 +123,7 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
 fun AnimatedAlphabetText(
     from: String,
     to: String,
-    singleLine: Boolean? = false
+    singleLine: Boolean? = false,
 ) {
     val maxLength = maxOf(from.length, to.length)
     var displayed by remember { mutableStateOf(from.padEnd(maxLength)) }
@@ -145,7 +148,7 @@ fun AnimatedAlphabetText(
         for (i in 0 until maxLength) {
             val toChar = displayed.getOrNull(i) ?: ' '
             val color =
-                if (displayed ==  noTopicString) MaterialTheme.colorScheme.grayBB
+                if (displayed == noTopicString) MaterialTheme.colorScheme.grayBB
                 else MaterialTheme.colorScheme.onSurface
 
             AnimatedContent(
@@ -175,6 +178,6 @@ fun AnimatedAlphabetText(
 
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ TopicSelector(MockPostComposeViewModel()) }
+private fun Preview() {
+    Theme { TopicSelector(MockPostComposeViewModel()) }
 }

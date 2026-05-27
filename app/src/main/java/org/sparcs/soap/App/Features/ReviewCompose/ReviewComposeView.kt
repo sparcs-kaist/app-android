@@ -63,6 +63,7 @@ import org.sparcs.soap.App.Features.LectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.App.Features.ReviewCompose.Components.ReviewComposeNavigationBar
 import org.sparcs.soap.App.Networking.ResponseDTO.OTL.ratingToString
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
@@ -73,8 +74,8 @@ import org.sparcs.soap.R
 
 @Composable
 fun ReviewComposeView(
-    viewModel: ReviewComposeViewModelProtocol = hiltViewModel(),
-    lectureDetailViewModel: LectureDetailViewModelProtocol = hiltViewModel(),
+    viewModel: ReviewComposeViewModelProtocol = hiltViewModel<ReviewComposeViewModel>(),
+    lectureDetailViewModel: LectureDetailViewModelProtocol = hiltViewModel<LectureDetailViewModel>(),
     navController: NavController,
 ) {
     val writtenReview by lectureDetailViewModel.writtenReview.collectAsState()
@@ -193,7 +194,10 @@ fun ReviewComposeView(
                     decorationBox = { inner ->
                         if (contentField.text.isEmpty())
                             Text(
-                                text = stringResource(R.string.share_lecture_thoughts, viewModel.lecture.name),
+                                text = stringResource(
+                                    R.string.share_lecture_thoughts,
+                                    viewModel.lecture.name
+                                ),
                                 color = MaterialTheme.colorScheme.grayBB,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -232,6 +236,7 @@ private fun RatingPicker(
         Box {
             Row(
                 Modifier
+                    .glassBorder(shape = RoundedCornerShape(16.dp))
                     .clip(RoundedCornerShape(16.dp))
                     .background(MaterialTheme.colorScheme.surface)
                     .padding(horizontal = 8.dp, vertical = 4.dp)
@@ -264,7 +269,8 @@ private fun RatingPicker(
 
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.background)
             ) {
                 listOf(5, 4, 3, 2, 1).forEach { itValue ->
                     DropdownMenuItem(

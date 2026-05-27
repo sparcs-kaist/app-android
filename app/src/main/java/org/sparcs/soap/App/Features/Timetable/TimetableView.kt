@@ -13,6 +13,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -25,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -49,6 +51,7 @@ import org.sparcs.soap.App.Features.Timetable.Components.TimetableSummary
 import org.sparcs.soap.App.Features.Timetable.Components.TimetableViewNavigationBar
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Extensions.escapeHash
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureSearchViewModel
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
@@ -102,6 +105,7 @@ fun TimetableView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.surface)
                     .padding(innerPadding)
                     .verticalScroll(scrollState)
                     .padding(16.dp),
@@ -109,43 +113,51 @@ fun TimetableView(
             ) {
                 CompactTimetableSelector(viewModel, timetableName)
 
-                Box(
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(screenHeight * 0.66f)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(8.dp)
+                        .glassBorder(shape = RoundedCornerShape(28.dp))
+                        .height(screenHeight * 0.66f),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
                 ) {
-                    TimetableGrid(
-                        viewModel = viewModel,
-                        onLectureSelected = { lecture ->
-                            selectedLecture = lecture
-                            val json = Gson().toJson(lecture).escapeHash()
-                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                        },
-                        showDeleteDialog = { lecture ->
-                                lectureToDelete = lecture
-                                showDeleteDialog = true
-                        }
-                    )
+                    Box(modifier = Modifier.padding(8.dp)) {
+                        TimetableGrid(
+                            viewModel = viewModel,
+                            onLectureSelected = { lecture ->
+                                selectedLecture = lecture
+                                val json = Gson().toJson(lecture).escapeHash()
+                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                            },
+                            showDeleteDialog = { lecture ->
+                                    lectureToDelete = lecture
+                                    showDeleteDialog = true
+                            }
+                        )
+                    }
                 }
 
-                Box(
+                ElevatedCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 20.dp, vertical = 12.dp)
-                ) {
-                    LectureList(
-                        lectures = selectedTimetable?.lectures ?: emptyList(),
-                        onLectureSelected = { lecture ->
-                            selectedLecture = lecture
-                            val json = Gson().toJson(lecture).escapeHash()
-                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                        }
+                        .glassBorder(shape = RoundedCornerShape(28.dp)),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.background
                     )
+                ) {
+                    Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+                        LectureList(
+                            lectures = selectedTimetable?.lectures ?: emptyList(),
+                            onLectureSelected = { lecture ->
+                                selectedLecture = lecture
+                                val json = Gson().toJson(lecture).escapeHash()
+                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                            }
+                        )
+                    }
                 }
 
                 selectedTimetable?.let { TimetableCreditGraph(it) }

@@ -31,7 +31,7 @@ fun TaxiChatListViewNavigationBar(
             }
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.surface
         )
     )
 }

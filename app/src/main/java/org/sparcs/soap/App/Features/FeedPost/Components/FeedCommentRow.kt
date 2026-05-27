@@ -65,7 +65,6 @@ import org.sparcs.soap.App.Shared.Mocks.Feed.mock
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
-import org.sparcs.soap.App.theme.ui.grayF8
 import org.sparcs.soap.Features.Post.PostCommentActionsMenu
 import org.sparcs.soap.R
 
@@ -221,7 +220,7 @@ private fun ProfileImage(comment: FeedComment) {
             modifier = Modifier
                 .size(24.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.grayF8),
+                .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
             Text("😀", fontSize = 12.sp)

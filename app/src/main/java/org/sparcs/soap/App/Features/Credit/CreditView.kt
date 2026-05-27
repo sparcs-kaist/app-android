@@ -25,7 +25,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -38,6 +37,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.isDark
 import org.sparcs.soap.R
@@ -92,12 +92,12 @@ fun CreditView(navController: NavController) {
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
         modifier = Modifier.analyticsScreen("Credit"),
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.surface
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -180,10 +180,10 @@ private fun MemberIconCard(
 ) {
     Surface(
         shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier
             .padding(6.dp)
-            .shadow(elevation = 3.dp, shape = MaterialTheme.shapes.medium)
+            .glassBorder(shape = MaterialTheme.shapes.medium)
     ) {
         Row(
             modifier = Modifier

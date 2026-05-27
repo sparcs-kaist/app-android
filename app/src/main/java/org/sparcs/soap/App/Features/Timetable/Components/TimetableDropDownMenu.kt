@@ -53,7 +53,7 @@ fun TimetableDropDownMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismiss,
-        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         shape = RoundedCornerShape(16.dp)
     ) {
         TimetableListItems(viewModel, onDismiss)
@@ -164,8 +164,12 @@ private fun TimetableManagementItems(
     val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
     val isActionEnabled = selectedTimetableID != null
 
-    val deleteColor = if (isActionEnabled) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB.copy(alpha = 0.5f)
-    val renameColor = if (isActionEnabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB.copy(alpha = 0.5f)
+    val deleteColor =
+        if (isActionEnabled) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB.copy(alpha = 0.5f)
+    val renameColor =
+        if (isActionEnabled) MaterialTheme.colorScheme.onBackground else MaterialTheme.colorScheme.grayBB.copy(
+            alpha = 0.5f
+        )
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
@@ -185,7 +189,7 @@ private fun TimetableManagementItems(
 
     HorizontalDivider(
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
     )
 
     DropdownMenuItem(

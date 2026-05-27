@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 
 @Composable
@@ -61,6 +62,7 @@ fun BoardList(
             colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier.fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Column(
                 modifier = Modifier
@@ -112,6 +114,7 @@ fun BoardListSkeleton(num: Int) {
             shape = RoundedCornerShape(16.dp),
             modifier = Modifier
                 .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Column(
                 modifier = Modifier

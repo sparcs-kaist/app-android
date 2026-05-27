@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Features.TaxiChat.ChatBubbles
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +43,7 @@ fun ChatCollectionView(
     onImageClick: (String) -> Unit,
     listState: LazyListState,
     scrollToBottomTrigger: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val badgeByAuthorID = remember(room.participants) {
         room.participants.associate { it.id to it.badge }
@@ -88,7 +90,9 @@ fun ChatCollectionView(
 
     LazyColumn(
         state = listState,
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface),
         contentPadding = PaddingValues(top = 8.dp),
         reverseLayout = true
     ) {
@@ -121,7 +125,7 @@ private fun ChatItem(
     settlementMeta: TaxiChat.SettlementMeta?,
     onCommitPayment: () -> Unit,
     onImageClick: (String) -> Unit,
-    hasBadge: (String?) -> Boolean
+    hasBadge: (String?) -> Boolean,
 ) {
     when (item) {
         is ChatRenderItem.DaySeparator -> {
@@ -160,8 +164,17 @@ private fun ChatItem(
                     } else {
                         ChatBubble(item.chat, item.position, item.sender.isMine)
                     }
-                    TaxiChat.ChatType.S3IMG -> ChatImageBubble(id = item.chat.content, onClick = onImageClick)
-                    TaxiChat.ChatType.DEPARTURE -> ChatDepartureBubble(room = room, chatTime = item.chat.time)
+
+                    TaxiChat.ChatType.S3IMG -> ChatImageBubble(
+                        id = item.chat.content,
+                        onClick = onImageClick
+                    )
+
+                    TaxiChat.ChatType.DEPARTURE -> ChatDepartureBubble(
+                        room = room,
+                        chatTime = item.chat.time
+                    )
+
                     TaxiChat.ChatType.ARRIVAL -> ChatArrivalBubble()
                     TaxiChat.ChatType.SETTLEMENT -> ChatSettlementBubble()
                     TaxiChat.ChatType.PAYMENT -> ChatPaymentBubble()
@@ -174,6 +187,7 @@ private fun ChatItem(
                     ) {
                         onCommitPayment()
                     }
+
                     TaxiChat.ChatType.SHARE -> ChatShareBubble(room = room)
                     else -> Text(stringResource(R.string.not_supported))
                 }

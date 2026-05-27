@@ -76,6 +76,7 @@ import org.sparcs.soap.App.Features.FeedPostCompose.Components.FeedPostComposeNa
 import org.sparcs.soap.App.Features.PostCompose.Components.AnimatedAlphabetText
 import org.sparcs.soap.App.Features.PostCompose.TermsOfUseButton
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostComposeViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
@@ -85,7 +86,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun FeedPostComposeView(
-    viewModel: FeedPostComposeViewModelProtocol = hiltViewModel(),
+    viewModel: FeedPostComposeViewModelProtocol = hiltViewModel<FeedPostComposeViewModel>(),
     navController: NavController,
 ) {
     var showPhotosPicker by remember { mutableStateOf(false) }
@@ -154,13 +155,14 @@ fun FeedPostComposeView(
         modifier = Modifier
             .analyticsScreen(name = "Feed Compose"),
     ) { innerPadding ->
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .padding(innerPadding)
-            .padding(16.dp)
-            .verticalScroll(scrollState)
-            .focusRequester(contentFocusRequester)
-            .noRippleClickable { contentFocusRequester.requestFocus() }
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp)
+                .verticalScroll(scrollState)
+                .focusRequester(contentFocusRequester)
+                .noRippleClickable { contentFocusRequester.requestFocus() }
         ) {
             Header(viewModel)
             Spacer(Modifier.padding(4.dp))
@@ -331,7 +333,9 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
         Card(
             colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
             shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.clickable { expanded = !expanded }
+            modifier = Modifier
+                .clickable { expanded = !expanded }
+                .glassBorder(shape = RoundedCornerShape(20.dp)),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -355,7 +359,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
         ) {
             typeLabels.forEach { (type, label) ->
                 DropdownMenuItem(
@@ -391,6 +395,7 @@ private fun FeedPostOptionsRow(
             .navigationBarsPadding()
             .imePadding()
             .padding(8.dp)
+            .glassBorder(shape = RoundedCornerShape(50.dp))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

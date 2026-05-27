@@ -38,7 +38,7 @@ fun ChatSettlementBubble() {
     ) {
         Text(
             text = stringResource(R.string.i_paid_for_the_taxi),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.background,
             style = MaterialTheme.typography.bodyMedium
         )
         Icon(

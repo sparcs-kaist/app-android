@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Features.LectureSearch
 
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,7 @@ import org.sparcs.soap.App.Domain.Models.OTL.CourseLecture
 import org.sparcs.soap.App.Domain.Models.OTL.Lecture
 import org.sparcs.soap.App.Features.LectureSearch.Components.LectureSearchViewNavigationBar
 import org.sparcs.soap.App.Features.NavigationBar.Channel
+import org.sparcs.soap.App.Features.Timetable.TimetableViewModel
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
@@ -62,8 +64,8 @@ import org.sparcs.soap.R
 fun LectureSearchView(
     navController: NavController,
     timetableName: String,
-    timetableViewModel: TimetableViewModelProtocol = hiltViewModel(),
-    lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel(),
+    timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
+    lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
     onFold: () -> Unit,
 ) {
     val state by lectureSearchViewModel.state.collectAsState()
@@ -93,6 +95,7 @@ fun LectureSearchView(
         Column(
             modifier = Modifier
                 .imePadding()
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .padding(horizontal = 16.dp)
                 .fillMaxSize()

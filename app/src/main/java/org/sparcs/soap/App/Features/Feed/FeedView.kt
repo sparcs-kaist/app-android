@@ -1,13 +1,12 @@
 package org.sparcs.soap.App.Features.Feed
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -117,7 +116,7 @@ fun FeedView(
             )
         },
         modifier = Modifier
-            .analyticsScreen(name = "Feed"),
+            .analyticsScreen(name = "Feed")
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
@@ -143,7 +142,10 @@ fun FeedView(
                 }
 
                 is FeedViewModel.ViewState.Loaded -> {
-                    LazyColumn(state = listState) {
+                    LazyColumn(
+                        state = listState,
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
                         itemsIndexed(
                             items = viewModel.posts,
                             key = { _, post -> post.id }
@@ -159,6 +161,7 @@ fun FeedView(
                                     navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
                                 }
                             )
+
                             HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
                         }
                     }
@@ -166,7 +169,6 @@ fun FeedView(
 
                 is FeedViewModel.ViewState.Error -> {
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         error = (state as FeedViewModel.ViewState.Error).error,
                         onRetry = {
                             scope.launch { viewModel.fetchInitialData() }

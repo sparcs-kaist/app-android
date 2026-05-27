@@ -38,7 +38,7 @@ fun ChatPaymentBubble() {
     ) {
         Text(
             text = stringResource(R.string.i_sent_the_money),
-            color = MaterialTheme.colorScheme.surface,
+            color = MaterialTheme.colorScheme.background,
             style = MaterialTheme.typography.bodyMedium
         )
         Icon(

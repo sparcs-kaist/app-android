@@ -309,7 +309,7 @@ fun CustomDatePicker(
 
     Column(
         modifier = Modifier
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .animateContentSize()
     ) {

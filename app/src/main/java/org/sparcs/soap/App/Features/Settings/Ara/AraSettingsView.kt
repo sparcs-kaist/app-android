@@ -12,7 +12,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +55,7 @@ import java.util.Locale
 
 @Composable
 fun AraSettingsView(
-    viewModel: AraSettingsViewModelProtocol = hiltViewModel(),
+    viewModel: AraSettingsViewModelProtocol = hiltViewModel<AraSettingsViewModel>(),
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
@@ -85,7 +84,7 @@ fun AraSettingsView(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             when (state) {
                 is AraSettingsViewModel.ViewState.Loading -> LoadingView()
@@ -97,7 +96,6 @@ fun AraSettingsView(
                 is AraSettingsViewModel.ViewState.Error -> {
                     val error = (state as AraSettingsViewModel.ViewState.Error).error
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         error = error,
                         defaultMessageResId = (state as AraSettingsViewModel.ViewState.Error).resId,
                         onRetry = { scope.launch { viewModel.fetchUser() } }

@@ -113,7 +113,7 @@ fun TimetableGrid(
                                 maxMinutes - minMinutes,
                                 daysHeightPx + 24
                             ).toDp()
-                        }//+24하면 딱 맞는 이유가 뭐지...
+                        }
 
                         val animatedCellHeight by animateDpAsState(
                             targetValue = cellHeight,

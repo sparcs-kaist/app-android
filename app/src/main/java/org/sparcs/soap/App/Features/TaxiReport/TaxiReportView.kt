@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -64,6 +65,7 @@ import org.sparcs.soap.App.Features.NavigationBar.Components.DismissButton
 import org.sparcs.soap.App.Features.TaxiChat.TaxiChatViewModel
 import org.sparcs.soap.App.Features.TaxiReport.Components.TaxiReportUser
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiReportViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
 import org.sparcs.soap.App.theme.ui.Theme
@@ -73,7 +75,7 @@ import org.sparcs.soap.R
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiReportView(
-    viewModel: TaxiReportViewModelProtocol = hiltViewModel(),
+    viewModel: TaxiReportViewModelProtocol = hiltViewModel<TaxiReportViewModel>(),
     navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
@@ -106,7 +108,7 @@ fun TaxiReportView(
                 navigationIcon = {
                     DismissButton { navController.popBackStack() }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.background)
+                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.surface)
             )
         },
         modifier = Modifier.analyticsScreen("Taxi Report")
@@ -114,9 +116,10 @@ fun TaxiReportView(
 
         Column(
             modifier = Modifier
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(16.dp)
                 .padding(innerPadding)
-                .fillMaxWidth(),
+                .fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             SectionTitle(stringResource(R.string.who))
@@ -196,11 +199,16 @@ fun ParticipantsCard(
     onUserSelected: (TaxiParticipant) -> Unit,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassBorder(shape = RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
     ) {
-        Column {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp)
+        ) {
             participants.forEach { participant ->
                 TaxiReportUser(
                     user = participant,
@@ -224,9 +232,11 @@ fun ReasonCard(
     var expanded by remember { mutableStateOf(false) }
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassBorder(shape = RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background)
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -249,7 +259,8 @@ fun ReasonCard(
 
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.background)
             ) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.didnot_send_the_money)) },

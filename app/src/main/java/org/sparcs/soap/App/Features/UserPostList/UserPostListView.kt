@@ -3,8 +3,7 @@ package org.sparcs.soap.App.Features.UserPostList
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,7 +41,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun UserPostListView(
-    viewModel: UserPostListViewModelProtocol = hiltViewModel(),
+    viewModel: UserPostListViewModelProtocol = hiltViewModel<UserPostListViewModel>(),
     navController: NavController,
 ) {
     val user = viewModel.user
@@ -78,12 +77,14 @@ fun UserPostListView(
                 navController = navController
             )
         },
+        containerColor = MaterialTheme.colorScheme.background,
         modifier = Modifier.analyticsScreen(name = "Ara User Post List")
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 20.dp)
+                .padding(top = 8.dp)
         ) {
             Column {
                 if (showSearchBar) {
@@ -132,7 +133,6 @@ fun UserPostListView(
                     is UserPostListViewModel.ViewState.Error -> {
                         val error = (state as UserPostListViewModel.ViewState.Error).error
                         ErrorView(
-                            icon = Icons.Default.Warning,
                             error = error,
                             onRetry = {
                                 coroutineScope.launch { viewModel.fetchInitialPosts() }

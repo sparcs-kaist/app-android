@@ -42,7 +42,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -59,10 +58,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
-import org.sparcs.soap.App.theme.ui.theme_dark_surface
-import org.sparcs.soap.App.theme.ui.theme_light_surface
+import org.sparcs.soap.App.theme.ui.theme_dark_background
+import org.sparcs.soap.App.theme.ui.theme_light_background
 import org.sparcs.soap.R
 
 class BuddyUpcomingClassConfigActivity : ComponentActivity() {
@@ -90,11 +90,17 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     val manager = GlanceAppWidgetManager(this@BuddyUpcomingClassConfigActivity)
-                    val glanceId = try { manager.getGlanceIdBy(appWidgetId) } catch (_: Exception) { null }
+                    val glanceId = try {
+                        manager.getGlanceIdBy(appWidgetId)
+                    } catch (_: Exception) {
+                        null
+                    }
 
                     if (glanceId != null) {
-                        val prefs = getAppWidgetState(this@BuddyUpcomingClassConfigActivity,
-                            PreferencesGlanceStateDefinition, glanceId)
+                        val prefs = getAppWidgetState(
+                            this@BuddyUpcomingClassConfigActivity,
+                            PreferencesGlanceStateDefinition, glanceId
+                        )
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
                     }
@@ -104,12 +110,13 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                     topBar = {
                         SettingsViewNavigationBar(
                             title = stringResource(R.string.widget_settings),
-                            onDismiss = { finish() }
+                            onDismiss = { finish() },
+                            containerColor = MaterialTheme.colorScheme.surface
                         )
                     }
                 ) { innerPadding ->
                     Surface(
-                        color = MaterialTheme.colorScheme.background,
+                        color = MaterialTheme.colorScheme.surface,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
@@ -148,11 +155,13 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
     private fun UpcomingClassPreviewSection(selectedTheme: String, transparency: Float) {
         val isDark =
             if (selectedTheme == "System") isSystemInDarkTheme() else selectedTheme == "Dark"
-        val surfaceColor = if (isDark) theme_dark_surface else theme_light_surface
+        val surfaceColor = if (isDark) theme_dark_background else theme_light_background
 
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 24.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 24.dp)
+        ) {
             Text(
                 text = stringResource(R.string.preview),
                 style = MaterialTheme.typography.titleMedium,
@@ -164,37 +173,49 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                     modifier = Modifier
                         .size(170.dp)
                         .align(Alignment.CenterHorizontally)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(surfaceColor.copy(alpha = transparency))
-                        .padding(12.dp)
+                        .glassBorder(shape = RoundedCornerShape(28.dp))
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(28.dp)
+                        )
                 ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        Text(
-                            text = stringResource(R.string.up_next),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = stringResource(R.string.preview_lecture_title),
-                            maxLines = 2,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
-                        Text(
-                            text = stringResource(R.string.preview_lecture_time),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = stringResource(R.string.preview_lecture_location),
-                            maxLines = 1,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = surfaceColor.copy(alpha = transparency),
+                                shape = RoundedCornerShape(28.dp)
+                            )
+                            .padding(12.dp)
+                    ) {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Text(
+                                text = stringResource(R.string.up_next),
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = stringResource(R.string.preview_lecture_title),
+                                maxLines = 2,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Spacer(modifier = Modifier.weight(1f))
+                            Text(
+                                text = stringResource(R.string.preview_lecture_time),
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                text = stringResource(R.string.preview_lecture_location),
+                                maxLines = 1,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -278,9 +299,11 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
 
     @Composable
     private fun WidgetTransparencyRow(transparency: Float, onTransparencyChange: (Float) -> Unit) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp, horizontal = 16.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.Lightbulb,
@@ -320,7 +343,11 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                     null
                 }
                 if (glanceId != null) {
-                    updateAppWidgetState(appContext, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    updateAppWidgetState(
+                        appContext,
+                        PreferencesGlanceStateDefinition,
+                        glanceId
+                    ) { prefs ->
                         prefs.toMutablePreferences().apply {
                             this[stringPreferencesKey("theme_mode")] = theme
                             this[floatPreferencesKey("background_transparency")] = transparency

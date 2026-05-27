@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.downvote
 import org.sparcs.soap.App.theme.ui.upvote
@@ -53,8 +54,9 @@ fun PostVoteButton(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
+            .glassBorder(RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .padding(8.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {

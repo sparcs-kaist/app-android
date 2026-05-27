@@ -16,8 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -110,7 +108,6 @@ fun FeedPostView(
 
         is FeedPostViewModel.ViewState.Error -> {
             ErrorView(
-                icon = Icons.Default.Warning,
                 error = state.error,
                 onRetry = {
                     viewModel.post?.let { viewModel.fetchComments(it.id, initial = true) }
@@ -164,7 +161,7 @@ fun FeedPostView(
                         name = "Feed Post",
                         "is_author" to post.isAuthor,
                         "has_comments" to (post.commentCount > 0)
-                    ),
+                    )
             ) { innerPadding ->
                 PullToRefreshBox(
                     isRefreshing = isRefreshing,
@@ -402,7 +399,7 @@ private fun Comments(
         }
 
         is FeedPostViewModel.ViewState.Loaded -> {
-            Column(Modifier.padding(horizontal = 16.dp)) {
+            Column(Modifier.padding(horizontal = 20.dp)) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
@@ -440,7 +437,6 @@ private fun Comments(
         is FeedPostViewModel.ViewState.Error -> {
             val coroutineScope = rememberCoroutineScope()
             ErrorView(
-                icon = Icons.Default.Warning,
                 error = state.error,
                 onRetry = {
                     coroutineScope.launch {

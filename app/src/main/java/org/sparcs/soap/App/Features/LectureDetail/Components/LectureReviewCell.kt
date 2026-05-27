@@ -26,6 +26,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.ReportMailComposer
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.gray64
@@ -64,14 +66,17 @@ fun LectureReviewCell(
     val haptic = LocalHapticFeedback.current
     val unknown = stringResource(R.string.unknown)
 
-    Box(
-        Modifier
-            .padding(vertical = 4.dp)
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.background,
+        modifier = Modifier
+            .padding(vertical = 6.dp)
+            .glassBorder(shape = RoundedCornerShape(16.dp))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface, shape = RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(16.dp))
                 .padding(8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -95,7 +100,7 @@ fun LectureReviewCell(
 
                 Spacer(modifier = Modifier.weight(1f))
 
-                if(!isMine){
+                if (!isMine) {
                     Box {
                         Icon(
                             imageVector = Icons.Rounded.MoreHoriz,
@@ -105,7 +110,7 @@ fun LectureReviewCell(
                         DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
-                            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+                            modifier = Modifier.background(MaterialTheme.colorScheme.background),
                             shape = RoundedCornerShape(16.dp)
                         ) {
 //                        DropdownMenuItem(
@@ -198,15 +203,18 @@ fun LectureReviewCell(
 
 @Composable
 fun LectureReviewSkeletonCell() {
-    Box(
-        Modifier
-            .padding(vertical = 4.dp)
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .padding(vertical = 6.dp)
+            .glassBorder(shape = RoundedCornerShape(16.dp))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    MaterialTheme.colorScheme.surface,
+                    MaterialTheme.colorScheme.background,
                     shape = RoundedCornerShape(16.dp)
                 )
                 .padding(8.dp)
@@ -217,7 +225,7 @@ fun LectureReviewSkeletonCell() {
                     modifier = Modifier
                         .size(width = 100.dp, height = 20.dp)
                         .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                             RoundedCornerShape(4.dp)
                         )
                 )
@@ -228,7 +236,7 @@ fun LectureReviewSkeletonCell() {
                     modifier = Modifier
                         .size(width = 40.dp, height = 20.dp)
                         .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                             RoundedCornerShape(4.dp)
                         )
                 )
@@ -238,7 +246,7 @@ fun LectureReviewSkeletonCell() {
                 Box(
                     modifier = Modifier
                         .size(24.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
                 )
             }
 
@@ -252,7 +260,7 @@ fun LectureReviewSkeletonCell() {
                             .height(16.dp)
                             .padding(vertical = 2.dp)
                             .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                                 RoundedCornerShape(4.dp)
                             )
                     )
@@ -267,7 +275,7 @@ fun LectureReviewSkeletonCell() {
                         modifier = Modifier
                             .size(width = 40.dp, height = 20.dp)
                             .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                                 RoundedCornerShape(4.dp)
                             )
                     )
@@ -281,7 +289,7 @@ fun LectureReviewSkeletonCell() {
                         modifier = Modifier
                             .size(width = 20.dp, height = 20.dp)
                             .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                                 RoundedCornerShape(4.dp)
                             )
                     )
@@ -289,7 +297,7 @@ fun LectureReviewSkeletonCell() {
                     Box(
                         modifier = Modifier
                             .size(24.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
                     )
                 }
             }

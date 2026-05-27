@@ -83,7 +83,7 @@ class BuddyDDayWidget : GlanceAppWidget() {
                     Box(
                         modifier = GlanceModifier
                             .fillMaxSize()
-                            .background(GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency))
+                            .background(GlanceTheme.colors.background.getColor(context).copy(alpha = transparency))
                     ) {
                         when {
                             state.entry == null -> DDayLoadingView()
@@ -114,7 +114,7 @@ class BuddyDDayWidget : GlanceAppWidget() {
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
-                        .background(GlanceTheme.colors.surface)
+                        .background(GlanceTheme.colors.background)
                         .padding(8.dp),
                 ) {
                     DDayErrorView()

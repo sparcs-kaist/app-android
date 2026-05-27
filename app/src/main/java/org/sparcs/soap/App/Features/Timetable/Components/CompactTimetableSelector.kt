@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Features.NavigationBar.Animation.AnimatedText
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
@@ -47,15 +48,14 @@ import org.sparcs.soap.R
 @Composable
 fun CompactTimetableSelector(
     viewModel: TimetableViewModelProtocol,
-    timetableName: String
+    timetableName: String,
 ) {
     var showRenameDialog by remember { mutableStateOf(false) }
     var renameText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
 
@@ -119,8 +119,9 @@ fun SemesterSelector(
 
     Row(
         modifier = Modifier
+            .glassBorder(shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .background(MaterialTheme.colorScheme.background)
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -166,14 +167,15 @@ fun SemesterSelector(
 fun TableSelector(
     viewModel: TimetableViewModelProtocol,
     displayName: String,
-    onRenameClick: () -> Unit
+    onRenameClick: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
+            .glassBorder(shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
-            .background(MaterialTheme.colorScheme.surface),
+            .background(MaterialTheme.colorScheme.background),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
@@ -218,7 +220,7 @@ fun TableSelector(
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview() {
     Theme { CompactTimetableSelector(viewModel = PreviewTimetableViewModel(), "") }
 }

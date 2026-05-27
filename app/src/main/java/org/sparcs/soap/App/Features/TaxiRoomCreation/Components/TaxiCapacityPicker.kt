@@ -68,7 +68,7 @@ fun TaxiCapacityPicker(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+                modifier = Modifier.background(MaterialTheme.colorScheme.background)
             ) {
                 (2..4).forEach { count ->
                     DropdownMenuItem(

@@ -21,7 +21,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.SearchOff
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -56,7 +55,6 @@ import org.sparcs.soap.App.Shared.ViewModelMocks.Taxi.MockTaxiReportListViewMode
 import org.sparcs.soap.App.Shared.Views.ContentViews.ErrorView
 import org.sparcs.soap.App.Shared.Views.ContentViews.UnavailableView
 import org.sparcs.soap.App.theme.ui.Theme
-import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.R
 
 @Composable
@@ -86,9 +84,9 @@ fun TaxiReportListView(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             AnimatedSegmentedPicker(
                 options = TaxiReportType.entries.map { stringResource(it.value) },
@@ -107,8 +105,7 @@ fun TaxiReportListView(
                     val error =
                         (viewModel.state.collectAsState().value as TaxiReportListViewModel.ViewState.Error).error
                     ErrorView(
-                        Icons.Default.Warning,
-                        error
+                        error = error
                     ) { coroutineScope.launch { viewModel.fetchReports() } }
                 }
             }
@@ -175,7 +172,7 @@ fun AnimatedSegmentedPicker(
             .fillMaxWidth()
             .height(30.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(MaterialTheme.colorScheme.lightGray0)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         val segmentWidth = maxWidth / options.size
 

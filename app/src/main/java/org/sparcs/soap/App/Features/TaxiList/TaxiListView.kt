@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -32,7 +31,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -62,10 +60,12 @@ import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.TaxiList.Components.TaxiListNavigationBar
 import org.sparcs.soap.App.Features.TaxiList.Components.WeekDaySelector
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewView
+import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.App.Features.TaxiRoomCreation.Components.TaxiDestinationPicker
 import org.sparcs.soap.App.Shared.Extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.isDateInSameDay
 import org.sparcs.soap.App.Shared.Extensions.weekdaySymbol
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
@@ -83,8 +83,8 @@ import java.util.Date
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiListView(
-    viewModel: TaxiListViewModelProtocol = hiltViewModel(),
-    taxiPreviewViewModel: TaxiPreviewViewModelProtocol = hiltViewModel(),
+    viewModel: TaxiListViewModelProtocol = hiltViewModel<TaxiListViewModel>(),
+    taxiPreviewViewModel: TaxiPreviewViewModelProtocol = hiltViewModel<TaxiPreviewViewModel>(),
     navController: NavController,
 ) {
     val haptic = LocalHapticFeedback.current
@@ -141,7 +141,7 @@ fun TaxiListView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
+                    .background(MaterialTheme.colorScheme.surface)
                     .verticalScroll(scrollState)
             ) {
                 Column(
@@ -150,8 +150,11 @@ fun TaxiListView(
                         .fillMaxSize()
                 ) {
                     Card(
-                        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-                        shape = RoundedCornerShape(16.dp)
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.background
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
                     ) {
                         val favoriteRoutes by viewModel.favoriteRoutes.collectAsState()
                         TaxiDestinationPicker(
@@ -173,15 +176,25 @@ fun TaxiListView(
 
                     Spacer(Modifier.padding(8.dp))
 
-                    WeekDaySelector(
-                        week = viewModel.week,
-                        selectedDate = selectedDate,
-                        onSelect = { newDate ->
-                            selectedDate = newDate
-                            viewModel.selectedDate = selectedDate
-                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                        }
-                    )
+                    Card(
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.background
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .glassBorder(shape = RoundedCornerShape(16.dp))
+                    ) {
+                        WeekDaySelector(
+                            week = viewModel.week,
+                            selectedDate = selectedDate,
+                            onSelect = { newDate ->
+                                selectedDate = newDate
+                                viewModel.selectedDate = selectedDate
+                                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                            }
+                        )
+                    }
                 }
 
                 Spacer(Modifier.padding(16.dp))
@@ -226,7 +239,6 @@ fun TaxiListView(
 
                     is TaxiListViewModel.ViewState.Error -> {
                         ErrorView(
-                            icon = Icons.Default.Warning,
                             error = (uiState as TaxiListViewModel.ViewState.Error).error,
                             onRetry = {
                                 viewModel.fetchData()
@@ -351,7 +363,8 @@ private fun LoadedView(
 
                 if (roomsForDay.isNotEmpty()) {
                     Column(
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
+                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -428,7 +441,8 @@ private fun EmptyView(navController: NavController) {
             onClick = {
                 navController.navigate(Channel.TaxiRoomCreation.name)
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(0.6f),
+            shape = RoundedCornerShape(12.dp)
         ) {
             Text(stringResource(R.string.create_a_new_group))
         }
@@ -479,7 +493,8 @@ private fun EmptyResultView(
                 onClick = {
                     navController.navigate(Channel.TaxiRoomCreation.name)
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(0.6f),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text(stringResource(R.string.create_a_new_group))
             }
@@ -488,7 +503,8 @@ private fun EmptyResultView(
 
             OutlinedButton(
                 onClick = onClear,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(0.6f),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Text(stringResource(R.string.clear_selection))
             }

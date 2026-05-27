@@ -33,6 +33,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Features.TaxiPreview.Components.RouteHeaderView
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.relativeTimeString
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mock
 import org.sparcs.soap.App.Shared.Mocks.Taxi.mockList
@@ -43,16 +44,24 @@ import org.sparcs.soap.App.theme.ui.Theme
 @Composable
 fun TaxiRoomCell(
     room: TaxiRoom,
+    isSearch: Boolean = false,
     taxiUser: TaxiUser? = null,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() }
-            .padding(vertical = 2.dp),
+            .padding(vertical = 4.dp)
+            .glassBorder(
+                shape = if (isSearch) RoundedCornerShape(0.dp) else RoundedCornerShape(16.dp),
+                shadowElevation = if (isSearch) 0.dp else 1.dp,
+                borderWidth = if (isSearch) 0.dp else 1.dp,
+                alphaTop = if (isSearch) 0f else 0.3f,
+                alphaBottom = if (isSearch) 0f else 0.03f,
+            ),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.background),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -72,9 +81,10 @@ fun TaxiRoomCell(
                     )
                 }
 
-                if (room.isDeparted){
+                if (room.isDeparted) {
                     TaxiRoomStatusIndicator(
-                        settlementType = room.participants.firstOrNull { it.id == taxiUser?.oid }?.isSettlement ?: TaxiParticipant.SettlementType.NotDeparted,
+                        settlementType = room.participants.firstOrNull { it.id == taxiUser?.oid }?.isSettlement
+                            ?: TaxiParticipant.SettlementType.NotDeparted,
                         settlementCount = room.settlementTotal ?: 0,
                         participantsCount = room.participants.size
                     )
@@ -99,13 +109,18 @@ fun TaxiRoomCell(
 }
 
 @Composable
-fun TaxiRoomSkeletonCell() {
+fun TaxiRoomSkeletonCell(isSearch: Boolean = false) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 2.dp),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            .padding(vertical = 4.dp)
+            .glassBorder(
+                shape = if (isSearch) RoundedCornerShape(0.dp) else RoundedCornerShape(16.dp),
+                shadowElevation = if (isSearch) 0.dp else 1.dp,
+                alphaTop = if (isSearch) 0f else 0.3f,
+                alphaBottom = if (isSearch) 0f else 0.03f,
+            ),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.background),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -123,13 +138,19 @@ fun TaxiRoomSkeletonCell() {
                         modifier = Modifier
                             .fillMaxWidth(0.6f)
                             .height(16.dp)
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                RoundedCornerShape(4.dp)
+                            )
                     )
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.4f)
                             .height(16.dp)
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                                RoundedCornerShape(4.dp)
+                            )
                     )
                 }
 
@@ -139,14 +160,20 @@ fun TaxiRoomSkeletonCell() {
                     modifier = Modifier
                         .padding(8.dp)
                         .padding(horizontal = 4.dp)
-                        .background(Color(0xFF4CAF50).copy(alpha = 0.1f), shape = RoundedCornerShape(16.dp))
+                        .background(
+                            Color(0xFF4CAF50).copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(16.dp)
+                        )
                         .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxWidth(0.2f)
                             .height(16.dp)
-                            .background(Color(0xFF4CAF50).copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                            .background(
+                                Color(0xFF4CAF50).copy(alpha = 0.2f),
+                                RoundedCornerShape(4.dp)
+                            )
                     )
                     Icon(
                         imageVector = Icons.Rounded.Group,
@@ -165,19 +192,28 @@ fun TaxiRoomSkeletonCell() {
                     modifier = Modifier
                         .width(40.dp)
                         .height(12.dp)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .background(
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            RoundedCornerShape(4.dp)
+                        )
                 )
                 Box(
                     modifier = Modifier
                         .width(4.dp)
                         .height(12.dp)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .background(
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            RoundedCornerShape(4.dp)
+                        )
                 )
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.5f)
                         .height(12.dp)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f), RoundedCornerShape(4.dp))
+                        .background(
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                            RoundedCornerShape(4.dp)
+                        )
                 )
             }
         }
@@ -205,7 +241,7 @@ fun IconText(icon: ImageVector, text: String) {
 }
 
 @Composable
-@Preview
-private fun Preview(){
-    Theme { TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), {}) }
+@Preview(showBackground = true)
+private fun Preview() {
+    Theme { TaxiRoomCell(room = TaxiRoom.mockList()[0], taxiUser = TaxiUser.mock(), onClick = {}) }
 }

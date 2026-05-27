@@ -41,7 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -58,10 +57,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.grayBB
-import org.sparcs.soap.App.theme.ui.theme_dark_surface
-import org.sparcs.soap.App.theme.ui.theme_light_surface
+import org.sparcs.soap.App.theme.ui.theme_dark_background
+import org.sparcs.soap.App.theme.ui.theme_light_background
 import org.sparcs.soap.R
 
 class BuddyDDayWidgetConfigActivity : ComponentActivity() {
@@ -109,12 +109,13 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
                     topBar = {
                         SettingsViewNavigationBar(
                             title = stringResource(R.string.widget_settings),
-                            onDismiss = { finish() }
+                            onDismiss = { finish() },
+                            containerColor = MaterialTheme.colorScheme.surface
                         )
                     }
                 ) { innerPadding ->
                     Surface(
-                        color = MaterialTheme.colorScheme.background,
+                        color = MaterialTheme.colorScheme.surface,
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
@@ -277,7 +278,7 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
             else -> isSystemInDarkTheme()
         }
 
-        val surfaceColor = if (isDark) theme_dark_surface else theme_light_surface
+        val surfaceColor = if (isDark) theme_dark_background else theme_light_background
 
         Column(
             modifier = Modifier
@@ -296,44 +297,56 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
                         .padding(horizontal = 16.dp)
                         .width(160.dp)
                         .height(160.dp)
-                        .clip(RoundedCornerShape(28.dp))
-                        .background(surfaceColor.copy(alpha = transparency))
-                        .padding(16.dp),
-                    contentAlignment = Alignment.TopStart
-                ) {
-                    Column {
-                        Text(
-                            text = stringResource(R.string.d_day_widget_ends_in).uppercase(),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
+                        .glassBorder(shape = RoundedCornerShape(28.dp))
+                        .background(
+                            color = MaterialTheme.colorScheme.surface,
+                            shape = RoundedCornerShape(28.dp)
                         )
-
-                        Row(verticalAlignment = Alignment.Bottom) {
-                            Text(
-                                text = "54",
-                                color = MaterialTheme.colorScheme.onSurface,
-                                fontSize = 36.sp,
-                                fontWeight = FontWeight.Medium,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = surfaceColor.copy(alpha = transparency),
+                                shape = RoundedCornerShape(28.dp)
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
+                            .padding(16.dp),
+                        contentAlignment = Alignment.TopStart
+                    ) {
+                        Column {
                             Text(
-                                text = "days",
-                                color = MaterialTheme.colorScheme.onSurface,
+                                text = stringResource(R.string.d_day_widget_ends_in).uppercase(),
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+
+                            Row(verticalAlignment = Alignment.Bottom) {
+                                Text(
+                                    text = "54",
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 36.sp,
+                                    fontWeight = FontWeight.Medium,
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "days",
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(bottom = 6.dp)
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.weight(1f))
+
+                            Text(
+                                text = stringResource(R.string.preview_d_day_semester_label),
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 12.sp,
-                                fontWeight = FontWeight.Medium,
-                                modifier = Modifier.padding(bottom = 6.dp)
+                                fontWeight = FontWeight.Bold,
                             )
                         }
-
-                        Spacer(modifier = Modifier.weight(1f))
-
-                        Text(
-                            text = stringResource(R.string.preview_d_day_semester_label),
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                        )
                     }
                 }
             }

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -80,9 +79,10 @@ fun FeedPostRow(
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    Column(Modifier
-        .fillMaxWidth()
-        .noRippleClickable { onComment() }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .noRippleClickable { onComment() }
     ) {
         Header(
             post,
@@ -133,7 +133,7 @@ private fun Header(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .padding(horizontal = 20.dp, vertical = 4.dp)
     ) {
         ProfileImage(post)
         Spacer(Modifier.width(8.dp))
@@ -248,12 +248,16 @@ private fun Content(
 
                 onComment()
             },
-            modifier = Modifier.padding(horizontal = 16.dp)
+            modifier = Modifier.padding(horizontal = 20.dp)
         )
     }
 
     if (post.images.isNotEmpty()) {
-        var fullscreenRequest by remember { mutableStateOf<Pair<List<org.sparcs.soap.App.Domain.Models.Feed.FeedImage>, Int>?>(null) }
+        var fullscreenRequest by remember {
+            mutableStateOf<Pair<List<org.sparcs.soap.App.Domain.Models.Feed.FeedImage>, Int>?>(
+                null
+            )
+        }
 
         PostImagesStrip(
             images = post.images,
@@ -286,7 +290,7 @@ private fun Footer(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 20.dp, vertical = 8.dp)
     ) {
         PostVoteButton(
             myVote = when (post.myVote) {
@@ -314,74 +318,77 @@ fun FeedPostRowSkeleton() {
     Column(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
+        Column(
+            Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
+                .padding(vertical = 4.dp)
         ) {
-            Box(
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray.copy(alpha = 0.3f))
-            )
-            Spacer(Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(80.dp)
-                    .height(14.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
-            Spacer(Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(50.dp)
-                    .height(12.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
-        }
-
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .height(16.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
-            Spacer(Modifier.height(8.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
                 Box(
                     modifier = Modifier
-                        .size(width = 400.dp, height = 200.dp)
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(Color.LightGray.copy(alpha = 0.3f))
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(14.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(50.dp)
+                        .height(12.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+            }
+
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .height(16.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+                Spacer(Modifier.height(8.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
                         .clip(MaterialTheme.shapes.medium)
                         .background(Color.LightGray.copy(alpha = 0.3f))
                 )
             }
-        }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Box(
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .width(60.dp)
-                    .height(32.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
-            Spacer(Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .width(50.dp)
-                    .height(32.dp)
-                    .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
-            )
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(32.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .width(50.dp)
+                        .height(32.dp)
+                        .background(Color.LightGray.copy(alpha = 0.3f), CircleShape)
+                )
+            }
         }
     }
 }
@@ -403,7 +410,7 @@ private fun handleURL(
         try {
             val customTabsIntent = CustomTabsIntent.Builder().build()
             customTabsIntent.launchUrl(context, uri)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
         }
     }
@@ -492,5 +499,13 @@ private fun PreviewURLContent() {
             onComment = { },
             singleLine = false
         )
+    }
+}
+
+@Preview(showBackground = true, name = "Skeleton")
+@Composable
+private fun PreviewSkeleton() {
+    Theme {
+        FeedPostRowSkeleton()
     }
 }

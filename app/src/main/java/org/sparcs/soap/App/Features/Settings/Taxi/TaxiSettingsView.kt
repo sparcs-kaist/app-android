@@ -18,7 +18,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.AlertDialog
@@ -187,7 +186,7 @@ fun TaxiSettingsView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
                 .background(MaterialTheme.colorScheme.background)
         ) {
 
@@ -203,7 +202,6 @@ fun TaxiSettingsView(
                 is TaxiSettingsViewModel.ViewState.Error -> {
                     val error = (state as TaxiSettingsViewModel.ViewState.Error).error
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         defaultMessageResId = (state as TaxiSettingsViewModel.ViewState.Error).resId,
                         error = error,
                         onRetry = { coroutineScope.launch { viewModel.fetchUser() } }

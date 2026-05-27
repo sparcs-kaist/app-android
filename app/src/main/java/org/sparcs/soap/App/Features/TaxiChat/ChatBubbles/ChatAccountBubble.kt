@@ -45,7 +45,7 @@ fun ChatAccountBubble(
     Column(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(12.dp),
@@ -83,21 +83,21 @@ fun ChatAccountBubble(
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface
+                        tint = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         text = bank, fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                     Text(
                         accountNumber,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             } else {
                 Text(
                     stringResource(R.string.account_parse_failed),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -116,7 +116,7 @@ fun ChatAccountBubble(
                     Text(
                         text = stringResource(R.string.taxi_settlement_individual, perPersonAmount),
                         style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
             }

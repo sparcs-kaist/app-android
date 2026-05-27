@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -46,7 +45,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun TaxiChatListView(
-    viewModel: TaxiChatListViewModelProtocol = hiltViewModel(),
+    viewModel: TaxiChatListViewModelProtocol = hiltViewModel<TaxiChatListViewModel>(),
     navController: NavController
 ) {
     val state by viewModel.state.collectAsState()
@@ -65,7 +64,7 @@ fun TaxiChatListView(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding)
                 .padding(16.dp)
         ) {
@@ -90,7 +89,6 @@ fun TaxiChatListView(
             is TaxiChatListViewModel.ViewState.Error -> {
                 val error = state as TaxiChatListViewModel.ViewState.Error
                 ErrorView(
-                    icon = Icons.Default.Warning,
                     error = error.error,
                     onRetry = {
                         viewModel.fetchData()
@@ -106,7 +104,7 @@ fun TaxiChatListView(
 @Composable
 private fun LoadingView() {
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         item {
@@ -158,7 +156,7 @@ fun LoadedView(
     onRoomClick: (TaxiRoom) -> Unit
 ) {
     LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxSize()
     ) {
         item {

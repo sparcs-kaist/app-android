@@ -88,7 +88,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             WidgetTheme(themeMode = themeMode) {
                 Box(
                     modifier = GlanceModifier.fillMaxSize().background(
-                        GlanceTheme.colors.surface.getColor(context).copy(alpha = transparency)
+                        GlanceTheme.colors.background.getColor(context).copy(alpha = transparency)
                     )
                 ) {
                     when {
@@ -264,7 +264,7 @@ object UpcomingClassStateParser {
         if (!jsonString.isNullOrBlank()) {
             val decoded = try {
                 Json.decodeFromString<UpcomingClassUiState>(jsonString)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 UpcomingClassUiState(signInRequired = true)
             }
             if (hasRefreshToken && decoded.signInRequired) {

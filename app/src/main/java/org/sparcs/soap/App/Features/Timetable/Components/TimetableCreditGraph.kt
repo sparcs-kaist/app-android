@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Features.Timetable.Components
 
+import android.graphics.Paint
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -35,8 +36,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Domain.Enums.OTL.LectureType
 import org.sparcs.soap.App.Domain.Models.OTL.Timetable
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.OTL.mockList
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.App.theme.ui.theme_light_background
 
 val lectureColors = mapOf(
     LectureType.BR to Color(0xFF298DFF),
@@ -50,7 +53,7 @@ val lectureColors = mapOf(
 @Composable
 fun TimetableCreditGraph(
     timetable: Timetable,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val lectureTypes = listOf(
         LectureType.BR, LectureType.BE, LectureType.MR,
@@ -66,11 +69,15 @@ fun TimetableCreditGraph(
     }
 
     val animatedTotal = animatedCredits.sumOf { it.value.toDouble() }.toFloat().coerceAtLeast(1f)
-
+    val isLight = MaterialTheme.colorScheme.background == theme_light_background
+    
     Card(
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth()
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassBorder(shape = RoundedCornerShape(20.dp))
     ) {
         Column(modifier = modifier.padding(16.dp)) {
             Canvas(
@@ -121,7 +128,7 @@ fun TimetableCreditGraph(
                 tickValues.forEach { tick ->
                     val x = (tick.toFloat() / animatedTotal) * widthPx
                     drawLine(
-                        color = Color.DarkGray,
+                        color = if(isLight) Color.DarkGray else Color.LightGray,
                         start = Offset(x, 0f),
                         end = Offset(x, heightPx / 2),
                         strokeWidth = 1f
@@ -132,10 +139,10 @@ fun TimetableCreditGraph(
                             "$tick",
                             x,
                             heightPx / 2 + 30f,
-                            android.graphics.Paint().apply {
+                            Paint().apply {
                                 textSize = 28f
-                                color = android.graphics.Color.DKGRAY
-                                textAlign = android.graphics.Paint.Align.CENTER
+                                color = if(isLight) android.graphics.Color.DKGRAY else android.graphics.Color.LTGRAY
+                                textAlign = Paint.Align.CENTER
                             }
                         )
                     }
@@ -169,6 +176,7 @@ fun TimetableCreditGraph(
         }
     }
 }
+
 @Composable
 @Preview
 private fun Preview() {

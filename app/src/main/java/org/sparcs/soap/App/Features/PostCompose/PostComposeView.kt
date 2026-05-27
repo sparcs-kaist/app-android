@@ -78,6 +78,7 @@ import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Features.PostCompose.Components.PostComposeNavigationBar
 import org.sparcs.soap.App.Features.PostCompose.Components.TopicSelector
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Extensions.noRippleClickable
 import org.sparcs.soap.App.Shared.ViewModelMocks.Ara.MockPostComposeViewModel
 import org.sparcs.soap.App.Shared.Views.ContentViews.GlobalAlertDialog
@@ -87,7 +88,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun PostComposeView(
-    viewModel: PostComposeViewModelProtocol = hiltViewModel(),
+    viewModel: PostComposeViewModelProtocol = hiltViewModel<PostComposeViewModel>(),
     navController: NavController,
 ) {
     val scrollState = rememberScrollState()
@@ -323,12 +324,12 @@ fun PostOptionsRow(
     var expanded by remember { mutableStateOf(false) }
 
     Surface(
-        shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .navigationBarsPadding()
             .imePadding()
             .padding(8.dp)
+            .glassBorder(shape = RoundedCornerShape(50.dp))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -358,7 +359,8 @@ fun PostOptionsRow(
 
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background)
                 ) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.political)) },

@@ -203,6 +203,7 @@
     <string name="find_etc">Find courses, posts, rides and more.</string>
     <string name="confirm">Confirm</string>
     <string name="warning">Warning</string>
+    <string name="review_like_warning">Liking your own review is not allowed.</string>
     <string name="nickname_change_confirmation">
     Nicknames can only be changed every 3 months. Change nickname to %1$s?
     </string>

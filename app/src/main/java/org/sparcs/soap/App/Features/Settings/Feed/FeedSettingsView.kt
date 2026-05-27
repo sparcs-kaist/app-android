@@ -21,8 +21,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -66,7 +64,7 @@ import org.sparcs.soap.R
 
 @Composable
 fun FeedSettingsView(
-    viewModel: FeedSettingsViewModelProtocol = hiltViewModel(),
+    viewModel: FeedSettingsViewModelProtocol = hiltViewModel<FeedSettingsViewModel>(),
     navController: NavController,
 ) {
     val scope = rememberCoroutineScope()
@@ -93,7 +91,7 @@ fun FeedSettingsView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
                 .background(MaterialTheme.colorScheme.background)
                 .then(if (viewModel.isUpdatingProfile) Modifier.alpha(0.5f) else Modifier)
         ) {
@@ -115,7 +113,6 @@ fun FeedSettingsView(
                 is FeedSettingsViewModel.ViewState.Error -> {
                     val error = (state as FeedSettingsViewModel.ViewState.Error).error
                     ErrorView(
-                        icon = Icons.Default.Warning,
                         error = error,
                         defaultMessageResId = (state as FeedSettingsViewModel.ViewState.Error).resId,
                         onRetry = { scope.launch { viewModel.fetchUser() } }
@@ -215,7 +212,7 @@ private fun LoadingView() {
 
 @Composable
 private fun LoadedView(
-    viewModel: FeedSettingsViewModelProtocol = hiltViewModel(),
+    viewModel: FeedSettingsViewModelProtocol = hiltViewModel<FeedSettingsViewModel>(),
     onUpdateSuccess: () -> Unit,
 ) {
     val userState by viewModel.user.collectAsState()

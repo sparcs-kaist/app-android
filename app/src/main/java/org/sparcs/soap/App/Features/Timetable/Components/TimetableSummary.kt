@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModelProtocol
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
@@ -31,9 +32,10 @@ fun TimetableSummary(
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
 
     Card(
-        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(20.dp),
-        modifier = Modifier.fillMaxWidth()
+        colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassBorder(shape = RoundedCornerShape(20.dp))
     ) {
         Row(
             modifier = Modifier

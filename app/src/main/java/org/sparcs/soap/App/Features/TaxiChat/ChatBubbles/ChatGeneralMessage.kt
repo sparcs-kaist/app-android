@@ -39,7 +39,7 @@ fun ChatGeneralMessage(
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(0.3f),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f),
                             shape = RoundedCornerShape(12.dp)
                         )
                         .padding(vertical = 4.dp, horizontal = 8.dp)
@@ -59,7 +59,7 @@ fun ChatGeneralMessage(
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant.copy(0.3f),
+                            color = MaterialTheme.colorScheme.surfaceVariant.copy(0.5f),
                             shape = RoundedCornerShape(12.dp)
                         )
                         .padding(vertical = 4.dp, horizontal = 8.dp)

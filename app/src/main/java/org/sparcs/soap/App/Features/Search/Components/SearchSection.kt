@@ -32,6 +32,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Features.NavigationBar.Channel
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListRow
 import org.sparcs.soap.App.Features.PostList.Components.PostListRow.PostListSkeletonRow
+import org.sparcs.soap.App.Shared.Extensions.glassBorder
 import org.sparcs.soap.App.Shared.Mocks.OTL.mock
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.App.Shared.Views.TaxiRoomCell.TaxiRoomSkeletonCell
@@ -77,8 +78,9 @@ fun SearchSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(28.dp))
                 .clip(RoundedCornerShape(28.dp))
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(vertical = 8.dp, horizontal = 16.dp)
         ) {
             content()
@@ -172,9 +174,9 @@ fun TaxiSection(
             onLoadMore = onLoadMore
         ) { room ->
             if (isSkeleton) {
-                TaxiRoomSkeletonCell()
+                TaxiRoomSkeletonCell(isSearch = true)
             } else {
-                TaxiRoomCell(room = room) {
+                TaxiRoomCell(room = room, isSearch = true) {
                     onTaxiClick(room)
                 }
             }
@@ -183,7 +185,7 @@ fun TaxiSection(
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun Preview() {
     Theme {
         SearchSection(
