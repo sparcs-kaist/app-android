@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -64,6 +66,7 @@ import org.sparcs.soap.App.Shared.Extensions.toDetectedAnnotatedString
 import org.sparcs.soap.App.Shared.Mocks.Feed.mock
 import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.App.theme.ui.darkGray
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.Features.Post.PostCommentActionsMenu
 import org.sparcs.soap.R
@@ -73,9 +76,10 @@ fun FeedCommentRow(
     comment: FeedComment,
     isReply: Boolean,
     onReply: () -> Unit,
-    viewModel: FeedPostViewModelProtocol
+    viewModel: FeedPostViewModelProtocol,
 ) {
     val coroutineScope = rememberCoroutineScope()
+    var isHiddenCommentExpanded by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -89,11 +93,15 @@ fun FeedCommentRow(
             )
         }
 
-        Column(modifier = Modifier.weight(1f).fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth()
+        ) {
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.padding(vertical = 4.dp)
-            ) //TODO - 추가할지 말지 고민
+            )
             Header(
                 comment = comment,
                 onDelete = {
@@ -105,23 +113,29 @@ fun FeedCommentRow(
                     coroutineScope.launch {
                         viewModel.reportComment(comment.id, reason)
                     }
-                }
+                },
+                isHiddenCommentExpanded = isHiddenCommentExpanded,
+                onExpandHiddenCommentClick = { isHiddenCommentExpanded = true }
             )
 
-            Content(comment)
+            if (comment.downVotes < 15 || isHiddenCommentExpanded) {
+                Content(comment)
+            }
 
             Footer(
                 comment = comment,
                 onReply = onReply,
                 onUpVote = {
                     coroutineScope.launch {
-                        val newType = if (comment.myVote == FeedVoteType.UP) null else FeedVoteType.UP
+                        val newType =
+                            if (comment.myVote == FeedVoteType.UP) null else FeedVoteType.UP
                         viewModel.voteComment(comment, newType)
                     }
                 },
                 onDownVote = {
                     coroutineScope.launch {
-                        val newType = if (comment.myVote == FeedVoteType.DOWN) null else FeedVoteType.DOWN
+                        val newType =
+                            if (comment.myVote == FeedVoteType.DOWN) null else FeedVoteType.DOWN
                         viewModel.voteComment(comment, newType)
                     }
                 }
@@ -129,11 +143,14 @@ fun FeedCommentRow(
         }
     }
 }
+
 @Composable
 private fun Header(
     comment: FeedComment,
     onDelete: () -> Unit,
     onReport: (FeedReportType) -> Unit,
+    isHiddenCommentExpanded: Boolean,
+    onExpandHiddenCommentClick: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -186,7 +203,18 @@ private fun Header(
             )
         }
 
-        if (!comment.isDeleted) {
+        if (comment.downVotes >= 15 && !isHiddenCommentExpanded) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                contentDescription = stringResource(R.string.expand),
+                tint = MaterialTheme.colorScheme.darkGray,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable {
+                        onExpandHiddenCommentClick()
+                    }
+            )
+        } else if (!comment.isDeleted) {
             PostCommentActionsMenu(
                 enumClass = FeedReportType::class,
                 isMine = comment.isMyComment,
@@ -231,8 +259,10 @@ private fun ProfileImage(comment: FeedComment) {
 @Composable
 private fun Content(comment: FeedComment) {
     val context = LocalContext.current
-    val text = if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
-    val color = if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+    val text =
+        if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
+    val color =
+        if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
     val scope = rememberCoroutineScope()
 
     var expanded by remember { mutableStateOf(false) }
@@ -284,10 +314,11 @@ private fun Content(comment: FeedComment) {
         onClick = { offset ->
             if (comment.isDeleted) return@ClickableText
 
-            displayText.getStringAnnotations("URL", offset, offset).firstOrNull()?.let { annotation ->
-                handleURL(context, annotation.item, scope)
-                return@ClickableText
-            }
+            displayText.getStringAnnotations("URL", offset, offset).firstOrNull()
+                ?.let { annotation ->
+                    handleURL(context, annotation.item, scope)
+                    return@ClickableText
+                }
 
             displayText.getStringAnnotations("MORE", offset, offset).firstOrNull()?.let {
                 expanded = true
@@ -302,7 +333,7 @@ private fun Footer(
     comment: FeedComment,
     onReply: () -> Unit,
     onUpVote: () -> Unit,
-    onDownVote: () -> Unit
+    onDownVote: () -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Spacer(modifier = Modifier.weight(1f))
@@ -334,7 +365,7 @@ private fun Footer(
 private fun handleURL(
     context: Context,
     urlString: String,
-    scope: CoroutineScope
+    scope: CoroutineScope,
 ) {
     val uri = Uri.parse(if (!urlString.startsWith("http")) "http://$urlString" else urlString)
     val deepLink = DeepLink.fromUri(uri)
@@ -357,8 +388,11 @@ private fun handleURL(
 @Preview(showBackground = true, name = "Root Comment")
 @Composable
 private fun RootCommentPreview() {
-    val mockViewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(
-        FeedPost.mock()))
+    val mockViewModel = MockFeedPostViewModel(
+        initialState = FeedPostViewModel.ViewState.Loaded(
+            FeedPost.mock()
+        )
+    )
     Theme {
         FeedCommentRow(
             comment = FeedComment.mock().copy(
@@ -375,8 +409,11 @@ private fun RootCommentPreview() {
 @Preview(showBackground = true, name = "Reply Comment")
 @Composable
 private fun ReplyCommentPreview() {
-    val mockViewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(
-        FeedPost.mock()))
+    val mockViewModel = MockFeedPostViewModel(
+        initialState = FeedPostViewModel.ViewState.Loaded(
+            FeedPost.mock()
+        )
+    )
     Theme {
         FeedCommentRow(
             comment = FeedComment.mock().copy(
@@ -394,8 +431,11 @@ private fun ReplyCommentPreview() {
 @Preview(showBackground = true, name = "Deleted Comment")
 @Composable
 private fun DeletedCommentPreview() {
-    val mockViewModel = MockFeedPostViewModel(initialState = FeedPostViewModel.ViewState.Loaded(
-        FeedPost.mock()))
+    val mockViewModel = MockFeedPostViewModel(
+        initialState = FeedPostViewModel.ViewState.Loaded(
+            FeedPost.mock()
+        )
+    )
     Theme {
         FeedCommentRow(
             comment = FeedComment.mock().copy(

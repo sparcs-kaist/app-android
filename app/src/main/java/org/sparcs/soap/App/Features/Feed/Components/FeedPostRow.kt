@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,7 +18,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -64,6 +68,7 @@ import org.sparcs.soap.App.Shared.Extensions.toDetectedAnnotatedString
 import org.sparcs.soap.App.Shared.Mocks.Feed.mock
 import org.sparcs.soap.App.Shared.Mocks.Feed.mockList
 import org.sparcs.soap.App.theme.ui.Theme
+import org.sparcs.soap.App.theme.ui.darkGray
 import org.sparcs.soap.App.theme.ui.grayBB
 import org.sparcs.soap.App.theme.ui.lightGray0
 import org.sparcs.soap.BuddyPreviewSupport.Feed.PreviewFeedViewModel
@@ -78,6 +83,7 @@ fun FeedPostRow(
     singleLine: Boolean,
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var isHiddenPostExpanded by remember { mutableStateOf(false) }
 
     Column(
         Modifier
@@ -85,11 +91,18 @@ fun FeedPostRow(
             .noRippleClickable { onComment() }
     ) {
         Header(
-            post,
-            onPostDeleted,
-            showDeleteConfirmation,
-        ) { showDeleteConfirmation = it }
-        Content(post, singleLine, onComment)
+            post = post,
+            onPostDeleted = onPostDeleted,
+            showDeleteConfirmation = showDeleteConfirmation,
+            isHiddenPostExpanded = isHiddenPostExpanded,
+            setShowDelete = { showDeleteConfirmation = it },
+            onExpandHiddenPostClick = { isHiddenPostExpanded = true }
+        )
+
+        if (post.downVotes < 15 || isHiddenPostExpanded || onPostDeleted == null) {
+            Content(post, singleLine, onComment)
+        }
+
         Footer(post, viewModel, onComment)
     }
 }
@@ -124,42 +137,63 @@ private fun Header(
     post: FeedPost,
     onPostDeleted: ((String) -> Unit)?,
     showDeleteConfirmation: Boolean,
+    isHiddenPostExpanded: Boolean,
     setShowDelete: (Boolean) -> Unit,
+    onExpandHiddenPostClick: () -> Unit,
 ) {
     val authorName =
         if (post.authorName == "Anonymous") stringResource(R.string.anonymous) else post.authorName
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 4.dp)
     ) {
-        ProfileImage(post)
-        Spacer(Modifier.width(8.dp))
-        Text(
-            text = authorName,
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.weight(1f, false),
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1
-        )
-        Spacer(Modifier.width(8.dp))
-        if (post.isKaistIP) {
-            InfoTooltip(
-                tooltipText = stringResource(R.string.kaist_ip_verified),
-                icon = painterResource(R.drawable.checkmark_seal_fill),
-                tint = MaterialTheme.colorScheme.primary,
-                iconSize = 15.dp
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            ProfileImage(post)
+            Spacer(Modifier.width(8.dp))
+            Text(
+                text = authorName,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f, false),
+                overflow = TextOverflow.Ellipsis,
+                maxLines = 1
             )
             Spacer(Modifier.width(8.dp))
+            if (post.isKaistIP) {
+                InfoTooltip(
+                    tooltipText = stringResource(R.string.kaist_ip_verified),
+                    icon = painterResource(R.drawable.checkmark_seal_fill),
+                    tint = MaterialTheme.colorScheme.primary,
+                    iconSize = 15.dp
+                )
+                Spacer(Modifier.width(8.dp))
+            }
+
+            Text(// onPostDeleted == null here means FeedPostRow is in the FeedPostView.
+                text = if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
+                color = MaterialTheme.colorScheme.grayBB,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
 
-        Text(// onPostDeleted == null here means FeedPostRow is in the FeedPostView.
-            text = if (onPostDeleted != null) post.createdAt.timeAgoDisplay() else post.createdAt.relativeTimeString(),
-            color = MaterialTheme.colorScheme.grayBB,
-            style = MaterialTheme.typography.bodySmall
-        )
+        if (post.downVotes >= 15 && !isHiddenPostExpanded && onPostDeleted != null) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                contentDescription = stringResource(R.string.expand),
+                tint = MaterialTheme.colorScheme.darkGray,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .size(20.dp)
+                    .clickable {
+                        onExpandHiddenPostClick()
+                    }
+            )
+        }
     }
 
     if (showDeleteConfirmation) {
