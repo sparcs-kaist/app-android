@@ -130,8 +130,6 @@ fun TaxiDestinationPicker(
     }
 }
 
-
-
 @Composable
 fun LocationMenu(
     title: String,
@@ -187,7 +185,6 @@ fun LocationMenu(
         }
     }
 }
-
 
 @Composable
 @Preview(showBackground = true)

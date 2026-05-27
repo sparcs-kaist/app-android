@@ -359,7 +359,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
         ) {
             typeLabels.forEach { (type, label) ->
                 DropdownMenuItem(

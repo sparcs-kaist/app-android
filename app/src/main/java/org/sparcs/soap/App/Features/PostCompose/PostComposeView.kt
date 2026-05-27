@@ -359,7 +359,8 @@ fun PostOptionsRow(
 
                 DropdownMenu(
                     expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.background)
                 ) {
                     DropdownMenuItem(
                         text = { Text(stringResource(R.string.political)) },

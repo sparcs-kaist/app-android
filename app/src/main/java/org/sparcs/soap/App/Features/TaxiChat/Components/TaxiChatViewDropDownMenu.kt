@@ -89,7 +89,7 @@ fun TaxiChatViewDropDownMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = { expanded = false },
-        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
@@ -307,7 +307,7 @@ private fun MiddleDropDownItems(
                 Surface(
                     onClick = { onCarrierToggle(!isMineCarrier) },
                     shape = RoundedCornerShape(8.dp),
-                    color = if (isMineCarrier) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+                    color = if (isMineCarrier) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Text(
@@ -357,7 +357,7 @@ private fun IconWithText(
     isEnabled: Boolean = true
 ) {
     val contentColor = if (isEnabled) {
-        MaterialTheme.colorScheme.onSurface
+        MaterialTheme.colorScheme.onBackground
     } else {
         MaterialTheme.colorScheme.grayBB
     }

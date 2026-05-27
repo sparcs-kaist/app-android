@@ -107,7 +107,7 @@ fun MessageView(
                                     onDismissRequest = { showPopover = false }
                                 ) {
                                     Surface(
-                                        color = MaterialTheme.colorScheme.surface,
+                                        color = MaterialTheme.colorScheme.background,
                                         shape = RoundedCornerShape(8.dp),
                                         shadowElevation = 4.dp,
                                         modifier = Modifier.width(250.dp)

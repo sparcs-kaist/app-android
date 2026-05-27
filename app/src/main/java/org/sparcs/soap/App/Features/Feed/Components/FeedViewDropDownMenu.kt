@@ -53,7 +53,7 @@ fun FeedViewDropDownMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = { expanded = false },
-        modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+        modifier = Modifier.background(MaterialTheme.colorScheme.background),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column {
@@ -79,7 +79,7 @@ fun FeedViewDropDownMenu(
 private fun DropDownItems(
     text: String,
     icon: ImageVector,
-    color: Color = MaterialTheme.colorScheme.onSurface,
+    color: Color = MaterialTheme.colorScheme.onBackground,
     onClick: () -> Unit,
 ) {
     DropdownMenuItem(

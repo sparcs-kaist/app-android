@@ -70,7 +70,7 @@ fun LectureReviewCell(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.background,
         modifier = Modifier
-            .padding(vertical = 4.dp)
+            .padding(vertical = 6.dp)
             .glassBorder(shape = RoundedCornerShape(16.dp))
     ) {
         Column(
@@ -110,7 +110,7 @@ fun LectureReviewCell(
                         DropdownMenu(
                             expanded = expanded,
                             onDismissRequest = { expanded = false },
-                            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+                            modifier = Modifier.background(MaterialTheme.colorScheme.background),
                             shape = RoundedCornerShape(16.dp)
                         ) {
 //                        DropdownMenuItem(
@@ -207,7 +207,7 @@ fun LectureReviewSkeletonCell() {
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         modifier = Modifier
-            .padding(vertical = 4.dp)
+            .padding(vertical = 6.dp)
             .glassBorder(shape = RoundedCornerShape(16.dp))
     ) {
         Column(
@@ -225,7 +225,7 @@ fun LectureReviewSkeletonCell() {
                     modifier = Modifier
                         .size(width = 100.dp, height = 20.dp)
                         .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                             RoundedCornerShape(4.dp)
                         )
                 )
@@ -236,7 +236,7 @@ fun LectureReviewSkeletonCell() {
                     modifier = Modifier
                         .size(width = 40.dp, height = 20.dp)
                         .background(
-                            MaterialTheme.colorScheme.surfaceVariant,
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                             RoundedCornerShape(4.dp)
                         )
                 )
@@ -246,7 +246,7 @@ fun LectureReviewSkeletonCell() {
                 Box(
                     modifier = Modifier
                         .size(24.dp)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
                 )
             }
 
@@ -260,7 +260,7 @@ fun LectureReviewSkeletonCell() {
                             .height(16.dp)
                             .padding(vertical = 2.dp)
                             .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                                 RoundedCornerShape(4.dp)
                             )
                     )
@@ -275,7 +275,7 @@ fun LectureReviewSkeletonCell() {
                         modifier = Modifier
                             .size(width = 40.dp, height = 20.dp)
                             .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                                 RoundedCornerShape(4.dp)
                             )
                     )
@@ -289,7 +289,7 @@ fun LectureReviewSkeletonCell() {
                         modifier = Modifier
                             .size(width = 20.dp, height = 20.dp)
                             .background(
-                                MaterialTheme.colorScheme.surfaceVariant,
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
                                 RoundedCornerShape(4.dp)
                             )
                     )
@@ -297,7 +297,7 @@ fun LectureReviewSkeletonCell() {
                     Box(
                         modifier = Modifier
                             .size(24.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
                     )
                 }
             }

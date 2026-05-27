@@ -53,7 +53,7 @@ fun ChatDepartureBubble(room: TaxiRoom, chatTime: java.util.Date) {
     Column(
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.surface,
+                color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(12.dp),

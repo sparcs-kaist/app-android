@@ -85,7 +85,7 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background)
         ) {
             DropdownMenuItem(
                 text = {

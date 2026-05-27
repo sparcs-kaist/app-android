@@ -55,7 +55,7 @@ fun ChatImageBubble(
                 Box(
                     modifier = Modifier
                         .size(width = 200.dp, height = 300.dp)
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.background, RoundedCornerShape(24.dp))
                 )
             }
         }

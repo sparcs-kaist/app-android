@@ -222,7 +222,7 @@ fun <T> PostCommentActionsMenu(
         )
 
         DropdownMenu(
-            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
             shape = RoundedCornerShape(16.dp),
             expanded = expanded,
             onDismissRequest = {

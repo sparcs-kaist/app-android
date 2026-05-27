@@ -194,7 +194,10 @@ fun ReviewComposeView(
                     decorationBox = { inner ->
                         if (contentField.text.isEmpty())
                             Text(
-                                text = stringResource(R.string.share_lecture_thoughts, viewModel.lecture.name),
+                                text = stringResource(
+                                    R.string.share_lecture_thoughts,
+                                    viewModel.lecture.name
+                                ),
                                 color = MaterialTheme.colorScheme.grayBB,
                                 style = MaterialTheme.typography.titleMedium
                             )
@@ -266,7 +269,8 @@ private fun RatingPicker(
 
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                modifier = Modifier.background(MaterialTheme.colorScheme.background)
             ) {
                 listOf(5, 4, 3, 2, 1).forEach { itValue ->
                     DropdownMenuItem(

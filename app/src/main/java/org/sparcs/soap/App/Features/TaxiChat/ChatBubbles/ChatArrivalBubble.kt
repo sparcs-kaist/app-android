@@ -30,11 +30,11 @@ fun ChatArrivalBubble() {
         text = bubbleText,
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.surface,
+                color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(12.dp),
-        color = MaterialTheme.colorScheme.onSurface
+        color = MaterialTheme.colorScheme.onBackground
     )
 }
 

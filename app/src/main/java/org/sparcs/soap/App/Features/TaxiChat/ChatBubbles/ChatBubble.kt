@@ -53,9 +53,9 @@ fun ChatBubble(
     val clipboardManager = LocalClipboardManager.current
 
     val backgroundColor =
-        if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
+        if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background
     val contentColor =
-        if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
+        if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
     val urlColor =
         if (isMine) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary
 
@@ -108,11 +108,11 @@ fun ChatBubble(
 
 @Composable
 fun ChatBubbleSkeleton() {
-    val skeletonColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+    val skeletonColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
 
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.background,
         modifier = Modifier.padding(vertical = 4.dp)
     ) {
         Column(
