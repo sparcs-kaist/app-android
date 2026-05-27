@@ -541,4 +541,5 @@
     <string name="route_already_exists">이미 즐겨찾기에 등록된 경로입니다</string>
     <string name="cr">학점</string>
     <string name="timetable_rename">이름 변경</string>
+    <string name="expand">확장</string>
 </resources>
