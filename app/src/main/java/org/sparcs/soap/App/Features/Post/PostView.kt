@@ -264,7 +264,7 @@ fun PostView(
                 state = pullState,
                 modifier = Modifier
                     .padding(innerPadding)
-                    .padding(16.dp)
+                    .padding(vertical = 8.dp, horizontal = 20.dp)
             ) {
                 LazyColumn(state = proxy) {
                     item {
@@ -594,7 +594,9 @@ private fun InputBar(
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                MoveToLeftFadeOut(showProfile) { profilePicture() }
+                MoveToLeftFadeOut(showProfile) {
+                    Row { profilePicture(); Spacer(Modifier.width(4.dp)) }
+                }
                 Box(
                     modifier = Modifier
                         .weight(1f)

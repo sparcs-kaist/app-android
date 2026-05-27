@@ -79,19 +79,18 @@ fun FeedPostRow(
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
-    Column(Modifier
-        .fillMaxWidth()
-        .noRippleClickable { onComment() }
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .noRippleClickable { onComment() }
     ) {
-        Column(Modifier.padding(vertical = 8.dp)) {
-            Header(
-                post,
-                onPostDeleted,
-                showDeleteConfirmation,
-            ) { showDeleteConfirmation = it }
-            Content(post, singleLine, onComment)
-            Footer(post, viewModel, onComment)
-        }
+        Header(
+            post,
+            onPostDeleted,
+            showDeleteConfirmation,
+        ) { showDeleteConfirmation = it }
+        Content(post, singleLine, onComment)
+        Footer(post, viewModel, onComment)
     }
 }
 
@@ -113,7 +112,7 @@ private fun ProfileImage(post: FeedPost) {
             modifier = Modifier
                 .size(24.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.background)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             Text("😀", style = MaterialTheme.typography.labelSmall)
         }
@@ -254,7 +253,11 @@ private fun Content(
     }
 
     if (post.images.isNotEmpty()) {
-        var fullscreenRequest by remember { mutableStateOf<Pair<List<org.sparcs.soap.App.Domain.Models.Feed.FeedImage>, Int>?>(null) }
+        var fullscreenRequest by remember {
+            mutableStateOf<Pair<List<org.sparcs.soap.App.Domain.Models.Feed.FeedImage>, Int>?>(
+                null
+            )
+        }
 
         PostImagesStrip(
             images = post.images,
@@ -312,13 +315,14 @@ private fun Footer(
 
 @Composable
 fun FeedPostRowSkeleton() {
-    Column(Modifier
-        .fillMaxWidth()
+    Column(
+        Modifier
+            .fillMaxWidth()
     ) {
         Column(
             Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp)
+                .padding(vertical = 4.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -495,5 +499,13 @@ private fun PreviewURLContent() {
             onComment = { },
             singleLine = false
         )
+    }
+}
+
+@Preview(showBackground = true, name = "Skeleton")
+@Composable
+private fun PreviewSkeleton() {
+    Theme {
+        FeedPostRowSkeleton()
     }
 }

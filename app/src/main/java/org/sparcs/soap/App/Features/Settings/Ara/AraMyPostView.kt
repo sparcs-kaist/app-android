@@ -90,7 +90,7 @@ fun AraMyPostView(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
         ) {
             if (showSearchBar && type != AraMyPostViewModel.PostType.BOOKMARK) {
                 SearchCustomBar(

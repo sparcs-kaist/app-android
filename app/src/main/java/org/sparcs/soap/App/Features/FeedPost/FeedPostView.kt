@@ -399,7 +399,7 @@ private fun Comments(
         }
 
         is FeedPostViewModel.ViewState.Loaded -> {
-            Column(Modifier.padding(horizontal = 16.dp)) {
+            Column(Modifier.padding(horizontal = 20.dp)) {
                 HorizontalDivider(
                     modifier = Modifier.padding(vertical = 4.dp)
                 )

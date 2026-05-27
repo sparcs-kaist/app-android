@@ -84,7 +84,7 @@ fun AraSettingsView(
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             when (state) {
                 is AraSettingsViewModel.ViewState.Loading -> LoadingView()

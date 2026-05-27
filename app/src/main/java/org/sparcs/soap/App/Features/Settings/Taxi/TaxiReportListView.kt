@@ -86,7 +86,7 @@ fun TaxiReportListView(
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
         ) {
             AnimatedSegmentedPicker(
                 options = TaxiReportType.entries.map { stringResource(it.value) },

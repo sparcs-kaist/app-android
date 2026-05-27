@@ -83,7 +83,7 @@ fun UserPostListView(
         Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 20.dp)
                 .padding(top = 8.dp)
         ) {
             Column {

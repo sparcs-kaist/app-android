@@ -91,7 +91,7 @@ fun FeedSettingsView(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
+                .padding(horizontal = 20.dp, vertical = 8.dp)
                 .background(MaterialTheme.colorScheme.background)
                 .then(if (viewModel.isUpdatingProfile) Modifier.alpha(0.5f) else Modifier)
         ) {

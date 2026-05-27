@@ -45,7 +45,7 @@ fun PostImagesStrip(
     onComment: () -> Unit,
     onImageClick: ((List<FeedImage>, Int) -> Unit)? = null
 ) {
-    val hPadding = 16.dp
+    val hPadding = 20.dp
     val spacing = 12.dp
     val minW = 100.dp
 
@@ -71,7 +71,6 @@ fun PostImagesStrip(
                         .clickable {
                             if (showSpoiler == true) showSpoiler = false
                             else {
-                                // 우선 이미지 전체화면 요청 콜백이 있으면 호출하고, 없으면 onComment 호출
                                 onImageClick?.invoke(images, index) ?: onComment()
                             }
                         }
