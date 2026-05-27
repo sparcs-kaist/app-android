@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.RateReview
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -20,10 +21,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -60,6 +64,7 @@ fun LectureReviews(
     val state by viewModel.state.collectAsState()
     val writtenReview by viewModel.writtenReview.collectAsState()
     val reviews by viewModel.reviews.collectAsState()
+    var showOwnReviewLikeAlert by remember { mutableStateOf(false) }
     val textColor =
         if (canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
 
@@ -94,7 +99,7 @@ fun LectureReviews(
                         navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}&written_review_json=${writtenReviewJSON}")
                     }
                 },
-                colors = if (canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surface) else
+                colors = if (canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.background) else
                     ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0),
                 contentPadding = PaddingValues(horizontal = 8.dp),
             ) {
@@ -119,7 +124,9 @@ fun LectureReviews(
         Surface(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.background,
-            modifier = Modifier.fillMaxWidth()            .glassBorder(shape = RoundedCornerShape(16.dp))
+            modifier = Modifier
+                .fillMaxWidth()
+                .glassBorder(shape = RoundedCornerShape(16.dp))
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -142,7 +149,7 @@ fun LectureReviews(
 
                 is LectureDetailViewModel.ViewState.Loaded -> {
                     writtenReview?.let { myReview ->
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             Text(
                                 text = stringResource(R.string.my_review_title),
                                 style = MaterialTheme.typography.labelLarge,
@@ -152,7 +159,7 @@ fun LectureReviews(
                             )
                             LectureReviewCell(
                                 lectureReview = myReview,
-                                onLikeClick = { viewModel.toggleReviewLike(myReview) },
+                                onLikeClick = { showOwnReviewLikeAlert = true },
                                 isMine = true
                             )
                             HorizontalDivider()
@@ -185,6 +192,19 @@ fun LectureReviews(
                     }
                 }
             }
+        }
+
+        if (showOwnReviewLikeAlert) {
+            AlertDialog(
+                onDismissRequest = { showOwnReviewLikeAlert = false },
+                title = { Text(text = stringResource(R.string.warning)) },
+                text = { Text(text = stringResource(R.string.review_like_warning)) },
+                confirmButton = {
+                    TextButton(onClick = { showOwnReviewLikeAlert = false }) {
+                        Text(text = stringResource(R.string.confirm))
+                    }
+                }
+            )
         }
     }
 }
