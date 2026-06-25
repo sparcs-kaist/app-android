@@ -1,0 +1,45 @@
+package org.sparcs.soap.app.shared.viewModelMocks.feed
+
+import android.graphics.Bitmap
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import org.sparcs.soap.app.domain.enums.feed.FeedReportType
+import org.sparcs.soap.app.domain.enums.feed.FeedVoteType
+import org.sparcs.soap.app.domain.helpers.AlertState
+import org.sparcs.soap.app.domain.models.feed.FeedComment
+import org.sparcs.soap.app.domain.models.feed.FeedPost
+import org.sparcs.soap.app.domain.models.feed.FeedUser
+import org.sparcs.soap.app.features.feedPost.FeedPostViewModel
+import org.sparcs.soap.app.features.feedPost.FeedPostViewModelProtocol
+import org.sparcs.soap.app.shared.mocks.feed.mock
+import org.sparcs.soap.app.shared.mocks.feed.mockList
+
+class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPostViewModelProtocol {
+
+    private val _state = MutableStateFlow(initialState)
+    override val state: StateFlow<FeedPostViewModel.ViewState> = _state.asStateFlow()
+
+    override val post: FeedPost = FeedPost.mock()
+
+    override var comments: List<FeedComment> = FeedComment.mockList()
+    override var text: String = ""
+    override var image: Bitmap? = null
+    override var isAnonymous: Boolean = false
+    override var isSubmittingComment: Boolean = false
+    override var alertState: AlertState? = null
+    override var isAlertPresented: Boolean = false
+    override val feedUser: FeedUser? = null
+
+    override fun fetchComments(postID: String, initial: Boolean) {}
+    override suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment? {
+        return null
+    }
+    override fun reportPost(postID: String, reason: FeedReportType) {}
+    override fun fetchFeedUser() {}
+
+    override fun voteComment(comment: FeedComment, type: FeedVoteType?) {}
+    override fun deleteComment(comment: FeedComment) {}
+    override fun reportComment(commentID: String, reason: FeedReportType) {}
+
+}

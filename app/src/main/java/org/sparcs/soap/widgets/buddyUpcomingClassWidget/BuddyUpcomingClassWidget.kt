@@ -1,0 +1,342 @@
+package org.sparcs.soap.widgets.buddyUpcomingClassWidget
+
+import android.content.Context
+import android.content.Intent
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.core.content.edit
+import androidx.core.net.toUri
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.glance.GlanceId
+import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
+import androidx.glance.LocalSize
+import androidx.glance.action.ActionParameters
+import androidx.glance.action.clickable
+import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.action.ActionCallback
+import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.appwidget.updateAll
+import androidx.glance.background
+import androidx.glance.currentState
+import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
+import androidx.glance.layout.Column
+import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.padding
+import androidx.glance.state.PreferencesGlanceStateDefinition
+import androidx.glance.text.Text
+import androidx.glance.text.TextStyle
+import androidx.work.Constraints
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.Constants
+import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
+import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.backgroundColor
+import org.sparcs.soap.app.domain.models.otl.textColor
+import org.sparcs.soap.widgets.WidgetEntryPoint
+import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassCircularWidgetView
+import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassRectangleWidgetView
+import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassSmallWidgetView
+import org.sparcs.soap.widgets.theme.ui.WidgetTheme
+import timber.log.Timber
+import java.util.Calendar
+import javax.inject.Inject
+import javax.inject.Singleton
+
+class BuddyUpcomingClassWidget : GlanceAppWidget() {
+    override val stateDefinition = PreferencesGlanceStateDefinition
+
+    override val sizeMode = SizeMode.Responsive(
+        setOf(
+            DpSize(60.dp, 60.dp),   // Circular
+            DpSize(150.dp, 130.dp), // Small
+            DpSize(150.dp, 50.dp),  // Rectangle
+        )
+    )
+
+    override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val appContext = context.applicationContext
+        val entryPoint =
+            EntryPointAccessors.fromApplication(appContext, WidgetEntryPoint::class.java)
+        val tokenStorage = entryPoint.tokenStorage()
+
+        provideContent {
+            val prefs = currentState<Preferences>()
+            val state = UpcomingClassStateParser.parse(prefs, tokenStorage)
+
+            val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
+            val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
+
+            WidgetTheme(themeMode = themeMode) {
+                Box(
+                    modifier = GlanceModifier.fillMaxSize().background(
+                        GlanceTheme.colors.background.getColor(context).copy(alpha = transparency)
+                    )
+                ) {
+                    when {
+                        state.signInRequired -> {
+                            val entry = WidgetLectureEntry.empty(true)
+                            val size = LocalSize.current
+                            when {
+                                size.width >= 110.dp && size.height < 110.dp -> UpcomingClassRectangleWidgetView(entry)
+                                size.width >= 110.dp && size.height >= 110.dp -> UpcomingClassSmallWidgetView(entry)
+                                else -> UpcomingClassCircularWidgetView(entry)
+                            }
+                        }
+
+                        state.isLoading -> {
+                            Column(
+                                modifier = GlanceModifier.fillMaxSize().padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    context.getString(R.string.loading_data),
+                                    style = TextStyle(color = GlanceTheme.colors.onSurface)
+                                )
+                                Text(
+                                    context.getString(R.string.wait_moment),
+                                    style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant)
+                                )
+                            }
+                        }
+
+                        else -> {
+                            val entry = state.entry ?: WidgetLectureEntry.empty(false)
+                            val size = LocalSize.current
+                            when {
+                                size.width >= 110.dp && size.height < 110.dp -> {
+                                    UpcomingClassRectangleWidgetView(entry)
+                                }
+
+                                size.width >= 110.dp && size.height >= 110.dp -> {
+                                    UpcomingClassSmallWidgetView(entry)
+                                }
+
+                                else -> UpcomingClassCircularWidgetView(entry)
+                            }
+                        }
+                    }
+                }
+                Box(
+                    modifier = GlanceModifier
+                        .fillMaxSize()
+                        .clickable(
+                            onClick = actionRunCallback<RefreshAndOpenAppAction>()
+                        )
+                ) {}
+            }
+        }
+    }
+}
+
+class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
+
+    override suspend fun doWork(): Result {
+        val glanceManager = GlanceAppWidgetManager(applicationContext)
+        val glanceIds = glanceManager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
+
+        if (glanceIds.isEmpty()) {
+            Timber.d("No installed widgets found. Stopping worker.")
+            return Result.success()
+        }
+        val entryPoint =
+            EntryPointAccessors.fromApplication(applicationContext, WidgetEntryPoint::class.java)
+        val syncManager = entryPoint.upComingSyncManager()
+        val tokenStorage = entryPoint.tokenStorage()
+        val timetableUseCase = entryPoint.timetableUseCase()
+
+        return try {
+            if (tokenStorage.getAccessToken() == null) {
+                return Result.success()
+            }
+
+            val currentSemester = timetableUseCase.getCurrentSemester()
+            val timetable = if (currentSemester != null) {
+                timetableUseCase.getMyTable(currentSemester.year, currentSemester.semesterType)
+            } else {
+                Timetable(id = "-1", lectures = emptyList())
+            }
+
+            val now = Calendar.getInstance()
+            val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {
+                Calendar.MONDAY -> "MON"
+                Calendar.TUESDAY -> "TUE"
+                Calendar.WEDNESDAY -> "WED"
+                Calendar.THURSDAY -> "THU"
+                Calendar.FRIDAY -> "FRI"
+                else -> ""
+            }
+
+            val currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
+
+            val nextLecture = timetable.lectures
+                .flatMap { lecture ->
+                    lecture.classes.map { time -> lecture to time }
+                }
+                .filter { (_, time) -> time.day.name == dayOfWeekString }
+                .filter { (_, time) -> time.end > currentMinutes }
+                .minByOrNull { (_, time) -> time.begin }
+
+            val widgetEntry = if (nextLecture != null) {
+                val (lecture, time) = nextLecture
+                WidgetLectureEntry(
+                    title = lecture.name + lecture.subtitle,
+                    classroom = time.let { "(" + it.buildingCode + ") " + it.roomName },
+                    day = time.day,
+                    startMinutes = time.begin,
+                    durationMinutes = time.let { it.end - it.begin },
+                    bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb())
+                        .uppercase(),
+                    textColor = "#" + Integer.toHexString(textColor.toArgb()).uppercase(),
+                    signInRequired = false
+                )
+            } else {
+                WidgetLectureEntry.empty(false)
+            }
+            syncManager.sync(widgetEntry)
+            Result.success()
+        } catch (e: Exception) {
+            Timber.e(e, "UpcomingClassUpdateWorker Error")
+            return Result.success()
+        }
+    }
+}
+
+@Singleton
+class UpComingWidgetSyncManager @Inject constructor(
+    @param:ApplicationContext private val context: Context,
+) {
+    suspend fun sync(entry: WidgetLectureEntry) {
+        val newState = entry.toUpcomingWidgetUiState()
+        syncState(newState)
+    }
+
+    suspend fun syncSignInRequired() {
+        syncState(UpcomingClassUiState(signInRequired = true))
+    }
+
+    private suspend fun syncState(state: UpcomingClassUiState) {
+        try {
+            val jsonString = Json.encodeToString(state)
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
+
+            glanceIds.forEach { id ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[stringPreferencesKey("upcoming_class_state")] = jsonString
+                    }
+                }
+            }
+            BuddyUpcomingClassWidget().updateAll(context)
+        } catch (e: Exception) {
+            Timber.tag("WidgetSync").e("${e.message}")
+        }
+    }
+}
+
+object UpcomingClassStateParser {
+    private val STATE_KEY = stringPreferencesKey("upcoming_class_state")
+
+    fun parse(prefs: Preferences, tokenStorage: TokenStorageProtocol): UpcomingClassUiState {
+        val hasRefreshToken = tokenStorage.getRefreshToken() != null
+        val jsonString = prefs[STATE_KEY]
+        if (!jsonString.isNullOrBlank()) {
+            val decoded = try {
+                Json.decodeFromString<UpcomingClassUiState>(jsonString)
+            } catch (_: Exception) {
+                UpcomingClassUiState(signInRequired = true)
+            }
+            if (hasRefreshToken && decoded.signInRequired) {
+                return UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true)
+            }
+            return decoded
+        }
+        return if (hasRefreshToken) {
+            UpcomingClassUiState(signInRequired = false, entry = null, isLoading = true)
+        } else {
+            UpcomingClassUiState(signInRequired = true)
+        }
+    }
+}
+
+class RefreshAndOpenAppAction : ActionCallback {
+    override suspend fun onAction(
+        context: Context,
+        glanceId: GlanceId,
+        parameters: ActionParameters,
+    ) {
+        val entryPoint = EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            WidgetEntryPoint::class.java
+        )
+        val tokenStorage = entryPoint.tokenStorage()
+        if (tokenStorage.getAccessToken() != null && shouldEnqueueRefresh(context)) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<UpcomingClassUpdateWorker>()
+                .setConstraints(constraints)
+                .addTag("upcoming_one_time_sync")
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                "upcoming_one_time_sync",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+        }
+
+        val intent = if (tokenStorage.getAccessToken() == null) {
+            context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
+                putExtra(EXTRA_FROM_WIDGET, true)
+            }
+        } else {
+            Intent(Intent.ACTION_VIEW, Constants.OTL_SHARE_URL.toUri())
+        }
+
+        intent?.apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(this)
+        }
+    }
+
+    private fun shouldEnqueueRefresh(context: Context): Boolean {
+        val prefs = context.getSharedPreferences(REFRESH_PREFS, Context.MODE_PRIVATE)
+        val now = System.currentTimeMillis()
+        val last = prefs.getLong(KEY_LAST_REFRESH, 0L)
+        if (now - last < MIN_REFRESH_INTERVAL_MS) {
+            return false
+        }
+        prefs.edit { putLong(KEY_LAST_REFRESH, now) }
+        return true
+    }
+
+    private companion object {
+        private const val REFRESH_PREFS = "widget_refresh"
+        private const val KEY_LAST_REFRESH = "upcoming_last_refresh"
+        private const val MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000L
+        private const val EXTRA_FROM_WIDGET = "extra_from_widget"
+    }
+}

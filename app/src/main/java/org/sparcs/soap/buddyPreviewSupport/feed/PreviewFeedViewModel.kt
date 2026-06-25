@@ -1,0 +1,28 @@
+package org.sparcs.soap.buddyPreviewSupport.feed
+
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import org.sparcs.soap.app.domain.helpers.AlertState
+import org.sparcs.soap.app.domain.models.feed.FeedPost
+import org.sparcs.soap.app.features.feed.FeedViewModel
+import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
+
+class PreviewFeedViewModel(
+    initialState: FeedViewModel.ViewState = FeedViewModel.ViewState.Loaded(emptyList()),
+    override var posts: List<FeedPost> = emptyList(),
+) : FeedViewModelProtocol {
+    override var state: StateFlow<FeedViewModel.ViewState> = MutableStateFlow(initialState)
+    override var alertState: AlertState? = null
+    override var isAlertPresented: Boolean = false
+    override var isLoadingMore: Boolean = false
+
+    override fun fetchInitialData() {}
+    override suspend fun loadNextPage() {}
+    override suspend fun deletePost(postID: String): Boolean { return false }
+    override fun upVote(postId: String) {}
+    override fun downVote(postId: String) {}
+
+    override fun openSettingsTapped() {}
+    override fun refreshFeed() {}
+    override fun writeFeedButtonTapped() {}
+}

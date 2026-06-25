@@ -5,7 +5,7 @@
     android:minHeight="60dp"
     android:minResizeWidth="40dp"
     android:minResizeHeight="40dp"
-    android:configure="org.sparcs.soap.Widgets.BuddyDDayWidget.BuddyDDayWidgetConfigActivity"
+    android:configure="org.sparcs.soap.widgets.buddyDDayWidget.BuddyDDayWidgetConfigActivity"
     android:widgetFeatures="reconfigurable|configuration_optional"
     android:previewImage="@drawable/dday_widget_preview"
     android:resizeMode="horizontal|vertical"

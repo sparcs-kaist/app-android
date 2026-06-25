@@ -2,9 +2,9 @@
 -keepattributes Signature
 -keepattributes *Annotation*
 -dontwarn sun.misc.**
--keep class org.sparcs.soap.App.Models.** { *; }
--keep class org.sparcs.soap.App.Networking.** { *; }
--keep interface org.sparcs.soap.App.Networking.** { *; }
+-keep class org.sparcs.soap.app.Models.** { *; }
+-keep class org.sparcs.soap.app.networking.** { *; }
+-keep interface org.sparcs.soap.app.networking.** { *; }
 
 # Retrofit
 -keepattributes Signature
@@ -24,8 +24,8 @@
 -keep @dagger.hilt.android.lifecycle.HiltViewModel class * { *; }
 
 # Enums
--keep class org.sparcs.soap.App.Domain.** { *; }
--keepclassmembers enum org.sparcs.soap.App.Domain.Enums.** { *; }
+-keep class org.sparcs.soap.app.domain.** { *; }
+-keepclassmembers enum org.sparcs.soap.app.domain.enums.** { *; }
 
 # Widget
 -keep class * extends android.appwidget.AppWidgetProvider { *; }
