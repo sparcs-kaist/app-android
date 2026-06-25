@@ -3,7 +3,7 @@ package org.sparcs.soap.App.Domain.Models
 import androidx.annotation.StringRes
 import org.sparcs.soap.R
 
-enum class SearchScope(val id: String, @StringRes val labelRes: Int) {
+enum class SearchScope(val id: String, @param:StringRes val labelRes: Int) {
     All("All", R.string.all),
     Courses("Courses", R.string.courses),
     Posts("Posts", R.string.posts),

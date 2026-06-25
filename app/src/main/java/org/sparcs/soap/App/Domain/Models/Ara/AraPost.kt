@@ -43,5 +43,5 @@ data class AraPost(
         ANSWERED(2)
     }
 
-    companion object{}
+    companion object
 }

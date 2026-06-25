@@ -34,14 +34,14 @@ data class TaxiNoticeDTO(
             val url = try {
                 URL(notionURL)
             } catch (e: Exception) {
-                throw TaxiNoticeConversionException.InvalidURL
+                throw TaxiNoticeConversionException.InvalidURL()
             }
 
             val createdDate = createdAt.toDate()
-                ?: throw TaxiNoticeConversionException.InvalidCreatedAt
+                ?: throw TaxiNoticeConversionException.InvalidCreatedAt()
 
             val updatedDate = updatedAt.toDate()
-                ?: throw TaxiNoticeConversionException.InvalidUpdatedAt
+                ?: throw TaxiNoticeConversionException.InvalidUpdatedAt()
 
             return TaxiNotice(
                 id = id,
@@ -57,15 +57,9 @@ data class TaxiNoticeDTO(
 }
 
 sealed class TaxiNoticeConversionException : Exception() {
-    data object InvalidURL : TaxiNoticeConversionException() {
-        private fun readResolve(): Any = InvalidURL
-    }
+    class InvalidURL : TaxiNoticeConversionException()
 
-    data object InvalidCreatedAt : TaxiNoticeConversionException() {
-        private fun readResolve(): Any = InvalidCreatedAt
-    }
+    class InvalidCreatedAt : TaxiNoticeConversionException()
 
-    data object InvalidUpdatedAt : TaxiNoticeConversionException() {
-        private fun readResolve(): Any = InvalidUpdatedAt
-    }
+    class InvalidUpdatedAt : TaxiNoticeConversionException()
 }

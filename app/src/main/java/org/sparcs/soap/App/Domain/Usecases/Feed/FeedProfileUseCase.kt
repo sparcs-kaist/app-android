@@ -61,9 +61,9 @@ class FeedProfileUseCase @Inject constructor(
             when (e) {
                 is NetworkError.ServerError -> {
                     if (e.code == 400) {
-                        throw FeedProfileUseCaseError.NicknameReserved
+                        throw FeedProfileUseCaseError.NicknameReserved()
                     } else if (e.code == 409) {
-                        throw FeedProfileUseCaseError.NicknameConflict
+                        throw FeedProfileUseCaseError.NicknameConflict()
                     }
                     crashlyticsService?.record(error = e as Throwable, context = context)
                     throw e

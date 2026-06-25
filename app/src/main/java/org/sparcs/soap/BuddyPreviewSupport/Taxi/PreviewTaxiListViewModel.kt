@@ -94,7 +94,7 @@ class PreviewTaxiListViewModel(
             from = from,
             to = to
         )
-        _favoriteRoutes.value = _favoriteRoutes.value + newFavorite
+        _favoriteRoutes.value += newFavorite
     }
 
     override fun deleteFavoriteRoute(id: String) {

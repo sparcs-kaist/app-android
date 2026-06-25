@@ -2,7 +2,6 @@ package org.sparcs.soap.App.Features.Post.Components
 
 import android.app.DownloadManager
 import android.content.Context
-import android.net.Uri
 import android.os.Environment
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -30,8 +29,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostAttachment
 import org.sparcs.soap.R
+import java.util.Locale
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -110,7 +111,7 @@ private fun AttachmentItem(attachment: AraPostAttachment) {
 
 private fun downloadAttachment(context: Context, attachment: AraPostAttachment) {
     val url = attachment.file?.toString() ?: return
-    val request = DownloadManager.Request(Uri.parse(url))
+    val request = DownloadManager.Request(url.toUri())
         .setTitle(attachment.filename)
         .setDescription(context.getString(R.string.downloading))
         .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
@@ -126,5 +127,5 @@ private fun formatFileSize(sizeBytes: Int): String {
     if (sizeBytes <= 0) return "0 B"
     val units = arrayOf("B", "KB", "MB", "GB", "TB")
     val digitGroups = (log10(sizeBytes.toDouble()) / log10(1024.0)).toInt()
-    return String.format("%.1f %s", sizeBytes / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
+    return String.format(Locale.ROOT, "%.1f %s", sizeBytes / 1024.0.pow(digitGroups.toDouble()), units[digitGroups])
 }

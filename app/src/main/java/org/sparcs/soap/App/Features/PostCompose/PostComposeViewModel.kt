@@ -56,7 +56,7 @@ class PostComposeViewModel @Inject constructor(
     private val araBoardUseCase: AraBoardUseCaseProtocol,
     savedStateHandle: SavedStateHandle,
     private val analyticsService: AnalyticsServiceProtocol,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel(), PostComposeViewModelProtocol {
 
     // MARK: - Board

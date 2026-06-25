@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.Ara.PostListType
 import org.sparcs.soap.App.Domain.Models.Ara.AraPost
@@ -108,7 +109,7 @@ class SearchViewModel @Inject constructor(
                 viewModelScope.launch { searchTaxi(keyword) },
                 viewModelScope.launch { searchCourses(keyword) }
             )
-            jobs.forEach { it.join() }
+            jobs.joinAll()
             _state.value = ViewState.Loaded
         } catch (e: Exception) {
             _state.value = ViewState.Error(e)

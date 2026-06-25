@@ -337,9 +337,8 @@ private fun MockView(state: LectureSearchViewModel.ViewState) {
         navController = rememberNavController(),
         timetableName = "My Table",
         timetableViewModel = PreviewTimetableViewModel(),
-        lectureSearchViewModel = PreviewLectureSearchViewModel(initialState = state),
-        {}
-    )
+        lectureSearchViewModel = PreviewLectureSearchViewModel(initialState = state)
+    ) {}
 }
 
 @Composable

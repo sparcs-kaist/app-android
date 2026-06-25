@@ -9,7 +9,7 @@ import org.sparcs.soap.App.Domain.Models.Taxi.TaxiParticipant
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiUser
 import org.sparcs.soap.App.Features.TaxiPreview.TaxiPreviewViewModelProtocol
 
-class PreviewTaxiPreviewViewModel() : TaxiPreviewViewModelProtocol {
+class PreviewTaxiPreviewViewModel : TaxiPreviewViewModelProtocol {
 
     private val _taxiUser = MutableStateFlow(null)
     override val taxiUser: StateFlow<TaxiUser?> = _taxiUser

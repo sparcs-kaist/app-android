@@ -2,10 +2,8 @@ package org.sparcs.soap.App.Features.FeedPostCompose
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -60,7 +58,7 @@ class FeedPostComposeViewModel @Inject constructor(
     private val feedPostUseCase: FeedPostUseCaseProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel(), FeedPostComposeViewModelProtocol {
 
     sealed class ComposeType(val value: Int) {
@@ -183,14 +181,9 @@ class FeedPostComposeViewModel @Inject constructor(
     private suspend fun loadBitmapFromUri(uri: Uri): Bitmap? =
         withContext(Dispatchers.IO) {
             try {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    val source = ImageDecoder.createSource(context.contentResolver, uri)
-                    ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
-                        decoder.isMutableRequired = true
-                    }
-                } else {
-                    val stream = context.contentResolver.openInputStream(uri)
-                    BitmapFactory.decodeStream(stream)
+                val source = ImageDecoder.createSource(context.contentResolver, uri)
+                ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                    decoder.isMutableRequired = true
                 }
             } catch (e: Exception) {
                 null

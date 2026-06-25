@@ -22,7 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -92,6 +92,6 @@ fun PostCommentButton(
 @Composable
 @Preview
 private fun Preview(){
-    var comment by remember { mutableStateOf(1) }
-    Theme { PostCommentButton(comment, {comment = comment + 1}) }
+    var comment by remember { mutableIntStateOf(1) }
+    Theme { PostCommentButton(comment) { comment += 1 } }
 }

@@ -30,7 +30,7 @@ fun Timetable.toWidgetUiState(): TimetableUiState {
                 startMinutes = ct.begin,
                 durationMinutes = ct.end - ct.begin,
                 bgColor = String.format("#%06X", (0xFFFFFF and lecture.backgroundColor.toArgb())),
-                textColor = String.format("#%06X", (0xFFFFFF and lecture.textColor.toArgb())),
+                textColor = String.format("#%06X", (0xFFFFFF and textColor.toArgb())),
                 signInRequired = false
             )
         }

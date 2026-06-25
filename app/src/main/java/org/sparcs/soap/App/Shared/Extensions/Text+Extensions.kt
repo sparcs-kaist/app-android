@@ -17,9 +17,9 @@ import org.sparcs.soap.App.Domain.Helpers.LocalizedString
 
 @Composable
 fun LocalizedText(
+    modifier: Modifier = Modifier,
     text: LocalizedString,
     style: TextStyle = TextStyle.Default,
-    modifier: Modifier = Modifier,
     color: Color = Color.Unspecified,
     fontSize: TextUnit = TextUnit.Unspecified,
     fontFamily: FontFamily? = null,

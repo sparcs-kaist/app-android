@@ -43,13 +43,13 @@ class AraCommentRepository @Inject constructor(
 
     override suspend fun writeComment(postID: Int, content: String): AraPostComment = safeApiCall(gson) {
         araCommentApi.writeComment(
-            CommentPostRequest(parent_article = postID, content = content)
+            CommentPostRequest(parentArticle = postID, content = content)
         )
     }.toModel()
 
     override suspend fun writeThreadedComment(commentID: Int, content: String): AraPostComment = safeApiCall(gson) {
         araCommentApi.writeThreadedComment(
-            ThreadedCommentPostRequest(parent_comment = commentID, content = content)
+            ThreadedCommentPostRequest(parentComment = commentID, content = content)
         )
     }.toModel()
 
@@ -68,7 +68,7 @@ class AraCommentRepository @Inject constructor(
     override suspend fun reportComment(commentID: Int, type: AraContentReportType) = safeApiCall(gson) {
         araCommentApi.reportComment(
             CommentReportRequest(
-                parent_comment = commentID,
+                parentComment = commentID,
                 type = "others",
                 content = type.name
             )

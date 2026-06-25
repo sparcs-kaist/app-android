@@ -86,7 +86,7 @@ class TaxiPreviewViewModel @Inject constructor(
         try {
             val client = OkHttpClient()
 
-            val url = Constants.mapsURL +
+            val url = Constants.MAPS_URL +
                     "origin=${source.longitude},${source.latitude}" +
                     "&destination=${destination.longitude},${destination.latitude}"
 

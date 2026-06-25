@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.Date
 
-/// Data model that stores a serialised Timetable for offline / cached access.
+/// Data model that stores a serialized Timetable for offline / cached access.
 ///
 /// Two kinds of timetable are cached:
 ///  - by timetable ID    → `cacheKey = "\(timetableID)"`

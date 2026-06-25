@@ -99,9 +99,9 @@ fun FavoriteRouteDropdown(
                         DropdownMenuItem(
                             text = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    LocalizedText(favorite.from.title)
+                                    LocalizedText(text = favorite.from.title)
                                     Text(" → ")
-                                    LocalizedText(favorite.to.title)
+                                    LocalizedText(text = favorite.to.title)
                                 }
                             },
                             trailingIcon = {

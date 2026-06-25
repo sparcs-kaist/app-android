@@ -2,12 +2,12 @@ package org.sparcs.soap.App
 
 import android.app.Activity
 import android.content.Intent
-import android.net.Uri
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
+import androidx.core.net.toUri
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
 import com.google.android.play.core.appupdate.AppUpdateManagerFactory
@@ -123,7 +123,7 @@ class InAppUpdateHelper(
             } else {
                 val intent = Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("market://details?id=${activity.packageName}")
+                    "market://details?id=${activity.packageName}".toUri()
                 )
                 activity.startActivity(intent)
             }

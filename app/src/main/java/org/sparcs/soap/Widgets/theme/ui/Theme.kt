@@ -39,27 +39,27 @@ import org.sparcs.soap.App.theme.ui.theme_light_tertiary
 
 object TimetableWidgetTheme {
     private val lightScheme = lightColorScheme(
-            primary = theme_light_primary,
-            secondary = theme_light_secondary,
-            tertiary = theme_light_tertiary,
-            background = theme_light_background,
-            surface = theme_light_surface,
-            onPrimary = theme_light_onPrimary,
-            onBackground = theme_light_onBackground,
-            onSurface = theme_light_onSurface,
-            outline = theme_light_outline
-        )
+        primary = theme_light_primary,
+        secondary = theme_light_secondary,
+        tertiary = theme_light_tertiary,
+        background = theme_light_background,
+        surface = theme_light_surface,
+        onPrimary = theme_light_onPrimary,
+        onBackground = theme_light_onBackground,
+        onSurface = theme_light_onSurface,
+        outline = theme_light_outline
+    )
     private val darkScheme = darkColorScheme(
-            primary = theme_dark_primary,
-            secondary = theme_dark_secondary,
-            tertiary = theme_dark_tertiary,
-            background = theme_dark_background,
-            surface = theme_dark_surface,
-            onPrimary = theme_dark_onPrimary,
-            onBackground = theme_dark_onBackground,
-            onSurface = theme_dark_onSurface,
-            outline = theme_dark_outline
-        )
+        primary = theme_dark_primary,
+        secondary = theme_dark_secondary,
+        tertiary = theme_dark_tertiary,
+        background = theme_dark_background,
+        surface = theme_dark_surface,
+        onPrimary = theme_dark_onPrimary,
+        onBackground = theme_dark_onBackground,
+        onSurface = theme_dark_onSurface,
+        outline = theme_dark_outline
+    )
 
 
     val lightGray0 = ColorProvider(day = theme_light_lightGray0, night = theme_dark_lightGray0)

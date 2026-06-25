@@ -33,12 +33,12 @@ class MockFeedCommentUseCase : FeedCommentUseCaseProtocol {
     }
 
     override suspend fun writeComment(postID: String, request: FeedCreateComment): FeedComment {
-        val result = writeCommentResult ?: throw TestError.NotConfigured
+        val result = writeCommentResult ?: throw TestError.NotConfigured()
         return result.getOrThrow()
     }
 
     override suspend fun writeReply(commentID: String, request: FeedCreateComment): FeedComment {
-        val result = writeReplyResult ?: throw TestError.NotConfigured
+        val result = writeReplyResult ?: throw TestError.NotConfigured()
         return result.getOrThrow()
     }
 

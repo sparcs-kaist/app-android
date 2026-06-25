@@ -4,12 +4,13 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.net.Uri
+import androidx.core.net.toUri
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 
 object TaxiDeepLinkHelper {
 
     fun getKakaoTUri(source: TaxiLocation, destination: TaxiLocation): Uri {
-        return Uri.parse("kakaot://taxi/set").buildUpon()
+        return "kakaot://taxi/set".toUri().buildUpon()
             .appendQueryParameter("origin_lat", source.latitude.toString())
             .appendQueryParameter("origin_lng", source.longitude.toString())
             .appendQueryParameter("dest_lat", destination.latitude.toString())
@@ -21,7 +22,7 @@ object TaxiDeepLinkHelper {
         val uriString = "uber://?action=setPickup&client_id=a" +
                 "&pickup[latitude]=${source.latitude}&pickup[longitude]=${source.longitude}" +
                 "&dropoff[latitude]=${destination.latitude}&dropoff[longitude]=${destination.longitude}"
-        return Uri.parse(uriString)
+        return uriString.toUri()
     }
 
     fun getKakaoPayUri(context: Context, account: String?): Uri {
@@ -31,7 +32,7 @@ object TaxiDeepLinkHelper {
             val clip = ClipData.newPlainText("account", accountNo)
             clipboard.setPrimaryClip(clip)
         }
-        return Uri.parse("kakaotalk://kakaopay/money/to/bank")
+        return "kakaotalk://kakaopay/money/to/bank".toUri()
     }
 
     fun getTossUri(account: String?): Uri {
@@ -40,7 +41,7 @@ object TaxiDeepLinkHelper {
         val accountNo = components.lastOrNull() ?: ""
         val bankCode = Constants.taxiBankCodeMap[bankName] ?: ""
 
-        return Uri.parse("supertoss://send").buildUpon()
+        return "supertoss://send".toUri().buildUpon()
             .appendQueryParameter("bankCode", bankCode)
             .appendQueryParameter("accountNo", accountNo)
             .build()

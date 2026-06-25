@@ -95,7 +95,7 @@ fun TaxiSettingsView(
     }
 
     val isPhoneNumberValid by remember {
-        derivedStateOf { viewModel.phoneNumber.isEmpty() || viewModel.phoneNumber.length == Constants.formattedPhoneNumberLength }
+        derivedStateOf { viewModel.phoneNumber.isEmpty() || viewModel.phoneNumber.length == Constants.FORMATTED_PHONE_NUMBER_LENGTH }
     }
 
     val hasNumberChanged by remember {

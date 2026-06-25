@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Domain.Helpers
 
 import android.content.Context
+import androidx.core.content.edit
 
 object PopupManager {
     private const val PREF_NAME = "popup_prefs"
@@ -8,7 +9,7 @@ object PopupManager {
 
     fun saveIgnoreTimestamp(context: Context) {
         val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
-        prefs.edit().putLong(KEY_LAST_CLOSED_TIME, System.currentTimeMillis()).apply()
+        prefs.edit { putLong(KEY_LAST_CLOSED_TIME, System.currentTimeMillis()) }
     }
 
     fun shouldShowPopup(context: Context, days: Int): Boolean {

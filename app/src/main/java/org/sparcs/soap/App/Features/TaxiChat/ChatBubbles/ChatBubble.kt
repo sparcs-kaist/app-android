@@ -32,6 +32,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Enums.DeepLink
@@ -140,8 +141,8 @@ private fun handleURL(
     urlString: String,
     scope: CoroutineScope,
 ) {
-    val uri = Uri.parse(if (!urlString.startsWith("http")) "http://$urlString" else urlString)
-    val deepLink = DeepLink.fromUri(uri)
+    val uri = if (!urlString.startsWith("http")) "http://$urlString" else urlString.toUri()
+    val deepLink = DeepLink.fromUri(uri as Uri?)
 
     if (deepLink != null) {
         scope.launch {

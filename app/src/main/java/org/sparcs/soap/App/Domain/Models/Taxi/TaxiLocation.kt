@@ -9,7 +9,7 @@ data class TaxiLocation(
     val latitude: Double,
     val longitude: Double
 ) {
-    companion object{}
+    companion object
     fun titleContains(text: String): Boolean {
         return title.contains(text)
     }

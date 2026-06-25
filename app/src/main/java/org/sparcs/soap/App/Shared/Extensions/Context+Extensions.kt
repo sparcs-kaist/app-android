@@ -8,6 +8,8 @@ import android.net.Uri
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
+import androidx.core.net.toUri
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.KakaoMapReadyCallback
 import com.kakao.vectormap.LatLng
@@ -26,12 +28,14 @@ fun Context.openUri(uri: Uri, packageName: String? = null) {
     } catch (e: Exception) {
         if (packageName != null) {
             try {
-                val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=$packageName")).apply {
+                val marketIntent = Intent(Intent.ACTION_VIEW,
+                    "market://details?id=$packageName".toUri()).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 this.startActivity(marketIntent)
             } catch (e2: Exception) {
-                val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=$packageName")).apply {
+                val webIntent =
+                    Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$packageName".toUri()).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 this.startActivity(webIntent)
@@ -50,11 +54,7 @@ fun Context.vectorToBitmap(drawableId: Int, tintColor: Int? = null): Bitmap? {
     }
     val sizeInPx = (32 * resources.displayMetrics.density).toInt()
 
-    val bitmap = Bitmap.createBitmap(
-        sizeInPx,
-        sizeInPx,
-        Bitmap.Config.ARGB_8888
-    )
+    val bitmap = createBitmap(sizeInPx, sizeInPx)
     val canvas = Canvas(bitmap)
     drawable.setBounds(0, 0, canvas.width, canvas.height)
     drawable.draw(canvas)
@@ -64,7 +64,7 @@ fun Context.vectorToBitmap(drawableId: Int, tintColor: Int? = null): Bitmap? {
 fun Context.createKakaoMap(
     room: TaxiRoom,
     onMapReady: (KakaoMap) -> Unit,
-    onError: () -> Unit
+    onError: () -> Unit,
 ): View {
     return try {
         MapView(this).apply {

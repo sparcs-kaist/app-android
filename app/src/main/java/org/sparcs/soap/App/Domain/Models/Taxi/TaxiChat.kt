@@ -48,5 +48,5 @@ data class TaxiChat(
             }
         }
     }
-    companion object {}
+    companion object
 }

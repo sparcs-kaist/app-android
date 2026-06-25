@@ -7,23 +7,15 @@ import java.io.Serializable
 sealed class NetworkError : Exception(), SourcedError, Serializable {
     override val source: ErrorSource = ErrorSource.Network
 
-    object NoConnection : NetworkError() {
-        private fun readResolve(): Any = NoConnection
-    }
+    class NoConnection : NetworkError()
 
-    object Timeout : NetworkError() {
-        private fun readResolve(): Any = Timeout
-    }
+    class Timeout : NetworkError()
 
     data class ServerError(val code: Int, override val message: String? = null) : NetworkError()
 
-    object Unauthorized : NetworkError() {
-        private fun readResolve(): Any = Unauthorized
-    }
+    class Unauthorized : NetworkError()
 
-    object NotFound : NetworkError() {
-        private fun readResolve(): Any = NotFound
-    }
+    class NotFound : NetworkError()
 
     data class Unknown(val underlying: Throwable) : NetworkError()
 

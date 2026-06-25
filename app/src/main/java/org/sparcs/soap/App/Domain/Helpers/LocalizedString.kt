@@ -13,7 +13,7 @@ data class LocalizedString(
     }
 
     fun contains(query: String): Boolean {
-        val result = translations.values.filter { it.contains(query) }.isNotEmpty()
+        val result = translations.values.any { it.contains(query) }
         return result
     }
 

@@ -35,7 +35,7 @@ fun ChatShareBubble(
     room: TaxiRoom,
 ) {
     val context = LocalContext.current
-    val shareUrl = "${Constants.taxiInviteURL}${room.id}"
+    val shareUrl = "${Constants.TAXI_INVITE_URL}${room.id}"
     val shareMessage = stringResource(
         R.string.taxi_share_message,
         room.departAt.formattedString(),

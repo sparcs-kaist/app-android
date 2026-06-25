@@ -146,7 +146,8 @@ fun CourseSkeletonCell() {
 private fun Preview() {
     Theme {
         CourseCell(
-            CourseSummary.mock().copy(name = "Hello World"), {})
+            CourseSummary.mock().copy(name = "Hello World")
+        ) {}
     }
 }
 

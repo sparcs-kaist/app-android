@@ -36,7 +36,6 @@ import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.App.Domain.Helpers.FeatureType
 import org.sparcs.soap.App.Domain.Usecases.MockFCMUseCase
 import org.sparcs.soap.App.Features.Settings.Components.SettingsViewNavigationBar
-import org.sparcs.soap.App.Presentation.Settings.NotificationSettingsViewModel
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R

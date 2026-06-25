@@ -1,4 +1,4 @@
-package org.sparcs.soap.App.Features.TaxiChat.ChatBubbles
+package org.sparcs.soap.App.Features.TaxiChat
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -129,20 +129,20 @@ private fun ChatItem(
 ) {
     when (item) {
         is ChatRenderItem.DaySeparator -> {
-            ChatDaySeparator(
+            _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatDaySeparator(
                 date = item.date.toLocalDate()
             )
         }
 
         is ChatRenderItem.SystemEvent -> {
-            ChatGeneralMessage(
+            _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatGeneralMessage(
                 authorName = item.chat.authorName,
                 type = item.chat.type
             )
         }
 
         is ChatRenderItem.Message -> {
-            MessageView(
+            _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.MessageView(
                 chat = item.chat,
                 kind = item.chat.type,
                 sender = item.sender,
@@ -160,25 +160,29 @@ private fun ChatItem(
             ) {
                 when (item.chat.type) {
                     TaxiChat.ChatType.TEXT -> if (user == null) {
-                        ChatBubbleSkeleton()
+                        _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatBubbleSkeleton()
                     } else {
-                        ChatBubble(item.chat, item.position, item.sender.isMine)
+                        _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatBubble(
+                            item.chat,
+                            item.position,
+                            item.sender.isMine
+                        )
                     }
 
-                    TaxiChat.ChatType.S3IMG -> ChatImageBubble(
+                    TaxiChat.ChatType.S3IMG -> _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatImageBubble(
                         id = item.chat.content,
                         onClick = onImageClick
                     )
 
-                    TaxiChat.ChatType.DEPARTURE -> ChatDepartureBubble(
+                    TaxiChat.ChatType.DEPARTURE -> _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatDepartureBubble(
                         room = room,
                         chatTime = item.chat.time
                     )
 
-                    TaxiChat.ChatType.ARRIVAL -> ChatArrivalBubble()
-                    TaxiChat.ChatType.SETTLEMENT -> ChatSettlementBubble()
-                    TaxiChat.ChatType.PAYMENT -> ChatPaymentBubble()
-                    TaxiChat.ChatType.ACCOUNT -> ChatAccountBubble(
+                    TaxiChat.ChatType.ARRIVAL -> _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatArrivalBubble()
+                    TaxiChat.ChatType.SETTLEMENT -> _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatSettlementBubble()
+                    TaxiChat.ChatType.PAYMENT -> _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatPaymentBubble()
+                    TaxiChat.ChatType.ACCOUNT -> _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatAccountBubble(
                         content = item.chat.content,
                         totalAmount = settlementMeta?.total,
                         perPersonAmount = settlementMeta?.perPerson,
@@ -188,7 +192,10 @@ private fun ChatItem(
                         onCommitPayment()
                     }
 
-                    TaxiChat.ChatType.SHARE -> ChatShareBubble(room = room)
+                    TaxiChat.ChatType.SHARE -> _root_ide_package_.org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatShareBubble(
+                        room = room
+                    )
+
                     else -> Text(stringResource(R.string.not_supported))
                 }
             }

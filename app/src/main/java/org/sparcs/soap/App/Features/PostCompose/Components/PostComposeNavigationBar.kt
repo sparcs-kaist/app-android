@@ -9,10 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -33,13 +29,11 @@ fun PostComposeNavigationBar(
     navController: NavController,
     isDoneEnabled: Boolean,
     onDoneClick: () -> Unit,
-    isUploading: Boolean
+    isUploading: Boolean,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-
     CenterAlignedTopAppBar(
         navigationIcon = {
-           DismissButton { navController.popBackStack() }
+            DismissButton { navController.popBackStack() }
         },
         title = {
             Text(
@@ -65,8 +59,8 @@ fun PostComposeNavigationBar(
 private fun DoneButton(
     isDoneEnabled: Boolean,
     onDoneClick: () -> Unit,
-    isUploading: Boolean
-){
+    isUploading: Boolean,
+) {
     TextButton(
         onClick = {
             if (isDoneEnabled) {
@@ -75,22 +69,22 @@ private fun DoneButton(
         },
         enabled = isDoneEnabled,
         modifier = Modifier.semantics { contentDescription = "Post Button" }
-    ){
-    if (isUploading) {
-        CircularProgressIndicator(modifier = Modifier.size(24.dp))
-    } else {
-        Text(
-            text = stringResource(R.string.submit),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Normal,
-            color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
-        )
-    }
+    ) {
+        if (isUploading) {
+            CircularProgressIndicator(modifier = Modifier.size(24.dp))
+        } else {
+            Text(
+                text = stringResource(R.string.submit),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Normal,
+                color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
+            )
+        }
     }
 }
 
 @Composable
 @Preview
-private fun Preview(){
-    Theme{ PostComposeNavigationBar(rememberNavController(), false, {}, false) }
+private fun Preview() {
+    Theme { PostComposeNavigationBar(rememberNavController(), false, {}, false) }
 }

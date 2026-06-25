@@ -32,7 +32,7 @@ class TaxiRoomUseCase @Inject constructor(
             return@withContext TaxiRoomBlockStatus.NotPaid
         }
 
-        if (taxiRooms.size >= Constants.taxiMaxRoomCount) {
+        if (taxiRooms.size >= Constants.TAXI_MAX_ROOM_COUNT) {
             return@withContext TaxiRoomBlockStatus.TooManyRooms
         }
 

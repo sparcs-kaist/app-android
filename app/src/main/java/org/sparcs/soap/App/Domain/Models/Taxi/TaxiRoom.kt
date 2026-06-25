@@ -17,5 +17,5 @@ data class TaxiRoom(
     val isDeparted: Boolean,
     val isOver: Boolean?
 ){
-    companion object { }
+    companion object
 }

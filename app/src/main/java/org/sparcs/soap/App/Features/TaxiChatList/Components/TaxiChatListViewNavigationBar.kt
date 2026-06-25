@@ -42,6 +42,7 @@ fun TaxiChatListViewNavigationBar(
 @Preview
 private fun Preview(){
     Theme {
-        TaxiChatListViewNavigationBar({}) }
+        TaxiChatListViewNavigationBar {}
+    }
 }
 

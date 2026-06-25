@@ -48,7 +48,6 @@ import org.sparcs.soap.App.Domain.Models.Taxi.ChatRenderItem
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiChat
 import org.sparcs.soap.App.Features.FullscreenImage.FullscreenImageView
 import org.sparcs.soap.App.Features.NavigationBar.Channel
-import org.sparcs.soap.App.Features.TaxiChat.ChatBubbles.ChatCollectionView
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatBubblePositionResolver
 import org.sparcs.soap.App.Features.TaxiChat.Components.ChatRenderItemBuilder
 import org.sparcs.soap.App.Features.TaxiChat.Components.DefaultMessagePresentationPolicy

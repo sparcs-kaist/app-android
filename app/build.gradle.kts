@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Properties
 
 plugins {
@@ -52,6 +54,8 @@ android {
             )
             buildConfigField("String", "TAXI_HOST", "\"taxi.dev.sparcs.org\"")
             buildConfigField("String", "ARA_HOST", "\"newara.dev.sparcs.org\"")
+            buildConfigField("String", "FEED_HOST", "\"buddy.dev.sparcs.org\"")
+            buildConfigField("String", "OTL_HOST", "\"api.otl.dev.sparcs.org\"")
         }
 
         getByName("release") {
@@ -62,6 +66,8 @@ android {
             )
             buildConfigField("String", "TAXI_HOST", "\"taxi.sparcs.org\"")
             buildConfigField("String", "ARA_HOST", "\"newara.sparcs.org\"")
+            buildConfigField("String", "FEED_HOST", "\"buddy.sparcs.org\"")
+            buildConfigField("String", "OTL_HOST", "\"otl.sparcs.org\"")
         }
         release {
             isMinifyEnabled = true
@@ -76,14 +82,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
         compose = true
         buildConfig = true
     }
 
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
 }
 
 dependencies {
@@ -151,7 +160,6 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.aboutlibraries.compose.m3)
-    implementation(libs.datastore.preferences.v111)
 
     implementation(libs.timber)
 
@@ -161,5 +169,5 @@ dependencies {
     implementation(libs.kakao.maps)
     implementation(libs.play.services.wearable)
 
-    implementation("io.channel:plugin-android:13.3.1")
+    implementation("io.channel:plugin-android:13.3.4")
 }

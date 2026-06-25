@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -35,7 +36,7 @@ fun LectureDetailNavigationBar(
     isCurrentTimetable: Boolean,
     isEnabled: Boolean
 ) {
-    var lineCount by remember { mutableStateOf(1) }
+    var lineCount by remember { mutableIntStateOf(1) }
     var hasMeasured by remember { mutableStateOf(false) }
 
     CenterAlignedTopAppBar(
@@ -99,5 +100,8 @@ fun LectureDetailNavigationBar(
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ LectureDetailNavigationBar(rememberNavController(), "title", {}, {}, false, true) }
+    Theme{ LectureDetailNavigationBar(rememberNavController(), "title", {}, {},
+        isCurrentTimetable = false,
+        isEnabled = true
+    ) }
 }

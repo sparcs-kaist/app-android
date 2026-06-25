@@ -110,7 +110,7 @@ class TaxiChatService @Inject constructor(
         }
 
         try {
-            socket = IO.socket(Constants.taxiSocketURL, opts)
+            socket = IO.socket(Constants.TAXI_SOCKET_URL, opts)
             setupSocketEvents()
             socket?.connect()
         } catch (e: Exception) {

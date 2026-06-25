@@ -18,5 +18,5 @@ data class AraPostComment (
     val parentPost: Int?,
     val parentComment: Int?
 ){
-    companion object{}
+    companion object
 }

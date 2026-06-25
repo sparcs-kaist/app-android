@@ -1,6 +1,7 @@
 package org.sparcs.soap.App.Features.TaxiList
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
@@ -13,8 +14,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiCreateRoom
-import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiFavoriteRoute
+import org.sparcs.soap.App.Domain.Models.Taxi.TaxiLocation
 import org.sparcs.soap.App.Domain.Models.Taxi.TaxiRoom
 import org.sparcs.soap.App.Domain.Repositories.Taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.App.Domain.Usecases.Taxi.MockTaxiFavoriteUseCase
@@ -103,7 +104,7 @@ class TaxiListViewModel @Inject constructor(
 
     // Room Creation
     override var roomDepartureTime: Date by mutableStateOf(Date().ceilToNextTenMinutes())
-    override var roomCapacity: Int by mutableStateOf(4)
+    override var roomCapacity: Int by mutableIntStateOf(4)
     override var roomHasCarrier: Boolean by mutableStateOf(false)
 
     override var alertState by mutableStateOf<AlertState?>(null)

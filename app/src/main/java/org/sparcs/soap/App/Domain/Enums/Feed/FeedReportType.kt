@@ -9,7 +9,7 @@ interface ReportLabelProvider {
 
 enum class FeedReportType(
     val type: String,
-    @StringRes override val labelRes: Int,
+    @param:StringRes override val labelRes: Int,
 ): ReportLabelProvider {
     EXTREME_POLITICS("EXTREME_POLITICS", R.string.report_extreme_politics),
     PORNOGRAPHY("PORNOGRAPHY", R.string.report_pornography),

@@ -15,7 +15,7 @@ class PreviewLectureSearchViewModel(initialState: LectureSearchViewModel.ViewSta
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<LectureSearchViewModel.ViewState> = _state.asStateFlow()
 
-    private val _courses = MutableStateFlow<List<CourseLecture>>(CourseLecture.mockList())
+    private val _courses = MutableStateFlow(CourseLecture.mockList())
     override val courses: StateFlow<List<CourseLecture>> = _courses.asStateFlow()
 
     private val _searchText = MutableStateFlow("")

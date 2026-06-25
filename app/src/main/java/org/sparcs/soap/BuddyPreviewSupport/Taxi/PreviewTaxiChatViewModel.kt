@@ -55,7 +55,10 @@ class PreviewTaxiChatViewModel(
     override suspend fun loadMoreChats() {}
     override suspend fun fetchInitialChats() {}
     override fun sendChat(message: String, type: TaxiChat.ChatType) {}
-    override suspend fun leaveRoom(): Boolean { return false }
+    override suspend fun leaveRoom(): Boolean {
+        return false
+    }
+
     override fun commitSettlement(amount: Int) {}
     override suspend fun commitPayment() {}
     override suspend fun sendImage(image: Bitmap) {}
@@ -104,24 +107,99 @@ class PreviewTaxiChatViewModel(
             listOf(
                 ChatRenderItem.DaySeparator(chats[0].time),
                 ChatRenderItem.SystemEvent(id = chats[0].id.toString(), chat = chats[0]),
-                message(1, ChatBubblePosition.TOP, false, false, false, true),
-                message(2, ChatBubblePosition.MIDDLE, false, false, false, true),
-                message(3, ChatBubblePosition.BOTTOM, false, false, true, true),
+                message(
+                    1, ChatBubblePosition.TOP, false,
+                    showAvatar = false,
+                    showTime = false,
+                    isMine = true
+                ),
+                message(
+                    2, ChatBubblePosition.MIDDLE, false,
+                    showAvatar = false,
+                    showTime = false,
+                    isMine = true
+                ),
+                message(
+                    3, ChatBubblePosition.BOTTOM, false,
+                    showAvatar = false,
+                    showTime = true,
+                    isMine = true
+                ),
                 ChatRenderItem.SystemEvent(id = chats[4].id.toString(), chat = chats[4]),
-                message(5, ChatBubblePosition.SINGLE, true, true, true, false),
-                message(6, ChatBubblePosition.SINGLE, false, true, true, true),
-                message(7, ChatBubblePosition.SINGLE, true, true, true, false),
+                message(
+                    5, ChatBubblePosition.SINGLE, true,
+                    showAvatar = true,
+                    showTime = true,
+                    isMine = false
+                ),
+                message(
+                    6, ChatBubblePosition.SINGLE, false,
+                    showAvatar = true,
+                    showTime = true,
+                    isMine = true
+                ),
+                message(
+                    7, ChatBubblePosition.SINGLE, true,
+                    showAvatar = true,
+                    showTime = true,
+                    isMine = false
+                ),
                 ChatRenderItem.SystemEvent(id = chats[8].id.toString(), chat = chats[8]),
-                message(9, ChatBubblePosition.SINGLE, true, true, true, false),
+                message(
+                    9, ChatBubblePosition.SINGLE, true,
+                    showAvatar = true,
+                    showTime = true,
+                    isMine = false
+                ),
                 ChatRenderItem.SystemEvent(id = chats[10].id.toString(), chat = chats[10]),
-                message(11, ChatBubblePosition.SINGLE, false, true, true, true),
-                message(12, ChatBubblePosition.SINGLE, false, false, true, false),
-                message(13, ChatBubblePosition.SINGLE, false, true, true, true),
-                message(14, ChatBubblePosition.SINGLE, true, true, true, false),
-                message(15, ChatBubblePosition.SINGLE, false, false, true, false),
-                message(16, ChatBubblePosition.SINGLE, false, false, true, false),
-                message(17, ChatBubblePosition.SINGLE, false, false, true, true),
-                message(18, ChatBubblePosition.SINGLE, true, true, true, false)
+                message(
+                    11, ChatBubblePosition.SINGLE, false,
+                    showAvatar = true,
+                    showTime = true,
+                    isMine = true
+                ),
+                message(
+                    12, ChatBubblePosition.SINGLE, false,
+                    showAvatar = false,
+                    showTime = true,
+                    isMine = false
+                ),
+                message(
+                    13, ChatBubblePosition.SINGLE, false,
+                    showAvatar = true,
+                    showTime = true,
+                    isMine = true
+                ),
+                message(
+                    14, ChatBubblePosition.SINGLE, true,
+                    showAvatar = true,
+                    showTime = true,
+                    isMine = false
+                ),
+                message(
+                    15, ChatBubblePosition.SINGLE, false,
+                    showAvatar = false,
+                    showTime = true,
+                    isMine = false
+                ),
+                message(
+                    16, ChatBubblePosition.SINGLE, false,
+                    showAvatar = false,
+                    showTime = true,
+                    isMine = false
+                ),
+                message(
+                    17, ChatBubblePosition.SINGLE, false,
+                    showAvatar = false,
+                    showTime = true,
+                    isMine = true
+                ),
+                message(
+                    18, ChatBubblePosition.SINGLE, true,
+                    showAvatar = true,
+                    showTime = true,
+                    isMine = false
+                )
             )
         }
     }

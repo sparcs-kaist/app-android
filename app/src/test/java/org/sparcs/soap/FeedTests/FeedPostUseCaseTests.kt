@@ -138,7 +138,7 @@ class FeedPostUseCaseTests : FeedTestBase() {
 
     @Test
     fun `unknown error is wrapped and recorded to Crashlytics`() = runTest {
-        mockRepo.fetchPostsResult = Result.failure(TestError.TestFailure)
+        mockRepo.fetchPostsResult = Result.failure(TestError.TestFailure())
 
         try {
             useCase.fetchPosts(cursor = null, page = 20)

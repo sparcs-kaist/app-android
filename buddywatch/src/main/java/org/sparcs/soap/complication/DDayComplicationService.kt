@@ -19,6 +19,7 @@ import org.sparcs.soap.data.models.Semester
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 class DDayComplicationService : SuspendingComplicationDataSourceService() {
     private val watchDataStore by lazy { WatchDataStore(applicationContext) }
@@ -135,7 +136,7 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
             when {
                 daysLeft == 0 -> "D-Day"
                 daysLeft > 0 -> "D-$daysLeft"
-                else -> "D+${Math.abs(daysLeft)}"
+                else -> "D+${abs(daysLeft)}"
             }
         }
     }

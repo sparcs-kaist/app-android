@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Features.Timetable
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -57,6 +58,7 @@ import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewLectureSearchViewModel
 import org.sparcs.soap.BuddyPreviewSupport.OTL.PreviewTimetableViewModel
 import org.sparcs.soap.R
 
+@SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun TimetableView(
     viewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),

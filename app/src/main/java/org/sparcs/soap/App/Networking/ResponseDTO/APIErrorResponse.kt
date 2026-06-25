@@ -36,7 +36,7 @@ suspend fun <T> handleApiError(
     if (code == 401) {
         val refresher = AuthRetryConfig.tokenRefresher
         if (AuthRetryConfig.isRefreshing || refresher == null) {
-            throw NetworkError.Unauthorized
+            throw NetworkError.Unauthorized()
         }
         return try {
             AuthRetryConfig.isRefreshing = true

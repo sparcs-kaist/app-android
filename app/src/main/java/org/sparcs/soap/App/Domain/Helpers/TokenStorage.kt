@@ -27,7 +27,7 @@ interface TokenStorageProtocol {
 }
 
 class TokenStorage @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : TokenStorageProtocol {
 
     companion object {

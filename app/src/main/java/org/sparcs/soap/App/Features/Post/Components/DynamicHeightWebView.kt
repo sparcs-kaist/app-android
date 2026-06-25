@@ -14,6 +14,7 @@ import androidx.annotation.Keep
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -23,7 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import org.sparcs.soap.App.Domain.Helpers.TokenStorage
 import kotlin.math.abs
-
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun DynamicHeightWebView(
     url: String,
@@ -41,8 +42,7 @@ fun DynamicHeightWebView(
     val textColorHex = "#%06X".format(textColor and 0xFFFFFF)
     val linkColorHex = "#%06X".format(linkColor and 0xFFFFFF)
     
-    var currentHeight by remember { mutableStateOf(0) }
-    var heightReportCount by remember { mutableStateOf(0) }
+    var currentHeight by remember { mutableIntStateOf(0) }
     var isFitted by remember { mutableStateOf(false) }
 
     val webAppInterface = remember {
@@ -168,7 +168,12 @@ fun DynamicHeightWebView(
                         request: WebResourceRequest?
                     ): Boolean {
                         val requestUrl = request?.url?.toString() ?: ""
-                        if (request?.isForMainFrame == true) {
+
+                        if (!requestUrl.startsWith("http://") && !requestUrl.startsWith("https://")) {
+                            return true
+                        }
+
+                        if (request != null && request.isForMainFrame) {
                             if (requestUrl == url) return false
                             if (requestUrl.contains("/web_view") || requestUrl.contains("/login")) {
                                 return false
@@ -192,7 +197,6 @@ fun DynamicHeightWebView(
             if (webView.url != url && accessToken != null) {
                 isFitted = false
                 currentHeight = 0
-                heightReportCount = 0
                 val extraHeaders = mapOf("Authorization" to "Bearer $accessToken")
                 webView.loadUrl(url, extraHeaders)
             }

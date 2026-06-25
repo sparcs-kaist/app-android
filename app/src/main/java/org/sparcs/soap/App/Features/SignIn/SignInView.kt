@@ -3,7 +3,6 @@ package org.sparcs.soap.App.Features.SignIn
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,6 +34,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.sparcs.soap.App.Domain.Helpers.Constants
 import org.sparcs.soap.App.Shared.Extensions.analyticsScreen
@@ -134,7 +134,7 @@ private fun TermsAndPrivacyText(context: Context) {
     val annotatedString = buildAnnotatedString {
         append(stringResource(R.string.terms_and_privacy_prefix) + " ")
 
-        pushStringAnnotation(tag = "TERMS", annotation = Constants.termsOfUseURL)
+        pushStringAnnotation(tag = "TERMS", annotation = Constants.TERMS_OF_USE_URL)
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
             append(stringResource(R.string.terms_of_use) + " ")
         }
@@ -142,7 +142,7 @@ private fun TermsAndPrivacyText(context: Context) {
 
         append(stringResource(R.string.and_text) + " ")
 
-        pushStringAnnotation(tag = "PRIVACY", annotation = Constants.privacyPolicyURL)
+        pushStringAnnotation(tag = "PRIVACY", annotation = Constants.PRIVACY_POLICY_URL)
         withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
             append(stringResource(R.string.privacy_policy) + " ")
         }
@@ -157,12 +157,12 @@ private fun TermsAndPrivacyText(context: Context) {
         ), onClick = { offset ->
             annotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
                 .firstOrNull()?.let { uri ->
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri.item))
+                    val intent = Intent(Intent.ACTION_VIEW, uri.item.toUri())
                     context.startActivity(intent)
                 }
             annotatedString.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
                 .firstOrNull()?.let { uri ->
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri.item))
+                    val intent = Intent(Intent.ACTION_VIEW, uri.item.toUri())
                     context.startActivity(intent)
                 }
         }, modifier = Modifier.fillMaxWidth()

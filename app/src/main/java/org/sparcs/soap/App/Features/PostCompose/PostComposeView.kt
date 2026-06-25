@@ -70,6 +70,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -409,7 +410,7 @@ fun TermsOfUseButton() {
     val context = LocalContext.current
     TextButton(
         onClick = {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(Constants.termsOfUseURL))
+            val intent = Intent(Intent.ACTION_VIEW, Constants.TERMS_OF_USE_URL.toUri())
             context.startActivity(intent)
         }
     ) {

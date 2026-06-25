@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,7 @@ import org.sparcs.soap.R
 @Composable
 fun TaxiCapacityPicker(
     capacity: Int,
-    onCapacityChange: (Int) -> Unit
+    onCapacityChange: (Int) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -47,10 +48,10 @@ fun TaxiCapacityPicker(
 
         Spacer(Modifier.weight(1f))
 
-        Box{
+        Box {
             Row(Modifier.clickable { expanded = true }) {
                 Text(
-                    text = stringResource(R.string.people_count, capacity),
+                    text = pluralStringResource(R.plurals.people_count, capacity, capacity),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.grayBB
                 )
@@ -72,7 +73,7 @@ fun TaxiCapacityPicker(
             ) {
                 (2..4).forEach { count ->
                     DropdownMenuItem(
-                        text = { Text(stringResource(R.string.people_count, count)) },
+                        text = { Text(pluralStringResource(R.plurals.people_count, count, count)) },
                         onClick = {
                             onCapacityChange(count)
                             expanded = false
@@ -83,8 +84,9 @@ fun TaxiCapacityPicker(
         }
     }
 }
+
 @Composable
 @Preview
-private fun Preview(){
-    Theme { TaxiCapacityPicker(4, {}) }
+private fun Preview() {
+    Theme { TaxiCapacityPicker(4) {} }
 }

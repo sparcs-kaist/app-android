@@ -30,7 +30,7 @@ import org.sparcs.soap.R
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SplashActivity : ComponentActivity() {
+class GatewayActivity : ComponentActivity() {
 
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -59,7 +59,7 @@ class SplashActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     delay(1000)
-                    startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+                    startActivity(Intent(this@GatewayActivity, MainActivity::class.java))
                     finish()
                 }
 

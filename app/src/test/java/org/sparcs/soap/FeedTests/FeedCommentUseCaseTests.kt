@@ -145,7 +145,7 @@ class FeedCommentUseCaseTests : FeedTestBase() {
 
     @Test
     fun `unknown error is wrapped in FeedCommentUseCaseError unknown`() = runTest {
-        mockRepo.fetchCommentsResult = Result.failure(TestError.TestFailure)
+        mockRepo.fetchCommentsResult = Result.failure(TestError.TestFailure())
 
         try {
             useCase.fetchComments(postID = "post-1")

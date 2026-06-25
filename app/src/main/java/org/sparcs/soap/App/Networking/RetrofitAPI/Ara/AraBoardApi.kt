@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Networking.RetrofitAPI.Ara
 
+import com.google.gson.annotations.SerializedName
 import okhttp3.MultipartBody
 import org.sparcs.soap.App.Networking.RequestDTO.Ara.AraPostRequestDTO
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraAttachmentDTO
@@ -80,7 +81,9 @@ interface AraBoardApi {
 }
 
 data class PostReportRequest(
-    val post_id: Int,
+    @SerializedName("post_id")
+    val postId: Int,
+
     val type: String,
     val content: String,
 )

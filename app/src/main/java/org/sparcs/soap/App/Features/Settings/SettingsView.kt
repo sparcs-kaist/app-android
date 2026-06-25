@@ -56,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -366,7 +367,7 @@ private fun Term(context: Context, navController: NavController) {
     ) {
         val intent = Intent(
             Intent.ACTION_VIEW,
-            Uri.parse(Constants.privacyPolicyURL)
+            Constants.PRIVACY_POLICY_URL.toUri()
         ); context.startActivity(intent)
     }
 
@@ -382,7 +383,7 @@ private fun Term(context: Context, navController: NavController) {
     ) {
         val intent = Intent(
             Intent.ACTION_VIEW,
-            Uri.parse(Constants.termsOfUseURL)
+            Constants.TERMS_OF_USE_URL.toUri()
         ); context.startActivity(intent)
     }
 

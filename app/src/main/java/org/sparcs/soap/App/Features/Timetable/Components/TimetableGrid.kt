@@ -58,8 +58,8 @@ fun TimetableGrid(
         candidateLecture?.let { addAll(it.classes) }
     }
 
-    val minMinutes = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: timetable?.minMinutes ?: TimetableDefaults.defaultMinMinutes
-    val maxMinutes = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: timetable?.gappedMaxMinutes ?: TimetableDefaults.defaultMaxMinutes
+    val minMinutes = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: timetable?.minMinutes ?: TimetableDefaults.DEFAULT_MIN_MINUTES
+    val maxMinutes = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: timetable?.gappedMaxMinutes ?: TimetableDefaults.DEFAULT_MAX_MINUTES
 
     val haptic = LocalHapticFeedback.current
 
@@ -256,8 +256,8 @@ private fun GridHorizontalLines(minMinutes: Int, maxMinutes: Int) {
 
 
 object TimetableDefaults {
-    const val defaultMinMinutes = 540   // 8:00 AM
-    const val defaultMaxMinutes = 1080  // 6:00 PM
+    const val DEFAULT_MIN_MINUTES = 540   // 8:00 AM
+    const val DEFAULT_MAX_MINUTES = 1080  // 6:00 PM
 }
 
 

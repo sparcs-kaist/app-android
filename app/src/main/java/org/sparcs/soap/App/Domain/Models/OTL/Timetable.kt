@@ -85,7 +85,7 @@ data class Timetable(
         get() = lectures.sumOf { it.creditAU }
 
     /*
-       * targetCredits: sum of credit and creditAu where reviewTotalWeight is larger than 0. It is use to calculate letter for grade, load, and speech.
+       * targetCredits: sum of credit and creditAu where reviewTotalWeight is larger than 0. It is used to calculate letter for grade, load, and speech.
        */
     val targetCredits: Int
         get() = lectures

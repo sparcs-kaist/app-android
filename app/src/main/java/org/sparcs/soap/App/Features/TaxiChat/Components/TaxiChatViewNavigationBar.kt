@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -77,7 +78,7 @@ fun TaxiChatViewNavigationBar(
     isLeaveAvailable: Boolean,
 ) {
     val context = LocalContext.current
-    val shareUrl = "${Constants.taxiInviteURL}${room.id}"
+    val shareUrl = "${Constants.TAXI_INVITE_URL}${room.id}"
     val shareMessage = stringResource(
         R.string.taxi_share_message,
         room.departAt.formattedString(),
@@ -238,9 +239,9 @@ private fun ArrivalStatusSection(
         ) {
             Crossfade(
                 targetState = when {
-                    isAllArrived -> stringResource(R.string.taxi_all_arrived, totalCount)
+                    isAllArrived -> pluralStringResource(R.plurals.taxi_all_arrived, totalCount, totalCount)
                     arrivedCount == 0 -> stringResource(R.string.taxi_arrived_question)
-                    else -> stringResource(R.string.taxi_arrived_count, arrivedCount)
+                    else -> pluralStringResource(R.plurals.taxi_arrived_count, arrivedCount, arrivedCount)
                 },
                 label = "ArrivalText"
             ) { targetText ->

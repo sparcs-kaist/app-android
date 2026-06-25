@@ -4,31 +4,15 @@ import org.sparcs.soap.BuildConfig
 
 object Constants {
     // MARK: Authorization
-    val authorizationURL: String
-        get() = if (BuildConfig.DEBUG) {
-            "https://taxi.dev.sparcs.org/api/auth/sparcsapp/login?codeChallenge="
-        } else {
-            "https://taxi.sparcs.org/api/auth/sparcsapp/login?codeChallenge="
-        }
+    const val AUTHORIZATION_URL = "https://${BuildConfig.TAXI_HOST}/api/auth/sparcsapp/login?codeChallenge="
 
     // MARK: Terms
-    val privacyPolicyURL = "https://github.com/sparcs-kaist/privacy/blob/main/Privacy.md"
-    val termsOfUseURL = "https://github.com/sparcs-kaist/privacy/blob/main/TermsOfUse.md"
+    const val PRIVACY_POLICY_URL = "https://github.com/sparcs-kaist/privacy/blob/main/Privacy.md"
+    const val TERMS_OF_USE_URL = "https://github.com/sparcs-kaist/privacy/blob/main/TermsOfUse.md"
 
     // MARK: Taxi
-    val taxiBackendURL: String
-        get() = if (BuildConfig.DEBUG) {
-            "https://taxi.dev.sparcs.org/api/"
-        } else {
-            "https://taxi.sparcs.org/api/"
-        }
-
-    val taxiSocketURL: String
-        get() = if (BuildConfig.DEBUG) {
-            "https://taxi.dev.sparcs.org/"
-        } else {
-            "https://taxi.sparcs.org/"
-        }
+    const val TAXI_BACKEND_URL = "https://${BuildConfig.TAXI_HOST}/api/"
+    const val TAXI_SOCKET_URL = "https://${BuildConfig.TAXI_HOST}/"
 
     val taxiChatImageURL: String
         get() = if (BuildConfig.DEBUG) {
@@ -65,16 +49,11 @@ object Constants {
     )
 
     val taxiBankNameList: List<String> = taxiBankCodeMap.keys.toList()
-    val taxiInviteURL: String
-        get() = if (BuildConfig.DEBUG) {
-            "https://taxi.dev.sparcs.org/invite/"
-        } else {
-            "https://taxi.sparcs.org/invite/"
-        }
+    const val TAXI_INVITE_URL = "https://${BuildConfig.TAXI_HOST}/invite/"
 
     val taxiRoomNameRegex = Regex("^[A-Za-z0-9가-힣ㄱ-ㅎㅏ-ㅣ,.?! _~/#'@=\"^()+*<>{}\\[\\]\\-]{1,50}$")
 
-    val taxiMaxRoomCount = 5
+    const val TAXI_MAX_ROOM_COUNT = 5
 
     val taxiDefaultRoomNames = listOf(
         "택시 타고 가자",
@@ -224,45 +203,26 @@ object Constants {
     )
 
     // MARK: Ara
-    val araBackendURL: String
-        get() = if (BuildConfig.DEBUG) {
-            "https://newara.dev.sparcs.org/api/"
-        } else {
-            "https://newara.sparcs.org/api/"
-        }
+    const val ARA_BACKEND_URL = "https://${BuildConfig.ARA_HOST}/api/"
 
-    val araShareURL: String
-        get() = if (BuildConfig.DEBUG) {
-            "https://newara.dev.sparcs.org/post/"
-        } else {
-            "https://newara.sparcs.org/post/"
-        }
+    const val ARA_SHARE_URL = "https://${BuildConfig.ARA_HOST}/post/"
 
     // MARK: Feed
-    val feedBackendURL: String
-        get() = if (BuildConfig.DEBUG) {
-            "https://buddy.dev.sparcs.org/v1/"
-        } else {
-            "https://buddy.sparcs.org/v1/"
-        }
+    const val FEED_BACKEND_URL = "https://${BuildConfig.FEED_HOST}/v1/"
 
-    val feedShareURL = "https://sparcs.org/feed/"
+    //TODO : Change this to the actual feed share URL when it is available
+    const val FEED_SHARE_URL = "https://sparcs.org/feed/"
 
     // MARK: OTL
-    val otlBackendURL: String
-        get() = if (BuildConfig.DEBUG) {
-            "https://api.otl.dev.sparcs.org/"
-        } else {
-            "https://otl.sparcs.org/"
-        }
+    const val OTL_BACKEND_URL = "https://${BuildConfig.OTL_HOST}/"
 
-    val otlShareURL: String //Widget deeplink
-        get() = "sparcsapp://otl/timetable"
+    //Widget deeplink
+    const val OTL_SHARE_URL: String = "sparcsapp://otl/timetable"
 
     // MARK: MAPS
-    val mapsURL = "https://apis-navi.kakaomobility.com/v1/directions?"
+    const val MAPS_URL = "https://apis-navi.kakaomobility.com/v1/directions?"
 
-    val formattedPhoneNumberLength = 11 // Assuming a valid phone number has 11 digits (excluding "-")
+    const val FORMATTED_PHONE_NUMBER_LENGTH = 11 // Assuming a valid phone number has 11 digits (excluding "-")
 
     const val KAKAO_MAP_KEY = BuildConfig.KAKAO_MAP_KEY
     const val KAKAO_NAVI_KEY = BuildConfig.KAKAO_NAVI_KEY

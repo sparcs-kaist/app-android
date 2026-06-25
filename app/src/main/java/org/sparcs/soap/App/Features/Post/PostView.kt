@@ -65,6 +65,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -151,7 +152,7 @@ fun PostView(
                 val urlString = uri.toString()
                 val finalUri =
                     if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
-                        Uri.parse("http://$urlString")
+                        "http://$urlString".toUri()
                     } else {
                         uri
                     }
@@ -286,7 +287,7 @@ fun PostView(
                             summarisedContent = summarisedContent,
                             htmlHeight = htmlHeight,
                             onHtmlHeightChange = { htmlHeight = it },
-                            onLinkTapped = { tappedURL = Uri.parse(it) }
+                            onLinkTapped = { tappedURL = it.toUri() }
                         )
                     }
                     if (post != null && !post.attachments.isNullOrEmpty()) {
@@ -442,7 +443,7 @@ private fun Content(
             Spacer(modifier = Modifier.height(8.dp))
         }
         DynamicHeightWebView(
-            url = "${Constants.araBackendURL}users/exchange/?next=/web_view/PostFrame/$postId",
+            url = "${Constants.ARA_BACKEND_URL}users/exchange/?next=/web_view/PostFrame/$postId",
             modifier = Modifier
                 .height(htmlHeight)
                 .fillMaxWidth(),
@@ -478,7 +479,7 @@ private fun Footer(
         PostBookmarkButton(
             post.myScrap,
             onToggleBookmark = { scope.launch { viewModel.toggleBookmark() } })
-        PostShareButton(url = Constants.araShareURL + post.id.toString(), context = context)
+        PostShareButton(url = Constants.ARA_SHARE_URL + post.id.toString(), context = context)
     }
 }
 

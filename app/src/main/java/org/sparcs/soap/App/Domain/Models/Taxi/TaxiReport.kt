@@ -21,8 +21,6 @@ data class TaxiReport(
     val time: Date,
     val roomId: String?
 ) {
-    companion object{}
-
     enum class Reason(val value: String, val text: Int) {
         NO_SETTLEMENT("no-settlement", R.string.didnot_send_the_money),
         NO_SHOW("no-show", R.string.didnot_come_on_time),
@@ -33,4 +31,6 @@ data class TaxiReport(
                 ?: ETC_REASON
         }
     }
+
+    companion object
 }

@@ -108,7 +108,7 @@ private fun Preview() {
             Button(
                 onClick = {}
             ) {
-                FeedViewDropDownMenu({})
+                FeedViewDropDownMenu {}
             }
         }
     }

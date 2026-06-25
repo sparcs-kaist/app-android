@@ -1,5 +1,6 @@
 package org.sparcs.soap.App.Networking.RetrofitAPI.Ara
 
+import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.App.Networking.ResponseDTO.Ara.AraPostCommentDTO
 import retrofit2.Response
 import retrofit2.http.Body
@@ -36,25 +37,25 @@ interface AraCommentApi {
 }
 
 data class CommentPostRequest(
-    val parent_article: Int,
+    @SerializedName("parent_article") val parentArticle: Int,
     val content: String,
-    val name_type: Int = 2
+    @SerializedName("name_type") val nameType: Int = 2
 )
 
 data class ThreadedCommentPostRequest(
-    val parent_comment: Int,
+    @SerializedName("parent_comment") val parentComment: Int,
     val content: String,
-    val name_type: Int = 2
+    @SerializedName("name_type") val nameType: Int = 2
 )
 
 data class CommentPatchRequest(
     val content: String,
-    val name_type: Int = 2,
-    val is_mine: Boolean = true
+    @SerializedName("name_type") val nameType: Int = 2,
+    @SerializedName("is_mine") val isMine: Boolean = true
 )
 
 data class CommentReportRequest(
-    val parent_comment: Int,
+    @SerializedName("parent_comment") val parentComment: Int,
     val type: String,
     val content: String
 )

@@ -13,7 +13,7 @@ data class LectureWrapDTO(
     val semester: Int,
 
     @SerializedName("lectures")
-    val lectures: List<ShrinkedLectureDTO>
+    val lectures: List<ShrankLectureDTO>
 ) {
     fun toModel(): LectureHistory = LectureHistory(
         year = year,
@@ -22,7 +22,7 @@ data class LectureWrapDTO(
     )
 }
 
-data class ShrinkedLectureDTO(
+data class ShrankLectureDTO(
     @SerializedName("code")
     val code: String,
 

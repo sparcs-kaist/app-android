@@ -3,25 +3,17 @@ package org.sparcs.soap.App.Domain.Error.Auth
 import org.sparcs.soap.R
 
 sealed class AuthenticationServiceError : Exception() {
-    data object UserCancelled : AuthenticationServiceError() {
-        private fun readResolve(): Any = UserCancelled
-    }
+    class UserCancelled : AuthenticationServiceError()
 
-    data object InvalidCallbackURL : AuthenticationServiceError() {
-        private fun readResolve(): Any = InvalidCallbackURL
-    }
+    class InvalidCallbackURL : AuthenticationServiceError()
 
     data class TokenExchangeFailed(val error: Throwable) : AuthenticationServiceError()
 
     data class TokenRefreshFailed(val error: Throwable) : AuthenticationServiceError()
 
-    data object NoRefreshTokenAvailable : AuthenticationServiceError() {
-        private fun readResolve(): Any = NoRefreshTokenAvailable
-    }
+    class NoRefreshTokenAvailable : AuthenticationServiceError()
 
-    data object Unknown : AuthenticationServiceError() {
-        private fun readResolve(): Any = Unknown
-    }
+    class Unknown : AuthenticationServiceError()
 
     val messageRes: Int
         get() = when (this) {

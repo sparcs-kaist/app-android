@@ -5,15 +5,11 @@ import org.sparcs.soap.R
 sealed class AuthUseCaseError : Exception() {
     data class SignInFailed(val error: Throwable) : AuthUseCaseError()
 
-    data object SignOutFailed : AuthUseCaseError() {
-        private fun readResolve(): Any = SignOutFailed
-    }
+    class SignOutFailed : AuthUseCaseError()
 
     data class RefreshFailed(val error: Throwable) : AuthUseCaseError()
 
-    data object NoAccessToken : AuthUseCaseError() {
-        private fun readResolve(): Any = NoAccessToken
-    }
+    class NoAccessToken : AuthUseCaseError()
 
     val messageRes: Int
         get() = when (this) {

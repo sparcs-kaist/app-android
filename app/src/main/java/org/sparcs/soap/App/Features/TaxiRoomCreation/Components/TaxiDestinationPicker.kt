@@ -176,7 +176,7 @@ fun LocationMenu(
 
         locations.forEach { location ->
             DropdownMenuItem(
-                text = { LocalizedText(location.title) },
+                text = { LocalizedText(text = location.title) },
                 onClick = {
                     onSelectionChange(location)
                     expanded = false

@@ -18,7 +18,7 @@ data class TaxiUser(
     val profileImageURL: String?,
     val account: String
 ) {
-    companion object {}
+    companion object
 
     fun hasUserPaid(rooms: List<TaxiRoom>): Boolean {
         return rooms.none { room ->

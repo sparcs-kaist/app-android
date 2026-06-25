@@ -133,7 +133,7 @@ class TimetableWidget : GlanceAppWidget() {
 
 @Singleton
 class TimetableWidgetSyncManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     suspend fun sync(timetable: Timetable, glanceId: GlanceId? = null) {
         val newState = timetable.toWidgetUiState()
@@ -291,7 +291,7 @@ class RefreshTimetableAction : ActionCallback {
                 putExtra(EXTRA_FROM_WIDGET, true)
             }
         } else {
-            Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
+            Intent(Intent.ACTION_VIEW, Constants.OTL_SHARE_URL.toUri())
         }
 
         intent?.apply {

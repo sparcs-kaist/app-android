@@ -56,7 +56,7 @@ class FeedViewModelTests : FeedTestBase() {
 
     @Test
     fun `fetchInitialData error sets state to error`() = runTest {
-        mockFeedPostUseCase.fetchPostsResult = Result.failure(TestError.TestFailure)
+        mockFeedPostUseCase.fetchPostsResult = Result.failure(TestError.TestFailure())
 
         viewModel.fetchInitialData()
 
@@ -86,7 +86,7 @@ class FeedViewModelTests : FeedTestBase() {
 
     @Test
     fun `deletePost shows alert on error`() = runTest {
-        mockFeedPostUseCase.deletePostResult = Result.failure(TestError.TestFailure)
+        mockFeedPostUseCase.deletePostResult = Result.failure(TestError.TestFailure())
         viewModel.posts = mutableListOf(
             FeedTestFixtures.makePost(id = "1")
         )

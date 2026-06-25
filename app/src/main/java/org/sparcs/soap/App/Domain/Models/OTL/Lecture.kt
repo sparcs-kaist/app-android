@@ -13,8 +13,8 @@ val Lecture.backgroundColor: Color
         return palette.colors[index]
     }
 
-// Text colour for TimetableGridCell
-val Lecture.textColor: Color
+// Text color for TimetableGridCell
+val textColor: Color
     get(){
         return  TimetableColorPalette.palettes[0].textColor
     }

@@ -158,9 +158,9 @@ class AuthUseCase @Inject constructor(
             if (tokenStorage.isTokenExpired()) {
                 refreshAccessToken()
             }
-            tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken
+            tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken()
         } catch (_: Exception) {
-            throw AuthUseCaseError.NoAccessToken
+            throw AuthUseCaseError.NoAccessToken()
         }
     }
 

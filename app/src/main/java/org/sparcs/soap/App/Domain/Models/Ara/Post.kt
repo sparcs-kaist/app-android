@@ -14,5 +14,5 @@ data class Post(
     val createdAt: Date,
     val thumbnailURL: URL?,
 ) {
-    companion object { }
+    companion object
 }

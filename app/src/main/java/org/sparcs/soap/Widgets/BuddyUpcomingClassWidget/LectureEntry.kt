@@ -2,6 +2,7 @@ package org.sparcs.soap.Widgets.BuddyUpcomingClassWidget
 
 import kotlinx.serialization.Serializable
 import org.sparcs.soap.App.Domain.Enums.OTL.DayType
+import java.util.Locale
 
 @Serializable
 data class WidgetLectureEntry(
@@ -22,7 +23,7 @@ data class WidgetLectureEntry(
             val duration = durationMinutes ?: 0
             val end = start + duration
 
-            fun Int.toTime(): String = String.format("%02d:%02d", (this / 60) % 24, this % 60)
+            fun Int.toTime(): String = String.format(Locale.ROOT,  "%02d:%02d", (this / 60) % 24, this % 60)
 
             return "${start.toTime()} - ${end.toTime()}"
         }

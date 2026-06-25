@@ -9,15 +9,9 @@ import java.io.Serializable
 sealed class FeedProfileUseCaseError : Exception(), SourcedError, Serializable {
     override val source: ErrorSource = ErrorSource.UseCase
 
-    object ImageCompressionFailed : FeedProfileUseCaseError() {
-        private fun readResolve(): Any = ImageCompressionFailed
-    }
-    object NicknameReserved : FeedProfileUseCaseError() {
-        private fun readResolve(): Any = NicknameReserved
-    }
-    object NicknameConflict : FeedProfileUseCaseError() {
-        private fun readResolve(): Any = NicknameConflict
-    }
+    class ImageCompressionFailed : FeedProfileUseCaseError()
+    class NicknameReserved : FeedProfileUseCaseError()
+    class NicknameConflict : FeedProfileUseCaseError()
     data class Unknown(val underlying: Throwable?) : FeedProfileUseCaseError()
 
     @get:StringRes

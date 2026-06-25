@@ -193,7 +193,7 @@ private fun Preview() {
             searchScope = SearchScope.All,
             targetScope = SearchScope.Rides,
             onScopeChange = {},
-            content = { CourseCell(CourseSummary.mock(), {}) }
+            content = { CourseCell(CourseSummary.mock()) {} }
         )
     }
 }

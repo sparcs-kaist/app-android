@@ -47,7 +47,9 @@ object ChannelManager {
             }
 
             val bootConfig = BootConfig.create(pluginKey ?: "")
-            try { bootConfig.setMemberId(memberId) } catch (_: Exception) {}
+            try {
+                bootConfig.memberId = memberId
+            } catch (_: Exception) {}
             try { bootConfig.setProfile(profile) } catch (_: Exception) {}
 
             ChannelIO.boot(bootConfig) { status, _ ->

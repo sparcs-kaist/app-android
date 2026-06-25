@@ -1,4 +1,4 @@
-package org.sparcs.soap.Features.Post
+package org.sparcs.soap.App.Features.Post.Components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -52,8 +52,6 @@ import org.sparcs.soap.App.Domain.Enums.Ara.AraContentReportType
 import org.sparcs.soap.App.Domain.Enums.Feed.ReportLabelProvider
 import org.sparcs.soap.App.Domain.Helpers.AlertState
 import org.sparcs.soap.App.Domain.Models.Ara.AraPostComment
-import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
-import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Shared.Extensions.timeAgoDisplay
 import org.sparcs.soap.App.Shared.Extensions.toAlertState
 import org.sparcs.soap.App.Shared.Mocks.Ara.mock
@@ -200,6 +198,7 @@ private fun PostCommentHeader(
 
 @Composable
 fun <T> PostCommentActionsMenu(
+    modifier: Modifier = Modifier,
     enumClass: KClass<T>, //ara or feed report type
     isMine: Boolean?,
     onEdit: () -> Unit? = {},
@@ -207,7 +206,6 @@ fun <T> PostCommentActionsMenu(
     onReport: (T) -> Unit,
     onTranslate: () -> Unit,
     isComment: Boolean,
-    modifier: Modifier = Modifier,
 ) where T : Enum<T>, T : ReportLabelProvider {
     var expanded by remember { mutableStateOf(false) }
     var reportExpanded by remember { mutableStateOf(false) }

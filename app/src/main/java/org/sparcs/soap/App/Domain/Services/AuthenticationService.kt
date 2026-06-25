@@ -71,7 +71,7 @@ class AuthenticationService @Inject constructor(
 
             val codeVerifier = generateCodeVerifier()
             val codeChallenge = generateCodeChallenge(codeVerifier)
-            val authURL = Constants.authorizationURL + codeChallenge
+            val authURL = Constants.AUTHORIZATION_URL + codeChallenge
 
             var isAuthProcessing = false
             var isBrowserLaunched = false
@@ -83,7 +83,7 @@ class AuthenticationService @Inject constructor(
 
                 override fun onResume(owner: LifecycleOwner) {
                     if (isBrowserLaunched && continuation.isActive && !isAuthProcessing) {
-                        continuation.cancel(AuthenticationServiceError.UserCancelled)
+                        continuation.cancel(AuthenticationServiceError.UserCancelled())
                         AuthenticationCallbackHandler.clearCallback()
                     }
                 }
@@ -118,7 +118,7 @@ class AuthenticationService @Inject constructor(
                             }
                         }
                     } else {
-                        continuation.resumeWithException(AuthenticationServiceError.InvalidCallbackURL)
+                        continuation.resumeWithException(AuthenticationServiceError.InvalidCallbackURL())
                         AuthenticationCallbackHandler.clearCallback()
                     }
                 }
@@ -130,7 +130,7 @@ class AuthenticationService @Inject constructor(
 
             } catch (_: Exception) {
                 if (continuation.isActive) {
-                    continuation.resumeWithException(AuthenticationServiceError.Unknown)
+                    continuation.resumeWithException(AuthenticationServiceError.Unknown())
                 }
             }
         }

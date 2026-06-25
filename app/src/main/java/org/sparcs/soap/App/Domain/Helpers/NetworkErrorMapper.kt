@@ -12,14 +12,14 @@ object NetworkErrorMapper {
             is NetworkError -> throwable
 
             is UnknownHostException,
-            is ConnectException -> NetworkError.NoConnection
+            is ConnectException -> NetworkError.NoConnection()
 
-            is SocketTimeoutException -> NetworkError.Timeout
+            is SocketTimeoutException -> NetworkError.Timeout()
 
             is HttpException -> {
                 when (throwable.code()) {
-                    401 -> NetworkError.Unauthorized
-                    404 -> NetworkError.NotFound
+                    401 -> NetworkError.Unauthorized()
+                    404 -> NetworkError.NotFound()
                     else -> NetworkError.ServerError(throwable.code())
                 }
             }

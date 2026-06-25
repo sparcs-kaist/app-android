@@ -3,7 +3,7 @@ package org.sparcs.soap.App.Domain.Enums.OTL
 import androidx.annotation.StringRes
 import org.sparcs.soap.R
 
-enum class LectureType(@StringRes val labelRes: Int, val displayName: Int) {
+enum class LectureType(@param:StringRes val labelRes: Int, val displayName: Int) {
     BR(R.string.br, R.string.lecture_type_br_full),
     BE(R.string.be, R.string.lecture_type_be_full),
     MR(R.string.mr, R.string.lecture_type_mr_full),

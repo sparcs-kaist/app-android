@@ -72,7 +72,6 @@ fun TaxiChatInputBar(
     modifier: Modifier = Modifier,
 ) {
     var selectedImage by remember { mutableStateOf<Bitmap?>(null) }
-    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
@@ -80,7 +79,6 @@ fun TaxiChatInputBar(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            selectedImageUri = it
             val bitmap = context.contentResolver.openInputStream(it)?.use { stream ->
                 BitmapFactory.decodeStream(stream)
             }

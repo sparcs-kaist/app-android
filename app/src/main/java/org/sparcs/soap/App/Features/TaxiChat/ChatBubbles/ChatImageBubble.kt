@@ -65,5 +65,5 @@ fun ChatImageBubble(
 @Preview
 @Composable
 private fun Preview() {
-    ChatImageBubble(id = "688714fb95fce20ddc8f19da", {})
+    ChatImageBubble(id = "688714fb95fce20ddc8f19da") {}
 }

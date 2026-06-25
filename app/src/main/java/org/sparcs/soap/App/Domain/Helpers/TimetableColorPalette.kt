@@ -1,8 +1,8 @@
 package org.sparcs.soap.App.Domain.Helpers
 
 import androidx.compose.ui.graphics.Color
+import androidx.core.graphics.toColorInt
 import java.util.UUID
-import android.graphics.Color as GraphicsColor
 
 data class ColorPalette(
     val id : UUID = UUID.randomUUID(),
@@ -11,7 +11,7 @@ data class ColorPalette(
     val textColor: Color,
 ) {
     val colors: List<Color> = hexColors.map { hexString ->
-        Color(GraphicsColor.parseColor("#$hexString"))
+        Color("#$hexString".toColorInt())
     }
 }
 

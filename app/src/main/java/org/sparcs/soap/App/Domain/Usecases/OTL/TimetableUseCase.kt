@@ -232,8 +232,8 @@ class TimetableUseCase @Inject constructor(
             } catch (e: Exception) {
                 try {
                     Timber.e(e, "Background update failed for key: $key")
-                } catch (t: Exception) {
-                    Timber.e("TimetableUseCase", "Update failed", e)
+                } catch (e: Exception) {
+                    Timber.e(e, "Update failed")
                 }
             }
         }
@@ -243,7 +243,7 @@ class TimetableUseCase @Inject constructor(
         return try {
             operation()
         } catch (e: Exception) {
-            val mappedError = if (e is NetworkError) e else TimetableUseCaseError.Unknown(e)
+            val mappedError = e as? NetworkError ?: TimetableUseCaseError.Unknown(e)
             crashlyticsService?.record(mappedError as Throwable, context)
             throw mappedError
         }

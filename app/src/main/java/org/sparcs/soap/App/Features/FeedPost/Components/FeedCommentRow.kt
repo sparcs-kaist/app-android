@@ -47,6 +47,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -58,6 +59,7 @@ import org.sparcs.soap.App.Domain.Models.Feed.FeedComment
 import org.sparcs.soap.App.Domain.Models.Feed.FeedPost
 import org.sparcs.soap.App.Features.FeedPost.FeedPostViewModel
 import org.sparcs.soap.App.Features.FeedPost.FeedPostViewModelProtocol
+import org.sparcs.soap.App.Features.Post.Components.PostCommentActionsMenu
 import org.sparcs.soap.App.Features.Post.Components.PostCommentButton
 import org.sparcs.soap.App.Features.Post.Components.PostVoteButton
 import org.sparcs.soap.App.Features.Settings.Components.InfoTooltip
@@ -68,7 +70,6 @@ import org.sparcs.soap.App.Shared.ViewModelMocks.Feed.MockFeedPostViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.darkGray
 import org.sparcs.soap.App.theme.ui.grayBB
-import org.sparcs.soap.Features.Post.PostCommentActionsMenu
 import org.sparcs.soap.R
 
 @Composable
@@ -152,8 +153,6 @@ private fun Header(
     isHiddenCommentExpanded: Boolean,
     onExpandHiddenCommentClick: () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-
     val author = if (comment.isAnonymous) {
         val number = comment.authorName.substringAfter("Anonymous", "").trim()
         "${stringResource(R.string.anonymous)} $number"
@@ -220,7 +219,6 @@ private fun Header(
                 isMine = comment.isMyComment,
                 onEdit = {/*Todo - edit*/ },
                 onDelete = {
-                    expanded = false
                     onDelete()
                 },
                 onReport = onReport,
@@ -367,8 +365,8 @@ private fun handleURL(
     urlString: String,
     scope: CoroutineScope,
 ) {
-    val uri = Uri.parse(if (!urlString.startsWith("http")) "http://$urlString" else urlString)
-    val deepLink = DeepLink.fromUri(uri)
+    val uri = if (!urlString.startsWith("http")) "http://$urlString" else urlString.toUri()
+    val deepLink = DeepLink.fromUri(uri as Uri?)
 
     if (deepLink != null) {
         scope.launch {

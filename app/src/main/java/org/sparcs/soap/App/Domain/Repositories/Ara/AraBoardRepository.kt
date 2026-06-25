@@ -127,7 +127,7 @@ class AraBoardRepository @Inject constructor(
     override suspend fun reportPost(postID: Int, type: AraContentReportType) = safeApiCall(gson) {
         api.report(
             PostReportRequest(
-                post_id = postID,
+                postId = postID,
                 type = "others",
                 content = type.name
             )

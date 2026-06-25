@@ -207,7 +207,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
                     durationMinutes = time.let { it.end - it.begin },
                     bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb())
                         .uppercase(),
-                    textColor = "#" + Integer.toHexString(lecture.textColor.toArgb()).uppercase(),
+                    textColor = "#" + Integer.toHexString(textColor.toArgb()).uppercase(),
                     signInRequired = false
                 )
             } else {
@@ -224,7 +224,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
 
 @Singleton
 class UpComingWidgetSyncManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     suspend fun sync(entry: WidgetLectureEntry) {
         val newState = entry.toUpcomingWidgetUiState()
@@ -313,7 +313,7 @@ class RefreshAndOpenAppAction : ActionCallback {
                 putExtra(EXTRA_FROM_WIDGET, true)
             }
         } else {
-            Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
+            Intent(Intent.ACTION_VIEW, Constants.OTL_SHARE_URL.toUri())
         }
 
         intent?.apply {

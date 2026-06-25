@@ -1,8 +1,6 @@
 package org.sparcs.soap.App.theme.ui
 
 import android.app.Activity
-import android.graphics.drawable.ColorDrawable
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowInsetsControllerCompat
 
 private val DarkColorScheme = darkColorScheme(
@@ -129,10 +128,10 @@ val ColorScheme.darkGray: Color
 fun Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        dynamicColor -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
@@ -147,7 +146,7 @@ fun Theme(
 
         SideEffect {
             val window = (view.context as Activity).window
-            window.setBackgroundDrawable(ColorDrawable(background.toArgb()))
+            window.setBackgroundDrawable(background.toArgb().toDrawable())
         }
 
         SideEffect {
@@ -156,14 +155,12 @@ fun Theme(
 
             insetsController.isAppearanceLightStatusBars = !darkTheme
             insetsController.isAppearanceLightNavigationBars = !darkTheme
-            window.setBackgroundDrawable(ColorDrawable(colorScheme.background.toArgb()))
+            window.setBackgroundDrawable(colorScheme.background.toArgb().toDrawable())
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                window.navigationBarColor = if (darkTheme) {
-                    android.graphics.Color.BLACK
-                } else {
-                    android.graphics.Color.WHITE
-                }
+            window.navigationBarColor = if (darkTheme) {
+                android.graphics.Color.BLACK
+            } else {
+                android.graphics.Color.WHITE
             }
         }
     }

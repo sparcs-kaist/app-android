@@ -17,9 +17,9 @@ import javax.inject.Singleton
 
 @Singleton
 class WidgetSyncHelper @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @TimetableWidget private val timetableSyncManager: TimetableWidgetSyncManager,
-    @UpcomingWidget private val upComingSyncManager: UpComingWidgetSyncManager,
+    @param:ApplicationContext private val context: Context,
+    @param:TimetableWidget private val timetableSyncManager: TimetableWidgetSyncManager,
+    @param:UpcomingWidget private val upComingSyncManager: UpComingWidgetSyncManager,
 ) {
     fun refreshAllWidgets() {
         val constraints = Constraints.Builder()

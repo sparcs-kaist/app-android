@@ -127,7 +127,7 @@ fun AnimatedText(
         val maxLength = maxOf(previous.length, text.length)
         val fromChars = previous.padEnd(maxLength)
         val toChars = text.padEnd(maxLength)
-        var temp = fromChars.toCharArray()
+        val temp = fromChars.toCharArray()
 
         for (i in 0 until maxLength) {
             temp[i] = toChars[i]

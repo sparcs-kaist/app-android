@@ -18,7 +18,7 @@ interface AuthRepositoryProtocol {
 }
 
 class AuthRepository @Inject constructor(
-    @Named("Auth") private val authApi: AuthApi
+    @param:Named("Auth") private val authApi: AuthApi
 ) : AuthRepositoryProtocol {
 
     override suspend fun requestToken(authorisationCode: String, codeVerifier: String): SignInResponseDTO {
@@ -33,8 +33,8 @@ class AuthRepository @Inject constructor(
                 cookie = "connect.sid=$encodedSessionCode",
                 body = mapOf("codeVerifier" to encodedVerifier)
             )
-        } catch (e: Exception) {
-            throw AuthenticationServiceError.Unknown
+        } catch (_: Exception) {
+            throw AuthenticationServiceError.Unknown()
         }
     }
 

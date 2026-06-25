@@ -47,7 +47,7 @@ class MockFeedCommentRepository : FeedCommentRepositoryProtocol {
         writeCommentCallCount += 1
         lastWriteCommentPostID = postID
         lastWriteCommentRequest = request
-        val result = writeCommentResult ?: throw TestError.NotConfigured
+        val result = writeCommentResult ?: throw TestError.NotConfigured()
         return result.getOrThrow()
     }
 
@@ -55,7 +55,7 @@ class MockFeedCommentRepository : FeedCommentRepositoryProtocol {
         writeReplyCallCount += 1
         lastWriteReplyCommentID = commentID
         lastWriteReplyRequest = request
-        val result = writeReplyResult ?: throw TestError.NotConfigured
+        val result = writeReplyResult ?: throw TestError.NotConfigured()
         return result.getOrThrow()
     }
 

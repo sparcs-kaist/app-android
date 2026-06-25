@@ -15,7 +15,9 @@ import javax.inject.Singleton
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Singleton
-class SettingsRepository @Inject constructor(@ApplicationContext private val context: Context) {
+class SettingsRepository @Inject constructor(
+    @param:ApplicationContext private val context: Context
+) {
     private val themeModeKey = stringPreferencesKey("theme_mode")
 
     val themeMode: Flow<String> = context.dataStore.data

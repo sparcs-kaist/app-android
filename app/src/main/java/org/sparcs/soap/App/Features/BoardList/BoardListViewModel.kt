@@ -33,9 +33,7 @@ class BoardListViewModel @Inject constructor(
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
     private var boards: List<AraBoard> = emptyList()
-        private set
     private var groups: List<AraBoardGroup> = emptyList()
-        private set
 
     override fun fetchBoards() {
         viewModelScope.launch {

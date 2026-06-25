@@ -23,5 +23,5 @@ data class FeedComment(
     val replyCount: Int,
     val replies: List<FeedComment>
 ) {
-    companion object {}
+    companion object
 }

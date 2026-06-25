@@ -6,7 +6,7 @@ import org.sparcs.soap.R
 
 enum class AraContentReportType(
     val type: String,
-    @StringRes override val labelRes: Int,
+    @param:StringRes override val labelRes: Int,
 ) : ReportLabelProvider {
     HATE_SPEECH("hate_speech", R.string.report_hate_speech),
     UNAUTHORIZED_SALES("unauthorized_sales_articles", R.string.report_unauthorized_sales),

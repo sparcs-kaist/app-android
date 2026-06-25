@@ -20,7 +20,7 @@ data class SemesterDTO(
     @SerializedName("end")
     val end: String,
 
-    @SerializedName("courseDesciptionSubmission")
+    @SerializedName("courseDescriptionSubmission")
     val courseDescriptionSubmission: String?,
 
     @SerializedName("courseRegistrationPeriodStart")

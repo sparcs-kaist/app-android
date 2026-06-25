@@ -1,16 +1,17 @@
 package org.sparcs.soap.App.Shared.Extensions
 
 import android.graphics.Bitmap
+import androidx.core.graphics.scale
 import java.io.ByteArrayOutputStream
 
 fun Bitmap.compressForUpload(
     maxSizeMB: Double = 1.0,
-    maxDimension: Int = 500
+    maxDimension: Int = 500,
 ): ByteArray? {
     val ratio = minOf(maxDimension.toFloat() / width, maxDimension.toFloat() / height, 1f)
     val newWidth = (width * ratio).toInt()
     val newHeight = (height * ratio).toInt()
-    val scaledBitmap = Bitmap.createScaledBitmap(this, newWidth, newHeight, true)
+    val scaledBitmap = this.scale(newWidth, newHeight)
 
     val stream = ByteArrayOutputStream()
     var quality = 100

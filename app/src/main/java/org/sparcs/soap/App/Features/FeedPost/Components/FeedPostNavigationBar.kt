@@ -25,9 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.App.Domain.Enums.Feed.FeedReportType
+import org.sparcs.soap.App.Features.Post.Components.PostCommentActionsMenu
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.App.theme.ui.darkGray
-import org.sparcs.soap.Features.Post.PostCommentActionsMenu
 import org.sparcs.soap.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,7 +35,7 @@ import org.sparcs.soap.R
 fun FeedPostNavigationBar(
     navController: NavController,
     onDelete: () -> Unit,
-    onReport: (T: FeedReportType) -> Unit,
+    onReport: (t: FeedReportType) -> Unit,
     onTranslate: () -> Unit,
     isMine: Boolean?,
 ) {

@@ -26,17 +26,11 @@ interface TaxiChatRepositoryProtocol {
 }
 
 sealed class TaxiChatError(val code: Int, message: String) : Exception(message) {
-    data object FetchChatsFailed : TaxiChatError(1001, "Failed to fetch chats") {
-        private fun readResolve(): Any = FetchChatsFailed
-    }
+    class FetchChatsFailed : TaxiChatError(1001, "Failed to fetch chats")
 
-    data object SendChatFailed : TaxiChatError(1002, "Failed to send chat") {
-        private fun readResolve(): Any = SendChatFailed
-    }
+    class SendChatFailed : TaxiChatError(1002, "Failed to send chat")
 
-    data object ReadChatFailed : TaxiChatError(1003, "Failed to read chats") {
-        private fun readResolve(): Any = ReadChatFailed
-    }
+    class ReadChatFailed : TaxiChatError(1003, "Failed to read chats")
 }
 
 class TaxiChatRepository @Inject constructor(
@@ -46,31 +40,31 @@ class TaxiChatRepository @Inject constructor(
     override suspend fun fetchChats(roomID: String) = withContext(Dispatchers.IO) {
         val body = mapOf("roomId" to roomID)
         val result = taxiChatApi.fetchChats(body)
-        if (!result.result) throw TaxiChatError.FetchChatsFailed
+        if (!result.result) throw TaxiChatError.FetchChatsFailed()
     }
 
     override suspend fun fetchChatsBefore(roomID: String, date: Date) = withContext(Dispatchers.IO) {
         val body = mapOf("roomId" to roomID, "lastMsgDate" to date.toISO8601())
         val result = taxiChatApi.fetchChatsBefore(body)
-        if (!result.result) throw TaxiChatError.FetchChatsFailed
+        if (!result.result) throw TaxiChatError.FetchChatsFailed()
     }
 
     override suspend fun fetchChatsAfter(roomID: String, date: Date) = withContext(Dispatchers.IO) {
         val body = mapOf("roomId" to roomID, "lastMsgDate" to date.toISO8601())
         val result = taxiChatApi.fetchChatsAfter(body)
-        if (!result.result) throw TaxiChatError.FetchChatsFailed
+        if (!result.result) throw TaxiChatError.FetchChatsFailed()
     }
 
     override suspend fun sendChat(chat: TaxiChatRequest) {
         val dto = TaxiChatRequestDTO.fromModel(chat)
         val result = taxiChatApi.sendChat(dto)
-        if (!result.result) throw TaxiChatError.SendChatFailed
+        if (!result.result) throw TaxiChatError.SendChatFailed()
     }
 
     override suspend fun readChats(roomID: String) {
         val body = mapOf("roomId" to roomID)
         val result = taxiChatApi.readChat(body)
-        if (!result.result) throw TaxiChatError.ReadChatFailed
+        if (!result.result) throw TaxiChatError.ReadChatFailed()
     }
     override suspend fun getPresignedURL(roomID: String): TaxiChatPresignedURLDTO {
         val body = mapOf("roomId" to roomID, "type" to "image/png")

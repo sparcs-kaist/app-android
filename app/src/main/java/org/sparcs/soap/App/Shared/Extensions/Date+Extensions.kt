@@ -79,7 +79,7 @@ fun Date.ceilToNextTenMinutes(): Date {
     return cal.time
 }
 
-fun Calendar.isDateInSameDay(date1: Date, date2: Date): Boolean {
+fun isDateInSameDay(date1: Date, date2: Date): Boolean {
     val localDate1 = date1.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     val localDate2 = date2.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
     return localDate1 == localDate2

@@ -1,8 +1,9 @@
-package org.sparcs.soap.App.Presentation.Settings
+package org.sparcs.soap.App.Features.Settings.Notification
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,13 +16,11 @@ import org.sparcs.soap.App.Domain.Usecases.FCMUseCaseProtocol
 import org.sparcs.soap.R
 import javax.inject.Inject
 
-interface NotificationSettingsViewModelProtocol {
-
-}
+interface NotificationSettingsViewModelProtocol
 @HiltViewModel
 class NotificationSettingsViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val fcmUseCase: FCMUseCaseProtocol
+    @param:ApplicationContext private val context: Context,
+    private val fcmUseCase: FCMUseCaseProtocol,
 ) : ViewModel(), NotificationSettingsViewModelProtocol {
 
     private val prefs: SharedPreferences by lazy {
@@ -69,7 +68,7 @@ class NotificationSettingsViewModel @Inject constructor(
 
     private fun updateToggleState(service: FeatureType, isActive: Boolean) {
         try {
-            prefs.edit().putBoolean("fcm.${service.rawValue}", isActive).apply()
+            prefs.edit { putBoolean("fcm.${service.rawValue}", isActive) }
             _toggleState[service] = isActive
         } catch (e: Exception) {
             _alertTitle.value = context.getString(R.string.error_save_failed_title)

@@ -79,6 +79,7 @@ import org.sparcs.soap.App.Features.Settings.Ara.AraSettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Feed.FeedSettingsView
 import org.sparcs.soap.App.Features.Settings.Feed.FeedSettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Notification.NotificationSettingsView
+import org.sparcs.soap.App.Features.Settings.Notification.NotificationSettingsViewModel
 import org.sparcs.soap.App.Features.Settings.SettingsView
 import org.sparcs.soap.App.Features.Settings.SettingsViewModel
 import org.sparcs.soap.App.Features.Settings.Taxi.TaxiReportListView
@@ -103,11 +104,10 @@ import org.sparcs.soap.App.Features.Timetable.TimetableView
 import org.sparcs.soap.App.Features.Timetable.TimetableViewModel
 import org.sparcs.soap.App.Features.UserPostList.UserPostListView
 import org.sparcs.soap.App.Features.UserPostList.UserPostListViewModel
-import org.sparcs.soap.App.Presentation.Settings.NotificationSettingsViewModel
 import org.sparcs.soap.App.theme.ui.Theme
 import org.sparcs.soap.R
 
-enum class Channel(@StringRes val title: Int) {
+enum class Channel(@param:StringRes val title: Int) {
     //Feed
     Start(title = R.string.start),
     FeedPost(title = R.string.feed_post_view),
@@ -181,7 +181,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = Constants.feedShareURL + "{feedId}"
+                            uriPattern = Constants.FEED_SHARE_URL + "{feedId}"
                             action = Intent.ACTION_VIEW
                         }
                     ),
@@ -223,7 +223,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 composable(
                     route = Channel.TimeTable.name,
                     deepLinks = listOf(navDeepLink {
-                        uriPattern = Constants.otlShareURL
+                        uriPattern = Constants.OTL_SHARE_URL
                         action = Intent.ACTION_VIEW
                     })
                 ) { backStackEntry ->
@@ -333,7 +333,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = Constants.taxiInviteURL + "{roomId}"
+                            uriPattern = Constants.TAXI_INVITE_URL + "{roomId}"
                             action = Intent.ACTION_VIEW
                         }
                     )
@@ -464,7 +464,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ),
                     deepLinks = listOf(
                         navDeepLink {
-                            uriPattern = Constants.araShareURL + "{postId}"
+                            uriPattern = Constants.ARA_SHARE_URL + "{postId}"
                             action = Intent.ACTION_VIEW
                         }
                     ),

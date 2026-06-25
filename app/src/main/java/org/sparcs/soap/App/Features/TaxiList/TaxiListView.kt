@@ -352,7 +352,7 @@ private fun LoadedView(
         } else {
             targetDates.forEach { day ->
                 val roomsForDay = filteredRooms.filter { room ->
-                    calendar.isDateInSameDay(room.departAt, day)
+                    isDateInSameDay(room.departAt, day)
                 }
 
                 val dayDescription = getTaxiFilterDescription(

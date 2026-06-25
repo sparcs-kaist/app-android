@@ -62,5 +62,5 @@ fun PostBookmarkButton(
 @Composable
 @Preview
 private fun Preview() {
-    Theme { PostBookmarkButton(true, {}) }
+    Theme { PostBookmarkButton(true) {} }
 }

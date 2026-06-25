@@ -49,6 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -432,9 +433,9 @@ private fun handleURL(
     urlString: String,
     scope: CoroutineScope,
 ) {
-    val uri = Uri.parse(if (!urlString.startsWith("http")) "http://$urlString" else urlString)
+    val uri = if (!urlString.startsWith("http")) "http://$urlString" else urlString.toUri()
 
-    val deepLink = DeepLink.fromUri(uri)
+    val deepLink = DeepLink.fromUri(uri as Uri?)
 
     if (deepLink != null) {
         scope.launch {

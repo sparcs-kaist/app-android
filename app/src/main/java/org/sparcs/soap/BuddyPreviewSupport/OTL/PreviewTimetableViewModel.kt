@@ -22,7 +22,7 @@ class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock())
     private val _selectedSemester = MutableStateFlow<Semester?>(Semester.mockList()[9])
     override val selectedSemester: StateFlow<Semester?> = _selectedSemester.asStateFlow()
 
-    private val _selectedTimetable = MutableStateFlow<Timetable?>(initialTimetable)
+    private val _selectedTimetable = MutableStateFlow(initialTimetable)
     override val selectedTimetable: StateFlow<Timetable?> = _selectedTimetable.asStateFlow()
 
     private val _timetableList = MutableStateFlow(TimetableSummary.mockList())

@@ -13,5 +13,5 @@ data class AraBoard(
     val userReadable: Boolean?,
     val userWritable: Boolean?
 ){
-    companion object{}
+    companion object
 }

@@ -40,6 +40,6 @@ fun SafariViewWrapper(url: String, onDismiss: () -> Unit) {
 @Composable
 private fun Preview(){
     Theme {
-        SafariViewWrapper("", {})
+        SafariViewWrapper("") {}
     }
 }

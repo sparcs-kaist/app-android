@@ -24,8 +24,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -40,8 +40,8 @@ fun TimetableBottomSheet(
     onDismiss: () -> Unit,
     content: @Composable (onFold: () -> Unit) -> Unit,
 ) {
-    val configuration = LocalConfiguration.current
-    val screenHeight = with(LocalDensity.current) { configuration.screenHeightDp.dp.toPx() }
+    val containerSize = LocalWindowInfo.current.containerSize
+    val screenHeight = containerSize.height.toFloat()
 
     val anchors = listOf(
         (screenHeight) * 0.9f, //접히는 기준

@@ -2,7 +2,6 @@ package org.sparcs.soap.App.Features.LectureDetail.Components
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
@@ -43,6 +42,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import org.sparcs.soap.App.Domain.Models.OTL.LectureReview
 import org.sparcs.soap.App.Domain.Models.OTL.ReportMailComposer
 import org.sparcs.soap.App.Shared.Extensions.glassBorder
@@ -339,7 +339,7 @@ fun report(lectureReview: LectureReview, context: Context, unknown: String) {
     )
 
     val intent = Intent(Intent.ACTION_VIEW).apply {
-        data = Uri.parse(urlString)
+        data = urlString.toUri()
     }
 
     try {

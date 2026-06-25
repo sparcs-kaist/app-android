@@ -206,7 +206,7 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
 
 @Singleton
 class DDayWidgetSyncManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) {
     suspend fun sync(entry: DDayWidgetEntry) {
         val newState = entry.toDDayWidgetUiState()
@@ -287,7 +287,7 @@ class RefreshAndOpenDDayAction : ActionCallback {
         val intent = if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         } else {
-            Intent(Intent.ACTION_VIEW, Constants.otlShareURL.toUri())
+            Intent(Intent.ACTION_VIEW, Constants.OTL_SHARE_URL.toUri())
         }
 
         intent?.apply {

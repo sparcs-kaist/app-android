@@ -19,5 +19,5 @@ data class FeedPost(
     val isAuthor: Boolean,
     val images: List<FeedImage>
 ) {
-    companion object {}
+    companion object
 }

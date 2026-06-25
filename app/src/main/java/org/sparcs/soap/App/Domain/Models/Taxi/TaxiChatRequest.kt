@@ -6,5 +6,5 @@ data class TaxiChatRequest(
     val type: TaxiChat.ChatType,
     val content: String?
 ){
-    companion object{}
+    companion object
 }

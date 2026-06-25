@@ -27,7 +27,7 @@ class PreviewLectureDetailViewModel(initialState: LectureDetailViewModel.ViewSta
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<LectureDetailViewModel.ViewState> = _state.asStateFlow()
 
-    private val _reviews = MutableStateFlow<List<LectureReview>>(LectureReview.mockList())
+    private val _reviews = MutableStateFlow(LectureReview.mockList())
     override val reviews: StateFlow<List<LectureReview>> = _reviews.asStateFlow()
 
     private val _writtenReview = MutableStateFlow<LectureReview?>(null)
