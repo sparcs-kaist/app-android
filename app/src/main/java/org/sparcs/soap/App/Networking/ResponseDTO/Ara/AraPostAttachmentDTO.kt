@@ -17,6 +17,9 @@ data class AraPostAttachmentDTO(
     @SerializedName("file")
     val file: String,
 
+    @SerializedName("alias")
+    val alias: String?,
+
     @SerializedName("size")
     val size: Int,
 
@@ -33,8 +36,9 @@ data class AraPostAttachmentDTO(
                 Date()
             },
             file = URL(file),
-            filename = try {
-                URL(file).path.substringAfterLast('/')
+            filename = alias?.takeIf { it.isNotBlank() } ?: try {
+                URL(file).path.substringAfterLast('/').takeIf { it.isNotBlank() }
+                    ?: "Untitled"
             } catch (e: Exception) {
                 "Untitled"
             },
