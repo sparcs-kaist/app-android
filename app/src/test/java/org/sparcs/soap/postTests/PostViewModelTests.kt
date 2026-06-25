@@ -24,7 +24,7 @@ class PostViewModelTest : PostTestBase() {
             savedStateHandle = savedStateHandle,
             araBoardUseCase = mockAraBoardUseCase,
             araCommentUseCase = mockAraCommentUseCase,
-            crashlyticsService = mockCrashlyticsService,
+//            crashlyticsService = mockCrashlyticsService,
             analyticsService = mockAnalyticsService
         )
     }
@@ -80,7 +80,7 @@ class PostViewModelTest : PostTestBase() {
 
         val createdComment = viewModel.writeComment(content = "Hello")
 
-        assertEquals(postedComment.id, createdComment.id)
+        assertEquals(postedComment.id, createdComment?.id)
         assertEquals(1, viewModel.post.value?.comments?.size)
         assertEquals(1, viewModel.post.value?.commentCount)
     }

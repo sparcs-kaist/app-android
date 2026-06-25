@@ -31,7 +31,7 @@ suspend fun <T> handleApiError(
 
     val response = exception.response()
     val code = response?.code() ?: 500
-    val errorBody = try { response?.errorBody()?.string() } catch (e: Exception) { null }
+    val errorBody = try { response?.errorBody()?.string() } catch (_: Exception) { null }
 
     if (code == 401) {
         val refresher = AuthRetryConfig.tokenRefresher

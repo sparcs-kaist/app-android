@@ -1,6 +1,6 @@
 [versions]
 aboutlibrariesComposeM3 = "11.2.3"
-agp = "8.8.2"
+agp = "8.13.2"
 kakaoMap = "2.11.0"
 appUpdateKtx = "2.1.0"
 coilCompose = "2.4.0"

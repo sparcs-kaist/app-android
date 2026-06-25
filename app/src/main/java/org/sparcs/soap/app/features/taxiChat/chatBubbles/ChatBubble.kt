@@ -152,7 +152,7 @@ private fun handleURL(
         try {
             val intent = CustomTabsIntent.Builder().build()
             intent.launchUrl(context, uri)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             context.startActivity(Intent(Intent.ACTION_VIEW, uri))
         }
     }

@@ -134,7 +134,7 @@ class UserPostListViewModel @Inject constructor(
             hasMorePages = currentPage < totalPages
             _state.value = ViewState.Loaded(_posts.value)
             _isLoadingMore.value = false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             _isLoadingMore.value = false
 
         }

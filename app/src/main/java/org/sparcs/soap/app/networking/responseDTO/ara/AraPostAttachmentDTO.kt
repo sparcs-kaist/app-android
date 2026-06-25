@@ -32,14 +32,14 @@ data class AraPostAttachmentDTO(
             id = id,
             createdAt = try {
                 Date.from(Instant.parse(createdAt))
-            } catch (e: DateTimeParseException) {
+            } catch (_: DateTimeParseException) {
                 Date()
             },
             file = URL(file),
             filename = alias?.takeIf { it.isNotBlank() } ?: try {
                 URL(file).path.substringAfterLast('/').takeIf { it.isNotBlank() }
                     ?: "Untitled"
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 "Untitled"
             },
             size = size,

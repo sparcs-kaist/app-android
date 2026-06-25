@@ -20,7 +20,7 @@ class TimetableCache @Inject constructor(
 
         return try {
             gson.fromJson(String(cached.data, Charsets.UTF_8), Timetable::class.java)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -31,7 +31,7 @@ class TimetableCache @Inject constructor(
     suspend fun store(timetable: Timetable, key: String) {
         val jsonString = try {
             gson.toJson(timetable)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return
         }
 

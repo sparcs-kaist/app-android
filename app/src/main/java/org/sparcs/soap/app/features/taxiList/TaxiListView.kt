@@ -101,6 +101,8 @@ fun TaxiListView(
     val sheetState = rememberModalBottomSheetState()
     val pullState = rememberPullToRefreshState()
 
+    val favoriteRoutes by viewModel.favoriteRoutes.collectAsState()
+
     val description = getTaxiFilterDescription(
         sourceTitle = viewModel.source?.title,
         destinationTitle = viewModel.destination?.title,
@@ -156,7 +158,6 @@ fun TaxiListView(
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
                     ) {
-                        val favoriteRoutes by viewModel.favoriteRoutes.collectAsState()
                         TaxiDestinationPicker(
                             source = viewModel.source,
                             destination = viewModel.destination,
@@ -197,7 +198,7 @@ fun TaxiListView(
                     }
                 }
 
-                Spacer(Modifier.padding(16.dp))
+                Spacer(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
 
                 when (uiState) {
                     is TaxiListViewModel.ViewState.Loading -> {
@@ -302,7 +303,7 @@ private fun LoadingView() {
         repeat(2) {
             Box(
                 modifier = Modifier
-                    .padding(start = 12.dp)
+                    .padding(start = 12.dp, top = 12.dp)
                     .width(30.dp)
                     .height(15.dp)
                     .background(

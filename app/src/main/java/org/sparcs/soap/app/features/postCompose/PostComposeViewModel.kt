@@ -95,7 +95,7 @@ class PostComposeViewModel @Inject constructor(
                 try {
                     val stream = context.contentResolver.openInputStream(uri)
                     BitmapFactory.decodeStream(stream)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     null
                 }
             }

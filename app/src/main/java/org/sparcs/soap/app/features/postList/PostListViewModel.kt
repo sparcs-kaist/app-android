@@ -152,7 +152,7 @@ class PostListViewModel @Inject constructor(
         viewModelScope.launch {
             val updated = try {
                 araBoardUseCase.fetchPost(postID = postID, origin = PostOrigin.None)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             } ?: return@launch
 

@@ -9,12 +9,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
-import org.sparcs.soap.R
 import javax.inject.Inject
 
 @HiltViewModel
@@ -59,7 +59,7 @@ class MainTabBarViewModel @Inject constructor(
             try {
                 val room = taxiRoomRepository.getPublicRoom(code)
                 invitedRoom = room
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 showError(R.string.invalid_invitation_title, R.string.invalid_invitation_message)
             }
         }
@@ -70,7 +70,7 @@ class MainTabBarViewModel @Inject constructor(
             try {
                 val post = araBoardUseCase.fetchPost(origin = null, postID = id)
                 _navigationEvent.emit(Channel.PostView.name + "?postId=${post.id}")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 showError(R.string.post_not_found_title, R.string.post_not_found_message)
             }
         }

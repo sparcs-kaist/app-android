@@ -61,7 +61,7 @@ data class AraPostCommentDTO(
         comments = comments?.map { it.toModel() }?.toMutableList() ?: mutableListOf(),
         createdAt = try {
             Date.from(Instant.parse(createdAt))
-        } catch (e: DateTimeParseException) {
+        } catch (_: DateTimeParseException) {
             Date()
         },
         upVotes = upVotes,

@@ -40,7 +40,7 @@ fun loadMarkdown(file: String): String? {
     val context = LocalContext.current
     return try {
         context.assets.open("$file.md").bufferedReader().use { it.readText() }
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }

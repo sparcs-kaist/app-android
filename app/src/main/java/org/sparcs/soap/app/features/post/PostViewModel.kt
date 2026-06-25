@@ -155,7 +155,7 @@ class PostViewModel @Inject constructor(
                     araBoardUseCase.upVotePost(currentPost.id)
                 }
                 analyticsService.logEvent(PostViewEvent.PostUpVoted)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 val recoveryComments = currentPost.comments.toList().toMutableList()
                 _post.value = currentPost.copy(
                     myVote = previousMyVote,
@@ -198,7 +198,7 @@ class PostViewModel @Inject constructor(
                     araBoardUseCase.downVotePost(currentPost.id)
                 }
                 analyticsService.logEvent(PostViewEvent.PostDownVoted)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 val recoveryComments = currentPost.comments.toList().toMutableList()
                 _post.value = currentPost.copy(
                     myVote = previousMyVote,
@@ -367,7 +367,7 @@ class PostViewModel @Inject constructor(
                     araCommentUseCase.upVoteComment(comment.id)
                 }
                 analyticsService.logEvent(PostCommentCellEvent.CommentUpVoted)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _post.value = currentPost
             }
         }
@@ -398,7 +398,7 @@ class PostViewModel @Inject constructor(
                     araCommentUseCase.downVoteComment(comment.id)
                 }
                 analyticsService.logEvent(PostCommentCellEvent.CommentDownVoted)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _post.value = currentPost
             }
         }

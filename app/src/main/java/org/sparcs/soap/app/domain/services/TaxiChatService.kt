@@ -229,7 +229,7 @@ class TaxiChatService @Inject constructor(
         return chatList.mapNotNull {
             try {
                 Gson().fromJson(Gson().toJson(it), TaxiChatDTO::class.java).toModel()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }
@@ -238,7 +238,7 @@ class TaxiChatService @Inject constructor(
     private fun parseChatObject(chatMap: Map<*, *>): TaxiChat? {
         return try {
             Gson().fromJson(Gson().toJson(chatMap), TaxiChatDTO::class.java).toModel()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

@@ -35,7 +35,7 @@ fun LectureItem(lecture: Lecture, cl: LectureClass) {
     val accentColor = remember(lecture.color) {
         try {
             lecture.color?.let { Color(it.toColorInt()) } ?: Color(0xFF4A90E2)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Color(0xFF4A90E2)
         }
     }

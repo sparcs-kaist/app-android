@@ -26,7 +26,7 @@ class TaxiFavoriteUseCase @Inject constructor(
     override suspend fun fetchFavoriteRoutes() {
         try {
             _favoriteRoutes.value = taxiUserRepository.fetchFavoriteRoutes()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Log error
         }
     }

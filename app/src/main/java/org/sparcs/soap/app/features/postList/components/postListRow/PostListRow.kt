@@ -37,16 +37,18 @@ import org.sparcs.soap.app.theme.ui.grayBB
 @Composable
 fun PostListRow(
     post: AraPost,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp)) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             post.topic?.let { topic ->
                 Text(
-                    text = "[" + topic.name.localized()+ "]",
+                    text = "[" + topic.name.localized() + "]",
                     style = MaterialTheme.typography.titleMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -137,7 +139,10 @@ fun PostListSkeletonRow() {
             .padding(vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Box(
                 modifier = Modifier
                     .width(listOf(0.dp, 0.dp, 20.dp, 40.dp).random())
@@ -210,7 +215,7 @@ fun title(post: AraPost, stringProvider: @Composable (Int) -> String): String {
 
 @Composable
 @Preview(showBackground = true)
-private fun Preview(){
+private fun Preview() {
     Theme {
         Column {
             AraPost.mockList().forEach {
@@ -222,10 +227,10 @@ private fun Preview(){
 
 @Composable
 @Preview(showBackground = true)
-private fun PreviewSkeleton(){
+private fun PreviewSkeleton() {
     Theme {
         Column {
-            repeat(15){ PostListSkeletonRow() }
+            repeat(15) { PostListSkeletonRow() }
         }
     }
 }

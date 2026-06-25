@@ -23,7 +23,7 @@ data class AraPostAuthorProfileDTO(
     fun toModel(): AraPostAuthorProfile =
         AraPostAuthorProfile(
             id = id.toString(),
-            profilePictureURL = profilePictureURL?.let { try { URL(it) } catch (e: Exception) { null } },
+            profilePictureURL = profilePictureURL?.let { try { URL(it) } catch (_: Exception) { null } },
             nickname = nickname,
             isOfficial = isOfficial,
             isSchoolAdmin = isSchoolAdmin

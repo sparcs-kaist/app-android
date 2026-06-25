@@ -70,7 +70,7 @@ class NotificationSettingsViewModel @Inject constructor(
         try {
             prefs.edit { putBoolean("fcm.${service.rawValue}", isActive) }
             _toggleState[service] = isActive
-        } catch (e: Exception) {
+        } catch (_e: Exception) {
             _alertTitle.value = context.getString(R.string.error_save_failed_title)
             _alertMessage.value = context.getString(R.string.error_encode_failed_message)
             _isAlertPresented.value = true

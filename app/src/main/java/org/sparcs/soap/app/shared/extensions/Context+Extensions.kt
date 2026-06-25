@@ -25,7 +25,7 @@ fun Context.openUri(uri: Uri, packageName: String? = null) {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         this.startActivity(intent)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         if (packageName != null) {
             try {
                 val marketIntent = Intent(Intent.ACTION_VIEW,
@@ -33,7 +33,7 @@ fun Context.openUri(uri: Uri, packageName: String? = null) {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 this.startActivity(marketIntent)
-            } catch (e2: Exception) {
+            } catch (_: Exception) {
                 val webIntent =
                     Intent(Intent.ACTION_VIEW, "https://play.google.com/store/apps/details?id=$packageName".toUri()).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

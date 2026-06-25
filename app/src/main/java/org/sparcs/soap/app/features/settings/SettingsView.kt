@@ -253,7 +253,7 @@ private fun AppSettings(context: Context) {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(intent)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 val intent = Intent(Settings.ACTION_LOCALE_SETTINGS).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
@@ -561,7 +561,7 @@ private fun VersionRow() {
     val versionName = try {
         val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         pInfo.versionName ?: "1.0"
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         "0.0"
     }
 

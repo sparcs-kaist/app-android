@@ -33,7 +33,7 @@ data class TaxiNoticeDTO(
         fun toModel(): TaxiNotice {
             val url = try {
                 URL(notionURL)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 throw TaxiNoticeConversionException.InvalidURL()
             }
 

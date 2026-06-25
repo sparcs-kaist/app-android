@@ -185,7 +185,7 @@ class FeedPostComposeViewModel @Inject constructor(
                 ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
                     decoder.isMutableRequired = true
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 null
             }
         }

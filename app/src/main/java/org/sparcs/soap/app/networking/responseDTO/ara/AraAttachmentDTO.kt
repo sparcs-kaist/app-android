@@ -31,7 +31,7 @@ data class AraAttachmentDTO(
             mimeType = mimeType,
             createdAt = try {
                 Date.from(Instant.parse(createdAt))
-            } catch (e: DateTimeParseException) {
+            } catch (_: DateTimeParseException) {
                 Date()
             }
         )

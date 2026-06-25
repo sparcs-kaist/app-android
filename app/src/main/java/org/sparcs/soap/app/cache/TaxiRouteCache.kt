@@ -29,7 +29,7 @@ class TaxiRouteCache @Inject constructor(
             val type = object : TypeToken<List<LatLng>>() {}.type
             val jsonString = String(cached.data, Charsets.UTF_8)
             gson.fromJson<List<LatLng>>(jsonString, type)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

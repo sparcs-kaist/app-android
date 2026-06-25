@@ -197,7 +197,7 @@ class TaxiListViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 taxiFavoriteUseCase.deleteFavoriteRoute(id)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 taxiFavoriteUseCase.fetchFavoriteRoutes()
             }
         }

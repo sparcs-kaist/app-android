@@ -137,7 +137,7 @@ class FeedCommentUseCaseTests : FeedTestBase() {
         try {
             useCase.vote(commentID = "comment-1", type = FeedVoteType.UP)
             fail("Expected error to be thrown")
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             assertEquals(1, mockCrashlytics.recordErrorWithContextCallCount)
             assertEquals("FeedComment", mockCrashlytics.lastRecordedContext?.feature)
         }

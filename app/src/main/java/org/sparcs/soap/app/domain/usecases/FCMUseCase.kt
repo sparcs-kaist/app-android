@@ -132,7 +132,7 @@ override suspend fun register(fcmToken: String) {
             val cipher = Cipher.getInstance(AES_MODE)
             cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), GCMParameterSpec(128, iv))
             String(cipher.doFinal(encrypted))
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

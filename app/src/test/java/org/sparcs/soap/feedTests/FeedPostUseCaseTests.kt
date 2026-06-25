@@ -103,7 +103,7 @@ class FeedPostUseCaseTests : FeedTestBase() {
         try {
             useCase.deletePost(postID = "post-123")
             fail("Expected error to be thrown")
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             assertEquals(1, mockCrashlytics.recordErrorWithContextCallCount)
             assertEquals("FeedPost", mockCrashlytics.lastRecordedContext?.feature)
         }
