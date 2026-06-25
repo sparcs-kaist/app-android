@@ -11,7 +11,6 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.devtools.ksp")
 }
 
 val properties = Properties().apply {
@@ -24,20 +23,22 @@ val channelPluginKey: String = properties.getProperty("CHANNEL_PLUGIN_KEY")
 
 android {
     namespace = "org.sparcs.soap"
-    compileSdk = 35
+    compileSdk = 37
     defaultConfig {
-        manifestPlaceholders += mapOf("sidAuthToken" to sidAuthToken)
-        manifestPlaceholders += mapOf("kakaoMapKey" to kakaoMapKey)
-        manifestPlaceholders += mapOf("kakaoNaviKey" to kakaoNaviKey)
 
+        manifestPlaceholders += mapOf(
+            "sidAuthToken" to sidAuthToken,
+            "kakaoMapKey" to kakaoMapKey,
+            "kakaoNaviKey" to kakaoNaviKey,
+            "appAuthRedirectScheme" to "sparcsapp"
+        )
         applicationId = "org.sparcs.soap"
         minSdk = 31
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 29
         versionName = "1.3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
         buildConfigField("String", "KAKAO_MAP_KEY", "\"$kakaoMapKey\"")
         buildConfigField("String", "KAKAO_NAVI_KEY", "\"$kakaoNaviKey\"")
@@ -68,8 +69,7 @@ android {
             buildConfigField("String", "ARA_HOST", "\"newara.sparcs.org\"")
             buildConfigField("String", "FEED_HOST", "\"buddy.sparcs.org\"")
             buildConfigField("String", "OTL_HOST", "\"otl.sparcs.org\"")
-        }
-        release {
+
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -164,7 +164,7 @@ dependencies {
     implementation(libs.timber)
 
     implementation(libs.androidx.room.runtime)
-    ksp(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
 
     implementation(libs.kakao.maps)
     implementation(libs.play.services.wearable)

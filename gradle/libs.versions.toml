@@ -1,6 +1,6 @@
 [versions]
 aboutlibrariesComposeM3 = "11.2.3"
-agp = "8.13.2"
+agp = "9.2.1"
 kakaoMap = "2.11.0"
 appUpdateKtx = "2.1.0"
 coilCompose = "2.4.0"
@@ -10,9 +10,9 @@ coreSplashscreen = "1.2.0"
 datastorePreferences = "1.1.7"
 glanceAppwidget = "1.1.1"
 gsonVersion = "2.10.1"
-hilt = "2.51.1"
-kotlin = "2.0.21"
-coreKtx = "1.16.0"
+hilt = "2.56.2"
+kotlin = "2.2.10"
+coreKtx = "1.15.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
@@ -26,8 +26,8 @@ loggingInterceptor = "4.9.2"
 navigationCompose = "2.9.3"
 okhttp = "4.11.0"
 retrofit = "2.9.0"
-roomCompiler = "2.6.1"
-roomRuntime = "2.6.1"
+roomCompiler = "2.8.4"
+roomRuntime = "2.8.4"
 socketIoClient = "2.0.1"
 timber = "5.0.1"
 workRuntimeKtx = "2.10.3"
@@ -135,3 +135,6 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 hilt-gradle-plugin = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+
+
+
