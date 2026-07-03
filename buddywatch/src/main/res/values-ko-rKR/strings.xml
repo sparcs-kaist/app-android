@@ -28,6 +28,8 @@
     <string name="d_day_widget_d_plus">D+%1$d</string>
     <string name="d_day_widget_d_day">D-Day</string>
     <string name="d_day_widget_no_data">데이터가 없습니다.</string>
+    <string name="d_day_widget_ended">종강</string>
+    <string name="d_day_widget_semester_ended">종강 축하합니다 🎉</string>
     <string name="comp_no_class">종료</string>
     <string name="comp_ongoing">진행중</string>
     <string name="comp_next_class_desc">다음 수업: %1$s (%2$s)</string>
