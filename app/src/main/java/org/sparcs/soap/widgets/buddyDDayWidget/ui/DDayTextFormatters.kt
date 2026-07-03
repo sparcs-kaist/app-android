@@ -6,9 +6,6 @@ import org.sparcs.soap.R
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayType
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayWidgetEntry
 
-fun isFinished(entry: DDayWidgetEntry): Boolean {
-    return entry.type == DDayType.END_OF_SEMESTER && entry.days < 0
-}
 @Composable
 fun formatDDay(days: Int): String {
     val context = LocalContext.current
@@ -25,6 +22,7 @@ fun subtitleText(entry: DDayWidgetEntry): String {
     return when (entry.type) {
         DDayType.START_OF_SEMESTER -> context.getString(R.string.d_day_widget_starts_in)
         DDayType.END_OF_SEMESTER -> context.getString(R.string.d_day_widget_ends_in)
+        DDayType.SEMESTER_ENDED -> context.getString(R.string.d_day_widget_semester_ended)
         else -> ""
     }
 }

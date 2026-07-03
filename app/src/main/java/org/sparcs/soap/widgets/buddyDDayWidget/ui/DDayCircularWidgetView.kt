@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalContext
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
@@ -20,13 +21,17 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
+import org.sparcs.soap.R
+import org.sparcs.soap.widgets.buddyDDayWidget.DDayType
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayWidgetEntry
 
 @Composable
 fun DDayCircularWidgetView(entry: DDayWidgetEntry) {
-    if (isFinished(entry)) {
-        DDayFinishedView()
-        return
+    val context = LocalContext.current
+    val displayText = if (entry.type == DDayType.SEMESTER_ENDED) {
+        context.getString(R.string.d_day_widget_ended)
+    } else {
+        formatDDay(entry.days)
     }
 
     Column(
@@ -43,7 +48,7 @@ fun DDayCircularWidgetView(entry: DDayWidgetEntry) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = formatDDay(entry.days),
+                text = displayText,
                 style = TextStyle(
                     fontSize = 10.sp,
                     color = GlanceTheme.colors.onPrimary,

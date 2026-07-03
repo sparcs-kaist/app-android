@@ -68,12 +68,3 @@ fun DDayErrorView() {
         subtitle = context.getString(R.string.d_day_widget_loading_failed)
     )
 }
-
-@Composable
-fun DDayFinishedView() {
-    val context = LocalContext.current
-    DDayStatusColumn(
-        title = context.getString(R.string.no_more_classes),
-        subtitle = context.getString(R.string.enjoy_day)
-    )
-}

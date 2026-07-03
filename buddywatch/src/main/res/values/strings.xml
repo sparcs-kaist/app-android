@@ -29,6 +29,8 @@
     <string name="d_day_widget_d_plus">D+%1$d</string>
     <string name="d_day_widget_d_day">D-Day</string>
     <string name="d_day_widget_no_data">No data available</string>
+    <string name="d_day_widget_ended">Ended</string>
+    <string name="d_day_widget_semester_ended">Semester ended</string>
     <string name="comp_no_class">End</string>
     <string name="comp_ongoing">Now</string>
     <string name="comp_next_class_desc">Next: %1$s at %2$s</string>

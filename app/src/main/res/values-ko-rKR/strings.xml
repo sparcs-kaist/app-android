@@ -527,6 +527,8 @@
     <string name="d_day_widget_loading">디데이를 불러오는 중…</string>
     <string name="d_day_widget_loading_failed">위젯 콘텐츠를 불러올 수 없습니다.</string>
     <string name="d_day_widget_wait_moment">학기 데이터를 가져오는 동안 잠시만 기다려 주세요.</string>
+    <string name="d_day_widget_ended">종강</string>
+    <string name="d_day_widget_semester_ended">종강 축하합니다 🎉</string>
     <plurals name="d_day_widget_ends_in_days">
         <item quantity="other">종료까지 %1$d일</item>
     </plurals>

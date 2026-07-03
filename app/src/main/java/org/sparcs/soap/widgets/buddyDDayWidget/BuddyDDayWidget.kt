@@ -163,24 +163,57 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
         val begin = semester.beginDate
         val end = semester.endDate
 
-        return if (now.before(begin)) {
-            DDayWidgetEntry(
-                semesterLabel = semesterLabel,
-                type = DDayType.START_OF_SEMESTER,
-                days = daysBetween(now, begin),
-                progress = 0f,
-            )
-        } else {
-            val totalDays = daysBetween(begin, end).coerceAtLeast(1)
-            val elapsedDays = daysBetween(begin, now).coerceAtLeast(0)
-            val progress = (elapsedDays.toFloat() / totalDays.toFloat()).coerceIn(0f, 1f)
+        val todayCal = Calendar.getInstance().apply {
+            time = now
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val beginCal = Calendar.getInstance().apply {
+            time = begin
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val endCal = Calendar.getInstance().apply {
+            time = end
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
 
-            DDayWidgetEntry(
-                semesterLabel = semesterLabel,
-                type = DDayType.END_OF_SEMESTER,
-                days = daysBetween(now, end),
-                progress = progress,
-            )
+        return when {
+            todayCal.before(beginCal) -> {
+                DDayWidgetEntry(
+                    semesterLabel = semesterLabel,
+                    type = DDayType.START_OF_SEMESTER,
+                    days = daysBetween(now, begin),
+                    progress = 0f,
+                )
+            }
+            todayCal.after(endCal) -> {
+                DDayWidgetEntry(
+                    semesterLabel = semesterLabel,
+                    type = DDayType.SEMESTER_ENDED,
+                    days = 0,
+                    progress = 1f,
+                )
+            }
+            else -> {
+                val totalDays = daysBetween(begin, end).coerceAtLeast(1)
+                val elapsedDays = daysBetween(begin, now).coerceAtLeast(0)
+                val progress = (elapsedDays.toFloat() / totalDays.toFloat()).coerceIn(0f, 1f)
+
+                DDayWidgetEntry(
+                    semesterLabel = semesterLabel,
+                    type = DDayType.END_OF_SEMESTER,
+                    days = daysBetween(now, end),
+                    progress = progress,
+                )
+            }
         }
     }
 
