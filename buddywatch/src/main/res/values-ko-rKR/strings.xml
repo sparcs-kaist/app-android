@@ -15,8 +15,13 @@
     <string name="sunday">일요일</string>
     <string name="no_sync">먼저 휴대폰 앱을 열어 시간표를 동기화해 주세요.</string>
     <string name="d_day_widget_title">디데이</string>
-    <string name="d_day_widget_ends_in_days">종료까지 %1$d일</string>
-    <string name="d_day_widget_starts_in_days">시작까지 %1$d일</string>
+    <plurals name="d_day_widget_ends_in_days">
+        <item quantity="other">종료까지 %1$d일</item>
+    </plurals>
+
+    <plurals name="d_day_widget_starts_in_days">
+        <item quantity="other">시작까지 %1$d일</item>
+    </plurals>
     <string name="d_day_widget_ends_in">종료까지</string>
     <string name="d_day_widget_starts_in">개강까지</string>
     <string name="d_day_widget_d_minus">D-%1$d</string>

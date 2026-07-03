@@ -14,8 +14,15 @@
     <string name="sunday">Sunday</string>
     <string name="no_sync">Open the phone app and sync your timetable first.</string>
     <string name="d_day_widget_title">D-Day</string>
-    <string name="d_day_widget_ends_in_days">Ends in %1$d days</string>
-    <string name="d_day_widget_starts_in_days">Starts in %1$d days</string>
+    <plurals name="d_day_widget_ends_in_days">
+        <item quantity="one">Ends in %1$d day</item>
+        <item quantity="other">Ends in %1$d days</item>
+    </plurals>
+
+    <plurals name="d_day_widget_starts_in_days">
+        <item quantity="one">Starts in %1$d day</item>
+        <item quantity="other">Starts in %1$d days</item>
+    </plurals>
     <string name="d_day_widget_ends_in">Semester Ends</string>
     <string name="d_day_widget_starts_in">Semester Starts</string>
     <string name="d_day_widget_d_minus">D-%1$d</string>

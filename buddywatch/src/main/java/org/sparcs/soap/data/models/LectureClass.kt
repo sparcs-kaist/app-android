@@ -22,10 +22,5 @@ data class LectureClass(
             end = end,
             location = location
         )
-
-        fun mockList() = listOf(
-            mock(day = "MON", begin = 900, end = 1030),
-            mock(day = "WED", begin = 900, end = 1030)
-        )
     }
 }

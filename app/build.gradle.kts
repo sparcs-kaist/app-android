@@ -1,15 +1,15 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.gradle.plugin)
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("org.jetbrains.kotlin.plugin.serialization")
-    id("com.google.devtools.ksp")
 }
 
 val properties = Properties().apply {
@@ -22,20 +22,22 @@ val channelPluginKey: String = properties.getProperty("CHANNEL_PLUGIN_KEY")
 
 android {
     namespace = "org.sparcs.soap"
-    compileSdk = 35
+    compileSdk = 37
     defaultConfig {
-        manifestPlaceholders += mapOf("sidAuthToken" to sidAuthToken)
-        manifestPlaceholders += mapOf("kakaoMapKey" to kakaoMapKey)
-        manifestPlaceholders += mapOf("kakaoNaviKey" to kakaoNaviKey)
 
+        manifestPlaceholders += mapOf(
+            "sidAuthToken" to sidAuthToken,
+            "kakaoMapKey" to kakaoMapKey,
+            "kakaoNaviKey" to kakaoNaviKey,
+            "appAuthRedirectScheme" to "sparcsapp"
+        )
         applicationId = "org.sparcs.soap"
         minSdk = 31
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 29
         versionName = "1.3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders["appAuthRedirectScheme"] = "sparcsapp"
         buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
         buildConfigField("String", "KAKAO_MAP_KEY", "\"$kakaoMapKey\"")
         buildConfigField("String", "KAKAO_NAVI_KEY", "\"$kakaoNaviKey\"")
@@ -52,6 +54,8 @@ android {
             )
             buildConfigField("String", "TAXI_HOST", "\"taxi.dev.sparcs.org\"")
             buildConfigField("String", "ARA_HOST", "\"newara.dev.sparcs.org\"")
+            buildConfigField("String", "FEED_HOST", "\"buddy.dev.sparcs.org\"")
+            buildConfigField("String", "OTL_HOST", "\"api.otl.dev.sparcs.org\"")
         }
 
         getByName("release") {
@@ -62,8 +66,9 @@ android {
             )
             buildConfigField("String", "TAXI_HOST", "\"taxi.sparcs.org\"")
             buildConfigField("String", "ARA_HOST", "\"newara.sparcs.org\"")
-        }
-        release {
+            buildConfigField("String", "FEED_HOST", "\"buddy.sparcs.org\"")
+            buildConfigField("String", "OTL_HOST", "\"otl.sparcs.org\"")
+
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -76,14 +81,17 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
     buildFeatures {
         compose = true
         buildConfig = true
     }
 
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_11)
+    }
 }
 
 dependencies {
@@ -130,7 +138,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.androidx.security.crypto)
     implementation(libs.socket.io.client)
     implementation(libs.kotlinx.serialization.json)
@@ -151,7 +159,6 @@ dependencies {
 
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.aboutlibraries.compose.m3)
-    implementation(libs.datastore.preferences.v111)
 
     implementation(libs.timber)
 
@@ -161,5 +168,5 @@ dependencies {
     implementation(libs.kakao.maps)
     implementation(libs.play.services.wearable)
 
-    implementation("io.channel:plugin-android:13.3.1")
+    implementation("io.channel:plugin-android:13.4.0")
 }

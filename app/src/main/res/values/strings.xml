@@ -294,7 +294,10 @@
     <string name="email_request_payment">
     An email will be sent asking them to send you the money.
     </string>
-    <string name="people_count">%1$d people</string>
+    <plurals name="people_count">
+        <item quantity="one">%1$d person</item>
+        <item quantity="other">%1$d people</item>
+    </plurals>
     <string name="departure_time">Departure Time</string>
     <string name="hour_label">h</string>
     <string name="minute_label">m</string>
@@ -414,7 +417,7 @@
     <string name="error_sign_out_failed">Sign out failed.</string>
     <string name="error_refresh_failed">Token refresh failed.</string>
     <string name="error_no_access_token">No access token found. Please sign in again.</string>
-    <string name="error_user_cancelled">Authentication was cancelled by the user.</string>
+    <string name="error_user_cancelled">Authentication was canceled by the user.</string>
     <string name="error_invalid_callback_url">Invalid callback URL received.</string>
     <string name="error_token_exchange_failed">Failed to exchange code for tokens.</string>
     <string name="error_token_refresh_failed">Failed to refresh access token.</string>
@@ -490,8 +493,15 @@
         Maximum limit (5 rooms) reached.\nPlease complete settlement or cancel a ride.
     </string>
     <string name="error_update_arrival_failed">Failed to update arrival status.</string>
-    <string name="taxi_arrived_count">%1$d Arrived</string>
-    <string name="taxi_all_arrived">All %1$d Arrived!</string>
+    <plurals name="taxi_arrived_count">
+        <item quantity="one">%1$d Arrived</item>
+        <item quantity="other">%1$d Arrived</item>
+    </plurals>
+
+    <plurals name="taxi_all_arrived">
+        <item quantity="one">Arrived!</item>
+        <item quantity="other">All %1$d Arrived!</item>
+    </plurals>
     <string name="taxi_arrived_question">Have you arrived?</string>
     <string name="taxi_status">Status</string>
     <string name="taxi_arrival_status">Arrival Status</string>
@@ -531,8 +541,15 @@
     <string name="d_day_widget_loading">Loading D-Day</string>
     <string name="d_day_widget_loading_failed">Unable to load widget content</string>
     <string name="d_day_widget_wait_moment">Please wait while the semester data is being fetched.</string>
-    <string name="d_day_widget_ends_in_days">Ends in %1$d days</string>
-    <string name="d_day_widget_starts_in_days">Starts in %1$d days</string>
+    <plurals name="d_day_widget_ends_in_days">
+        <item quantity="one">Ends in %1$d day</item>
+        <item quantity="other">Ends in %1$d days</item>
+    </plurals>
+
+    <plurals name="d_day_widget_starts_in_days">
+        <item quantity="one">Starts in %1$d day</item>
+        <item quantity="other">Starts in %1$d days</item>
+    </plurals>
     <string name="d_day_widget_current_semester">Current semester</string>
     <string name="upcoming_class_widget_title">Upcoming class widget</string>
     <string name="upcoming_class_widget_desc">Check your next class time and location at a glance.</string>

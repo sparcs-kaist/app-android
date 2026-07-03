@@ -30,6 +30,7 @@ import org.sparcs.soap.shared.formatTimeRange
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import kotlin.math.abs
 
 private const val RESOURCES_VERSION = "1"
 private const val FRESHNESS_INTERVAL_MILLIS = 30 * 60 * 1000L
@@ -43,16 +44,24 @@ class DDayTileService : SuspendingTileService() {
         ResourceBuilders.Resources.Builder().setVersion(RESOURCES_VERSION).build()
 
     override suspend fun tileRequest(
-        requestParams: RequestBuilders.TileRequest
+        requestParams: RequestBuilders.TileRequest,
     ): TileBuilders.Tile {
         val semesterJson = watchDataStore.semesterJsonFlow.firstOrNull()
         val timetableJson = watchDataStore.timetableJsonFlow.firstOrNull()
 
         val semester = semesterJson?.let {
-            try { json.decodeFromString<Semester>(it) } catch (_: Exception) { null }
+            try {
+                json.decodeFromString<Semester>(it)
+            } catch (_: Exception) {
+                null
+            }
         }
         val timetable = timetableJson?.let {
-            try { json.decodeFromString<Timetable>(it) } catch (_: Exception) { null }
+            try {
+                json.decodeFromString<Timetable>(it)
+            } catch (_: Exception) {
+                null
+            }
         }
 
         return dDayTile(requestParams, this, timetable, semester)
@@ -95,36 +104,74 @@ private fun dDayTile(
     if (sortedTransitions.isEmpty()) {
         timelineBuilder.addTimelineEntry(
             TimelineBuilders.TimelineEntry.Builder()
-                .setLayout(LayoutElementBuilders.Layout.Builder()
-                    .setRoot(dDayTileLayout(requestParams, context, timetable, semester, Calendar.getInstance()))
-                    .build())
+                .setLayout(
+                    LayoutElementBuilders.Layout.Builder()
+                        .setRoot(
+                            dDayTileLayout(
+                                requestParams,
+                                context,
+                                timetable,
+                                semester,
+                                Calendar.getInstance()
+                            )
+                        )
+                        .build()
+                )
                 .build()
         )
     } else {
         sortedTransitions.forEach { transitionTime ->
             val entryBuilder = TimelineBuilders.TimelineEntry.Builder()
             if (lastTransitionMillis == 0L) {
-                entryBuilder.setValidity(TimelineBuilders.TimeInterval.Builder().setEndMillis(transitionTime).build())
+                entryBuilder.setValidity(
+                    TimelineBuilders.TimeInterval.Builder().setEndMillis(transitionTime).build()
+                )
             } else {
-                entryBuilder.setValidity(TimelineBuilders.TimeInterval.Builder().setStartMillis(lastTransitionMillis).setEndMillis(transitionTime).build())
+                entryBuilder.setValidity(
+                    TimelineBuilders.TimeInterval.Builder().setStartMillis(lastTransitionMillis)
+                        .setEndMillis(transitionTime).build()
+                )
             }
 
             timelineBuilder.addTimelineEntry(
-                entryBuilder.setLayout(LayoutElementBuilders.Layout.Builder()
-                    .setRoot(dDayTileLayout(requestParams, context, timetable, semester, Calendar.getInstance().apply {
-                        timeInMillis = if (lastTransitionMillis == 0L) System.currentTimeMillis() else lastTransitionMillis
-                    }))
-                    .build()).build()
+                entryBuilder.setLayout(
+                    LayoutElementBuilders.Layout.Builder()
+                        .setRoot(
+                            dDayTileLayout(
+                                requestParams,
+                                context,
+                                timetable,
+                                semester,
+                                Calendar.getInstance().apply {
+                                    timeInMillis =
+                                        if (lastTransitionMillis == 0L) System.currentTimeMillis() else lastTransitionMillis
+                                })
+                        )
+                        .build()
+                ).build()
             )
             lastTransitionMillis = transitionTime
         }
 
         timelineBuilder.addTimelineEntry(
             TimelineBuilders.TimelineEntry.Builder()
-                .setValidity(TimelineBuilders.TimeInterval.Builder().setStartMillis(lastTransitionMillis).build())
-                .setLayout(LayoutElementBuilders.Layout.Builder()
-                    .setRoot(dDayTileLayout(requestParams, context, timetable, semester, Calendar.getInstance().apply { timeInMillis = lastTransitionMillis }))
-                    .build()).build()
+                .setValidity(
+                    TimelineBuilders.TimeInterval.Builder().setStartMillis(lastTransitionMillis)
+                        .build()
+                )
+                .setLayout(
+                    LayoutElementBuilders.Layout.Builder()
+                        .setRoot(
+                            dDayTileLayout(
+                                requestParams,
+                                context,
+                                timetable,
+                                semester,
+                                Calendar.getInstance()
+                                    .apply { timeInMillis = lastTransitionMillis })
+                        )
+                        .build()
+                ).build()
         )
     }
 
@@ -159,17 +206,25 @@ private fun dDayTileLayout(
         if (now.time < begin) {
             val daysLeft = daysBetween(now, Date(begin))
             progress = 0f
-            countdownText = context.getString(R.string.d_day_widget_starts_in_days, Math.abs(daysLeft))
-            dDayLabel = context.getString(R.string.d_day_widget_d_minus, Math.abs(daysLeft))
+            countdownText = context.resources.getQuantityString(
+                R.plurals.d_day_widget_starts_in_days,
+                abs(daysLeft),
+                abs(daysLeft)
+            )
+            dDayLabel = context.getString(R.string.d_day_widget_d_minus, abs(daysLeft))
         } else {
             val totalDuration = (end - begin).coerceAtLeast(TimeUnit.DAYS.toMillis(1))
             val elapsed = (now.time - begin).coerceAtLeast(0L)
             progress = (elapsed.toFloat() / totalDuration.toFloat()).coerceIn(0f, 1f)
             val daysLeft = daysBetween(now, Date(end))
             countdownText = if (daysLeft > 0) {
-                context.getString(R.string.d_day_widget_ends_in_days, Math.abs(daysLeft))
+                context.resources.getQuantityString(
+                    R.plurals.d_day_widget_ends_in_days,
+                    abs(daysLeft),
+                    abs(daysLeft)
+                )
             } else if (daysLeft < 0) {
-                context.getString(R.string.d_day_widget_ends_in_days, 0)
+                context.resources.getQuantityString(R.plurals.d_day_widget_ends_in_days, 0, 0)
             } else {
                 context.getString(R.string.d_day_widget_d_day)
             }
@@ -193,7 +248,11 @@ private fun dDayTileLayout(
         ?.filter { (_, cl) -> cl.day == dayOfWeekString && cl.end > currentMinutes }
         ?.minByOrNull { (_, cl) -> cl.begin }
 
-    fun createDotListItem(title: String, subtitle: String, dotColor: Int): LayoutElementBuilders.LayoutElement {
+    fun createDotListItem(
+        title: String,
+        subtitle: String,
+        dotColor: Int,
+    ): LayoutElementBuilders.LayoutElement {
         return LayoutElementBuilders.Column.Builder()
             .setHorizontalAlignment(LayoutElementBuilders.HORIZONTAL_ALIGN_CENTER)
             .addContent(
@@ -203,15 +262,25 @@ private fun dDayTileLayout(
                         LayoutElementBuilders.Box.Builder()
                             .setWidth(DimensionBuilders.dp(6f))
                             .setHeight(DimensionBuilders.dp(6f))
-                            .setModifiers(ModifiersBuilders.Modifiers.Builder()
-                                .setBackground(ModifiersBuilders.Background.Builder()
-                                    .setColor(argb(dotColor))
-                                    .setCorner(ModifiersBuilders.Corner.Builder().setRadius(DimensionBuilders.dp(3f)).build())
-                                    .build())
-                                .build())
+                            .setModifiers(
+                                ModifiersBuilders.Modifiers.Builder()
+                                    .setBackground(
+                                        ModifiersBuilders.Background.Builder()
+                                            .setColor(argb(dotColor))
+                                            .setCorner(
+                                                ModifiersBuilders.Corner.Builder()
+                                                    .setRadius(DimensionBuilders.dp(3f)).build()
+                                            )
+                                            .build()
+                                    )
+                                    .build()
+                            )
                             .build()
                     )
-                    .addContent(LayoutElementBuilders.Spacer.Builder().setWidth(DimensionBuilders.dp(4f)).build())
+                    .addContent(
+                        LayoutElementBuilders.Spacer.Builder().setWidth(DimensionBuilders.dp(4f))
+                            .build()
+                    )
                     .addContent(
                         Text.Builder(context, title)
                             .setTypography(Typography.TYPOGRAPHY_BODY2)
@@ -221,7 +290,9 @@ private fun dDayTileLayout(
                     )
                     .build()
             )
-            .addContent(LayoutElementBuilders.Spacer.Builder().setHeight(DimensionBuilders.dp(1f)).build())
+            .addContent(
+                LayoutElementBuilders.Spacer.Builder().setHeight(DimensionBuilders.dp(1f)).build()
+            )
             .addContent(
                 Text.Builder(context, subtitle)
                     .setTypography(Typography.TYPOGRAPHY_CAPTION2)
@@ -239,22 +310,35 @@ private fun dDayTileLayout(
                 .setColor(argb(Colors.DEFAULT.onSurface))
                 .build()
         )
-        .addContent(LayoutElementBuilders.Spacer.Builder().setHeight(DimensionBuilders.dp(6f)).build())
+        .addContent(
+            LayoutElementBuilders.Spacer.Builder().setHeight(DimensionBuilders.dp(6f)).build()
+        )
         .addContent(createDotListItem(semesterLabel, countdownText, primaryColor))
-        .addContent(LayoutElementBuilders.Spacer.Builder().setHeight(DimensionBuilders.dp(8f)).build())
+        .addContent(
+            LayoutElementBuilders.Spacer.Builder().setHeight(DimensionBuilders.dp(8f)).build()
+        )
         .addContent(
             if (nextLectureData != null) {
                 val (lecture, cl) = nextLectureData
                 createDotListItem(lecture.name, formatTimeRange(cl.begin, cl.end), primaryColor)
             } else {
-                createDotListItem(context.getString(R.string.no_more_classes), "Enjoy your day", primaryColor)
+                createDotListItem(
+                    context.getString(R.string.no_more_classes),
+                    "Enjoy your day",
+                    primaryColor
+                )
             }
         )
         .build()
 
     val progressCircle = CircularProgressIndicator.Builder()
         .setProgress(progress)
-        .setCircularProgressIndicatorColors(ProgressIndicatorColors(argb(primaryColor), argb(0x33FFFFFF)))
+        .setCircularProgressIndicatorColors(
+            ProgressIndicatorColors(
+                argb(primaryColor),
+                argb(0x33FFFFFF)
+            )
+        )
         .setStrokeWidth(DimensionBuilders.dp(4f))
         .build()
 
@@ -271,12 +355,25 @@ private fun getDayOfWeekString(cal: Calendar): String = when (cal.get(Calendar.D
 }
 
 private fun getEndOfDayMillis(): Long = Calendar.getInstance().apply {
-    set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59); set(Calendar.SECOND, 59); set(Calendar.MILLISECOND, 999)
+    set(Calendar.HOUR_OF_DAY, 23); set(Calendar.MINUTE, 59); set(
+    Calendar.SECOND,
+    59
+); set(Calendar.MILLISECOND, 999)
 }.timeInMillis
 
 private fun daysBetween(from: Date, to: Date): Int {
-    val f = Calendar.getInstance().apply { time = from; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }
-    val t = Calendar.getInstance().apply { time = to; set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0) }
+    val f = Calendar.getInstance().apply {
+        time = from; set(Calendar.HOUR_OF_DAY, 0); set(
+        Calendar.MINUTE,
+        0
+    ); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+    }
+    val t = Calendar.getInstance().apply {
+        time = to; set(Calendar.HOUR_OF_DAY, 0); set(
+        Calendar.MINUTE,
+        0
+    ); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+    }
     return TimeUnit.MILLISECONDS.toDays(t.timeInMillis - f.timeInMillis).toInt()
 }
 

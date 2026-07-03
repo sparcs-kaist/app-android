@@ -14,7 +14,7 @@ import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import org.sparcs.soap.data.WatchDataStore
-import org.sparcs.soap.presentation.UI.TimetableList
+import org.sparcs.soap.presentation.ui.TimetableList
 import org.sparcs.soap.presentation.theme.SoapTheme
 
 class MainActivity : ComponentActivity() {
