@@ -4,9 +4,8 @@ import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.ksp)
     alias(libs.plugins.hilt.gradle.plugin)
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
@@ -139,7 +138,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
     implementation(libs.androidx.security.crypto)
     implementation(libs.socket.io.client)
     implementation(libs.kotlinx.serialization.json)
@@ -164,10 +163,10 @@ dependencies {
     implementation(libs.timber)
 
     implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
+    ksp(libs.androidx.room.compiler)
 
     implementation(libs.kakao.maps)
     implementation(libs.play.services.wearable)
 
-    implementation("io.channel:plugin-android:13.3.4")
+    implementation("io.channel:plugin-android:13.4.0")
 }
