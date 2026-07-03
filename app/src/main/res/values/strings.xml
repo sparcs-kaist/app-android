@@ -541,6 +541,8 @@
     <string name="d_day_widget_loading">Loading D-Day</string>
     <string name="d_day_widget_loading_failed">Unable to load widget content</string>
     <string name="d_day_widget_wait_moment">Please wait while the semester data is being fetched.</string>
+    <string name="d_day_widget_ended">Ended</string>
+    <string name="d_day_widget_semester_ended">Semester ended</string>
     <plurals name="d_day_widget_ends_in_days">
         <item quantity="one">Ends in %1$d day</item>
         <item quantity="other">Ends in %1$d days</item>

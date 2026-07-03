@@ -19,16 +19,12 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import org.sparcs.soap.R
+import org.sparcs.soap.widgets.buddyDDayWidget.DDayType
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayWidgetEntry
 
 @Composable
 fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
     val context = LocalContext.current
-
-    if (isFinished(entry)) {
-        DDayFinishedView()
-        return
-    }
 
     Column(
         modifier = GlanceModifier
@@ -38,7 +34,11 @@ fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
         horizontalAlignment = Alignment.Horizontal.Start
     ) {
         Text(
-            text = subtitleText(entry).uppercase(),
+            text = if (entry.type == DDayType.SEMESTER_ENDED) {
+                context.getString(R.string.d_day_widget_ended).uppercase()
+            } else {
+                subtitleText(entry).uppercase()
+            },
             style = TextStyle(
                 color = GlanceTheme.colors.primary,
                 fontSize = 16.sp,
@@ -46,25 +46,37 @@ fun DDaySmallWidgetView(entry: DDayWidgetEntry) {
             )
         )
 
-        Row(verticalAlignment = Alignment.Vertical.Bottom) {
+        if (entry.type == DDayType.SEMESTER_ENDED) {
             Text(
-                text = "${entry.days}",
+                text = context.getString(R.string.d_day_widget_semester_ended),
                 style = TextStyle(
                     color = GlanceTheme.colors.onSurface,
-                    fontSize = 40.sp,
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                )
-            )
-            Spacer(modifier = GlanceModifier.width(4.dp))
-            Text(
-                text = context.getString(R.string.days_suffix),
-                style = TextStyle(
-                    color = GlanceTheme.colors.onSurface,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Medium,
                 ),
-                modifier = GlanceModifier.padding(bottom = 6.dp)
+                maxLines = 2
             )
+        } else {
+            Row(verticalAlignment = Alignment.Vertical.Bottom) {
+                Text(
+                    text = "${entry.days}",
+                    style = TextStyle(
+                        color = GlanceTheme.colors.onSurface,
+                        fontSize = 40.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                )
+                Spacer(modifier = GlanceModifier.width(4.dp))
+                Text(
+                    text = context.getString(R.string.days_suffix),
+                    style = TextStyle(
+                        color = GlanceTheme.colors.onSurface,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                    ),
+                    modifier = GlanceModifier.padding(bottom = 6.dp)
+                )
+            }
         }
 
         Spacer(modifier = GlanceModifier.defaultWeight())
