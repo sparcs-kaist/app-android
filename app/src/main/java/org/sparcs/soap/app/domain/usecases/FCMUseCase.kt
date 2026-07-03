@@ -1,7 +1,9 @@
 package org.sparcs.soap.app.domain.usecases
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
+import android.provider.Settings
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
@@ -24,6 +26,7 @@ interface FCMUseCaseProtocol {
     suspend fun manage(service: FeatureType, isActive: Boolean)
 }
 
+@SuppressLint("HardwareIds")
 class FCMUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val fcmRepository: FCMRepositoryProtocol,
@@ -34,6 +37,8 @@ class FCMUseCase @Inject constructor(
 
     companion object {
         private const val FCM_DEVICE_ID_KEY = "fcmDeviceID"
+        private const val FCM_DEVICE_ID_BACKUP_KEY = "fcmDeviceID_plain"
+        private const val FCM_ANDROID_ID_KEY = "fcmAndroidID"
         private const val AES_KEY_ALIAS = "FCMDeviceKey"
         private const val AES_MODE = "AES/GCM/NoPadding"
     }
@@ -57,48 +62,110 @@ class FCMUseCase @Inject constructor(
         }
     }
 
-override suspend fun register(fcmToken: String) {
-    val savedToken = prefs.getString("last_registered_token", null)
-    if (savedToken == fcmToken) {
-        Timber.d("FCM: Token already matches. Skipping.")
-        return
-    }
+    override suspend fun register(fcmToken: String) {
+        val currentLang = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ko"
+        val savedToken = prefs.getString("last_registered_token", null)
+        val savedLang = prefs.getString("last_registered_lang", null)
 
-    if (isRegistering) return
-
-    try {
-        val existingUUID = getEncryptedDeviceID()
-
-        if (existingUUID == null) {
-            val newUUID = UUID.randomUUID().toString()
-            saveEncryptedDeviceID(newUUID)
-
-            fcmRepository.register(
-                deviceUUID = newUUID,
-                fcmToken = fcmToken,
-                deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
-                language = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ko"
-            )
-            Timber.d("FCM: New device registered.")
-        } else {
-            fcmRepository.updateToken(
-                fcmToken = fcmToken,
-                deviceToken = existingUUID
-            )
-            Timber.d("FCM: Existing device token updated.")
+        if (savedToken == fcmToken && savedLang == currentLang) {
+            Timber.d("FCM: Token and language already match. Skipping.")
+            return
         }
 
-        prefs.edit { putString("last_registered_token", fcmToken) }
+        if (isRegistering) return
+        isRegistering = true
 
-    } catch (e: Exception) {
-        Timber.e(e, "FCM: Operation failed.")
-    } finally {
-        isRegistering = false
+        try {
+            val existingUUID = getPersistentDeviceID()
+
+            if (existingUUID == null) {
+                val newUUID = UUID.randomUUID().toString()
+                saveDeviceID(newUUID)
+
+                fcmRepository.register(
+                    deviceUUID = newUUID,
+                    fcmToken = fcmToken,
+                    deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
+                    language = currentLang
+                )
+                Timber.d("FCM: New device registered. UUID: $newUUID")
+            } else {
+                fcmRepository.updateToken(
+                    fcmToken = fcmToken,
+                    deviceToken = existingUUID
+                )
+                Timber.d("FCM: Existing device token updated. UUID: $existingUUID")
+
+                val currentAndroidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                prefs.edit {
+                    if (prefs.getString(FCM_DEVICE_ID_BACKUP_KEY, null) == null) {
+                        putString(FCM_DEVICE_ID_BACKUP_KEY, existingUUID)
+                    }
+                    if (prefs.getString(FCM_ANDROID_ID_KEY, null) == null) {
+                        putString(FCM_ANDROID_ID_KEY, currentAndroidId)
+                    }
+                }
+            }
+
+            prefs.edit {
+                putString("last_registered_token", fcmToken)
+                putString("last_registered_lang", currentLang)
+            }
+
+        } catch (e: Exception) {
+            Timber.e(e, "FCM: Operation failed.")
+        } finally {
+            isRegistering = false
+        }
     }
-}
+
+    private fun saveDeviceID(uuid: String) {
+        try {
+            val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+            val cipher = Cipher.getInstance(AES_MODE)
+            cipher.init(Cipher.ENCRYPT_MODE, getSecretKey())
+            val iv = cipher.iv
+            val encrypted = cipher.doFinal(uuid.toByteArray())
+            val combined = Base64.encodeToString(iv + encrypted, Base64.NO_WRAP)
+
+            prefs.edit {
+                putString(FCM_DEVICE_ID_KEY, combined)
+                putString(FCM_DEVICE_ID_BACKUP_KEY, uuid)
+                putString(FCM_ANDROID_ID_KEY, androidId)
+            }
+        } catch (e: Exception) {
+            prefs.edit { putString(FCM_DEVICE_ID_BACKUP_KEY, uuid) }
+        }
+    }
+
+    private fun getPersistentDeviceID(): String? {
+        val currentAndroidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        val storedAndroidId = prefs.getString(FCM_ANDROID_ID_KEY, null)
+
+        if (storedAndroidId != null && storedAndroidId != currentAndroidId) {
+            Timber.d("FCM: Detected device change via backup. Ignoring restored UUID.")
+            return null
+        }
+
+        val encryptedStr = prefs.getString(FCM_DEVICE_ID_KEY, null)
+        if (encryptedStr != null) {
+            try {
+                val combined = Base64.decode(encryptedStr, Base64.NO_WRAP)
+                val iv = combined.sliceArray(0 until 12)
+                val encrypted = combined.sliceArray(12 until combined.size)
+                val cipher = Cipher.getInstance(AES_MODE)
+                cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), GCMParameterSpec(128, iv))
+                return String(cipher.doFinal(encrypted))
+            } catch (e: Exception) {
+                Timber.w("FCM: Decryption failed, maybe reinstalled. Trying backup...")
+            }
+        }
+
+        return prefs.getString(FCM_DEVICE_ID_BACKUP_KEY, null)
+    }
 
     override suspend fun manage(service: FeatureType, isActive: Boolean) {
-        val deviceUUID = getEncryptedDeviceID() ?: run {
+        val deviceUUID = getPersistentDeviceID() ?: run {
             Timber.e("FCM Manage failed: No Device UUID found.")
             return
         }
@@ -114,28 +181,7 @@ override suspend fun register(fcmToken: String) {
         return (keyStore.getEntry(AES_KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
     }
 
-    private fun saveEncryptedDeviceID(uuid: String) {
-        val cipher = Cipher.getInstance(AES_MODE)
-        cipher.init(Cipher.ENCRYPT_MODE, getSecretKey())
-        val iv = cipher.iv
-        val encrypted = cipher.doFinal(uuid.toByteArray())
-        val combined = Base64.encodeToString(iv + encrypted, Base64.NO_WRAP)
-        prefs.edit { putString(FCM_DEVICE_ID_KEY, combined) }
-    }
 
-    private fun getEncryptedDeviceID(): String? {
-        val combinedStr = prefs.getString(FCM_DEVICE_ID_KEY, null) ?: return null
-        return try {
-            val combined = Base64.decode(combinedStr, Base64.NO_WRAP)
-            val iv = combined.sliceArray(0 until 12)
-            val encrypted = combined.sliceArray(12 until combined.size)
-            val cipher = Cipher.getInstance(AES_MODE)
-            cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), GCMParameterSpec(128, iv))
-            String(cipher.doFinal(encrypted))
-        } catch (_: Exception) {
-            null
-        }
-    }
 }
 
 class MockFCMUseCase : FCMUseCaseProtocol {
