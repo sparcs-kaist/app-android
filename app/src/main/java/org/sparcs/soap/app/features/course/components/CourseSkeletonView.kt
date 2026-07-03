@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.features.course.StatSeparator
+import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewSkeletonCell
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -119,9 +120,12 @@ fun CourseSummarySkeleton() {
                 }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
-
+@Composable
+fun CourseReviewSectionSkeleton() {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .height(24.dp)
@@ -171,6 +175,12 @@ fun CourseSummarySkeleton() {
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        repeat(2) {
+            LectureReviewSkeletonCell()
+        }
     }
 }
 
@@ -178,6 +188,9 @@ fun CourseSummarySkeleton() {
 @Preview
 private fun Preview() {
     Theme {
-        CourseSummarySkeleton()
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            CourseSummarySkeleton()
+            CourseReviewSectionSkeleton()
+        }
     }
 }

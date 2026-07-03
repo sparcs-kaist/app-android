@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.timetable.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,14 +56,22 @@ fun CompactTimetableSelector(
     var renameText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (isLandscape) Spacer(Modifier.weight(1f))
 
         SemesterSelector(viewModel = viewModel)
 
-        Spacer(Modifier.weight(1f))
+        if (isLandscape) {
+            Spacer(Modifier.weight(1f))
+        } else {
+            Spacer(Modifier.weight(1f))
+        }
 
         TableSelector(
             viewModel = viewModel,
@@ -71,6 +81,8 @@ fun CompactTimetableSelector(
                 showRenameDialog = true
             }
         )
+
+        if (isLandscape) Spacer(Modifier.weight(1f))
     }
     if (showRenameDialog) {
         AlertDialog(
@@ -187,7 +199,7 @@ fun TableSelector(
             AnimatedText(
                 text = displayName,
                 style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
         }
 

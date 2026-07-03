@@ -1,16 +1,20 @@
 package org.sparcs.soap.app.features.search
 
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,12 +40,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.SearchScope
@@ -80,6 +86,9 @@ fun SearchView(
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     val backStackEvent = {
         navController.navigate(Channel.Start.name) {
             popUpTo(0) { inclusive = true }
@@ -111,73 +120,32 @@ fun SearchView(
         },
         modifier = Modifier.analyticsScreen("Search")
     ) { innerPadding ->
-        Column(
-            Modifier
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .padding(innerPadding)
         ) {
-            Card(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .glassBorder(shape = RoundedCornerShape(16.dp))
-            ) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    SearchCustomBar(
-                        value = searchText,
-                        onValueChange = { value ->
-                            viewModel.onSearchTextChange(value)
-                        },
-                        onValueClear = {
-                            viewModel.onSearchTextChange("")
-                        },
-                        placeHolder = stringResource(R.string.search)
-                    )
-
-                    Row(
-                        Modifier
-                            .padding(horizontal = 4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        SearchScope.entries.forEach { scope ->
-                            FilterChip(
-                                selected = (searchScope == scope),
-                                onClick = { viewModel.onScopeChange(scope) },
-                                label = { Text(stringResource(scope.labelRes)) }
-                            )
-                        }
-                    }
-                }
-            }
-
-            when {
-                state is SearchViewModel.ViewState.Error -> {
-                    ErrorView(
-                        error = (state as SearchViewModel.ViewState.Error).error,
-                        onRetry = { coroutineScope.launch { viewModel.bind() } }
-                    )
-                }
-
-                searchText.isEmpty() -> {
-                    UnavailableView(
-                        icon = Icons.Rounded.Search,
-                        title = stringResource(R.string.search_anything),
-                        description = stringResource(R.string.find_etc)
-                    )
-                }
-
-                else -> {
-                    ResultView(
-                        viewModel = viewModel,
-                        navController = navController,
-                        onTaxiClick = { selectedRoom = it }
-                    )
-                }
+            if (isLandscape) {
+                SearchLandscapeLayout(
+                    state = state,
+                    searchText = searchText,
+                    searchScope = searchScope,
+                    viewModel = viewModel,
+                    navController = navController,
+                    coroutineScope = coroutineScope,
+                    onTaxiClick = { selectedRoom = it }
+                )
+            } else {
+                SearchPortraitLayout(
+                    state = state,
+                    searchText = searchText,
+                    searchScope = searchScope,
+                    viewModel = viewModel,
+                    navController = navController,
+                    coroutineScope = coroutineScope,
+                    onTaxiClick = { selectedRoom = it }
+                )
             }
         }
 
@@ -214,6 +182,168 @@ fun SearchView(
                     navController = navController
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SearchLandscapeLayout(
+    state: SearchViewModel.ViewState,
+    searchText: String,
+    searchScope: SearchScope,
+    viewModel: SearchViewModelProtocol,
+    navController: NavController,
+    coroutineScope: CoroutineScope,
+    onTaxiClick: (TaxiRoom) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            SearchControlCard(
+                searchText = searchText,
+                searchScope = searchScope,
+                onSearchTextChange = viewModel::onSearchTextChange,
+                onScopeChange = viewModel::onScopeChange
+            )
+            Spacer(modifier = Modifier.weight(1f))
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1.5f)
+                .fillMaxHeight()
+        ) {
+            SearchResultContent(
+                state = state,
+                searchText = searchText,
+                viewModel = viewModel,
+                navController = navController,
+                coroutineScope = coroutineScope,
+                onTaxiClick = onTaxiClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchPortraitLayout(
+    state: SearchViewModel.ViewState,
+    searchText: String,
+    searchScope: SearchScope,
+    viewModel: SearchViewModelProtocol,
+    navController: NavController,
+    coroutineScope: CoroutineScope,
+    onTaxiClick: (TaxiRoom) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .widthIn(max = 600.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        SearchControlCard(
+            searchText = searchText,
+            searchScope = searchScope,
+            onSearchTextChange = viewModel::onSearchTextChange,
+            onScopeChange = viewModel::onScopeChange
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        SearchResultContent(
+            state = state,
+            searchText = searchText,
+            viewModel = viewModel,
+            navController = navController,
+            coroutineScope = coroutineScope,
+            onTaxiClick = onTaxiClick
+        )
+    }
+}
+
+@Composable
+private fun SearchControlCard(
+    searchText: String,
+    searchScope: SearchScope,
+    onSearchTextChange: (String) -> Unit,
+    onScopeChange: (SearchScope) -> Unit
+) {
+    Card(
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassBorder(shape = RoundedCornerShape(16.dp))
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            SearchCustomBar(
+                value = searchText,
+                onValueChange = onSearchTextChange,
+                onValueClear = { onSearchTextChange("") },
+                placeHolder = stringResource(R.string.search)
+            )
+
+            Row(
+                Modifier
+                    .padding(horizontal = 4.dp)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                SearchScope.entries.forEach { scope ->
+                    FilterChip(
+                        selected = (searchScope == scope),
+                        onClick = { onScopeChange(scope) },
+                        label = { Text(stringResource(scope.labelRes)) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchResultContent(
+    state: SearchViewModel.ViewState,
+    searchText: String,
+    viewModel: SearchViewModelProtocol,
+    navController: NavController,
+    coroutineScope: CoroutineScope,
+    onTaxiClick: (TaxiRoom) -> Unit
+) {
+    when {
+        state is SearchViewModel.ViewState.Error -> {
+            ErrorView(
+                error = (state as SearchViewModel.ViewState.Error).error,
+                onRetry = { coroutineScope.launch { viewModel.bind() } }
+            )
+        }
+
+        searchText.isEmpty() -> {
+            UnavailableView(
+                icon = Icons.Rounded.Search,
+                title = stringResource(R.string.search_anything),
+                description = stringResource(R.string.find_etc)
+            )
+        }
+
+        else -> {
+            ResultView(
+                viewModel = viewModel,
+                navController = navController,
+                onTaxiClick = onTaxiClick
+            )
         }
     }
 }
@@ -326,6 +456,12 @@ private fun LoadingPreview() {
 @Composable
 @Preview
 private fun LoadedPreview() {
+    Theme { MockView(SearchViewModel.ViewState.Loaded) }
+}
+
+@Composable
+@Preview(widthDp = 840, heightDp = 480)
+private fun LoadedLandscapePreview() {
     Theme { MockView(SearchViewModel.ViewState.Loaded) }
 }
 

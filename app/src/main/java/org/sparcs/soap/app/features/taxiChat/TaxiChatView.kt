@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -30,6 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
@@ -142,85 +144,97 @@ fun TaxiChatView(
             )
         },
         bottomBar = {
-            TaxiChatInputBar(
-                text = text,
-                onTextChange = { text = it },
-                taxiUser = taxiUser,
-                isUploading = isUploading,
-                isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable,
-                isCommitSettlementAvailable = viewModel.isCommitSettlementAvailable,
-                onSendText = { message ->
-                   viewModel.sendChat(message, TaxiChat.ChatType.TEXT)
-                },
-                onSendImage = { bitmap ->
-                    coroutineScope.launch { viewModel.sendImage(bitmap) }
-                },
-                onCommitSettlement = {
-                    showSettlementAmountDialog = true
-                },
-                onCommitPayment = { showPayMoneyAlert = true }
-            )
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(modifier = Modifier.widthIn(max = 600.dp)) {
+                    TaxiChatInputBar(
+                        text = text,
+                        onTextChange = { text = it },
+                        taxiUser = taxiUser,
+                        isUploading = isUploading,
+                        isCommitPaymentAvailable = viewModel.isCommitPaymentAvailable,
+                        isCommitSettlementAvailable = viewModel.isCommitSettlementAvailable,
+                        onSendText = { message ->
+                            viewModel.sendChat(message, TaxiChat.ChatType.TEXT)
+                        },
+                        onSendImage = { bitmap ->
+                            coroutineScope.launch { viewModel.sendImage(bitmap) }
+                        },
+                        onCommitSettlement = {
+                            showSettlementAmountDialog = true
+                        },
+                        onCommitPayment = { showPayMoneyAlert = true }
+                    )
+                }
+            }
         },
         modifier = Modifier.analyticsScreen("Taxi Chat")
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize()
+                .fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Crossfade(
-                targetState = state,
-                animationSpec = tween(300),
-                label = "StateTransition"
-            ) { currentState ->
-                when (currentState) {
-                    is TaxiChatViewModel.ViewState.Loading -> {
-                        ChatCollectionView(
-                            items = PlaceholderItems,
-                            room = room,
-                            user = null,
-                            onImageClick = {},
-                            onCommitPayment = {},
-                            listState = rememberLazyListState(),
-                            scrollToBottomTrigger = 0,
-                            modifier = Modifier.alpha(0.5f)
-                        )
-                    }
-
-                    is TaxiChatViewModel.ViewState.Loaded -> {
-                        val shouldLoadMore by remember {
-                            derivedStateOf {
-                                val lastVisibleIndex = listState.layoutInfo.visibleItemsInfo.maxOfOrNull { it.index } ?: 0
-                                val totalCount = listState.layoutInfo.totalItemsCount
-                                totalCount > 0 && lastVisibleIndex >= totalCount - 3
-                            }
+            Box(modifier = Modifier.widthIn(max = 600.dp)) {
+                Crossfade(
+                    targetState = state,
+                    animationSpec = tween(300),
+                    label = "StateTransition"
+                ) { currentState ->
+                    when (currentState) {
+                        is TaxiChatViewModel.ViewState.Loading -> {
+                            ChatCollectionView(
+                                items = PlaceholderItems,
+                                room = room,
+                                user = null,
+                                onImageClick = {},
+                                onCommitPayment = {},
+                                listState = rememberLazyListState(),
+                                scrollToBottomTrigger = 0,
+                                modifier = Modifier.alpha(0.5f)
+                            )
                         }
 
-                        LaunchedEffect(Unit) {
-                            snapshotFlow { shouldLoadMore }
-                                .collect { loadMore ->
-                                    if (loadMore) {
-                                        viewModel.loadMoreChats()
-                                    }
+                        is TaxiChatViewModel.ViewState.Loaded -> {
+                            val shouldLoadMore by remember {
+                                derivedStateOf {
+                                    val lastVisibleIndex =
+                                        listState.layoutInfo.visibleItemsInfo.maxOfOrNull { it.index }
+                                            ?: 0
+                                    val totalCount = listState.layoutInfo.totalItemsCount
+                                    totalCount > 0 && lastVisibleIndex >= totalCount - 3
                                 }
+                            }
+
+                            LaunchedEffect(Unit) {
+                                snapshotFlow { shouldLoadMore }
+                                    .collect { loadMore ->
+                                        if (loadMore) {
+                                            viewModel.loadMoreChats()
+                                        }
+                                    }
+                            }
+
+                            ChatCollectionView(
+                                items = viewModel.renderItems.collectAsState().value,
+                                room = room,
+                                user = taxiUser,
+                                onImageClick = { tappedImageID = it },
+                                onCommitPayment = { showPayMoneyAlert = true },
+                                listState = listState,
+                                scrollToBottomTrigger = viewModel.scrollToBottomTrigger
+                            )
                         }
 
-                        ChatCollectionView(
-                            items = viewModel.renderItems.collectAsState().value,
-                            room = room,
-                            user = taxiUser,
-                            onImageClick = { tappedImageID = it },
-                            onCommitPayment = { showPayMoneyAlert = true },
-                            listState = listState,
-                            scrollToBottomTrigger = viewModel.scrollToBottomTrigger
-                        )
-                    }
-
-                    is TaxiChatViewModel.ViewState.Error -> {
-                        ErrorView(
-                            error = currentState.error,
-                            onRetry = { coroutineScope.launch { viewModel.fetchInitialChats() } }
-                        )
+                        is TaxiChatViewModel.ViewState.Error -> {
+                            ErrorView(
+                                error = currentState.error,
+                                onRetry = { coroutineScope.launch { viewModel.fetchInitialChats() } }
+                            )
+                        }
                     }
                 }
             }

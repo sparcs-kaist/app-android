@@ -1,10 +1,13 @@
 package org.sparcs.soap.app.features.feedPost
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -12,7 +15,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -44,6 +49,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -54,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -96,6 +103,9 @@ fun FeedPostView(
     val isUploadingComment by remember { mutableStateOf(false) }
     val pullState = rememberPullToRefreshState()
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     PullToRefreshHapticHandler(pullState, isRefreshing)
     LaunchedEffect(Unit) {
         viewModel.fetchFeedUser()
@@ -118,6 +128,33 @@ fun FeedPostView(
         is FeedPostViewModel.ViewState.Loaded -> {
             val post = feedViewModel.posts.find { it.id == state.post.id } ?: state.post
 
+            val inputBar = @Composable {
+                InputBar(
+                    viewModel = viewModel,
+                    targetComment = targetComment,
+                    isWritingCommentFocusState = isWritingCommentFocusState,
+                    onCommentUploaded = {
+                        if (viewModel.text.isEmpty()) return@InputBar
+                        scope.launch {
+                            val uploaded = viewModel.submitComment(post.id, targetComment)
+                            if (uploaded != null) {
+                                post.commentCount += 1
+                                targetComment = null
+                                isWritingCommentFocusState = false
+
+                                val index =
+                                    viewModel.comments.indexOfFirst { it.id == uploaded.id }
+                                if (index != -1) {
+                                    proxy.animateScrollToItem(index)
+                                }
+                            }
+                        }
+                    },
+                    focusRequester = focusRequester,
+                    isUploadingComment = isUploadingComment
+                )
+            }
+
             Scaffold(
                 topBar = {
                     FeedPostNavigationBar(
@@ -131,30 +168,9 @@ fun FeedPostView(
                     )
                 },
                 bottomBar = {
-                    InputBar(
-                        viewModel = viewModel,
-                        targetComment = targetComment,
-                        isWritingCommentFocusState = isWritingCommentFocusState,
-                        onCommentUploaded = {
-                            if (viewModel.text.isEmpty()) return@InputBar
-                            scope.launch {
-                                val uploaded = viewModel.submitComment(post.id, targetComment)
-                                if (uploaded != null) {
-                                    post.commentCount += 1
-                                    targetComment = null
-                                    isWritingCommentFocusState = false
-
-                                    val index =
-                                        viewModel.comments.indexOfFirst { it.id == uploaded.id }
-                                    if (index != -1) {
-                                        proxy.animateScrollToItem(index)
-                                    }
-                                }
-                            }
-                        },
-                        focusRequester = focusRequester,
-                        isUploadingComment = isUploadingComment
-                    )
+                    if (!isLandscape) {
+                        inputBar()
+                    }
                 },
                 modifier = Modifier
                     .analyticsScreen(
@@ -163,41 +179,46 @@ fun FeedPostView(
                         "has_comments" to (post.commentCount > 0)
                     )
             ) { innerPadding ->
-                PullToRefreshBox(
-                    isRefreshing = isRefreshing,
-                    onRefresh = {
-                        isRefreshing = true
-                        scope.launch {
-                            viewModel.fetchComments(postID = post.id, initial = false)
-                            delay(500)
-                            isRefreshing = false
-                        }
-                    },
-                    state = pullState,
-                    modifier = Modifier.padding(innerPadding)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    LazyColumn(
-                        state = proxy
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = {
+                            isRefreshing = true
+                            scope.launch {
+                                viewModel.fetchComments(postID = post.id, initial = false)
+                                delay(500)
+                                isRefreshing = false
+                            }
+                        },
+                        state = pullState,
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        item {
-                            FeedPostRow(
+                        if (isLandscape) {
+                            FeedPostLandscapeLayout(
                                 post = post,
-                                viewModel = feedViewModel,
-                                singleLine = false,
-                                onPostDeleted = null,
-                                onComment = {
-                                    targetComment = null
-                                    isWritingCommentFocusState = true
-                                }
-                            )
-                        }
-
-                        item {
-                            Comments(
                                 viewModel = viewModel,
+                                feedViewModel = feedViewModel,
+                                navController = navController,
+                                scope = scope,
+                                onReply = {
+                                    targetComment = it
+                                    isWritingCommentFocusState = true
+                                },
+                                inputBar = inputBar
+                            )
+                        } else {
+                            FeedPostPortraitLayout(
                                 post = post,
-                                onReply = { c ->
-                                    targetComment = c
+                                viewModel = viewModel,
+                                feedViewModel = feedViewModel,
+                                proxy = proxy,
+                                onReply = {
+                                    targetComment = it
                                     isWritingCommentFocusState = true
                                 }
                             )
@@ -254,6 +275,105 @@ fun FeedPostView(
     )
 }
 
+@Composable
+private fun FeedPostLandscapeLayout(
+    post: FeedPost,
+    viewModel: FeedPostViewModelProtocol,
+    feedViewModel: FeedViewModelProtocol,
+    navController: NavController,
+    scope: CoroutineScope,
+    onReply: (FeedComment) -> Unit,
+    inputBar: @Composable () -> Unit
+) {
+    val postScrollState = rememberLazyListState()
+    val commentScrollState = rememberLazyListState()
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1.2f)
+                .fillMaxHeight()
+        ) {
+            LazyColumn(state = postScrollState) {
+                item {
+                    FeedPostRow(
+                        post = post,
+                        viewModel = feedViewModel,
+                        singleLine = false,
+                        onPostDeleted = null,
+                        onComment = {}
+                    )
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+        ) {
+            LazyColumn(
+                state = commentScrollState,
+                modifier = Modifier.weight(1f)
+            ) {
+                item {
+                    Comments(
+                        viewModel = viewModel,
+                        post = post,
+                        onReply = onReply
+                    )
+                }
+            }
+            Box(modifier = Modifier.padding(top = 8.dp)) {
+                inputBar()
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeedPostPortraitLayout(
+    post: FeedPost,
+    viewModel: FeedPostViewModelProtocol,
+    feedViewModel: FeedViewModelProtocol,
+    proxy: LazyListState,
+    onReply: (FeedComment) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .widthIn(max = 600.dp)
+    ) {
+        LazyColumn(
+            state = proxy
+        ) {
+            item {
+                FeedPostRow(
+                    post = post,
+                    viewModel = feedViewModel,
+                    singleLine = false,
+                    onPostDeleted = null,
+                    onComment = {
+                        onReply(FeedComment.mock())
+                    }
+                )
+            }
+
+            item {
+                Comments(
+                    viewModel = viewModel,
+                    post = post,
+                    onReply = onReply
+                )
+            }
+        }
+    }
+}
 
 @Composable
 private fun InputBar(
@@ -481,6 +601,21 @@ private fun LoadingView(
 @Preview(showBackground = true, name = "Post Detail")
 @Composable
 private fun PostDetailPreview() {
+    val mockVM = MockFeedPostViewModel(
+        initialState = FeedPostViewModel.ViewState.Loaded(FeedPost.mock())
+    ).apply {
+        comments = FeedComment.mockList()
+    }
+    val mockFeedVM = PreviewFeedViewModel()
+
+    Theme {
+        FeedPostView(viewModel = mockVM, mockFeedVM, navController = rememberNavController())
+    }
+}
+
+@Preview(showBackground = true, name = "Post Detail Landscape", widthDp = 840, heightDp = 480)
+@Composable
+private fun PostDetailLandscapePreview() {
     val mockVM = MockFeedPostViewModel(
         initialState = FeedPostViewModel.ViewState.Loaded(FeedPost.mock())
     ).apply {

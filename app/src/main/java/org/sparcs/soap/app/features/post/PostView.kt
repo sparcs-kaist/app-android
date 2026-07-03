@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.features.post
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
@@ -10,6 +11,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -17,7 +20,9 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -52,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
@@ -112,9 +118,9 @@ fun PostView(
     viewModel: PostViewModelProtocol = hiltViewModel<PostViewModel>(),
     navController: NavController,
 ) {
-    val post = viewModel.post.collectAsState().value
+    val post by viewModel.post.collectAsState()
     val context = LocalContext.current
-    val state = viewModel.state.collectAsState().value
+    val state by viewModel.state.collectAsState()
     val pullState = rememberPullToRefreshState()
 
     val scope = rememberCoroutineScope()
@@ -134,6 +140,9 @@ fun PostView(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     val summarisedContent by remember { mutableStateOf<String?>(null) }
+
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
@@ -168,6 +177,61 @@ fun PostView(
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
+    val inputBar = @Composable {
+        InputBar(
+            comment = comment,
+            onCommentChange = { comment = it },
+            isWritingComment = isWritingComment,
+            onWritingCommentChange = {
+                isWritingComment = it
+                commentOnEdit = null
+                comment = ""
+            },
+            commentOnEdit = commentOnEdit,
+            isUploadingComment = isUploadingComment,
+            onUploadComment = {
+                scope.launch {
+                    isUploadingComment = true
+
+                    try {
+                        val isSuccess = when {
+                            commentOnEdit != null -> {
+                                viewModel.editComment(commentOnEdit!!.id, comment) != null
+                            }
+
+                            targetComment != null -> {
+                                viewModel.writeThreadedComment(
+                                    targetComment!!.id,
+                                    comment
+                                ) != null
+                            }
+
+                            else -> {
+                                viewModel.writeComment(comment)
+                                true
+                            }
+                        }
+
+                        if (isSuccess) {
+                            comment = ""
+                            targetComment = null
+                            commentOnEdit = null
+                            keyboardController?.hide()
+
+                            proxy.animateScrollToItem(proxy.layoutInfo.totalItemsCount)
+                        }
+                    } catch (_: Exception) {
+                    } finally {
+                        isUploadingComment = false
+                    }
+                }
+            },
+            profilePicture = { ProfilePicture(post, true) },
+            placeholder = placeholder(viewModel, targetComment, commentOnEdit),
+            focusRequester = focusRequester
+        )
+    }
+
     Scaffold(
         topBar = {
             PostNavigationBar(
@@ -184,58 +248,9 @@ fun PostView(
             )
         },
         bottomBar = {
-            InputBar(
-                comment = comment,
-                onCommentChange = { comment = it },
-                isWritingComment = isWritingComment,
-                onWritingCommentChange = {
-                    isWritingComment = it
-                    commentOnEdit = null
-                    comment = ""
-                },
-                commentOnEdit = commentOnEdit,
-                isUploadingComment = isUploadingComment,
-                onUploadComment = {
-                    scope.launch {
-                        isUploadingComment = true
-
-                        try {
-                            val isSuccess = when {
-                                commentOnEdit != null -> {
-                                    viewModel.editComment(commentOnEdit!!.id, comment) != null
-                                }
-
-                                targetComment != null -> {
-                                    viewModel.writeThreadedComment(
-                                        targetComment!!.id,
-                                        comment
-                                    ) != null
-                                }
-
-                                else -> {
-                                    viewModel.writeComment(comment)
-                                    true
-                                }
-                            }
-
-                            if (isSuccess) {
-                                comment = ""
-                                targetComment = null
-                                commentOnEdit = null
-                                keyboardController?.hide()
-
-                                proxy.animateScrollToItem(proxy.layoutInfo.totalItemsCount)
-                            }
-                        } catch (_: Exception) {
-                        } finally {
-                            isUploadingComment = false
-                        }
-                    }
-                },
-                profilePicture = { ProfilePicture(post, true) },
-                placeholder = placeholder(viewModel, targetComment, commentOnEdit),
-                focusRequester = focusRequester
-            )
+            if (!isLandscape) {
+                inputBar()
+            }
         },
         modifier = Modifier.analyticsScreen(
             "Ara Post",
@@ -244,85 +259,69 @@ fun PostView(
         ),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        if (state is PostViewModel.ViewState.Error) {
-            ErrorView(
-                error = state.error,
-                onRetry = { scope.launch { viewModel.fetchPost() } }
-            )
-        } else {
-            PullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = {
-                    isRefreshing = true
-                    scope.launch {
-                        viewModel.fetchPost()
-                        delay(500)
-                        isRefreshing = false
-                    }
-                },
-                state = pullState,
-                modifier = Modifier
-                    .padding(innerPadding)
-                    .padding(vertical = 8.dp, horizontal = 20.dp)
-            ) {
-                LazyColumn(state = proxy) {
-                    item {
-                        if (post == null) {
-                            HeaderSkeleton()
-                        } else {
-                            Header(
-                                post = post,
-                                onAuthorClick = {
-                                    val json = Uri.encode(Gson().toJson(post.author))
-                                    navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
-                                }
-                            )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            if (state is PostViewModel.ViewState.Error) {
+                ErrorView(
+                    error = (state as PostViewModel.ViewState.Error).error,
+                    onRetry = { scope.launch { viewModel.fetchPost() } }
+                )
+            } else {
+                PullToRefreshBox(
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        isRefreshing = true
+                        scope.launch {
+                            viewModel.fetchPost()
+                            delay(500)
+                            isRefreshing = false
                         }
-                    }
-                    item {
-                        Content(
-                            postId = viewModel.postId,
+                    },
+                    state = pullState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    if (isLandscape) {
+                        PostLandscapeLayout(
+                            post = post,
+                            viewModel = viewModel,
+                            navController = navController,
+                            scope = scope,
                             summarisedContent = summarisedContent,
                             htmlHeight = htmlHeight,
                             onHtmlHeightChange = { htmlHeight = it },
-                            onLinkTapped = { tappedURL = it.toUri() }
+                            onLinkTapped = { tappedURL = it.toUri() },
+                            onCommentChange = { update ->
+                                targetComment = update.targetComment
+                                commentOnEdit = update.commentOnEdit
+                                comment = update.comment
+                            },
+                            focusRequester = focusRequester,
+                            keyboardController = keyboardController,
+                            inputBar = inputBar
+                        )
+                    } else {
+                        PostPortraitLayout(
+                            post = post,
+                            viewModel = viewModel,
+                            navController = navController,
+                            scope = scope,
+                            summarisedContent = summarisedContent,
+                            htmlHeight = htmlHeight,
+                            onHtmlHeightChange = { htmlHeight = it },
+                            onLinkTapped = { tappedURL = it.toUri() },
+                            onCommentChange = { update ->
+                                targetComment = update.targetComment
+                                commentOnEdit = update.commentOnEdit
+                                comment = update.comment
+                            },
+                            focusRequester = focusRequester,
+                            keyboardController = keyboardController,
+                            proxy = proxy
                         )
                     }
-                    if (post != null && !post.attachments.isNullOrEmpty()) {
-                        item {
-                            PostAttachmentsSection(attachments = post.attachments)
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                    item {
-                        if (post == null) {
-                            FooterSkeleton()
-                        } else {
-                            Footer(viewModel, scope = scope, post = post) {
-                                targetComment = null
-                                focusRequester.requestFocus()
-                                keyboardController?.show()
-                            }
-                        }
-                    }
-                    if (post == null) {
-                        items(2) { CommentSkeleton() }
-                    } else {
-                        item {
-                            Comments(
-                                post = post,
-                                onCommentChange = { update ->
-                                    targetComment = update.targetComment
-                                    commentOnEdit = update.commentOnEdit
-                                    comment = update.comment
-                                },
-                                viewModel = viewModel,
-                                focusRequester = focusRequester,
-                                keyboardController = keyboardController
-                            )
-                        }
-                    }
-                    item { Spacer(modifier = Modifier.height(64.dp)) }
                 }
             }
         }
@@ -367,6 +366,189 @@ fun PostView(
             state = viewModel.alertState,
             onDismiss = { viewModel.isAlertPresented = false }
         )
+    }
+}
+
+@Composable
+private fun PostLandscapeLayout(
+    post: AraPost?,
+    viewModel: PostViewModelProtocol,
+    navController: NavController,
+    scope: CoroutineScope,
+    summarisedContent: String?,
+    htmlHeight: Dp,
+    onHtmlHeightChange: (Dp) -> Unit,
+    onLinkTapped: (String) -> Unit,
+    onCommentChange: (CommentUpdate) -> Unit,
+    focusRequester: FocusRequester,
+    keyboardController: SoftwareKeyboardController?,
+    inputBar: @Composable () -> Unit
+) {
+    val postScrollState = rememberLazyListState()
+    val commentScrollState = rememberLazyListState()
+
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1.2f)
+                .fillMaxHeight()
+        ) {
+            LazyColumn(
+                state = postScrollState,
+                modifier = Modifier.weight(1f)
+            ) {
+                item {
+                    if (post == null) {
+                        HeaderSkeleton()
+                    } else {
+                        Header(
+                            post = post,
+                            onAuthorClick = {
+                                val json = Uri.encode(Gson().toJson(post.author))
+                                navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
+                            }
+                        )
+                    }
+                }
+                item {
+                    Content(
+                        postId = viewModel.postId,
+                        summarisedContent = summarisedContent,
+                        htmlHeight = htmlHeight,
+                        onHtmlHeightChange = onHtmlHeightChange,
+                        onLinkTapped = onLinkTapped
+                    )
+                }
+                if (post != null && !post.attachments.isNullOrEmpty()) {
+                    item {
+                        PostAttachmentsSection(attachments = post.attachments)
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                }
+                item {
+                    if (post == null) {
+                        FooterSkeleton()
+                    } else {
+                        Footer(viewModel, scope = scope, post = post) {
+                            focusRequester.requestFocus()
+                            keyboardController?.show()
+                        }
+                    }
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+        ) {
+            LazyColumn(
+                state = commentScrollState,
+                modifier = Modifier.weight(1f)
+            ) {
+                if (post == null) {
+                    items(2) { CommentSkeleton() }
+                } else {
+                    item {
+                        Comments(
+                            post = post,
+                            onCommentChange = onCommentChange,
+                            viewModel = viewModel,
+                            focusRequester = focusRequester,
+                            keyboardController = keyboardController
+                        )
+                    }
+                }
+            }
+            Box(modifier = Modifier.padding(top = 8.dp)) {
+                inputBar()
+            }
+        }
+    }
+}
+
+@Composable
+private fun PostPortraitLayout(
+    post: AraPost?,
+    viewModel: PostViewModelProtocol,
+    navController: NavController,
+    scope: CoroutineScope,
+    summarisedContent: String?,
+    htmlHeight: Dp,
+    onHtmlHeightChange: (Dp) -> Unit,
+    onLinkTapped: (String) -> Unit,
+    onCommentChange: (CommentUpdate) -> Unit,
+    focusRequester: FocusRequester,
+    keyboardController: SoftwareKeyboardController?,
+    proxy: LazyListState
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .widthIn(max = 600.dp) // iOS contentWidth() 스타일 적용
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(bottom = 64.dp), // InputBar 공간 확보
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        LazyColumn(state = proxy, modifier = Modifier.fillMaxWidth()) {
+            item {
+                if (post == null) {
+                    HeaderSkeleton()
+                } else {
+                    Header(
+                        post = post,
+                        onAuthorClick = {
+                            val json = Uri.encode(Gson().toJson(post.author))
+                            navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
+                        }
+                    )
+                }
+            }
+            item {
+                Content(
+                    postId = viewModel.postId,
+                    summarisedContent = summarisedContent,
+                    htmlHeight = htmlHeight,
+                    onHtmlHeightChange = onHtmlHeightChange,
+                    onLinkTapped = onLinkTapped
+                )
+            }
+            if (post != null && !post.attachments.isNullOrEmpty()) {
+                item {
+                    PostAttachmentsSection(attachments = post.attachments)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+            item {
+                if (post == null) {
+                    FooterSkeleton()
+                } else {
+                    Footer(viewModel, scope = scope, post = post) {
+                        focusRequester.requestFocus()
+                        keyboardController?.show()
+                    }
+                }
+            }
+            if (post == null) {
+                items(2) { CommentSkeleton() }
+            } else {
+                item {
+                    Comments(
+                        post = post,
+                        onCommentChange = onCommentChange,
+                        viewModel = viewModel,
+                        focusRequester = focusRequester,
+                        keyboardController = keyboardController
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -756,6 +938,21 @@ data class CommentUpdate(
 @Preview(name = "Loaded", showBackground = true)
 @Composable
 private fun LoadedPreview() {
+    val mockViewModel =
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loaded,
+                post = AraPost.mock()
+            )
+        }
+    Theme {
+        PostView(viewModel = mockViewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(name = "Loaded Landscape", showBackground = true, widthDp = 840, heightDp = 480)
+@Composable
+private fun LoadedLandscapePreview() {
     val mockViewModel =
         remember {
             MockPostViewModel(
