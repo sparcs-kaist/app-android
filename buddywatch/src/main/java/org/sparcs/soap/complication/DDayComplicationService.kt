@@ -19,7 +19,6 @@ import org.sparcs.soap.data.models.Semester
 import java.util.Calendar
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import kotlin.math.abs
 
 class DDayComplicationService : SuspendingComplicationDataSourceService() {
     private val watchDataStore by lazy { WatchDataStore(applicationContext) }
@@ -63,10 +62,12 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
         val end = semester.endDateMillis
 
         val dDayLabel = calculateDDayLabel(now, begin, end)
+        val isEnded = dDayLabel == getString(R.string.d_day_widget_ended)
+
         val nameParts = semester.name.split(" ")
         val yearShort = if (nameParts.isNotEmpty()) nameParts.first().takeLast(2) else ""
         val season = if (nameParts.size > 1) nameParts.last() else ""
-        val description = "$yearShort $season"
+        val description = if (isEnded) getString(R.string.d_day_widget_semester_ended) else "$yearShort $season"
 
         val totalRange = end - begin
         val progress = if (totalRange > 0) {
@@ -128,15 +129,30 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
     }
 
     private fun calculateDDayLabel(now: Long, begin: Long, end: Long): String {
-        return if (now < begin) {
-            val daysUntil = daysBetween(Date(now), Date(begin))
-            "D-$daysUntil"
-        } else {
-            val daysLeft = daysBetween(Date(now), Date(end))
-            when {
-                daysLeft == 0 -> "D-Day"
-                daysLeft > 0 -> "D-$daysLeft"
-                else -> "D+${abs(daysLeft)}"
+        val today = Calendar.getInstance().apply {
+            timeInMillis = now
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val beginDay = Calendar.getInstance().apply {
+            timeInMillis = begin
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val endDay = Calendar.getInstance().apply {
+            timeInMillis = end
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+
+        return when {
+            today.before(beginDay) -> {
+                val daysUntil = daysBetween(Date(now), Date(begin))
+                "D-$daysUntil"
+            }
+            today.after(endDay) -> {
+                getString(R.string.d_day_widget_ended)
+            }
+            else -> {
+                val daysLeft = daysBetween(Date(now), Date(end))
+                if (daysLeft == 0) "D-Day" else "D-$daysLeft"
             }
         }
     }

@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 enum class DDayType {
     START_OF_SEMESTER,
     END_OF_SEMESTER,
+    SEMESTER_ENDED,
     ERROR
 }
 

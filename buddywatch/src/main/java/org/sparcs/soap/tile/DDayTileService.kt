@@ -203,15 +203,32 @@ private fun dDayTileLayout(
         val begin = semester.beginDateMillis
         val end = semester.endDateMillis
 
-        if (now.time < begin) {
-            val daysLeft = daysBetween(now, Date(begin))
+        val todayCal = Calendar.getInstance().apply {
+            time = now
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val beginCal = Calendar.getInstance().apply {
+            timeInMillis = begin
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+        val endCal = Calendar.getInstance().apply {
+            timeInMillis = end
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }
+
+        if (todayCal.before(beginCal)) {
+            val daysUntil = daysBetween(now, Date(begin))
             progress = 0f
             countdownText = context.resources.getQuantityString(
                 R.plurals.d_day_widget_starts_in_days,
-                abs(daysLeft),
-                abs(daysLeft)
+                abs(daysUntil),
+                abs(daysUntil)
             )
-            dDayLabel = context.getString(R.string.d_day_widget_d_minus, abs(daysLeft))
+            dDayLabel = context.getString(R.string.d_day_widget_d_minus, abs(daysUntil))
+        } else if (todayCal.after(endCal)) {
+            progress = 1f
+            countdownText = context.getString(R.string.d_day_widget_semester_ended)
+            dDayLabel = context.getString(R.string.d_day_widget_ended)
         } else {
             val totalDuration = (end - begin).coerceAtLeast(TimeUnit.DAYS.toMillis(1))
             val elapsed = (now.time - begin).coerceAtLeast(0L)
@@ -223,15 +240,13 @@ private fun dDayTileLayout(
                     abs(daysLeft),
                     abs(daysLeft)
                 )
-            } else if (daysLeft < 0) {
-                context.resources.getQuantityString(R.plurals.d_day_widget_ends_in_days, 0, 0)
             } else {
                 context.getString(R.string.d_day_widget_d_day)
             }
-            dDayLabel = when {
-                daysLeft == 0 -> context.getString(R.string.d_day_widget_d_day)
-                daysLeft > 0 -> context.getString(R.string.d_day_widget_d_minus, daysLeft)
-                else -> context.getString(R.string.d_day_widget_d_plus, -daysLeft)
+            dDayLabel = if (daysLeft == 0) {
+                context.getString(R.string.d_day_widget_d_day)
+            } else {
+                context.getString(R.string.d_day_widget_d_minus, daysLeft)
             }
         }
     } else {

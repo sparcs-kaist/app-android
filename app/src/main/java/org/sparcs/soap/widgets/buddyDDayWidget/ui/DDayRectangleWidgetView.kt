@@ -18,15 +18,11 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
+import org.sparcs.soap.widgets.buddyDDayWidget.DDayType
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayWidgetEntry
 
 @Composable
 fun DDayRectangleWidgetView(entry: DDayWidgetEntry) {
-    if (isFinished(entry)) {
-        DDayFinishedView()
-        return
-    }
-
     Column(
         modifier = GlanceModifier
             .fillMaxWidth()
@@ -55,15 +51,17 @@ fun DDayRectangleWidgetView(entry: DDayWidgetEntry) {
                 ),
                 maxLines = 1
             )
-            Spacer(modifier = GlanceModifier.defaultWeight())
-            Text(
-                text = formatDDay(entry.days),
-                style = TextStyle(
-                    color = GlanceTheme.colors.primary,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
+            if (entry.type != DDayType.SEMESTER_ENDED) {
+                Spacer(modifier = GlanceModifier.defaultWeight())
+                Text(
+                    text = formatDDay(entry.days),
+                    style = TextStyle(
+                        color = GlanceTheme.colors.primary,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
                 )
-            )
+            }
         }
 
         Spacer(modifier = GlanceModifier.height(4.dp))
