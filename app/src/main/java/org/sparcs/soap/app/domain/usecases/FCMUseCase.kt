@@ -4,21 +4,19 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.provider.Settings
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
-import android.util.Base64
-import androidx.core.content.edit
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
 import org.sparcs.soap.app.domain.helpers.FeatureType
 import org.sparcs.soap.app.domain.repositories.FCMRepositoryProtocol
 import timber.log.Timber
-import java.security.KeyStore
 import java.util.Locale
 import java.util.UUID
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 
 interface FCMUseCaseProtocol {
@@ -30,42 +28,24 @@ interface FCMUseCaseProtocol {
 class FCMUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val fcmRepository: FCMRepositoryProtocol,
+    private val dataStore: DataStore<Preferences>,
 ) : FCMUseCaseProtocol {
 
-    private val prefs = context.getSharedPreferences("fcm_prefs", Context.MODE_PRIVATE)
-    private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-
     companion object {
-        private const val FCM_DEVICE_ID_KEY = "fcmDeviceID"
-        private const val FCM_DEVICE_ID_BACKUP_KEY = "fcmDeviceID_plain"
-        private const val FCM_ANDROID_ID_KEY = "fcmAndroidID"
-        private const val AES_KEY_ALIAS = "FCMDeviceKey"
-        private const val AES_MODE = "AES/GCM/NoPadding"
+        private val FCM_DEVICE_ID_KEY = stringPreferencesKey("fcmDeviceID")
+        private val FCM_ANDROID_ID_KEY = stringPreferencesKey("fcmAndroidID")
+        private val LAST_REGISTERED_TOKEN = stringPreferencesKey("last_registered_token")
+        private val LAST_REGISTERED_LANG = stringPreferencesKey("last_registered_lang")
     }
 
     private var isRegistering: Boolean = false
 
-    init {
-        if (!keyStore.containsAlias(AES_KEY_ALIAS)) {
-            val keyGenerator =
-                KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
-            keyGenerator.init(
-                KeyGenParameterSpec.Builder(
-                    AES_KEY_ALIAS,
-                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
-                )
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .build()
-            )
-            keyGenerator.generateKey()
-        }
-    }
-
     override suspend fun register(fcmToken: String) {
         val currentLang = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ko"
-        val savedToken = prefs.getString("last_registered_token", null)
-        val savedLang = prefs.getString("last_registered_lang", null)
+
+        val prefs = dataStore.data.first()
+        val savedToken = prefs[LAST_REGISTERED_TOKEN]
+        val savedLang = prefs[LAST_REGISTERED_LANG]
 
         if (savedToken == fcmToken && savedLang == currentLang) {
             Timber.d("FCM: Token and language already match. Skipping.")
@@ -80,7 +60,13 @@ class FCMUseCase @Inject constructor(
 
             if (existingUUID == null) {
                 val newUUID = UUID.randomUUID().toString()
-                saveDeviceID(newUUID)
+                val currentAndroidId =
+                    Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+
+                dataStore.edit { p ->
+                    p[FCM_DEVICE_ID_KEY] = newUUID
+                    p[FCM_ANDROID_ID_KEY] = currentAndroidId
+                }
 
                 fcmRepository.register(
                     deviceUUID = newUUID,
@@ -95,21 +81,11 @@ class FCMUseCase @Inject constructor(
                     deviceToken = existingUUID
                 )
                 Timber.d("FCM: Existing device token updated. UUID: $existingUUID")
-
-                val currentAndroidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-                prefs.edit {
-                    if (prefs.getString(FCM_DEVICE_ID_BACKUP_KEY, null) == null) {
-                        putString(FCM_DEVICE_ID_BACKUP_KEY, existingUUID)
-                    }
-                    if (prefs.getString(FCM_ANDROID_ID_KEY, null) == null) {
-                        putString(FCM_ANDROID_ID_KEY, currentAndroidId)
-                    }
-                }
             }
 
-            prefs.edit {
-                putString("last_registered_token", fcmToken)
-                putString("last_registered_lang", currentLang)
+            dataStore.edit { p ->
+                p[LAST_REGISTERED_TOKEN] = fcmToken
+                p[LAST_REGISTERED_LANG] = currentLang
             }
 
         } catch (e: Exception) {
@@ -119,50 +95,71 @@ class FCMUseCase @Inject constructor(
         }
     }
 
-    private fun saveDeviceID(uuid: String) {
-        try {
-            val androidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-            val cipher = Cipher.getInstance(AES_MODE)
-            cipher.init(Cipher.ENCRYPT_MODE, getSecretKey())
-            val iv = cipher.iv
-            val encrypted = cipher.doFinal(uuid.toByteArray())
-            val combined = Base64.encodeToString(iv + encrypted, Base64.NO_WRAP)
+    private suspend fun getPersistentDeviceID(): String? {
+        val currentAndroidId =
+            Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        val prefs = dataStore.data.first()
 
-            prefs.edit {
-                putString(FCM_DEVICE_ID_KEY, combined)
-                putString(FCM_DEVICE_ID_BACKUP_KEY, uuid)
-                putString(FCM_ANDROID_ID_KEY, androidId)
+        var storedUUID = prefs[FCM_DEVICE_ID_KEY]
+        var storedAndroidId = prefs[FCM_ANDROID_ID_KEY]
+
+        if (storedUUID == null) {
+            val legacyData = readLegacyData()
+            if (legacyData != null) {
+                storedUUID = legacyData.uuid
+                storedAndroidId = legacyData.androidId
+
+                dataStore.edit { p ->
+                    p[FCM_DEVICE_ID_KEY] = legacyData.uuid
+                    legacyData.androidId?.let { p[FCM_ANDROID_ID_KEY] = it }
+                    legacyData.token?.let { p[LAST_REGISTERED_TOKEN] = it }
+                    legacyData.lang?.let { p[LAST_REGISTERED_LANG] = it }
+                }
+                Timber.d("FCM: Migrated legacy UUID: $storedUUID")
             }
-        } catch (e: Exception) {
-            prefs.edit { putString(FCM_DEVICE_ID_BACKUP_KEY, uuid) }
         }
-    }
-
-    private fun getPersistentDeviceID(): String? {
-        val currentAndroidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
-        val storedAndroidId = prefs.getString(FCM_ANDROID_ID_KEY, null)
 
         if (storedAndroidId != null && storedAndroidId != currentAndroidId) {
             Timber.d("FCM: Detected device change via backup. Ignoring restored UUID.")
             return null
         }
 
-        val encryptedStr = prefs.getString(FCM_DEVICE_ID_KEY, null)
-        if (encryptedStr != null) {
-            try {
-                val combined = Base64.decode(encryptedStr, Base64.NO_WRAP)
-                val iv = combined.sliceArray(0 until 12)
-                val encrypted = combined.sliceArray(12 until combined.size)
-                val cipher = Cipher.getInstance(AES_MODE)
-                cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), GCMParameterSpec(128, iv))
-                return String(cipher.doFinal(encrypted))
-            } catch (e: Exception) {
-                Timber.w("FCM: Decryption failed, maybe reinstalled. Trying backup...")
-            }
-        }
-
-        return prefs.getString(FCM_DEVICE_ID_BACKUP_KEY, null)
+        return storedUUID
     }
+
+    @Suppress("DEPRECATION")
+    private fun readLegacyData(): LegacyFCMData? {
+        return try {
+            val masterKey = MasterKey.Builder(context)
+                .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+                .build()
+
+            val sharedPrefs = EncryptedSharedPreferences.create(
+                context,
+                "fcm_secure_prefs",
+                masterKey,
+                EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+                EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+            )
+
+            val uuid = sharedPrefs.getString("fcmDeviceID", null) ?: return null
+            LegacyFCMData(
+                uuid = uuid,
+                androidId = sharedPrefs.getString("fcmAndroidID", null),
+                token = sharedPrefs.getString("last_registered_token", null),
+                lang = sharedPrefs.getString("last_registered_lang", null)
+            )
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private data class LegacyFCMData(
+        val uuid: String,
+        val androidId: String?,
+        val token: String?,
+        val lang: String?,
+    )
 
     override suspend fun manage(service: FeatureType, isActive: Boolean) {
         val deviceUUID = getPersistentDeviceID() ?: run {
@@ -176,12 +173,6 @@ class FCMUseCase @Inject constructor(
             isActive = isActive
         )
     }
-
-    private fun getSecretKey(): SecretKey {
-        return (keyStore.getEntry(AES_KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
-    }
-
-
 }
 
 class MockFCMUseCase : FCMUseCaseProtocol {
