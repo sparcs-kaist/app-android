@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -52,6 +55,7 @@ import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModel
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
 import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.navigationBar.components.AddButton
 import org.sparcs.soap.app.features.timetable.components.CompactTimetableSelector
 import org.sparcs.soap.app.features.timetable.components.LectureList
 import org.sparcs.soap.app.features.timetable.components.TimetableBottomSheet
@@ -100,11 +104,13 @@ fun TimetableView(
 
         Scaffold(
             topBar = {
-                TimetableViewNavigationBar(
-                    scrollState = scrollState,
-                    isButtonEnabled = isEditable,
-                    onClick = { expanded = true }
-                )
+                if (!isLandscape) {
+                    TimetableViewNavigationBar(
+                        scrollState = scrollState,
+                        isButtonEnabled = isEditable,
+                        onClick = { expanded = true }
+                    )
+                }
             },
             bottomBar = {
                 AppDownBar(
@@ -126,12 +132,13 @@ fun TimetableView(
                         viewModel = viewModel,
                         timetableName = timetableName,
                         selectedTimetable = selectedTimetable,
-                        screenHeight = screenHeight,
                         navController = navController,
                         onDeleteClick = { lecture ->
                             lectureToDelete = lecture
                             showDeleteDialog = true
-                        }
+                        },
+                        onAddClick = { expanded = true },
+                        isEditable = isEditable
                     )
                 } else {
                     TimetablePortraitLayout(
@@ -215,28 +222,48 @@ private fun TimetableLandscapeLayout(
     viewModel: TimetableViewModelProtocol,
     timetableName: String,
     selectedTimetable: Timetable?,
-    screenHeight: Dp,
     navController: NavController,
-    onDeleteClick: (Lecture) -> Unit
+    onDeleteClick: (Lecture) -> Unit,
+    onAddClick: () -> Unit,
+    isEditable: Boolean
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(32.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .weight(1.2f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            CompactTimetableSelector(viewModel, timetableName)
+            Text(
+                text = stringResource(R.string.timetable),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CompactTimetableSelector(viewModel, timetableName)
+                Spacer(modifier = Modifier.width(12.dp))
+                AddButton(
+                    contentDescription = "Add Timetable",
+                    onClick = onAddClick,
+                    isEnabled = isEditable
+                )
+            }
+        }
 
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(32.dp)
+        ) {
             Card(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                    .weight(1.2f)
+                    .fillMaxHeight()
                     .glassBorder(shape = RoundedCornerShape(28.dp)),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.elevatedCardColors(
@@ -254,38 +281,38 @@ private fun TimetableLandscapeLayout(
                     )
                 }
             }
-        }
 
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            ElevatedCard(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .glassBorder(shape = RoundedCornerShape(28.dp)),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
-                    LectureList(
-                        lectures = selectedTimetable?.lectures ?: emptyList(),
-                        onLectureSelected = { lecture ->
-                            val json = Gson().toJson(lecture).escapeHash()
-                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                        }
+                ElevatedCard(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .glassBorder(shape = RoundedCornerShape(28.dp)),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.background
                     )
+                ) {
+                    Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+                        LectureList(
+                            lectures = selectedTimetable?.lectures ?: emptyList(),
+                            onLectureSelected = { lecture ->
+                                val json = Gson().toJson(lecture).escapeHash()
+                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                            }
+                        )
+                    }
                 }
+
+                selectedTimetable?.let { TimetableCreditGraph(it) }
+
+                TimetableSummary(viewModel)
             }
-
-            selectedTimetable?.let { TimetableCreditGraph(it) }
-
-            TimetableSummary(viewModel)
         }
     }
 }
@@ -309,7 +336,7 @@ private fun TimetablePortraitLayout(
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CompactTimetableSelector(viewModel, timetableName)
+        CompactTimetableSelector(viewModel, timetableName, modifier = Modifier.fillMaxWidth(), isWide = true)
 
         Card(
             modifier = Modifier

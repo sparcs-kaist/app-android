@@ -1,19 +1,18 @@
 package org.sparcs.soap.app.features.feed
 
-import android.content.res.Configuration
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -30,13 +29,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.models.feed.FeedPost
@@ -67,13 +64,8 @@ fun FeedView(
     val scrollState = rememberScrollState()
     val listState = rememberLazyListState()
     val stateHandle = navController.currentBackStackEntry?.savedStateHandle
-    val listNeedsRefresh = stateHandle
-        ?.getStateFlow("listNeedsRefresh", false)
-        ?.collectAsState()
+    val listNeedsRefresh = stateHandle?.getStateFlow("listNeedsRefresh", false)?.collectAsState()
     val pullState = rememberPullToRefreshState()
-
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
@@ -103,10 +95,7 @@ fun FeedView(
     LaunchedEffect(Unit) {
         snapshotFlow { shouldLoadMore }
             .collect { loadingTriggered ->
-                if (loadingTriggered &&
-                    state is FeedViewModel.ViewState.Loaded &&
-                    !viewModel.isLoadingMore
-                ) {
+                if (loadingTriggered && state is FeedViewModel.ViewState.Loaded && !viewModel.isLoadingMore) {
                     viewModel.loadNextPage()
                 }
             }
@@ -126,42 +115,75 @@ fun FeedView(
                 navController = navController
             )
         },
-        modifier = Modifier
-            .analyticsScreen(name = "Feed")
+        modifier = Modifier.analyticsScreen(name = "Feed")
     ) { innerPadding ->
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                scope.launch {
-                    viewModel.refreshFeed()
-                    delay(500)
-                    isRefreshing = false
-                }
-            },
-            state = pullState,
-            modifier = Modifier.padding(innerPadding)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopCenter
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = {
+                    isRefreshing = true
+                    scope.launch {
+                        viewModel.refreshFeed()
+                        delay(500)
+                        isRefreshing = false
+                    }
+                },
+                state = pullState,
+                modifier = Modifier.widthIn(max = 600.dp)
             ) {
-                if (isLandscape) {
-                    FeedLandscapeLayout(
-                        state = state,
-                        viewModel = viewModel,
-                        navController = navController,
-                        listState = listState,
-                        scope = scope
-                    )
-                } else {
-                    FeedPortraitLayout(
-                        state = state,
-                        viewModel = viewModel,
-                        navController = navController,
-                        listState = listState,
-                        scope = scope
-                    )
+                LazyColumn(
+                    state = listState,
+                    contentPadding = PaddingValues(vertical = 8.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    when (state) {
+                        is FeedViewModel.ViewState.Loading -> {
+                            items(3) {
+                                FeedPostRowSkeleton()
+                                HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                            }
+                        }
+
+                        is FeedViewModel.ViewState.Loaded -> {
+                            itemsIndexed(
+                                items = viewModel.posts,
+                                key = { _, post -> post.id }
+                            ) { index, post ->
+                                FeedPostRow(
+                                    post = post,
+                                    viewModel = viewModel,
+                                    singleLine = true,
+                                    onPostDeleted = { postID ->
+                                        scope.launch { viewModel.deletePost(postID) }
+                                    },
+                                    onComment = {
+                                        navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
+                                    }
+                                )
+                                HorizontalDivider(
+                                    Modifier.padding(
+                                        horizontal = 16.dp,
+                                        vertical = 4.dp
+                                    )
+                                )
+                            }
+                        }
+
+                        is FeedViewModel.ViewState.Error -> {
+                            item {
+                                ErrorView(
+                                    error = (state as FeedViewModel.ViewState.Error).error,
+                                    onRetry = { scope.launch { viewModel.fetchInitialData() } }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -173,124 +195,12 @@ fun FeedView(
     )
 }
 
-@Composable
-private fun FeedLandscapeLayout(
-    state: FeedViewModel.ViewState,
-    viewModel: FeedViewModelProtocol,
-    navController: NavController,
-    listState: LazyListState,
-    scope: CoroutineScope
-) {
-    FeedPortraitLayout(state, viewModel, navController, listState, scope)
-}
-
-@Composable
-private fun FeedPortraitLayout(
-    state: FeedViewModel.ViewState,
-    viewModel: FeedViewModelProtocol,
-    navController: NavController,
-    listState: LazyListState,
-    scope: CoroutineScope
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .widthIn(max = 600.dp)
-    ) {
-        when (state) {
-            is FeedViewModel.ViewState.Loading -> {
-                Column {
-                    repeat(3) {
-                        FeedPostRowSkeleton()
-                        HorizontalDivider(Modifier.padding(horizontal = 8.dp))
-                    }
-                }
-            }
-
-            is FeedViewModel.ViewState.Loaded -> {
-                LazyColumn(
-                    state = listState,
-                    contentPadding = PaddingValues(vertical = 8.dp)
-                ) {
-                    itemsIndexed(
-                        items = viewModel.posts,
-                        key = { _, post -> post.id }
-                    ) { index, post ->
-                        FeedPostRow(
-                            post = post,
-                            viewModel = viewModel,
-                            singleLine = true,
-                            onPostDeleted = { postID ->
-                                scope.launch { viewModel.deletePost(postID) }
-                            },
-                            onComment = {
-                                navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
-                            }
-                        )
-
-                        HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
-                    }
-                }
-            }
-
-            is FeedViewModel.ViewState.Error -> {
-                ErrorView(
-                    error = (state as FeedViewModel.ViewState.Error).error,
-                    onRetry = {
-                        scope.launch { viewModel.fetchInitialData() }
-                    },
-                )
-            }
-        }
-    }
-}
-
-// MARK: - Previews
-@Preview(showBackground = true, name = "Loading")
-@Composable
-private fun PreviewLoading() {
-    val viewModel = PreviewFeedViewModel(
-        initialState = FeedViewModel.ViewState.Loading,
-        posts = FeedPost.mockList()
-    )
-    Theme { FeedView(viewModel, rememberNavController()) }
-}
-
-@Preview(showBackground = true, name = "Loaded")
+@Preview(showBackground = true)
 @Composable
 private fun PreviewLoaded() {
     val viewModel = PreviewFeedViewModel(
         initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList()),
         posts = FeedPost.mockList()
-    )
-    Theme { FeedView(viewModel, rememberNavController()) }
-}
-
-@Preview(showBackground = true, name = "Loaded Landscape", widthDp = 840, heightDp = 480)
-@Composable
-private fun PreviewLoadedLandscape() {
-    val viewModel = PreviewFeedViewModel(
-        initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList()),
-        posts = FeedPost.mockList()
-    )
-    Theme { FeedView(viewModel, rememberNavController()) }
-}
-
-@Preview(showBackground = true, name = "Error")
-@Composable
-private fun PreviewError() {
-    val viewModel = PreviewFeedViewModel(
-        initialState = FeedViewModel.ViewState.Error(Exception("Error"))
-    )
-    Theme { FeedView(viewModel, rememberNavController()) }
-}
-
-@Preview(showBackground = true, name = "Empty")
-@Composable
-private fun PreviewEmpty() {
-    val viewModel = PreviewFeedViewModel(
-        initialState = FeedViewModel.ViewState.Loaded(emptyList()),
-        posts = emptyList()
     )
     Theme { FeedView(viewModel, rememberNavController()) }
 }

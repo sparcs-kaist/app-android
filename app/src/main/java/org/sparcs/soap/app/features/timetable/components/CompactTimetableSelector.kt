@@ -1,12 +1,10 @@
 package org.sparcs.soap.app.features.timetable.components
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -32,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,27 +48,19 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 fun CompactTimetableSelector(
     viewModel: TimetableViewModelProtocol,
     timetableName: String,
+    modifier: Modifier = Modifier,
+    isWide: Boolean = false
 ) {
     var showRenameDialog by remember { mutableStateOf(false) }
     var renameText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = if (isWide) Arrangement.SpaceBetween else Arrangement.spacedBy(8.dp)
     ) {
-        if (isLandscape) Spacer(Modifier.weight(1f))
-
         SemesterSelector(viewModel = viewModel)
-
-        if (isLandscape) {
-            Spacer(Modifier.weight(1f))
-        } else {
-            Spacer(Modifier.weight(1f))
-        }
 
         TableSelector(
             viewModel = viewModel,
@@ -81,9 +70,8 @@ fun CompactTimetableSelector(
                 showRenameDialog = true
             }
         )
-
-        if (isLandscape) Spacer(Modifier.weight(1f))
     }
+    
     if (showRenameDialog) {
         AlertDialog(
             onDismissRequest = { showRenameDialog = false },
@@ -134,7 +122,7 @@ fun SemesterSelector(
             .glassBorder(shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp),
+            .padding(vertical = 6.dp, horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -144,6 +132,7 @@ fun SemesterSelector(
             else MaterialTheme.colorScheme.grayBB,
             modifier = Modifier
                 .padding(horizontal = 4.dp)
+                .size(16.dp)
                 .then(
                     if (isEnabledPreviousButton) Modifier.clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
@@ -154,7 +143,7 @@ fun SemesterSelector(
 
         AnimatedText(
             text = selectedSemester?.description ?: stringResource(R.string.unknown),
-            style = MaterialTheme.typography.bodyLarge,
+            style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold
         )
 
@@ -165,6 +154,7 @@ fun SemesterSelector(
             else MaterialTheme.colorScheme.grayBB,
             modifier = Modifier
                 .padding(horizontal = 4.dp)
+                .size(16.dp)
                 .then(
                     if (isEnabledNextButton) Modifier.clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
@@ -193,12 +183,12 @@ fun TableSelector(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(topStart = 25.dp, bottomStart = 25.dp))
-                .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                .padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AnimatedText(
                 text = displayName,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -217,8 +207,8 @@ fun TableSelector(
                 modifier = Modifier
                     .clip(RoundedCornerShape(topEnd = 25.dp, bottomEnd = 25.dp))
                     .clickable { expanded = true }
-                    .padding(start = 8.dp, end = 12.dp, top = 8.dp, bottom = 8.dp)
-                    .size(20.dp)
+                    .padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 6.dp)
+                    .size(18.dp)
             )
 
             TimetableDropDownMenu(

@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.features.taxiChat.components
 
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -9,6 +10,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,8 +21,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -46,12 +50,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -78,6 +83,7 @@ fun TaxiChatViewNavigationBar(
     isLeaveAvailable: Boolean,
 ) {
     val context = LocalContext.current
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val shareUrl = "${Constants.TAXI_INVITE_URL}${room.id}"
     val shareMessage = stringResource(
         R.string.taxi_share_message,
@@ -96,42 +102,43 @@ fun TaxiChatViewNavigationBar(
     val arrivedCount = room.participants.count { it.isArrived }
     val totalCount = room.participants.size
 
-    var titleHeightDp by remember { mutableStateOf(64.dp) }
-    val density = LocalDensity.current
-
-    Column {
+    Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
         CenterAlignedTopAppBar(
-            modifier = Modifier.height(titleHeightDp),
+            modifier = Modifier.statusBarsPadding(),
             navigationIcon = { DismissButton(onClick = { onDismiss() }) },
             title = {
                 Column(
-                    Modifier.onGloballyPositioned { coordinates ->
-                        val heightInDp = with(density) { coordinates.size.height.toDp() }
-                        val newTitleHeight = heightInDp + 56.dp
-                        if (titleHeightDp != newTitleHeight) {
-                            titleHeightDp = newTitleHeight
-                        }
-                    },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(room.title)
+                        Text(
+                            text = room.title,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleMedium,
+                            textAlign = TextAlign.Center
+                        )
 
-                        Spacer(Modifier.padding(4.dp))
+                        Spacer(Modifier.width(4.dp))
 
                         Text(
                             text = room.emojiIdentifier.display,
-                            modifier = Modifier
-                                .clickable { showPopover = true }
+                            modifier = Modifier.clickable { showPopover = true }
                         )
                     }
-                    Text(
-                        text = "${room.source.title} → ${room.destination.title}",
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.align(Alignment.CenterHorizontally)
-                    )
+                    if (!isLandscape) {
+                        Text(
+                            text = "${room.source.title} → ${room.destination.title}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             },
 
@@ -156,7 +163,7 @@ fun TaxiChatViewNavigationBar(
                     isLeaveAvailable = isLeaveAvailable
                 )
             },
-            colors = TopAppBarDefaults.mediumTopAppBarColors(
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background
             )
         )
@@ -232,7 +239,7 @@ private fun ArrivalStatusSection(
     ) {
         Row(
             modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 16.dp, vertical = 6.dp)
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
@@ -258,13 +265,13 @@ private fun ArrivalStatusSection(
                     shape = RoundedCornerShape(12.dp),
                     color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                    modifier = Modifier.height(36.dp)
+                    modifier = Modifier.height(32.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
                             text = stringResource(R.string.taxi_status),
                             modifier = Modifier.padding(horizontal = 12.dp),
-                            style = MaterialTheme.typography.labelLarge
+                            style = MaterialTheme.typography.labelMedium
                         )
                     }
                 }
@@ -282,14 +289,14 @@ private fun ArrivalStatusSection(
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                         modifier = Modifier
-                            .height(36.dp)
+                            .height(32.dp)
                             .animateContentSize()
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
                                 Icons.Rounded.Check,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                             Spacer(Modifier.width(4.dp))
                             AnimatedContent(
@@ -301,7 +308,7 @@ private fun ArrivalStatusSection(
                             ) { targetText ->
                                 Text(
                                     text = targetText,
-                                    style = MaterialTheme.typography.labelLarge
+                                    style = MaterialTheme.typography.labelMedium
                                 )
                             }
                         }
@@ -317,6 +324,7 @@ fun TaxiArrivalStatusContent(participants: List<TaxiParticipant>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .navigationBarsPadding()
             .padding(horizontal = 24.dp, vertical = 16.dp)
     ) {
         Text(
@@ -357,8 +365,10 @@ fun TaxiArrivalStatusContent(participants: List<TaxiParticipant>) {
                     thickness = 0.5.dp
                 )
             }
+            item {
+                Spacer(Modifier.height(32.dp))
+            }
         }
-        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 
@@ -366,7 +376,6 @@ fun TaxiArrivalStatusContent(participants: List<TaxiParticipant>) {
 @Composable
 @Preview
 private fun Preview() {
-    //상단 패딩은 무시하시면 됩니다.
     Theme {
         Box(Modifier.fillMaxSize()) {
             TaxiChatViewNavigationBar(

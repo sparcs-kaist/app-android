@@ -1,16 +1,12 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package org.sparcs.soap.app.features.postList
 
-import android.content.res.Configuration
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -42,10 +38,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -70,43 +64,36 @@ import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewPostListViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostListView(
     viewModel: PostListViewModelProtocol = hiltViewModel<PostListViewModel>(),
     navController: NavController,
 ) {
     var loadedInitialPost by rememberSaveable { mutableStateOf(false) }
-
     val searchKeyword by viewModel.searchKeyword.collectAsState()
     var showSearchBar by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
-    val state = viewModel.state.collectAsState().value
-
+    val state by viewModel.state.collectAsState()
     val board = viewModel.board
 
     val isPreview = LocalInspectionMode.current
     val backStackEntry = if (!isPreview) navController.currentBackStackEntry else null
-
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
 
     LaunchedEffect(lifecycleState) {
         if (lifecycleState == Lifecycle.State.RESUMED) {
-
             viewModel.lastClickedPostId?.let { id ->
                 viewModel.refreshItem(id)
                 viewModel.lastClickedPostId = null
             }
-
             val needsRefresh =
                 navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("listNeedsRefresh")
                     ?: false
@@ -132,15 +119,13 @@ fun PostListView(
 
     Scaffold(
         topBar = {
-            if (!isLandscape) {
-                BoardNavigationBar(
-                    title = board.name.localized(),
-                    subTitle = board.group.name.localized(),
-                    onClickSearch = { showSearchBar = !showSearchBar },
-                    isSelected = showSearchBar,
-                    navController = navController
-                )
-            }
+            BoardNavigationBar(
+                title = board.name.localized(),
+                subTitle = board.group.name.localized(),
+                onClickSearch = { showSearchBar = !showSearchBar },
+                isSelected = showSearchBar,
+                navController = navController
+            )
         },
         floatingActionButtonPosition = FabPosition.End,
         floatingActionButton = {
@@ -153,198 +138,81 @@ fun PostListView(
                 )
             }
         },
-        modifier = Modifier.analyticsScreen(name = "Ara Post List"),
-        containerColor = MaterialTheme.colorScheme.background
+        modifier = Modifier.analyticsScreen(name = "Ara Post List")
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
-            if (isLandscape) {
-                PostListLandscapeLayout(
-                    viewModel = viewModel,
-                    navController = navController,
-                    board = board,
-                    state = state,
-                    searchKeyword = searchKeyword
-                )
-            } else {
-                PostListPortraitLayout(
-                    viewModel = viewModel,
-                    navController = navController,
-                    board = board,
-                    state = state,
-                    searchKeyword = searchKeyword,
-                    showSearchBar = showSearchBar
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PostListLandscapeLayout(
-    viewModel: PostListViewModelProtocol,
-    navController: NavController,
-    board: AraBoard,
-    state: PostListViewModel.ViewState,
-    searchKeyword: String,
-) {
-    val scope = rememberCoroutineScope()
-    var isRefreshing by remember { mutableStateOf(false) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(32.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Column {
-                Text(
-                    text = board.name.localized(),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = board.group.name.localized(),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            SearchCustomBar(
-                value = searchKeyword,
-                onValueChange = { viewModel.onSearchTextChange(it) },
-                onValueClear = { viewModel.onSearchTextChange("") },
-                placeHolder = stringResource(R.string.search)
-            )
-
-            Spacer(modifier = Modifier.weight(1f))
-        }
-
-        Column(
-            modifier = Modifier.weight(1.5f)
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                PostListContent(
-                    state = state,
-                    viewModel = viewModel,
-                    navController = navController,
-                    searchKeyword = searchKeyword,
-                    isRefreshing = isRefreshing,
-                    onRefreshChange = { isRefreshing = it }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun PostListPortraitLayout(
-    viewModel: PostListViewModelProtocol,
-    navController: NavController,
-    board: AraBoard,
-    state: PostListViewModel.ViewState,
-    searchKeyword: String,
-    showSearchBar: Boolean
-) {
-    var isRefreshing by remember { mutableStateOf(false) }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .widthIn(max = 600.dp) // iOS contentWidth() 스타일 적용
-            .padding(horizontal = 20.dp)
-            .padding(top = 8.dp)
-    ) {
-        if (showSearchBar) {
-            SearchCustomBar(
-                value = searchKeyword,
-                onValueChange = { viewModel.onSearchTextChange(it) },
-                onValueClear = { viewModel.onSearchTextChange("") },
-                placeHolder = stringResource(R.string.search)
-            )
-        }
-
-        PostListContent(
-            state = state,
-            viewModel = viewModel,
-            navController = navController,
-            searchKeyword = searchKeyword,
-            isRefreshing = isRefreshing,
-            onRefreshChange = { isRefreshing = it }
-        )
-    }
-}
-
-@Composable
-private fun PostListContent(
-    state: PostListViewModel.ViewState,
-    viewModel: PostListViewModelProtocol,
-    navController: NavController,
-    searchKeyword: String,
-    isRefreshing: Boolean,
-    onRefreshChange: (Boolean) -> Unit
-) {
-    val scope = rememberCoroutineScope()
-
-    when (state) {
-        is PostListViewModel.ViewState.Loading -> {
-            LoadingView()
-        }
-
-        is PostListViewModel.ViewState.Loaded -> {
-            PostList(
-                posts = state.posts,
-                onLoadMore = {
-                    scope.launch { viewModel.loadNextPage() }
-                },
-                onRefresh = {
-                    onRefreshChange(true)
-                    scope.launch {
-                        viewModel.fetchInitialPosts()
-                        delay(500)
-                        onRefreshChange(false)
-                    }
-                },
-                onPostClick = { post ->
-                    viewModel.lastClickedPostId = post.id
-                    navController.navigate(Channel.PostView.name + "?postId=${post.id}")
-                },
-                isRefreshing = isRefreshing,
-                keyword = searchKeyword
-            )
-        }
-
-        is PostListViewModel.ViewState.Error -> {
-            val error = state.error
-            ErrorView(
-                error = error,
-                onRetry = {
-                    scope.launch { viewModel.fetchInitialPosts() }
-                    viewModel.bind()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 600.dp)
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (showSearchBar) {
+                    SearchCustomBar(
+                        value = searchKeyword,
+                        onValueChange = { viewModel.onSearchTextChange(it) },
+                        onValueClear = { viewModel.onSearchTextChange("") },
+                        placeHolder = stringResource(R.string.search)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-            )
-        }
-    }
 
-    if (searchKeyword.isNotEmpty() && viewModel.posts.isEmpty() && state is PostListViewModel.ViewState.Loaded) {
-        EmptyView(
-            searchText = searchKeyword,
-            onClear = {
-                viewModel.onSearchTextChange("")
-                scope.launch { viewModel.fetchInitialPosts() }
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (state) {
+                        is PostListViewModel.ViewState.Loading -> LoadingView()
+                        is PostListViewModel.ViewState.Loaded -> {
+                            val loadedState = state as PostListViewModel.ViewState.Loaded
+                            PostList(
+                                posts = loadedState.posts,
+                                onLoadMore = { scope.launch { viewModel.loadNextPage() } },
+                                onRefresh = {
+                                    isRefreshing = true
+                                    scope.launch {
+                                        viewModel.fetchInitialPosts()
+                                        delay(500)
+                                        isRefreshing = false
+                                    }
+                                },
+                                onPostClick = { post ->
+                                    viewModel.lastClickedPostId = post.id
+                                    navController.navigate(Channel.PostView.name + "?postId=${post.id}")
+                                },
+                                isRefreshing = isRefreshing,
+                                keyword = searchKeyword
+                            )
+                        }
+
+                        is PostListViewModel.ViewState.Error -> {
+                            val errorState = state as PostListViewModel.ViewState.Error
+                            ErrorView(
+                                error = errorState.error,
+                                onRetry = {
+                                    scope.launch { viewModel.fetchInitialPosts() }
+                                    viewModel.bind()
+                                }
+                            )
+                        }
+                    }
+
+                    if (searchKeyword.isNotEmpty() && viewModel.posts.isEmpty() && state is PostListViewModel.ViewState.Loaded) {
+                        EmptyView(
+                            searchText = searchKeyword,
+                            onClear = {
+                                viewModel.onSearchTextChange("")
+                                scope.launch { viewModel.fetchInitialPosts() }
+                            }
+                        )
+                    }
+                }
             }
-        )
+        }
     }
 }
 
@@ -364,32 +232,23 @@ private fun EmptyView(
             imageVector = Icons.Rounded.ErrorOutline,
             contentDescription = stringResource(R.string.no_result),
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.grayBB
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = stringResource(R.string.no_result),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.error
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = stringResource(R.string.no_results_found_for, " \"$searchText\""),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
-
         Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { onClear() },
-            shape = RoundedCornerShape(12.dp)
-        ) {
+        Button(onClick = onClear, shape = RoundedCornerShape(12.dp)) {
             Icon(
                 imageVector = Icons.Rounded.ClearAll,
                 contentDescription = null,
@@ -410,7 +269,6 @@ private fun LoadingView() {
         }
     }
 }
-
 
 @Composable
 private fun ComposeButton(onClick: () -> Unit) {

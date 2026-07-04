@@ -1,14 +1,13 @@
 package org.sparcs.soap.app.features.search
 
-import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,7 +39,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -86,9 +84,6 @@ fun SearchView(
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val sheetState = rememberModalBottomSheetState()
 
-    val configuration = LocalConfiguration.current
-    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
     val backStackEvent = {
         navController.navigate(Channel.Start.name) {
             popUpTo(0) { inclusive = true }
@@ -124,23 +119,28 @@ fun SearchView(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(innerPadding)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            if (isLandscape) {
-                SearchLandscapeLayout(
-                    state = state,
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 600.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                SearchControlCard(
                     searchText = searchText,
                     searchScope = searchScope,
-                    viewModel = viewModel,
-                    navController = navController,
-                    coroutineScope = coroutineScope,
-                    onTaxiClick = { selectedRoom = it }
+                    onSearchTextChange = viewModel::onSearchTextChange,
+                    onScopeChange = viewModel::onScopeChange
                 )
-            } else {
-                SearchPortraitLayout(
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                SearchResultContent(
                     state = state,
                     searchText = searchText,
-                    searchScope = searchScope,
                     viewModel = viewModel,
                     navController = navController,
                     coroutineScope = coroutineScope,
@@ -187,91 +187,6 @@ fun SearchView(
 }
 
 @Composable
-private fun SearchLandscapeLayout(
-    state: SearchViewModel.ViewState,
-    searchText: String,
-    searchScope: SearchScope,
-    viewModel: SearchViewModelProtocol,
-    navController: NavController,
-    coroutineScope: CoroutineScope,
-    onTaxiClick: (TaxiRoom) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(32.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            SearchControlCard(
-                searchText = searchText,
-                searchScope = searchScope,
-                onSearchTextChange = viewModel::onSearchTextChange,
-                onScopeChange = viewModel::onScopeChange
-            )
-            Spacer(modifier = Modifier.weight(1f))
-        }
-
-        Column(
-            modifier = Modifier
-                .weight(1.5f)
-                .fillMaxHeight()
-        ) {
-            SearchResultContent(
-                state = state,
-                searchText = searchText,
-                viewModel = viewModel,
-                navController = navController,
-                coroutineScope = coroutineScope,
-                onTaxiClick = onTaxiClick
-            )
-        }
-    }
-}
-
-@Composable
-private fun SearchPortraitLayout(
-    state: SearchViewModel.ViewState,
-    searchText: String,
-    searchScope: SearchScope,
-    viewModel: SearchViewModelProtocol,
-    navController: NavController,
-    coroutineScope: CoroutineScope,
-    onTaxiClick: (TaxiRoom) -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .widthIn(max = 600.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        SearchControlCard(
-            searchText = searchText,
-            searchScope = searchScope,
-            onSearchTextChange = viewModel::onSearchTextChange,
-            onScopeChange = viewModel::onScopeChange
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        SearchResultContent(
-            state = state,
-            searchText = searchText,
-            viewModel = viewModel,
-            navController = navController,
-            coroutineScope = coroutineScope,
-            onTaxiClick = onTaxiClick
-        )
-    }
-}
-
-@Composable
 private fun SearchControlCard(
     searchText: String,
     searchScope: SearchScope,
@@ -297,15 +212,21 @@ private fun SearchControlCard(
 
             Row(
                 Modifier
-                    .padding(horizontal = 4.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
             ) {
                 SearchScope.entries.forEach { scope ->
                     FilterChip(
                         selected = (searchScope == scope),
                         onClick = { onScopeChange(scope) },
-                        label = { Text(stringResource(scope.labelRes)) }
+                        label = { 
+                            Text(
+                                text = stringResource(scope.labelRes),
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            ) 
+                        }
                     )
                 }
             }
@@ -325,7 +246,7 @@ private fun SearchResultContent(
     when {
         state is SearchViewModel.ViewState.Error -> {
             ErrorView(
-                error = (state as SearchViewModel.ViewState.Error).error,
+                error = (state).error,
                 onRetry = { coroutineScope.launch { viewModel.bind() } }
             )
         }

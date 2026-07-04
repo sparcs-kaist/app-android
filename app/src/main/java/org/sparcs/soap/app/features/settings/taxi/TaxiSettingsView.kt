@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -180,29 +182,39 @@ fun TaxiSettingsView(
         modifier = Modifier.analyticsScreen("Taxi Settings")
     ) { innerPadding ->
 
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 8.dp)
                 .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 600.dp)
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+            ) {
+                when (state) {
+                    TaxiSettingsViewModel.ViewState.Loading -> item { LoadingView() }
+                    TaxiSettingsViewModel.ViewState.Loaded -> item {
+                        LoadedView(
+                            viewModel,
+                            navController,
+                            hasNumberRegistered
+                        )
+                    }
 
-            when (state) {
-                TaxiSettingsViewModel.ViewState.Loading -> LoadingView()
-                TaxiSettingsViewModel.ViewState.Loaded -> LoadedView(
-                    viewModel,
-                    navController,
-                    hasNumberRegistered
-                )
-
-                is TaxiSettingsViewModel.ViewState.Error -> {
-                    val error = (state as TaxiSettingsViewModel.ViewState.Error).error
-                    ErrorView(
-                        defaultMessageResId = (state as TaxiSettingsViewModel.ViewState.Error).resId,
-                        error = error,
-                        onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
-                    )
+                    is TaxiSettingsViewModel.ViewState.Error -> {
+                        item {
+                            val errorState = state as TaxiSettingsViewModel.ViewState.Error
+                            ErrorView(
+                                defaultMessageResId = errorState.resId,
+                                error = errorState.error,
+                                onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -7,15 +7,19 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
@@ -101,123 +105,142 @@ fun SettingsView(
         },
         modifier = Modifier.analyticsScreen("Settings")
     ) { innerPadding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
-                .padding(16.dp)
-                .padding(innerPadding)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            item {
-                Text(
-                    text = stringResource(R.string.widget_miscellaneous),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(8.dp)
-                )
-                AppSettings(context)
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 600.dp)
+                    .padding(horizontal = 16.dp)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.widget_miscellaneous),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                    AppSettings(context)
 
-                ServiceNavButton(
-                    text = stringResource(R.string.notifications_title),
-                    icon = { Icon(Icons.Outlined.Notifications, null) }
-                ) { navController.navigate(Channel.NotificationSettings.name) }
+                    ServiceNavButton(
+                        text = stringResource(R.string.notifications_title),
+                        icon = { Icon(Icons.Outlined.Notifications, null) }
+                    ) { navController.navigate(Channel.NotificationSettings.name) }
 
-                ThemeSwitcherButton(settingsViewModel)
-                FeedbackButton(activity)
-                SendCrashReportsButton(isCrashlyticsEnabled) {
-                    haptic.toggle(it)
-                    isCrashlyticsEnabled = it
+                    ThemeSwitcherButton(settingsViewModel)
+                    FeedbackButton(activity)
+                    SendCrashReportsButton(isCrashlyticsEnabled) {
+                        haptic.toggle(it)
+                        isCrashlyticsEnabled = it
+                    }
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 }
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            }
 
-            item {
-                Text(
-                    text = stringResource(R.string.services),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(8.dp)
-                )
+                item {
+                    Text(
+                        text = stringResource(R.string.services),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(8.dp)
+                    )
 
-                ServiceNavButton(
-                    text = stringResource(R.string.feed),
-                    icon = {
-                        Icon(
-                            painterResource(R.drawable.sparcs_logo),
-                            null,
-                            tint = Color.Unspecified
-                        )
-                    }
-                ) { navController.navigate(Channel.FeedSettings.name) }
+                    ServiceNavButton(
+                        text = stringResource(R.string.feed),
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.sparcs_logo),
+                                null,
+                                tint = Color.Unspecified
+                            )
+                        }
+                    ) { navController.navigate(Channel.FeedSettings.name) }
 
-                ServiceNavButton(
-                    text = stringResource(R.string.ara),
-                    icon = {
-                        Icon(
-                            painterResource(R.drawable.ara_logo),
-                            null,
-                            tint = Color.Unspecified
-                        )
-                    }
-                ) { navController.navigate(Channel.AraSettings.name) }
+                    ServiceNavButton(
+                        text = stringResource(R.string.ara),
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.ara_logo),
+                                null,
+                                tint = Color.Unspecified
+                            )
+                        }
+                    ) { navController.navigate(Channel.AraSettings.name) }
 
-                ServiceNavButton(
-                    text = stringResource(R.string.taxi),
-                    icon = {
-                        Icon(
-                            painterResource(R.drawable.taxi_logo),
-                            null,
-                            tint = Color.Unspecified
-                        )
-                    }
-                ) { navController.navigate(Channel.TaxiSettings.name) }
+                    ServiceNavButton(
+                        text = stringResource(R.string.taxi),
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.taxi_logo),
+                                null,
+                                tint = Color.Unspecified
+                            )
+                        }
+                    ) { navController.navigate(Channel.TaxiSettings.name) }
 
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            }
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                }
 
-            item {
-                Text(
-                    text = stringResource(R.string.information),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(8.dp)
-                )
+                item {
+                    Text(
+                        text = stringResource(R.string.information),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(8.dp)
+                    )
 
-                Term(
-                    context = context,
-                    navController = navController
-                )
+                    Term(
+                        context = context,
+                        navController = navController
+                    )
 
-                HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            }
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                }
 
-            item {
-                Text(
-                    text = stringResource(R.string.sign_out),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(8.dp)
-                )
-                SignOutButton {
+                item {
+                    Text(
+                        text = stringResource(R.string.sign_out),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                    SignOutButton {
                         settingsViewModel.signOut()
                     }
-
-            }
-        }
-        if (BuildConfig.DEBUG) {
-            Text("Debug Menu", style = MaterialTheme.typography.titleMedium)
-            Spacer(Modifier.height(8.dp))
-
-            Button(onClick = { error("DEBUG: User forced a crash") }) {
-                Text("Force Crash")
-            }
-
-            Button(
-                onClick = {
-                    settingsViewModel.handleException(
-                        Exception("Test exception from debug")
-                    )
                 }
-            ) {
-                Text("Invoke Exception")
+
+                if (BuildConfig.DEBUG) {
+                    item {
+                        Text(
+                            "Debug Menu",
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.padding(8.dp)
+                        )
+                        Spacer(Modifier.height(8.dp))
+
+                        Button(
+                            onClick = { error("DEBUG: User forced a crash") },
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            Text("Force Crash")
+                        }
+
+                        Button(
+                            onClick = {
+                                settingsViewModel.handleException(
+                                    Exception("Test exception from debug")
+                                )
+                            },
+                            modifier = Modifier.padding(8.dp)
+                        ) {
+                            Text("Invoke Exception")
+                        }
+                    }
+                }
             }
         }
     }
@@ -304,7 +327,7 @@ private fun FeedbackButton(activity: Activity?) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable { activity?.let { ChannelManager.showMessenger(it)} },
+            .clickable { activity?.let { ChannelManager.showMessenger(it) } },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -602,4 +625,3 @@ private fun Preview() {
         SettingsView(rememberNavController(), MockSettingsViewModel())
     }
 }
-

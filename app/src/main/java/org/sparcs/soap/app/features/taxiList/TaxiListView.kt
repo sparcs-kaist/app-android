@@ -238,7 +238,7 @@ private fun TaxiLandscapeLayout(
     onRoomSelected: (TaxiRoom) -> Unit,
     navController: NavController,
     haptic: HapticFeedback,
-    scrollState: ScrollState
+    scrollState: ScrollState,
 ) {
     Row(
         modifier = Modifier
@@ -246,7 +246,6 @@ private fun TaxiLandscapeLayout(
             .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(32.dp)
     ) {
-        // 좌측 섹션: 목적지 선택 및 날짜 선택
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -258,7 +257,6 @@ private fun TaxiLandscapeLayout(
             Spacer(modifier = Modifier.weight(1f))
         }
 
-        // 우측 섹션: 결과 리스트
         Column(
             modifier = Modifier
                 .weight(1.5f)
@@ -287,12 +285,12 @@ private fun TaxiPortraitLayout(
     onRoomSelected: (TaxiRoom) -> Unit,
     navController: NavController,
     haptic: HapticFeedback,
-    scrollState: ScrollState
+    scrollState: ScrollState,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .widthIn(max = 600.dp) // iOS contentWidth() 스타일 적용
+            .widthIn(max = 600.dp)
             .verticalScroll(scrollState)
     ) {
         Column(
@@ -322,7 +320,7 @@ private fun TaxiPortraitLayout(
 private fun TaxiFilterCard(
     viewModel: TaxiListViewModelProtocol,
     locations: List<TaxiLocation>,
-    favoriteRoutes: List<TaxiFavoriteRoute>
+    favoriteRoutes: List<TaxiFavoriteRoute>,
 ) {
     Card(
         colors = CardDefaults.elevatedCardColors(
@@ -349,7 +347,7 @@ private fun TaxiFilterCard(
 private fun TaxiWeekSelectorCard(
     viewModel: TaxiListViewModelProtocol,
     selectedDate: Date?,
-    haptic: HapticFeedback
+    haptic: HapticFeedback,
 ) {
     Card(
         colors = CardDefaults.elevatedCardColors(
@@ -378,7 +376,7 @@ private fun TaxiResultContent(
     selectedDate: Date?,
     description: String,
     onRoomSelected: (TaxiRoom) -> Unit,
-    navController: NavController
+    navController: NavController,
 ) {
     when (uiState) {
         is TaxiListViewModel.ViewState.Loading -> LoadingView()
@@ -408,6 +406,7 @@ private fun TaxiResultContent(
                 )
             }
         }
+
         is TaxiListViewModel.ViewState.Empty -> EmptyView(navController = navController)
         is TaxiListViewModel.ViewState.Error -> {
             ErrorView(

@@ -31,9 +31,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.sparcs.soap.app.domain.enums.otl.LectureType
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.shared.extensions.glassBorder
@@ -70,6 +72,9 @@ fun TimetableCreditGraph(
 
     val animatedTotal = animatedCredits.sumOf { it.value.toDouble() }.toFloat().coerceAtLeast(1f)
     val isLight = MaterialTheme.colorScheme.background == theme_light_background
+    val density = LocalDensity.current
+    val tickTextSize = with(density) { 11.sp.toPx() }
+    val tickOffset = with(density) { 14.dp.toPx() }
     
     Card(
         colors = CardDefaults.elevatedCardColors(
@@ -123,12 +128,15 @@ fun TimetableCreditGraph(
 
                 val stepCredit = 5
                 val actualTotal = animatedTotal.toInt()
-                val tickValues = (0..actualTotal step stepCredit).toList()
+                val tickValues = (0..actualTotal step stepCredit).toMutableList()
+                if (actualTotal > 0 && actualTotal % stepCredit != 0) {
+                    tickValues.add(actualTotal)
+                }
 
                 tickValues.forEach { tick ->
                     val x = (tick.toFloat() / animatedTotal) * widthPx
                     drawLine(
-                        color = if(isLight) Color.DarkGray else Color.LightGray,
+                        color = if(isLight) Color.DarkGray.copy(alpha = 0.4f) else Color.LightGray.copy(alpha = 0.4f),
                         start = Offset(x, 0f),
                         end = Offset(x, heightPx / 2),
                         strokeWidth = 1f
@@ -138,11 +146,12 @@ fun TimetableCreditGraph(
                         drawText(
                             "$tick",
                             x,
-                            heightPx / 2 + 30f,
+                            heightPx / 2 + tickOffset,
                             Paint().apply {
-                                textSize = 28f
-                                color = if(isLight) android.graphics.Color.DKGRAY else android.graphics.Color.LTGRAY
+                                textSize = tickTextSize
+                                color = if(isLight) android.graphics.Color.GRAY else android.graphics.Color.LTGRAY
                                 textAlign = Paint.Align.CENTER
+                                isAntiAlias = true
                             }
                         )
                     }

@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -87,46 +89,57 @@ fun FeedSettingsView(
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
 
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 8.dp)
                 .background(MaterialTheme.colorScheme.background)
-                .then(if (viewModel.isUpdatingProfile) Modifier.alpha(0.5f) else Modifier)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            when (state) {
-                is FeedSettingsViewModel.ViewState.Loading -> LoadingView()
-                is FeedSettingsViewModel.ViewState.Loaded -> LoadedView(
-                    viewModel,
-                    onUpdateSuccess = {
-                        scope.launch {
-                            snackBarHostState.currentSnackbarData?.dismiss()
-                            snackBarHostState.showSnackbar(
-                                message = context.getString(R.string.nickname_updated),
-                                duration = SnackbarDuration.Short
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 600.dp)
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+                    .then(if (viewModel.isUpdatingProfile) Modifier.alpha(0.5f) else Modifier)
+            ) {
+                when (state) {
+                    is FeedSettingsViewModel.ViewState.Loading -> item { LoadingView() }
+                    is FeedSettingsViewModel.ViewState.Loaded -> item {
+                        LoadedView(
+                            viewModel,
+                            onUpdateSuccess = {
+                                scope.launch {
+                                    snackBarHostState.currentSnackbarData?.dismiss()
+                                    snackBarHostState.showSnackbar(
+                                        message = context.getString(R.string.nickname_updated),
+                                        duration = SnackbarDuration.Short
+                                    )
+                                }
+                            }
+                        )
+                    }
+
+                    is FeedSettingsViewModel.ViewState.Error -> {
+                        item {
+                            val errorState = state as FeedSettingsViewModel.ViewState.Error
+                            ErrorView(
+                                error = errorState.error,
+                                defaultMessageResId = errorState.resId,
+                                onRetry = { scope.launch { viewModel.fetchUser() } }
                             )
                         }
                     }
-                )
-
-                is FeedSettingsViewModel.ViewState.Error -> {
-                    val error = (state as FeedSettingsViewModel.ViewState.Error).error
-                    ErrorView(
-                        error = error,
-                        defaultMessageResId = (state as FeedSettingsViewModel.ViewState.Error).resId,
-                        onRetry = { scope.launch { viewModel.fetchUser() } }
-                    )
                 }
             }
-        }
 
-        if (viewModel.isUpdatingProfile) {
-            Box(
-                modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+            if (viewModel.isUpdatingProfile) {
+                Box(
+                    modifier = Modifier.fillMaxSize().clickable(enabled = false) {},
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
         }
 
@@ -185,7 +198,7 @@ private fun LoadingView() {
                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(4.dp))
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(Modifier.height(16.dp))
 
         Row(
             modifier = Modifier
