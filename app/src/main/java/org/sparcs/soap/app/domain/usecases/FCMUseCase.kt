@@ -1,22 +1,18 @@
 package org.sparcs.soap.app.domain.usecases
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
-import android.security.keystore.KeyGenParameterSpec
-import android.security.keystore.KeyProperties
-import android.util.Base64
+import android.provider.Settings
 import androidx.core.content.edit
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.sparcs.soap.app.domain.helpers.FeatureType
 import org.sparcs.soap.app.domain.repositories.FCMRepositoryProtocol
 import timber.log.Timber
-import java.security.KeyStore
 import java.util.Locale
 import java.util.UUID
-import javax.crypto.Cipher
-import javax.crypto.KeyGenerator
-import javax.crypto.SecretKey
-import javax.crypto.spec.GCMParameterSpec
 import javax.inject.Inject
 
 interface FCMUseCaseProtocol {
@@ -24,81 +20,105 @@ interface FCMUseCaseProtocol {
     suspend fun manage(service: FeatureType, isActive: Boolean)
 }
 
+@Suppress("DEPRECATION")
+@SuppressLint("HardwareIds")
 class FCMUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val fcmRepository: FCMRepositoryProtocol,
 ) : FCMUseCaseProtocol {
 
-    private val prefs = context.getSharedPreferences("fcm_prefs", Context.MODE_PRIVATE)
-    private val keyStore = KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
+    private val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    private val prefs = EncryptedSharedPreferences.create(
+        context,
+        "fcm_secure_prefs",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 
     companion object {
         private const val FCM_DEVICE_ID_KEY = "fcmDeviceID"
-        private const val AES_KEY_ALIAS = "FCMDeviceKey"
-        private const val AES_MODE = "AES/GCM/NoPadding"
+        private const val FCM_ANDROID_ID_KEY = "fcmAndroidID"
+        private const val LAST_REGISTERED_TOKEN = "last_registered_token"
+        private const val LAST_REGISTERED_LANG = "last_registered_lang"
     }
 
     private var isRegistering: Boolean = false
 
-    init {
-        if (!keyStore.containsAlias(AES_KEY_ALIAS)) {
-            val keyGenerator =
-                KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore")
-            keyGenerator.init(
-                KeyGenParameterSpec.Builder(
-                    AES_KEY_ALIAS,
-                    KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+    override suspend fun register(fcmToken: String) {
+        val currentLang = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ko"
+        
+        val savedToken = prefs.getString(LAST_REGISTERED_TOKEN, null)
+        val savedLang = prefs.getString(LAST_REGISTERED_LANG, null)
+
+        if (savedToken == fcmToken && savedLang == currentLang) {
+            Timber.d("FCM: Token and language already match. Skipping.")
+            return
+        }
+
+        if (isRegistering) return
+        isRegistering = true
+
+        try {
+            val existingUUID = getPersistentDeviceID()
+
+            if (existingUUID == null) {
+                val newUUID = UUID.randomUUID().toString()
+                val currentAndroidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+                
+                prefs.edit {
+                    putString(FCM_DEVICE_ID_KEY, newUUID)
+                    putString(FCM_ANDROID_ID_KEY, currentAndroidId)
+                }
+
+                fcmRepository.register(
+                    deviceUUID = newUUID,
+                    fcmToken = fcmToken,
+                    deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
+                    language = currentLang
                 )
-                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
-                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
-                    .build()
-            )
-            keyGenerator.generateKey()
+                Timber.d("FCM: New device registered. UUID: $newUUID")
+            } else {
+                fcmRepository.updateToken(
+                    fcmToken = fcmToken,
+                    deviceToken = existingUUID
+                )
+                Timber.d("FCM: Existing device token updated. UUID: $existingUUID")
+            }
+
+            prefs.edit {
+                putString(LAST_REGISTERED_TOKEN, fcmToken)
+                putString(LAST_REGISTERED_LANG, currentLang)
+            }
+
+        } catch (e: Exception) {
+            Timber.e(e, "FCM: Operation failed.")
+        } finally {
+            isRegistering = false
         }
     }
 
-override suspend fun register(fcmToken: String) {
-    val savedToken = prefs.getString("last_registered_token", null)
-    if (savedToken == fcmToken) {
-        Timber.d("FCM: Token already matches. Skipping.")
-        return
-    }
+    private fun getPersistentDeviceID(): String? {
+        val currentAndroidId = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+        val storedAndroidId = prefs.getString(FCM_ANDROID_ID_KEY, null)
 
-    if (isRegistering) return
-
-    try {
-        val existingUUID = getEncryptedDeviceID()
-
-        if (existingUUID == null) {
-            val newUUID = UUID.randomUUID().toString()
-            saveEncryptedDeviceID(newUUID)
-
-            fcmRepository.register(
-                deviceUUID = newUUID,
-                fcmToken = fcmToken,
-                deviceName = "${Build.MANUFACTURER} ${Build.MODEL}",
-                language = Locale.getDefault().language.takeIf { it.isNotBlank() } ?: "ko"
-            )
-            Timber.d("FCM: New device registered.")
-        } else {
-            fcmRepository.updateToken(
-                fcmToken = fcmToken,
-                deviceToken = existingUUID
-            )
-            Timber.d("FCM: Existing device token updated.")
+        if (storedAndroidId != null && storedAndroidId != currentAndroidId) {
+            Timber.d("FCM: Detected device change via backup. Ignoring restored UUID.")
+            return null
         }
 
-        prefs.edit { putString("last_registered_token", fcmToken) }
-
-    } catch (e: Exception) {
-        Timber.e(e, "FCM: Operation failed.")
-    } finally {
-        isRegistering = false
+        return try {
+            prefs.getString(FCM_DEVICE_ID_KEY, null)
+        } catch (_: Exception) {
+            null
+        }
     }
-}
 
     override suspend fun manage(service: FeatureType, isActive: Boolean) {
-        val deviceUUID = getEncryptedDeviceID() ?: run {
+        val deviceUUID = getPersistentDeviceID() ?: run {
             Timber.e("FCM Manage failed: No Device UUID found.")
             return
         }
@@ -108,33 +128,6 @@ override suspend fun register(fcmToken: String) {
             service = service,
             isActive = isActive
         )
-    }
-
-    private fun getSecretKey(): SecretKey {
-        return (keyStore.getEntry(AES_KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
-    }
-
-    private fun saveEncryptedDeviceID(uuid: String) {
-        val cipher = Cipher.getInstance(AES_MODE)
-        cipher.init(Cipher.ENCRYPT_MODE, getSecretKey())
-        val iv = cipher.iv
-        val encrypted = cipher.doFinal(uuid.toByteArray())
-        val combined = Base64.encodeToString(iv + encrypted, Base64.NO_WRAP)
-        prefs.edit { putString(FCM_DEVICE_ID_KEY, combined) }
-    }
-
-    private fun getEncryptedDeviceID(): String? {
-        val combinedStr = prefs.getString(FCM_DEVICE_ID_KEY, null) ?: return null
-        return try {
-            val combined = Base64.decode(combinedStr, Base64.NO_WRAP)
-            val iv = combined.sliceArray(0 until 12)
-            val encrypted = combined.sliceArray(12 until combined.size)
-            val cipher = Cipher.getInstance(AES_MODE)
-            cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), GCMParameterSpec(128, iv))
-            String(cipher.doFinal(encrypted))
-        } catch (_: Exception) {
-            null
-        }
     }
 }
 
