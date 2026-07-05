@@ -6,6 +6,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -17,7 +18,8 @@ import org.sparcs.soap.app.theme.ui.Theme
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiChatListViewNavigationBar(
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = { onDismiss() }) },
@@ -32,17 +34,19 @@ fun TaxiChatListViewNavigationBar(
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface
-        )
+        ),
+        scrollBehavior = scrollBehavior
     )
 }
 
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 private fun Preview(){
     Theme {
-        TaxiChatListViewNavigationBar {}
+        TaxiChatListViewNavigationBar(onDismiss = {})
     }
 }
 

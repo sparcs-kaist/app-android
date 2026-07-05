@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -21,6 +22,7 @@ import org.sparcs.soap.app.shared.extensions.elevation
 @Composable
 fun SearchNavigationBar(
     scrollState: ScrollState,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
         title = {
@@ -36,6 +38,7 @@ fun SearchNavigationBar(
             containerColor = MaterialTheme.colorScheme.surface,
             scrolledContainerColor = MaterialTheme.colorScheme.surface
         ),
+        scrollBehavior = scrollBehavior,
         modifier = Modifier.shadow(scrollState.elevation())
     )
 }

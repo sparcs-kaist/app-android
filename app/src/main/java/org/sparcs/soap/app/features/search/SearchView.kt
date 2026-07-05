@@ -63,6 +63,8 @@ import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.viewModelMocks.MockSearchViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
@@ -106,9 +108,14 @@ fun SearchView(
             viewModel.loadFull()
         }
     }
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
-            SearchNavigationBar(scrollState = scrollState)
+            SearchNavigationBar(
+                scrollState = scrollState,
+                scrollBehavior = topBarScrollBehavior
+            )
         },
         bottomBar = {
             AppDownBar(
@@ -117,6 +124,7 @@ fun SearchView(
             )
         },
         modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
             .navigationBarsPadding()
             .analyticsScreen("Search")
     ) { innerPadding ->

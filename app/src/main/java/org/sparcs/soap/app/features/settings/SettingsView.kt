@@ -34,6 +34,7 @@ import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -71,12 +72,15 @@ import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.viewModelMocks.MockSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsView(
     navController: NavController,
@@ -95,14 +99,19 @@ fun SettingsView(
         FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = isCrashlyticsEnabled
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.settings),
-                onDismiss = { navController.popBackStack() }
+                onDismiss = { navController.popBackStack() },
+                scrollBehavior = topBarScrollBehavior
             )
         },
-        modifier = Modifier.analyticsScreen("Settings")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen("Settings")
     ) { innerPadding ->
         Box(
             modifier = Modifier

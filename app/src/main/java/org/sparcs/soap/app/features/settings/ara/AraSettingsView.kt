@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -49,6 +50,8 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.taxi.NavigationLinkWithIcon
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockAraSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -57,6 +60,7 @@ import org.sparcs.soap.app.theme.ui.grayBB
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AraSettingsView(
     viewModel: AraSettingsViewModelProtocol = hiltViewModel<AraSettingsViewModel>(),
@@ -74,14 +78,19 @@ fun AraSettingsView(
         viewModel.updateContentPreference()
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.ara_settings),
                 onDismiss = { navController.popBackStack() },
+                scrollBehavior = topBarScrollBehavior
             )
         },
-        modifier = Modifier.analyticsScreen("Ara Settings")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen("Ara Settings")
     ) { innerPadding ->
 
         Box(

@@ -68,6 +68,8 @@ import org.sparcs.soap.app.features.feedPost.components.FeedPostNavigationBar
 import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeIn
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.mocks.feed.mockList
@@ -118,6 +120,7 @@ fun FeedPostView(
 
         is FeedPostViewModel.ViewState.Loaded -> {
             val post = feedViewModel.posts.find { it.id == state.post.id } ?: state.post
+            val topBarScrollBehavior = landscapeHideOnScrollBehavior()
 
             Scaffold(
                 topBar = {
@@ -128,7 +131,8 @@ fun FeedPostView(
                             viewModel.reportPost(post.id, reason)
                         },
                         onTranslate = {/*Todo - translate*/ },
-                        isMine = post.isAuthor
+                        isMine = post.isAuthor,
+                        scrollBehavior = topBarScrollBehavior
                     )
                 },
                 bottomBar = {
@@ -168,6 +172,7 @@ fun FeedPostView(
                     }
                 },
                 modifier = Modifier
+                    .hideTopBarOnScroll(topBarScrollBehavior)
                     .analyticsScreen(
                         name = "Feed Post",
                         "is_author" to post.isAuthor,
@@ -191,34 +196,47 @@ fun FeedPostView(
                             }
                         },
                         state = pullState,
-                        modifier = Modifier.widthIn(max = 600.dp)
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         LazyColumn(
                             state = proxy,
+                            horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.fillMaxSize()
                         ) {
                             item {
-                                FeedPostRow(
-                                    post = post,
-                                    viewModel = feedViewModel,
-                                    singleLine = false,
-                                    onPostDeleted = null,
-                                    onComment = {
-                                        targetComment = null
-                                        isWritingCommentFocusState = true
-                                    }
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .widthIn(max = 600.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    FeedPostRow(
+                                        post = post,
+                                        viewModel = feedViewModel,
+                                        singleLine = false,
+                                        onPostDeleted = null,
+                                        onComment = {
+                                            targetComment = null
+                                            isWritingCommentFocusState = true
+                                        }
+                                    )
+                                }
                             }
 
                             item {
-                                Comments(
-                                    viewModel = viewModel,
-                                    post = post,
-                                    onReply = { c ->
-                                        targetComment = c
-                                        isWritingCommentFocusState = true
-                                    }
-                                )
+                                Box(
+                                    modifier = Modifier
+                                        .widthIn(max = 600.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    Comments(
+                                        viewModel = viewModel,
+                                        post = post,
+                                        onReply = { c ->
+                                            targetComment = c
+                                            isWritingCommentFocusState = true
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -469,6 +487,7 @@ private fun Comments(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LoadingView(
     navController: NavController,

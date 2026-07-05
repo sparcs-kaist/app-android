@@ -98,6 +98,8 @@ import org.sparcs.soap.app.features.post.components.PostVoteButton
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.formattedString
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.postfixEuroRo
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
@@ -171,6 +173,8 @@ fun PostView(
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             PostNavigationBar(
@@ -183,7 +187,8 @@ fun PostView(
                 onTranslate = {
                     //TODO-Translate
                 },
-                isMine = post?.isMine
+                isMine = post?.isMine,
+                scrollBehavior = topBarScrollBehavior
             )
         },
         bottomBar = {
@@ -253,11 +258,13 @@ fun PostView(
                 }
             }
         },
-        modifier = Modifier.analyticsScreen(
-            "Ara Post",
-            "is_author" to (post?.isMine ?: false),
-            "has_comments" to ((post?.commentCount ?: 0) > 0)
-        ),
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen(
+                "Ara Post",
+                "is_author" to (post?.isMine ?: false),
+                "has_comments" to ((post?.commentCount ?: 0) > 0)
+            ),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state is PostViewModel.ViewState.Error) {

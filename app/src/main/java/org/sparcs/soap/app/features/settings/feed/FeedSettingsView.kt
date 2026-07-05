@@ -24,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -58,12 +59,15 @@ import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.feed.viewState.FeedProfileImageState
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedSettingsViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedSettingsView(
     viewModel: FeedSettingsViewModelProtocol = hiltViewModel<FeedSettingsViewModel>(),
@@ -78,14 +82,19 @@ fun FeedSettingsView(
         viewModel.fetchUser()
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.feed_settings),
-                onDismiss = { navController.popBackStack() }
+                onDismiss = { navController.popBackStack() },
+                scrollBehavior = topBarScrollBehavior
             )
         },
-        modifier = Modifier.analyticsScreen("Feed Settings"),
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen("Feed Settings"),
         snackbarHost = { SnackbarHost(hostState = snackBarHostState) }
     ) { innerPadding ->
 

@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +34,8 @@ fun PostNavigationBar(
     onDelete: () -> Unit,
     onReport: (AraContentReportType) -> Unit,
     onTranslate: () -> Unit,
-    isMine: Boolean?
+    isMine: Boolean?,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
         navigationIcon = {
@@ -74,11 +76,13 @@ fun PostNavigationBar(
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
-        )
+        ),
+        scrollBehavior = scrollBehavior
     )
 
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 private fun Preview(){

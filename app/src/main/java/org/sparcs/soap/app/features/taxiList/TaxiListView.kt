@@ -74,7 +74,9 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationP
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.isDateInSameDay
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.weekdaySymbol
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -118,12 +120,15 @@ fun TaxiListView(
     )
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             TaxiListNavigationBar(
                 scrollState = scrollState,
                 navController = navController,
-                isButtonEnabled = true
+                isButtonEnabled = true,
+                scrollBehavior = topBarScrollBehavior
             )
         },
         bottomBar = {
@@ -133,6 +138,7 @@ fun TaxiListView(
             )
         },
         modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
             .navigationBarsPadding()
             .analyticsScreen("Taxi List")
     ) { innerPadding ->

@@ -1,14 +1,15 @@
 package org.sparcs.soap.app.features.feed
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Scaffold
@@ -42,6 +43,8 @@ import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.mocks.feed.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
@@ -59,7 +62,6 @@ fun FeedView(
     var isRefreshing by remember { mutableStateOf(false) }
     val loadedInitialPost = rememberSaveable { mutableStateOf(false) }
 
-    val scrollState = rememberScrollState()
     val listState = rememberLazyListState()
     val stateHandle = navController.currentBackStackEntry?.savedStateHandle
     val listNeedsRefresh = stateHandle?.getStateFlow("listNeedsRefresh", false)?.collectAsState()
@@ -99,12 +101,15 @@ fun FeedView(
             }
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             FeedViewNavigationBar(
-                scrollState = scrollState,
+                listState = listState,
                 navController = navController,
-                viewModel = viewModel
+                viewModel = viewModel,
+                scrollBehavior = topBarScrollBehavior
             )
         },
         bottomBar = {
@@ -113,7 +118,9 @@ fun FeedView(
                 navController = navController
             )
         },
-        modifier = Modifier.analyticsScreen(name = "Feed")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen(name = "Feed")
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -132,18 +139,25 @@ fun FeedView(
                     }
                 },
                 state = pullState,
-                modifier = Modifier.widthIn(max = 600.dp)
+                modifier = Modifier.fillMaxSize()
             ) {
                 LazyColumn(
                     state = listState,
                     contentPadding = PaddingValues(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxSize()
                 ) {
                     when (state) {
                         is FeedViewModel.ViewState.Loading -> {
                             items(3) {
-                                FeedPostRowSkeleton()
-                                HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                                Column(
+                                    modifier = Modifier
+                                        .widthIn(max = 600.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    FeedPostRowSkeleton()
+                                    HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                                }
                             }
                         }
 
@@ -152,23 +166,29 @@ fun FeedView(
                                 items = viewModel.posts,
                                 key = { _, post -> post.id }
                             ) { index, post ->
-                                FeedPostRow(
-                                    post = post,
-                                    viewModel = viewModel,
-                                    singleLine = true,
-                                    onPostDeleted = { postID ->
-                                        scope.launch { viewModel.deletePost(postID) }
-                                    },
-                                    onComment = {
-                                        navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
-                                    }
-                                )
-                                HorizontalDivider(
-                                    Modifier.padding(
-                                        horizontal = 16.dp,
-                                        vertical = 4.dp
+                                Column(
+                                    modifier = Modifier
+                                        .widthIn(max = 600.dp)
+                                        .fillMaxWidth()
+                                ) {
+                                    FeedPostRow(
+                                        post = post,
+                                        viewModel = viewModel,
+                                        singleLine = true,
+                                        onPostDeleted = { postID ->
+                                            scope.launch { viewModel.deletePost(postID) }
+                                        },
+                                        onComment = {
+                                            navController.navigate(Channel.FeedPost.name + "?feedId=${post.id}")
+                                        }
                                     )
-                                )
+                                    HorizontalDivider(
+                                        Modifier.padding(
+                                            horizontal = 16.dp,
+                                            vertical = 4.dp
+                                        )
+                                    )
+                                }
                             }
                         }
 
