@@ -244,28 +244,25 @@ private fun TaxiLandscapeLayout(
     scrollState: ScrollState,
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(vertical = 16.dp),
+        modifier = Modifier.fillMaxSize(),
         horizontalArrangement = Arrangement.spacedBy(32.dp)
     ) {
         Column(
             modifier = Modifier
                 .weight(1f)
-                .padding(start = 24.dp)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, top = 16.dp, bottom = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             TaxiFilterCard(viewModel, locations, favoriteRoutes)
             TaxiWeekSelectorCard(viewModel, selectedDate, haptic)
-            Spacer(modifier = Modifier.weight(1f))
         }
 
         Column(
             modifier = Modifier
                 .weight(1.5f)
-                .padding(end = 24.dp)
                 .verticalScroll(scrollState)
+                .padding(end = 24.dp, top = 16.dp, bottom = 16.dp)
         ) {
             TaxiResultContent(
                 uiState = uiState,
@@ -275,8 +272,6 @@ private fun TaxiLandscapeLayout(
                 onRoomSelected = onRoomSelected,
                 navController = navController
             )
-            
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

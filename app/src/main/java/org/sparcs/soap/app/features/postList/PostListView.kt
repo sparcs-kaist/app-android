@@ -153,17 +153,18 @@ fun PostListView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 600.dp)
-                    .padding(horizontal = 20.dp, vertical = 8.dp),
+                    .widthIn(max = 600.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (showSearchBar) {
-                    SearchCustomBar(
-                        value = searchKeyword,
-                        onValueChange = { viewModel.onSearchTextChange(it) },
-                        onValueClear = { viewModel.onSearchTextChange("") },
-                        placeHolder = stringResource(R.string.search)
-                    )
+                    Box(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
+                        SearchCustomBar(
+                            value = searchKeyword,
+                            onValueChange = { viewModel.onSearchTextChange(it) },
+                            onValueClear = { viewModel.onSearchTextChange("") },
+                            placeHolder = stringResource(R.string.search)
+                        )
+                    }
                     Spacer(modifier = Modifier.height(8.dp))
                 }
 
@@ -188,7 +189,13 @@ fun PostListView(
                                     navController.navigate(Channel.PostView.name + "?postId=${post.id}")
                                 },
                                 isRefreshing = isRefreshing,
-                                keyword = searchKeyword
+                                keyword = searchKeyword,
+                                contentPadding = PaddingValues(
+                                    start = 20.dp,
+                                    end = 20.dp,
+                                    top = 8.dp,
+                                    bottom = 8.dp
+                                )
                             )
                         }
 
@@ -265,7 +272,7 @@ private fun EmptyView(
 
 @Composable
 private fun LoadingView() {
-    Column {
+    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
         repeat(15) {
             PostListSkeletonRow()
             HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)

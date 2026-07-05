@@ -6,6 +6,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -130,7 +131,7 @@ fun SearchView(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 600.dp)
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(top = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 SearchControlCard(
@@ -209,6 +210,7 @@ private fun SearchControlCard(
         shape = RoundedCornerShape(16.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp)
             .glassBorder(shape = RoundedCornerShape(16.dp))
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
@@ -297,9 +299,8 @@ fun ResultView(
     val state by viewModel.state.collectAsState()
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 8.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
     ) {
         // --- Courses ---
         if (searchScope == SearchScope.All) {

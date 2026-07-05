@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.features.taxiChatList.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -33,10 +34,12 @@ fun TaxiChatRoomList(
     done: List<TaxiRoom>,
     taxiUser: TaxiUser?,
     onRoomClick: (TaxiRoom) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = contentPadding,
         modifier = modifier.fillMaxSize()
     ) {
         item {
@@ -97,9 +100,10 @@ fun TaxiChatRoomList(
 }
 
 @Composable
-fun TaxiChatRoomListSkeleton() {
+fun TaxiChatRoomListSkeleton(contentPadding: PaddingValues = PaddingValues(0.dp)) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(4.dp),
+        contentPadding = contentPadding,
         modifier = Modifier.fillMaxSize()
     ) {
         item {

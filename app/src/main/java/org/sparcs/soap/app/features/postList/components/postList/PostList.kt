@@ -2,6 +2,7 @@ package org.sparcs.soap.app.features.postList.components.postList
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,6 +46,7 @@ fun PostList(
     onPostClick: (AraPost) -> Unit,
     isRefreshing: Boolean,
     keyword: String? = "",
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     if (posts != null && posts.isEmpty() && keyword == null) {
         //그냥 empty한 경우 (keyword == null)
@@ -57,7 +59,7 @@ fun PostList(
     }
     when {
         posts == null -> {
-            LoadingView()
+            LoadingView(contentPadding = contentPadding)
         }
 
         else -> {
@@ -66,7 +68,8 @@ fun PostList(
                 onLoadMore = { onLoadMore() },
                 onPostClick = onPostClick,
                 onRefresh = onRefresh,
-                isRefreshing = isRefreshing
+                isRefreshing = isRefreshing,
+                contentPadding = contentPadding
             )
         }
     }
@@ -80,6 +83,7 @@ private fun LoadedView(
     onPostClick: (AraPost) -> Unit,
     onRefresh: (() -> Unit),
     isRefreshing: Boolean,
+    contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
 
     var isLoadingMore by remember { mutableStateOf(false) }
@@ -109,7 +113,7 @@ private fun LoadedView(
         onRefresh = onRefresh,
         state = pullState
     ) {
-        LazyColumn(state = listState) {
+        LazyColumn(state = listState, contentPadding = contentPadding) {
             itemsIndexed(posts) { index, post ->
                 PostListRow(
                     post = post,
@@ -133,8 +137,8 @@ private fun LoadedView(
 }
 
 @Composable
-private fun LoadingView() {
-    LazyColumn {
+private fun LoadingView(contentPadding: PaddingValues = PaddingValues(0.dp)) {
+    LazyColumn(contentPadding = contentPadding) {
         repeat(4) {
             item {
                 PostListSkeletonRow()

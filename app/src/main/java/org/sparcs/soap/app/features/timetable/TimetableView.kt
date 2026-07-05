@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,7 +36,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -132,6 +133,7 @@ fun TimetableView(
                         viewModel = viewModel,
                         timetableName = timetableName,
                         selectedTimetable = selectedTimetable,
+                        screenHeight = screenHeight,
                         navController = navController,
                         onDeleteClick = { lecture ->
                             lectureToDelete = lecture
@@ -222,14 +224,21 @@ private fun TimetableLandscapeLayout(
     viewModel: TimetableViewModelProtocol,
     timetableName: String,
     selectedTimetable: Timetable?,
+    screenHeight: Dp,
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
     onAddClick: () -> Unit,
     isEditable: Boolean
 ) {
+    val density = LocalDensity.current
+    // Left grid stretches to match the measured height of the right column,
+    // so both sides scroll together as one page.
+    var rightColumnHeight by remember { mutableStateOf(screenHeight) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -259,14 +268,13 @@ private fun TimetableLandscapeLayout(
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxSize(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             Card(
                 modifier = Modifier
                     .weight(1.2f)
-                    .fillMaxHeight()
+                    .height(rightColumnHeight)
                     .padding(start = 24.dp)
                     .glassBorder(shape = RoundedCornerShape(28.dp)),
                 shape = RoundedCornerShape(28.dp),
@@ -289,9 +297,10 @@ private fun TimetableLandscapeLayout(
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight()
-                    .padding(end = 24.dp)
-                    .verticalScroll(rememberScrollState()),
+                    .onSizeChanged { size ->
+                        rightColumnHeight = with(density) { size.height.toDp() }
+                    }
+                    .padding(end = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 ElevatedCard(
@@ -317,8 +326,6 @@ private fun TimetableLandscapeLayout(
                 selectedTimetable?.let { TimetableCreditGraph(it) }
 
                 TimetableSummary(viewModel)
-                
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

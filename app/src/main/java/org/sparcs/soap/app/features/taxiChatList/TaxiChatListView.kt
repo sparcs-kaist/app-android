@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -59,13 +60,12 @@ fun TaxiChatListView(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .widthIn(max = 600.dp)
-                    .padding(16.dp),
+                    .widthIn(max = 600.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 when (state) {
                     is TaxiChatListViewModel.ViewState.Loading -> {
-                        TaxiChatRoomListSkeleton()
+                        TaxiChatRoomListSkeleton(contentPadding = PaddingValues(16.dp))
                     }
 
                     is TaxiChatListViewModel.ViewState.Loaded -> {
@@ -77,7 +77,8 @@ fun TaxiChatListView(
                             onRoomClick = { room ->
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
-                            }
+                            },
+                            contentPadding = PaddingValues(16.dp)
                         )
                     }
 
