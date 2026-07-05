@@ -114,7 +114,7 @@ fun PostView(
     viewModel: PostViewModelProtocol = hiltViewModel<PostViewModel>(),
     navController: NavController,
 ) {
-    val post by viewModel.post.collectAsState()
+    val post = viewModel.post.collectAsState().value
     val context = LocalContext.current
     val state by viewModel.state.collectAsState()
     val pullState = rememberPullToRefreshState()
@@ -289,14 +289,13 @@ fun PostView(
                         .padding(horizontal = 20.dp, vertical = 8.dp)
                 ) {
                     item {
-                        val currentPost = post
-                        if (currentPost == null) {
+                        if (post == null) {
                             HeaderSkeleton()
                         } else {
                             Header(
-                                post = currentPost,
+                                post = post,
                                 onAuthorClick = {
-                                    val json = Uri.encode(Gson().toJson(currentPost.author))
+                                    val json = Uri.encode(Gson().toJson(post.author))
                                     navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
                                 }
                             )
@@ -311,32 +310,29 @@ fun PostView(
                             onLinkTapped = { tappedURL = it.toUri() }
                         )
                     }
-                    val currentPostForAttachments = post
-                    if (currentPostForAttachments != null && !currentPostForAttachments.attachments.isNullOrEmpty()) {
+                    if (post != null && !post.attachments.isNullOrEmpty()) {
                         item {
-                            PostAttachmentsSection(attachments = currentPostForAttachments.attachments)
+                            PostAttachmentsSection(attachments = post.attachments)
                             Spacer(modifier = Modifier.height(8.dp))
                         }
                     }
                     item {
-                        val currentPostForFooter = post
-                        if (currentPostForFooter == null) {
+                        if (post == null) {
                             FooterSkeleton()
                         } else {
-                            Footer(viewModel, scope = scope, post = currentPostForFooter) {
+                            Footer(viewModel, scope = scope, post = post) {
                                 targetComment = null
                                 focusRequester.requestFocus()
                                 keyboardController?.show()
                             }
                         }
                     }
-                    val currentPostForComments = post
-                    if (currentPostForComments == null) {
+                    if (post == null) {
                         items(2) { CommentSkeleton() }
                     } else {
                         item {
                             Comments(
-                                post = currentPostForComments,
+                                post = post,
                                 onCommentChange = { update ->
                                     targetComment = update.targetComment
                                     commentOnEdit = update.commentOnEdit

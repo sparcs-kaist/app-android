@@ -18,7 +18,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -59,18 +61,29 @@ fun LectureDetailView(
     val isContained = selectedTimetable?.lectures?.any { it.id == lecture.id } ?: false
     val isEditable by timetableViewModel.isEditable.collectAsState()
 
+    var showCannotAddLectureAlert by remember { mutableStateOf(false) }
+    val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
+    var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
+
     Scaffold(
         topBar = {
             LectureDetailNavigationBar(
                 navController = navController,
                 text = lecture.name,
-                onAdd = { timetableViewModel.addLecture(lecture) },
+                onAdd = {
+                    if (isOverlapping) {
+                        showCannotAddLectureAlert = true
+                        pendingLectureToAdd = lecture
+                    } else {
+                        timetableViewModel.addLecture(lecture)
+                    }
+                },
                 onDelete = { timetableViewModel.deleteLecture(lecture) },
                 isCurrentTimetable = isContained,
                 isEnabled = isEditable
             )
         },
-        modifier = Modifier.analyticsScreen("LectureDetail")
+        modifier = Modifier.analyticsScreen("Lecture Detail")
     ) { paddingValues ->
         Box(
             modifier = Modifier

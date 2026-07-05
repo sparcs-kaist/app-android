@@ -122,7 +122,6 @@ fun TaxiChatView(
     LaunchedEffect(Unit) {
         viewModel.setup()
         viewModel.fetchInitialChats()
-        listViewModel.fetchData()
     }
 
     val chatListContent = @Composable {
@@ -258,7 +257,6 @@ fun TaxiChatView(
         mainScaffold()
     }
 
-    // ... AlertDialogs (생략)
     if (showCallTaxiAlert) {
         AlertDialog(
             onDismissRequest = { dismissCallTaxiAlert() },
@@ -497,7 +495,16 @@ private fun TaxiChatView_Loaded_Landscape_Preview() {
 private fun TaxiChatView_Loaded_Preview() {
     val viewModel = PreviewTaxiChatViewModel(initialState = TaxiChatViewModel.ViewState.Loaded)
     Theme {
-        TaxiChatView(viewModel = viewModel, navController = rememberNavController())
+        TaxiChatView(
+            viewModel = viewModel,
+            listViewModel = PreviewTaxiChatListViewModel(
+                TaxiChatListViewModel.ViewState.Loaded(
+                    TaxiRoom.mockList().subList(0, 3),
+                    TaxiRoom.mockList().subList(3, 5)
+                )
+            ),
+            navController = rememberNavController()
+        )
     }
 }
 
@@ -506,6 +513,10 @@ private fun TaxiChatView_Loaded_Preview() {
 private fun TaxiChatView_Error_Preview() {
     val viewModel = PreviewTaxiChatViewModel(initialState = TaxiChatViewModel.ViewState.Error(Exception()))
     Theme {
-        TaxiChatView(viewModel = viewModel, navController = rememberNavController())
+        TaxiChatView(
+            viewModel = viewModel,
+            listViewModel = PreviewTaxiChatListViewModel(TaxiChatListViewModel.ViewState.Error(Exception())),
+            navController = rememberNavController()
+        )
     }
 }

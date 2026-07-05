@@ -67,6 +67,7 @@ import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
+import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,14 +139,19 @@ fun SearchView(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                SearchResultContent(
-                    state = state,
-                    searchText = searchText,
-                    viewModel = viewModel,
-                    navController = navController,
-                    coroutineScope = coroutineScope,
-                    onTaxiClick = { selectedRoom = it }
-                )
+                Box(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    SearchResultContent(
+                        state = state,
+                        searchText = searchText,
+                        viewModel = viewModel,
+                        navController = navController,
+                        coroutineScope = coroutineScope,
+                        onTaxiClick = { selectedRoom = it }
+                    )
+                }
             }
         }
 
@@ -243,28 +249,33 @@ private fun SearchResultContent(
     coroutineScope: CoroutineScope,
     onTaxiClick: (TaxiRoom) -> Unit
 ) {
-    when {
-        state is SearchViewModel.ViewState.Error -> {
-            ErrorView(
-                error = (state).error,
-                onRetry = { coroutineScope.launch { viewModel.bind() } }
-            )
-        }
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            state is SearchViewModel.ViewState.Error -> {
+                ErrorView(
+                    error = (state).error,
+                    onRetry = { coroutineScope.launch { viewModel.bind() } }
+                )
+            }
 
-        searchText.isEmpty() -> {
-            UnavailableView(
-                icon = Icons.Rounded.Search,
-                title = stringResource(R.string.search_anything),
-                description = stringResource(R.string.find_etc)
-            )
-        }
+            searchText.isEmpty() -> {
+                UnavailableView(
+                    icon = Icons.Rounded.Search,
+                    title = stringResource(R.string.search_anything),
+                    description = stringResource(R.string.find_etc)
+                )
+            }
 
-        else -> {
-            ResultView(
-                viewModel = viewModel,
-                navController = navController,
-                onTaxiClick = onTaxiClick
-            )
+            else -> {
+                ResultView(
+                    viewModel = viewModel,
+                    navController = navController,
+                    onTaxiClick = onTaxiClick
+                )
+            }
         }
     }
 }
@@ -365,7 +376,11 @@ fun ResultView(
 @Composable
 private fun MockView(state: SearchViewModel.ViewState) {
     val mockViewModel = remember { MockSearchViewModel(initialState = state) }
-    SearchView(viewModel = mockViewModel, navController = rememberNavController())
+    SearchView(
+        viewModel = mockViewModel,
+        taxiPreviewViewModel = PreviewTaxiPreviewViewModel(),
+        navController = rememberNavController()
+    )
 }
 
 @Composable

@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.feed
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +11,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -120,9 +118,8 @@ fun FeedView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding),
-            contentAlignment = Alignment.TopCenter
+            contentAlignment = Alignment.TopCenter,
         ) {
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
@@ -177,10 +174,15 @@ fun FeedView(
 
                         is FeedViewModel.ViewState.Error -> {
                             item {
-                                ErrorView(
-                                    error = (state as FeedViewModel.ViewState.Error).error,
-                                    onRetry = { scope.launch { viewModel.fetchInitialData() } }
-                                )
+                                Box(
+                                    modifier = Modifier.fillParentMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    ErrorView(
+                                        error = (state as FeedViewModel.ViewState.Error).error,
+                                        onRetry = { scope.launch { viewModel.fetchInitialData() } }
+                                    )
+                                }
                             }
                         }
                     }
@@ -195,12 +197,42 @@ fun FeedView(
     )
 }
 
-@Preview(showBackground = true)
+// MARK: - Previews
+@Preview(showBackground = true, name = "Loading")
+@Composable
+private fun PreviewLoading() {
+    val viewModel = PreviewFeedViewModel(
+        initialState = FeedViewModel.ViewState.Loading,
+        posts = FeedPost.mockList()
+    )
+    Theme { FeedView(viewModel, rememberNavController()) }
+}
+
+@Preview(showBackground = true, name = "Loaded")
 @Composable
 private fun PreviewLoaded() {
     val viewModel = PreviewFeedViewModel(
         initialState = FeedViewModel.ViewState.Loaded(FeedPost.mockList()),
         posts = FeedPost.mockList()
+    )
+    Theme { FeedView(viewModel, rememberNavController()) }
+}
+
+@Preview(showBackground = true, name = "Error")
+@Composable
+private fun PreviewError() {
+    val viewModel = PreviewFeedViewModel(
+        initialState = FeedViewModel.ViewState.Error(Exception("Error"))
+    )
+    Theme { FeedView(viewModel, rememberNavController()) }
+}
+
+@Preview(showBackground = true, name = "Empty")
+@Composable
+private fun PreviewEmpty() {
+    val viewModel = PreviewFeedViewModel(
+        initialState = FeedViewModel.ViewState.Loaded(emptyList()),
+        posts = emptyList()
     )
     Theme { FeedView(viewModel, rememberNavController()) }
 }

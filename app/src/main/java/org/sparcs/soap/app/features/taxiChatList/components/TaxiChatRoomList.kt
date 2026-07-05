@@ -15,13 +15,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
+import org.sparcs.soap.app.shared.mocks.taxi.mock
+import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomSkeletonCell
+import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun TaxiChatRoomList(
@@ -126,5 +130,26 @@ fun TaxiChatRoomListSkeleton() {
                 TaxiRoomSkeletonCell()
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaxiChatRoomListPreview() {
+    Theme {
+        TaxiChatRoomList(
+            onGoing = TaxiRoom.mockList().take(3),
+            done = TaxiRoom.mockList().takeLast(2),
+            taxiUser = TaxiUser.mock(),
+            onRoomClick = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun TaxiChatRoomListSkeletonPreview() {
+    Theme {
+        TaxiChatRoomListSkeleton()
     }
 }

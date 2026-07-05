@@ -56,7 +56,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -117,8 +116,6 @@ fun TaxiChatViewNavigationBar(
                     ) {
                         Text(
                             text = room.title,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
                             style = MaterialTheme.typography.titleMedium,
                             textAlign = TextAlign.Center
                         )
@@ -135,8 +132,6 @@ fun TaxiChatViewNavigationBar(
                             text = "${room.source.title} → ${room.destination.title}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

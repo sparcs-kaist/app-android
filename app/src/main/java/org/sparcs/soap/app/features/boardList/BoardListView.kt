@@ -90,22 +90,27 @@ fun BoardListView(
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .widthIn(max = 600.dp)
-                    .verticalScroll(scrollState),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (state is BoardListViewModel.ViewState.Error) {
-                    val error = (state as BoardListViewModel.ViewState.Error).error
+            if (state is BoardListViewModel.ViewState.Error) {
+                val error = (state as BoardListViewModel.ViewState.Error).error
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     ErrorView(
                         error = error,
                         defaultMessageResId = R.string.error_fetch_boards,
                         onRetry = { viewModel.fetchBoards() }
                     )
-                } else {
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 600.dp)
+                        .verticalScroll(scrollState),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     val onBoardClick: (AraBoard) -> Unit = { board ->
                         val json = Uri.encode(Gson().toJson(board))
                         navController.navigate(Channel.BoardList.name + "?board_json=$json")
@@ -161,6 +166,7 @@ fun systemImage(slug: String): ImageVector {
     }
 }
 
+// MARK: - Previews
 @Preview(name = "Loading State", showBackground = true)
 @Composable
 fun PreviewBoardListLoading() {
@@ -179,5 +185,12 @@ fun PreviewBoardListLoaded() {
 @Composable
 fun PreviewBoardListLoadedLandscape() {
     val viewModel = PreviewBoardListViewModel(initialState = PreviewBoardListViewModel.loadedState())
+    Theme { BoardListView(viewModel, rememberNavController()) }
+}
+
+@Preview(name = "Error State", showBackground = true)
+@Composable
+fun PreviewBoardListError() {
+    val viewModel = PreviewBoardListViewModel(initialState = BoardListViewModel.ViewState.Error(Exception()))
     Theme { BoardListView(viewModel, rememberNavController()) }
 }
