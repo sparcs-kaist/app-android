@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -131,7 +132,9 @@ fun TaxiListView(
                 currentScreen = Channel.Taxi
             )
         },
-        modifier = Modifier.analyticsScreen("Taxi List")
+        modifier = Modifier
+            .navigationBarsPadding()
+            .analyticsScreen("Taxi List")
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
@@ -243,12 +246,13 @@ private fun TaxiLandscapeLayout(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(32.dp)
     ) {
         Column(
             modifier = Modifier
                 .weight(1f)
+                .padding(start = 24.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -260,6 +264,7 @@ private fun TaxiLandscapeLayout(
         Column(
             modifier = Modifier
                 .weight(1.5f)
+                .padding(end = 24.dp)
                 .verticalScroll(scrollState)
         ) {
             TaxiResultContent(
@@ -270,6 +275,8 @@ private fun TaxiLandscapeLayout(
                 onRoomSelected = onRoomSelected,
                 navController = navController
             )
+            
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

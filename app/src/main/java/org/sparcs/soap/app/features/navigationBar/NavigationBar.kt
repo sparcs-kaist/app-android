@@ -741,6 +741,7 @@ fun AppDownBar(
 ) {
     val configuration = LocalConfiguration.current
     if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+        Spacer(Modifier.navigationBarsPadding())
         return
     }
 

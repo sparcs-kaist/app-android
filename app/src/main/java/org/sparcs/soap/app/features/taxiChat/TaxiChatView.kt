@@ -57,6 +57,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TaxiDeepLinkHelper
@@ -84,6 +85,7 @@ import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiChatListViewModel
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiChatViewModel
+import java.util.Date
 
 @Composable
 fun TaxiChatView(
@@ -122,6 +124,16 @@ fun TaxiChatView(
     LaunchedEffect(Unit) {
         viewModel.setup()
         viewModel.fetchInitialChats()
+    }
+
+    // Trigger recomposition when departure time is reached
+    var now by remember { mutableStateOf(Date()) }
+    LaunchedEffect(room.departAt) {
+        val delayMs = room.departAt.time - Date().time
+        if (delayMs > 0) {
+            delay(delayMs + 1000)
+            now = Date()
+        }
     }
 
     val chatListContent = @Composable {
@@ -194,8 +206,7 @@ fun TaxiChatView(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background)
-                        .navigationBarsPadding(),
+                        .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
                     Box(modifier = Modifier.widthIn(max = if (isLandscape) 1000.dp else 600.dp)) {
@@ -218,7 +229,9 @@ fun TaxiChatView(
                     }
                 }
             },
-            modifier = Modifier.analyticsScreen("Taxi Chat")
+            modifier = Modifier
+                .navigationBarsPadding()
+                .analyticsScreen("Taxi Chat")
         ) { innerPadding ->
             Box(
                 modifier = Modifier

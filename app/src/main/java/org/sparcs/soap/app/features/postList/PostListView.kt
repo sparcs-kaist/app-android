@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
@@ -138,7 +139,9 @@ fun PostListView(
                 )
             }
         },
-        modifier = Modifier.analyticsScreen(name = "Ara Post List")
+        modifier = Modifier
+            .navigationBarsPadding()
+            .analyticsScreen(name = "Ara Post List")
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -271,9 +274,13 @@ private fun LoadingView() {
 }
 
 @Composable
-private fun ComposeButton(onClick: () -> Unit) {
+private fun ComposeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Button(
         onClick = onClick,
+        modifier = modifier,
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
         elevation = ButtonDefaults.buttonElevation(4.dp),

@@ -230,11 +230,13 @@ private fun TimetableLandscapeLayout(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -257,13 +259,15 @@ private fun TimetableLandscapeLayout(
         }
 
         Row(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize(),
             horizontalArrangement = Arrangement.spacedBy(32.dp)
         ) {
             Card(
                 modifier = Modifier
                     .weight(1.2f)
                     .fillMaxHeight()
+                    .padding(start = 24.dp)
                     .glassBorder(shape = RoundedCornerShape(28.dp)),
                 shape = RoundedCornerShape(28.dp),
                 colors = CardDefaults.elevatedCardColors(
@@ -286,6 +290,7 @@ private fun TimetableLandscapeLayout(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
+                    .padding(end = 24.dp)
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -312,6 +317,8 @@ private fun TimetableLandscapeLayout(
                 selectedTimetable?.let { TimetableCreditGraph(it) }
 
                 TimetableSummary(viewModel)
+                
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
