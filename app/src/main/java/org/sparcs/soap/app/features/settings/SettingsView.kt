@@ -65,6 +65,9 @@ import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.R
 import org.sparcs.soap.app.ChannelManager
 import org.sparcs.soap.app.domain.helpers.Constants
+import org.sparcs.soap.app.domain.models.notification.LiveClassNotification
+import org.sparcs.soap.app.domain.models.notification.LiveClassState
+import org.sparcs.soap.app.domain.services.liveNotification.LiveClassNotifier
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -219,6 +222,8 @@ fun SettingsView(
             ) {
                 Text("Invoke Exception")
             }
+
+            LiveNotificationDebugSection(context)
         }
     }
 
@@ -234,6 +239,62 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null
+}
+
+@Composable
+private fun LiveNotificationDebugSection(context: Context) {
+    val notifier = remember { LiveClassNotifier(context) }
+    val eventId = "debug-live-class"
+    val minute = 60_000L
+
+    fun post(state: LiveClassState, startOffsetMin: Long, endOffsetMin: Long) {
+        val now = System.currentTimeMillis()
+        notifier.handle(
+            LiveClassNotification(
+                eventId = eventId,
+                title = "System Programming",
+                location = "E11 304",
+                state = state,
+                startEpochMillis = now + startOffsetMin * minute,
+                endEpochMillis = now + endOffsetMin * minute,
+                dismiss = false,
+            )
+        )
+    }
+
+    Spacer(Modifier.height(8.dp))
+    Text("Live Notification", style = MaterialTheme.typography.titleMedium)
+    Spacer(Modifier.height(8.dp))
+
+    Button(onClick = { post(LiveClassState.STARTS_IN, startOffsetMin = 15, endOffsetMin = 90) }) {
+        Text("STARTS IN (15m)")
+    }
+    Button(onClick = { post(LiveClassState.NOW, startOffsetMin = 0, endOffsetMin = 75) }) {
+        Text("NOW")
+    }
+    Button(onClick = { post(LiveClassState.ON_GOING, startOffsetMin = -20, endOffsetMin = 55) }) {
+        Text("ON GOING (55m left)")
+    }
+    Button(onClick = { post(LiveClassState.ENDING, startOffsetMin = -65, endOffsetMin = 10) }) {
+        Text("ENDING (10m left)")
+    }
+    Button(
+        onClick = {
+            notifier.handle(
+                LiveClassNotification(
+                    eventId = eventId,
+                    title = "",
+                    location = null,
+                    state = LiveClassState.ON_GOING,
+                    startEpochMillis = null,
+                    endEpochMillis = null,
+                    dismiss = true,
+                )
+            )
+        }
+    ) {
+        Text("Dismiss")
+    }
 }
 
 @Composable

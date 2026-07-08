@@ -16,6 +16,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
+import org.sparcs.soap.app.domain.models.notification.LiveClassNotification
+import org.sparcs.soap.app.domain.services.liveNotification.LiveClassNotifier
 import org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol
 import timber.log.Timber
 import javax.inject.Inject
@@ -46,6 +48,12 @@ class FCMService : FirebaseMessagingService() {
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
+
+        LiveClassNotification.fromData(remoteMessage.data)?.let { liveClass ->
+            LiveClassNotifier(this).handle(liveClass)
+            return
+        }
+
         try {
             var title = remoteMessage.notification?.title ?: remoteMessage.data["title"]
             val body = remoteMessage.notification?.body ?: remoteMessage.data["body"]

@@ -587,4 +587,11 @@
     <string name="cr">CR</string>
     <string name="timetable_rename">Rename</string>
     <string name="expand">Expand</string>
+    <string name="live_class_starts_in">STARTS IN</string>
+    <string name="live_class_now">NOW</string>
+    <string name="live_class_on_going">ON GOING</string>
+    <string name="live_class_ending">ENDING</string>
+    <string name="live_class_minutes_short">%dm</string>
+    <string name="live_class_channel_name">Live Class</string>
+    <string name="live_class_channel_description">Ongoing class schedule updates</string>
 </resources>

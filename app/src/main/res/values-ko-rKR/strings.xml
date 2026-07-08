@@ -556,4 +556,11 @@
     <string name="cr">학점</string>
     <string name="timetable_rename">이름 변경</string>
     <string name="expand">확장</string>
+    <string name="live_class_starts_in">곧 시작</string>
+    <string name="live_class_now">지금</string>
+    <string name="live_class_on_going">수업 중</string>
+    <string name="live_class_ending">곧 종료</string>
+    <string name="live_class_minutes_short">%d분</string>
+    <string name="live_class_channel_name">실시간 수업</string>
+    <string name="live_class_channel_description">진행 중인 수업 일정 알림</string>
 </resources>
