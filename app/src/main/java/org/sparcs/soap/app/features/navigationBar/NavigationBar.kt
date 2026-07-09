@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Feed
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
@@ -204,15 +206,15 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         if (isLandscape) {
             AnimatedVisibility(
                 visible = isMainTab,
-                enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
-                exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+                enter = slideInHorizontally(tween(150), initialOffsetX = { -it }) + fadeIn(tween(150)),
+                exit = slideOutHorizontally(tween(150), targetOffsetX = { -it }) + fadeOut(tween(150))
             ) {
                 NavigationRail(
                     modifier = Modifier.fillMaxHeight(),
                     containerColor = MaterialTheme.colorScheme.surface,
                     contentColor = MaterialTheme.colorScheme.primary
                 ) {
-                    Spacer(Modifier.height(24.dp))
+                    Spacer(Modifier.weight(1f))
                     navigationItems.forEach { (channel, label, icon) ->
                         NavigationRailItem(
                             selected = isTabActive(currentRoute, channel),
@@ -225,6 +227,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             )
                         )
                     }
+                    Spacer(Modifier.weight(1f))
                 }
             }
         }
@@ -234,7 +237,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 navController = navController,
                 startDestination = "FeedGraph",
                 enterTransition = { fadeIn(animationSpec = tween(500)) },
-                exitTransition = { fadeOut(animationSpec = tween(500)) }
+                exitTransition = { fadeOut(animationSpec = tween(500)) },
+                popEnterTransition = { EnterTransition.None }
             ) {
                 navigation(
                     startDestination = Channel.Start.name,
@@ -757,16 +761,22 @@ fun AppDownBar(
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp
     ) {
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .navigationBarsPadding()
-                .height(80.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .navigationBarsPadding(),
+            contentAlignment = Alignment.Center
         ) {
-            items.forEach { (channel, label, icon) ->
-                NavigationBarItem(
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 600.dp)
+                    .height(80.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                items.forEach { (channel, label, icon) ->
+                    NavigationBarItem(
                     selected = currentScreen == channel,
                     onClick = {
                         navController.navigate(channel.name) {
@@ -785,6 +795,7 @@ fun AppDownBar(
                     ),
                     modifier = Modifier.weight(1f)
                 )
+                }
             }
         }
     }

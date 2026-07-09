@@ -2,6 +2,7 @@ package org.sparcs.soap.app.features.taxiPreview
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -32,7 +33,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathFillType
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -135,6 +141,7 @@ fun TaxiPreviewView(
             .background(MaterialTheme.colorScheme.background)
             .analyticsScreen("Taxi Preview")
     ) {
+        val mapCornerColor = MaterialTheme.colorScheme.background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -186,6 +193,27 @@ fun TaxiPreviewView(
                     Text("Map Preview")
                 }
             }
+
+            Canvas(modifier = Modifier.matchParentSize()) {
+                val radius = 28.dp.toPx()
+                val cornerMask = Path().apply {
+                    fillType = PathFillType.EvenOdd
+                    addRect(Rect(0f, 0f, size.width, size.height))
+                    addRoundRect(
+                        RoundRect(
+                            left = 0f,
+                            top = 0f,
+                            right = size.width,
+                            bottom = size.height,
+                            topLeftCornerRadius = CornerRadius(radius, radius),
+                            topRightCornerRadius = CornerRadius(radius, radius),
+                            bottomLeftCornerRadius = CornerRadius.Zero,
+                            bottomRightCornerRadius = CornerRadius.Zero
+                        )
+                    )
+                }
+                drawPath(cornerMask, color = mapCornerColor)
+            }
         }
         Column(modifier = Modifier.padding(16.dp)) {
 
@@ -220,7 +248,11 @@ fun TaxiPreviewView(
                 value = room.departAt.formattedString()
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 IconButton(onClick = {
                     val sendIntent = Intent().apply {
                         action = Intent.ACTION_SEND

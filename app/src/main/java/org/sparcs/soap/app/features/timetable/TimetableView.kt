@@ -7,6 +7,7 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -133,7 +134,6 @@ fun TimetableView(
                         viewModel = viewModel,
                         timetableName = timetableName,
                         selectedTimetable = selectedTimetable,
-                        screenHeight = screenHeight,
                         navController = navController,
                         onDeleteClick = { lecture ->
                             lectureToDelete = lecture
@@ -224,21 +224,14 @@ private fun TimetableLandscapeLayout(
     viewModel: TimetableViewModelProtocol,
     timetableName: String,
     selectedTimetable: Timetable?,
-    screenHeight: Dp,
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
     onAddClick: () -> Unit,
     isEditable: Boolean
 ) {
-    val density = LocalDensity.current
-    // Left grid stretches to match the measured height of the right column,
-    // so both sides scroll together as one page.
-    var rightColumnHeight by remember { mutableStateOf(screenHeight) }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(vertical = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -255,7 +248,7 @@ private fun TimetableLandscapeLayout(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 CompactTimetableSelector(viewModel, timetableName)
                 Spacer(modifier = Modifier.width(12.dp))
@@ -267,65 +260,82 @@ private fun TimetableLandscapeLayout(
             }
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(32.dp)
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
         ) {
-            Card(
-                modifier = Modifier
-                    .weight(1.2f)
-                    .height(rightColumnHeight)
-                    .padding(start = 24.dp)
-                    .glassBorder(shape = RoundedCornerShape(28.dp)),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-            ) {
-                Box(modifier = Modifier.padding(8.dp)) {
-                    TimetableGrid(
-                        viewModel = viewModel,
-                        onLectureSelected = { lecture ->
-                            val json = Gson().toJson(lecture).escapeHash()
-                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                        },
-                        showDeleteDialog = onDeleteClick
-                    )
-                }
-            }
+            val availableHeight = maxHeight
+            val density = LocalDensity.current
+            var rightColumnHeight by remember { mutableStateOf(0.dp) }
+            val contentHeight = maxOf(availableHeight, rightColumnHeight)
 
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .onSizeChanged { size ->
-                        rightColumnHeight = with(density) { size.height.toDp() }
-                    }
-                    .padding(end = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
-                ElevatedCard(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .glassBorder(shape = RoundedCornerShape(28.dp)),
-                    shape = RoundedCornerShape(28.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.background
-                    )
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(32.dp)
                 ) {
-                    Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
-                        LectureList(
-                            lectures = selectedTimetable?.lectures ?: emptyList(),
-                            onLectureSelected = { lecture ->
-                                val json = Gson().toJson(lecture).escapeHash()
-                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                    Card(
+                        modifier = Modifier
+                            .weight(1.2f)
+                            .height(contentHeight)
+                            .glassBorder(shape = RoundedCornerShape(28.dp)),
+                        shape = RoundedCornerShape(28.dp),
+                        colors = CardDefaults.elevatedCardColors(
+                            containerColor = MaterialTheme.colorScheme.background
+                        ),
+                    ) {
+                        Box(modifier = Modifier.padding(8.dp)) {
+                            TimetableGrid(
+                                viewModel = viewModel,
+                                onLectureSelected = { lecture ->
+                                    val json = Gson().toJson(lecture).escapeHash()
+                                    navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                                },
+                                showDeleteDialog = onDeleteClick
+                            )
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .onSizeChanged {
+                                rightColumnHeight = with(density) { it.height.toDp() }
+                            },
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .glassBorder(shape = RoundedCornerShape(28.dp)),
+                            shape = RoundedCornerShape(28.dp),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.background
+                            )
+                        ) {
+                            Box(modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp)) {
+                                LectureList(
+                                    lectures = selectedTimetable?.lectures ?: emptyList(),
+                                    onLectureSelected = { lecture ->
+                                        val json = Gson().toJson(lecture).escapeHash()
+                                        navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                                    }
+                                )
                             }
-                        )
+                        }
+
+                        selectedTimetable?.let { TimetableCreditGraph(it) }
+
+                        TimetableSummary(viewModel)
                     }
                 }
-
-                selectedTimetable?.let { TimetableCreditGraph(it) }
-
-                TimetableSummary(viewModel)
             }
         }
     }

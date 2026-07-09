@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -143,7 +142,7 @@ fun FeedPostView(
                             .navigationBarsPadding(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Box(modifier = Modifier.widthIn(max = 600.dp)) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
                             InputBar(
                                 viewModel = viewModel,
                                 targetComment = targetComment,
@@ -205,9 +204,7 @@ fun FeedPostView(
                         ) {
                             item {
                                 Box(
-                                    modifier = Modifier
-                                        .widthIn(max = 600.dp)
-                                        .fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     FeedPostRow(
                                         post = post,
@@ -224,9 +221,7 @@ fun FeedPostView(
 
                             item {
                                 Box(
-                                    modifier = Modifier
-                                        .widthIn(max = 600.dp)
-                                        .fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Comments(
                                         viewModel = viewModel,

@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -151,9 +150,7 @@ fun FeedView(
                         is FeedViewModel.ViewState.Loading -> {
                             items(3) {
                                 Column(
-                                    modifier = Modifier
-                                        .widthIn(max = 600.dp)
-                                        .fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     FeedPostRowSkeleton()
                                     HorizontalDivider(Modifier.padding(horizontal = 8.dp))
@@ -167,9 +164,7 @@ fun FeedView(
                                 key = { _, post -> post.id }
                             ) { index, post ->
                                 Column(
-                                    modifier = Modifier
-                                        .widthIn(max = 600.dp)
-                                        .fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     FeedPostRow(
                                         post = post,

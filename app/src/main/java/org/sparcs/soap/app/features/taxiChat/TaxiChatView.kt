@@ -44,6 +44,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -124,6 +125,7 @@ fun TaxiChatView(
     LaunchedEffect(Unit) {
         viewModel.setup()
         viewModel.fetchInitialChats()
+        listViewModel.fetchData()
     }
 
     // Trigger recomposition when departure time is reached
@@ -140,7 +142,7 @@ fun TaxiChatView(
         ModalDrawerSheet(
             drawerContainerColor = MaterialTheme.colorScheme.surface,
             drawerShape = RectangleShape,
-            modifier = Modifier.width(300.dp)
+            modifier = Modifier.width(360.dp)
         ) {
             Column(
                 modifier = Modifier
@@ -209,7 +211,10 @@ fun TaxiChatView(
                         .background(MaterialTheme.colorScheme.background),
                     contentAlignment = Alignment.Center
                 ) {
-                    Box(modifier = Modifier.widthIn(max = if (isLandscape) 1000.dp else 600.dp)) {
+                    Box(
+                        modifier = if (isLandscape) Modifier.widthIn(max = 1000.dp)
+                        else Modifier.fillMaxWidth()
+                    ) {
                         TaxiChatInputBar(
                             text = text,
                             onTextChange = { text = it },
@@ -239,9 +244,7 @@ fun TaxiChatView(
                     .fillMaxSize(),
                 contentAlignment = Alignment.TopCenter
             ) {
-                val contentModifier = if (isLandscape) Modifier.fillMaxSize() else Modifier.widthIn(max = 600.dp)
-                
-                Box(modifier = contentModifier) {
+                Box(modifier = Modifier.fillMaxSize()) {
                     TaxiChatPortraitLayout(
                         state = state,
                         room = room,
@@ -262,7 +265,8 @@ fun TaxiChatView(
             drawerState = drawerState,
             drawerContent = { chatListContent() },
             gesturesEnabled = true,
-            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
+            scrimColor = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f),
+            modifier = Modifier.clipToBounds()
         ) {
             mainScaffold()
         }
