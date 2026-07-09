@@ -2,15 +2,20 @@ package org.sparcs.soap.app.features.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -42,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.SearchScope
@@ -57,12 +63,15 @@ import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.viewModelMocks.MockSearchViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
+import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,9 +108,14 @@ fun SearchView(
             viewModel.loadFull()
         }
     }
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
-            SearchNavigationBar(scrollState = scrollState)
+            SearchNavigationBar(
+                scrollState = scrollState,
+                scrollBehavior = topBarScrollBehavior
+            )
         },
         bottomBar = {
             AppDownBar(
@@ -109,72 +123,44 @@ fun SearchView(
                 currentScreen = Channel.SearchView
             )
         },
-        modifier = Modifier.analyticsScreen("Search")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .navigationBarsPadding()
+            .analyticsScreen("Search")
     ) { innerPadding ->
-        Column(
-            Modifier
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .padding(innerPadding)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Card(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                shape = RoundedCornerShape(16.dp),
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .glassBorder(shape = RoundedCornerShape(16.dp))
+                    .fillMaxSize()
+                    .widthIn(max = 600.dp)
+                    .padding(top = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    SearchCustomBar(
-                        value = searchText,
-                        onValueChange = { value ->
-                            viewModel.onSearchTextChange(value)
-                        },
-                        onValueClear = {
-                            viewModel.onSearchTextChange("")
-                        },
-                        placeHolder = stringResource(R.string.search)
-                    )
+                SearchControlCard(
+                    searchText = searchText,
+                    searchScope = searchScope,
+                    onSearchTextChange = viewModel::onSearchTextChange,
+                    onScopeChange = viewModel::onScopeChange
+                )
 
-                    Row(
-                        Modifier
-                            .padding(horizontal = 4.dp)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        SearchScope.entries.forEach { scope ->
-                            FilterChip(
-                                selected = (searchScope == scope),
-                                onClick = { viewModel.onScopeChange(scope) },
-                                label = { Text(stringResource(scope.labelRes)) }
-                            )
-                        }
-                    }
-                }
-            }
+                Spacer(modifier = Modifier.height(16.dp))
 
-            when {
-                state is SearchViewModel.ViewState.Error -> {
-                    ErrorView(
-                        error = (state as SearchViewModel.ViewState.Error).error,
-                        onRetry = { coroutineScope.launch { viewModel.bind() } }
-                    )
-                }
-
-                searchText.isEmpty() -> {
-                    UnavailableView(
-                        icon = Icons.Rounded.Search,
-                        title = stringResource(R.string.search_anything),
-                        description = stringResource(R.string.find_etc)
-                    )
-                }
-
-                else -> {
-                    ResultView(
+                Box(
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    contentAlignment = Alignment.TopCenter
+                ) {
+                    SearchResultContent(
+                        state = state,
+                        searchText = searchText,
                         viewModel = viewModel,
                         navController = navController,
+                        coroutineScope = coroutineScope,
                         onTaxiClick = { selectedRoom = it }
                     )
                 }
@@ -219,6 +205,95 @@ fun SearchView(
 }
 
 @Composable
+private fun SearchControlCard(
+    searchText: String,
+    searchScope: SearchScope,
+    onSearchTextChange: (String) -> Unit,
+    onScopeChange: (SearchScope) -> Unit
+) {
+    Card(
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .glassBorder(shape = RoundedCornerShape(16.dp))
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            SearchCustomBar(
+                value = searchText,
+                onValueChange = onSearchTextChange,
+                onValueClear = { onSearchTextChange("") },
+                placeHolder = stringResource(R.string.search)
+            )
+
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+            ) {
+                SearchScope.entries.forEach { scope ->
+                    FilterChip(
+                        selected = (searchScope == scope),
+                        onClick = { onScopeChange(scope) },
+                        label = { 
+                            Text(
+                                text = stringResource(scope.labelRes),
+                                modifier = Modifier.padding(horizontal = 4.dp)
+                            ) 
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchResultContent(
+    state: SearchViewModel.ViewState,
+    searchText: String,
+    viewModel: SearchViewModelProtocol,
+    navController: NavController,
+    coroutineScope: CoroutineScope,
+    onTaxiClick: (TaxiRoom) -> Unit
+) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            state is SearchViewModel.ViewState.Error -> {
+                ErrorView(
+                    error = (state).error,
+                    onRetry = { coroutineScope.launch { viewModel.bind() } }
+                )
+            }
+
+            searchText.isEmpty() -> {
+                UnavailableView(
+                    icon = Icons.Rounded.Search,
+                    title = stringResource(R.string.search_anything),
+                    description = stringResource(R.string.find_etc)
+                )
+            }
+
+            else -> {
+                ResultView(
+                    viewModel = viewModel,
+                    navController = navController,
+                    onTaxiClick = onTaxiClick
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun ResultView(
     viewModel: SearchViewModelProtocol,
     navController: NavController,
@@ -232,9 +307,8 @@ fun ResultView(
     val state by viewModel.state.collectAsState()
 
     LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 8.dp)
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
     ) {
         // --- Courses ---
         if (searchScope == SearchScope.All) {
@@ -314,7 +388,11 @@ fun ResultView(
 @Composable
 private fun MockView(state: SearchViewModel.ViewState) {
     val mockViewModel = remember { MockSearchViewModel(initialState = state) }
-    SearchView(viewModel = mockViewModel, navController = rememberNavController())
+    SearchView(
+        viewModel = mockViewModel,
+        taxiPreviewViewModel = PreviewTaxiPreviewViewModel(),
+        navController = rememberNavController()
+    )
 }
 
 @Composable
@@ -326,6 +404,12 @@ private fun LoadingPreview() {
 @Composable
 @Preview
 private fun LoadedPreview() {
+    Theme { MockView(SearchViewModel.ViewState.Loaded) }
+}
+
+@Composable
+@Preview(widthDp = 840, heightDp = 480)
+private fun LoadedLandscapePreview() {
     Theme { MockView(SearchViewModel.ViewState.Loaded) }
 }
 

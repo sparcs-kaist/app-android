@@ -52,7 +52,8 @@ fun PostImagesStrip(
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
     ) {
-        val parentWidth = if (images.size > 1) maxWidth - 16.dp else maxWidth
+        val cappedWidth = if (maxWidth > 600.dp) 600.dp else maxWidth
+        val parentWidth = if (images.size > 1) cappedWidth - 16.dp else cappedWidth
         val maxW = parentWidth - hPadding * 2
         val height = maxW * 3 / 4
 

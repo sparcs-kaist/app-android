@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -24,6 +25,7 @@ import org.sparcs.soap.app.theme.ui.Theme
 @Composable
 fun BoardListNavigationBar(
     scrollState: ScrollState,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
         title = {
@@ -39,10 +41,12 @@ fun BoardListNavigationBar(
             containerColor = MaterialTheme.colorScheme.surface,
             scrolledContainerColor = MaterialTheme.colorScheme.surface
         ),
+        scrollBehavior = scrollBehavior,
         modifier = Modifier.shadow(scrollState.elevation())
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 private fun Preview() {

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -38,8 +39,11 @@ import org.sparcs.soap.app.domain.helpers.FeatureType
 import org.sparcs.soap.app.domain.usecases.MockFCMUseCase
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.theme.ui.Theme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationSettingsView(
     navController: NavController,
@@ -53,14 +57,19 @@ fun NotificationSettingsView(
         viewModel.loadSettings()
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.notifications_title),
-                onDismiss = { navController.popBackStack() }
+                onDismiss = { navController.popBackStack() },
+                scrollBehavior = topBarScrollBehavior
             )
         },
-        modifier = Modifier.analyticsScreen("Notification Settings")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen("Notification Settings")
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

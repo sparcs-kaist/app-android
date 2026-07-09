@@ -67,6 +67,8 @@ import org.sparcs.soap.app.features.feedPost.components.FeedPostNavigationBar
 import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeIn
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.mocks.feed.mockList
@@ -117,6 +119,7 @@ fun FeedPostView(
 
         is FeedPostViewModel.ViewState.Loaded -> {
             val post = feedViewModel.posts.find { it.id == state.post.id } ?: state.post
+            val topBarScrollBehavior = landscapeHideOnScrollBehavior()
 
             Scaffold(
                 topBar = {
@@ -127,80 +130,109 @@ fun FeedPostView(
                             viewModel.reportPost(post.id, reason)
                         },
                         onTranslate = {/*Todo - translate*/ },
-                        isMine = post.isAuthor
+                        isMine = post.isAuthor,
+                        scrollBehavior = topBarScrollBehavior
                     )
                 },
                 bottomBar = {
-                    InputBar(
-                        viewModel = viewModel,
-                        targetComment = targetComment,
-                        isWritingCommentFocusState = isWritingCommentFocusState,
-                        onCommentUploaded = {
-                            if (viewModel.text.isEmpty()) return@InputBar
-                            scope.launch {
-                                val uploaded = viewModel.submitComment(post.id, targetComment)
-                                if (uploaded != null) {
-                                    post.commentCount += 1
-                                    targetComment = null
-                                    isWritingCommentFocusState = false
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background)
+                            .navigationBarsPadding(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            InputBar(
+                                viewModel = viewModel,
+                                targetComment = targetComment,
+                                isWritingCommentFocusState = isWritingCommentFocusState,
+                                onCommentUploaded = {
+                                    if (viewModel.text.isEmpty()) return@InputBar
+                                    scope.launch {
+                                        val uploaded = viewModel.submitComment(post.id, targetComment)
+                                        if (uploaded != null) {
+                                            post.commentCount += 1
+                                            targetComment = null
+                                            isWritingCommentFocusState = false
 
-                                    val index =
-                                        viewModel.comments.indexOfFirst { it.id == uploaded.id }
-                                    if (index != -1) {
-                                        proxy.animateScrollToItem(index)
+                                            val index =
+                                                viewModel.comments.indexOfFirst { it.id == uploaded.id }
+                                            if (index != -1) {
+                                                proxy.animateScrollToItem(index)
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                        },
-                        focusRequester = focusRequester,
-                        isUploadingComment = isUploadingComment
-                    )
+                                },
+                                focusRequester = focusRequester,
+                                isUploadingComment = isUploadingComment
+                            )
+                        }
+                    }
                 },
                 modifier = Modifier
+                    .hideTopBarOnScroll(topBarScrollBehavior)
                     .analyticsScreen(
                         name = "Feed Post",
                         "is_author" to post.isAuthor,
                         "has_comments" to (post.commentCount > 0)
                     )
             ) { innerPadding ->
-                PullToRefreshBox(
-                    isRefreshing = isRefreshing,
-                    onRefresh = {
-                        isRefreshing = true
-                        scope.launch {
-                            viewModel.fetchComments(postID = post.id, initial = false)
-                            delay(500)
-                            isRefreshing = false
-                        }
-                    },
-                    state = pullState,
-                    modifier = Modifier.padding(innerPadding)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    LazyColumn(
-                        state = proxy
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = {
+                            isRefreshing = true
+                            scope.launch {
+                                viewModel.fetchComments(postID = post.id, initial = false)
+                                delay(500)
+                                isRefreshing = false
+                            }
+                        },
+                        state = pullState,
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        item {
-                            FeedPostRow(
-                                post = post,
-                                viewModel = feedViewModel,
-                                singleLine = false,
-                                onPostDeleted = null,
-                                onComment = {
-                                    targetComment = null
-                                    isWritingCommentFocusState = true
+                        LazyColumn(
+                            state = proxy,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    FeedPostRow(
+                                        post = post,
+                                        viewModel = feedViewModel,
+                                        singleLine = false,
+                                        onPostDeleted = null,
+                                        onComment = {
+                                            targetComment = null
+                                            isWritingCommentFocusState = true
+                                        }
+                                    )
                                 }
-                            )
-                        }
+                            }
 
-                        item {
-                            Comments(
-                                viewModel = viewModel,
-                                post = post,
-                                onReply = { c ->
-                                    targetComment = c
-                                    isWritingCommentFocusState = true
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Comments(
+                                        viewModel = viewModel,
+                                        post = post,
+                                        onReply = { c ->
+                                            targetComment = c
+                                            isWritingCommentFocusState = true
+                                        }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -283,8 +315,7 @@ private fun InputBar(
         modifier = Modifier
             .fillMaxWidth()
             .imePadding()
-            .padding(8.dp)
-            .navigationBarsPadding(),
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
@@ -451,6 +482,7 @@ private fun Comments(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LoadingView(
     navController: NavController,

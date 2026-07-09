@@ -1,13 +1,15 @@
 package org.sparcs.soap.app.features.feed.components
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -28,9 +30,10 @@ import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FeedViewNavigationBar(
-    scrollState: ScrollState,
+    listState: LazyListState,
     viewModel: FeedViewModelProtocol,
     navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
         title = {
@@ -61,17 +64,19 @@ fun FeedViewNavigationBar(
             containerColor = MaterialTheme.colorScheme.background,
             scrolledContainerColor = MaterialTheme.colorScheme.background
         ),
-        modifier = Modifier.shadow(scrollState.elevation())
+        scrollBehavior = scrollBehavior,
+        modifier = Modifier.shadow(listState.elevation())
     )
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 private fun Preview() {
     Theme {
         FeedViewNavigationBar(
-            scrollState = ScrollState(0),
+            listState = rememberLazyListState(),
             navController = NavController(LocalContext.current),
             viewModel = PreviewFeedViewModel()
         )

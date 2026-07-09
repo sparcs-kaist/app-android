@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,7 +31,8 @@ fun SettingsViewNavigationBar(
     isEditable: Boolean? = false,
     isDoneEnabled: Boolean? = false,
     containerColor: Color = MaterialTheme.colorScheme.background,
-    onClickDone: () -> Unit = {}
+    onClickDone: () -> Unit = {},
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     CenterAlignedTopAppBar(
         navigationIcon = { DismissButton(onClick = { onDismiss() }) },
@@ -58,7 +60,8 @@ fun SettingsViewNavigationBar(
                     isDoneEnabled = isDoneEnabled ?: false
                 )
             }
-        }
+        },
+        scrollBehavior = scrollBehavior
     )
 }
 

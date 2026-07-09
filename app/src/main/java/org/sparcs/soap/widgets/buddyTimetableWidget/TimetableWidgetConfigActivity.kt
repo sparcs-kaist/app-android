@@ -26,6 +26,7 @@ import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +61,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
@@ -73,7 +75,6 @@ import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
-import org.sparcs.soap.R
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -89,6 +90,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setResult(RESULT_CANCELED)

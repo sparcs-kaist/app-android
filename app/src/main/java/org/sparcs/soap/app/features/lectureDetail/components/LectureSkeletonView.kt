@@ -24,45 +24,43 @@ import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun LectureSummarySkeleton() {
-    Column(
-        modifier = Modifier.fillMaxWidth()
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            repeat(3) { index ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .height(20.dp)
-                            .width(60.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .height(20.dp)
-                            .width(40.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                }
-                if (index < 2) {
-                    StatSeparator()
-                }
+        repeat(3) { index ->
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .height(20.dp)
+                        .width(60.dp)
+                        .background(
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            RoundedCornerShape(4.dp)
+                        )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Box(
+                    modifier = Modifier
+                        .height(20.dp)
+                        .width(40.dp)
+                        .background(
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            RoundedCornerShape(4.dp)
+                        )
+                )
+            }
+            if (index < 2) {
+                StatSeparator()
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Information Section
+@Composable
+fun LectureInformationSkeleton() {
+    Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .height(24.dp)
@@ -118,9 +116,12 @@ fun LectureSummarySkeleton() {
                 }
             }
         }
+    }
+}
 
-        Spacer(modifier = Modifier.height(32.dp))
-
+@Composable
+fun LectureReviewsSkeleton() {
+    Column(modifier = Modifier.fillMaxWidth()) {
         // Review Section Header
         Row(
             modifier = Modifier
@@ -192,7 +193,7 @@ fun LectureSummarySkeleton() {
         Spacer(modifier = Modifier.height(8.dp))
 
         // Review Cells
-        repeat(2) {
+        repeat(3) {
             LectureReviewSkeletonCell()
         }
     }
@@ -202,6 +203,10 @@ fun LectureSummarySkeleton() {
 @Preview(showBackground = true)
 private fun Preview() {
     Theme {
-        LectureSummarySkeleton()
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            LectureSummarySkeleton()
+            LectureInformationSkeleton()
+            LectureReviewsSkeleton()
+        }
     }
 }

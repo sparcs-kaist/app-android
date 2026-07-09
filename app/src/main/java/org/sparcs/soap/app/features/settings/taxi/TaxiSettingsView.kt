@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -64,6 +67,8 @@ import org.sparcs.soap.app.features.settings.components.RowElementView
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.PhoneNumberVisualTransformation
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toPhoneNumberFormat
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.mocks.taxi.mock
@@ -73,6 +78,7 @@ import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiSettingsView(
     viewModel: TaxiSettingsViewModelProtocol = hiltViewModel<TaxiSettingsViewModel>(),
@@ -150,6 +156,8 @@ fun TaxiSettingsView(
         viewModel.fetchUser()
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
@@ -174,35 +182,48 @@ fun TaxiSettingsView(
                             }
                         }
                     }
-                }
+                },
+                scrollBehavior = topBarScrollBehavior
             )
         },
-        modifier = Modifier.analyticsScreen("Taxi Settings")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen("Taxi Settings")
     ) { innerPadding ->
 
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp, vertical = 8.dp)
                 .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 600.dp)
+                    .padding(horizontal = 20.dp, vertical = 8.dp)
+            ) {
+                when (state) {
+                    TaxiSettingsViewModel.ViewState.Loading -> item { LoadingView() }
+                    TaxiSettingsViewModel.ViewState.Loaded -> item {
+                        LoadedView(
+                            viewModel,
+                            navController,
+                            hasNumberRegistered
+                        )
+                    }
 
-            when (state) {
-                TaxiSettingsViewModel.ViewState.Loading -> LoadingView()
-                TaxiSettingsViewModel.ViewState.Loaded -> LoadedView(
-                    viewModel,
-                    navController,
-                    hasNumberRegistered
-                )
-
-                is TaxiSettingsViewModel.ViewState.Error -> {
-                    val error = (state as TaxiSettingsViewModel.ViewState.Error).error
-                    ErrorView(
-                        defaultMessageResId = (state as TaxiSettingsViewModel.ViewState.Error).resId,
-                        error = error,
-                        onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
-                    )
+                    is TaxiSettingsViewModel.ViewState.Error -> {
+                        item {
+                            val errorState = state as TaxiSettingsViewModel.ViewState.Error
+                            ErrorView(
+                                defaultMessageResId = errorState.resId,
+                                error = errorState.error,
+                                onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
+                            )
+                        }
+                    }
                 }
             }
         }

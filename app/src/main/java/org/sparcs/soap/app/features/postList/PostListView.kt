@@ -1,8 +1,7 @@
-@file:OptIn(ExperimentalMaterial3Api::class)
-
 package org.sparcs.soap.app.features.postList
 
 import android.net.Uri
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,8 +9,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -59,29 +60,29 @@ import org.sparcs.soap.app.features.postList.components.postList.PostList
 import org.sparcs.soap.app.features.postList.components.postListRow.BoardNavigationBar
 import org.sparcs.soap.app.features.postList.components.postListRow.PostListSkeletonRow
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewPostListViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostListView(
     viewModel: PostListViewModelProtocol = hiltViewModel<PostListViewModel>(),
     navController: NavController,
 ) {
     var loadedInitialPost by rememberSaveable { mutableStateOf(false) }
-
     val searchKeyword by viewModel.searchKeyword.collectAsState()
     var showSearchBar by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
-    val state = viewModel.state.collectAsState().value
-
+    val state by viewModel.state.collectAsState()
     val board = viewModel.board
 
     val isPreview = LocalInspectionMode.current
@@ -92,12 +93,10 @@ fun PostListView(
 
     LaunchedEffect(lifecycleState) {
         if (lifecycleState == Lifecycle.State.RESUMED) {
-
             viewModel.lastClickedPostId?.let { id ->
                 viewModel.refreshItem(id)
                 viewModel.lastClickedPostId = null
             }
-
             val needsRefresh =
                 navController.currentBackStackEntry?.savedStateHandle?.get<Boolean>("listNeedsRefresh")
                     ?: false
@@ -121,6 +120,8 @@ fun PostListView(
         }
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             BoardNavigationBar(
@@ -128,7 +129,8 @@ fun PostListView(
                 subTitle = board.group.name.localized(),
                 onClickSearch = { showSearchBar = !showSearchBar },
                 isSelected = showSearchBar,
-                navController = navController
+                navController = navController,
+                scrollBehavior = topBarScrollBehavior
             )
         },
         floatingActionButtonPosition = FabPosition.End,
@@ -142,78 +144,89 @@ fun PostListView(
                 )
             }
         },
-        modifier = Modifier.analyticsScreen(name = "Ara Post List"),
-        containerColor = MaterialTheme.colorScheme.background
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .navigationBarsPadding()
+            .analyticsScreen(name = "Ara Post List")
     ) { innerPadding ->
         Box(
             modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp)
-                .padding(top = 8.dp)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(innerPadding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Column {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .widthIn(max = 600.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 if (showSearchBar) {
-                    SearchCustomBar(
-                        value = searchKeyword,
-                        onValueChange = { value ->
-                            viewModel.onSearchTextChange(value)
-                        },
-                        onValueClear = {
-                            viewModel.onSearchTextChange("")
-                        },
-                        placeHolder = stringResource(R.string.search)
-                    )
-                }
-                when (state) {
-                    is PostListViewModel.ViewState.Loading -> {
-                        LoadingView()
-                    }
-
-                    is PostListViewModel.ViewState.Loaded -> {
-                        PostList(
-                            posts = state.posts,
-                            onLoadMore = {
-                                scope.launch { viewModel.loadNextPage() }
-                            },
-                            onRefresh = {
-                                isRefreshing = true
-                                scope.launch {
-                                    viewModel.fetchInitialPosts()
-                                    delay(500)
-                                    isRefreshing = false
-                                }
-                            },
-                            onPostClick = { post ->
-                                viewModel.lastClickedPostId = post.id
-                                navController.navigate(Channel.PostView.name + "?postId=${post.id}")
-                            },
-                            isRefreshing = isRefreshing,
-                            keyword = searchKeyword
+                    Box(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
+                        SearchCustomBar(
+                            value = searchKeyword,
+                            onValueChange = { viewModel.onSearchTextChange(it) },
+                            onValueClear = { viewModel.onSearchTextChange("") },
+                            placeHolder = stringResource(R.string.search)
                         )
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
 
-                    is PostListViewModel.ViewState.Error -> {
-                        val error = (state).error
-                        ErrorView(
-                            error = error,
-                            onRetry = {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (state) {
+                        is PostListViewModel.ViewState.Loading -> LoadingView()
+                        is PostListViewModel.ViewState.Loaded -> {
+                            val loadedState = state as PostListViewModel.ViewState.Loaded
+                            PostList(
+                                posts = loadedState.posts,
+                                onLoadMore = { scope.launch { viewModel.loadNextPage() } },
+                                onRefresh = {
+                                    isRefreshing = true
+                                    scope.launch {
+                                        viewModel.fetchInitialPosts()
+                                        delay(500)
+                                        isRefreshing = false
+                                    }
+                                },
+                                onPostClick = { post ->
+                                    viewModel.lastClickedPostId = post.id
+                                    navController.navigate(Channel.PostView.name + "?postId=${post.id}")
+                                },
+                                isRefreshing = isRefreshing,
+                                keyword = searchKeyword,
+                                contentPadding = PaddingValues(
+                                    start = 20.dp,
+                                    end = 20.dp,
+                                    top = 8.dp,
+                                    bottom = 8.dp
+                                )
+                            )
+                        }
+
+                        is PostListViewModel.ViewState.Error -> {
+                            val errorState = state as PostListViewModel.ViewState.Error
+                            ErrorView(
+                                error = errorState.error,
+                                onRetry = {
+                                    scope.launch { viewModel.fetchInitialPosts() }
+                                    viewModel.bind()
+                                }
+                            )
+                        }
+                    }
+
+                    if (searchKeyword.isNotEmpty() && viewModel.posts.isEmpty() && state is PostListViewModel.ViewState.Loaded) {
+                        EmptyView(
+                            searchText = searchKeyword,
+                            onClear = {
+                                viewModel.onSearchTextChange("")
                                 scope.launch { viewModel.fetchInitialPosts() }
-                                viewModel.bind()
                             }
                         )
                     }
                 }
-            }
-
-            if (searchKeyword.isNotEmpty() && viewModel.posts.isEmpty()) {
-                //keyword에 대한 결과가 없을 경우
-                EmptyView(
-                    searchText = searchKeyword,
-                    onClear = {
-                        viewModel.onSearchTextChange("")
-                        scope.launch { viewModel.fetchInitialPosts() }
-                    }
-                )
             }
         }
     }
@@ -235,32 +248,23 @@ private fun EmptyView(
             imageVector = Icons.Rounded.ErrorOutline,
             contentDescription = stringResource(R.string.no_result),
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.grayBB
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
         )
-
         Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             text = stringResource(R.string.no_result),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.error
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Text(
             text = stringResource(R.string.no_results_found_for, " \"$searchText\""),
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
             textAlign = TextAlign.Center
         )
-
         Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = { onClear() },
-            shape = RoundedCornerShape(12.dp)
-        ) {
+        Button(onClick = onClear, shape = RoundedCornerShape(12.dp)) {
             Icon(
                 imageVector = Icons.Rounded.ClearAll,
                 contentDescription = null,
@@ -274,7 +278,7 @@ private fun EmptyView(
 
 @Composable
 private fun LoadingView() {
-    Column {
+    Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
         repeat(15) {
             PostListSkeletonRow()
             HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
@@ -282,11 +286,14 @@ private fun LoadingView() {
     }
 }
 
-
 @Composable
-private fun ComposeButton(onClick: () -> Unit) {
+private fun ComposeButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Button(
         onClick = onClick,
+        modifier = modifier,
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary),
         elevation = ButtonDefaults.buttonElevation(4.dp),

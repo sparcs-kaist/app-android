@@ -105,7 +105,7 @@ fun ChatCollectionView(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface),
-        contentPadding = PaddingValues(top = 8.dp),
+        contentPadding = PaddingValues(bottom = 24.dp, top = 8.dp),
         reverseLayout = true
     ) {
         items(

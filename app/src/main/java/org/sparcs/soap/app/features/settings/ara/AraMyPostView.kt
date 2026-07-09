@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -32,11 +33,14 @@ import org.sparcs.soap.app.features.postList.components.postList.PostList
 import org.sparcs.soap.app.features.postList.components.postListRow.PostListSkeletonRow
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.lightGray0
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AraMyPostView(
     viewModel: AraMyPostViewModelProtocol = hiltViewModel<AraMyPostViewModel>(),
@@ -71,6 +75,8 @@ fun AraMyPostView(
         }
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
@@ -80,10 +86,13 @@ fun AraMyPostView(
                 onDismiss = { navController.popBackStack() },
                 isSearchEnabled = type != AraMyPostViewModel.PostType.BOOKMARK,
                 onClickSearch = { showSearchBar = !showSearchBar },
-                isSelected = showSearchBar
+                isSelected = showSearchBar,
+                scrollBehavior = topBarScrollBehavior
             )
         },
-        modifier = Modifier.analyticsScreen("Ara My Post")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen("Ara My Post")
     ) { innerPadding ->
 
         Column(

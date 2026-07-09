@@ -8,8 +8,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -95,6 +98,8 @@ import org.sparcs.soap.app.features.post.components.PostVoteButton
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.formattedString
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.postfixEuroRo
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
@@ -114,7 +119,7 @@ fun PostView(
 ) {
     val post = viewModel.post.collectAsState().value
     val context = LocalContext.current
-    val state = viewModel.state.collectAsState().value
+    val state by viewModel.state.collectAsState()
     val pullState = rememberPullToRefreshState()
 
     val scope = rememberCoroutineScope()
@@ -168,6 +173,8 @@ fun PostView(
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             PostNavigationBar(
@@ -180,73 +187,89 @@ fun PostView(
                 onTranslate = {
                     //TODO-Translate
                 },
-                isMine = post?.isMine
+                isMine = post?.isMine,
+                scrollBehavior = topBarScrollBehavior
             )
         },
         bottomBar = {
-            InputBar(
-                comment = comment,
-                onCommentChange = { comment = it },
-                isWritingComment = isWritingComment,
-                onWritingCommentChange = {
-                    isWritingComment = it
-                    commentOnEdit = null
-                    comment = ""
-                },
-                commentOnEdit = commentOnEdit,
-                isUploadingComment = isUploadingComment,
-                onUploadComment = {
-                    scope.launch {
-                        isUploadingComment = true
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .navigationBarsPadding(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(modifier = Modifier.widthIn(max = 600.dp)) {
+                    InputBar(
+                        comment = comment,
+                        onCommentChange = { comment = it },
+                        isWritingComment = isWritingComment,
+                        onWritingCommentChange = {
+                            isWritingComment = it
+                            commentOnEdit = null
+                            comment = ""
+                        },
+                        commentOnEdit = commentOnEdit,
+                        isUploadingComment = isUploadingComment,
+                        onUploadComment = {
+                            scope.launch {
+                                isUploadingComment = true
 
-                        try {
-                            val isSuccess = when {
-                                commentOnEdit != null -> {
-                                    viewModel.editComment(commentOnEdit!!.id, comment) != null
-                                }
+                                try {
+                                    val isSuccess = when {
+                                        commentOnEdit != null -> {
+                                            viewModel.editComment(
+                                                commentOnEdit!!.id,
+                                                comment
+                                            ) != null
+                                        }
 
-                                targetComment != null -> {
-                                    viewModel.writeThreadedComment(
-                                        targetComment!!.id,
-                                        comment
-                                    ) != null
-                                }
+                                        targetComment != null -> {
+                                            viewModel.writeThreadedComment(
+                                                targetComment!!.id,
+                                                comment
+                                            ) != null
+                                        }
 
-                                else -> {
-                                    viewModel.writeComment(comment)
-                                    true
+                                        else -> {
+                                            viewModel.writeComment(comment)
+                                            true
+                                        }
+                                    }
+
+                                    if (isSuccess) {
+                                        comment = ""
+                                        targetComment = null
+                                        commentOnEdit = null
+                                        keyboardController?.hide()
+
+                                        proxy.animateScrollToItem(proxy.layoutInfo.totalItemsCount)
+                                    }
+                                } catch (_: Exception) {
+                                } finally {
+                                    isUploadingComment = false
                                 }
                             }
-
-                            if (isSuccess) {
-                                comment = ""
-                                targetComment = null
-                                commentOnEdit = null
-                                keyboardController?.hide()
-
-                                proxy.animateScrollToItem(proxy.layoutInfo.totalItemsCount)
-                            }
-                        } catch (_: Exception) {
-                        } finally {
-                            isUploadingComment = false
-                        }
-                    }
-                },
-                profilePicture = { ProfilePicture(post, true) },
-                placeholder = placeholder(viewModel, targetComment, commentOnEdit),
-                focusRequester = focusRequester
-            )
+                        },
+                        profilePicture = { ProfilePicture(post, true) },
+                        placeholder = placeholder(viewModel, targetComment, commentOnEdit),
+                        focusRequester = focusRequester
+                    )
+                }
+            }
         },
-        modifier = Modifier.analyticsScreen(
-            "Ara Post",
-            "is_author" to (post?.isMine ?: false),
-            "has_comments" to ((post?.commentCount ?: 0) > 0)
-        ),
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen(
+                "Ara Post",
+                "is_author" to (post?.isMine ?: false),
+                "has_comments" to ((post?.commentCount ?: 0) > 0)
+            ),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state is PostViewModel.ViewState.Error) {
             ErrorView(
-                error = state.error,
+                error = (state as PostViewModel.ViewState.Error).error,
                 onRetry = { scope.launch { viewModel.fetchPost() } }
             )
         } else {
@@ -262,10 +285,17 @@ fun PostView(
                 },
                 state = pullState,
                 modifier = Modifier
+                    .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(vertical = 8.dp, horizontal = 20.dp)
             ) {
-                LazyColumn(state = proxy) {
+                LazyColumn(
+                    state = proxy,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 600.dp)
+                        .align(Alignment.TopCenter),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
+                ) {
                     item {
                         if (post == null) {
                             HeaderSkeleton()
@@ -562,8 +592,7 @@ private fun InputBar(
         modifier = Modifier
             .fillMaxWidth()
             .imePadding()
-            .padding(8.dp)
-            .navigationBarsPadding(),
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // comment textfield
@@ -756,6 +785,21 @@ data class CommentUpdate(
 @Preview(name = "Loaded", showBackground = true)
 @Composable
 private fun LoadedPreview() {
+    val mockViewModel =
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loaded,
+                post = AraPost.mock()
+            )
+        }
+    Theme {
+        PostView(viewModel = mockViewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(name = "Loaded Landscape", showBackground = true, widthDp = 840, heightDp = 480)
+@Composable
+private fun LoadedLandscapePreview() {
     val mockViewModel =
         remember {
             MockPostViewModel(
