@@ -16,8 +16,10 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.enums.ara.PostListType
 import org.sparcs.soap.app.domain.models.SearchScope
 import org.sparcs.soap.app.domain.models.ara.AraPost
+import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.otl.CourseSearchRequest
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
+import org.sparcs.soap.app.domain.models.otl.ETC_DEPARTMENT_ID
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
@@ -33,6 +35,7 @@ interface SearchViewModelProtocol {
     val state: StateFlow<SearchViewModel.ViewState>
     val searchText: StateFlow<String>
     val searchScope: StateFlow<SearchScope>
+    val courseFilterState: StateFlow<CourseFilterState>
 
     suspend fun bind()
     suspend fun fetchInitialData()
@@ -41,6 +44,7 @@ interface SearchViewModelProtocol {
     suspend fun scopedFetch()
     fun onSearchTextChange(text: String)
     fun onScopeChange(scope: SearchScope)
+    fun onFilterChange(filterState: CourseFilterState)
 }
 
 @HiltViewModel
@@ -68,6 +72,9 @@ class SearchViewModel @Inject constructor(
 
     private val _searchScope = MutableStateFlow(SearchScope.All)
     override val searchScope: StateFlow<SearchScope> = _searchScope
+
+    private val _courseFilterState = MutableStateFlow(CourseFilterState())
+    override val courseFilterState: StateFlow<CourseFilterState> = _courseFilterState
 
     private var araPagination = PaginationInfo()
 
@@ -149,8 +156,19 @@ class SearchViewModel @Inject constructor(
     }
 
     private suspend fun searchCourses(keyword: String) {
+        val filter = _courseFilterState.value
         _courses.value = courseUseCase.searchCourse(
-            CourseSearchRequest(keyword = keyword, offset = 0, limit = 150)
+            CourseSearchRequest(
+                keyword = keyword,
+                offset = 0,
+                limit = 150,
+                type = filter.classifications.ifEmpty { null },
+                department = filter.departments
+                    .filter { it != ETC_DEPARTMENT_ID }
+                    .ifEmpty { null },
+                level = filter.levels.ifEmpty { null },
+                term = filter.period
+            )
         )
     }
 
@@ -166,6 +184,22 @@ class SearchViewModel @Inject constructor(
 
         viewModelScope.launch {
             performSearch(currentSearchText)
+        }
+    }
+
+    override fun onFilterChange(filterState: CourseFilterState) {
+        _courseFilterState.value = filterState
+
+        if (_searchText.value.isBlank() && filterState.isEmpty()) return
+
+        viewModelScope.launch {
+            _state.value = ViewState.Loading
+            try {
+                searchCourses(_searchText.value)
+                _state.value = ViewState.Loaded
+            } catch (e: Exception) {
+                _state.value = ViewState.Error(e)
+            }
         }
     }
 

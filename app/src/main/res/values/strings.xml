@@ -587,4 +587,47 @@
     <string name="cr">CR</string>
     <string name="timetable_rename">Rename</string>
     <string name="expand">Expand</string>
+
+    <!-- Course category filter -->
+    <string name="filter_classification">Classification</string>
+    <string name="filter_department">Department</string>
+    <string name="filter_level">Level</string>
+    <string name="filter_period">Period</string>
+    <string name="filter_all">All</string>
+    <string name="filter_reset">Reset</string>
+    <string name="filter_this_semester">This Semester</string>
+    <string name="filter_within_1year">Within 1 Year</string>
+    <string name="filter_within_3years">Within 3 Years</string>
+    <string name="filter_year_format">%1$ss</string>
+    <string name="filter_basic_required">BR</string>
+    <string name="filter_basic_elective">BE</string>
+    <string name="filter_major_required">MR</string>
+    <string name="filter_major_elective">ME</string>
+    <string name="filter_general_required">MGC</string>
+    <string name="filter_humanities">HSE</string>
+    <string name="filter_common">GR</string>
+    <string name="filter_graduate">EG</string>
+    <string name="filter_other_elective">OE</string>
+    <string name="filter_etc">ETC</string>
+    <string name="dept_hss">HSS</string>
+    <string name="dept_ce">CE</string>
+    <string name="dept_btm">BTM</string>
+    <string name="dept_me">ME</string>
+    <string name="dept_ph">PH</string>
+    <string name="dept_bis">BiS</string>
+    <string name="dept_ie">IE</string>
+    <string name="dept_id">ID</string>
+    <string name="dept_bs">BS</string>
+    <string name="dept_mas">MAS</string>
+    <string name="dept_nqe">NQE</string>
+    <string name="dept_ee">EE</string>
+    <string name="dept_cs">CS</string>
+    <string name="dept_ae">AE</string>
+    <string name="dept_ch">CH</string>
+    <string name="dept_cbe">CBE</string>
+    <string name="dept_ms">MS</string>
+    <string name="dept_ts">TS</string>
+    <string name="dept_ss">SS</string>
+    <string name="dept_bcs">BCS</string>
+    <string name="dept_etc">ETC</string>
 </resources>
