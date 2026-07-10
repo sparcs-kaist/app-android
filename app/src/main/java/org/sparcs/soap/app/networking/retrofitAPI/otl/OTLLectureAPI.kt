@@ -11,8 +11,9 @@ interface OTLLectureApi {
         @Query("semester") semester: Int,
         @Query("keyword") keyword: String,
         @Query("type") type: List<String>?,
-        @Query("department") department: List<Int>?,
-        @Query("level") level: List<Int>?,
+        @Query("department") department: List<String>?,
+        @Query("level") level: List<String>?,
+        @Query("term") term: String?,
         @Query("limit") limit: Int,
         @Query("offset") offset: Int
     ): CourseLecturePageDTO

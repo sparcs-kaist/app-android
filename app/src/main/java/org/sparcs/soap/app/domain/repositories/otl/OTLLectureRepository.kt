@@ -26,6 +26,7 @@ class OTLLectureRepository @Inject constructor(
             type = dto.type,
             department = dto.department,
             level = dto.level,
+            term = dto.term,
             limit = dto.limit,
             offset = dto.offset
         ).courses.map { it.toModel() }

@@ -1,44 +1,47 @@
 package org.sparcs.soap.app.networking.requestDTO.otl
 
-import kotlinx.serialization.SerialName
+import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.LectureSearchRequest
 
 data class LectureSearchRequestDTO(
-    @SerialName("keyword")
+    @SerializedName("keyword")
     val keyword: String,
 
-    @SerialName("type")
+    @SerializedName("type")
     val type: List<String>?,
 
-    @SerialName("department")
-    val department: List<Int>?,
+    @SerializedName("department")
+    val department: List<String>?,
 
-    @SerialName("level")
-    val level: List<Int>?,
+    @SerializedName("level")
+    val level: List<String>?,
 
-    @SerialName("year")
+    @SerializedName("term")
+    val term: String?,
+
+    @SerializedName("year")
     val year: Int,
 
-    @SerialName("semester")
+    @SerializedName("semester")
     val semester: Int,
 
-    @SerialName("day")
+    @SerializedName("day")
     val day: DayType?,
 
-    @SerialName("begin")
+    @SerializedName("begin")
     val begin: Int?,
 
-    @SerialName("end")
+    @SerializedName("end")
     val end: Int?,
 
-    @SerialName("order")
+    @SerializedName("order")
     val order: String = "code",
 
-    @SerialName("limit")
+    @SerializedName("limit")
     val limit: Int,
 
-    @SerialName("offset")
+    @SerializedName("offset")
     val offset: Int
 ) {
     companion object {
@@ -49,9 +52,10 @@ data class LectureSearchRequestDTO(
                 keyword = model.keyword,
                 limit = model.limit,
                 offset = model.offset,
-                type = null,
-                department = null,
-                level = null,
+                type = model.type,
+                department = model.department,
+                level = model.level,
+                term = model.term,
                 day = null,
                 begin = null,
                 end = null

@@ -2,12 +2,9 @@ package org.sparcs.soap.app.features.search
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,11 +21,9 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,11 +46,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.SearchScope
+import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
+import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
+import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.search.components.CourseSection
 import org.sparcs.soap.app.features.search.components.PostSection
+import org.sparcs.soap.app.features.search.components.SearchFilterRow
 import org.sparcs.soap.app.features.search.components.SearchNavigationBar
 import org.sparcs.soap.app.features.search.components.TaxiSection
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewView
@@ -66,6 +65,7 @@ import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.viewModelMocks.MockSearchViewModel
+import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
@@ -83,11 +83,14 @@ fun SearchView(
     val state by viewModel.state.collectAsState()
     val searchText by viewModel.searchText.collectAsState()
     val searchScope by viewModel.searchScope.collectAsState()
+    val courseFilterState by viewModel.courseFilterState.collectAsState()
     val scrollState = rememberScrollState()
 
     val coroutineScope = rememberCoroutineScope()
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
     val sheetState = rememberModalBottomSheetState()
+    var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
+    val filterSheetState = rememberModalBottomSheetState()
 
     val backStackEvent = {
         navController.navigate(Channel.Start.name) {
@@ -145,8 +148,11 @@ fun SearchView(
                 SearchControlCard(
                     searchText = searchText,
                     searchScope = searchScope,
+                    courseFilterState = courseFilterState,
                     onSearchTextChange = viewModel::onSearchTextChange,
-                    onScopeChange = viewModel::onScopeChange
+                    onScopeChange = viewModel::onScopeChange,
+                    onCategoryClick = { activeFilterCategory = it },
+                    onResetFilters = { viewModel.onFilterChange(CourseFilterState()) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -158,6 +164,7 @@ fun SearchView(
                     SearchResultContent(
                         state = state,
                         searchText = searchText,
+                        courseFilterState = courseFilterState,
                         viewModel = viewModel,
                         navController = navController,
                         coroutineScope = coroutineScope,
@@ -201,6 +208,21 @@ fun SearchView(
                 )
             }
         }
+
+        activeFilterCategory?.let { category ->
+            ModalBottomSheet(
+                onDismissRequest = { activeFilterCategory = null },
+                sheetState = filterSheetState,
+                containerColor = MaterialTheme.colorScheme.surface
+            ) {
+                CategoryFilterContent(
+                    category = category,
+                    selectedFilters = courseFilterState,
+                    onFilterChange = viewModel::onFilterChange,
+                    options = CourseFilterProvider.getOptions(category)
+                )
+            }
+        }
     }
 }
 
@@ -208,8 +230,11 @@ fun SearchView(
 private fun SearchControlCard(
     searchText: String,
     searchScope: SearchScope,
+    courseFilterState: CourseFilterState,
     onSearchTextChange: (String) -> Unit,
-    onScopeChange: (SearchScope) -> Unit
+    onScopeChange: (SearchScope) -> Unit,
+    onCategoryClick: (CourseFilterCategory) -> Unit,
+    onResetFilters: () -> Unit
 ) {
     Card(
         colors = CardDefaults.elevatedCardColors(
@@ -229,26 +254,13 @@ private fun SearchControlCard(
                 placeHolder = stringResource(R.string.search)
             )
 
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .horizontalScroll(rememberScrollState())
-                    .padding(horizontal = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
-            ) {
-                SearchScope.entries.forEach { scope ->
-                    FilterChip(
-                        selected = (searchScope == scope),
-                        onClick = { onScopeChange(scope) },
-                        label = { 
-                            Text(
-                                text = stringResource(scope.labelRes),
-                                modifier = Modifier.padding(horizontal = 4.dp)
-                            ) 
-                        }
-                    )
-                }
-            }
+            SearchFilterRow(
+                searchScope = searchScope,
+                courseFilterState = courseFilterState,
+                onScopeChange = onScopeChange,
+                onCategoryClick = onCategoryClick,
+                onResetFilters = onResetFilters
+            )
         }
     }
 }
@@ -257,6 +269,7 @@ private fun SearchControlCard(
 private fun SearchResultContent(
     state: SearchViewModel.ViewState,
     searchText: String,
+    courseFilterState: CourseFilterState,
     viewModel: SearchViewModelProtocol,
     navController: NavController,
     coroutineScope: CoroutineScope,
@@ -274,7 +287,7 @@ private fun SearchResultContent(
                 )
             }
 
-            searchText.isEmpty() -> {
+            searchText.isEmpty() && courseFilterState.isEmpty() -> {
                 UnavailableView(
                     icon = Icons.Rounded.Search,
                     title = stringResource(R.string.search_anything),
