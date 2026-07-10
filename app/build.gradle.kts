@@ -170,4 +170,8 @@ dependencies {
     implementation(libs.play.services.wearable)
 
     implementation("io.channel:plugin-android:13.4.0")
+
+    implementation(libs.mlkit.translate)
+    implementation(libs.mlkit.language.id)
+    implementation(libs.mlkit.genai.summarization)
 }

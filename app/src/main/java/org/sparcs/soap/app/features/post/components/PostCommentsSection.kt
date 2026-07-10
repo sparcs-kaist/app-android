@@ -27,7 +27,8 @@ fun PostCommentsSection(
     onUpVote: (AraPostComment) -> Unit,
     onDownVote: (AraPostComment) -> Unit,
     onReport: (Int, AraContentReportType) -> Unit,
-    onDeleteComment: (AraPostComment) -> Unit
+    onDeleteComment: (AraPostComment) -> Unit,
+    onTranslateComment: (AraPostComment) -> Unit,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -56,7 +57,8 @@ fun PostCommentsSection(
                         onUpVote = onUpVote,
                         onDownVote = onDownVote,
                         onReport = onReport,
-                        onDeleteComment = onDeleteComment
+                        onDeleteComment = onDeleteComment,
+                        onTranslateComment = onTranslateComment
                     )
 
                     comment.comments.forEach { thread ->
@@ -69,7 +71,8 @@ fun PostCommentsSection(
                             onUpVote = onUpVote,
                             onDownVote = onDownVote,
                             onReport = onReport,
-                            onDeleteComment = onDeleteComment
+                            onDeleteComment = onDeleteComment,
+                            onTranslateComment = onTranslateComment
                         )
                     }
                 }
@@ -88,7 +91,8 @@ private fun CommentCell(
     onUpVote: (AraPostComment) -> Unit,
     onDownVote: (AraPostComment) -> Unit,
     onReport: (Int, AraContentReportType) -> Unit,
-    onDeleteComment: (AraPostComment) -> Unit
+    onDeleteComment: (AraPostComment) -> Unit,
+    onTranslateComment: (AraPostComment) -> Unit,
 ) {
     PostCommentCell(
         comment = comment,
@@ -99,6 +103,7 @@ private fun CommentCell(
         onUpVote = { onUpVote(comment) },
         onDownVote = { onDownVote(comment) },
         onReport = { type -> onReport(comment.id, type) },
-        onDeleteComment = { onDeleteComment(comment) }
+        onDeleteComment = { onDeleteComment(comment) },
+        onTranslate = { onTranslateComment(comment) }
     )
 }

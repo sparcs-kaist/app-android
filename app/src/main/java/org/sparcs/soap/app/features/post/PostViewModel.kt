@@ -17,11 +17,18 @@ import org.sparcs.soap.app.domain.enums.ara.PostOrigin
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraCommentUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import org.sparcs.soap.app.features.post.event.PostCommentCellEvent
 import org.sparcs.soap.app.features.post.event.PostViewEvent
+import org.sparcs.soap.app.shared.extensions.araContentToPlainText
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import timber.log.Timber
 import javax.inject.Inject
@@ -34,6 +41,20 @@ interface PostViewModelProtocol {
 
     var alertState: AlertState?
     var isAlertPresented: Boolean
+
+    val translationState: StateFlow<TranslationState>
+    val summarizationState: StateFlow<SummarizationState>
+    fun translationLanguages(): List<String>
+    fun suggestedTranslationLanguages(): List<String>
+    fun defaultTranslationLanguage(): String
+    fun translatePost(targetLanguage: String)
+    fun showOriginal()
+    fun summarizePost()
+    fun hideSummary()
+
+    val commentTranslations: StateFlow<Map<Int, TranslationState>>
+    fun translateComment(commentId: Int, content: String, targetLanguage: String)
+    fun showCommentOriginal(commentId: Int)
 
     fun fetchPost()
     fun upVote()
@@ -64,6 +85,8 @@ class PostViewModel @Inject constructor(
     val araCommentUseCase: AraCommentUseCaseProtocol,
 //    private val foundationModelsUseCase: FoundationModelsUseCaseProtocol
     private val analyticsService: AnalyticsServiceProtocol,
+    private val postTranslationUseCase: PostTranslationUseCaseProtocol,
+    private val summarizationUseCase: SummarizationUseCaseProtocol,
 ) : ViewModel(), PostViewModelProtocol {
 
     sealed interface ViewState {
@@ -89,6 +112,100 @@ class PostViewModel @Inject constructor(
 
     override var alertState by mutableStateOf<AlertState?>(null)
     override var isAlertPresented by mutableStateOf(false)
+
+    // MARK: - Translation
+    private val _translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)
+    override val translationState: StateFlow<TranslationState> = _translationState.asStateFlow()
+
+    override fun translationLanguages(): List<String> =
+        postTranslationUseCase.availableLanguages()
+
+    override fun suggestedTranslationLanguages(): List<String> =
+        postTranslationUseCase.suggestedLanguages()
+
+    override fun defaultTranslationLanguage(): String =
+        postTranslationUseCase.deviceLanguage()
+
+    override fun translatePost(targetLanguage: String) {
+        if (_translationState.value is TranslationState.Loading) return
+        val content = _post.value?.content ?: return
+        _translationState.value = TranslationState.Loading
+        viewModelScope.launch {
+            _translationState.value = when (
+                val result = postTranslationUseCase.translate(
+                content.araContentToPlainText(), targetLanguage, isHtml = false
+            )
+            ) {
+                is PostTranslationResult.Success ->
+                    TranslationState.Translated(result.text, result.sourceLanguage)
+
+                PostTranslationResult.SameLanguage,
+                PostTranslationResult.Unsupported -> TranslationState.Unsupported
+
+                is PostTranslationResult.Failed -> TranslationState.Failed
+            }
+        }
+    }
+
+    override fun showOriginal() {
+        _translationState.value = TranslationState.Idle
+    }
+
+    // MARK: - Summarization
+    private val _summarizationState = MutableStateFlow<SummarizationState>(SummarizationState.Idle)
+    override val summarizationState: StateFlow<SummarizationState> = _summarizationState.asStateFlow()
+
+    override fun summarizePost() {
+        if (_summarizationState.value is SummarizationState.Loading) return
+        val content = _post.value?.content ?: return
+        _summarizationState.value = SummarizationState.Loading
+        viewModelScope.launch {
+            _summarizationState.value = when (
+                val result = summarizationUseCase.summarise(
+                    content.araContentToPlainText(), isHtml = false
+                )
+            ) {
+                is SummarizationResultState.Success ->
+                    SummarizationState.Summarized(result.summary)
+
+                SummarizationResultState.Unavailable -> SummarizationState.Unavailable
+
+                is SummarizationResultState.Failed -> SummarizationState.Failed
+            }
+        }
+    }
+
+    override fun hideSummary() {
+        _summarizationState.value = SummarizationState.Idle
+    }
+
+    // MARK: - Comment translation (one-tap, device language)
+    private val _commentTranslations = MutableStateFlow<Map<Int, TranslationState>>(emptyMap())
+    override val commentTranslations: StateFlow<Map<Int, TranslationState>> =
+        _commentTranslations.asStateFlow()
+
+    override fun translateComment(commentId: Int, content: String, targetLanguage: String) {
+        if (_commentTranslations.value[commentId] is TranslationState.Loading) return
+        _commentTranslations.value += (commentId to TranslationState.Loading)
+        viewModelScope.launch {
+            val state = when (
+                val result = postTranslationUseCase.translate(content, targetLanguage, isHtml = false)
+            ) {
+                is PostTranslationResult.Success ->
+                    TranslationState.Translated(result.text, result.sourceLanguage)
+
+                PostTranslationResult.SameLanguage,
+                PostTranslationResult.Unsupported -> TranslationState.Unsupported
+
+                is PostTranslationResult.Failed -> TranslationState.Failed
+            }
+            _commentTranslations.value += (commentId to state)
+        }
+    }
+
+    override fun showCommentOriginal(commentId: Int) {
+        _commentTranslations.value -= commentId
+    }
 
     private fun insertThreadedComment(
         comments: MutableList<AraPostComment>,

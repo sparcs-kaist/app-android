@@ -59,6 +59,8 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.feed.FeedComment
 import org.sparcs.soap.app.domain.models.feed.FeedPost
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.feed.FeedViewModel
 import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
 import org.sparcs.soap.app.features.feed.components.FeedPostRow
@@ -75,6 +77,8 @@ import org.sparcs.soap.app.shared.mocks.feed.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
+import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
@@ -119,6 +123,9 @@ fun FeedPostView(
 
         is FeedPostViewModel.ViewState.Loaded -> {
             val post = feedViewModel.posts.find { it.id == state.post.id } ?: state.post
+            val translationState by viewModel.translationState.collectAsState()
+            val summarizationState by viewModel.summarizationState.collectAsState()
+            var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
             val topBarScrollBehavior = landscapeHideOnScrollBehavior()
 
             Scaffold(
@@ -129,7 +136,11 @@ fun FeedPostView(
                         onReport = { reason ->
                             viewModel.reportPost(post.id, reason)
                         },
-                        onTranslate = {/*Todo - translate*/ },
+                        onTranslate = {
+                            translationTarget = viewModel.defaultTranslationLanguage()
+                            viewModel.translatePost(translationTarget)
+                        },
+                        onSummarize = { viewModel.summarizePost() },
                         isMine = post.isAuthor,
                         scrollBehavior = topBarScrollBehavior
                     )
@@ -269,6 +280,28 @@ fun FeedPostView(
                         }
                     )
                 }
+            }
+
+            if (translationState !is TranslationState.Idle) {
+                PostTranslationSheet(
+                    state = translationState,
+                    targetLanguage = translationTarget,
+                    languages = viewModel.translationLanguages(),
+                    suggested = viewModel.suggestedTranslationLanguages(),
+                    onTargetChange = { code ->
+                        translationTarget = code
+                        viewModel.translatePost(code)
+                    },
+                    onRetry = { viewModel.translatePost(translationTarget) },
+                    onDismiss = { viewModel.showOriginal() }
+                )
+            }
+            if (summarizationState !is SummarizationState.Idle) {
+                PostSummarizationSheet(
+                    state = summarizationState,
+                    onRetry = { viewModel.summarizePost() },
+                    onDismiss = { viewModel.hideSummary() }
+                )
             }
         }
     }

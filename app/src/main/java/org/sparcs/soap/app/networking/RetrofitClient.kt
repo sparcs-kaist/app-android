@@ -105,6 +105,8 @@ import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCase
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackgroundProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCase
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiChatUseCase
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiChatUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiFavoriteUseCase
@@ -113,6 +115,8 @@ import org.sparcs.soap.app.domain.usecases.taxi.TaxiLocationUseCase
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiLocationUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiRoomUseCase
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiRoomUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCase
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import org.sparcs.soap.app.networking.responseDTO.AuthRetryConfig
 import org.sparcs.soap.app.networking.retrofitAPI.AppVersionApi
 import org.sparcs.soap.app.networking.retrofitAPI.AuthApi
@@ -725,6 +729,18 @@ abstract class UseCaseModule {
     abstract fun bindLectureUseCase(
         impl: LectureUseCase,
     ): LectureUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindPostTranslationUseCase(
+        impl: PostTranslationUseCase,
+    ): PostTranslationUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindSummarizationUseCase(
+        impl: SummarizationUseCase,
+    ): SummarizationUseCaseProtocol
 
 }
 

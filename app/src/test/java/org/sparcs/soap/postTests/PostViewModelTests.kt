@@ -10,6 +10,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import org.sparcs.soap.app.features.post.PostViewModel
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
@@ -18,6 +22,20 @@ class PostViewModelTest : PostTestBase() {
 
     private lateinit var viewModel: PostViewModel
 
+    private val fakeTranslationUseCase = object : PostTranslationUseCaseProtocol {
+        override fun availableLanguages(): List<String> = emptyList()
+        override fun suggestedLanguages(): List<String> = emptyList()
+        override fun deviceLanguage(): String = "en"
+        override suspend fun translate(text: String, targetLanguage: String, isHtml: Boolean) =
+            PostTranslationResult.Unsupported
+    }
+
+    private val fakeSummarizationUseCase = object : SummarizationUseCaseProtocol {
+        override suspend fun isAvailable(): Boolean = false
+        override suspend fun summarise(text: String, isHtml: Boolean) =
+            SummarizationResultState.Unavailable
+    }
+
     private fun createViewModel(initialPost: AraPost = AraPost.mock()) {
         val savedStateHandle = SavedStateHandle(mapOf("post" to initialPost))
         viewModel = PostViewModel(
@@ -25,7 +43,9 @@ class PostViewModelTest : PostTestBase() {
             araBoardUseCase = mockAraBoardUseCase,
             araCommentUseCase = mockAraCommentUseCase,
 //            crashlyticsService = mockCrashlyticsService,
-            analyticsService = mockAnalyticsService
+            analyticsService = mockAnalyticsService,
+            postTranslationUseCase = fakeTranslationUseCase,
+            summarizationUseCase = fakeSummarizationUseCase
         )
     }
 
