@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SearchOff
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -50,6 +51,8 @@ import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBa
 import org.sparcs.soap.app.features.settings.components.TaxiReportDetailRow
 import org.sparcs.soap.app.features.settings.components.TaxiReportDetailSkeletonRow
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiReportListViewModel
@@ -57,6 +60,7 @@ import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TaxiReportListView(
     viewModel: TaxiReportListViewModelProtocol,
@@ -71,14 +75,19 @@ fun TaxiReportListView(
         viewModel.fetchReports()
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.taxi_reports),
-                onDismiss = { navController.popBackStack() }
+                onDismiss = { navController.popBackStack() },
+                scrollBehavior = topBarScrollBehavior
             )
         },
-        modifier = Modifier.analyticsScreen("Taxi Report List")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen("Taxi Report List")
     ) { innerPadding ->
 
         Column(

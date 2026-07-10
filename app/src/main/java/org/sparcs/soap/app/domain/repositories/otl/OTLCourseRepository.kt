@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.CourseSearchRequest
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
+import org.sparcs.soap.app.networking.requestDTO.otl.CourseSearchRequestDTO
 import org.sparcs.soap.app.networking.responseDTO.safeApiCall
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLCourseApi
 import javax.inject.Inject
@@ -20,10 +21,15 @@ class OTLCourseRepository @Inject constructor(
 ) : OTLCourseRepositoryProtocol {
 
     override suspend fun searchCourse(request: CourseSearchRequest): List<CourseSummary> = safeApiCall(gson) {
+        val dto = CourseSearchRequestDTO.fromModel(request)
         val response = api.searchCourse(
-            name = request.keyword,
-            offset = request.offset,
-            limit = request.limit
+            name = dto.keyword,
+            offset = dto.offset,
+            limit = dto.limit,
+            type = dto.type,
+            department = dto.department,
+            level = dto.level,
+            term = dto.term
         )
 
         response.courses.map { it.toModel() }

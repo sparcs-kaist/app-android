@@ -138,6 +138,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    releaseImplementation(libs.androidx.ui.tooling)
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.security.crypto)
     implementation(libs.socket.io.client)
@@ -169,4 +170,8 @@ dependencies {
     implementation(libs.play.services.wearable)
 
     implementation("io.channel:plugin-android:13.4.0")
+
+    implementation(libs.mlkit.translate)
+    implementation(libs.mlkit.language.id)
+    implementation(libs.mlkit.genai.summarization)
 }

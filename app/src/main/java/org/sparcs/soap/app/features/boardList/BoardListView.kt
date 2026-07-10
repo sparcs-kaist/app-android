@@ -4,9 +4,11 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.rounded.Drafts
 import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material.icons.rounded.LocalOffer
 import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -41,10 +44,13 @@ import org.sparcs.soap.app.features.boardList.components.BoardListSkeleton
 import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewBoardListViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BoardListView(
     viewModel: BoardListViewModelProtocol = hiltViewModel<BoardListViewModel>(),
@@ -67,55 +73,69 @@ fun BoardListView(
         viewModel.fetchBoards()
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             BoardListNavigationBar(
-                scrollState = scrollState
+                scrollState = scrollState,
+                scrollBehavior = topBarScrollBehavior
             )
         },
-
         bottomBar = {
             AppDownBar(
                 navController = navController,
                 currentScreen = Channel.Boards
             )
         },
-        modifier = Modifier.analyticsScreen(name = "Board List")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen(name = "Board List")
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
-                .verticalScroll(scrollState)
                 .padding(innerPadding),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            contentAlignment = Alignment.TopCenter
         ) {
-            when (state) {
-                is BoardListViewModel.ViewState.Loading -> {
-                    LoadingView()
-                }
-
-                is BoardListViewModel.ViewState.Loaded -> {
-                    val loadedState = state as BoardListViewModel.ViewState.Loaded
-                    LoadedView(
-                        boards = loadedState.boards,
-                        groups = loadedState.groups,
-                        onBoardClick = { board ->
-                            val json = Uri.encode(Gson().toJson(board))
-                            navController.navigate(Channel.BoardList.name + "?board_json=$json")
-                        }
-                    )
-                }
-
-                is BoardListViewModel.ViewState.Error -> {
-                    val error = (state as BoardListViewModel.ViewState.Error).error
-
+            if (state is BoardListViewModel.ViewState.Error) {
+                val error = (state as BoardListViewModel.ViewState.Error).error
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     ErrorView(
                         error = error,
                         defaultMessageResId = R.string.error_fetch_boards,
                         onRetry = { viewModel.fetchBoards() }
                     )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 600.dp)
+                        .verticalScroll(scrollState),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    val onBoardClick: (AraBoard) -> Unit = { board ->
+                        val json = Uri.encode(Gson().toJson(board))
+                        navController.navigate(Channel.BoardList.name + "?board_json=$json")
+                    }
+
+                    if (state is BoardListViewModel.ViewState.Loading) {
+                        BoardListSkeleton(4)
+                        BoardListSkeleton(1)
+                        BoardListSkeleton(2)
+                        BoardListSkeleton(3)
+                    } else if (state is BoardListViewModel.ViewState.Loaded) {
+                        val loaded = state as BoardListViewModel.ViewState.Loaded
+                        loaded.groups.forEach { group ->
+                            BoardGroupItem(group, loaded.boards, onBoardClick)
+                        }
+                    }
                 }
             }
         }
@@ -123,39 +143,24 @@ fun BoardListView(
 }
 
 @Composable
-private fun LoadingView() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        BoardListSkeleton(4)
-        BoardListSkeleton(1)
-        BoardListSkeleton(2)
-        BoardListSkeleton(3)
-    }
-}
-
-@Composable
-private fun LoadedView(
+private fun BoardGroupItem(
+    group: AraBoardGroup,
     boards: List<AraBoard>,
-    groups: List<AraBoardGroup>,
-    onBoardClick: (AraBoard) -> Unit,
+    onBoardClick: (AraBoard) -> Unit
 ) {
-    groups.forEach { group ->
-        val boardsInGroup = boards.filter { it.group.id == group.id }
-        BoardList(
-            title = group.name.localized(),
-            icon = systemImage(group.slug),
-            sections = listOf({
-                boardsInGroup.forEach { board ->
-                    BoardListSectionItem(
-                        text = board.name.localized(),
-                        onClick = { onBoardClick(board) }
-                    )
-                }
-            })
-        )
-    }
+    val boardsInGroup = boards.filter { it.group.id == group.id }
+    BoardList(
+        title = group.name.localized(),
+        icon = systemImage(group.slug),
+        sections = listOf({
+            boardsInGroup.forEach { board ->
+                BoardListSectionItem(
+                    text = board.name.localized(),
+                    onClick = { onBoardClick(board) }
+                )
+            }
+        })
+    )
 }
 
 @Composable
@@ -181,17 +186,20 @@ fun PreviewBoardListLoading() {
 @Preview(name = "Loaded State", showBackground = true)
 @Composable
 fun PreviewBoardListLoaded() {
-    val viewModel = PreviewBoardListViewModel(
-        initialState = PreviewBoardListViewModel.loadedState()
-    )
+    val viewModel = PreviewBoardListViewModel(initialState = PreviewBoardListViewModel.loadedState())
+    Theme { BoardListView(viewModel, rememberNavController()) }
+}
+
+@Preview(name = "Loaded State Landscape", showBackground = true, widthDp = 840, heightDp = 480)
+@Composable
+fun PreviewBoardListLoadedLandscape() {
+    val viewModel = PreviewBoardListViewModel(initialState = PreviewBoardListViewModel.loadedState())
     Theme { BoardListView(viewModel, rememberNavController()) }
 }
 
 @Preview(name = "Error State", showBackground = true)
 @Composable
 fun PreviewBoardListError() {
-    val viewModel = PreviewBoardListViewModel(
-        initialState = BoardListViewModel.ViewState.Error(Exception())
-    )
+    val viewModel = PreviewBoardListViewModel(initialState = BoardListViewModel.ViewState.Error(Exception()))
     Theme { BoardListView(viewModel, rememberNavController()) }
 }

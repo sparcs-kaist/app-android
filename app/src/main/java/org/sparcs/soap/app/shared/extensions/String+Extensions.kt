@@ -9,6 +9,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.core.text.HtmlCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -29,9 +30,7 @@ fun String.toDate(): Date? {
         simpleDateFormat.timeZone = TimeZone.getTimeZone("UTC")
         try {
             return simpleDateFormat.parse(this)
-        } catch (_: Exception) {
-            // continue
-        }
+        } catch (_: Exception) {}
     }
     return null
 }
@@ -133,4 +132,14 @@ fun String.toDetectedAnnotatedString(linkColor: Color): AnnotatedString {
             )
         }
     }
+}
+
+fun String.htmlToPlainText(): String {
+    val text = HtmlCompat.fromHtml(this, HtmlCompat.FROM_HTML_MODE_COMPACT).toString()
+    return text
+        .replace("￼", " ")
+        .replace(Regex("[ \t]+"), " ")
+        .replace(Regex(" *\n *"), "\n")
+        .replace(Regex("\n{3,}"), "\n\n")
+        .trim()
 }

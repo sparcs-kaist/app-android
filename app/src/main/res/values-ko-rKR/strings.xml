@@ -563,4 +563,65 @@
     <string name="live_class_minutes_short">%d분</string>
     <string name="live_class_channel_name">실시간 수업</string>
     <string name="live_class_channel_description">진행 중인 수업 일정 알림</string>
+
+    <!-- Course category filter -->
+    <string name="filter_classification">구분</string>
+    <string name="filter_department">학과</string>
+    <string name="filter_level">학년</string>
+    <string name="filter_period">기간</string>
+    <string name="filter_all">전체</string>
+    <string name="filter_reset">초기화</string>
+    <string name="filter_this_semester">이번 학기</string>
+    <string name="filter_within_1year">최근 1년</string>
+    <string name="filter_within_3years">최근 3년</string>
+    <string name="filter_year_format">%1$s</string>
+    <string name="filter_basic_required">기필</string>
+    <string name="filter_basic_elective">기선</string>
+    <string name="filter_major_required">전필</string>
+    <string name="filter_major_elective">전선</string>
+    <string name="filter_general_required">교필</string>
+    <string name="filter_humanities">인선</string>
+    <string name="filter_common">공통</string>
+    <string name="filter_graduate">석박</string>
+    <string name="filter_other_elective">자선</string>
+    <string name="filter_etc">기타</string>
+    <string name="dept_hss">인문</string>
+    <string name="dept_ce">건환</string>
+    <string name="dept_btm">기경</string>
+    <string name="dept_me">기계</string>
+    <string name="dept_ph">물리</string>
+    <string name="dept_bis">바공</string>
+    <string name="dept_ie">산공</string>
+    <string name="dept_id">산디</string>
+    <string name="dept_bs">생명</string>
+    <string name="dept_mas">수리</string>
+    <string name="dept_nqe">원양</string>
+    <string name="dept_ee">전자</string>
+    <string name="dept_cs">전산</string>
+    <string name="dept_ae">항공</string>
+    <string name="dept_ch">화학</string>
+    <string name="dept_cbe">생화공</string>
+    <string name="dept_ms">신소재</string>
+    <string name="dept_ts">융인</string>
+    <string name="dept_ss">반시공</string>
+    <string name="dept_bcs">뇌인지</string>
+    <string name="dept_etc">기타</string>
+
+    <!-- Post translation -->
+    <string name="translating">번역 중…</string>
+    <string name="show_original">원문 보기</string>
+    <string name="translated_from">%1$s에서 번역됨</string>
+    <string name="translation_unsupported">이 게시글은 번역할 수 없어요.</string>
+    <string name="translation_failed">번역에 실패했어요.</string>
+    <string name="retry">다시 시도</string>
+    <string name="translate_to">번역할 언어</string>
+    <string name="suggested">추천</string>
+    <string name="all_languages">모든 언어</string>
+
+    <!-- Post summarization -->
+    <string name="summarize">요약</string>
+    <string name="summarizing">요약 중…</string>
+    <string name="hide">닫기</string>
+    <string name="summarization_unavailable">이 기기에서는 요약을 사용할 수 없어요.</string>
+    <string name="summarization_failed">요약에 실패했어요.</string>
 </resources>

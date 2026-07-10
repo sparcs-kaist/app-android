@@ -59,6 +59,8 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.feed.FeedComment
 import org.sparcs.soap.app.domain.models.feed.FeedPost
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.feed.FeedViewModel
 import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
 import org.sparcs.soap.app.features.feed.components.FeedPostRow
@@ -67,12 +69,16 @@ import org.sparcs.soap.app.features.feedPost.components.FeedPostNavigationBar
 import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeIn
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.mocks.feed.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
+import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
@@ -117,6 +123,10 @@ fun FeedPostView(
 
         is FeedPostViewModel.ViewState.Loaded -> {
             val post = feedViewModel.posts.find { it.id == state.post.id } ?: state.post
+            val translationState by viewModel.translationState.collectAsState()
+            val summarizationState by viewModel.summarizationState.collectAsState()
+            var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
+            val topBarScrollBehavior = landscapeHideOnScrollBehavior()
 
             Scaffold(
                 topBar = {
@@ -126,81 +136,114 @@ fun FeedPostView(
                         onReport = { reason ->
                             viewModel.reportPost(post.id, reason)
                         },
-                        onTranslate = {/*Todo - translate*/ },
-                        isMine = post.isAuthor
+                        onTranslate = {
+                            translationTarget = viewModel.defaultTranslationLanguage()
+                            viewModel.translatePost(translationTarget)
+                        },
+                        onSummarize = { viewModel.summarizePost() },
+                        isMine = post.isAuthor,
+                        scrollBehavior = topBarScrollBehavior
                     )
                 },
                 bottomBar = {
-                    InputBar(
-                        viewModel = viewModel,
-                        targetComment = targetComment,
-                        isWritingCommentFocusState = isWritingCommentFocusState,
-                        onCommentUploaded = {
-                            if (viewModel.text.isEmpty()) return@InputBar
-                            scope.launch {
-                                val uploaded = viewModel.submitComment(post.id, targetComment)
-                                if (uploaded != null) {
-                                    post.commentCount += 1
-                                    targetComment = null
-                                    isWritingCommentFocusState = false
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background)
+                            .navigationBarsPadding(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            InputBar(
+                                viewModel = viewModel,
+                                targetComment = targetComment,
+                                isWritingCommentFocusState = isWritingCommentFocusState,
+                                onCommentUploaded = {
+                                    if (viewModel.text.isEmpty()) return@InputBar
+                                    scope.launch {
+                                        val uploaded = viewModel.submitComment(post.id, targetComment)
+                                        if (uploaded != null) {
+                                            post.commentCount += 1
+                                            targetComment = null
+                                            isWritingCommentFocusState = false
 
-                                    val index =
-                                        viewModel.comments.indexOfFirst { it.id == uploaded.id }
-                                    if (index != -1) {
-                                        proxy.animateScrollToItem(index)
+                                            val index =
+                                                viewModel.comments.indexOfFirst { it.id == uploaded.id }
+                                            if (index != -1) {
+                                                proxy.animateScrollToItem(index)
+                                            }
+                                        }
                                     }
-                                }
-                            }
-                        },
-                        focusRequester = focusRequester,
-                        isUploadingComment = isUploadingComment
-                    )
+                                },
+                                focusRequester = focusRequester,
+                                isUploadingComment = isUploadingComment
+                            )
+                        }
+                    }
                 },
                 modifier = Modifier
+                    .hideTopBarOnScroll(topBarScrollBehavior)
                     .analyticsScreen(
                         name = "Feed Post",
                         "is_author" to post.isAuthor,
                         "has_comments" to (post.commentCount > 0)
                     )
             ) { innerPadding ->
-                PullToRefreshBox(
-                    isRefreshing = isRefreshing,
-                    onRefresh = {
-                        isRefreshing = true
-                        scope.launch {
-                            viewModel.fetchComments(postID = post.id, initial = false)
-                            delay(500)
-                            isRefreshing = false
-                        }
-                    },
-                    state = pullState,
-                    modifier = Modifier.padding(innerPadding)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.TopCenter
                 ) {
-                    LazyColumn(
-                        state = proxy
+                    PullToRefreshBox(
+                        isRefreshing = isRefreshing,
+                        onRefresh = {
+                            isRefreshing = true
+                            scope.launch {
+                                viewModel.fetchComments(postID = post.id, initial = false)
+                                delay(500)
+                                isRefreshing = false
+                            }
+                        },
+                        state = pullState,
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        item {
-                            FeedPostRow(
-                                post = post,
-                                viewModel = feedViewModel,
-                                singleLine = false,
-                                onPostDeleted = null,
-                                onComment = {
-                                    targetComment = null
-                                    isWritingCommentFocusState = true
+                        LazyColumn(
+                            state = proxy,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    FeedPostRow(
+                                        post = post,
+                                        viewModel = feedViewModel,
+                                        singleLine = false,
+                                        onPostDeleted = null,
+                                        onComment = {
+                                            targetComment = null
+                                            isWritingCommentFocusState = true
+                                        }
+                                    )
                                 }
-                            )
-                        }
+                            }
 
-                        item {
-                            Comments(
-                                viewModel = viewModel,
-                                post = post,
-                                onReply = { c ->
-                                    targetComment = c
-                                    isWritingCommentFocusState = true
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Comments(
+                                        viewModel = viewModel,
+                                        post = post,
+                                        onReply = { c ->
+                                            targetComment = c
+                                            isWritingCommentFocusState = true
+                                        }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -237,6 +280,28 @@ fun FeedPostView(
                         }
                     )
                 }
+            }
+
+            if (translationState !is TranslationState.Idle) {
+                PostTranslationSheet(
+                    state = translationState,
+                    targetLanguage = translationTarget,
+                    languages = viewModel.translationLanguages(),
+                    suggested = viewModel.suggestedTranslationLanguages(),
+                    onTargetChange = { code ->
+                        translationTarget = code
+                        viewModel.translatePost(code)
+                    },
+                    onRetry = { viewModel.translatePost(translationTarget) },
+                    onDismiss = { viewModel.showOriginal() }
+                )
+            }
+            if (summarizationState !is SummarizationState.Idle) {
+                PostSummarizationSheet(
+                    state = summarizationState,
+                    onRetry = { viewModel.summarizePost() },
+                    onDismiss = { viewModel.hideSummary() }
+                )
             }
         }
     }
@@ -283,8 +348,7 @@ private fun InputBar(
         modifier = Modifier
             .fillMaxWidth()
             .imePadding()
-            .padding(8.dp)
-            .navigationBarsPadding(),
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(Modifier.weight(1f)) {
@@ -451,6 +515,7 @@ private fun Comments(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LoadingView(
     navController: NavController,

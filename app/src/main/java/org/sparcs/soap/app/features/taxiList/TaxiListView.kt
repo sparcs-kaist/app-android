@@ -1,5 +1,7 @@
 package org.sparcs.soap.app.features.taxiList
 
+import android.content.res.Configuration
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -9,9 +11,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -40,7 +44,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +60,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.LocalizedString
+import org.sparcs.soap.app.domain.models.taxi.TaxiFavoriteRoute
 import org.sparcs.soap.app.domain.models.taxi.TaxiLocation
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.AppDownBar
@@ -67,7 +74,9 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationP
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.isDateInSameDay
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.weekdaySymbol
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -77,7 +86,6 @@ import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiListViewModel
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
-import java.util.Calendar
 import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -89,9 +97,8 @@ fun TaxiListView(
 ) {
     val haptic = LocalHapticFeedback.current
     val uiState by viewModel.state.collectAsState()
-    var selectedDate = viewModel.selectedDate
+    val selectedDate = viewModel.selectedDate
 
-    val showRoomCreation by remember { mutableStateOf(true) }
     val locations by viewModel.locations.collectAsState()
     var isRefreshing by remember { mutableStateOf(false) }
 
@@ -103,6 +110,9 @@ fun TaxiListView(
 
     val favoriteRoutes by viewModel.favoriteRoutes.collectAsState()
 
+    val configuration = LocalConfiguration.current
+    val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     val description = getTaxiFilterDescription(
         sourceTitle = viewModel.source?.title,
         destinationTitle = viewModel.destination?.title,
@@ -110,22 +120,27 @@ fun TaxiListView(
     )
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             TaxiListNavigationBar(
                 scrollState = scrollState,
                 navController = navController,
-                isButtonEnabled = showRoomCreation
+                isButtonEnabled = true,
+                scrollBehavior = topBarScrollBehavior
             )
         },
-
         bottomBar = {
             AppDownBar(
                 navController = navController,
                 currentScreen = Channel.Taxi
             )
         },
-        modifier = Modifier.analyticsScreen("Taxi List")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .navigationBarsPadding()
+            .analyticsScreen("Taxi List")
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
@@ -140,112 +155,43 @@ fun TaxiListView(
             state = pullState,
             modifier = Modifier.padding(innerPadding)
         ) {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
-                    .verticalScroll(scrollState)
             ) {
-                Column(
-                    Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxSize()
-                ) {
-                    Card(
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.background
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
-                    ) {
-                        TaxiDestinationPicker(
-                            source = viewModel.source,
-                            destination = viewModel.destination,
-                            locations = locations,
-                            onSourceChange = { newSource ->
-                                viewModel.source = newSource
-                            },
-                            onDestinationChange = { newDestination ->
-                                viewModel.destination = newDestination
-                            },
-                            favoriteRoutes = favoriteRoutes,
-                            onFavoriteSelect = { viewModel.selectFavoriteRoute(it) },
-                            onFavoriteDelete = { viewModel.deleteFavoriteRoute(it) },
-                            onFavoriteAdd = { viewModel.addFavoriteRoute() }
-                        )
-                    }
-
-                    Spacer(Modifier.padding(8.dp))
-
-                    Card(
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.background
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .glassBorder(shape = RoundedCornerShape(16.dp))
-                    ) {
-                        WeekDaySelector(
-                            week = viewModel.week,
-                            selectedDate = selectedDate,
-                            onSelect = { newDate ->
-                                selectedDate = newDate
-                                viewModel.selectedDate = selectedDate
-                                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                            }
-                        )
-                    }
-                }
-
-                Spacer(Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
-
-                when (uiState) {
-                    is TaxiListViewModel.ViewState.Loading -> {
-                        LoadingView()
-                    }
-
-                    is TaxiListViewModel.ViewState.Loaded -> {
-                        val rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms
-                        if (rooms.isEmpty()) {
-                            EmptyResultView(
-                                description = description,
-                                navController = navController,
-                                onClear = {
-                                    viewModel.source = null
-                                    viewModel.destination = null
-                                }
-                            )
-                        } else {
-                            LoadedView(
-                                rooms = (uiState as TaxiListViewModel.ViewState.Loaded).rooms,
-                                week = viewModel.week,
-                                selectedDate = selectedDate,
-                                source = viewModel.source,
-                                destination = viewModel.destination,
-                                onRoomSelected = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                    selectedRoom = it
-                                },
-                                viewModel = viewModel,
-                                description = description,
-                                navController = navController
-                            )
-                        }
-                    }
-
-                    is TaxiListViewModel.ViewState.Empty -> {
-                        EmptyView(navController = navController)
-                    }
-
-                    is TaxiListViewModel.ViewState.Error -> {
-                        ErrorView(
-                            error = (uiState as TaxiListViewModel.ViewState.Error).error,
-                            onRetry = {
-                                viewModel.fetchData()
-                            }
-                        )
-                    }
+                if (isLandscape) {
+                    TaxiLandscapeLayout(
+                        uiState = uiState,
+                        viewModel = viewModel,
+                        locations = locations,
+                        favoriteRoutes = favoriteRoutes,
+                        selectedDate = selectedDate,
+                        description = description,
+                        onRoomSelected = {
+                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                            selectedRoom = it
+                        },
+                        navController = navController,
+                        haptic = haptic,
+                        scrollState = scrollState
+                    )
+                } else {
+                    TaxiPortraitLayout(
+                        uiState = uiState,
+                        viewModel = viewModel,
+                        locations = locations,
+                        favoriteRoutes = favoriteRoutes,
+                        selectedDate = selectedDate,
+                        description = description,
+                        onRoomSelected = {
+                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                            selectedRoom = it
+                        },
+                        navController = navController,
+                        haptic = haptic,
+                        scrollState = scrollState
+                    )
                 }
             }
         }
@@ -282,13 +228,200 @@ fun TaxiListView(
                             sheetState.hide()
                         }
                         viewModel.fetchData()
-
                     },
                     navController = navController
                 )
             }
         }
+    }
+}
 
+@Composable
+private fun TaxiLandscapeLayout(
+    uiState: TaxiListViewModel.ViewState,
+    viewModel: TaxiListViewModelProtocol,
+    locations: List<TaxiLocation>,
+    favoriteRoutes: List<TaxiFavoriteRoute>,
+    selectedDate: Date?,
+    description: String,
+    onRoomSelected: (TaxiRoom) -> Unit,
+    navController: NavController,
+    haptic: HapticFeedback,
+    scrollState: ScrollState,
+) {
+    Row(
+        modifier = Modifier.fillMaxSize(),
+        horizontalArrangement = Arrangement.spacedBy(32.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(start = 24.dp, top = 16.dp, bottom = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TaxiFilterCard(viewModel, locations, favoriteRoutes)
+            TaxiWeekSelectorCard(viewModel, selectedDate, haptic)
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1.5f)
+                .verticalScroll(scrollState)
+                .padding(end = 24.dp, top = 16.dp, bottom = 16.dp)
+        ) {
+            TaxiResultContent(
+                uiState = uiState,
+                viewModel = viewModel,
+                selectedDate = selectedDate,
+                description = description,
+                onRoomSelected = onRoomSelected,
+                navController = navController
+            )
+        }
+    }
+}
+
+@Composable
+private fun TaxiPortraitLayout(
+    uiState: TaxiListViewModel.ViewState,
+    viewModel: TaxiListViewModelProtocol,
+    locations: List<TaxiLocation>,
+    favoriteRoutes: List<TaxiFavoriteRoute>,
+    selectedDate: Date?,
+    description: String,
+    onRoomSelected: (TaxiRoom) -> Unit,
+    navController: NavController,
+    haptic: HapticFeedback,
+    scrollState: ScrollState,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .widthIn(max = 600.dp)
+            .verticalScroll(scrollState)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        ) {
+            TaxiFilterCard(viewModel, locations, favoriteRoutes)
+            Spacer(modifier = Modifier.height(16.dp))
+            TaxiWeekSelectorCard(viewModel, selectedDate, haptic)
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TaxiResultContent(
+            uiState = uiState,
+            viewModel = viewModel,
+            selectedDate = selectedDate,
+            description = description,
+            onRoomSelected = onRoomSelected,
+            navController = navController
+        )
+    }
+}
+
+@Composable
+private fun TaxiFilterCard(
+    viewModel: TaxiListViewModelProtocol,
+    locations: List<TaxiLocation>,
+    favoriteRoutes: List<TaxiFavoriteRoute>,
+) {
+    Card(
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
+    ) {
+        TaxiDestinationPicker(
+            source = viewModel.source,
+            destination = viewModel.destination,
+            locations = locations,
+            onSourceChange = { viewModel.source = it },
+            onDestinationChange = { viewModel.destination = it },
+            favoriteRoutes = favoriteRoutes,
+            onFavoriteSelect = { viewModel.selectFavoriteRoute(it) },
+            onFavoriteDelete = { viewModel.deleteFavoriteRoute(it) },
+            onFavoriteAdd = { viewModel.addFavoriteRoute() }
+        )
+    }
+}
+
+@Composable
+private fun TaxiWeekSelectorCard(
+    viewModel: TaxiListViewModelProtocol,
+    selectedDate: Date?,
+    haptic: HapticFeedback,
+) {
+    Card(
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.background
+        ),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassBorder(shape = RoundedCornerShape(16.dp))
+    ) {
+        WeekDaySelector(
+            week = viewModel.week,
+            selectedDate = selectedDate,
+            onSelect = { newDate ->
+                viewModel.selectedDate = newDate
+                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+            }
+        )
+    }
+}
+
+@Composable
+private fun TaxiResultContent(
+    uiState: TaxiListViewModel.ViewState,
+    viewModel: TaxiListViewModelProtocol,
+    selectedDate: Date?,
+    description: String,
+    onRoomSelected: (TaxiRoom) -> Unit,
+    navController: NavController,
+) {
+    when (uiState) {
+        is TaxiListViewModel.ViewState.Loading -> LoadingView()
+        is TaxiListViewModel.ViewState.Loaded -> {
+            val rooms = uiState.rooms
+            if (rooms.isEmpty()) {
+                EmptyResultView(
+                    description = description,
+                    navController = navController,
+                    onClear = {
+                        viewModel.source = null
+                        viewModel.destination = null
+                        viewModel.selectedDate = null
+                    }
+                )
+            } else {
+                LoadedView(
+                    rooms = rooms,
+                    week = viewModel.week,
+                    selectedDate = selectedDate,
+                    source = viewModel.source,
+                    destination = viewModel.destination,
+                    onRoomSelected = onRoomSelected,
+                    viewModel = viewModel,
+                    description = description,
+                    navController = navController
+                )
+            }
+        }
+
+        is TaxiListViewModel.ViewState.Empty -> EmptyView(navController = navController)
+        is TaxiListViewModel.ViewState.Error -> {
+            ErrorView(
+                error = uiState.error,
+                onRetry = { viewModel.fetchData() }
+            )
+        }
     }
 }
 
@@ -331,7 +464,6 @@ private fun LoadedView(
     description: String,
     navController: NavController,
 ) {
-    val calendar = Calendar.getInstance()
     val filteredRooms = rooms.filter { room ->
         val matchesSource = source == null || room.source.id == source.id
         val matchesDestination = destination == null || room.destination.id == destination.id
@@ -558,6 +690,19 @@ private fun TaxiListScreenLoadingPreview() {
 @Composable
 @Preview
 private fun TaxiListScreenLoadedPreview() {
+    Theme {
+        MockTaxiListScreen(
+            TaxiListViewModel.ViewState.Loaded(
+                rooms = TaxiRoom.mockList(),
+                locations = TaxiLocation.mockList()
+            )
+        )
+    }
+}
+
+@Composable
+@Preview(widthDp = 840, heightDp = 480)
+private fun TaxiListScreenLoadedLandscapePreview() {
     Theme {
         MockTaxiListScreen(
             TaxiListViewModel.ViewState.Loaded(

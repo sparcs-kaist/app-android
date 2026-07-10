@@ -2,7 +2,9 @@ package org.sparcs.soap.app.features.userPostList
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -24,6 +26,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostAuthor
 import org.sparcs.soap.app.features.navigationBar.Channel
@@ -31,14 +34,16 @@ import org.sparcs.soap.app.features.postList.components.postList.PostList
 import org.sparcs.soap.app.features.postList.components.postListRow.PostListSkeletonRow
 import org.sparcs.soap.app.features.userPostList.components.UserPostNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewUserPostListViewModel
 import org.sparcs.soap.buddyPreviewSupport.post.previewAuthor
-import org.sparcs.soap.R
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserPostListView(
     viewModel: UserPostListViewModelProtocol = hiltViewModel<UserPostListViewModel>(),
@@ -68,41 +73,45 @@ fun UserPostListView(
         }
     }
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             UserPostNavigationBar(
                 title = user.profile.nickname,
                 onClickSearch = { showSearchBar = !showSearchBar },
                 isSelected = showSearchBar,
-                navController = navController
+                navController = navController,
+                scrollBehavior = topBarScrollBehavior
             )
         },
         containerColor = MaterialTheme.colorScheme.background,
-        modifier = Modifier.analyticsScreen(name = "Ara User Post List")
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen(name = "Ara User Post List")
     ) { innerPadding ->
         Box(
-            modifier = Modifier
-                .padding(innerPadding)
-                .padding(horizontal = 20.dp)
-                .padding(top = 8.dp)
+            modifier = Modifier.padding(innerPadding)
         ) {
             Column {
                 if (showSearchBar) {
-                    SearchCustomBar(
-                        value = searchKeyword,
-                        onValueChange = { value ->
-                            viewModel.onSearchTextChange(value)
-                        },
-                        onValueClear = {
-                            viewModel.onSearchTextChange("")
-                        },
-                        placeHolder = stringResource(R.string.search)
-                    )
+                    Box(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
+                        SearchCustomBar(
+                            value = searchKeyword,
+                            onValueChange = { value ->
+                                viewModel.onSearchTextChange(value)
+                            },
+                            onValueClear = {
+                                viewModel.onSearchTextChange("")
+                            },
+                            placeHolder = stringResource(R.string.search)
+                        )
+                    }
                 }
 
                 when (state) {
                     is UserPostListViewModel.ViewState.Loading -> {
-                        Column {
+                        Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
                             repeat(15) { PostListSkeletonRow() }
                         }
                     }
@@ -126,7 +135,13 @@ fun UserPostListView(
                             onLoadMore = {
                                 coroutineScope.launch { viewModel.loadNextPage() }
                             },
-                            isRefreshing = isRefreshing
+                            isRefreshing = isRefreshing,
+                            contentPadding = PaddingValues(
+                                start = 20.dp,
+                                end = 20.dp,
+                                top = 8.dp,
+                                bottom = 8.dp
+                            )
                         )
                     }
 

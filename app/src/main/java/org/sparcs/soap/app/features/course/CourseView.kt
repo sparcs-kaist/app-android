@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.course
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -26,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -39,6 +42,7 @@ import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.LectureReviewPage
 import org.sparcs.soap.app.features.course.components.CourseNavigationBar
+import org.sparcs.soap.app.features.course.components.CourseReviewSectionSkeleton
 import org.sparcs.soap.app.features.course.components.CourseSummarySkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewCell
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -71,7 +75,8 @@ fun CourseView(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
         ) {
             if (state is CourseViewModel.ViewState.Error) {
                 val error = (state as CourseViewModel.ViewState.Error).error
@@ -81,39 +86,13 @@ fun CourseView(
                     onRetry = { viewModel.loadCourse() }
                 )
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    when (state) {
-                        CourseViewModel.ViewState.Loading -> {
-                            CourseSummarySkeleton()
-                        }
+                val configuration = LocalConfiguration.current
+                val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-                        is CourseViewModel.ViewState.Loaded -> {
-                            val loadedState = state as CourseViewModel.ViewState.Loaded
-                            val course = loadedState.course
-                            val reviews = loadedState.reviews
-                            val reviewPage = loadedState.reviewPage
-                            val writtenReview = loadedState.writtenReview
-
-                            CourseSummary(course)
-                            Spacer(modifier = Modifier.height(32.dp))
-                            CourseReviewSection(
-                                course = course,
-                                reviews = reviews,
-                                myReview = writtenReview,
-                                reviewPage = reviewPage,
-                                viewModel = viewModel
-                            )
-                            Spacer(modifier = Modifier.height(40.dp))
-                        }
-
-                        else -> {}
-                    }
+                if (isLandscape) {
+                    CourseLandscapeLayout(state, viewModel)
+                } else {
+                    CoursePortraitLayout(state, viewModel)
                 }
             }
         }
@@ -123,6 +102,86 @@ fun CourseView(
         isPresented = viewModel.isAlertPresented,
         onDismiss = { viewModel.isAlertPresented = false }
     )
+}
+
+@Composable
+private fun CourseLandscapeLayout(
+    state: CourseViewModel.ViewState,
+    viewModel: CourseViewModelProtocol
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            SummarySection(state)
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1.2f)
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ReviewSection(state, viewModel)
+            Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun CoursePortraitLayout(
+    state: CourseViewModel.ViewState,
+    viewModel: CourseViewModelProtocol
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .widthIn(max = 600.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        SummarySection(state)
+        Spacer(modifier = Modifier.height(32.dp))
+        ReviewSection(state, viewModel)
+        Spacer(modifier = Modifier.height(40.dp))
+    }
+}
+
+@Composable
+private fun SummarySection(state: CourseViewModel.ViewState) {
+    when (state) {
+        is CourseViewModel.ViewState.Loading -> CourseSummarySkeleton()
+        is CourseViewModel.ViewState.Loaded -> CourseSummary(state.course)
+        else -> {}
+    }
+}
+
+@Composable
+private fun ReviewSection(state: CourseViewModel.ViewState, viewModel: CourseViewModelProtocol) {
+    when (state) {
+        is CourseViewModel.ViewState.Loading -> CourseReviewSectionSkeleton()
+        is CourseViewModel.ViewState.Loaded -> {
+            CourseReviewSection(
+                course = state.course,
+                reviews = state.reviews,
+                myReview = state.writtenReview,
+                reviewPage = state.reviewPage,
+                viewModel = viewModel
+            )
+        }
+        else -> {}
+    }
 }
 
 @Composable
@@ -368,6 +427,22 @@ private fun PreviewLoading() {
 @Preview(showBackground = true, name = "Loaded")
 @Composable
 private fun PreviewLoaded() {
+    val viewModel = PreviewCourseViewModel(
+        CourseViewModel.ViewState.Loaded(
+            course = Course.mock(),
+            reviews = LectureReview.mockList(),
+            writtenReview = null,
+            reviewPage = LectureReviewPage.mock()
+        )
+    )
+    Theme {
+        CourseView(viewModel = viewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(showBackground = true, name = "Loaded Landscape", widthDp = 840, heightDp = 480)
+@Composable
+private fun PreviewLoadedLandscape() {
     val viewModel = PreviewCourseViewModel(
         CourseViewModel.ViewState.Loaded(
             course = Course.mock(),

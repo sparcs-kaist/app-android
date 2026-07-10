@@ -7,6 +7,8 @@ import org.sparcs.soap.app.domain.enums.ara.AraContentReportType
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.post.PostViewModel
 import org.sparcs.soap.app.features.post.PostViewModelProtocol
 
@@ -24,6 +26,22 @@ class MockPostViewModel(initialState: PostViewModel.ViewState, post: AraPost) : 
 
     private val _post = MutableStateFlow(post)
     override val post: StateFlow<AraPost?> = _post.asStateFlow()
+
+    override val translationState: StateFlow<TranslationState> =
+        MutableStateFlow(TranslationState.Idle).asStateFlow()
+    override val summarizationState: StateFlow<SummarizationState> =
+        MutableStateFlow(SummarizationState.Idle).asStateFlow()
+    override fun translationLanguages(): List<String> = emptyList()
+    override fun suggestedTranslationLanguages(): List<String> = emptyList()
+    override fun defaultTranslationLanguage(): String = "en"
+    override fun translatePost(targetLanguage: String) {}
+    override fun showOriginal() {}
+    override fun summarizePost() {}
+    override fun hideSummary() {}
+    override val commentTranslations: StateFlow<Map<Int, TranslationState>> =
+        MutableStateFlow<Map<Int, TranslationState>>(emptyMap()).asStateFlow()
+    override fun translateComment(commentId: Int, content: String, targetLanguage: String) {}
+    override fun showCommentOriginal(commentId: Int) {}
 
     override fun fetchPost() {}
 

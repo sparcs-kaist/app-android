@@ -8,8 +8,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -78,6 +81,8 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeIn
 import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeOut
@@ -95,12 +100,16 @@ import org.sparcs.soap.app.features.post.components.PostVoteButton
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.formattedString
+import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
+import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.postfixEuroRo
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
+import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.lightGray0
@@ -114,7 +123,7 @@ fun PostView(
 ) {
     val post = viewModel.post.collectAsState().value
     val context = LocalContext.current
-    val state = viewModel.state.collectAsState().value
+    val state by viewModel.state.collectAsState()
     val pullState = rememberPullToRefreshState()
 
     val scope = rememberCoroutineScope()
@@ -134,6 +143,10 @@ fun PostView(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     val summarisedContent by remember { mutableStateOf<String?>(null) }
+
+    val translationState by viewModel.translationState.collectAsState()
+    val summarizationState by viewModel.summarizationState.collectAsState()
+    var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
@@ -168,6 +181,8 @@ fun PostView(
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
     Scaffold(
         topBar = {
             PostNavigationBar(
@@ -178,75 +193,93 @@ fun PostView(
                     viewModel.report(type)
                 },
                 onTranslate = {
-                    //TODO-Translate
+                    translationTarget = viewModel.defaultTranslationLanguage()
+                    viewModel.translatePost(translationTarget)
                 },
-                isMine = post?.isMine
+                onSummarize = { viewModel.summarizePost() },
+                isMine = post?.isMine,
+                scrollBehavior = topBarScrollBehavior
             )
         },
         bottomBar = {
-            InputBar(
-                comment = comment,
-                onCommentChange = { comment = it },
-                isWritingComment = isWritingComment,
-                onWritingCommentChange = {
-                    isWritingComment = it
-                    commentOnEdit = null
-                    comment = ""
-                },
-                commentOnEdit = commentOnEdit,
-                isUploadingComment = isUploadingComment,
-                onUploadComment = {
-                    scope.launch {
-                        isUploadingComment = true
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .navigationBarsPadding(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(modifier = Modifier.widthIn(max = 600.dp)) {
+                    InputBar(
+                        comment = comment,
+                        onCommentChange = { comment = it },
+                        isWritingComment = isWritingComment,
+                        onWritingCommentChange = {
+                            isWritingComment = it
+                            commentOnEdit = null
+                            comment = ""
+                        },
+                        commentOnEdit = commentOnEdit,
+                        isUploadingComment = isUploadingComment,
+                        onUploadComment = {
+                            scope.launch {
+                                isUploadingComment = true
 
-                        try {
-                            val isSuccess = when {
-                                commentOnEdit != null -> {
-                                    viewModel.editComment(commentOnEdit!!.id, comment) != null
-                                }
+                                try {
+                                    val isSuccess = when {
+                                        commentOnEdit != null -> {
+                                            viewModel.editComment(
+                                                commentOnEdit!!.id,
+                                                comment
+                                            ) != null
+                                        }
 
-                                targetComment != null -> {
-                                    viewModel.writeThreadedComment(
-                                        targetComment!!.id,
-                                        comment
-                                    ) != null
-                                }
+                                        targetComment != null -> {
+                                            viewModel.writeThreadedComment(
+                                                targetComment!!.id,
+                                                comment
+                                            ) != null
+                                        }
 
-                                else -> {
-                                    viewModel.writeComment(comment)
-                                    true
+                                        else -> {
+                                            viewModel.writeComment(comment)
+                                            true
+                                        }
+                                    }
+
+                                    if (isSuccess) {
+                                        comment = ""
+                                        targetComment = null
+                                        commentOnEdit = null
+                                        keyboardController?.hide()
+
+                                        proxy.animateScrollToItem(proxy.layoutInfo.totalItemsCount)
+                                    }
+                                } catch (_: Exception) {
+                                } finally {
+                                    isUploadingComment = false
                                 }
                             }
-
-                            if (isSuccess) {
-                                comment = ""
-                                targetComment = null
-                                commentOnEdit = null
-                                keyboardController?.hide()
-
-                                proxy.animateScrollToItem(proxy.layoutInfo.totalItemsCount)
-                            }
-                        } catch (_: Exception) {
-                        } finally {
-                            isUploadingComment = false
-                        }
-                    }
-                },
-                profilePicture = { ProfilePicture(post, true) },
-                placeholder = placeholder(viewModel, targetComment, commentOnEdit),
-                focusRequester = focusRequester
-            )
+                        },
+                        profilePicture = { ProfilePicture(post, true) },
+                        placeholder = placeholder(viewModel, targetComment, commentOnEdit),
+                        focusRequester = focusRequester
+                    )
+                }
+            }
         },
-        modifier = Modifier.analyticsScreen(
-            "Ara Post",
-            "is_author" to (post?.isMine ?: false),
-            "has_comments" to ((post?.commentCount ?: 0) > 0)
-        ),
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen(
+                "Ara Post",
+                "is_author" to (post?.isMine ?: false),
+                "has_comments" to ((post?.commentCount ?: 0) > 0)
+            ),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (state is PostViewModel.ViewState.Error) {
             ErrorView(
-                error = state.error,
+                error = (state as PostViewModel.ViewState.Error).error,
                 onRetry = { scope.launch { viewModel.fetchPost() } }
             )
         } else {
@@ -262,10 +295,17 @@ fun PostView(
                 },
                 state = pullState,
                 modifier = Modifier
+                    .fillMaxSize()
                     .padding(innerPadding)
-                    .padding(vertical = 8.dp, horizontal = 20.dp)
             ) {
-                LazyColumn(state = proxy) {
+                LazyColumn(
+                    state = proxy,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .widthIn(max = 600.dp)
+                        .align(Alignment.TopCenter),
+                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
+                ) {
                     item {
                         if (post == null) {
                             HeaderSkeleton()
@@ -362,6 +402,29 @@ fun PostView(
                 text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
             )
         }
+
+        if (translationState !is TranslationState.Idle) {
+            PostTranslationSheet(
+                state = translationState,
+                targetLanguage = translationTarget,
+                languages = viewModel.translationLanguages(),
+                suggested = viewModel.suggestedTranslationLanguages(),
+                onTargetChange = { code ->
+                    translationTarget = code
+                    viewModel.translatePost(code)
+                },
+                onRetry = { viewModel.translatePost(translationTarget) },
+                onDismiss = { viewModel.showOriginal() }
+            )
+        }
+        if (summarizationState !is SummarizationState.Idle) {
+            PostSummarizationSheet(
+                state = summarizationState,
+                onRetry = { viewModel.summarizePost() },
+                onDismiss = { viewModel.hideSummary() }
+            )
+        }
+
         GlobalAlertDialog(
             isPresented = viewModel.isAlertPresented,
             state = viewModel.alertState,
@@ -490,6 +553,9 @@ private fun Comments(
     keyboardController: SoftwareKeyboardController?,
 ) {
     val scope = rememberCoroutineScope()
+    val commentTranslations by viewModel.commentTranslations.collectAsState()
+    var activeComment by remember { mutableStateOf<AraPostComment?>(null) }
+    var commentTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
 
     Box(
         modifier = Modifier
@@ -536,6 +602,29 @@ private fun Comments(
             },
             onDeleteComment = { target ->
                 scope.launch { viewModel.deleteComment(target) }
+            },
+            onTranslateComment = { c ->
+                activeComment = c
+                commentTarget = viewModel.defaultTranslationLanguage()
+                viewModel.translateComment(c.id, c.content ?: "", commentTarget)
+            }
+        )
+    }
+
+    activeComment?.let { c ->
+        PostTranslationSheet(
+            state = commentTranslations[c.id] ?: TranslationState.Loading,
+            targetLanguage = commentTarget,
+            languages = viewModel.translationLanguages(),
+            suggested = viewModel.suggestedTranslationLanguages(),
+            onTargetChange = { code ->
+                commentTarget = code
+                viewModel.translateComment(c.id, c.content ?: "", code)
+            },
+            onRetry = { viewModel.translateComment(c.id, c.content ?: "", commentTarget) },
+            onDismiss = {
+                viewModel.showCommentOriginal(c.id)
+                activeComment = null
             }
         )
     }
@@ -562,8 +651,7 @@ private fun InputBar(
         modifier = Modifier
             .fillMaxWidth()
             .imePadding()
-            .padding(8.dp)
-            .navigationBarsPadding(),
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // comment textfield
@@ -756,6 +844,21 @@ data class CommentUpdate(
 @Preview(name = "Loaded", showBackground = true)
 @Composable
 private fun LoadedPreview() {
+    val mockViewModel =
+        remember {
+            MockPostViewModel(
+                initialState = PostViewModel.ViewState.Loaded,
+                post = AraPost.mock()
+            )
+        }
+    Theme {
+        PostView(viewModel = mockViewModel, navController = rememberNavController())
+    }
+}
+
+@Preview(name = "Loaded Landscape", showBackground = true, widthDp = 840, heightDp = 480)
+@Composable
+private fun LoadedLandscapePreview() {
     val mockViewModel =
         remember {
             MockPostViewModel(

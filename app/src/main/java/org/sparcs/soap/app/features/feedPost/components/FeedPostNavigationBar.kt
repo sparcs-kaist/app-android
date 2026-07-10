@@ -15,6 +15,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,7 +38,9 @@ fun FeedPostNavigationBar(
     onDelete: () -> Unit,
     onReport: (t: FeedReportType) -> Unit,
     onTranslate: () -> Unit,
+    onSummarize: () -> Unit = {},
     isMine: Boolean?,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     TopAppBar(
         navigationIcon = {
@@ -71,6 +74,7 @@ fun FeedPostNavigationBar(
                 onDelete = onDelete,
                 onReport = onReport,
                 onTranslate = onTranslate,
+                onSummarize = onSummarize,
                 isComment = false,
                 modifier = Modifier.size(28.dp)
             )
@@ -78,13 +82,15 @@ fun FeedPostNavigationBar(
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
-        )
+        ),
+        scrollBehavior = scrollBehavior
     )
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 private fun Preview() {
-    Theme { FeedPostNavigationBar(rememberNavController(), {}, {}, {}, false) }
+    Theme { FeedPostNavigationBar(rememberNavController(), {}, {}, {}, {}, false) }
 }

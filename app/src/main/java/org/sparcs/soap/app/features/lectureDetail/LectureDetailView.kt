@@ -1,19 +1,20 @@
 package org.sparcs.soap.app.features.lectureDetail
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,7 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -32,7 +33,9 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.features.lectureDetail.components.LectureDetailNavigationBar
 import org.sparcs.soap.app.features.lectureDetail.components.LectureInformation
+import org.sparcs.soap.app.features.lectureDetail.components.LectureInformationSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviews
+import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewsSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureSummary
 import org.sparcs.soap.app.features.lectureDetail.components.LectureSummarySkeleton
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
@@ -55,11 +58,9 @@ fun LectureDetailView(
     val canWriteReview by viewModel.canWriteReview.collectAsState()
 
     val selectedTimetable by timetableViewModel.selectedTimetable.collectAsState()
-    val isInCurrentTimetable = remember(selectedTimetable, lecture) {
-        selectedTimetable?.lectures?.any { it.id == lecture.id } ?: false
-    }
-
+    val isContained = selectedTimetable?.lectures?.any { it.id == lecture.id } ?: false
     val isEditable by timetableViewModel.isEditable.collectAsState()
+
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
@@ -68,7 +69,7 @@ fun LectureDetailView(
         topBar = {
             LectureDetailNavigationBar(
                 navController = navController,
-                text = lecture.name + lecture.subtitle,
+                text = lecture.name,
                 onAdd = {
                     if (isOverlapping) {
                         showCannotAddLectureAlert = true
@@ -77,10 +78,8 @@ fun LectureDetailView(
                         timetableViewModel.addLecture(lecture)
                     }
                 },
-                onDelete = {
-                    timetableViewModel.deleteLecture(lecture)
-                },
-                isCurrentTimetable = isInCurrentTimetable,
+                onDelete = { timetableViewModel.deleteLecture(lecture) },
+                isCurrentTimetable = isContained,
                 isEnabled = isEditable
             )
         },
@@ -90,7 +89,8 @@ fun LectureDetailView(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.surface)
-                .padding(paddingValues)
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
         ) {
             if (state is LectureDetailViewModel.ViewState.Error) {
                 val error = (state as LectureDetailViewModel.ViewState.Error).error
@@ -100,109 +100,133 @@ fun LectureDetailView(
                     onRetry = { viewModel.fetchReviews(lecture) }
                 )
             } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    when (state) {
-                        LectureDetailViewModel.ViewState.Loading -> {
-                            LectureSummarySkeleton()
-                        }
+                val configuration = LocalConfiguration.current
+                val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
-                        is LectureDetailViewModel.ViewState.Loaded -> {
-                            // Lecture Summary
-                            LectureSummary(lecture)
-
-
-                            Spacer(modifier = Modifier.height(24.dp))
-                            // Lecture Information
-                            LectureInformation(lecture)
-
-                            Spacer(modifier = Modifier.height(32.dp))
-
-                            // Lecture Reviews
-                            LectureReviews(
-                                lecture = lecture,
-                                viewModel = viewModel,
-                                navController = navController,
-                                canWriteReview = canWriteReview,
-                            )
-
-                            Spacer(modifier = Modifier.height(40.dp))
-                        }
-
-                        else -> {}
-                    }
+                if (isLandscape) {
+                    LectureLandscapeLayout(state, lecture, viewModel, navController, canWriteReview)
+                } else {
+                    LecturePortraitLayout(state, lecture, viewModel, navController, canWriteReview)
                 }
             }
         }
-        if (showCannotAddLectureAlert) {
-            val overlappingLecture by timetableViewModel.overlappingLecture.collectAsState()
-
-            AlertDialog(
-                onDismissRequest = {
-                    showCannotAddLectureAlert = false
-                    pendingLectureToAdd = null
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showCannotAddLectureAlert = false
-
-                        pendingLectureToAdd?.let { lecture ->
-                            timetableViewModel.addLecture(lecture)
-                            pendingLectureToAdd = null
-                        }
-                    }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        showCannotAddLectureAlert = false
-                        pendingLectureToAdd = null
-                    }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
-                title = { Text(stringResource(R.string.add_overlapping_lecture)) },
-                text = {
-                    val currentName =
-                        overlappingLecture?.name ?: stringResource(R.string.the_existing_lecture)
-                    val newName = pendingLectureToAdd?.name ?: stringResource(R.string.the_new_lecture)
-                    Text(
-                        text = stringResource(
-                            id = R.string.lecture_overlap,
-                            currentName,
-                            newName
-                        )
-                    )
-                }
-            )
-        }
     }
+
     GlobalAlertDialog(
-        state = viewModel.alertState,
         isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
         onDismiss = { viewModel.isAlertPresented = false }
     )
+}
+
+@Composable
+private fun LectureLandscapeLayout(
+    state: LectureDetailViewModel.ViewState,
+    lecture: Lecture,
+    viewModel: LectureDetailViewModelProtocol,
+    navController: NavController,
+    canWriteReview: Boolean
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            LectureSummaryAndInfoSection(state, lecture)
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1.2f)
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            LectureReviewSection(state, lecture, viewModel, navController, canWriteReview)
+            Spacer(modifier = Modifier.height(40.dp))
+        }
+    }
+}
+
+@Composable
+private fun LecturePortraitLayout(
+    state: LectureDetailViewModel.ViewState,
+    lecture: Lecture,
+    viewModel: LectureDetailViewModelProtocol,
+    navController: NavController,
+    canWriteReview: Boolean
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .widthIn(max = 600.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        LectureSummaryAndInfoSection(state, lecture)
+        Spacer(modifier = Modifier.height(32.dp))
+        LectureReviewSection(state, lecture, viewModel, navController, canWriteReview)
+        Spacer(modifier = Modifier.height(40.dp))
+    }
+}
+
+@Composable
+private fun LectureSummaryAndInfoSection(state: LectureDetailViewModel.ViewState, lecture: Lecture) {
+    if (state is LectureDetailViewModel.ViewState.Loading) {
+        LectureSummarySkeleton()
+        Spacer(modifier = Modifier.height(24.dp))
+        LectureInformationSkeleton()
+    } else {
+        LectureSummary(lecture)
+        Spacer(modifier = Modifier.height(24.dp))
+        LectureInformation(lecture)
+    }
+}
+
+@Composable
+private fun LectureReviewSection(
+    state: LectureDetailViewModel.ViewState,
+    lecture: Lecture,
+    viewModel: LectureDetailViewModelProtocol,
+    navController: NavController,
+    canWriteReview: Boolean
+) {
+    if (state is LectureDetailViewModel.ViewState.Loading) {
+        LectureReviewsSkeleton()
+    } else {
+        LectureReviews(
+            lecture = lecture,
+            viewModel = viewModel,
+            navController = navController,
+            canWriteReview = canWriteReview,
+        )
+    }
 }
 
 /* ____________________________________________________________________*/
 
 @Composable
 private fun MockView(state: LectureDetailViewModel.ViewState) {
+    val mockViewModel = remember { PreviewLectureDetailViewModel(initialState = state) }
+    val mockTimetableViewModel = remember { PreviewTimetableViewModel() }
     LectureDetailView(
-        viewModel = PreviewLectureDetailViewModel(initialState = state),
+        viewModel = mockViewModel,
+        timetableViewModel = mockTimetableViewModel,
         navController = rememberNavController(),
-        timetableViewModel = PreviewTimetableViewModel()
     )
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 private fun LoadingPreview() {
     Theme { MockView(LectureDetailViewModel.ViewState.Loading) }
 }
@@ -214,7 +238,13 @@ private fun LoadedPreview() {
 }
 
 @Composable
-@Preview
+@Preview(widthDp = 840, heightDp = 480)
+private fun LoadedLandscapePreview() {
+    Theme { MockView(LectureDetailViewModel.ViewState.Loaded) }
+}
+
+@Composable
+@Preview(showBackground = true)
 private fun ErrorPreview() {
     Theme { MockView(LectureDetailViewModel.ViewState.Error(Exception())) }
 }

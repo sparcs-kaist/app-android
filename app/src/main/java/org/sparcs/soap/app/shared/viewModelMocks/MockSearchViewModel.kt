@@ -3,9 +3,10 @@ package org.sparcs.soap.app.shared.viewModelMocks
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import org.sparcs.soap.app.domain.models.ara.AraPost
-import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.domain.models.SearchScope
+import org.sparcs.soap.app.domain.models.ara.AraPost
+import org.sparcs.soap.app.domain.models.otl.CourseFilterState
+import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.search.SearchViewModel
 import org.sparcs.soap.app.features.search.SearchViewModelProtocol
@@ -30,6 +31,9 @@ class MockSearchViewModel(initialState: SearchViewModel.ViewState) : SearchViewM
     private val _searchScope = MutableStateFlow(SearchScope.All)
     override val searchScope: StateFlow<SearchScope> = _searchScope.asStateFlow()
 
+    private val _courseFilterState = MutableStateFlow(CourseFilterState())
+    override val courseFilterState: StateFlow<CourseFilterState> = _courseFilterState.asStateFlow()
+
     override suspend fun bind() {}
     override suspend fun fetchInitialData() {}
     override fun loadAraNextPage() {}
@@ -37,4 +41,7 @@ class MockSearchViewModel(initialState: SearchViewModel.ViewState) : SearchViewM
     override suspend fun scopedFetch() {}
     override fun onSearchTextChange(text: String) {}
     override fun onScopeChange(scope: SearchScope) {}
+    override fun onFilterChange(filterState: CourseFilterState) {
+        _courseFilterState.value = filterState
+    }
 }

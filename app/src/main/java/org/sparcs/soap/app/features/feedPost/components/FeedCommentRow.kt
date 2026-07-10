@@ -24,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import org.sparcs.soap.app.domain.enums.feed.FeedReportType
 import org.sparcs.soap.app.domain.enums.feed.FeedVoteType
 import org.sparcs.soap.app.domain.models.feed.FeedComment
 import org.sparcs.soap.app.domain.models.feed.FeedPost
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.feedPost.FeedPostViewModel
 import org.sparcs.soap.app.features.feedPost.FeedPostViewModelProtocol
 import org.sparcs.soap.app.features.post.components.PostCommentActionsMenu
@@ -68,6 +70,7 @@ import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.extensions.toDetectedAnnotatedString
 import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostViewModel
+import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.darkGray
 import org.sparcs.soap.app.theme.ui.grayBB
@@ -81,6 +84,10 @@ fun FeedCommentRow(
 ) {
     val coroutineScope = rememberCoroutineScope()
     var isHiddenCommentExpanded by remember { mutableStateOf(false) }
+    val commentTranslations by viewModel.commentTranslations.collectAsState()
+    val translationState = commentTranslations[comment.id] ?: TranslationState.Idle
+    var showTranslationSheet by remember { mutableStateOf(false) }
+    var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -116,7 +123,12 @@ fun FeedCommentRow(
                     }
                 },
                 isHiddenCommentExpanded = isHiddenCommentExpanded,
-                onExpandHiddenCommentClick = { isHiddenCommentExpanded = true }
+                onExpandHiddenCommentClick = { isHiddenCommentExpanded = true },
+                onTranslate = {
+                    translationTarget = viewModel.defaultTranslationLanguage()
+                    showTranslationSheet = true
+                    viewModel.translateComment(comment.id, comment.content, translationTarget)
+                }
             )
 
             if (comment.downVotes < 15 || isHiddenCommentExpanded) {
@@ -143,6 +155,24 @@ fun FeedCommentRow(
             )
         }
     }
+
+    if (showTranslationSheet) {
+        PostTranslationSheet(
+            state = translationState,
+            targetLanguage = translationTarget,
+            languages = viewModel.translationLanguages(),
+            suggested = viewModel.suggestedTranslationLanguages(),
+            onTargetChange = { code ->
+                translationTarget = code
+                viewModel.translateComment(comment.id, comment.content, code)
+            },
+            onRetry = { viewModel.translateComment(comment.id, comment.content, translationTarget) },
+            onDismiss = {
+                showTranslationSheet = false
+                viewModel.showCommentOriginal(comment.id)
+            }
+        )
+    }
 }
 
 @Composable
@@ -152,6 +182,7 @@ private fun Header(
     onReport: (FeedReportType) -> Unit,
     isHiddenCommentExpanded: Boolean,
     onExpandHiddenCommentClick: () -> Unit,
+    onTranslate: () -> Unit,
 ) {
     val author = if (comment.isAnonymous) {
         val number = comment.authorName.substringAfter("Anonymous", "").trim()
@@ -222,7 +253,7 @@ private fun Header(
                     onDelete()
                 },
                 onReport = onReport,
-                onTranslate = {/*Todo - translate*/ },
+                onTranslate = onTranslate,
                 isComment = true
             )
             Spacer(Modifier.width(8.dp))
