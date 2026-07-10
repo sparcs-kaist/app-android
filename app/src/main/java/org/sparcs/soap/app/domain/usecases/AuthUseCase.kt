@@ -22,6 +22,7 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.app.ChannelManager
 import org.sparcs.soap.app.domain.error.auth.AuthUseCaseError
+import org.sparcs.soap.app.domain.error.auth.AuthenticationServiceError
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.repositories.ara.AraUserRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.feed.FeedUserRepositoryProtocol
@@ -203,22 +204,29 @@ class AuthUseCase @Inject constructor(
                 }
 
                 // Attempts to refresh token using refresh token from Keychain
-                val tokenResponse = authenticationService.refreshAccessToken(currentRefreshToken)
+                val tokenResponse = try {
+                    authenticationService.refreshAccessToken(currentRefreshToken)
+                } catch (e: Exception) {
+                    lastRefreshFailure = System.currentTimeMillis()
+                    if (isRefreshTokenRejected(httpStatusCode(e))) {
+                        signOut()
+                    }
+                    throw e
+                }
+
                 tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
 
                 _isAuthenticated.value = true
                 lastRefreshFailure = 0
                 lastRefreshSuccess = System.currentTimeMillis()
                 scheduleRefreshToken() // set timer on success
-                onTokenRefresh?.invoke()
-                syncFcmTokenIfAuthenticated()
 
-            } catch (e: Exception) {
-                lastRefreshFailure = System.currentTimeMillis()
-                if ((e as? HttpException)?.code() == 401) {
-                    signOut()
+                try {
+                    onTokenRefresh?.invoke()
+                    syncFcmTokenIfAuthenticated()
+                } catch (e: Exception) {
+                    Timber.e(e, "Post-refresh side effect failed")
                 }
-                throw e
             } finally {
                 refreshJob = null
             }
@@ -261,6 +269,25 @@ class AuthUseCase @Inject constructor(
             cancelRefreshToken()
             throw AuthUseCaseError.SignInFailed(e)
         }
+    }
+
+    private fun isRefreshTokenRejected(code: Int?): Boolean {
+        if (code == null) return false
+        return code in 400..499 && code != 408 && code != 429
+    }
+
+    private fun httpStatusCode(throwable: Throwable?): Int? {
+        var current: Throwable? = throwable
+        val seen = mutableSetOf<Throwable>()
+        while (current != null && seen.add(current)) {
+            current = when (current) {
+                is HttpException -> return current.code()
+                is AuthenticationServiceError.TokenRefreshFailed -> current.error
+                is AuthenticationServiceError.TokenExchangeFailed -> current.error
+                else -> current.cause
+            }
+        }
+        return null
     }
 
     override suspend fun signOut() {
