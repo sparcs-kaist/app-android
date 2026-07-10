@@ -34,6 +34,7 @@ fun PostNavigationBar(
     onDelete: () -> Unit,
     onReport: (AraContentReportType) -> Unit,
     onTranslate: () -> Unit,
+    onSummarize: () -> Unit = {},
     isMine: Boolean?,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
@@ -69,6 +70,7 @@ fun PostNavigationBar(
                 onDelete = onDelete,
                 onReport = onReport,
                 onTranslate = onTranslate,
+                onSummarize = onSummarize,
                 isComment = false,
                 modifier = Modifier.size(28.dp)
             )
@@ -86,5 +88,5 @@ fun PostNavigationBar(
 @Composable
 @Preview
 private fun Preview(){
-    Theme{ PostNavigationBar("Board", {}, {}, {}, {}, false) }
+    Theme{ PostNavigationBar("Board", {}, {}, {}, {}, {}, false) }
 }

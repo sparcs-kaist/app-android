@@ -38,6 +38,7 @@ fun FeedPostNavigationBar(
     onDelete: () -> Unit,
     onReport: (t: FeedReportType) -> Unit,
     onTranslate: () -> Unit,
+    onSummarize: () -> Unit = {},
     isMine: Boolean?,
     scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
@@ -73,6 +74,7 @@ fun FeedPostNavigationBar(
                 onDelete = onDelete,
                 onReport = onReport,
                 onTranslate = onTranslate,
+                onSummarize = onSummarize,
                 isComment = false,
                 modifier = Modifier.size(28.dp)
             )
@@ -90,5 +92,5 @@ fun FeedPostNavigationBar(
 @Composable
 @Preview
 private fun Preview() {
-    Theme { FeedPostNavigationBar(rememberNavController(), {}, {}, {}, false) }
+    Theme { FeedPostNavigationBar(rememberNavController(), {}, {}, {}, {}, false) }
 }

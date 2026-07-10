@@ -81,6 +81,8 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeIn
 import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeOut
@@ -106,6 +108,8 @@ import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
+import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.lightGray0
@@ -139,6 +143,10 @@ fun PostView(
     var showDeleteConfirmation by remember { mutableStateOf(false) }
 
     val summarisedContent by remember { mutableStateOf<String?>(null) }
+
+    val translationState by viewModel.translationState.collectAsState()
+    val summarizationState by viewModel.summarizationState.collectAsState()
+    var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchPost()
@@ -185,8 +193,10 @@ fun PostView(
                     viewModel.report(type)
                 },
                 onTranslate = {
-                    //TODO-Translate
+                    translationTarget = viewModel.defaultTranslationLanguage()
+                    viewModel.translatePost(translationTarget)
                 },
+                onSummarize = { viewModel.summarizePost() },
                 isMine = post?.isMine,
                 scrollBehavior = topBarScrollBehavior
             )
@@ -392,6 +402,29 @@ fun PostView(
                 text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
             )
         }
+
+        if (translationState !is TranslationState.Idle) {
+            PostTranslationSheet(
+                state = translationState,
+                targetLanguage = translationTarget,
+                languages = viewModel.translationLanguages(),
+                suggested = viewModel.suggestedTranslationLanguages(),
+                onTargetChange = { code ->
+                    translationTarget = code
+                    viewModel.translatePost(code)
+                },
+                onRetry = { viewModel.translatePost(translationTarget) },
+                onDismiss = { viewModel.showOriginal() }
+            )
+        }
+        if (summarizationState !is SummarizationState.Idle) {
+            PostSummarizationSheet(
+                state = summarizationState,
+                onRetry = { viewModel.summarizePost() },
+                onDismiss = { viewModel.hideSummary() }
+            )
+        }
+
         GlobalAlertDialog(
             isPresented = viewModel.isAlertPresented,
             state = viewModel.alertState,
@@ -520,6 +553,9 @@ private fun Comments(
     keyboardController: SoftwareKeyboardController?,
 ) {
     val scope = rememberCoroutineScope()
+    val commentTranslations by viewModel.commentTranslations.collectAsState()
+    var activeComment by remember { mutableStateOf<AraPostComment?>(null) }
+    var commentTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
 
     Box(
         modifier = Modifier
@@ -566,6 +602,29 @@ private fun Comments(
             },
             onDeleteComment = { target ->
                 scope.launch { viewModel.deleteComment(target) }
+            },
+            onTranslateComment = { c ->
+                activeComment = c
+                commentTarget = viewModel.defaultTranslationLanguage()
+                viewModel.translateComment(c.id, c.content ?: "", commentTarget)
+            }
+        )
+    }
+
+    activeComment?.let { c ->
+        PostTranslationSheet(
+            state = commentTranslations[c.id] ?: TranslationState.Loading,
+            targetLanguage = commentTarget,
+            languages = viewModel.translationLanguages(),
+            suggested = viewModel.suggestedTranslationLanguages(),
+            onTargetChange = { code ->
+                commentTarget = code
+                viewModel.translateComment(c.id, c.content ?: "", code)
+            },
+            onRetry = { viewModel.translateComment(c.id, c.content ?: "", commentTarget) },
+            onDismiss = {
+                viewModel.showCommentOriginal(c.id)
+                activeComment = null
             }
         )
     }

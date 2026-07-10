@@ -1,4 +1,7 @@
 [versions]
+mlkitTranslate = "17.0.3"
+mlkitLanguageId = "17.0.6"
+mlkitGenaiSummarization = "1.0.0-beta1"
 aboutlibrariesComposeM3 = "11.2.3"
 agp = "9.2.1"
 kakaoMap = "2.11.0"
@@ -56,6 +59,9 @@ horologistTiles = "0.6.17"
 watchfaceComplicationsDataSourceKtx = "1.2.1"
 
 [libraries]
+mlkit-translate = { module = "com.google.mlkit:translate", version.ref = "mlkitTranslate" }
+mlkit-language-id = { module = "com.google.mlkit:language-id", version.ref = "mlkitLanguageId" }
+mlkit-genai-summarization = { module = "com.google.mlkit:genai-summarization", version.ref = "mlkitGenaiSummarization" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutlibrariesComposeM3" }
 #noinspection Aligned16KB
 kakao-maps = { module = "com.kakao.maps.open:android", version.ref = "kakaoMap" }

@@ -630,4 +630,22 @@
     <string name="dept_ss">SS</string>
     <string name="dept_bcs">BCS</string>
     <string name="dept_etc">ETC</string>
+
+    <!-- Post translation -->
+    <string name="translating">Translating…</string>
+    <string name="show_original">Show original</string>
+    <string name="translated_from">Translated from %1$s</string>
+    <string name="translation_unsupported">This post can\'t be translated.</string>
+    <string name="translation_failed">Translation failed.</string>
+    <string name="retry">Retry</string>
+    <string name="translate_to">Translate to</string>
+    <string name="suggested">Suggested</string>
+    <string name="all_languages">All languages</string>
+
+    <!-- Post summarization -->
+    <string name="summarize">Summarize</string>
+    <string name="summarizing">Summarizing…</string>
+    <string name="hide">Hide</string>
+    <string name="summarization_unavailable">On-device summarization isn\'t available on this device.</string>
+    <string name="summarization_failed">Summarization failed.</string>
 </resources>

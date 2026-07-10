@@ -599,4 +599,22 @@
     <string name="dept_ss">반시공</string>
     <string name="dept_bcs">뇌인지</string>
     <string name="dept_etc">기타</string>
+
+    <!-- Post translation -->
+    <string name="translating">번역 중…</string>
+    <string name="show_original">원문 보기</string>
+    <string name="translated_from">%1$s에서 번역됨</string>
+    <string name="translation_unsupported">이 게시글은 번역할 수 없어요.</string>
+    <string name="translation_failed">번역에 실패했어요.</string>
+    <string name="retry">다시 시도</string>
+    <string name="translate_to">번역할 언어</string>
+    <string name="suggested">추천</string>
+    <string name="all_languages">모든 언어</string>
+
+    <!-- Post summarization -->
+    <string name="summarize">요약</string>
+    <string name="summarizing">요약 중…</string>
+    <string name="hide">닫기</string>
+    <string name="summarization_unavailable">이 기기에서는 요약을 사용할 수 없어요.</string>
+    <string name="summarization_failed">요약에 실패했어요.</string>
 </resources>

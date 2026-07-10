@@ -22,6 +22,8 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SmsFailed
+import androidx.compose.material.icons.outlined.Summarize
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
 import androidx.compose.material3.DropdownMenu
@@ -30,7 +32,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -73,13 +74,13 @@ fun PostCommentCell(
     onDownVote: () -> Unit,
     onReport: (AraContentReportType) -> Unit,
     onDeleteComment: () -> Unit,
+    onTranslate: () -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val isDeleted = comment.content == null
 
     var alertState by remember { mutableStateOf<AlertState?>(null) }
     var isAlertPresented by remember { mutableStateOf(false) }
-    var showTranslateSheet by remember { mutableStateOf(false) }
 
     Row(modifier = Modifier.fillMaxWidth()) {
         if (isThreaded) {
@@ -118,7 +119,7 @@ fun PostCommentCell(
                         }
                     }
                 },
-                onTranslate = { showTranslateSheet = true }
+                onTranslate = onTranslate
             )
 
             PostCommentContent(
@@ -132,15 +133,6 @@ fun PostCommentCell(
                 onComment = onComment,
                 onUpVote = onUpVote,
                 onDownVote = onDownVote
-            )
-        }
-    }
-
-    if (showTranslateSheet) {
-        ModalBottomSheet(onDismissRequest = { showTranslateSheet = false }) {
-            Text(
-                text = comment.content ?: "",
-                modifier = Modifier.padding(16.dp)
             )
         }
     }
@@ -205,6 +197,7 @@ fun <T> PostCommentActionsMenu(
     onDelete: () -> Unit,
     onReport: (T) -> Unit,
     onTranslate: () -> Unit,
+    onSummarize: () -> Unit = {},
     isComment: Boolean,
 ) where T : Enum<T>, T : ReportLabelProvider {
     var expanded by remember { mutableStateOf(false) }
@@ -271,6 +264,32 @@ fun <T> PostCommentActionsMenu(
                         }
                     }
                 }
+
+                HorizontalDivider()
+
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.translate)) },
+                    onClick = { onTranslate(); expanded = false },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Outlined.Translate,
+                            contentDescription = null
+                        )
+                    }
+                )
+                if (!isComment) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.summarize)) },
+                        onClick = { onSummarize(); expanded = false },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Summarize,
+                                contentDescription = null
+                            )
+                        }
+                    )
+                }
+
             } else {
                 if (isComment && enumClass == AraContentReportType::class) {
                     //Only for Ara comments
@@ -286,21 +305,7 @@ fun <T> PostCommentActionsMenu(
                     )
                     HorizontalDivider()
                 }
-            }
-//
-//            DropdownMenuItem(
-//                text = { Text(stringResource(R.string.translate)) },
-//                onClick = { onTranslate(); expanded = false },
-//                leadingIcon = {
-//                    Icon(
-//                        painter = painterResource(R.drawable.baseline_translate),
-//                        contentDescription = null
-//                    )
-//                }
-//            ) TODO - TRANSLATE(API)
-//            HorizontalDivider()
 
-            if (isMine == true) {
                 DropdownMenuItem(
                     text = {
                         Text(
