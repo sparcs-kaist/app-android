@@ -414,6 +414,7 @@ fun PostView(
                     viewModel.translatePost(code)
                 },
                 onRetry = { viewModel.translatePost(translationTarget) },
+                onDownload = { viewModel.translatePost(translationTarget, allowDownload = true) },
                 onDismiss = { viewModel.showOriginal() }
             )
         }
@@ -622,6 +623,9 @@ private fun Comments(
                 viewModel.translateComment(c.id, c.content ?: "", code)
             },
             onRetry = { viewModel.translateComment(c.id, c.content ?: "", commentTarget) },
+            onDownload = {
+                viewModel.translateComment(c.id, c.content ?: "", commentTarget, allowDownload = true)
+            },
             onDismiss = {
                 viewModel.showCommentOriginal(c.id)
                 activeComment = null

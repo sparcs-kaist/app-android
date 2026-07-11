@@ -47,13 +47,18 @@ interface PostViewModelProtocol {
     fun translationLanguages(): List<String>
     fun suggestedTranslationLanguages(): List<String>
     fun defaultTranslationLanguage(): String
-    fun translatePost(targetLanguage: String)
+    fun translatePost(targetLanguage: String, allowDownload: Boolean = false)
     fun showOriginal()
     fun summarizePost()
     fun hideSummary()
 
     val commentTranslations: StateFlow<Map<Int, TranslationState>>
-    fun translateComment(commentId: Int, content: String, targetLanguage: String)
+    fun translateComment(
+        commentId: Int,
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean = false,
+    )
     fun showCommentOriginal(commentId: Int)
 
     fun fetchPost()
@@ -126,18 +131,25 @@ class PostViewModel @Inject constructor(
     override fun defaultTranslationLanguage(): String =
         postTranslationUseCase.deviceLanguage()
 
-    override fun translatePost(targetLanguage: String) {
-        if (_translationState.value is TranslationState.Loading) return
+    override fun translatePost(targetLanguage: String, allowDownload: Boolean) {
+        if (_translationState.value is TranslationState.Loading ||
+            _translationState.value is TranslationState.Downloading
+        ) return
         val content = _post.value?.content ?: return
-        _translationState.value = TranslationState.Loading
+        _translationState.value =
+            if (allowDownload) TranslationState.Downloading else TranslationState.Loading
         viewModelScope.launch {
             _translationState.value = when (
                 val result = postTranslationUseCase.translate(
-                content.araContentToPlainText(), targetLanguage, isHtml = false
-            )
+                    content.araContentToPlainText(), targetLanguage,
+                    isHtml = false, allowDownload = allowDownload
+                )
             ) {
                 is PostTranslationResult.Success ->
                     TranslationState.Translated(result.text, result.sourceLanguage)
+
+                is PostTranslationResult.NeedsDownload ->
+                    TranslationState.DownloadRequired(result.sourceLanguage, result.targetLanguage)
 
                 PostTranslationResult.SameLanguage,
                 PostTranslationResult.Unsupported -> TranslationState.Unsupported
@@ -184,15 +196,28 @@ class PostViewModel @Inject constructor(
     override val commentTranslations: StateFlow<Map<Int, TranslationState>> =
         _commentTranslations.asStateFlow()
 
-    override fun translateComment(commentId: Int, content: String, targetLanguage: String) {
-        if (_commentTranslations.value[commentId] is TranslationState.Loading) return
-        _commentTranslations.value += (commentId to TranslationState.Loading)
+    override fun translateComment(
+        commentId: Int,
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean,
+    ) {
+        val current = _commentTranslations.value[commentId]
+        if (current is TranslationState.Loading || current is TranslationState.Downloading) return
+        _commentTranslations.value += (
+            commentId to if (allowDownload) TranslationState.Downloading else TranslationState.Loading
+        )
         viewModelScope.launch {
             val state = when (
-                val result = postTranslationUseCase.translate(content, targetLanguage, isHtml = false)
+                val result = postTranslationUseCase.translate(
+                    content, targetLanguage, isHtml = false, allowDownload = allowDownload
+                )
             ) {
                 is PostTranslationResult.Success ->
                     TranslationState.Translated(result.text, result.sourceLanguage)
+
+                is PostTranslationResult.NeedsDownload ->
+                    TranslationState.DownloadRequired(result.sourceLanguage, result.targetLanguage)
 
                 PostTranslationResult.SameLanguage,
                 PostTranslationResult.Unsupported -> TranslationState.Unsupported

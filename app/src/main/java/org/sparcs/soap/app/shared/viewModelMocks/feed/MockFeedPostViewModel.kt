@@ -40,13 +40,18 @@ class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPos
     override fun translationLanguages(): List<String> = emptyList()
     override fun suggestedTranslationLanguages(): List<String> = emptyList()
     override fun defaultTranslationLanguage(): String = "en"
-    override fun translatePost(targetLanguage: String) {}
+    override fun translatePost(targetLanguage: String, allowDownload: Boolean) {}
     override fun showOriginal() {}
     override fun summarizePost() {}
     override fun hideSummary() {}
     override val commentTranslations: StateFlow<Map<String, TranslationState>> =
         MutableStateFlow<Map<String, TranslationState>>(emptyMap()).asStateFlow()
-    override fun translateComment(commentId: String, content: String, targetLanguage: String) {}
+    override fun translateComment(
+        commentId: String,
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean,
+    ) {}
     override fun showCommentOriginal(commentId: String) {}
 
     override fun fetchComments(postID: String, initial: Boolean) {}
