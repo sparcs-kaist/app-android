@@ -17,20 +17,20 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
-import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCase
+import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.event.TimetableViewEvent
-import org.sparcs.soap.R
 import timber.log.Timber
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
-    val timetableUseCase: TimetableUseCase?
+    val timetableUseCase: TimetableUseCaseProtocol?
     val isLoading: MutableStateFlow<Boolean>
     val semesters: StateFlow<List<Semester>>
     val selectedSemester: StateFlow<Semester?>
@@ -61,7 +61,7 @@ interface TimetableViewModelProtocol {
 
 @HiltViewModel
 class TimetableViewModel @Inject constructor(
-    override val timetableUseCase: TimetableUseCase,
+    override val timetableUseCase: TimetableUseCaseProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
     @param:ApplicationContext private val context: Context
