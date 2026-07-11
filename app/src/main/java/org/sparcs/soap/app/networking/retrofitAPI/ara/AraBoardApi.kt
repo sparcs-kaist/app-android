@@ -6,6 +6,7 @@ import org.sparcs.soap.app.networking.requestDTO.ara.AraPostRequestDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraAttachmentDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraBoardDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraBookmarkDTO
+import org.sparcs.soap.app.networking.responseDTO.ara.AraPortalNoticeDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraPostDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraPostPageDTO
 import org.sparcs.soap.app.networking.responseDTO.ara.AraScrapDTO
@@ -78,6 +79,16 @@ interface AraBoardApi {
 
     @DELETE("articles/{id}/")
     suspend fun delete(@Path("id") postID: Int): Response<Unit>
+
+    @GET("kaist/portal_notice/")
+    suspend fun fetchPortalNotices(
+        @Query("board") boardId: Int? = null,
+        @Query("page") page: Int = 1,
+        @Query("page_size") pageSize: Int = 10,
+    ): List<AraPortalNoticeDTO>
+
+    @GET("kaist/portal_notice/trending/")
+    suspend fun fetchTrendingPortalNotices(): List<AraPortalNoticeDTO>
 }
 
 data class PostReportRequest(

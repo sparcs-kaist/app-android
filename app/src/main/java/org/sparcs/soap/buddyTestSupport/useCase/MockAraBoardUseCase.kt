@@ -7,6 +7,7 @@ import org.sparcs.soap.app.domain.enums.ara.PostOrigin
 import org.sparcs.soap.app.domain.models.ara.AraAttachment
 import org.sparcs.soap.app.domain.models.ara.AraBoard
 import org.sparcs.soap.app.domain.models.ara.AraCreatePost
+import org.sparcs.soap.app.domain.models.ara.AraPortalNotice
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostPage
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
@@ -84,4 +85,12 @@ class MockAraBoardUseCase : AraBoardUseCaseProtocol {
     override suspend fun removeBookmark(bookmarkID: Int) {
         removeBookmarkResult.getOrThrow()
     }
+
+    override suspend fun fetchPortalNotices(
+        boardId: Int?,
+        page: Int,
+        pageSize: Int,
+    ): List<AraPortalNotice> = emptyList()
+
+    override suspend fun fetchTrendingPortalNotices(): List<AraPortalNotice> = emptyList()
 }
