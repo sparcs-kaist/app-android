@@ -98,6 +98,15 @@ class FeedPostViewModel @Inject constructor(
     }
 
     // MARK: - Properties
+    override var comments by mutableStateOf<List<FeedComment>>(emptyList())
+    override var text by mutableStateOf("")
+    override var image by mutableStateOf<Bitmap?>(null)
+    override var isAnonymous: Boolean by mutableStateOf(true)
+    override var isSubmittingComment: Boolean by mutableStateOf(false)
+    override var feedUser: FeedUser? by mutableStateOf(null)
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
+
     private val _state = MutableStateFlow<ViewState>(ViewState.Loading)
     override val state: StateFlow<ViewState> = _state.asStateFlow()
 
@@ -113,18 +122,6 @@ class FeedPostViewModel @Inject constructor(
             loadInitialPage()
         }
     }
-
-    override var comments by mutableStateOf<List<FeedComment>>(emptyList())
-
-    override var text by mutableStateOf("")
-    override var image by mutableStateOf<Bitmap?>(null)
-
-    override var isAnonymous: Boolean by mutableStateOf(true)
-    override var isSubmittingComment: Boolean by mutableStateOf(false)
-    override var feedUser: FeedUser? by mutableStateOf(null)
-
-    override var alertState: AlertState? by mutableStateOf(null)
-    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     // MARK: - Translation
     private val _translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)

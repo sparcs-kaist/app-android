@@ -91,7 +91,7 @@ class FeedPostViewModelTest {
         mockFeedPostUseCase.fetchPostResult = Result.failure(Exception("Test failure"))
 
         createViewModel()
-        
+
         val state = viewModel.state.first { it !is FeedPostViewModel.ViewState.Loading }
 
         assertTrue("Expected Error state but was $state", state is FeedPostViewModel.ViewState.Error)
