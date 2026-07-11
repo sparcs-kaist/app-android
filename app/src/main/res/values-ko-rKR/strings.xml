@@ -606,6 +606,10 @@
     <string name="translated_from">%1$s에서 번역됨</string>
     <string name="translation_unsupported">이 게시글은 번역할 수 없어요.</string>
     <string name="translation_failed">번역에 실패했어요.</string>
+    <string name="translation_download_required">%1$s에서 %2$s(으)로 번역하려면 언어팩을 다운로드해야 해요.</string>
+    <string name="translation_download_hint">다운로드 시 모바일 데이터가 사용될 수 있어요.</string>
+    <string name="translation_download">다운로드</string>
+    <string name="translation_downloading">언어팩 다운로드 중…</string>
     <string name="retry">다시 시도</string>
     <string name="translate_to">번역할 언어</string>
     <string name="suggested">추천</string>

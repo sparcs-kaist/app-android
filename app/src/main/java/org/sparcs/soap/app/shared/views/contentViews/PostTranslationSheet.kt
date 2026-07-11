@@ -52,6 +52,7 @@ fun PostTranslationSheet(
     suggested: List<String>,
     onTargetChange: (String) -> Unit,
     onRetry: () -> Unit,
+    onDownload: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val sheetState = rememberModalBottomSheetState()
@@ -92,19 +93,32 @@ fun PostTranslationSheet(
                         TranslationState.Idle -> Unit
 
                         TranslationState.Loading -> {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(16.dp),
-                                    strokeWidth = 2.dp
+                            LoadingRow(stringResource(R.string.translating))
+                        }
+
+                        TranslationState.Downloading -> {
+                            LoadingRow(stringResource(R.string.translation_downloading))
+                        }
+
+                        is TranslationState.DownloadRequired -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.translation_download_required,
+                                        displayLanguageName(state.sourceLanguage),
+                                        displayLanguageName(state.targetLanguage)
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = stringResource(R.string.translating),
-                                    style = MaterialTheme.typography.bodyMedium,
+                                    text = stringResource(R.string.translation_download_hint),
+                                    style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                                OutlinedButton(onClick = onDownload) {
+                                    Text(stringResource(R.string.translation_download))
+                                }
                             }
                         }
 
@@ -223,6 +237,24 @@ private fun LanguageList(
             }
             items(filtered) { LanguageRow(it, onSelect) }
         }
+    }
+}
+
+@Composable
+private fun LoadingRow(label: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.size(16.dp),
+            strokeWidth = 2.dp
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

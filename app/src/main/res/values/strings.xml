@@ -637,6 +637,10 @@
     <string name="translated_from">Translated from %1$s</string>
     <string name="translation_unsupported">This post can\'t be translated.</string>
     <string name="translation_failed">Translation failed.</string>
+    <string name="translation_download_required">To translate from %1$s to %2$s, a language pack needs to be downloaded.</string>
+    <string name="translation_download_hint">The download may use mobile data.</string>
+    <string name="translation_download">Download</string>
+    <string name="translation_downloading">Downloading language pack…</string>
     <string name="retry">Retry</string>
     <string name="translate_to">Translate to</string>
     <string name="suggested">Suggested</string>

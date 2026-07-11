@@ -293,6 +293,7 @@ fun FeedPostView(
                         viewModel.translatePost(code)
                     },
                     onRetry = { viewModel.translatePost(translationTarget) },
+                    onDownload = { viewModel.translatePost(translationTarget, allowDownload = true) },
                     onDismiss = { viewModel.showOriginal() }
                 )
             }

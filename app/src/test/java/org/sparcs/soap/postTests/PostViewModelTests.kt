@@ -26,8 +26,12 @@ class PostViewModelTest : PostTestBase() {
         override fun availableLanguages(): List<String> = emptyList()
         override fun suggestedLanguages(): List<String> = emptyList()
         override fun deviceLanguage(): String = "en"
-        override suspend fun translate(text: String, targetLanguage: String, isHtml: Boolean) =
-            PostTranslationResult.Unsupported
+        override suspend fun translate(
+            text: String,
+            targetLanguage: String,
+            isHtml: Boolean,
+            allowDownload: Boolean,
+        ) = PostTranslationResult.Unsupported
     }
 
     private val fakeSummarizationUseCase = object : SummarizationUseCaseProtocol {

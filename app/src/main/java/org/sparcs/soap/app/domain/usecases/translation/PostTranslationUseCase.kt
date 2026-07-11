@@ -1,7 +1,9 @@
 package org.sparcs.soap.app.domain.usecases.translation
 
+import com.google.mlkit.common.model.RemoteModelManager
 import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.translate.TranslateLanguage
+import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
 import kotlinx.coroutines.tasks.await
@@ -13,6 +15,12 @@ sealed interface PostTranslationResult {
     data class Success(val text: String, val sourceLanguage: String) : PostTranslationResult
     data object SameLanguage : PostTranslationResult
     data object Unsupported : PostTranslationResult
+
+    data class NeedsDownload(
+        val sourceLanguage: String,
+        val targetLanguage: String,
+    ) : PostTranslationResult
+
     data class Failed(val error: Throwable) : PostTranslationResult
 }
 
@@ -24,6 +32,7 @@ interface PostTranslationUseCaseProtocol {
         text: String,
         targetLanguage: String,
         isHtml: Boolean,
+        allowDownload: Boolean = false,
     ): PostTranslationResult
 }
 
@@ -48,6 +57,7 @@ class PostTranslationUseCase @Inject constructor() : PostTranslationUseCaseProto
         text: String,
         targetLanguage: String,
         isHtml: Boolean,
+        allowDownload: Boolean,
     ): PostTranslationResult {
         val plain = if (isHtml) text.htmlToPlainText() else text.trim()
         if (plain.length < MIN_LENGTH) return PostTranslationResult.Unsupported
@@ -57,10 +67,8 @@ class PostTranslationUseCase @Inject constructor() : PostTranslationUseCaseProto
 
         return try {
             val languageIdentifier = LanguageIdentification.getClient()
-            val detected = try {
+            val detected = languageIdentifier.use { languageIdentifier ->
                 languageIdentifier.identifyLanguage(plain).await()
-            } finally {
-                languageIdentifier.close()
             }
             if (detected == UNDETERMINED) return PostTranslationResult.Unsupported
 
@@ -68,22 +76,37 @@ class PostTranslationUseCase @Inject constructor() : PostTranslationUseCaseProto
                 ?: return PostTranslationResult.Unsupported
             if (source == target) return PostTranslationResult.SameLanguage
 
+            if (!allowDownload && !areModelsDownloaded(source, target)) {
+                return PostTranslationResult.NeedsDownload(
+                    sourceLanguage = detected,
+                    targetLanguage = targetLanguage,
+                )
+            }
+
             val translator = Translation.getClient(
                 TranslatorOptions.Builder()
                     .setSourceLanguage(source)
                     .setTargetLanguage(target)
                     .build()
             )
-            try {
+            translator.use { translator ->
                 translator.downloadModelIfNeeded().await()
                 val translated = translator.translate(plain).await()
                 PostTranslationResult.Success(text = translated, sourceLanguage = detected)
-            } finally {
-                translator.close()
             }
         } catch (e: Exception) {
             PostTranslationResult.Failed(e)
         }
+    }
+
+    private suspend fun areModelsDownloaded(source: String, target: String): Boolean {
+        val downloaded = RemoteModelManager.getInstance()
+            .getDownloadedModels(TranslateRemoteModel::class.java)
+            .await()
+        val languages = downloaded.mapNotNull { it.language }.toSet()
+        return source in languages &&
+            target in languages &&
+            TranslateLanguage.ENGLISH in languages
     }
 
     private companion object {

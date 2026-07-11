@@ -167,6 +167,11 @@ fun FeedCommentRow(
                 viewModel.translateComment(comment.id, comment.content, code)
             },
             onRetry = { viewModel.translateComment(comment.id, comment.content, translationTarget) },
+            onDownload = {
+                viewModel.translateComment(
+                    comment.id, comment.content, translationTarget, allowDownload = true
+                )
+            },
             onDismiss = {
                 showTranslationSheet = false
                 viewModel.showCommentOriginal(comment.id)
