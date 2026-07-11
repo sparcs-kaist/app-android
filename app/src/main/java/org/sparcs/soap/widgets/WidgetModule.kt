@@ -8,7 +8,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
+import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackgroundProtocol
+import org.sparcs.soap.widgets.araPortalWidget.AraPortalWidgetSyncManager
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayWidgetSyncManager
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.UpComingWidgetSyncManager
@@ -40,6 +42,9 @@ interface WidgetEntryPoint {
     fun dDaySyncManager(): DDayWidgetSyncManager
 
     fun timetableUseCase(): TimetableUseCaseBackgroundProtocol
+
+    fun araPortalSyncManager(): AraPortalWidgetSyncManager
+    fun araBoardUseCase(): AraBoardUseCaseProtocol
 }
 
 @Module

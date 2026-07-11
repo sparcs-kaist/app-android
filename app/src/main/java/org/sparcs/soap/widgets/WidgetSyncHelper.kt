@@ -7,6 +7,8 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import org.sparcs.soap.widgets.araPortalWidget.AraPortalUpdateWorker
+import org.sparcs.soap.widgets.araPortalWidget.AraPortalWidgetSyncManager
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayUpdateWorker
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableUpdateWorker
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
@@ -20,6 +22,7 @@ class WidgetSyncHelper @Inject constructor(
     @param:ApplicationContext private val context: Context,
     @param:TimetableWidget private val timetableSyncManager: TimetableWidgetSyncManager,
     @param:UpcomingWidget private val upComingSyncManager: UpComingWidgetSyncManager,
+    private val araPortalSyncManager: AraPortalWidgetSyncManager,
 ) {
     fun refreshAllWidgets() {
         val constraints = Constraints.Builder()
@@ -41,7 +44,18 @@ class WidgetSyncHelper @Inject constructor(
             .addTag("timetable_one_time_sync")
             .build()
 
+        val araPortalRequest = OneTimeWorkRequestBuilder<AraPortalUpdateWorker>()
+            .setConstraints(constraints)
+            .addTag("ara_portal_one_time_sync")
+            .build()
+
         val workManager = WorkManager.getInstance(context)
+
+        workManager.enqueueUniqueWork(
+            "ara_portal_one_time_sync",
+            ExistingWorkPolicy.REPLACE,
+            araPortalRequest
+        )
         
         workManager.enqueueUniqueWork(
             "d_day_one_time_sync",
@@ -65,5 +79,6 @@ class WidgetSyncHelper @Inject constructor(
     suspend fun clearAllWidgets() {
         timetableSyncManager.syncSignInRequired()
         upComingSyncManager.syncSignInRequired()
+        araPortalSyncManager.syncSignInRequired()
     }
 }
