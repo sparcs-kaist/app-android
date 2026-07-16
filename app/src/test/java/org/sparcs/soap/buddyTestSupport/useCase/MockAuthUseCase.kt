@@ -6,13 +6,18 @@ import kotlinx.coroutines.flow.flowOf
 import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
 
 class MockAuthUseCase : AuthUseCaseProtocol {
+    var signInResult: Result<Unit> = Result.success(Unit)
+    var signInCallCount = 0
     private var signOutResult: Result<Unit> = Result.success(Unit)
     private var signOutCallCount = 0
 
     override val isAuthenticatedFlow: Flow<Boolean>
         get() = flowOf(true)
 
-    override suspend fun signIn(activity: Activity) {}
+    override suspend fun signIn(activity: Activity) {
+        signInCallCount += 1
+        signInResult.getOrThrow()
+    }
 
     override suspend fun signOut() {
         signOutCallCount += 1

@@ -15,7 +15,9 @@ object UseCaseTestFixtures {
         content: String = "Test content",
         upVotes: Int = 5,
         downVotes: Int = 2,
-        myVote: FeedVoteType? = null
+        myVote: FeedVoteType? = null,
+        commentCount: Int = 0,
+        isAuthor: Boolean = false
     ): FeedPost {
         return FeedPost(
             id = id,
@@ -26,11 +28,11 @@ object UseCaseTestFixtures {
             nickname = "tester",
             profileImageURL = null,
             createdAt = Date(),
-            commentCount = 0,
+            commentCount = commentCount,
             upVotes = upVotes,
             downVotes = downVotes,
             myVote = myVote,
-            isAuthor = false,
+            isAuthor = isAuthor,
             images = emptyList()
         )
     }
@@ -39,24 +41,29 @@ object UseCaseTestFixtures {
         id: String = "comment-1",
         postID: String = "post-1",
         parentCommentID: String? = null,
-        content: String = "Test comment"
+        content: String = "Test comment",
+        upVotes: Int = 3,
+        downVotes: Int = 1,
+        myVote: FeedVoteType? = null,
+        isDeleted: Boolean = false,
+        isAuthor: Boolean = false
     ): FeedComment {
         return FeedComment(
             id = id,
             postID = postID,
             parentCommentID = parentCommentID,
             content = content,
-            isDeleted = false,
+            isDeleted = isDeleted,
             isAnonymous = false,
             isKaistIP = true,
             authorName = "Test Commenter",
-            isAuthor = false,
-            isMyComment = false,
+            isAuthor = isAuthor,
+            isMyComment = isAuthor,
             profileImageURL = null,
             createdAt = Date(),
-            upVotes = 3,
-            downVotes = 1,
-            myVote = null,
+            upVotes = upVotes,
+            downVotes = downVotes,
+            myVote = myVote,
             image = null,
             replyCount = 0,
             replies = emptyList()

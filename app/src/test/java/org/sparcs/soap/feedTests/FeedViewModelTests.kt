@@ -27,7 +27,7 @@ class FeedViewModelTests : FeedTestBase() {
 
     @Test
     fun `Initial state is loading`() {
-        assertEquals(FeedViewModel.ViewState.Loading, viewModel.state)
+        assertEquals(FeedViewModel.ViewState.Loading, viewModel.state.value)
         assertTrue(viewModel.posts.isEmpty())
     }
 
@@ -47,7 +47,7 @@ class FeedViewModelTests : FeedTestBase() {
 
         viewModel.fetchInitialData()
 
-        assertEquals(FeedViewModel.ViewState.Loaded(FeedPost.mockList()), viewModel.state)
+        assertTrue(viewModel.state.value is FeedViewModel.ViewState.Loaded)
         assertEquals(2, viewModel.posts.size)
         assertEquals("1", viewModel.posts[0].id)
         assertEquals("2", viewModel.posts[1].id)
@@ -62,7 +62,8 @@ class FeedViewModelTests : FeedTestBase() {
 
         val currentState = viewModel.state.value
         if (currentState is FeedViewModel.ViewState.Error) {
-            assertTrue(currentState.message.contains("Test failure") || currentState.message.isNotEmpty())
+            val message = currentState.error.message.orEmpty()
+            assertTrue(message.contains("Test failure") || message.isNotEmpty())
         } else {
             throw AssertionError("Expected error state but was $currentState")
         }

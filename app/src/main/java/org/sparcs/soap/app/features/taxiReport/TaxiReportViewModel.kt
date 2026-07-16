@@ -10,15 +10,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.taxi.TaxiCreateReport
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiReport
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiReportRepositoryProtocol
-import org.sparcs.soap.app.domain.services.CrashlyticsService
+import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import org.sparcs.soap.app.shared.extensions.toAlertState
-import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
@@ -43,7 +43,7 @@ interface TaxiReportViewModelProtocol {
 class TaxiReportViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val taxiReportRepository: TaxiReportRepositoryProtocol,
-    private val crashlyticsService: CrashlyticsService,
+    private val crashlyticsService: CrashlyticsServiceProtocol,
 ) : ViewModel(), TaxiReportViewModelProtocol {
 
     // MARK: - Initialiser

@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -40,67 +39,67 @@ class PostViewModelTest : PostTestBase() {
             SummarizationResultState.Unavailable
     }
 
-    private fun createViewModel(initialPost: AraPost = AraPost.mock()) {
-        val savedStateHandle = SavedStateHandle(mapOf("post" to initialPost))
+    private fun createViewModel(post: AraPost = AraPost.mock()) {
+        val savedStateHandle = SavedStateHandle(mapOf("postId" to post.id))
         viewModel = PostViewModel(
             savedStateHandle = savedStateHandle,
             araBoardUseCase = mockAraBoardUseCase,
             araCommentUseCase = mockAraCommentUseCase,
-//            crashlyticsService = mockCrashlyticsService,
             analyticsService = mockAnalyticsService,
             postTranslationUseCase = fakeTranslationUseCase,
             summarizationUseCase = fakeSummarizationUseCase
         )
     }
 
+    private fun seedPost(post: AraPost) {
+        mockAraBoardUseCase.fetchPostResult = Result.success(post)
+        createViewModel(post)
+        viewModel.fetchPost()
+    }
+
     @Test
-    fun `initial alert state is empty`() {
+    fun `initial state is loading and no alert`() {
         createViewModel()
 
+        assertEquals(PostViewModel.ViewState.Loading, viewModel.state.value)
         assertNull(viewModel.alertState)
         assertFalse(viewModel.isAlertPresented)
     }
 
     @Test
-    fun `fetchPost success updates post without presenting alert`() = runTest {
+    fun `fetchPost success loads post and sets loaded state`() = runTest {
         val expectedPost = AraPost.mockList()[1]
         mockAraBoardUseCase.fetchPostResult = Result.success(expectedPost)
 
         createViewModel()
-
         viewModel.fetchPost()
 
         assertEquals(1, mockAraBoardUseCase.fetchPostCallCount)
         assertEquals(expectedPost.id, viewModel.post.value?.id)
-        assertNull(viewModel.alertState)
-        assertFalse(viewModel.isAlertPresented)
+        assertEquals(PostViewModel.ViewState.Loaded, viewModel.state.value)
     }
 
     @Test
-    fun `fetchPost failure presents alert state`() = runTest {
+    fun `fetchPost failure sets error state`() = runTest {
         mockAraBoardUseCase.fetchPostResult = Result.failure(Exception("Test failure"))
 
         createViewModel()
-
         viewModel.fetchPost()
 
         assertEquals(1, mockAraBoardUseCase.fetchPostCallCount)
-        assertTrue(viewModel.isAlertPresented)
-        assertNotNull(viewModel.alertState)
-        assertTrue(viewModel.alertState?.message?.contains("Test failure") == true)
+        assertTrue(viewModel.state.value is PostViewModel.ViewState.Error)
     }
 
     @Test
     fun `writeComment appends comment and increments count`() = runTest {
-        val postedComment = AraPostComment.mock()
-        mockAraCommentUseCase.writeCommentResult = Result.success(postedComment)
-
         val initialPost = AraPost.mock().copy(
             comments = mutableListOf(),
             commentCount = 0
         )
+        seedPost(initialPost)
 
-        createViewModel(initialPost)
+        val postedComment = AraPostComment.mock()
+        mockAraCommentUseCase.writeCommentResult = Result.success(postedComment)
 
         val createdComment = viewModel.writeComment(content = "Hello")
 
@@ -111,19 +110,20 @@ class PostViewModelTest : PostTestBase() {
 
     @Test
     fun `deleteComment rolls back content when deletion fails`() = runTest {
-        mockAraCommentUseCase.deleteCommentResult = Result.failure(Exception("Test failure"))
-
         val initialComment = AraPostComment.mock()
         val initialPost = AraPost.mock().copy(
             comments = mutableListOf(initialComment)
         )
+        seedPost(initialPost)
 
-        createViewModel(initialPost)
-
+        mockAraCommentUseCase.deleteCommentResult = Result.failure(Exception("Test failure"))
         val previousContent = initialComment.content
 
         viewModel.deleteComment(comment = initialComment)
 
-        assertEquals(previousContent, viewModel.post.value?.comments?.find { it.id == initialComment.id }?.content)
+        assertEquals(
+            previousContent,
+            viewModel.post.value?.comments?.find { it.id == initialComment.id }?.content
+        )
     }
 }
