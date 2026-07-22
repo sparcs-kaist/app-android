@@ -9,14 +9,14 @@ plugins {
 
 android {
     namespace = "org.sparcs.soap"
-    compileSdk = 37
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "org.sparcs.soap"
         minSdk = 31
-        targetSdk = 37
-        versionCode = 26
-        versionName = "1.1"
+        targetSdk = 36
+        versionCode = 31
+        versionName = "1.2"
 
     }
 
