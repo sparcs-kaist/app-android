@@ -371,7 +371,12 @@ private fun PostCommentFooter(
     val scope = rememberCoroutineScope()
     var commentState by remember { mutableStateOf(comment) }
 
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 4.dp, end = 4.dp)
+    ) {
         Spacer(modifier = Modifier.weight(1f))
 
         if (!isThreaded) {

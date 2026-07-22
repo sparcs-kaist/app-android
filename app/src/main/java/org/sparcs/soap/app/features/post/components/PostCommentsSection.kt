@@ -31,7 +31,9 @@ fun PostCommentsSection(
     onTranslateComment: (AraPostComment) -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (comments.isEmpty()) {

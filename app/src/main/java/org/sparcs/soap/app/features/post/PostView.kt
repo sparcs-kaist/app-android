@@ -362,7 +362,6 @@ fun PostView(
                             )
                         }
                     }
-                    item { Spacer(modifier = Modifier.height(64.dp)) }
                 }
             }
         }
@@ -500,10 +499,6 @@ private fun Content(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
-        if (!summarisedContent.isNullOrEmpty()) {
-//            SummarisationView(text = summarisedContent)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
         DynamicHeightWebView(
             url = "${Constants.ARA_BACKEND_URL}users/exchange/?next=/web_view/PostFrame/$postId",
             modifier = Modifier
