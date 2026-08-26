@@ -29,7 +29,7 @@ fun PostListRowCommentLabel(commentCount: Int){
                 imageVector = Icons.Outlined.ChatBubbleOutline,
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.darkGray),
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(13.dp)
             )
 
             Spacer(Modifier.padding(2.dp))

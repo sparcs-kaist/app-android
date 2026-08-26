@@ -11,12 +11,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.ara.AraContentReportType
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
+import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
-import org.sparcs.soap.app.theme.ui.lightGray0
+import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun PostCommentsSection(
@@ -38,8 +40,9 @@ fun PostCommentsSection(
     ) {
         if (comments.isEmpty()) {
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.lightGray0,
-                modifier = Modifier.padding(vertical = 4.dp)
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = 0.5.dp
             )
 
             UnavailableView(
@@ -108,4 +111,25 @@ private fun CommentCell(
         onDeleteComment = { onDeleteComment(comment) },
         onTranslate = { onTranslateComment(comment) }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun Preview() {
+    Theme {
+        PostCommentsSection(
+            comments = listOf(
+                AraPostComment.mock(),
+                AraPostComment.mock(),
+            ),
+            onReply = {},
+            onCommentDeleted = {},
+            onEdit = {},
+            onUpVote = {},
+            onDownVote = {},
+            onReport = { _, _ -> },
+            onDeleteComment = {},
+            onTranslateComment = {}
+        )
+    }
 }

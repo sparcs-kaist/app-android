@@ -270,7 +270,8 @@ private fun RatingPicker(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 listOf(5, 4, 3, 2, 1).forEach { itValue ->
                     DropdownMenuItem(

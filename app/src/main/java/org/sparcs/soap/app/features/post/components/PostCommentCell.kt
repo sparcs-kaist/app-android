@@ -59,7 +59,6 @@ import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.app.theme.ui.lightGray0
 import kotlin.reflect.KClass
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,8 +92,9 @@ fun PostCommentCell(
 
         Column(modifier = Modifier.weight(1f)) {
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.lightGray0,
-                modifier = Modifier.padding(vertical = 4.dp)
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                modifier = Modifier.padding(vertical = 4.dp),
+                thickness = 0.5.dp
             )
 
             PostCommentHeader(
@@ -380,7 +380,7 @@ private fun PostCommentFooter(
         Spacer(modifier = Modifier.weight(1f))
 
         if (!isThreaded) {
-            PostCommentButton(commentCount = comment.comments.size, onClick = onComment)
+            PostCommentButton(commentCount = comment.comments.size, onClick = onComment, isCompact = true)
             Spacer(modifier = Modifier.padding(4.dp))
         }
 
@@ -398,7 +398,8 @@ private fun PostCommentFooter(
                         onDownVote()
                     }
                 },
-                enabled = commentState.isMine != true
+                enabled = commentState.isMine != true,
+                isCompact = true
             )
         }
     }
