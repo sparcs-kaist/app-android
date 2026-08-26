@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -153,7 +154,13 @@ fun FeedView(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     FeedPostRowSkeleton()
-                                    HorizontalDivider(Modifier.padding(horizontal = 8.dp))
+                                    HorizontalDivider(
+                                        modifier = Modifier.padding(
+                                            horizontal = 8.dp,
+                                            vertical = 4.dp
+                                        ),
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                                    )
                                 }
                             }
                         }
@@ -178,10 +185,11 @@ fun FeedView(
                                         }
                                     )
                                     HorizontalDivider(
-                                        Modifier.padding(
+                                        modifier = Modifier.padding(
                                             horizontal = 16.dp,
                                             vertical = 4.dp
-                                        )
+                                        ),
+                                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                                     )
                                 }
                             }

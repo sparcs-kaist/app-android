@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -161,7 +162,8 @@ fun FeedPostView(
                                 onCommentUploaded = {
                                     if (viewModel.text.isEmpty()) return@InputBar
                                     scope.launch {
-                                        val uploaded = viewModel.submitComment(post.id, targetComment)
+                                        val uploaded =
+                                            viewModel.submitComment(post.id, targetComment)
                                         if (uploaded != null) {
                                             post.commentCount += 1
                                             targetComment = null
@@ -293,7 +295,12 @@ fun FeedPostView(
                         viewModel.translatePost(code)
                     },
                     onRetry = { viewModel.translatePost(translationTarget) },
-                    onDownload = { viewModel.translatePost(translationTarget, allowDownload = true) },
+                    onDownload = {
+                        viewModel.translatePost(
+                            translationTarget,
+                            allowDownload = true
+                        )
+                    },
                     onDismiss = { viewModel.showOriginal() }
                 )
             }
@@ -466,15 +473,18 @@ private fun Comments(
         is FeedPostViewModel.ViewState.Loaded -> {
             Column(Modifier.padding(horizontal = 20.dp)) {
                 HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                 )
                 Text(
                     stringResource(
                         R.string.the_number_of_comments,
                         post.commentCount
                     ),
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+                    fontWeight = FontWeight.Medium,
                 )
+
                 viewModel.comments.forEach { comment ->
                     FeedCommentRow(
                         comment = comment,
@@ -493,7 +503,7 @@ private fun Comments(
 
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.lightGray0,
-                        modifier = Modifier.padding(vertical = 4.dp)
+                        modifier = Modifier.padding(vertical = 8.dp)
                     )
                 }
             }

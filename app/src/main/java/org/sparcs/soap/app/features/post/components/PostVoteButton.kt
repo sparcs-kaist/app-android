@@ -3,6 +3,7 @@ package org.sparcs.soap.app.features.post.components
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -57,9 +58,10 @@ fun PostVoteButton(
             .glassBorder(RoundedCornerShape(16.dp))
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.background)
-            .padding(8.dp)
+            .padding(horizontal = 10.dp, vertical = 6.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Icon(
                 painter = painterResource(upvoteImage),
                 contentDescription = "UpVote",
@@ -82,11 +84,11 @@ fun PostVoteButton(
                 targetState = votes,
                 label = "VotesTransition"
             ) { targetCount ->
+                val formattedCount = targetCount.toString().replace('-', '\u2212')
                 Text(
-                    text = targetCount.toString(),
+                    text = formattedCount,
                     color = if (myVote != null) tintColor else MaterialTheme.colorScheme.onSurface,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 4.dp)
                 )
             }
         }
@@ -94,8 +96,8 @@ fun PostVoteButton(
         VerticalDivider(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
             modifier = Modifier
-                .padding(horizontal = 4.dp)
-                .height(20.dp)
+                .padding(horizontal = 8.dp)
+                .height(16.dp)
         )
         Icon(
             painter = painterResource(downvoteImage),

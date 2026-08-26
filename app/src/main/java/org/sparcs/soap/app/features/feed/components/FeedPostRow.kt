@@ -151,9 +151,9 @@ private fun Header(
             .padding(horizontal = 20.dp, vertical = 4.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             ProfileImage(post)
             Spacer(Modifier.width(8.dp))
@@ -325,7 +325,7 @@ private fun Footer(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp, vertical = 8.dp)
+            .padding(horizontal = 20.dp, vertical = 12.dp)
     ) {
         PostVoteButton(
             myVote = when (post.myVote) {
@@ -408,7 +408,7 @@ fun FeedPostRowSkeleton() {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Box(
                     modifier = Modifier
