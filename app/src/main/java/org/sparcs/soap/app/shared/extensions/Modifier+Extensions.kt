@@ -4,6 +4,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -12,8 +15,11 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.sparcs.soap.app.domain.enums.Event
 import org.sparcs.soap.app.features.main.LocalAnalytics
 
@@ -67,3 +73,15 @@ fun Modifier.glassBorder(
         ),
         shape = shape
     )
+
+@Composable
+fun Modifier.adaptiveIconSize(
+    textStyle: TextStyle = LocalTextStyle.current,
+    scaleFactor: Float = 1.2f
+): Modifier {
+    val density = LocalDensity.current
+    val iconSize = with(density) {
+        (textStyle.fontSize.value * scaleFactor).sp.toDp()
+    }
+    return this.size(iconSize)
+}
