@@ -193,7 +193,7 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
         if (showDialog) {
             AlertDialog(
                 onDismissRequest = { showDialog = false },
-                containerColor = MaterialTheme.colorScheme.surface,
+                containerColor = MaterialTheme.colorScheme.background,
                 title = { Text(stringResource(R.string.theme_mode)) },
                 text = {
                     Column {

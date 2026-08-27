@@ -536,7 +536,7 @@ private fun ThemeSwitcherButton(
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.background,
             title = { Text(stringResource(R.string.widget_dark_mode)) },
             text = {
                 Column {

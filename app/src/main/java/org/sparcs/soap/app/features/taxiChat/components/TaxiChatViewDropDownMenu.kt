@@ -140,7 +140,8 @@ fun TaxiChatViewDropDownMenu(
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 }

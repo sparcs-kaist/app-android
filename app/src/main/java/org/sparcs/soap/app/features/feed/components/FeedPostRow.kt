@@ -209,6 +209,7 @@ private fun Header(
             dismissButton = {
                 TextButton(onClick = { setShowDelete(false) }) { Text(stringResource(R.string.cancel)) }
             },
+            containerColor = MaterialTheme.colorScheme.background,
             title = { Text(stringResource(R.string.delete_post)) },
             text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
         )

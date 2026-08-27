@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -247,7 +248,8 @@ fun TaxiSettingsView(
                 }
             },
             title = { Text(stringResource(R.string.are_you_sure)) },
-            text = { Text(stringResource(R.string.discard_this_settings)) }
+            text = { Text(stringResource(R.string.discard_this_settings)) },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 
@@ -274,7 +276,8 @@ fun TaxiSettingsView(
                 TextButton(onClick = { showAlert = false }) {
                     Text(stringResource(R.string.cancel))
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 }
@@ -507,7 +510,8 @@ private fun BankPicker(
 
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(16.dp)
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(

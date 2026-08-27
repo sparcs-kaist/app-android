@@ -145,6 +145,7 @@ fun ChatDepartureBubble(room: TaxiRoom, chatTime: java.util.Date) {
                     }
                 }
             },
+            containerColor = MaterialTheme.colorScheme.background,
         )
     }
 }

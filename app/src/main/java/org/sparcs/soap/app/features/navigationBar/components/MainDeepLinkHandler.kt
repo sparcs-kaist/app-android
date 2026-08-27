@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.enums.DeepLinkEventBus
 import org.sparcs.soap.app.features.navigationBar.Channel
@@ -32,7 +33,6 @@ import org.sparcs.soap.app.features.navigationBar.MainTabBarViewModel
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewView
 import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModel
 import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -76,7 +76,8 @@ fun MainDeepLinkHandler(
             text = { Text(stringResource(viewModel.alertState?.messageResId ?: R.string.post_not_found_message)) },
             confirmButton = {
                 TextButton(onClick = { viewModel.isAlertPresented = false }) { Text(stringResource(R.string.ok)) }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 

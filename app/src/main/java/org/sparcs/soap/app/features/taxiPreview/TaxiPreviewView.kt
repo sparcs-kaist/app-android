@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -241,12 +242,14 @@ fun TaxiPreviewView(
                 destination = room.destination.title.localized()
             )
 
-            Spacer(Modifier.padding(8.dp))
+            Spacer(Modifier.padding(4.dp))
 
             InfoRow(
                 label = stringResource(R.string.depart_at),
                 value = room.departAt.formattedString()
             )
+
+            Spacer(Modifier.padding(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -285,6 +288,7 @@ fun TaxiPreviewView(
                         }
                     },
                     modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(vertical = 4.dp),
                     enabled = !isJoinButtonDisabled
                 ) {
                     Text(

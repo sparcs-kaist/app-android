@@ -112,7 +112,6 @@ import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.app.theme.ui.lightGray0
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,8 +140,6 @@ fun PostView(
     var isRefreshing by remember { mutableStateOf(false) }
 
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-
-    val summarisedContent by remember { mutableStateOf<String?>(null) }
 
     val translationState by viewModel.translationState.collectAsState()
     val summarizationState by viewModel.summarizationState.collectAsState()
@@ -322,7 +319,6 @@ fun PostView(
                     item {
                         Content(
                             postId = viewModel.postId,
-                            summarisedContent = summarisedContent,
                             htmlHeight = htmlHeight,
                             onHtmlHeightChange = { htmlHeight = it },
                             onLinkTapped = { tappedURL = it.toUri() }
@@ -398,7 +394,9 @@ fun PostView(
                         fontWeight = FontWeight.Bold
                     )
                 },
-                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
+                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
+                containerColor = MaterialTheme.colorScheme.background
+                
             )
         }
 
@@ -483,14 +481,16 @@ private fun Header(
                 )
             }
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            thickness = 0.5.dp
+        )
     }
 }
 
 @Composable
 private fun Content(
     postId: Int,
-    summarisedContent: String?,
     htmlHeight: Dp,
     onHtmlHeightChange: (Dp) -> Unit,
     onLinkTapped: (String) -> Unit,
@@ -521,7 +521,7 @@ private fun Footer(
 ) {
     val context = LocalContext.current
     Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         PostVoteButton(
@@ -619,7 +619,12 @@ private fun Comments(
             },
             onRetry = { viewModel.translateComment(c.id, c.content ?: "", commentTarget) },
             onDownload = {
-                viewModel.translateComment(c.id, c.content ?: "", commentTarget, allowDownload = true)
+                viewModel.translateComment(
+                    c.id,
+                    c.content ?: "",
+                    commentTarget,
+                    allowDownload = true
+                )
             },
             onDismiss = {
                 viewModel.showCommentOriginal(c.id)
