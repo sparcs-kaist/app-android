@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -101,7 +102,8 @@ fun TaxiChatInputBar(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 DropdownMenuItem(
                     onClick = {
@@ -235,6 +237,7 @@ fun TaxiChatInputBar(
         Spacer(modifier = Modifier.width(8.dp))
 
         // Send button
+        val isEnabled = text.isNotBlank() || selectedImage != null
         Button(
             onClick = {
                 if (selectedImage != null) {
@@ -245,7 +248,10 @@ fun TaxiChatInputBar(
                     onTextChange("")
                 }
             },
-            enabled = text.isNotBlank() || selectedImage != null
+            enabled = isEnabled,
+            shape = CircleShape,
+            contentPadding = PaddingValues(0.dp),
+            modifier = Modifier.size(45.dp)
         ) {
             if (isUploading) {
                 CircularProgressIndicator(
@@ -263,7 +269,6 @@ fun TaxiChatInputBar(
             }
         }
     }
-
 }
 
 @Composable

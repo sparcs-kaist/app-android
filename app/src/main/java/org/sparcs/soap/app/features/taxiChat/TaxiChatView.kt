@@ -305,7 +305,8 @@ fun TaxiChatView(
                 TextButton(onClick = { dismissCallTaxiAlert() }) {
                     Text(stringResource(R.string.cancel))
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 
@@ -347,7 +348,8 @@ fun TaxiChatView(
                 TextButton(onClick = { dismissPayMoneyAlert() }) {
                     Text(stringResource(R.string.cancel))
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 
@@ -386,7 +388,8 @@ fun TaxiChatView(
                 TextButton(onClick = { resetSettlementDialog() }) {
                     Text(stringResource(R.string.cancel))
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 

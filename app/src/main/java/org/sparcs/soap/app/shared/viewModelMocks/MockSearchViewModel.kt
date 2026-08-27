@@ -10,22 +10,26 @@ import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.search.SearchViewModel
 import org.sparcs.soap.app.features.search.SearchViewModelProtocol
+import org.sparcs.soap.app.shared.mocks.ara.mockList
+import org.sparcs.soap.app.shared.mocks.otl.mockList
+import org.sparcs.soap.app.shared.mocks.taxi.mockList
 
 class MockSearchViewModel(initialState: SearchViewModel.ViewState) : SearchViewModelProtocol {
 
-    private val _courses = MutableStateFlow<List<CourseSummary>>(emptyList())
+    val isLoading = initialState == SearchViewModel.ViewState.Loading
+    private val _courses = MutableStateFlow<List<CourseSummary>>(if(isLoading) emptyList() else CourseSummary.mockList())
     override val courses: StateFlow<List<CourseSummary>> = _courses.asStateFlow()
 
-    private val _posts = MutableStateFlow<List<AraPost>>(emptyList())
+    private val _posts = MutableStateFlow<List<AraPost>>(if(isLoading) emptyList() else AraPost.mockList())
     override val posts: StateFlow<List<AraPost>> = _posts.asStateFlow()
 
-    private val _taxiRooms = MutableStateFlow<List<TaxiRoom>>(emptyList())
+    private val _taxiRooms = MutableStateFlow<List<TaxiRoom>>(if(isLoading) emptyList() else TaxiRoom.mockList())
     override val taxiRooms: StateFlow<List<TaxiRoom>> = _taxiRooms.asStateFlow()
 
     private val _state = MutableStateFlow(initialState)
     override val state: StateFlow<SearchViewModel.ViewState> = _state.asStateFlow()
 
-    private val _searchText = MutableStateFlow("")
+    private val _searchText = MutableStateFlow(if(isLoading) "" else "asd")
     override val searchText: StateFlow<String> = _searchText.asStateFlow()
 
     private val _searchScope = MutableStateFlow(SearchScope.All)

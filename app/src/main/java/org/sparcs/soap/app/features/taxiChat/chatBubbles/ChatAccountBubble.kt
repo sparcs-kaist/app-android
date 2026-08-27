@@ -87,17 +87,20 @@ fun ChatAccountBubble(
                     )
                     Text(
                         text = bank, fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     Text(
                         accountNumber,
-                        color = MaterialTheme.colorScheme.onBackground
+                        color = MaterialTheme.colorScheme.onBackground,
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             } else {
                 Text(
                     stringResource(R.string.account_parse_failed),
-                    color = MaterialTheme.colorScheme.onBackground
+                    color = MaterialTheme.colorScheme.onBackground,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }

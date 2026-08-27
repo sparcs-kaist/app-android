@@ -167,7 +167,7 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
                             Box(
                                 modifier = GlanceModifier
                                     .padding(top = topOffset.dp)
-                                    .padding(horizontal = 3.dp)
+                                    .padding(horizontal = 2.dp)
                             ) {
                                 TimetableGridCell(
                                     lecture = lecture,

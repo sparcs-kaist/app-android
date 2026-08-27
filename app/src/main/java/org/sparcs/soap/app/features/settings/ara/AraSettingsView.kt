@@ -151,7 +151,8 @@ fun AraSettingsView(
                             viewModel.nickname
                         )
                     )
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.background
             )
         }
     }

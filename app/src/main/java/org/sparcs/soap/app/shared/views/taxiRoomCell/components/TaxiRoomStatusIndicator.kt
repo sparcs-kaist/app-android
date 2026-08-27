@@ -15,9 +15,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.R
 
 @Composable
 fun TaxiRoomStatusIndicator(
@@ -42,8 +42,7 @@ fun TaxiRoomStatusIndicator(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
-            .padding(4.dp)
-            .padding(horizontal = 4.dp)
+            .padding(vertical = 4.dp)
             .background(accentColor.copy(alpha = 0.1f), shape = RoundedCornerShape(16.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
@@ -59,7 +58,7 @@ fun TaxiRoomStatusIndicator(
 @Preview
 private fun Preview(){
     Theme {
-        Column{
+        Column(verticalArrangement = Arrangement.spacedBy(16.dp)){
             TaxiRoomStatusIndicator(
                 settlementType = TaxiParticipant.SettlementType.NotDeparted,
                 settlementCount = 0,

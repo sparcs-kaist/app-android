@@ -34,8 +34,7 @@ fun TaxiParticipantsIndicator(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier
-            .padding(4.dp)
-            .padding(horizontal = 4.dp)
+            .padding(vertical = 4.dp)
             .background(accentColor.copy(alpha = 0.1f), shape = RoundedCornerShape(16.dp))
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {

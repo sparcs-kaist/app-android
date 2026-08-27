@@ -19,18 +19,18 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
 import org.sparcs.soap.app.theme.ui.upvote
+import kotlin.math.abs
 
 @Composable
 fun PostListRowVoteLabel(voteCount: Int){
     if(voteCount > 0){
         //up voted
-
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painter = painterResource(R.drawable.baseline_arrow_up_bold),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(upvote),
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(13.dp)
             )
             Spacer(Modifier.padding(2.dp))
 
@@ -50,12 +50,12 @@ fun PostListRowVoteLabel(voteCount: Int){
                 painter = painterResource(R.drawable.baseline_arrow_down_bold),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(downvote),
-                modifier = Modifier.size(15.dp)
+                modifier = Modifier.size(13.dp)
             )
             Spacer(Modifier.padding(2.dp))
 
             Text(
-                text = "$voteCount",
+                text = "−${abs(voteCount)}",
                 color = downvote,
                 maxLines = 1,
                 style = MaterialTheme.typography.bodySmall

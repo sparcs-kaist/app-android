@@ -66,7 +66,6 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -294,19 +293,19 @@ private fun ProfileImage(viewModel: FeedPostComposeViewModelProtocol) {
             model = imageUrl,
             contentDescription = null,
             modifier = Modifier
-                .size(32.dp)
+                .size(40.dp)
                 .clip(CircleShape),
             contentScale = ContentScale.Crop
         )
     } else {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(40.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
         ) {
-            Text("😀", fontSize = 14.sp)
+            Text("😀", style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -359,6 +358,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
+            shape = RoundedCornerShape(16.dp),
             modifier = Modifier.background(MaterialTheme.colorScheme.background)
         ) {
             typeLabels.forEach { (type, label) ->

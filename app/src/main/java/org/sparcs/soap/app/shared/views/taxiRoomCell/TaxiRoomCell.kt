@@ -33,6 +33,7 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.features.taxiPreview.components.RouteHeaderView
+import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.relativeTimeString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
@@ -64,8 +65,8 @@ fun TaxiRoomCell(
         colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.background),
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -73,7 +74,6 @@ fun TaxiRoomCell(
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     RouteHeaderView(
                         source = room.source.title.localized(),
@@ -124,7 +124,7 @@ fun TaxiRoomSkeletonCell(isSearch: Boolean = false) {
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -223,13 +223,15 @@ fun TaxiRoomSkeletonCell(isSearch: Boolean = false) {
 
 @Composable
 fun IconText(icon: ImageVector, text: String) {
+
     Row(verticalAlignment = Alignment.CenterVertically) {
         Icon(
             imageVector = icon,
             contentDescription = null,
+            modifier = Modifier.adaptiveIconSize(MaterialTheme.typography.bodyLarge),
             tint = MaterialTheme.colorScheme.onSurface
         )
-        Spacer(modifier = Modifier.padding(4.dp))
+        Spacer(modifier = Modifier.padding(2.dp))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,

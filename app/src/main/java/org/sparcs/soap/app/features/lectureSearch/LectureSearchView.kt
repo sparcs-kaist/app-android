@@ -263,7 +263,8 @@ fun LectureSearchView(
                             newName
                         )
                     )
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.background
             )
         }
 

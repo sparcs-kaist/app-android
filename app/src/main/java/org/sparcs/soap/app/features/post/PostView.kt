@@ -112,7 +112,6 @@ import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.app.theme.ui.lightGray0
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,8 +140,6 @@ fun PostView(
     var isRefreshing by remember { mutableStateOf(false) }
 
     var showDeleteConfirmation by remember { mutableStateOf(false) }
-
-    val summarisedContent by remember { mutableStateOf<String?>(null) }
 
     val translationState by viewModel.translationState.collectAsState()
     val summarizationState by viewModel.summarizationState.collectAsState()
@@ -322,7 +319,6 @@ fun PostView(
                     item {
                         Content(
                             postId = viewModel.postId,
-                            summarisedContent = summarisedContent,
                             htmlHeight = htmlHeight,
                             onHtmlHeightChange = { htmlHeight = it },
                             onLinkTapped = { tappedURL = it.toUri() }
@@ -362,7 +358,6 @@ fun PostView(
                             )
                         }
                     }
-                    item { Spacer(modifier = Modifier.height(64.dp)) }
                 }
             }
         }
@@ -399,7 +394,9 @@ fun PostView(
                         fontWeight = FontWeight.Bold
                     )
                 },
-                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) }
+                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
+                containerColor = MaterialTheme.colorScheme.background
+
             )
         }
 
@@ -484,14 +481,16 @@ private fun Header(
                 )
             }
         }
-        HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            thickness = 0.5.dp
+        )
     }
 }
 
 @Composable
 private fun Content(
     postId: Int,
-    summarisedContent: String?,
     htmlHeight: Dp,
     onHtmlHeightChange: (Dp) -> Unit,
     onLinkTapped: (String) -> Unit,
@@ -500,10 +499,6 @@ private fun Content(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
-        if (!summarisedContent.isNullOrEmpty()) {
-//            SummarisationView(text = summarisedContent)
-            Spacer(modifier = Modifier.height(8.dp))
-        }
         DynamicHeightWebView(
             url = "${Constants.ARA_BACKEND_URL}users/exchange/?next=/web_view/PostFrame/$postId",
             modifier = Modifier
@@ -526,7 +521,7 @@ private fun Footer(
 ) {
     val context = LocalContext.current
     Row(
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         PostVoteButton(
@@ -624,7 +619,12 @@ private fun Comments(
             },
             onRetry = { viewModel.translateComment(c.id, c.content ?: "", commentTarget) },
             onDownload = {
-                viewModel.translateComment(c.id, c.content ?: "", commentTarget, allowDownload = true)
+                viewModel.translateComment(
+                    c.id,
+                    c.content ?: "",
+                    commentTarget,
+                    allowDownload = true
+                )
             },
             onDismiss = {
                 viewModel.showCommentOriginal(c.id)
@@ -656,7 +656,7 @@ private fun InputBar(
             .fillMaxWidth()
             .imePadding()
             .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Bottom
     ) {
         // comment textfield
         Column(Modifier.weight(1f)) {
@@ -731,28 +731,29 @@ private fun InputBar(
         Spacer(modifier = Modifier.width(8.dp))
 
         // Send Button
-        if (comment.isNotEmpty()) {
-            MoveToLeftFadeIn(!showProfile) {
-                Button(
-                    onClick = {
-                        onUploadComment()
-                    },
-                    enabled = !isUploadingComment && comment.isNotEmpty()
-                ) {
-                    if (isUploadingComment) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.outline_send),
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            contentDescription = "Send"
-                        )
-                    }
+        MoveToLeftFadeIn(!showProfile) {
+            Button(
+                onClick = {
+                    onUploadComment()
+                },
+                enabled = !isUploadingComment && comment.isNotEmpty(),
+                shape = CircleShape,
+                contentPadding = PaddingValues(0.dp),
+                modifier = Modifier.size(45.dp)
+            ) {
+                if (isUploadingComment) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(id = R.drawable.outline_send),
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        contentDescription = "Send"
+                    )
                 }
             }
         }

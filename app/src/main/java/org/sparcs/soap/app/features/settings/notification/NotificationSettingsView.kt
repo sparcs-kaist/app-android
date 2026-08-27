@@ -121,7 +121,8 @@ fun NotificationSettingsView(
                 TextButton(onClick = { viewModel.dismissAlert() }) {
                     Text(stringResource(R.string.ok))
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 }

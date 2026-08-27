@@ -10,6 +10,7 @@ import javax.inject.Inject
 interface TaxiUserRepositoryProtocol {
     suspend fun fetchUser(): TaxiUser
     suspend fun editBadge(showBadge: Boolean)
+    suspend fun editNickname(nickname: String)
     suspend fun editBankAccount(account: String)
     suspend fun registerPhoneNumber(phoneNumber: String)
     suspend fun registerResidence(residence: String)
@@ -25,7 +26,8 @@ enum class TaxiUserErrorCode(val code: Int) {
     REGISTER_RESIDENCE_FAILED(2004),
     FETCH_FAVORITE_FAILED(2005),
     CREATE_FAVORITE_FAILED(2006),
-    DELETE_FAVORITE_FAILED(2007)
+    DELETE_FAVORITE_FAILED(2007),
+    EDIT_NICKNAME_FAILED(2008)
 }
 
 class TaxiUserRepository @Inject constructor(
@@ -41,6 +43,13 @@ class TaxiUserRepository @Inject constructor(
         val response = api.editBadge(mapOf("badge" to showBadge.toString()))
         if (!response.isSuccessful) {
             throw Exception("Failed to edit badge (code=${TaxiUserErrorCode.EDIT_BADGE_FAILED.code})")
+        }
+    }
+
+    override suspend fun editNickname(nickname: String) = safeApiCall(gson) {
+        val response = api.editNickname(mapOf("nickname" to nickname))
+        if (!response.isSuccessful) {
+            throw Exception("Failed to edit nickname (code=${TaxiUserErrorCode.EDIT_NICKNAME_FAILED.code})")
         }
     }
 
@@ -68,6 +77,7 @@ class TaxiUserRepository @Inject constructor(
             }
         }
     }
+
 
     override suspend fun fetchFavoriteRoutes(): List<TaxiFavoriteRoute> = safeApiCall(gson) {
         val response = api.getFavoriteRoutes()

@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +45,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -183,7 +185,7 @@ fun TaxiPreviewView(
                             detectTapGestures(onDoubleTap = {}, onTap = {}, onPress = {})
                         }
                 )
-            } else  {
+            } else {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -241,12 +243,14 @@ fun TaxiPreviewView(
                 destination = room.destination.title.localized()
             )
 
-            Spacer(Modifier.padding(8.dp))
+            Spacer(Modifier.padding(4.dp))
 
             InfoRow(
                 label = stringResource(R.string.depart_at),
                 value = room.departAt.formattedString()
             )
+
+            Spacer(Modifier.padding(8.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -285,17 +289,21 @@ fun TaxiPreviewView(
                         }
                     },
                     modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(vertical = 4.dp),
                     enabled = !isJoinButtonDisabled
                 ) {
                     Text(
-                        when {
-                            viewModel.isJoined(room.participants) -> stringResource(R.string.joined_enter_chat)
-                            room.participants.size >= room.capacity -> stringResource(R.string.room_full)
-                            room.isDeparted -> stringResource(R.string.already_departed)
-                            blockStatus == TaxiRoomBlockStatus.TooManyRooms -> stringResource(R.string.room_limit_reached)
-                            blockStatus == TaxiRoomBlockStatus.NotPaid -> stringResource(R.string.room_settlement_required)
-                            else -> stringResource(R.string.join)
-                        }
+                        text =
+                            when {
+                                viewModel.isJoined(room.participants) -> stringResource(R.string.joined_enter_chat)
+                                room.participants.size >= room.capacity -> stringResource(R.string.room_full)
+                                room.isDeparted -> stringResource(R.string.already_departed)
+                                blockStatus == TaxiRoomBlockStatus.TooManyRooms -> stringResource(R.string.room_limit_reached)
+                                blockStatus == TaxiRoomBlockStatus.NotPaid -> stringResource(R.string.room_settlement_required)
+                                else -> stringResource(R.string.join)
+                            },
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium,
                     )
                 }
             }

@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.post.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,12 +10,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.ara.AraContentReportType
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
+import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
-import org.sparcs.soap.app.theme.ui.lightGray0
+import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun PostCommentsSection(
@@ -31,13 +32,14 @@ fun PostCommentsSection(
     onTranslateComment: (AraPostComment) -> Unit,
 ) {
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp),
     ) {
         if (comments.isEmpty()) {
             HorizontalDivider(
-                color = MaterialTheme.colorScheme.lightGray0,
-                modifier = Modifier.padding(vertical = 4.dp)
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                modifier = Modifier.padding(vertical = 8.dp),
             )
 
             UnavailableView(
@@ -47,7 +49,7 @@ fun PostCommentsSection(
             )
         } else {
             comments.forEach { comment ->
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column {
                     CommentCell(
                         comment = comment,
                         isThreaded = false,
@@ -106,4 +108,25 @@ private fun CommentCell(
         onDeleteComment = { onDeleteComment(comment) },
         onTranslate = { onTranslateComment(comment) }
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun Preview() {
+    Theme {
+        PostCommentsSection(
+            comments = listOf(
+                AraPostComment.mock(),
+                AraPostComment.mock(),
+            ),
+            onReply = {},
+            onCommentDeleted = {},
+            onEdit = {},
+            onUpVote = {},
+            onDownVote = {},
+            onReport = { _, _ -> },
+            onDeleteComment = {},
+            onTranslateComment = {}
+        )
+    }
 }

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.DropdownMenu
@@ -69,7 +70,8 @@ fun TaxiCapacityPicker(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.background)
+                modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                shape = RoundedCornerShape(16.dp)
             ) {
                 (2..4).forEach { count ->
                     DropdownMenuItem(

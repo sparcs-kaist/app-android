@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -131,11 +132,15 @@ fun TaxiSettingsView(
         derivedStateOf { viewModel.user?.residence != viewModel.residence }
     }
 
+    val hasNicknameChanged by remember {
+        derivedStateOf { viewModel.user?.nickname != viewModel.nickname }
+    }
+
     val isValid by remember {
         derivedStateOf {
             val basicValid = isBankAccountValid && isPhoneNumberValid
             val dataChanged =
-                hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged
+                hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged || hasNicknameChanged
 
             basicValid && dataChanged
         }
@@ -143,7 +148,7 @@ fun TaxiSettingsView(
 
     val isChanged by remember {
         derivedStateOf {
-            hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged
+            hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged || hasNicknameChanged
         }
     }
 
@@ -247,7 +252,8 @@ fun TaxiSettingsView(
                 }
             },
             title = { Text(stringResource(R.string.are_you_sure)) },
-            text = { Text(stringResource(R.string.discard_this_settings)) }
+            text = { Text(stringResource(R.string.discard_this_settings)) },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 
@@ -274,7 +280,8 @@ fun TaxiSettingsView(
                 TextButton(onClick = { showAlert = false }) {
                     Text(stringResource(R.string.cancel))
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background
         )
     }
 }
@@ -321,9 +328,20 @@ private fun LoadedView(
                 }
             }
 
-            RowElementView(
-                title = stringResource(R.string.nickname),
-                content = viewModel.user?.nickname ?: stringResource(R.string.unknown)
+            // Nickname
+            OutlinedTextField(
+                value = viewModel.nickname ?: "",
+                onValueChange = { viewModel.nickname = it },
+                label = {
+                    Text(
+                        stringResource(R.string.nickname),
+                        color = MaterialTheme.colorScheme.grayBB
+                    )
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
 
             BankPicker(
@@ -507,7 +525,8 @@ private fun BankPicker(
 
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { expanded = false }
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(16.dp)
             ) {
                 options.forEach { option ->
                     DropdownMenuItem(

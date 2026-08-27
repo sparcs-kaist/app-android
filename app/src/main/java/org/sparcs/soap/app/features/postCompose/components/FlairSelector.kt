@@ -37,13 +37,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.LocalizedString
 import org.sparcs.soap.app.features.postCompose.PostComposeViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostComposeViewModel
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.R
 
 @Composable
 fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
@@ -85,7 +85,8 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
-            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+            modifier = Modifier.background(MaterialTheme.colorScheme.background),
+            shape = RoundedCornerShape(16.dp)
         ) {
             DropdownMenuItem(
                 text = {

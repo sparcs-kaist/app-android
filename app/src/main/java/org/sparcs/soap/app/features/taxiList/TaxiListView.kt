@@ -366,14 +366,16 @@ private fun TaxiWeekSelectorCard(
             .fillMaxWidth()
             .glassBorder(shape = RoundedCornerShape(16.dp))
     ) {
-        WeekDaySelector(
-            week = viewModel.week,
-            selectedDate = selectedDate,
-            onSelect = { newDate ->
-                viewModel.selectedDate = newDate
-                haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-            }
-        )
+        Box(modifier = Modifier.padding(4.dp)) {
+            WeekDaySelector(
+                week = viewModel.week,
+                selectedDate = selectedDate,
+                onSelect = { newDate ->
+                    viewModel.selectedDate = newDate
+                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                }
+            )
+        }
     }
 }
 

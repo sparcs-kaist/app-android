@@ -254,7 +254,7 @@ private fun EmptyView(
         Text(
             text = stringResource(R.string.no_result),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(

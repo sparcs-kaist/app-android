@@ -55,6 +55,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiReport
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
@@ -70,7 +71,6 @@ import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiReportViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -142,7 +142,6 @@ fun TaxiReportView(
 
             InfoTexts(room = room, selectedReason = selectedReason)
 
-            // Report Button
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.CenterEnd
@@ -219,7 +218,6 @@ fun ParticipantsCard(
         }
     }
 }
-
 @Composable
 fun ReasonCard(
     room: TaxiRoom,
@@ -241,50 +239,57 @@ fun ReasonCard(
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
                 modifier = Modifier
+                    .fillMaxWidth()
                     .clickable { expanded = !expanded }
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(stringResource(R.string.reason))
                 Spacer(Modifier.weight(1f))
-                Text(
-                    text = stringResource(selectedReason?.text ?: R.string.didnot_send_the_money),
-                    color = MaterialTheme.colorScheme.grayBB
-                )
-                Icon(
-                    imageVector = Icons.Rounded.ArrowDropDown,
-                    contentDescription = null
-                )
-            }
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.background)
-            ) {
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.didnot_send_the_money)) },
-                    enabled = room.isDeparted,
-                    onClick = {
-                        onReasonSelected(TaxiReport.Reason.NO_SETTLEMENT)
-                        expanded = false
+                Box {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(selectedReason?.text ?: R.string.didnot_send_the_money),
+                            color = MaterialTheme.colorScheme.grayBB
+                        )
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowDropDown,
+                            contentDescription = null
+                        )
                     }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.didnot_come_on_time)) },
-                    enabled = room.isDeparted,
-                    onClick = {
-                        onReasonSelected(TaxiReport.Reason.NO_SHOW)
-                        expanded = false
+
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.didnot_send_the_money)) },
+                            enabled = room.isDeparted,
+                            onClick = {
+                                onReasonSelected(TaxiReport.Reason.NO_SETTLEMENT)
+                                expanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.didnot_come_on_time)) },
+                            enabled = room.isDeparted,
+                            onClick = {
+                                onReasonSelected(TaxiReport.Reason.NO_SHOW)
+                                expanded = false
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.etc)) },
+                            onClick = {
+                                onReasonSelected(TaxiReport.Reason.ETC_REASON)
+                                expanded = false
+                            }
+                        )
                     }
-                )
-                DropdownMenuItem(
-                    text = { Text(stringResource(R.string.etc)) },
-                    onClick = {
-                        onReasonSelected(TaxiReport.Reason.ETC_REASON)
-                        expanded = false
-                    }
-                )
+                }
             }
 
             if (selectedReason == TaxiReport.Reason.ETC_REASON) {
@@ -371,7 +376,6 @@ fun InfoTexts(room: TaxiRoom, selectedReason: TaxiReport.Reason?) {
         }
     }
 }
-
 
 @Composable
 @Preview

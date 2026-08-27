@@ -198,7 +198,8 @@ fun TimetableView(
                             lectureToDelete!!.name
                         )
                     )
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.background
             )
         }
 
@@ -213,7 +214,9 @@ fun TimetableView(
                 title = { Text(stringResource(R.string.error)) },
                 text = {
                     viewModel.alertMessageRes?.let { Text(stringResource(it)) }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.background
+                
             )
         }
     }

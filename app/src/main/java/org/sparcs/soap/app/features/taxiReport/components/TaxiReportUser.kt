@@ -26,9 +26,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.R
 import java.util.Date
 import java.util.UUID
 
@@ -52,7 +52,7 @@ fun TaxiReportUser(
                     text = user.nickname,
                     style = MaterialTheme.typography.bodyMedium
                 )
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(6.dp))
                 if(user.badge){
                     Icon(
                         painter = painterResource(R.drawable.phone_circle_fill),

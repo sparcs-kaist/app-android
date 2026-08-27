@@ -34,7 +34,8 @@ fun ChatArrivalBubble() {
                 shape = RoundedCornerShape(24.dp)
             )
             .padding(12.dp),
-        color = MaterialTheme.colorScheme.onBackground
+        color = MaterialTheme.colorScheme.onBackground,
+        style = MaterialTheme.typography.bodyMedium
     )
 }
 

@@ -42,7 +42,7 @@ fun BoardList(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp)
         ) {
             Icon(
                 imageVector = icon,
@@ -50,7 +50,7 @@ fun BoardList(
                 tint = MaterialTheme.colorScheme.onSurface
             )
 
-            Spacer(Modifier.padding(4.dp))
+            Spacer(Modifier.width(8.dp))
 
             Text(
                 text = title,
@@ -146,7 +146,13 @@ private fun Preview() {
         BoardList(
             title = "title",
             icon = Icons.Rounded.Drafts,
-            listOf {})
+            sections = listOf {
+                BoardListSectionItem(
+                    text = "board",
+                    onClick = {}
+                )
+            }
+        )
     }
 }
 

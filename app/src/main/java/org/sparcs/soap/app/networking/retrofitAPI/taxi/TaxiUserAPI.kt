@@ -13,6 +13,11 @@ interface TaxiUserApi {
     @GET("logininfo")
     suspend fun fetchUserInfo(): Response<TaxiUserDTO>
 
+    @POST("users/editNickname")
+    suspend fun editNickname(
+        @Body request: Map<String, String> //nickname: ~~
+    ): Response<Unit>
+
     @POST("users/editBadge")
     suspend fun editBadge(
         @Body request: Map<String, String> //badge: ~~

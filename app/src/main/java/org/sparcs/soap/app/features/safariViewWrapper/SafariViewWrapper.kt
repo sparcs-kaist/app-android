@@ -4,6 +4,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,7 +33,9 @@ fun SafariViewWrapper(url: String, onDismiss: () -> Unit) {
                 },
                 modifier = Modifier.fillMaxSize()
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+        
     )
 }
 

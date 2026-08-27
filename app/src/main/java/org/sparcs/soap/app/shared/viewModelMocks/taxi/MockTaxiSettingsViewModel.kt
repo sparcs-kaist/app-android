@@ -11,6 +11,7 @@ import org.sparcs.soap.app.shared.mocks.taxi.mock
 class MockTaxiSettingsViewModel(initialState: TaxiSettingsViewModel.ViewState):
     TaxiSettingsViewModelProtocol {
 
+    override var nickname: String? = "닉네임"
     override var bankName: String? = "카카오뱅크"
     override var bankNumber: String = "3333-01-1234567"
     override var phoneNumber: String = "010-0000-0000"

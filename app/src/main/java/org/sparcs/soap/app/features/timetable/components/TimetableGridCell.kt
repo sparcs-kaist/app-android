@@ -52,6 +52,7 @@ fun TimetableGridCell(
                     text = lectureItem.lecture.name + lectureItem.lecture.subtitle,
                     color = textColor,
                     style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.heightIn(max = titleMaxHeight)

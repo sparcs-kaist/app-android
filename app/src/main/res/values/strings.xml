@@ -351,6 +351,8 @@
     <string name="has_joined">%1$s has joined</string>
     <string name="has_left">%1$s has left</string>
     <string name="notification">Notification</string>
+    <string name="new_comment">New Comment</string>
+    <string name="new_reply">New Reply</string>
     <string name="button">Button</string>
     <string name="enter_residence">Enter Your Residence</string>
     <string name="invalid_bank_number">Invalid Bank Number</string>
@@ -402,6 +404,7 @@
     <string name="fetch_user_error">An unexpected error occurred while fetching user information. Please try again later.</string>
     <string name="phone_verification_error">An unexpected error occurred while updating phone number information. Please try again later.</string>
     <string name="bank_account_error">An unexpected error occurred while updating bank account information. Please try again later.</string>
+    <string name="nickname_information_error">An unexpected error occurred while updating nickname information. Please try again later.</string>
     <string name="residence_information_error">An unexpected error occurred while updating residence information. Please try again later.</string>
     <string name="error_taxi_user_not_found">Taxi User Information Not Found.</string>
     <string name="unexpected_error_reporting_user">An unexpected error occurred while reporting a user. Please try again later.</string>

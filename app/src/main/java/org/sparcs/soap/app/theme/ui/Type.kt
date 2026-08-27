@@ -1,34 +1,71 @@
 package org.sparcs.soap.app.theme.ui
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.sp
+import org.sparcs.soap.R
 
-// Set of Material typography styles to start with
-val Typography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    )
-    /* Other default text styles to override
-    titleLarge = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
-        fontSize = 22.sp,
-        lineHeight = 28.sp,
-        letterSpacing = 0.sp
+@OptIn(ExperimentalTextApi::class)
+val PretendardFontFamily = FontFamily(
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.Normal,
+        variationSettings = FontVariation.Settings(FontVariation.weight(400))
     ),
-    labelSmall = TextStyle(
-        fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.Medium,
+        variationSettings = FontVariation.Settings(FontVariation.weight(500))
+    ),
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.SemiBold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(600))
+    ),
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.Bold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(700))
+    ),
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.ExtraBold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(800))
     )
-    */
 )
+
+private fun TextStyle.withPretendard(): TextStyle {
+    return this.copy(
+        fontFamily = PretendardFontFamily
+    )
+}
+
+fun getAppTypography(): Typography {
+    val defaultTypography = Typography()
+
+    return Typography(
+        displayLarge = defaultTypography.displayLarge.withPretendard(),
+        displayMedium = defaultTypography.displayMedium.withPretendard(),
+        displaySmall = defaultTypography.displaySmall.withPretendard(),
+
+        headlineLarge = defaultTypography.headlineLarge.withPretendard(),
+        headlineMedium = defaultTypography.headlineMedium.withPretendard(),
+        headlineSmall = defaultTypography.headlineSmall.withPretendard(),
+
+        titleLarge = defaultTypography.titleLarge.withPretendard(),
+        titleMedium = defaultTypography.titleMedium.withPretendard(),
+        titleSmall = defaultTypography.titleSmall.withPretendard(),
+
+        bodyLarge = defaultTypography.bodyLarge.withPretendard(),
+        bodyMedium = defaultTypography.bodyMedium.withPretendard(),
+        bodySmall = defaultTypography.bodySmall.withPretendard(),
+
+        labelLarge = defaultTypography.labelLarge.withPretendard(),
+        labelMedium = defaultTypography.labelMedium.withPretendard(),
+        labelSmall = defaultTypography.labelSmall.withPretendard()
+    )
+}
