@@ -155,13 +155,14 @@ class TaxiSettingsViewModel @Inject constructor(
     }
 
     private suspend fun editNickname(nickname: String?) {
-        nickname?.let {
-            try {
-                taxiUserRepository.editNickname(nickname = it)
-            } catch (e: Exception) {
-                Timber.tag("TaxiSettingsViewModel").e("Failed to edit nickname: ${e.message}")
-                handleException(e, ErrorType.NICKNAME)
-            }
+        val trimmed = nickname?.trim().orEmpty()
+        if (trimmed.isEmpty()) return
+
+        try {
+            taxiUserRepository.editNickname(nickname = trimmed)
+        } catch (e: Exception) {
+            Timber.tag("TaxiSettingsViewModel").e("Failed to edit nickname: ${e.message}")
+            handleException(e, ErrorType.NICKNAME)
         }
     }
 
