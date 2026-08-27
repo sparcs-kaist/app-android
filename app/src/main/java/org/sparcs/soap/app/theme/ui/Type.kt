@@ -2,157 +2,77 @@ package org.sparcs.soap.app.theme.ui
 
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.style.LineHeightStyle
-import androidx.compose.ui.unit.TextUnit
+import org.sparcs.soap.R
 
-private fun createTextStyle(
-    fontFamily: FontFamily,
-    fontSize: TextUnit,
-    lineHeight: TextUnit,
-    letterSpacing: TextUnit,
-    fontWeight: FontWeight
-) = TextStyle(
-    fontFamily = fontFamily,
-    fontSize = fontSize,
-    lineHeight = lineHeight,
-    letterSpacing = letterSpacing,
-    fontWeight = fontWeight,
-    platformStyle = PlatformTextStyle(
-        includeFontPadding = false
+@OptIn(ExperimentalTextApi::class)
+val PretendardFontFamily = FontFamily(
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.Normal,
+        variationSettings = FontVariation.Settings(FontVariation.weight(400))
     ),
-    lineHeightStyle = LineHeightStyle(
-        alignment = LineHeightStyle.Alignment.Center,
-        trim = LineHeightStyle.Trim.Both
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.Medium,
+        variationSettings = FontVariation.Settings(FontVariation.weight(500))
+    ),
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.SemiBold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(600))
+    ),
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.Bold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(700))
+    ),
+    Font(
+        resId = R.font.pretendard_variable,
+        weight = FontWeight.ExtraBold,
+        variationSettings = FontVariation.Settings(FontVariation.weight(800))
     )
 )
 
+private fun TextStyle.withPretendard(): TextStyle {
+    return this.copy(
+        fontFamily = PretendardFontFamily,
+        lineHeightStyle = LineHeightStyle(
+            alignment = LineHeightStyle.Alignment.Center,
+            trim = LineHeightStyle.Trim.Both
+        )
+    )
+}
+
 @Composable
 fun getAppTypography(): Typography {
-    val isKorean = Locale.current.language == "ko"
+    val defaultTypography = Typography()
 
-    return if (isKorean) {
-        Typography(
-            // Display
-            displayLarge = createTextStyle(
-                KoreanTypeScaleTokens.DisplayLargeFont,
-                KoreanTypeScaleTokens.DisplayLargeSize,
-                KoreanTypeScaleTokens.DisplayLargeLineHeight,
-                KoreanTypeScaleTokens.DisplayLargeTracking,
-                KoreanTypeScaleTokens.DisplayLargeWeight
-            ),
-            displayMedium = createTextStyle(
-                KoreanTypeScaleTokens.DisplayMediumFont,
-                KoreanTypeScaleTokens.DisplayMediumSize,
-                KoreanTypeScaleTokens.DisplayMediumLineHeight,
-                KoreanTypeScaleTokens.DisplayMediumTracking,
-                KoreanTypeScaleTokens.DisplayMediumWeight
-            ),
-            displaySmall = createTextStyle(
-                KoreanTypeScaleTokens.DisplaySmallFont,
-                KoreanTypeScaleTokens.DisplaySmallSize,
-                KoreanTypeScaleTokens.DisplaySmallLineHeight,
-                KoreanTypeScaleTokens.DisplaySmallTracking,
-                KoreanTypeScaleTokens.DisplaySmallWeight
-            ),
+    return Typography(
+        displayLarge = defaultTypography.displayLarge.withPretendard(),
+        displayMedium = defaultTypography.displayMedium.withPretendard(),
+        displaySmall = defaultTypography.displaySmall.withPretendard(),
 
-            // Headline
-            headlineLarge = createTextStyle(
-                KoreanTypeScaleTokens.HeadlineLargeFont,
-                KoreanTypeScaleTokens.HeadlineLargeSize,
-                KoreanTypeScaleTokens.HeadlineLargeLineHeight,
-                KoreanTypeScaleTokens.HeadlineLargeTracking,
-                KoreanTypeScaleTokens.HeadlineLargeWeight
-            ),
-            headlineMedium = createTextStyle(
-                KoreanTypeScaleTokens.HeadlineMediumFont,
-                KoreanTypeScaleTokens.HeadlineMediumSize,
-                KoreanTypeScaleTokens.HeadlineMediumLineHeight,
-                KoreanTypeScaleTokens.HeadlineMediumTracking,
-                KoreanTypeScaleTokens.HeadlineMediumWeight
-            ),
-            headlineSmall = createTextStyle(
-                KoreanTypeScaleTokens.HeadlineSmallFont,
-                KoreanTypeScaleTokens.HeadlineSmallSize,
-                KoreanTypeScaleTokens.HeadlineSmallLineHeight,
-                KoreanTypeScaleTokens.HeadlineSmallTracking,
-                KoreanTypeScaleTokens.HeadlineSmallWeight
-            ),
+        headlineLarge = defaultTypography.headlineLarge.withPretendard(),
+        headlineMedium = defaultTypography.headlineMedium.withPretendard(),
+        headlineSmall = defaultTypography.headlineSmall.withPretendard(),
 
-            // Title
-            titleLarge = createTextStyle(
-                KoreanTypeScaleTokens.TitleLargeFont,
-                KoreanTypeScaleTokens.TitleLargeSize,
-                KoreanTypeScaleTokens.TitleLargeLineHeight,
-                KoreanTypeScaleTokens.TitleLargeTracking,
-                KoreanTypeScaleTokens.TitleLargeWeight
-            ),
-            titleMedium = createTextStyle(
-                KoreanTypeScaleTokens.TitleMediumFont,
-                KoreanTypeScaleTokens.TitleMediumSize,
-                KoreanTypeScaleTokens.TitleMediumLineHeight,
-                KoreanTypeScaleTokens.TitleMediumTracking,
-                KoreanTypeScaleTokens.TitleMediumWeight
-            ),
-            titleSmall = createTextStyle(
-                KoreanTypeScaleTokens.TitleSmallFont,
-                KoreanTypeScaleTokens.TitleSmallSize,
-                KoreanTypeScaleTokens.TitleSmallLineHeight,
-                KoreanTypeScaleTokens.TitleSmallTracking,
-                KoreanTypeScaleTokens.TitleSmallWeight
-            ),
+        titleLarge = defaultTypography.titleLarge.withPretendard(),
+        titleMedium = defaultTypography.titleMedium.withPretendard(),
+        titleSmall = defaultTypography.titleSmall.withPretendard(),
 
-            // Body
-            bodyLarge = createTextStyle(
-                KoreanTypeScaleTokens.BodyLargeFont,
-                KoreanTypeScaleTokens.BodyLargeSize,
-                KoreanTypeScaleTokens.BodyLargeLineHeight,
-                KoreanTypeScaleTokens.BodyLargeTracking,
-                KoreanTypeScaleTokens.BodyLargeWeight
-            ),
-            bodyMedium = createTextStyle(
-                KoreanTypeScaleTokens.BodyMediumFont,
-                KoreanTypeScaleTokens.BodyMediumSize,
-                KoreanTypeScaleTokens.BodyMediumLineHeight,
-                KoreanTypeScaleTokens.BodyMediumTracking,
-                KoreanTypeScaleTokens.BodyMediumWeight
-            ),
-            bodySmall = createTextStyle(
-                KoreanTypeScaleTokens.BodySmallFont,
-                KoreanTypeScaleTokens.BodySmallSize,
-                KoreanTypeScaleTokens.BodySmallLineHeight,
-                KoreanTypeScaleTokens.BodySmallTracking,
-                KoreanTypeScaleTokens.BodySmallWeight
-            ),
+        bodyLarge = defaultTypography.bodyLarge.withPretendard(),
+        bodyMedium = defaultTypography.bodyMedium.withPretendard(),
+        bodySmall = defaultTypography.bodySmall.withPretendard(),
 
-            // Label
-            labelLarge = createTextStyle(
-                KoreanTypeScaleTokens.LabelLargeFont,
-                KoreanTypeScaleTokens.LabelLargeSize,
-                KoreanTypeScaleTokens.LabelLargeLineHeight,
-                KoreanTypeScaleTokens.LabelLargeTracking,
-                KoreanTypeScaleTokens.LabelLargeWeight
-            ),
-            labelMedium = createTextStyle(
-                KoreanTypeScaleTokens.LabelMediumFont,
-                KoreanTypeScaleTokens.LabelMediumSize,
-                KoreanTypeScaleTokens.LabelMediumLineHeight,
-                KoreanTypeScaleTokens.LabelMediumTracking,
-                KoreanTypeScaleTokens.LabelMediumWeight
-            ),
-            labelSmall = createTextStyle(
-                KoreanTypeScaleTokens.LabelSmallFont,
-                KoreanTypeScaleTokens.LabelSmallSize,
-                KoreanTypeScaleTokens.LabelSmallLineHeight,
-                KoreanTypeScaleTokens.LabelSmallTracking,
-                KoreanTypeScaleTokens.LabelSmallWeight
-            )
-        )
-    } else {
-        Typography()
-    }
+        labelLarge = defaultTypography.labelLarge.withPretendard(),
+        labelMedium = defaultTypography.labelMedium.withPretendard(),
+        labelSmall = defaultTypography.labelSmall.withPretendard()
+    )
 }

@@ -78,7 +78,7 @@ fun SearchSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         Box(
             modifier = Modifier
@@ -90,6 +90,7 @@ fun SearchSection(
         ) {
             content()
         }
+        Spacer(modifier = Modifier.height(4.dp))
     }
 }
 

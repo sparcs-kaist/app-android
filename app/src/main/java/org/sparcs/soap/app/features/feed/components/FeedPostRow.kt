@@ -295,6 +295,7 @@ private fun Content(
             )
         }
 
+        Spacer(Modifier.height(8.dp))
         PostImagesStrip(
             images = post.images,
             onComment = onComment,
