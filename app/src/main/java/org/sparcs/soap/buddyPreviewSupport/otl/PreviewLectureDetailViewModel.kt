@@ -3,6 +3,7 @@ package org.sparcs.soap.buddyPreviewSupport.otl
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,15 +44,22 @@ class PreviewLectureDetailViewModel(initialState: LectureDetailViewModel.ViewSta
 
     override val translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)
     override val summarizationState = MutableStateFlow<SummarizationState>(SummarizationState.Idle)
+    override val commentTranslations: StateFlow<Map<String, TranslationState>> = MutableStateFlow(emptyMap())
 
     override fun translationLanguages(): List<String> = listOf("ko", "en")
     override fun suggestedTranslationLanguages(): List<String> = listOf("ko", "en")
     override fun defaultTranslationLanguage(): String = "ko"
 
+    override fun translate(content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
+    override fun summarize(content: String, scope: CoroutineScope) {}
+
     override fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean) {}
     override fun showOriginal() {}
     override fun summarizeReview(content: String) {}
     override fun hideSummary() {}
+
+    override fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
+    override fun showCommentOriginal(commentId: String) {}
 
     override fun fetchCourse(courseID: Int) {}
     override fun fetchReviews(lecture: Lecture) {}

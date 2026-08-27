@@ -140,6 +140,8 @@ import org.sparcs.soap.app.networking.retrofitAPI.taxi.TaxiRoomApi
 import org.sparcs.soap.app.networking.retrofitAPI.taxi.TaxiUserApi
 import org.sparcs.soap.app.shared.extensions.AndroidStringProvider
 import org.sparcs.soap.app.shared.extensions.StringProvider
+import org.sparcs.soap.app.shared.viewModels.TextProcessingDelegate
+import org.sparcs.soap.app.shared.viewModels.TextProcessingProtocol
 import org.sparcs.soap.widgets.WidgetSyncHelper
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -741,6 +743,12 @@ abstract class UseCaseModule {
     abstract fun bindSummarizationUseCase(
         impl: SummarizationUseCase,
     ): SummarizationUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTextProcessingDelegate(
+        impl: TextProcessingDelegate,
+    ): TextProcessingProtocol
 
 }
 

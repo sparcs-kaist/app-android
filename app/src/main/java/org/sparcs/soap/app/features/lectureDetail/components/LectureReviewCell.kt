@@ -25,6 +25,7 @@ import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -138,6 +139,9 @@ fun LectureReviewCell(
                                     )
                                 }
                             )
+
+                            HorizontalDivider()
+
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.report)) },
                                 onClick = { report(lectureReview, context, unknown) },
