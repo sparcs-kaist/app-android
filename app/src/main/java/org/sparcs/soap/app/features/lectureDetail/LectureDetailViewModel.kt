@@ -13,22 +13,28 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.LectureHistory
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.Semester
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
+import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
-import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import org.sparcs.soap.app.features.lectureDetail.event.LectureDetailViewEvent
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.app.shared.extensions.unescapeHash
-import org.sparcs.soap.R
 import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
@@ -45,6 +51,16 @@ interface LectureDetailViewModelProtocol {
     val alertState: AlertState?
     var isAlertPresented: Boolean
 
+    val translationState: StateFlow<TranslationState>
+    val summarizationState: StateFlow<SummarizationState>
+    fun translationLanguages(): List<String>
+    fun suggestedTranslationLanguages(): List<String>
+    fun defaultTranslationLanguage(): String
+    fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean = false)
+    fun showOriginal()
+    fun summarizeReview(content: String)
+    fun hideSummary()
+
     fun fetchCourse(courseID: Int)
     fun fetchReviews(lecture: Lecture)
     fun toggleReviewLike(review: LectureReview)
@@ -59,6 +75,8 @@ class LectureDetailViewModel @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
+    private val postTranslationUseCase: PostTranslationUseCaseProtocol,
+    private val summarizationUseCase: SummarizationUseCaseProtocol,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel(), LectureDetailViewModelProtocol {
 
@@ -95,6 +113,12 @@ class LectureDetailViewModel @Inject constructor(
 
     override var alertState: AlertState? by mutableStateOf(null)
     override var isAlertPresented: Boolean by mutableStateOf(false)
+
+    private val _translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)
+    override val translationState: StateFlow<TranslationState> = _translationState.asStateFlow()
+
+    private val _summarizationState = MutableStateFlow<SummarizationState>(SummarizationState.Idle)
+    override val summarizationState: StateFlow<SummarizationState> = _summarizationState.asStateFlow()
 
     init {
         val json = savedStateHandle.get<String>("lecture_json")?.unescapeHash()
@@ -260,4 +284,38 @@ class LectureDetailViewModel @Inject constructor(
     override fun updateWrittenReview(newReview: LectureReview) {
         _writtenReview.value = newReview
     }
+
+    // MARK: - Translation & Summarization
+    override fun translationLanguages(): List<String> = postTranslationUseCase.availableLanguages()
+    override fun suggestedTranslationLanguages(): List<String> = postTranslationUseCase.suggestedLanguages()
+    override fun defaultTranslationLanguage(): String = postTranslationUseCase.deviceLanguage()
+
+    override fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean) {
+        if (_translationState.value is TranslationState.Loading || _translationState.value is TranslationState.Downloading) return
+        _translationState.value = if (allowDownload) TranslationState.Downloading else TranslationState.Loading
+        viewModelScope.launch {
+            _translationState.value = when (val result = postTranslationUseCase.translate(content, targetLanguage, isHtml = false, allowDownload = allowDownload)) {
+                is PostTranslationResult.Success -> TranslationState.Translated(result.text, result.sourceLanguage)
+                is PostTranslationResult.NeedsDownload -> TranslationState.DownloadRequired(result.sourceLanguage, result.targetLanguage)
+                PostTranslationResult.SameLanguage, PostTranslationResult.Unsupported -> TranslationState.Unsupported
+                is PostTranslationResult.Failed -> TranslationState.Failed
+            }
+        }
+    }
+
+    override fun showOriginal() { _translationState.value = TranslationState.Idle }
+
+    override fun summarizeReview(content: String) {
+        if (_summarizationState.value is SummarizationState.Loading) return
+        _summarizationState.value = SummarizationState.Loading
+        viewModelScope.launch {
+            _summarizationState.value = when (val result = summarizationUseCase.summarise(content, isHtml = false)) {
+                is SummarizationResultState.Success -> SummarizationState.Summarized(result.summary)
+                SummarizationResultState.Unavailable -> SummarizationState.Unavailable
+                is SummarizationResultState.Failed -> SummarizationState.Failed
+            }
+        }
+    }
+
+    override fun hideSummary() { _summarizationState.value = SummarizationState.Idle }
 }

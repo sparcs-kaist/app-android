@@ -49,6 +49,8 @@ import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
+import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
+import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
@@ -66,6 +68,14 @@ fun LectureReviews(
     val writtenReview by viewModel.writtenReview.collectAsState()
     val reviews by viewModel.reviews.collectAsState()
     var showOwnReviewLikeAlert by remember { mutableStateOf(false) }
+
+    val translationState by viewModel.translationState.collectAsState()
+    val summarizationState by viewModel.summarizationState.collectAsState()
+    var showTranslationSheet by remember { mutableStateOf(false) }
+    var showSummarizationSheet by remember { mutableStateOf(false) }
+    var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
+    var currentReviewContent by remember { mutableStateOf("") }
+
     val textColor =
         if (canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB.copy(
             alpha = 0.7f
@@ -172,7 +182,18 @@ fun LectureReviews(
                             LectureReviewCell(
                                 lectureReview = myReview,
                                 onLikeClick = { showOwnReviewLikeAlert = true },
-                                isMine = true
+                                isMine = true,
+                                onTranslate = {
+                                    currentReviewContent = myReview.content
+                                    translationTarget = viewModel.defaultTranslationLanguage()
+                                    showTranslationSheet = true
+                                    viewModel.translateReview(myReview.content, translationTarget)
+                                },
+                                onSummarize = {
+                                    currentReviewContent = myReview.content
+                                    showSummarizationSheet = true
+                                    viewModel.summarizeReview(myReview.content)
+                                }
                             )
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant.copy(
@@ -191,9 +212,22 @@ fun LectureReviews(
                     } else {
                         reviews.forEach { review ->
                             if (review.id != writtenReview?.id) {
-                                LectureReviewCell(review, onLikeClick = {
-                                    viewModel.toggleReviewLike(review)
-                                }, false)
+                                LectureReviewCell(
+                                    lectureReview = review,
+                                    onLikeClick = { viewModel.toggleReviewLike(review) },
+                                    isMine = false,
+                                    onTranslate = {
+                                        currentReviewContent = review.content
+                                        translationTarget = viewModel.defaultTranslationLanguage()
+                                        showTranslationSheet = true
+                                        viewModel.translateReview(review.content, translationTarget)
+                                    },
+                                    onSummarize = {
+                                        currentReviewContent = review.content
+                                        showSummarizationSheet = true
+                                        viewModel.summarizeReview(review.content)
+                                    }
+                                )
                             }
                         }
                     }
@@ -221,6 +255,36 @@ fun LectureReviews(
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.background,
+            )
+        }
+
+        if (showTranslationSheet) {
+            PostTranslationSheet(
+                state = translationState,
+                targetLanguage = translationTarget,
+                languages = viewModel.translationLanguages(),
+                suggested = viewModel.suggestedTranslationLanguages(),
+                onTargetChange = { code ->
+                    translationTarget = code
+                    viewModel.translateReview(currentReviewContent, code)
+                },
+                onRetry = { viewModel.translateReview(currentReviewContent, translationTarget) },
+                onDownload = { viewModel.translateReview(currentReviewContent, translationTarget, allowDownload = true) },
+                onDismiss = {
+                    showTranslationSheet = false
+                    viewModel.showOriginal()
+                }
+            )
+        }
+
+        if (showSummarizationSheet) {
+            PostSummarizationSheet(
+                state = summarizationState,
+                onRetry = { viewModel.summarizeReview(currentReviewContent) },
+                onDismiss = {
+                    showSummarizationSheet = false
+                    viewModel.hideSummary()
+                }
             )
         }
     }

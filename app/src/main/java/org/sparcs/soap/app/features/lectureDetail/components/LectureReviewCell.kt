@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Summarize
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -60,6 +62,8 @@ fun LectureReviewCell(
     lectureReview: LectureReview,
     onLikeClick: () -> Unit,
     isMine: Boolean,
+    onTranslate: () -> Unit = {},
+    onSummarize: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -114,27 +118,26 @@ fun LectureReviewCell(
                             modifier = Modifier.background(MaterialTheme.colorScheme.background),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-//                        DropdownMenuItem(
-//                            text = { Text(stringResource(R.string.translate)) },
-//                            onClick = { // },
-//                            leadingIcon = {
-//                                Icon(
-//                                    painter = painterResource(R.drawable.baseline_translate),
-//                                    contentDescription = null
-//                                )
-//                            }
-//                        )
-//                        DropdownMenuItem(
-//                            text = { Text(stringResource(R.string.summarise)) },
-//                            onClick = { // },
-//                            leadingIcon = {
-//                                Icon(
-//                                    painter = painterResource(R.drawable.baseline_summarize),
-//                                    contentDescription = null
-//                                )
-//                            }
-//                        )
-//                        HorizontalDivider() - TODO REVIEW TRANSLATE AND SUMMARIZE
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.translate)) },
+                                onClick = { onTranslate(); expanded = false },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Translate,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.summarise)) },
+                                onClick = { onSummarize(); expanded = false },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Summarize,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.report)) },
                                 onClick = { report(lectureReview, context, unknown) },

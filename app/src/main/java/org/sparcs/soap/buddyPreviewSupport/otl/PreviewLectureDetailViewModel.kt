@@ -10,6 +10,8 @@ import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.LectureReview
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.app.shared.mocks.otl.mock
@@ -38,6 +40,18 @@ class PreviewLectureDetailViewModel(initialState: LectureDetailViewModel.ViewSta
 
     override var alertState: AlertState? by mutableStateOf(null)
     override var isAlertPresented: Boolean by mutableStateOf(false)
+
+    override val translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)
+    override val summarizationState = MutableStateFlow<SummarizationState>(SummarizationState.Idle)
+
+    override fun translationLanguages(): List<String> = listOf("ko", "en")
+    override fun suggestedTranslationLanguages(): List<String> = listOf("ko", "en")
+    override fun defaultTranslationLanguage(): String = "ko"
+
+    override fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean) {}
+    override fun showOriginal() {}
+    override fun summarizeReview(content: String) {}
+    override fun hideSummary() {}
 
     override fun fetchCourse(courseID: Int) {}
     override fun fetchReviews(lecture: Lecture) {}
