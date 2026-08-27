@@ -47,23 +47,28 @@ class FCMService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         try {
-            var title = remoteMessage.notification?.title ?: remoteMessage.data["title"]
-            val body = remoteMessage.notification?.body ?: remoteMessage.data["body"]
+            val title = getLocalizedString(
+                remoteMessage.notification?.titleLocalizationKey ?: remoteMessage.data["title_loc_key"],
+                remoteMessage.notification?.title ?: remoteMessage.data["title"]
+            )
+            val body = getLocalizedString(
+                remoteMessage.notification?.bodyLocalizationKey ?: remoteMessage.data["body_loc_key"],
+                remoteMessage.notification?.body ?: remoteMessage.data["body"]
+            )
 
-            val locKey = remoteMessage.notification?.titleLocalizationKey ?: remoteMessage.data["title_loc_key"]
-
-            if (locKey != null) {
-                val resId = resources.getIdentifier(locKey.lowercase(), "string", packageName)
-                if (resId != 0) {
-                    title = getString(resId)
-                }
-            }
             if (title != null && body != null) {
                 showNotification(title, body)
             }
         } catch (e: Exception) {
             Timber.e(e, "Message processing failed")
         }
+    }
+
+    private fun getLocalizedString(locKey: String?, defaultValue: String?): String? {
+        return locKey?.lowercase()?.let { key ->
+            val resId = resources.getIdentifier(key, "string", packageName)
+            if (resId != 0) getString(resId) else null
+        } ?: defaultValue
     }
 
     private fun showNotification(title: String, body: String) {

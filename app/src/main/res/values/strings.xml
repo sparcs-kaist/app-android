@@ -351,6 +351,8 @@
     <string name="has_joined">%1$s has joined</string>
     <string name="has_left">%1$s has left</string>
     <string name="notification">Notification</string>
+    <string name="new_comment">New Comment</string>
+    <string name="new_reply">New Reply</string>
     <string name="button">Button</string>
     <string name="enter_residence">Enter Your Residence</string>
     <string name="invalid_bank_number">Invalid Bank Number</string>

@@ -396,7 +396,7 @@ fun PostView(
                 },
                 text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
                 containerColor = MaterialTheme.colorScheme.background
-                
+
             )
         }
 
@@ -731,31 +731,29 @@ private fun InputBar(
         Spacer(modifier = Modifier.width(8.dp))
 
         // Send Button
-        if (comment.isNotEmpty()) {
-            MoveToLeftFadeIn(!showProfile) {
-                Button(
-                    onClick = {
-                        onUploadComment()
-                    },
-                    enabled = !isUploadingComment && comment.isNotEmpty(),
-                    shape = CircleShape,
-                    contentPadding = PaddingValues(0.dp),
-                    modifier = Modifier.size(45.dp)
-                ) {
-                    if (isUploadingComment) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(16.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.outline_send),
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            contentDescription = "Send"
-                        )
-                    }
+        MoveToLeftFadeIn(!showProfile) {
+            Button(
+                onClick = {
+                    onUploadComment()
+                },
+                enabled = !isUploadingComment && comment.isNotEmpty(),
+                shape = CircleShape,
+                contentPadding = PaddingValues(0.dp),
+                modifier = Modifier.size(45.dp)
+            ) {
+                if (isUploadingComment) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(id = R.drawable.outline_send),
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        contentDescription = "Send"
+                    )
                 }
             }
         }

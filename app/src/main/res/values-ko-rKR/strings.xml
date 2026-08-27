@@ -325,6 +325,8 @@
     <string name="has_joined">%1$s님이 참여했습니다.</string>
     <string name="has_left">%1$s님이 나갔습니다.</string>
     <string name="notification">알림</string>
+    <string name="new_comment">새 댓글</string>
+    <string name="new_reply">새 답글</string>
     <string name="button">버튼</string>
     <string name="enter_residence">거주지를 입력해 주세요.</string>
     <string name="invalid_bank_number">계좌 정보가 잘못되었습니다.</string>
