@@ -132,11 +132,15 @@ fun TaxiSettingsView(
         derivedStateOf { viewModel.user?.residence != viewModel.residence }
     }
 
+    val hasNicknameChanged by remember {
+        derivedStateOf { viewModel.user?.nickname != viewModel.nickname }
+    }
+
     val isValid by remember {
         derivedStateOf {
             val basicValid = isBankAccountValid && isPhoneNumberValid
             val dataChanged =
-                hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged
+                hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged || hasNicknameChanged
 
             basicValid && dataChanged
         }
@@ -144,7 +148,7 @@ fun TaxiSettingsView(
 
     val isChanged by remember {
         derivedStateOf {
-            hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged
+            hasNumberChanged || hasBankAccountChanged || (hasNumberRegistered && hasBadgeChanged) || hasResidenceChanged || hasNicknameChanged
         }
     }
 
@@ -324,9 +328,20 @@ private fun LoadedView(
                 }
             }
 
-            RowElementView(
-                title = stringResource(R.string.nickname),
-                content = viewModel.user?.nickname ?: stringResource(R.string.unknown)
+            // Nickname
+            OutlinedTextField(
+                value = viewModel.nickname ?: "",
+                onValueChange = { viewModel.nickname = it },
+                label = {
+                    Text(
+                        stringResource(R.string.nickname),
+                        color = MaterialTheme.colorScheme.grayBB
+                    )
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
 
             BankPicker(

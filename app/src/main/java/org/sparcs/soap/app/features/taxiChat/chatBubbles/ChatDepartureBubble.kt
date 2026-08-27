@@ -60,7 +60,8 @@ fun ChatDepartureBubble(room: TaxiRoom, chatTime: java.util.Date) {
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = alertText
+            text = alertText,
+            style = MaterialTheme.typography.bodyMedium
         )
 
         Surface(

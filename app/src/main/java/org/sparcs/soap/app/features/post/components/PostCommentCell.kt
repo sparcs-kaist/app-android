@@ -93,8 +93,7 @@ fun PostCommentCell(
         Column(modifier = Modifier.weight(1f)) {
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                modifier = Modifier.padding(vertical = 4.dp),
-                thickness = 0.5.dp
+                modifier = Modifier.padding(vertical = 8.dp),
             )
 
             PostCommentHeader(

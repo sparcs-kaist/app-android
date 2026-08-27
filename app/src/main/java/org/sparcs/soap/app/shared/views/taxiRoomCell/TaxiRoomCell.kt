@@ -66,7 +66,7 @@ fun TaxiRoomCell(
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -124,7 +124,7 @@ fun TaxiRoomSkeletonCell(isSearch: Boolean = false) {
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -231,7 +231,7 @@ fun IconText(icon: ImageVector, text: String) {
             modifier = Modifier.adaptiveIconSize(MaterialTheme.typography.bodyLarge),
             tint = MaterialTheme.colorScheme.onSurface
         )
-        Spacer(modifier = Modifier.padding(4.dp))
+        Spacer(modifier = Modifier.padding(2.dp))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,

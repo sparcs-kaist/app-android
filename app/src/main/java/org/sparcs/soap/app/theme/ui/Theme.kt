@@ -123,7 +123,6 @@ val ColorScheme.darkGray: Color
     get() = if (isDark()) theme_dark_darkGray else theme_light_darkGray
 
 
-
 @Composable
 fun Theme(
     darkTheme: Boolean = isSystemInDarkTheme(),

@@ -161,7 +161,7 @@ fun WeekDaySelector(
 
                     Text(
                         text = day.dayOfWeek.toShortString().uppercase(),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                        style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Medium),
                         color = if (isSelected) MaterialTheme.colorScheme.background else textColor
                     )
                 }

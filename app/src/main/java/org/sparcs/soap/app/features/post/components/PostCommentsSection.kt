@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.post.components
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -36,13 +35,11 @@ fun PostCommentsSection(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         if (comments.isEmpty()) {
             HorizontalDivider(
                 color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                 modifier = Modifier.padding(vertical = 8.dp),
-                thickness = 0.5.dp
             )
 
             UnavailableView(
@@ -52,7 +49,7 @@ fun PostCommentsSection(
             )
         } else {
             comments.forEach { comment ->
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column {
                     CommentCell(
                         comment = comment,
                         isThreaded = false,

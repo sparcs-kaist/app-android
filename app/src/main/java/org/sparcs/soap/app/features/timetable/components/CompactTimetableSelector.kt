@@ -124,7 +124,7 @@ fun SemesterSelector(
             .glassBorder(shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.background)
-            .padding(vertical = 8.dp, horizontal = 12.dp),
+            .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -133,7 +133,7 @@ fun SemesterSelector(
             tint = if (isEnabledPreviousButton) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.grayBB,
             modifier = Modifier
-                .size(16.dp)
+                .size(20.dp)
                 .then(
                     if (isEnabledPreviousButton) Modifier.clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
@@ -158,7 +158,7 @@ fun SemesterSelector(
             tint = if (isEnabledNextButton) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.grayBB,
             modifier = Modifier
-                .size(16.dp)
+                .size(20.dp)
                 .then(
                     if (isEnabledNextButton) Modifier.clickable {
                         haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
@@ -187,7 +187,7 @@ fun TableSelector(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(topStart = 25.dp, bottomStart = 25.dp))
-                .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                .padding(start = 12.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AnimatedText(
@@ -212,7 +212,7 @@ fun TableSelector(
                     .clip(RoundedCornerShape(topEnd = 25.dp, bottomEnd = 25.dp))
                     .clickable { expanded = true }
                     .padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 6.dp)
-                    .size(18.dp)
+                    .size(20.dp)
             )
 
             TimetableDropDownMenu(

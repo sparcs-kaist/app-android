@@ -6,7 +6,7 @@ data class TaxiUser(
     val id: String,
     val oid: String,
     val name: String,
-    val nickname: String,
+    var nickname: String,
     val phoneNumber: String?,
     val badge: Boolean?,
     val residence: String?,

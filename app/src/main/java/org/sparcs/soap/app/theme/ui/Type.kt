@@ -1,14 +1,12 @@
 package org.sparcs.soap.app.theme.ui
 
 import androidx.compose.material3.Typography
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import org.sparcs.soap.R
 
 @OptIn(ExperimentalTextApi::class)
@@ -42,15 +40,10 @@ val PretendardFontFamily = FontFamily(
 
 private fun TextStyle.withPretendard(): TextStyle {
     return this.copy(
-        fontFamily = PretendardFontFamily,
-        lineHeightStyle = LineHeightStyle(
-            alignment = LineHeightStyle.Alignment.Center,
-            trim = LineHeightStyle.Trim.Both
-        )
+        fontFamily = PretendardFontFamily
     )
 }
 
-@Composable
 fun getAppTypography(): Typography {
     val defaultTypography = Typography()
 

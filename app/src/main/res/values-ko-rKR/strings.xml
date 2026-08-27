@@ -403,6 +403,7 @@
     <string name="fetch_user_error">사용자 정보를 불러오는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="phone_verification_error">전화번호를 등록하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="bank_account_error">계좌 정보를 업데이트하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="nickname_information_error">닉네임을 업데이트하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="residence_information_error">승하차 선호 장소를 업데이트하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="error_taxi_user_not_found">택시 사용자 정보를 불러올 수 없습니다.</string>
     <string name="unexpected_error_reporting_user">유저를 신고하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>

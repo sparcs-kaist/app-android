@@ -7,17 +7,18 @@ import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiUserRepository
 import org.sparcs.soap.app.domain.services.CrashlyticsService
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.shared.extensions.isNetworkError
-import org.sparcs.soap.R
 import timber.log.Timber
 import javax.inject.Inject
 
 interface TaxiSettingsViewModelProtocol {
+    var nickname: String?
     var bankName: String?
     var bankNumber: String
     var phoneNumber: String
@@ -51,9 +52,10 @@ class TaxiSettingsViewModel @Inject constructor(
     }
 
     enum class ErrorType {
-        FETCH, BANK, BADGE, PHONE, RESIDENCE
+        FETCH, BANK, BADGE, PHONE, RESIDENCE, NICKNAME
     }
 
+    override var nickname by mutableStateOf<String?>(null)
     override var bankName by mutableStateOf<String?>(null)
     override var bankNumber by mutableStateOf("")
 
@@ -82,6 +84,7 @@ class TaxiSettingsViewModel @Inject constructor(
         bankNumber = parts.getOrNull(1) ?: ""
         phoneNumber = fetchedUser.phoneNumber ?: ""
         showBadge = fetchedUser.badge ?: false
+        nickname = fetchedUser.nickname
         residence = fetchedUser.residence ?: ""
         _state.value = ViewState.Loaded
     }
@@ -102,6 +105,9 @@ class TaxiSettingsViewModel @Inject constructor(
             }
             if (user?.residence != residence) {
                 registerResidence(residence)
+            }
+            if (user?.nickname != nickname) {
+                editNickname(nickname)
             }
             userUseCase.fetchTaxiUser()
             true
@@ -148,6 +154,17 @@ class TaxiSettingsViewModel @Inject constructor(
         }
     }
 
+    private suspend fun editNickname(nickname: String?) {
+        nickname?.let {
+            try {
+                taxiUserRepository.editNickname(nickname = it)
+            } catch (e: Exception) {
+                Timber.tag("TaxiSettingsViewModel").e("Failed to edit nickname: ${e.message}")
+                handleException(e, ErrorType.NICKNAME)
+            }
+        }
+    }
+
     private fun handleException(error: Exception, type: ErrorType) {
         val messageRes = if (error.isNetworkError()) {
             R.string.network_connection_error
@@ -159,6 +176,7 @@ class TaxiSettingsViewModel @Inject constructor(
                 ErrorType.PHONE -> R.string.phone_verification_error
                 ErrorType.FETCH -> R.string.fetch_user_error
                 ErrorType.RESIDENCE -> R.string.residence_information_error
+                ErrorType.NICKNAME -> R.string.nickname_information_error
             }
         }
 
