@@ -656,7 +656,7 @@ private fun InputBar(
             .fillMaxWidth()
             .imePadding()
             .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.Bottom
     ) {
         // comment textfield
         Column(Modifier.weight(1f)) {
@@ -737,7 +737,10 @@ private fun InputBar(
                     onClick = {
                         onUploadComment()
                     },
-                    enabled = !isUploadingComment && comment.isNotEmpty()
+                    enabled = !isUploadingComment && comment.isNotEmpty(),
+                    shape = CircleShape,
+                    contentPadding = PaddingValues(0.dp),
+                    modifier = Modifier.size(45.dp)
                 ) {
                     if (isUploadingComment) {
                         CircularProgressIndicator(

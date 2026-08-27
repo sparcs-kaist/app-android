@@ -3,6 +3,7 @@ package org.sparcs.soap.app.features.feedPost
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.AlertDialog
@@ -92,225 +94,28 @@ fun FeedPostView(
     navController: NavController,
 ) {
     val postState by viewModel.state.collectAsState()
-    val proxy = rememberLazyListState()
-    val scope = rememberCoroutineScope()
 
-    val focusRequester = remember { FocusRequester() }
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
-    var isWritingCommentFocusState by remember { mutableStateOf(false) }
-    var targetComment by remember { mutableStateOf<FeedComment?>(null) }
-    var isRefreshing by remember { mutableStateOf(false) }
-    val isUploadingComment by remember { mutableStateOf(false) }
-    val pullState = rememberPullToRefreshState()
-
-    PullToRefreshHapticHandler(pullState, isRefreshing)
     LaunchedEffect(Unit) {
         viewModel.fetchFeedUser()
     }
 
     when (val state = postState) {
-        is FeedPostViewModel.ViewState.Loading -> {
-            LoadingView(navController)
-        }
+        is FeedPostViewModel.ViewState.Loading -> LoadingView(navController)
 
-        is FeedPostViewModel.ViewState.Error -> {
-            ErrorView(
-                error = state.error,
-                onRetry = {
-                    viewModel.post?.let { viewModel.fetchComments(it.id, initial = true) }
-                }
-            )
-        }
+        is FeedPostViewModel.ViewState.Error -> ErrorView(
+            error = state.error,
+            onRetry = { viewModel.post?.let { viewModel.fetchComments(it.id, initial = true) } }
+        )
 
         is FeedPostViewModel.ViewState.Loaded -> {
             val post = feedViewModel.posts.find { it.id == state.post.id } ?: state.post
-            val translationState by viewModel.translationState.collectAsState()
-            val summarizationState by viewModel.summarizationState.collectAsState()
-            var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
-            val topBarScrollBehavior = landscapeHideOnScrollBehavior()
-
-            Scaffold(
-                topBar = {
-                    FeedPostNavigationBar(
-                        navController = navController,
-                        onDelete = { showDeleteConfirmation = true },
-                        onReport = { reason ->
-                            viewModel.reportPost(post.id, reason)
-                        },
-                        onTranslate = {
-                            translationTarget = viewModel.defaultTranslationLanguage()
-                            viewModel.translatePost(translationTarget)
-                        },
-                        onSummarize = { viewModel.summarizePost() },
-                        isMine = post.isAuthor,
-                        scrollBehavior = topBarScrollBehavior
-                    )
-                },
-                bottomBar = {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background)
-                            .navigationBarsPadding(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Box(modifier = Modifier.fillMaxWidth()) {
-                            InputBar(
-                                viewModel = viewModel,
-                                targetComment = targetComment,
-                                isWritingCommentFocusState = isWritingCommentFocusState,
-                                onCommentUploaded = {
-                                    if (viewModel.text.isEmpty()) return@InputBar
-                                    scope.launch {
-                                        val uploaded =
-                                            viewModel.submitComment(post.id, targetComment)
-                                        if (uploaded != null) {
-                                            post.commentCount += 1
-                                            targetComment = null
-                                            isWritingCommentFocusState = false
-
-                                            val index =
-                                                viewModel.comments.indexOfFirst { it.id == uploaded.id }
-                                            if (index != -1) {
-                                                proxy.animateScrollToItem(index)
-                                            }
-                                        }
-                                    }
-                                },
-                                focusRequester = focusRequester,
-                                isUploadingComment = isUploadingComment
-                            )
-                        }
-                    }
-                },
-                modifier = Modifier
-                    .hideTopBarOnScroll(topBarScrollBehavior)
-                    .analyticsScreen(
-                        name = "Feed Post",
-                        "is_author" to post.isAuthor,
-                        "has_comments" to (post.commentCount > 0)
-                    )
-            ) { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.TopCenter
-                ) {
-                    PullToRefreshBox(
-                        isRefreshing = isRefreshing,
-                        onRefresh = {
-                            isRefreshing = true
-                            scope.launch {
-                                viewModel.fetchComments(postID = post.id, initial = false)
-                                delay(500)
-                                isRefreshing = false
-                            }
-                        },
-                        state = pullState,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        LazyColumn(
-                            state = proxy,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            item {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    FeedPostRow(
-                                        post = post,
-                                        viewModel = feedViewModel,
-                                        singleLine = false,
-                                        onPostDeleted = null,
-                                        onComment = {
-                                            targetComment = null
-                                            isWritingCommentFocusState = true
-                                        }
-                                    )
-                                }
-                            }
-
-                            item {
-                                Box(
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Comments(
-                                        viewModel = viewModel,
-                                        post = post,
-                                        onReply = { c ->
-                                            targetComment = c
-                                            isWritingCommentFocusState = true
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (showDeleteConfirmation) {
-                    AlertDialog(
-                        onDismissRequest = { showDeleteConfirmation = false },
-                        title = {
-                            Text(
-                                text = stringResource(R.string.delete_post),
-                                fontWeight = FontWeight.Bold
-                            )
-                        },
-                        text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
-                        confirmButton = {
-                            Button(
-                                onClick = {
-                                    showDeleteConfirmation = false
-
-                                    scope.launch {
-                                        val success = feedViewModel.deletePost(post.id)
-                                        if (success) {
-                                            navController.popBackStack()
-                                        }
-                                    }
-                                },
-                                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.delete),
-                                    color = MaterialTheme.colorScheme.error
-                                )
-                            }
-                        }
-                    )
-                }
-            }
-
-            if (translationState !is TranslationState.Idle) {
-                PostTranslationSheet(
-                    state = translationState,
-                    targetLanguage = translationTarget,
-                    languages = viewModel.translationLanguages(),
-                    suggested = viewModel.suggestedTranslationLanguages(),
-                    onTargetChange = { code ->
-                        translationTarget = code
-                        viewModel.translatePost(code)
-                    },
-                    onRetry = { viewModel.translatePost(translationTarget) },
-                    onDownload = {
-                        viewModel.translatePost(
-                            translationTarget,
-                            allowDownload = true
-                        )
-                    },
-                    onDismiss = { viewModel.showOriginal() }
-                )
-            }
-            if (summarizationState !is SummarizationState.Idle) {
-                PostSummarizationSheet(
-                    state = summarizationState,
-                    onRetry = { viewModel.summarizePost() },
-                    onDismiss = { viewModel.hideSummary() }
-                )
-            }
+            FeedPostContent(
+                post = post,
+                comments = viewModel.comments,
+                viewModel = viewModel,
+                feedViewModel = feedViewModel,
+                navController = navController
+            )
         }
     }
 
@@ -327,6 +132,238 @@ fun FeedPostView(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun FeedPostContent(
+    post: FeedPost,
+    comments: List<FeedComment>,
+    viewModel: FeedPostViewModelProtocol,
+    feedViewModel: FeedViewModelProtocol,
+    navController: NavController,
+) {
+    val proxy = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
+
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var isWritingCommentFocusState by remember { mutableStateOf(false) }
+    var targetComment by remember { mutableStateOf<FeedComment?>(null) }
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    val translationState by viewModel.translationState.collectAsState()
+    val summarizationState by viewModel.summarizationState.collectAsState()
+    var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
+
+    val pullState = rememberPullToRefreshState()
+    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
+    PullToRefreshHapticHandler(pullState, isRefreshing)
+
+    Scaffold(
+        topBar = {
+            FeedPostNavigationBar(
+                navController = navController,
+                onDelete = { showDeleteConfirmation = true },
+                onReport = { reason -> viewModel.reportPost(post.id, reason) },
+                onTranslate = {
+                    translationTarget = viewModel.defaultTranslationLanguage()
+                    viewModel.translatePost(translationTarget)
+                },
+                onSummarize = { viewModel.summarizePost() },
+                isMine = post.isAuthor,
+                scrollBehavior = topBarScrollBehavior
+            )
+        },
+        bottomBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .navigationBarsPadding(),
+                contentAlignment = Alignment.Center
+            ) {
+                InputBar(
+                    viewModel = viewModel,
+                    targetComment = targetComment,
+                    isWritingCommentFocusState = isWritingCommentFocusState,
+                    focusRequester = focusRequester,
+                    onCommentUploaded = {
+                        if (viewModel.text.isEmpty()) return@InputBar
+                        scope.launch {
+                            val uploaded = viewModel.submitComment(post.id, targetComment)
+                            if (uploaded != null) {
+                                post.commentCount += 1
+                                targetComment = null
+                                isWritingCommentFocusState = false
+                                val index = comments.indexOfFirst { it.id == uploaded.id }
+                                if (index != -1) proxy.animateScrollToItem(index)
+                            }
+                        }
+                    }
+                )
+            }
+        },
+        modifier = Modifier
+            .hideTopBarOnScroll(topBarScrollBehavior)
+            .analyticsScreen(
+                "Feed Post",
+                "is_author" to post.isAuthor,
+                "has_comments" to (post.commentCount > 0)
+            )
+    ) { innerPadding ->
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                scope.launch {
+                    viewModel.fetchComments(postID = post.id, initial = false)
+                    delay(500)
+                    isRefreshing = false
+                }
+            },
+            state = pullState,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            LazyColumn(
+                state = proxy,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                item {
+                    FeedPostRow(
+                        post = post,
+                        viewModel = feedViewModel,
+                        singleLine = false,
+                        onPostDeleted = null,
+                        onComment = {
+                            targetComment = null
+                            isWritingCommentFocusState = true
+                        }
+                    )
+                }
+
+                item {
+                    CommentsSection(
+                        commentCount = post.commentCount,
+                        comments = comments,
+                        viewModel = viewModel,
+                        onReply = { c ->
+                            targetComment = c
+                            isWritingCommentFocusState = true
+                        }
+                    )
+                }
+            }
+        }
+
+        if (showDeleteConfirmation) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirmation = false },
+                title = {
+                    Text(
+                        text = stringResource(R.string.delete_post),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showDeleteConfirmation = false
+                            scope.launch {
+                                val success = feedViewModel.deletePost(post.id)
+                                if (success) {
+                                    navController.popBackStack()
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.delete),
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                },
+                containerColor = MaterialTheme.colorScheme.background
+                
+            )
+        }
+
+        if (translationState !is TranslationState.Idle) {
+            PostTranslationSheet(
+                state = translationState,
+                targetLanguage = translationTarget,
+                languages = viewModel.translationLanguages(),
+                suggested = viewModel.suggestedTranslationLanguages(),
+                onTargetChange = { code ->
+                    translationTarget = code
+                    viewModel.translatePost(code)
+                },
+                onRetry = { viewModel.translatePost(translationTarget) },
+                onDownload = { viewModel.translatePost(translationTarget, allowDownload = true) },
+                onDismiss = { viewModel.showOriginal() }
+            )
+        }
+
+        if (summarizationState !is SummarizationState.Idle) {
+            PostSummarizationSheet(
+                state = summarizationState,
+                onRetry = { viewModel.summarizePost() },
+                onDismiss = { viewModel.hideSummary() }
+            )
+        }
+    }
+}
+
+@Composable
+private fun CommentsSection(
+    commentCount: Int,
+    comments: List<FeedComment>,
+    viewModel: FeedPostViewModelProtocol,
+    onReply: (FeedComment) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+    ) {
+        HorizontalDivider(
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        )
+
+        Text(
+            text = stringResource(R.string.the_number_of_comments, commentCount),
+            style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
+            fontWeight = FontWeight.Medium
+        )
+
+        comments.forEach { comment ->
+            FeedCommentRow(
+                comment = comment,
+                isReply = false,
+                onReply = { onReply(comment) },
+                viewModel = viewModel
+            )
+            comment.replies.forEach { reply ->
+                FeedCommentRow(
+                    comment = reply,
+                    isReply = true,
+                    onReply = {},
+                    viewModel = viewModel
+                )
+            }
+
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.lightGray0,
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+    }
+}
 
 @Composable
 private fun InputBar(
@@ -335,7 +372,6 @@ private fun InputBar(
     isWritingCommentFocusState: Boolean,
     onCommentUploaded: () -> Unit,
     focusRequester: FocusRequester,
-    isUploadingComment: Boolean,
 ) {
     LaunchedEffect(isWritingCommentFocusState) {
         if (isWritingCommentFocusState) {
@@ -350,7 +386,7 @@ private fun InputBar(
         rawName.replace("Anonymous", stringResource(R.string.anonymous))
     } else {
         rawName
-    }//TODO: 백엔드에서 번역 지원하면 삭제
+    }
 
     Row(
         modifier = Modifier
@@ -361,7 +397,11 @@ private fun InputBar(
     ) {
         Column(Modifier.weight(1f)) {
             if (isFocused) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
                     Text(text = stringResource(R.string.write_anonymously))
                     Spacer(modifier = Modifier.weight(1f))
                     Switch(
@@ -374,7 +414,7 @@ private fun InputBar(
                 }
             }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.Bottom) {
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -424,104 +464,21 @@ private fun InputBar(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 MoveToLeftFadeIn(viewModel.text.isNotEmpty()) {
-
                     Button(
                         onClick = onCommentUploaded,
-                        enabled = !isUploadingComment
+                        shape = CircleShape,
+                        contentPadding = PaddingValues(0.dp),
+                        modifier = Modifier.size(45.dp)
                     ) {
-                        if (isUploadingComment) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Icon(
-                                painter = painterResource(id = R.drawable.outline_send),
-                                modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onPrimary,
-                                contentDescription = stringResource(R.string.send)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Comments(
-    viewModel: FeedPostViewModelProtocol,
-    post: FeedPost,
-    onReply: (FeedComment) -> Unit,
-) {
-    when (val state = viewModel.state.collectAsState().value) {
-        is FeedPostViewModel.ViewState.Loading -> {
-            Column(Modifier.padding(horizontal = 8.dp)) {
-                HorizontalDivider()
-                Text(
-                    stringResource(
-                        R.string.the_number_of_comments,
-                        post.commentCount
-                    ),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-
-        is FeedPostViewModel.ViewState.Loaded -> {
-            Column(Modifier.padding(horizontal = 20.dp)) {
-                HorizontalDivider(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                )
-                Text(
-                    stringResource(
-                        R.string.the_number_of_comments,
-                        post.commentCount
-                    ),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp),
-                    fontWeight = FontWeight.Medium,
-                )
-
-                viewModel.comments.forEach { comment ->
-                    FeedCommentRow(
-                        comment = comment,
-                        isReply = false,
-                        onReply = { onReply(comment) },
-                        viewModel
-                    )
-                    comment.replies.forEach { reply ->
-                        FeedCommentRow(
-                            comment = reply,
-                            isReply = true,
-                            onReply = {},
-                            viewModel
-                        )
-                    }
-
-                    HorizontalDivider(
-                        color = MaterialTheme.colorScheme.lightGray0,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-                }
-            }
-        }
-
-        is FeedPostViewModel.ViewState.Error -> {
-            val coroutineScope = rememberCoroutineScope()
-            ErrorView(
-                error = state.error,
-                onRetry = {
-                    coroutineScope.launch {
-                        viewModel.fetchComments(
-                            post.id,
-                            initial = true
+                        Icon(
+                            painter = painterResource(id = R.drawable.outline_send),
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            contentDescription = stringResource(R.string.send)
                         )
                     }
                 }
-            )
+            }
         }
     }
 }
@@ -553,7 +510,6 @@ private fun LoadingView(
     }
 }
 
-// MARK: - Previews
 @Preview(showBackground = true, name = "Post Detail")
 @Composable
 private fun PostDetailPreview() {
@@ -598,3 +554,4 @@ private fun AuthorPostPreview() {
         FeedPostView(viewModel = mockVM, mockFeedVM, navController = rememberNavController())
     }
 }
+

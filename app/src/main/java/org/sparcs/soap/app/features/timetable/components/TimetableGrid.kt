@@ -78,7 +78,6 @@ fun TimetableGrid(
             modifier = Modifier
                 .padding(start = TimetableConstructor.hoursWidth + 8.dp)
                 .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             visibleDays.forEach { day ->
                 Box(

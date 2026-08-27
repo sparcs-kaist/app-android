@@ -1,9 +1,10 @@
 package org.sparcs.soap.app.features.lectureDetail.components
 
 import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,8 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.RateReview
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.gradeLetter
 import org.sparcs.soap.app.domain.helpers.loadLetter
 import org.sparcs.soap.app.domain.helpers.speechLetter
@@ -44,6 +45,7 @@ import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -52,7 +54,6 @@ import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureDetailViewModel
-import org.sparcs.soap.R
 
 @Composable
 fun LectureReviews(
@@ -66,7 +67,9 @@ fun LectureReviews(
     val reviews by viewModel.reviews.collectAsState()
     var showOwnReviewLikeAlert by remember { mutableStateOf(false) }
     val textColor =
-        if (canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB
+        if (canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB.copy(
+            alpha = 0.7f
+        )
 
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -90,31 +93,40 @@ fun LectureReviews(
 
             Spacer(Modifier.weight(1f))
 
-            Button(
-                onClick = {
-                    if (canWriteReview) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .glassBorder(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(
+                        if (canWriteReview) MaterialTheme.colorScheme.background
+                        else MaterialTheme.colorScheme.lightGray0
+                    )
+                    .clickable(enabled = canWriteReview) {
                         val json = Uri.encode(Gson().toJson(lecture))
                         val writtenReviewJSON =
                             Uri.encode(Gson().toJson(viewModel.writtenReview.value))
-                        navController.navigate(Channel.ReviewCompose.name + "?lecture_json=${json}&written_review_json=${writtenReviewJSON}")
+                        navController.navigate(
+                            Channel.ReviewCompose.name + "?lecture_json=${json}&written_review_json=${writtenReviewJSON}"
+                        )
                     }
-                },
-                colors = if (canWriteReview) ButtonDefaults.buttonColors(MaterialTheme.colorScheme.background) else
-                    ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0),
-                contentPadding = PaddingValues(horizontal = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 Icon(
                     imageVector = Icons.Outlined.RateReview,
                     contentDescription = null,
-                    tint = textColor
+                    tint = textColor,
+                    modifier = Modifier.adaptiveIconSize(
+                        MaterialTheme.typography.bodyLarge,
+                        scaleFactor = 1.4f
+                    )
                 )
 
-                Spacer(Modifier.padding(2.dp))
+                Spacer(Modifier.width(6.dp))
 
                 Text(
-                    text = if (writtenReview == null) stringResource(R.string.write_a_review) else stringResource(
-                        R.string.edit_a_review
-                    ),
+                    text = if (writtenReview == null) stringResource(R.string.write_a_review)
+                    else stringResource(R.string.edit_a_review),
                     style = MaterialTheme.typography.bodyLarge,
                     color = textColor
                 )
@@ -162,7 +174,11 @@ fun LectureReviews(
                                 onLikeClick = { showOwnReviewLikeAlert = true },
                                 isMine = true
                             )
-                            HorizontalDivider()
+                            HorizontalDivider(
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                    alpha = 0.5f
+                                )
+                            )
                         }
                     }
 
@@ -203,7 +219,8 @@ fun LectureReviews(
                     TextButton(onClick = { showOwnReviewLikeAlert = false }) {
                         Text(text = stringResource(R.string.confirm))
                     }
-                }
+                },
+                containerColor = MaterialTheme.colorScheme.background,
             )
         }
     }

@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,7 +21,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.sparcs.soap.R
+import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
@@ -35,6 +36,7 @@ fun PostVoteButton(
     onDownVote: () -> Unit,
     onUpVote: () -> Unit,
     enabled: Boolean,
+    isCompact: Boolean = false,
 ) {
     val upVoteColor = upvote
     val downVoteColor = downvote
@@ -49,25 +51,33 @@ fun PostVoteButton(
         else -> MaterialTheme.colorScheme.onSurface
     }
 
+    val shapeRadius = if (isCompact) 14.dp else 16.dp
+    val horizontalPadding = if (isCompact) 8.dp else 10.dp
+    val verticalPadding = if (isCompact) 6.dp else 8.dp
+    val baseStyle = MaterialTheme.typography.bodyMedium
+    val textStyle = if (isCompact) baseStyle.copy(fontSize = 13.sp) else baseStyle
+
     var isRunning = false
     val haptic = LocalHapticFeedback.current
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .glassBorder(RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
+            .glassBorder(RoundedCornerShape(shapeRadius))
+            .clip(RoundedCornerShape(shapeRadius))
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .padding(horizontal = horizontalPadding, vertical = verticalPadding)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 6.dp)
+        ) {
             Icon(
                 painter = painterResource(upvoteImage),
                 contentDescription = "UpVote",
                 tint = if (myVote == true) upVoteColor else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
-                    .size(20.dp)
+                    .adaptiveIconSize(textStyle)
                     .clickable {
                         if (enabled && !isRunning) {
                             try {
@@ -88,7 +98,7 @@ fun PostVoteButton(
                 Text(
                     text = formattedCount,
                     color = if (myVote != null) tintColor else MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = textStyle,
                 )
             }
         }
@@ -96,15 +106,15 @@ fun PostVoteButton(
         VerticalDivider(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
             modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .height(16.dp)
+                .padding(horizontal = if (isCompact) 6.dp else 8.dp)
+                .height(if (isCompact) 14.dp else 16.dp)
         )
         Icon(
             painter = painterResource(downvoteImage),
             contentDescription = "DownVote",
             tint = if (myVote == false) downVoteColor else MaterialTheme.colorScheme.onSurface,
             modifier = Modifier
-                .size(20.dp)
+                .adaptiveIconSize(textStyle)
                 .clickable {
                     if (enabled && !isRunning) {
                         try {
@@ -119,7 +129,6 @@ fun PostVoteButton(
         )
     }
 }
-
 
 @Composable
 @Preview

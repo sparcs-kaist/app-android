@@ -43,14 +43,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.ReportMailComposer
+import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.gray64
 import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.R
 import timber.log.Timber
 
 
@@ -158,17 +159,17 @@ fun LectureReviewCell(
 
             Spacer(modifier = Modifier.padding(4.dp))
 
-            Row(verticalAlignment = Alignment.Bottom) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 ReviewRatingLetter(
                     title = stringResource(R.string.grade),
                     value = lectureReview.grade
                 )
-                Spacer(modifier = Modifier.padding(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 ReviewRatingLetter(
                     title = stringResource(R.string.load),
                     value = lectureReview.load
                 )
-                Spacer(modifier = Modifier.padding(8.dp))
+                Spacer(modifier = Modifier.width(8.dp))
                 ReviewRatingLetter(
                     title = stringResource(R.string.speech),
                     value = lectureReview.speech
@@ -181,19 +182,25 @@ fun LectureReviewCell(
                         targetState = lectureReview.like.toString(),
                         label = "VotesTransition"
                     ) { targetCount ->
-                        Text(targetCount)
+                        Text(
+                            text = targetCount,
+                            style = MaterialTheme.typography.bodyLarge,
+                            )
                     }
-                    Spacer(modifier = Modifier.padding(4.dp))
+                    Spacer(modifier = Modifier.width(2.dp))
                     Icon(
                         painter = if (lectureReview.likedByUser) painterResource(R.drawable.baseline_arrow_up_bold) else painterResource(
                             R.drawable.outline_arrow_up
                         ),
                         contentDescription = "Vote",
                         tint = if (lectureReview.likedByUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.clickable {
+                        modifier = Modifier
+                            .clickable {
                             haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
                             onLikeClick()
-                        }
+                            }
+                            .padding(2.dp)
+                            .adaptiveIconSize(MaterialTheme.typography.bodyLarge, scaleFactor = 1.4f)
                     )
                 }
             }

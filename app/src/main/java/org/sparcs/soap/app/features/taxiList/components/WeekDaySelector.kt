@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -31,7 +32,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.repositories.taxi.FakeTaxiRoomRepository
 import org.sparcs.soap.app.domain.usecases.taxi.MockTaxiLocationUseCase
 import org.sparcs.soap.app.features.taxiList.TaxiListViewModel
@@ -40,9 +43,9 @@ import org.sparcs.soap.app.shared.extensions.toLocalDate
 import org.sparcs.soap.app.shared.extensions.toShortString
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.gray64
-import org.sparcs.soap.R
 import java.time.DayOfWeek
 import java.util.Date
+
 
 @Composable
 fun WeekDaySelector(
@@ -67,12 +70,13 @@ fun WeekDaySelector(
         targetValue = with(density) { selectedBounds?.second?.toDp() ?: 0.dp },
         label = "indicator width"
     )
+
+    val indicatorShape = RoundedCornerShape(12.dp)
+
     Box(
         modifier = Modifier
-            .padding(4.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(MaterialTheme.colorScheme.background)
-            .height(60.dp)
+            .fillMaxWidth()
+            .height(56.dp)
     ) {
         if (selectedBounds != null) {
             val day = selectedDate?.toLocalDate()
@@ -87,39 +91,36 @@ fun WeekDaySelector(
                     .offset(x = animatedOffsetX)
                     .width(animatedWidth)
                     .fillMaxHeight()
-                    .padding(4.dp)
-                    .clip(RoundedCornerShape(28.dp))
+                    .clip(indicatorShape)
                     .background(boxColor)
             )
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(28.dp))
-                .height(60.dp),
+            modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val size = if(stringResource(R.string.all) == "All") MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium
+            val size = if (stringResource(R.string.all) == "All") MaterialTheme.typography.titleLarge else MaterialTheme.typography.titleMedium
 
             Column(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxHeight()
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(indicatorShape)
                     .onGloballyPositioned { coords ->
                         val x = coords.positionInParent().x.toInt()
                         val width = coords.size.width
                         if (itemBounds.isEmpty()) itemBounds.add(x to width)
                         else itemBounds[0] = x to width
                     }
-                    .clickable { onSelect(null) },
+                    .clickable { onSelect(null) }
+                    .padding(vertical = 4.dp),
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
                     text = stringResource(R.string.all),
-                    style = size.copy(fontWeight = FontWeight.SemiBold),
+                    style = size.copy(fontWeight = FontWeight.SemiBold, fontSize = 20.sp),
                     color = if (selectedDate == null) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -138,7 +139,7 @@ fun WeekDaySelector(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .clip(RoundedCornerShape(16.dp))
+                        .clip(indicatorShape)
                         .onGloballyPositioned { coords ->
                             val x = coords.positionInParent().x.toInt()
                             val width = coords.size.width
@@ -147,13 +148,14 @@ fun WeekDaySelector(
                         }
                         .clickable {
                             onSelect(day.toDate())
-                        },
+                        }
+                        .padding(vertical = 4.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = day.dayOfMonth.toString(),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold, fontSize = 20.sp),
                         color = if (isSelected) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.onSurface
                     )
 
@@ -167,7 +169,6 @@ fun WeekDaySelector(
         }
     }
 }
-
 
 @Preview
 @Composable

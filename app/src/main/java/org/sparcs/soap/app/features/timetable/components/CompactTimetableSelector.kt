@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -100,7 +101,8 @@ fun CompactTimetableSelector(
                 TextButton(onClick = { showRenameDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
-            }
+            },
+            containerColor = MaterialTheme.colorScheme.background,
         )
     }
 }
@@ -122,7 +124,7 @@ fun SemesterSelector(
             .glassBorder(shape = RoundedCornerShape(25.dp))
             .clip(RoundedCornerShape(25.dp))
             .background(MaterialTheme.colorScheme.background)
-            .padding(vertical = 6.dp, horizontal = 8.dp),
+            .padding(vertical = 8.dp, horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
@@ -131,7 +133,6 @@ fun SemesterSelector(
             tint = if (isEnabledPreviousButton) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.grayBB,
             modifier = Modifier
-                .padding(horizontal = 4.dp)
                 .size(16.dp)
                 .then(
                     if (isEnabledPreviousButton) Modifier.clickable {
@@ -141,11 +142,15 @@ fun SemesterSelector(
                 )
         )
 
+        Spacer(Modifier.width(8.dp))
+
         AnimatedText(
             text = selectedSemester?.description ?: stringResource(R.string.unknown),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold
         )
+
+        Spacer(Modifier.width(8.dp))
 
         Icon(
             imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
@@ -153,7 +158,6 @@ fun SemesterSelector(
             tint = if (isEnabledNextButton) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.grayBB,
             modifier = Modifier
-                .padding(horizontal = 4.dp)
                 .size(16.dp)
                 .then(
                     if (isEnabledNextButton) Modifier.clickable {
@@ -183,7 +187,7 @@ fun TableSelector(
         Row(
             modifier = Modifier
                 .clip(RoundedCornerShape(topStart = 25.dp, bottomStart = 25.dp))
-                .padding(start = 12.dp, end = 8.dp, top = 6.dp, bottom = 6.dp),
+                .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             AnimatedText(
