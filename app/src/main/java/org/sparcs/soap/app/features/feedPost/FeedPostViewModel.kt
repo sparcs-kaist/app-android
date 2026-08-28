@@ -47,7 +47,12 @@ interface FeedPostViewModelProtocol : TextProcessingProtocol {
 
     fun translatePost(targetLanguage: String, allowDownload: Boolean = false)
     fun summarizePost()
-    fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean = false)
+    fun translateComment(
+        commentId: String,
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean = false,
+    )
 
     fun fetchComments(postID: String, initial: Boolean)
     suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment?
@@ -113,7 +118,12 @@ class FeedPostViewModel @Inject constructor(
         summarize(content, viewModelScope)
     }
 
-    override fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean) {
+    override fun translateComment(
+        commentId: String,
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean,
+    ) {
         translateComment(commentId, content, targetLanguage, allowDownload, viewModelScope)
     }
 
@@ -219,20 +229,20 @@ class FeedPostViewModel @Inject constructor(
     }
 
     override fun voteComment(comment: FeedComment, type: FeedVoteType?) {
-            val prevComments = this@FeedPostViewModel.comments
+        val prevComments = this@FeedPostViewModel.comments
 
-            updateCommentLocally(comment.id) { old ->
-                var newUp = old.upVotes
-                var newDown = old.downVotes
+        updateCommentLocally(comment.id) { old ->
+            var newUp = old.upVotes
+            var newDown = old.downVotes
 
-                if (old.myVote == FeedVoteType.UP) newUp--
-                if (old.myVote == FeedVoteType.DOWN) newDown--
+            if (old.myVote == FeedVoteType.UP) newUp--
+            if (old.myVote == FeedVoteType.DOWN) newDown--
 
-                if (type == FeedVoteType.UP) newUp++
-                if (type == FeedVoteType.DOWN) newDown++
+            if (type == FeedVoteType.UP) newUp++
+            if (type == FeedVoteType.DOWN) newDown++
 
-                old.copy(myVote = type, upVotes = newUp, downVotes = newDown)
-            }
+            old.copy(myVote = type, upVotes = newUp, downVotes = newDown)
+        }
 
         viewModelScope.launch {
             try {
