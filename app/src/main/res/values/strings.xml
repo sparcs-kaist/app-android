@@ -655,6 +655,6 @@
     <string name="summarizing">Summarizing…</string>
     <string name="hide">Hide</string>
     <string name="summarization_unavailable">On-device summarization isn\'t available on this device.</string>
-    <string name="summarization_too_short">Text must be at least 200 characters to summarize.</string>
+    <string name="summarization_too_short">Text must be at least 400 characters to summarize.</string>
     <string name="summarization_failed">Summarization failed.</string>
 </resources>

@@ -118,6 +118,6 @@ class SummarizationUseCase @Inject constructor(
         }
 
     private companion object {
-        const val MIN_LENGTH = 200
+        const val MIN_LENGTH = 400
     }
 }
