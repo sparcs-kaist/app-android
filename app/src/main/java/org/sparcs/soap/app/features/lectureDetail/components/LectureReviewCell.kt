@@ -197,11 +197,11 @@ fun LectureReviewCell(
                         targetState = lectureReview.like,
                         transitionSpec = {
                             if (targetState > initialState) {
-                                (slideInVertically { it } + fadeIn())
-                                    .togetherWith(slideOutVertically { -it } + fadeOut())
-                            } else {
                                 (slideInVertically { -it } + fadeIn())
                                     .togetherWith(slideOutVertically { it } + fadeOut())
+                            } else {
+                                (slideInVertically { it } + fadeIn())
+                                    .togetherWith(slideOutVertically { -it } + fadeOut())
                             }.using(SizeTransform(clip = false))
                         },
                         label = "VotesTransition"

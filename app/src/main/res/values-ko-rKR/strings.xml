@@ -624,6 +624,6 @@
     <string name="summarizing">요약 중…</string>
     <string name="hide">닫기</string>
     <string name="summarization_unavailable">이 기기에서는 요약을 사용할 수 없어요.</string>
-    <string name="summarization_too_short">400자 이상의 긴 글만 요약할 수 있어요.</string>
+    <string name="summarization_too_short">200자 이상의 긴 글만 요약할 수 있어요.</string>
     <string name="summarization_failed">요약에 실패했어요.</string>
 </resources>

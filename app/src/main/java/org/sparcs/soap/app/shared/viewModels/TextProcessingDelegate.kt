@@ -7,7 +7,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.domain.models.translation.TranslationState
-import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
@@ -36,7 +35,6 @@ interface TextProcessingProtocol {
 class TextProcessingDelegate @Inject constructor(
     private val postTranslationUseCase: PostTranslationUseCaseProtocol,
     private val summarizationUseCase: SummarizationUseCaseProtocol,
-    private val crashlyticsService: CrashlyticsServiceProtocol,
 ) : TextProcessingProtocol {
 
     private val _translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)
