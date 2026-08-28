@@ -21,6 +21,7 @@ import kotlin.coroutines.resumeWithException
 
 sealed interface SummarizationResultState {
     data class Success(val summary: String) : SummarizationResultState
+    data object TooShort : SummarizationResultState
     data object Unavailable : SummarizationResultState
     data class Failed(val error: Throwable) : SummarizationResultState
 }
@@ -65,7 +66,7 @@ class SummarizationUseCase @Inject constructor(
     override suspend fun summarise(text: String, isHtml: Boolean): SummarizationResultState {
         val language = languageOrNull() ?: return SummarizationResultState.Unavailable
         val plain = if (isHtml) text.htmlToPlainText() else text.trim()
-        if (plain.length < MIN_LENGTH) return SummarizationResultState.Unavailable
+        if (plain.length < MIN_LENGTH) return SummarizationResultState.TooShort
 
         val summarizer = newSummarizer(language)
         return try {
@@ -117,6 +118,6 @@ class SummarizationUseCase @Inject constructor(
         }
 
     private companion object {
-        const val MIN_LENGTH = 20
+        const val MIN_LENGTH = 400
     }
 }

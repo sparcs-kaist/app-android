@@ -149,6 +149,14 @@ fun PostTranslationSheet(
                             )
                         }
 
+                        TranslationState.SameLanguage -> {
+                            Text(
+                                text = stringResource(R.string.translation_same_language),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+
                         TranslationState.Failed -> {
                             Column {
                                 Text(

@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.Lecture
@@ -21,19 +22,19 @@ import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
+import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
-import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.features.lectureDetail.event.LectureDetailViewEvent
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.app.shared.extensions.unescapeHash
-import org.sparcs.soap.R
+import org.sparcs.soap.app.shared.viewModels.TextProcessingProtocol
 import timber.log.Timber
 import java.util.Date
 import javax.inject.Inject
 
-interface LectureDetailViewModelProtocol {
+interface LectureDetailViewModelProtocol : TextProcessingProtocol {
     val lecture: StateFlow<Lecture>
     val course: StateFlow<Course?>
     val state: StateFlow<LectureDetailViewModel.ViewState>
@@ -44,6 +45,9 @@ interface LectureDetailViewModelProtocol {
 
     val alertState: AlertState?
     var isAlertPresented: Boolean
+
+    fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean = false)
+    fun summarizeReview(content: String)
 
     fun fetchCourse(courseID: Int)
     fun fetchReviews(lecture: Lecture)
@@ -59,8 +63,9 @@ class LectureDetailViewModel @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
+    private val textProcessingDelegate: TextProcessingProtocol,
     savedStateHandle: SavedStateHandle,
-) : ViewModel(), LectureDetailViewModelProtocol {
+) : ViewModel(), LectureDetailViewModelProtocol, TextProcessingProtocol by textProcessingDelegate {
 
     sealed class ViewState {
         data object Loading : ViewState()
@@ -196,7 +201,7 @@ class LectureDetailViewModel @Inject constructor(
         }
 
         if (matchedHistory != null) {
-            val history = matchedHistory!!
+            val history = matchedHistory
             val isCurrentSemester =
                 history.year.toString().trim() == currentSemester.year.toString().trim() &&
                         history.semester.toString()
@@ -259,5 +264,13 @@ class LectureDetailViewModel @Inject constructor(
 
     override fun updateWrittenReview(newReview: LectureReview) {
         _writtenReview.value = newReview
+    }
+
+    override fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean) {
+        translate(content, targetLanguage, allowDownload, viewModelScope)
+    }
+
+    override fun summarizeReview(content: String) {
+        summarize(content, viewModelScope)
     }
 }

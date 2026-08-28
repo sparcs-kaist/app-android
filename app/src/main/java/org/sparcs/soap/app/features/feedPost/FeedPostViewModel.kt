@@ -21,23 +21,18 @@ import org.sparcs.soap.app.domain.models.feed.FeedComment
 import org.sparcs.soap.app.domain.models.feed.FeedCreateComment
 import org.sparcs.soap.app.domain.models.feed.FeedPost
 import org.sparcs.soap.app.domain.models.feed.FeedUser
-import org.sparcs.soap.app.domain.models.summarization.SummarizationState
-import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.feed.FeedCommentUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.feed.FeedPostUseCaseProtocol
-import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
-import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
-import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
-import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import org.sparcs.soap.app.features.feed.event.FeedPostRowEvent
 import org.sparcs.soap.app.features.feedPost.event.FeedPostViewEvent
 import org.sparcs.soap.app.shared.extensions.toAlertState
+import org.sparcs.soap.app.shared.viewModels.TextProcessingProtocol
 import javax.inject.Inject
 
-interface FeedPostViewModelProtocol {
+interface FeedPostViewModelProtocol : TextProcessingProtocol {
     val state: StateFlow<FeedPostViewModel.ViewState>
     val post: FeedPost?
     var comments: List<FeedComment>
@@ -50,24 +45,14 @@ interface FeedPostViewModelProtocol {
     var alertState: AlertState?
     var isAlertPresented: Boolean
 
-    val translationState: StateFlow<TranslationState>
-    val summarizationState: StateFlow<SummarizationState>
-    fun translationLanguages(): List<String>
-    fun suggestedTranslationLanguages(): List<String>
-    fun defaultTranslationLanguage(): String
     fun translatePost(targetLanguage: String, allowDownload: Boolean = false)
-    fun showOriginal()
     fun summarizePost()
-    fun hideSummary()
-
-    val commentTranslations: StateFlow<Map<String, TranslationState>>
     fun translateComment(
         commentId: String,
         content: String,
         targetLanguage: String,
         allowDownload: Boolean = false,
     )
-    fun showCommentOriginal(commentId: String)
 
     fun fetchComments(postID: String, initial: Boolean)
     suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment?
@@ -87,9 +72,8 @@ class FeedPostViewModel @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
-    private val postTranslationUseCase: PostTranslationUseCaseProtocol,
-    private val summarizationUseCase: SummarizationUseCaseProtocol,
-) : ViewModel(), FeedPostViewModelProtocol {
+    private val textProcessingDelegate: TextProcessingProtocol,
+) : ViewModel(), FeedPostViewModelProtocol, TextProcessingProtocol by textProcessingDelegate {
 
     sealed interface ViewState {
         data object Loading : ViewState
@@ -123,86 +107,16 @@ class FeedPostViewModel @Inject constructor(
         }
     }
 
-    // MARK: - Translation
-    private val _translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)
-    override val translationState: StateFlow<TranslationState> = _translationState.asStateFlow()
-
-    override fun translationLanguages(): List<String> =
-        postTranslationUseCase.availableLanguages()
-
-    override fun suggestedTranslationLanguages(): List<String> =
-        postTranslationUseCase.suggestedLanguages()
-
-    override fun defaultTranslationLanguage(): String =
-        postTranslationUseCase.deviceLanguage()
-
+    // MARK: - Functions
     override fun translatePost(targetLanguage: String, allowDownload: Boolean) {
-        if (_translationState.value is TranslationState.Loading ||
-            _translationState.value is TranslationState.Downloading
-        ) return
         val content = post?.content ?: return
-        _translationState.value =
-            if (allowDownload) TranslationState.Downloading else TranslationState.Loading
-        viewModelScope.launch {
-            _translationState.value = when (
-                val result = postTranslationUseCase.translate(
-                    content, targetLanguage, isHtml = false, allowDownload = allowDownload
-                )
-            ) {
-                is PostTranslationResult.Success ->
-                    TranslationState.Translated(result.text, result.sourceLanguage)
-
-                is PostTranslationResult.NeedsDownload ->
-                    TranslationState.DownloadRequired(result.sourceLanguage, result.targetLanguage)
-
-                PostTranslationResult.SameLanguage,
-                PostTranslationResult.Unsupported -> TranslationState.Unsupported
-
-                is PostTranslationResult.Failed -> {
-                    crashlyticsService.recordException(Exception(result.error))
-                    TranslationState.Failed
-                }
-            }
-        }
+        translate(content, targetLanguage, allowDownload, viewModelScope)
     }
-
-    override fun showOriginal() {
-        _translationState.value = TranslationState.Idle
-    }
-
-    // MARK: - Summarization
-    private val _summarizationState = MutableStateFlow<SummarizationState>(SummarizationState.Idle)
-    override val summarizationState: StateFlow<SummarizationState> = _summarizationState.asStateFlow()
 
     override fun summarizePost() {
-        if (_summarizationState.value is SummarizationState.Loading) return
         val content = post?.content ?: return
-        _summarizationState.value = SummarizationState.Loading
-        viewModelScope.launch {
-            _summarizationState.value = when (
-                val result = summarizationUseCase.summarise(content, isHtml = false)
-            ) {
-                is SummarizationResultState.Success ->
-                    SummarizationState.Summarized(result.summary)
-
-                SummarizationResultState.Unavailable -> SummarizationState.Unavailable
-
-                is SummarizationResultState.Failed -> {
-                    crashlyticsService.recordException(Exception(result.error))
-                    SummarizationState.Failed
-                }
-            }
-        }
+        summarize(content, viewModelScope)
     }
-
-    override fun hideSummary() {
-        _summarizationState.value = SummarizationState.Idle
-    }
-
-    // MARK: - Comment translation (one-tap, device language)
-    private val _commentTranslations = MutableStateFlow<Map<String, TranslationState>>(emptyMap())
-    override val commentTranslations: StateFlow<Map<String, TranslationState>> =
-        _commentTranslations.asStateFlow()
 
     override fun translateComment(
         commentId: String,
@@ -210,37 +124,9 @@ class FeedPostViewModel @Inject constructor(
         targetLanguage: String,
         allowDownload: Boolean,
     ) {
-        val current = _commentTranslations.value[commentId]
-        if (current is TranslationState.Loading || current is TranslationState.Downloading) return
-        _commentTranslations.value += (
-            commentId to if (allowDownload) TranslationState.Downloading else TranslationState.Loading
-        )
-        viewModelScope.launch {
-            val state = when (
-                val result = postTranslationUseCase.translate(
-                    content, targetLanguage, isHtml = false, allowDownload = allowDownload
-                )
-            ) {
-                is PostTranslationResult.Success ->
-                    TranslationState.Translated(result.text, result.sourceLanguage)
-
-                is PostTranslationResult.NeedsDownload ->
-                    TranslationState.DownloadRequired(result.sourceLanguage, result.targetLanguage)
-
-                PostTranslationResult.SameLanguage,
-                PostTranslationResult.Unsupported -> TranslationState.Unsupported
-
-                is PostTranslationResult.Failed -> TranslationState.Failed
-            }
-            _commentTranslations.value += (commentId to state)
-        }
+        translateComment(commentId, content, targetLanguage, allowDownload, viewModelScope)
     }
 
-    override fun showCommentOriginal(commentId: String) {
-        _commentTranslations.value -= commentId
-    }
-
-    // MARK: - Functions
     private suspend fun loadInitialPage() {
         _state.value = ViewState.Loading
         try {
@@ -343,20 +229,20 @@ class FeedPostViewModel @Inject constructor(
     }
 
     override fun voteComment(comment: FeedComment, type: FeedVoteType?) {
-            val prevComments = this@FeedPostViewModel.comments
+        val prevComments = this@FeedPostViewModel.comments
 
-            updateCommentLocally(comment.id) { old ->
-                var newUp = old.upVotes
-                var newDown = old.downVotes
+        updateCommentLocally(comment.id) { old ->
+            var newUp = old.upVotes
+            var newDown = old.downVotes
 
-                if (old.myVote == FeedVoteType.UP) newUp--
-                if (old.myVote == FeedVoteType.DOWN) newDown--
+            if (old.myVote == FeedVoteType.UP) newUp--
+            if (old.myVote == FeedVoteType.DOWN) newDown--
 
-                if (type == FeedVoteType.UP) newUp++
-                if (type == FeedVoteType.DOWN) newDown++
+            if (type == FeedVoteType.UP) newUp++
+            if (type == FeedVoteType.DOWN) newDown++
 
-                old.copy(myVote = type, upVotes = newUp, downVotes = newDown)
-            }
+            old.copy(myVote = type, upVotes = newUp, downVotes = newDown)
+        }
 
         viewModelScope.launch {
             try {

@@ -11,6 +11,7 @@ sealed interface TranslationState {
 
     data object Downloading : TranslationState
     data class Translated(val text: String, val sourceLanguage: String) : TranslationState
+    data object SameLanguage : TranslationState
     data object Unsupported : TranslationState
     data object Failed : TranslationState
 }

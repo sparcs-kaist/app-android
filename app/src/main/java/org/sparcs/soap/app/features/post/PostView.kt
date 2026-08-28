@@ -609,7 +609,7 @@ private fun Comments(
 
     activeComment?.let { c ->
         PostTranslationSheet(
-            state = commentTranslations[c.id] ?: TranslationState.Loading,
+            state = commentTranslations[c.id.toString()] ?: TranslationState.Loading,
             targetLanguage = commentTarget,
             languages = viewModel.translationLanguages(),
             suggested = viewModel.suggestedTranslationLanguages(),

@@ -1,6 +1,12 @@
 package org.sparcs.soap.app.features.post.components
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -92,6 +98,15 @@ fun PostVoteButton(
             )
             AnimatedContent(
                 targetState = votes,
+                transitionSpec = {
+                    if (targetState > initialState) {
+                        (slideInVertically { -it } + fadeIn())
+                            .togetherWith(slideOutVertically { it } + fadeOut())
+                    } else {
+                        (slideInVertically { it } + fadeIn())
+                            .togetherWith(slideOutVertically { -it } + fadeOut())
+                    }.using(SizeTransform(clip = false))
+                },
                 label = "VotesTransition"
             ) { targetCount ->
                 val formattedCount = targetCount.toString().replace('-', '\u2212')

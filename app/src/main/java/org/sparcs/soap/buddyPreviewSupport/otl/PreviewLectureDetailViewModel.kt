@@ -3,6 +3,7 @@ package org.sparcs.soap.buddyPreviewSupport.otl
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,6 +11,8 @@ import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.LectureReview
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.app.shared.mocks.otl.mock
@@ -38,6 +41,45 @@ class PreviewLectureDetailViewModel(initialState: LectureDetailViewModel.ViewSta
 
     override var alertState: AlertState? by mutableStateOf(null)
     override var isAlertPresented: Boolean by mutableStateOf(false)
+
+
+    override val translationState: StateFlow<TranslationState> =
+        MutableStateFlow(TranslationState.Idle).asStateFlow()
+    override val summarizationState: StateFlow<SummarizationState> =
+        MutableStateFlow(SummarizationState.Idle).asStateFlow()
+
+    override val commentTranslations: StateFlow<Map<String, TranslationState>> =
+        MutableStateFlow(emptyMap())
+
+    override fun translationLanguages(): List<String> = listOf("ko", "en")
+    override fun suggestedTranslationLanguages(): List<String> = listOf("ko", "en")
+    override fun defaultTranslationLanguage(): String = "ko"
+
+    override fun translate(
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean,
+        scope: CoroutineScope,
+    ) {
+    }
+
+    override fun summarize(content: String, scope: CoroutineScope) {}
+
+    override fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean) {}
+    override fun showOriginal() {}
+    override fun summarizeReview(content: String) {}
+    override fun hideSummary() {}
+
+    override fun translateComment(
+        commentId: String,
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean,
+        scope: CoroutineScope,
+    ) {
+    }
+
+    override fun showCommentOriginal(commentId: String) {}
 
     override fun fetchCourse(courseID: Int) {}
     override fun fetchReviews(lecture: Lecture) {}

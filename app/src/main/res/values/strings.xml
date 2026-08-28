@@ -640,6 +640,7 @@
     <string name="translated_from">Translated from %1$s</string>
     <string name="translation_unsupported">This post can\'t be translated.</string>
     <string name="translation_failed">Translation failed.</string>
+    <string name="translation_same_language">Source and target languages are the same.</string>
     <string name="translation_download_required">To translate from %1$s to %2$s, a language pack needs to be downloaded.</string>
     <string name="translation_download_hint">The download may use mobile data.</string>
     <string name="translation_download">Download</string>
@@ -654,5 +655,6 @@
     <string name="summarizing">Summarizing…</string>
     <string name="hide">Hide</string>
     <string name="summarization_unavailable">On-device summarization isn\'t available on this device.</string>
+    <string name="summarization_too_short">Text must be at least 400 characters to summarize.</string>
     <string name="summarization_failed">Summarization failed.</string>
 </resources>

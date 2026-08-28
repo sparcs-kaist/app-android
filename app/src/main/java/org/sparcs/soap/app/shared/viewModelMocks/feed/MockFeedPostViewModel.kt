@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.shared.viewModelMocks.feed
 
 import android.graphics.Bitmap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,10 +41,15 @@ class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPos
     override fun translationLanguages(): List<String> = emptyList()
     override fun suggestedTranslationLanguages(): List<String> = emptyList()
     override fun defaultTranslationLanguage(): String = "en"
+
+    override fun translate(content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
+    override fun summarize(content: String, scope: CoroutineScope) {}
+
     override fun translatePost(targetLanguage: String, allowDownload: Boolean) {}
     override fun showOriginal() {}
     override fun summarizePost() {}
     override fun hideSummary() {}
+
     override val commentTranslations: StateFlow<Map<String, TranslationState>> =
         MutableStateFlow<Map<String, TranslationState>>(emptyMap()).asStateFlow()
     override fun translateComment(
@@ -51,6 +57,13 @@ class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPos
         content: String,
         targetLanguage: String,
         allowDownload: Boolean,
+    ) {}
+    override fun translateComment(
+        commentId: String,
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean,
+        scope: CoroutineScope
     ) {}
     override fun showCommentOriginal(commentId: String) {}
 

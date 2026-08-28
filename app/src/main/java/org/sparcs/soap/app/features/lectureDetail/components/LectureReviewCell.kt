@@ -4,6 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +26,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Summarize
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -60,6 +69,8 @@ fun LectureReviewCell(
     lectureReview: LectureReview,
     onLikeClick: () -> Unit,
     isMine: Boolean,
+    onTranslate: () -> Unit = {},
+    onSummarize: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -114,33 +125,37 @@ fun LectureReviewCell(
                             modifier = Modifier.background(MaterialTheme.colorScheme.background),
                             shape = RoundedCornerShape(16.dp)
                         ) {
-//                        DropdownMenuItem(
-//                            text = { Text(stringResource(R.string.translate)) },
-//                            onClick = { // },
-//                            leadingIcon = {
-//                                Icon(
-//                                    painter = painterResource(R.drawable.baseline_translate),
-//                                    contentDescription = null
-//                                )
-//                            }
-//                        )
-//                        DropdownMenuItem(
-//                            text = { Text(stringResource(R.string.summarise)) },
-//                            onClick = { // },
-//                            leadingIcon = {
-//                                Icon(
-//                                    painter = painterResource(R.drawable.baseline_summarize),
-//                                    contentDescription = null
-//                                )
-//                            }
-//                        )
-//                        HorizontalDivider() - TODO REVIEW TRANSLATE AND SUMMARIZE
+
                             DropdownMenuItem(
                                 text = { Text(stringResource(R.string.report)) },
                                 onClick = { report(lectureReview, context, unknown) },
                                 leadingIcon = {
                                     Icon(
                                         Icons.Default.Warning,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+
+                            HorizontalDivider()
+
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.translate)) },
+                                onClick = { onTranslate(); expanded = false },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Translate,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.summarise)) },
+                                onClick = { onSummarize(); expanded = false },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Summarize,
                                         contentDescription = null
                                     )
                                 }
@@ -179,13 +194,22 @@ fun LectureReviewCell(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AnimatedContent(
-                        targetState = lectureReview.like.toString(),
+                        targetState = lectureReview.like,
+                        transitionSpec = {
+                            if (targetState > initialState) {
+                                (slideInVertically { -it } + fadeIn())
+                                    .togetherWith(slideOutVertically { it } + fadeOut())
+                            } else {
+                                (slideInVertically { it } + fadeIn())
+                                    .togetherWith(slideOutVertically { -it } + fadeOut())
+                            }.using(SizeTransform(clip = false))
+                        },
                         label = "VotesTransition"
                     ) { targetCount ->
                         Text(
-                            text = targetCount,
+                            text = targetCount.toString(),
                             style = MaterialTheme.typography.bodyLarge,
-                            )
+                        )
                     }
                     Spacer(modifier = Modifier.width(2.dp))
                     Icon(
@@ -196,11 +220,14 @@ fun LectureReviewCell(
                         tint = if (lectureReview.likedByUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier
                             .clickable {
-                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                            onLikeClick()
+                                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                                onLikeClick()
                             }
                             .padding(2.dp)
-                            .adaptiveIconSize(MaterialTheme.typography.bodyLarge, scaleFactor = 1.4f)
+                            .adaptiveIconSize(
+                                MaterialTheme.typography.bodyLarge,
+                                scaleFactor = 1.4f
+                            )
                     )
                 }
             }
@@ -253,7 +280,10 @@ fun LectureReviewSkeletonCell() {
                 Box(
                     modifier = Modifier
                         .size(24.dp)
-                        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
+                        .background(
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                            CircleShape
+                        )
                 )
             }
 
@@ -304,7 +334,10 @@ fun LectureReviewSkeletonCell() {
                     Box(
                         modifier = Modifier
                             .size(24.dp)
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), CircleShape)
+                            .background(
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                                CircleShape
+                            )
                     )
                 }
             }

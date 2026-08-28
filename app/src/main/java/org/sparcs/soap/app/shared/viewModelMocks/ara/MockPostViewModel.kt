@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.shared.viewModelMocks.ara
 
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,12 +35,21 @@ class MockPostViewModel(initialState: PostViewModel.ViewState, post: AraPost) : 
     override fun translationLanguages(): List<String> = emptyList()
     override fun suggestedTranslationLanguages(): List<String> = emptyList()
     override fun defaultTranslationLanguage(): String = "en"
+
+    override fun translate(content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
+    override fun summarize(content: String, scope: CoroutineScope) {}
+
     override fun translatePost(targetLanguage: String, allowDownload: Boolean) {}
     override fun showOriginal() {}
     override fun summarizePost() {}
     override fun hideSummary() {}
-    override val commentTranslations: StateFlow<Map<Int, TranslationState>> =
-        MutableStateFlow<Map<Int, TranslationState>>(emptyMap()).asStateFlow()
+
+    override val commentTranslations: StateFlow<Map<String, TranslationState>> =
+        MutableStateFlow<Map<String, TranslationState>>(emptyMap()).asStateFlow()
+
+    override fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
+    override fun showCommentOriginal(commentId: String) {}
+
     override fun translateComment(
         commentId: Int,
         content: String,
