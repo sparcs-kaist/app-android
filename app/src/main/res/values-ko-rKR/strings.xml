@@ -609,6 +609,7 @@
     <string name="translated_from">%1$s에서 번역됨</string>
     <string name="translation_unsupported">이 게시글은 번역할 수 없어요.</string>
     <string name="translation_failed">번역에 실패했어요.</string>
+    <string name="translation_same_language">이미 같은 언어로 설정되어 있습니다.</string>
     <string name="translation_download_required">%1$s에서 %2$s(으)로 번역하려면 언어팩을 다운로드해야 해요.</string>
     <string name="translation_download_hint">다운로드 시 모바일 데이터가 사용될 수 있어요.</string>
     <string name="translation_download">다운로드</string>
@@ -623,5 +624,6 @@
     <string name="summarizing">요약 중…</string>
     <string name="hide">닫기</string>
     <string name="summarization_unavailable">이 기기에서는 요약을 사용할 수 없어요.</string>
+    <string name="summarization_too_short">400자 이상의 긴 글만 요약할 수 있어요.</string>
     <string name="summarization_failed">요약에 실패했어요.</string>
 </resources>

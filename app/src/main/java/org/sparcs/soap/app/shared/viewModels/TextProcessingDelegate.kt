@@ -59,9 +59,9 @@ class TextProcessingDelegate @Inject constructor(
             _translationState.value = when (val result = postTranslationUseCase.translate(content, targetLanguage, isHtml = false, allowDownload = allowDownload)) {
                 is PostTranslationResult.Success -> TranslationState.Translated(result.text, result.sourceLanguage)
                 is PostTranslationResult.NeedsDownload -> TranslationState.DownloadRequired(result.sourceLanguage, result.targetLanguage)
-                PostTranslationResult.SameLanguage, PostTranslationResult.Unsupported -> TranslationState.Unsupported
+                PostTranslationResult.SameLanguage -> TranslationState.SameLanguage
+                PostTranslationResult.Unsupported -> TranslationState.Unsupported
                 is PostTranslationResult.Failed -> {
-                    crashlyticsService.recordException(result.error)
                     TranslationState.Failed
                 }
             }
@@ -76,9 +76,9 @@ class TextProcessingDelegate @Inject constructor(
         scope.launch {
             _summarizationState.value = when (val result = summarizationUseCase.summarise(content, isHtml = false)) {
                 is SummarizationResultState.Success -> SummarizationState.Summarized(result.summary)
+                SummarizationResultState.TooShort -> SummarizationState.TooShort
                 SummarizationResultState.Unavailable -> SummarizationState.Unavailable
                 is SummarizationResultState.Failed -> {
-                    crashlyticsService.recordException(Exception(result.error))
                     SummarizationState.Failed
                 }
             }
@@ -95,7 +95,8 @@ class TextProcessingDelegate @Inject constructor(
             val state = when (val result = postTranslationUseCase.translate(content, targetLanguage, isHtml = false, allowDownload = allowDownload)) {
                 is PostTranslationResult.Success -> TranslationState.Translated(result.text, result.sourceLanguage)
                 is PostTranslationResult.NeedsDownload -> TranslationState.DownloadRequired(result.sourceLanguage, result.targetLanguage)
-                PostTranslationResult.SameLanguage, PostTranslationResult.Unsupported -> TranslationState.Unsupported
+                PostTranslationResult.SameLanguage -> TranslationState.SameLanguage
+                PostTranslationResult.Unsupported -> TranslationState.Unsupported
                 is PostTranslationResult.Failed -> TranslationState.Failed
             }
             _commentTranslations.value += (commentId to state)

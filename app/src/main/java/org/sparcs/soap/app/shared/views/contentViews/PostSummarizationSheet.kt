@@ -103,6 +103,14 @@ fun PostSummarizationSheet(
                         )
                     }
 
+                    SummarizationState.TooShort -> {
+                        Text(
+                            text = stringResource(R.string.summarization_too_short),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
                     SummarizationState.Unavailable -> {
                         Text(
                             text = stringResource(R.string.summarization_unavailable),

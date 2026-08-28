@@ -745,7 +745,6 @@ abstract class UseCaseModule {
     ): SummarizationUseCaseProtocol
 
     @Binds
-    @Singleton
     abstract fun bindTextProcessingDelegate(
         impl: TextProcessingDelegate,
     ): TextProcessingProtocol

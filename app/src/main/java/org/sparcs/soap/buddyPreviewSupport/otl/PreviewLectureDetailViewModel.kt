@@ -42,15 +42,27 @@ class PreviewLectureDetailViewModel(initialState: LectureDetailViewModel.ViewSta
     override var alertState: AlertState? by mutableStateOf(null)
     override var isAlertPresented: Boolean by mutableStateOf(false)
 
-    override val translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)
-    override val summarizationState = MutableStateFlow<SummarizationState>(SummarizationState.Idle)
-    override val commentTranslations: StateFlow<Map<String, TranslationState>> = MutableStateFlow(emptyMap())
+
+    override val translationState: StateFlow<TranslationState> =
+        MutableStateFlow(TranslationState.Idle).asStateFlow()
+    override val summarizationState: StateFlow<SummarizationState> =
+        MutableStateFlow(SummarizationState.Idle).asStateFlow()
+
+    override val commentTranslations: StateFlow<Map<String, TranslationState>> =
+        MutableStateFlow(emptyMap())
 
     override fun translationLanguages(): List<String> = listOf("ko", "en")
     override fun suggestedTranslationLanguages(): List<String> = listOf("ko", "en")
     override fun defaultTranslationLanguage(): String = "ko"
 
-    override fun translate(content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
+    override fun translate(
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean,
+        scope: CoroutineScope,
+    ) {
+    }
+
     override fun summarize(content: String, scope: CoroutineScope) {}
 
     override fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean) {}
@@ -58,7 +70,15 @@ class PreviewLectureDetailViewModel(initialState: LectureDetailViewModel.ViewSta
     override fun summarizeReview(content: String) {}
     override fun hideSummary() {}
 
-    override fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
+    override fun translateComment(
+        commentId: String,
+        content: String,
+        targetLanguage: String,
+        allowDownload: Boolean,
+        scope: CoroutineScope,
+    ) {
+    }
+
     override fun showCommentOriginal(commentId: String) {}
 
     override fun fetchCourse(courseID: Int) {}
