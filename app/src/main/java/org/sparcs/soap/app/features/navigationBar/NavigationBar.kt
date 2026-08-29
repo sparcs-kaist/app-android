@@ -209,7 +209,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 ) {
                     NavigationBar(
                         containerColor = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 8.dp
+                        tonalElevation = 0.dp
                     ) {
                         navigationItems.forEach { (channel, label, icon) ->
                             NavigationBarItem(
@@ -219,7 +219,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                                 label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                                 colors = NavigationBarItemDefaults.colors(
                                     selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                                    selectedTextColor = MaterialTheme.colorScheme.primary,
+                                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
                         }
@@ -252,7 +255,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                                 alwaysShowLabel = false,
                                 colors = NavigationRailItemDefaults.colors(
                                     selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                                    indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             )
                         }
