@@ -4,22 +4,20 @@ import android.content.Intent
 import android.content.res.Configuration
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Feed
 import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
@@ -28,16 +26,16 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.TableChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
-import androidx.compose.material3.Surface
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -45,7 +43,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -202,44 +199,82 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         }
     }
 
-    Row(modifier = Modifier.fillMaxSize()) {
-        if (isLandscape) {
-            AnimatedVisibility(
-                visible = isMainTab,
-                enter = slideInHorizontally(tween(150), initialOffsetX = { -it }) + fadeIn(tween(150)),
-                exit = slideOutHorizontally(tween(150), targetOffsetX = { -it }) + fadeOut(tween(150))
-            ) {
-                NavigationRail(
-                    modifier = Modifier.fillMaxHeight(),
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = MaterialTheme.colorScheme.primary
+    Scaffold(
+        bottomBar = {
+            if (!isLandscape) {
+                AnimatedVisibility(
+                    visible = isMainTab,
+                    enter = slideInVertically(animationSpec = tween(150), initialOffsetY = { it }),
+                    exit = slideOutVertically(animationSpec = tween(150), targetOffsetY = { it })
                 ) {
-                    Spacer(Modifier.weight(1f))
-                    navigationItems.forEach { (channel, label, icon) ->
-                        NavigationRailItem(
-                            selected = isTabActive(currentRoute, channel),
-                            onClick = { onTabClick(channel) },
-                            icon = { Icon(imageVector = icon, contentDescription = label) },
-                            label = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                            colors = NavigationRailItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.primary,
-                                indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                    NavigationBar(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        tonalElevation = 8.dp
+                    ) {
+                        navigationItems.forEach { (channel, label, icon) ->
+                            NavigationBarItem(
+                                selected = isTabActive(currentRoute, channel),
+                                onClick = { onTabClick(channel) },
+                                icon = { Icon(imageVector = icon, contentDescription = label) },
+                                label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                                colors = NavigationBarItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
                             )
-                        )
+                        }
                     }
-                    Spacer(Modifier.weight(1f))
                 }
             }
         }
+    )
+{ innerPadding ->
+        Row(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (isLandscape) {
+                AnimatedVisibility(
+                    visible = isMainTab,
+                    enter = slideInHorizontally(tween(150), initialOffsetX = { -it }) + fadeIn(tween(150)),
+                    exit = slideOutHorizontally(tween(150), targetOffsetX = { -it }) + fadeOut(tween(150))
+                ) {
+                    NavigationRail(
+                        modifier = Modifier.fillMaxHeight(),
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ) {
+                        Spacer(Modifier.weight(1f))
+                        navigationItems.forEach { (channel, label, icon) ->
+                            NavigationRailItem(
+                                selected = isTabActive(currentRoute, channel),
+                                onClick = { onTabClick(channel) },
+                                icon = { Icon(imageVector = icon, contentDescription = label) },
+                                alwaysShowLabel = false,
+                                colors = NavigationRailItemDefaults.colors(
+                                    selectedIconColor = MaterialTheme.colorScheme.primary,
+                                    indicatorColor = MaterialTheme.colorScheme.surfaceVariant
+                                )
+                            )
+                        }
+                        Spacer(Modifier.weight(1f))
+                    }
+                }
+            }
 
-        Box(modifier = Modifier.weight(1f)) {
-            NavHost(
-                navController = navController,
-                startDestination = "FeedGraph",
-                enterTransition = { fadeIn(animationSpec = tween(500)) },
-                exitTransition = { fadeOut(animationSpec = tween(500)) },
-                popEnterTransition = { EnterTransition.None }
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(innerPadding)
+                    .consumeWindowInsets(innerPadding)
             ) {
+                NavHost(
+                    navController = navController,
+                    startDestination = "FeedGraph",
+                    enterTransition = { fadeIn(tween(200)) + slideInHorizontally(tween(200), initialOffsetX = { 300 }) },
+                    exitTransition = { fadeOut(tween(200)) + slideOutHorizontally(tween(200), targetOffsetX = { -300 }) },
+                    popEnterTransition = { fadeIn(tween(200)) + slideInHorizontally(tween(200), initialOffsetX = { -300 }) },
+                    popExitTransition = { fadeOut(tween(200)) + slideOutHorizontally(tween(200), targetOffsetX = { 300 }) }
+                ) {
                 navigation(
                     startDestination = Channel.Start.name,
                     route = "FeedGraph"
@@ -737,86 +772,12 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         }
     }
 }
-
-@Composable
-fun AppDownBar(
-    navController: NavController,
-    currentScreen: Channel,
-) {
-    val configuration = LocalConfiguration.current
-    if (configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-        Spacer(Modifier.navigationBarsPadding())
-        return
-    }
-
-    val items = listOf(
-        Triple(Channel.Start, stringResource(Channel.Start.title), Icons.AutoMirrored.Rounded.Feed),
-        Triple(Channel.Boards, stringResource(Channel.Boards.title), Icons.AutoMirrored.Rounded.FormatListBulleted),
-        Triple(Channel.TimeTable, stringResource(Channel.TimeTable.title), Icons.Rounded.TableChart),
-        Triple(Channel.Taxi, stringResource(Channel.Taxi.title), Icons.Rounded.LocalTaxi),
-        Triple(Channel.SearchView, stringResource(R.string.search), Icons.Rounded.Search)
-    )
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        shadowElevation = 8.dp
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding(),
-            contentAlignment = Alignment.Center
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = 600.dp)
-                    .height(80.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                items.forEach { (channel, label, icon) ->
-                    NavigationBarItem(
-                    selected = currentScreen == channel,
-                    onClick = {
-                        navController.navigate(channel.name) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    icon = { Icon(imageVector = icon, contentDescription = label) },
-                    label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                    colors = NavigationBarItemDefaults.colors(
-                        MaterialTheme.colorScheme.primary,
-                        indicatorColor = MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    modifier = Modifier.weight(1f)
-                )
-                }
-            }
-        }
-    }
 }
-
 
 @Preview
 @Composable
 private fun Preview() {
     Theme {
         MainTabBar(rememberNavController())
-    }
-}
-
-@Preview
-@Composable
-private fun AppDownBarPreview() {
-    Theme {
-        AppDownBar(
-            navController = rememberNavController(),
-            currentScreen = Channel.Start
-        )
     }
 }
