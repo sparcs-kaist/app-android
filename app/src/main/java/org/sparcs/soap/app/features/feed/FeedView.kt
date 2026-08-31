@@ -3,6 +3,7 @@ package org.sparcs.soap.app.features.feed
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -39,7 +40,6 @@ import org.sparcs.soap.app.domain.models.feed.FeedPost
 import org.sparcs.soap.app.features.feed.components.FeedPostRow
 import org.sparcs.soap.app.features.feed.components.FeedPostRowSkeleton
 import org.sparcs.soap.app.features.feed.components.FeedViewNavigationBar
-import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -112,12 +112,6 @@ fun FeedView(
                 scrollBehavior = topBarScrollBehavior
             )
         },
-        bottomBar = {
-            AppDownBar(
-                currentScreen = Channel.Start,
-                navController = navController
-            )
-        },
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen(name = "Feed")
@@ -125,7 +119,8 @@ fun FeedView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
             contentAlignment = Alignment.TopCenter,
         ) {
             PullToRefreshBox(

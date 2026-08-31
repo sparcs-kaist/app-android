@@ -50,7 +50,6 @@ import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
 import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
-import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.search.components.CourseSection
 import org.sparcs.soap.app.features.search.components.PostSection
@@ -118,12 +117,6 @@ fun SearchView(
             SearchNavigationBar(
                 scrollState = scrollState,
                 scrollBehavior = topBarScrollBehavior
-            )
-        },
-        bottomBar = {
-            AppDownBar(
-                navController = navController,
-                currentScreen = Channel.SearchView
             )
         },
         modifier = Modifier

@@ -63,7 +63,6 @@ import org.sparcs.soap.app.domain.helpers.LocalizedString
 import org.sparcs.soap.app.domain.models.taxi.TaxiFavoriteRoute
 import org.sparcs.soap.app.domain.models.taxi.TaxiLocation
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
-import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.taxiList.components.TaxiListNavigationBar
 import org.sparcs.soap.app.features.taxiList.components.WeekDaySelector
@@ -129,12 +128,6 @@ fun TaxiListView(
                 navController = navController,
                 isButtonEnabled = true,
                 scrollBehavior = topBarScrollBehavior
-            )
-        },
-        bottomBar = {
-            AppDownBar(
-                navController = navController,
-                currentScreen = Channel.Taxi
             )
         },
         modifier = Modifier

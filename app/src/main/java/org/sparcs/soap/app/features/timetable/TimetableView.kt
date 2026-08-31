@@ -55,7 +55,6 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchView
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModel
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
-import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.AddButton
 import org.sparcs.soap.app.features.timetable.components.CompactTimetableSelector
@@ -113,12 +112,6 @@ fun TimetableView(
                         onClick = { expanded = true }
                     )
                 }
-            },
-            bottomBar = {
-                AppDownBar(
-                    navController = navController,
-                    currentScreen = Channel.TimeTable
-                )
             },
             modifier = Modifier.analyticsScreen("Timetable")
         ) { innerPadding ->

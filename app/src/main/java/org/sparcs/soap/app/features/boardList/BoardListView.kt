@@ -41,7 +41,6 @@ import org.sparcs.soap.app.features.boardList.components.BoardList
 import org.sparcs.soap.app.features.boardList.components.BoardListNavigationBar
 import org.sparcs.soap.app.features.boardList.components.BoardListSectionItem
 import org.sparcs.soap.app.features.boardList.components.BoardListSkeleton
-import org.sparcs.soap.app.features.navigationBar.AppDownBar
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
@@ -80,12 +79,6 @@ fun BoardListView(
             BoardListNavigationBar(
                 scrollState = scrollState,
                 scrollBehavior = topBarScrollBehavior
-            )
-        },
-        bottomBar = {
-            AppDownBar(
-                navController = navController,
-                currentScreen = Channel.Boards
             )
         },
         modifier = Modifier
