@@ -108,8 +108,8 @@ import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
-import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
+import org.sparcs.soap.app.shared.views.contentViews.SummarizationView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import timber.log.Timber
@@ -321,7 +321,10 @@ fun PostView(
                             postId = viewModel.postId,
                             htmlHeight = htmlHeight,
                             onHtmlHeightChange = { htmlHeight = it },
-                            onLinkTapped = { tappedURL = it.toUri() }
+                            onLinkTapped = { tappedURL = it.toUri() },
+                            summarizationState = summarizationState,
+                            onRetrySummarize = { viewModel.summarizePost() },
+                            onDismissSummarize = { viewModel.hideSummary() }
                         )
                     }
                     if (post != null && !post.attachments.isNullOrEmpty()) {
@@ -354,7 +357,9 @@ fun PostView(
                                 },
                                 viewModel = viewModel,
                                 focusRequester = focusRequester,
-                                keyboardController = keyboardController
+                                keyboardController = keyboardController,
+                                translationTarget = translationTarget,
+                                onTranslationTargetChange = { translationTarget = it }
                             )
                         }
                     }
@@ -413,13 +418,6 @@ fun PostView(
                 onRetry = { viewModel.translatePost(translationTarget) },
                 onDownload = { viewModel.translatePost(translationTarget, allowDownload = true) },
                 onDismiss = { viewModel.showOriginal() }
-            )
-        }
-        if (summarizationState !is SummarizationState.Idle) {
-            PostSummarizationSheet(
-                state = summarizationState,
-                onRetry = { viewModel.summarizePost() },
-                onDismiss = { viewModel.hideSummary() }
             )
         }
 
@@ -494,11 +492,21 @@ private fun Content(
     htmlHeight: Dp,
     onHtmlHeightChange: (Dp) -> Unit,
     onLinkTapped: (String) -> Unit,
+    summarizationState: SummarizationState = SummarizationState.Idle,
+    onRetrySummarize: () -> Unit = {},
+    onDismissSummarize: () -> Unit = {},
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.padding(vertical = 8.dp)
     ) {
+        SummarizationView(
+            state = summarizationState,
+            onRetry = onRetrySummarize,
+            onDismiss = onDismissSummarize,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
         DynamicHeightWebView(
             url = "${Constants.ARA_BACKEND_URL}users/exchange/?next=/web_view/PostFrame/$postId",
             modifier = Modifier
@@ -547,11 +555,12 @@ private fun Comments(
     viewModel: PostViewModelProtocol,
     focusRequester: FocusRequester,
     keyboardController: SoftwareKeyboardController?,
+    translationTarget: String,
+    onTranslationTargetChange: (String) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val commentTranslations by viewModel.commentTranslations.collectAsState()
     var activeComment by remember { mutableStateOf<AraPostComment?>(null) }
-    var commentTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
 
     Box(
         modifier = Modifier
@@ -601,8 +610,8 @@ private fun Comments(
             },
             onTranslateComment = { c ->
                 activeComment = c
-                commentTarget = viewModel.defaultTranslationLanguage()
-                viewModel.translateComment(c.id, c.content ?: "", commentTarget)
+                onTranslationTargetChange(viewModel.defaultTranslationLanguage())
+                viewModel.translateComment(c.id.toString(), c.content ?: "", viewModel.defaultTranslationLanguage(), scope = scope)
             }
         )
     }
@@ -610,20 +619,21 @@ private fun Comments(
     activeComment?.let { c ->
         PostTranslationSheet(
             state = commentTranslations[c.id.toString()] ?: TranslationState.Loading,
-            targetLanguage = commentTarget,
+            targetLanguage = translationTarget,
             languages = viewModel.translationLanguages(),
             suggested = viewModel.suggestedTranslationLanguages(),
             onTargetChange = { code ->
-                commentTarget = code
-                viewModel.translateComment(c.id, c.content ?: "", code)
+                onTranslationTargetChange(code)
+                viewModel.translateComment(c.id.toString(), c.content ?: "", code, scope = scope)
             },
-            onRetry = { viewModel.translateComment(c.id, c.content ?: "", commentTarget) },
+            onRetry = { viewModel.translateComment(c.id.toString(), c.content ?: "", translationTarget, scope = scope) },
             onDownload = {
                 viewModel.translateComment(
-                    c.id,
+                    c.id.toString(),
                     c.content ?: "",
-                    commentTarget,
-                    allowDownload = true
+                    translationTarget,
+                    allowDownload = true,
+                    scope = scope
                 )
             },
             onDismiss = {
