@@ -55,9 +55,11 @@ import androidx.core.net.toUri
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.ReportMailComposer
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.shared.views.contentViews.SummarizationView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.gray64
 import org.sparcs.soap.app.theme.ui.grayBB
@@ -69,8 +71,11 @@ fun LectureReviewCell(
     lectureReview: LectureReview,
     onLikeClick: () -> Unit,
     isMine: Boolean,
-    onTranslate: () -> Unit = {},
-    onSummarize: () -> Unit = {},
+    onTranslate: () -> Unit,
+    onSummarize: () -> Unit,
+    summarizationState: SummarizationState = SummarizationState.Idle,
+    onRetrySummarize: () -> Unit,
+    onDismissSummarize: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -166,6 +171,13 @@ fun LectureReviewCell(
             }
 
             Spacer(modifier = Modifier.padding(4.dp))
+
+            SummarizationView(
+                state = summarizationState,
+                onRetry = onRetrySummarize,
+                onDismiss = onDismissSummarize,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
             Text(
                 text = lectureReview.content,
@@ -395,7 +407,7 @@ fun report(lectureReview: LectureReview, context: Context, unknown: String) {
 @Preview
 private fun Preview() {
     Theme {
-        LectureReviewCell(LectureReview.mock(), {}, false)
+        LectureReviewCell(LectureReview.mock(), {}, false, {}, {}, SummarizationState.Idle, {}, {})
     }
 }
 

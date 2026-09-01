@@ -42,6 +42,8 @@ import org.sparcs.soap.app.domain.helpers.gradeLetter
 import org.sparcs.soap.app.domain.helpers.loadLetter
 import org.sparcs.soap.app.domain.helpers.speechLetter
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.domain.models.otl.LectureReview
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.app.features.navigationBar.Channel
@@ -49,7 +51,6 @@ import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
-import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
@@ -72,18 +73,16 @@ fun LectureReviews(
     val translationState by viewModel.translationState.collectAsState()
     val summarizationState by viewModel.summarizationState.collectAsState()
     var showTranslationSheet by remember { mutableStateOf(false) }
-    var showSummarizationSheet by remember { mutableStateOf(false) }
     var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
-    var currentReviewContent by remember { mutableStateOf("") }
+    var activeReview by remember { mutableStateOf<LectureReview?>(null) }
 
     val textColor =
         if (canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB.copy(
             alpha = 0.7f
         )
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        // Header
         Row(
             modifier = Modifier.padding(horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -100,146 +99,81 @@ fun LectureReviews(
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold
             )
-
             Spacer(Modifier.weight(1f))
-
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .glassBorder(RoundedCornerShape(16.dp))
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(
-                        if (canWriteReview) MaterialTheme.colorScheme.background
-                        else MaterialTheme.colorScheme.lightGray0
-                    )
-                    .clickable(enabled = canWriteReview) {
-                        val json = Uri.encode(Gson().toJson(lecture))
-                        val writtenReviewJSON =
-                            Uri.encode(Gson().toJson(viewModel.writtenReview.value))
-                        navController.navigate(
-                            Channel.ReviewCompose.name + "?lecture_json=${json}&written_review_json=${writtenReviewJSON}"
-                        )
-                    }
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.RateReview,
-                    contentDescription = null,
-                    tint = textColor,
-                    modifier = Modifier.adaptiveIconSize(
-                        MaterialTheme.typography.bodyLarge,
-                        scaleFactor = 1.4f
-                    )
-                )
-
-                Spacer(Modifier.width(6.dp))
-
-                Text(
-                    text = if (writtenReview == null) stringResource(R.string.write_a_review)
-                    else stringResource(R.string.edit_a_review),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = textColor
-                )
-            }
+            WriteReviewButton(lecture, writtenReview, canWriteReview, textColor, navController)
         }
 
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .fillMaxWidth()
-                .glassBorder(shape = RoundedCornerShape(16.dp))
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                ReviewStat(stringResource(R.string.grade), lecture.gradeLetter)
-                ReviewStat(stringResource(R.string.load), lecture.loadLetter)
-                ReviewStat(stringResource(R.string.speech), lecture.speechLetter)
-            }
-        }
+        ReviewStatsSurface(lecture)
 
+        // Reviews List
         Column {
-            when (state) {
-                is LectureDetailViewModel.ViewState.Loading -> {
-                    repeat(3) {
-                        LectureReviewSkeletonCell()
-                    }
-                }
-
+            when (val currentState = state) {
+                is LectureDetailViewModel.ViewState.Loading -> repeat(3) { LectureReviewSkeletonCell() }
                 is LectureDetailViewModel.ViewState.Loaded -> {
-                    writtenReview?.let { myReview ->
-                        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                            Text(
-                                text = stringResource(R.string.my_review_title),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(start = 4.dp),
-                                fontWeight = FontWeight.Bold
-                            )
-                            LectureReviewCell(
-                                lectureReview = myReview,
-                                onLikeClick = { showOwnReviewLikeAlert = true },
-                                isMine = true,
-                                onTranslate = {
-                                    currentReviewContent = myReview.content
-                                    translationTarget = viewModel.defaultTranslationLanguage()
-                                    showTranslationSheet = true
-                                    viewModel.translateReview(myReview.content, translationTarget)
-                                },
-                                onSummarize = {
-                                    currentReviewContent = myReview.content
-                                    showSummarizationSheet = true
-                                    viewModel.summarizeReview(myReview.content)
-                                }
-                            )
-                            HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(
-                                    alpha = 0.5f
-                                )
-                            )
-                        }
-                    }
+                    val allReviews =
+                        listOfNotNull(writtenReview) + reviews.filter { it.id != writtenReview?.id }
 
-                    if (reviews.isEmpty() && writtenReview == null) {
+                    if (allReviews.isEmpty()) {
                         UnavailableView(
                             icon = Icons.AutoMirrored.Outlined.LibraryBooks,
                             title = stringResource(R.string.no_reviews),
                             description = stringResource(R.string.there_are_no_reviews_yet)
                         )
                     } else {
-                        reviews.forEach { review ->
-                            if (review.id != writtenReview?.id) {
-                                LectureReviewCell(
-                                    lectureReview = review,
-                                    onLikeClick = { viewModel.toggleReviewLike(review) },
-                                    isMine = false,
-                                    onTranslate = {
-                                        currentReviewContent = review.content
-                                        translationTarget = viewModel.defaultTranslationLanguage()
-                                        showTranslationSheet = true
-                                        viewModel.translateReview(review.content, translationTarget)
-                                    },
-                                    onSummarize = {
-                                        currentReviewContent = review.content
-                                        showSummarizationSheet = true
-                                        viewModel.summarizeReview(review.content)
-                                    }
+                        allReviews.forEach { review ->
+                            val isMine = review.id == writtenReview?.id
+                            if (isMine) {
+                                Text(
+                                    text = stringResource(R.string.my_review_title),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(start = 4.dp, bottom = 4.dp),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            LectureReviewCell(
+                                lectureReview = review,
+                                onLikeClick = {
+                                    if (isMine) showOwnReviewLikeAlert =
+                                        true else viewModel.toggleReviewLike(review)
+                                },
+                                isMine = isMine,
+                                onTranslate = {
+                                    viewModel.hideSummary()
+                                    activeReview = review
+                                    translationTarget = viewModel.defaultTranslationLanguage()
+                                    showTranslationSheet = true
+                                    viewModel.translateReview(review.content, translationTarget)
+                                },
+                                onSummarize = {
+                                    viewModel.showOriginal()
+                                    showTranslationSheet = false
+                                    activeReview = review
+                                    viewModel.summarizeReview(review.content)
+                                },
+                                summarizationState = if (!showTranslationSheet && activeReview?.id == review.id) summarizationState else SummarizationState.Idle,
+                                onRetrySummarize = { viewModel.summarizeReview(review.content) },
+                                onDismissSummarize = {
+                                    activeReview = null
+                                    viewModel.hideSummary()
+                                }
+                            )
+                            if (isMine && allReviews.size > 1) {
+                                HorizontalDivider(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                        alpha = 0.5f
+                                    ), modifier = Modifier.padding(vertical = 4.dp)
                                 )
                             }
                         }
                     }
                 }
 
-                is LectureDetailViewModel.ViewState.Error -> {
-                    val error = (state as LectureDetailViewModel.ViewState.Error).error
-                    ErrorView(
-                        error = error
-                    ) {
-                        viewModel.fetchReviews(lecture)
-                    }
+                is LectureDetailViewModel.ViewState.Error -> ErrorView(error = currentState.error) {
+                    viewModel.fetchReviews(
+                        lecture
+                    )
                 }
             }
         }
@@ -251,7 +185,9 @@ fun LectureReviews(
                 text = { Text(text = stringResource(R.string.review_like_warning)) },
                 confirmButton = {
                     TextButton(onClick = { showOwnReviewLikeAlert = false }) {
-                        Text(text = stringResource(R.string.confirm))
+                        Text(
+                            text = stringResource(R.string.confirm)
+                        )
                     }
                 },
                 containerColor = MaterialTheme.colorScheme.background,
@@ -266,26 +202,91 @@ fun LectureReviews(
                 suggested = viewModel.suggestedTranslationLanguages(),
                 onTargetChange = { code ->
                     translationTarget = code
-                    viewModel.translateReview(currentReviewContent, code)
+                    activeReview?.let { viewModel.translateReview(it.content, code) }
                 },
-                onRetry = { viewModel.translateReview(currentReviewContent, translationTarget) },
-                onDownload = { viewModel.translateReview(currentReviewContent, translationTarget, allowDownload = true) },
+                onRetry = {
+                    activeReview?.let {
+                        viewModel.translateReview(
+                            it.content,
+                            translationTarget
+                        )
+                    }
+                },
+                onDownload = {
+                    activeReview?.let {
+                        viewModel.translateReview(
+                            it.content,
+                            translationTarget,
+                            allowDownload = true
+                        )
+                    }
+                },
                 onDismiss = {
                     showTranslationSheet = false
+                    activeReview = null
                     viewModel.showOriginal()
                 }
             )
         }
+    }
+}
 
-        if (showSummarizationSheet) {
-            PostSummarizationSheet(
-                state = summarizationState,
-                onRetry = { viewModel.summarizeReview(currentReviewContent) },
-                onDismiss = {
-                    showSummarizationSheet = false
-                    viewModel.hideSummary()
-                }
+@Composable
+private fun WriteReviewButton(
+    lecture: Lecture,
+    writtenReview: LectureReview?,
+    enabled: Boolean,
+    tint: androidx.compose.ui.graphics.Color,
+    navController: NavController,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .glassBorder(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(16.dp))
+            .background(if (enabled) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.lightGray0)
+            .clickable(enabled = enabled) {
+                val json = Uri.encode(Gson().toJson(lecture))
+                val writtenJSON = Uri.encode(Gson().toJson(writtenReview))
+                navController.navigate(Channel.ReviewCompose.name + "?lecture_json=$json&written_review_json=$writtenJSON")
+            }
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.RateReview,
+            contentDescription = null,
+            tint = tint,
+            modifier = Modifier.adaptiveIconSize(
+                MaterialTheme.typography.bodyLarge,
+                scaleFactor = 1.4f
             )
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = if (writtenReview == null) stringResource(R.string.write_a_review) else stringResource(
+                R.string.edit_a_review
+            ), style = MaterialTheme.typography.bodyLarge, color = tint
+        )
+    }
+}
+
+@Composable
+private fun ReviewStatsSurface(lecture: Lecture) {
+    Surface(
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.background,
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassBorder(shape = RoundedCornerShape(16.dp))
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceAround
+        ) {
+            ReviewStat(stringResource(R.string.grade), lecture.gradeLetter)
+            ReviewStat(stringResource(R.string.load), lecture.loadLetter)
+            ReviewStat(stringResource(R.string.speech), lecture.speechLetter)
         }
     }
 }
@@ -307,8 +308,6 @@ private fun ReviewStat(label: String, value: String) {
     }
 }
 
-/* ____________________________________________________________________*/
-
 @Composable
 private fun MockView(state: LectureDetailViewModel.ViewState) {
     val mockViewModel = remember { PreviewLectureDetailViewModel(initialState = state) }
@@ -316,7 +315,7 @@ private fun MockView(state: LectureDetailViewModel.ViewState) {
         lecture = Lecture.mock(),
         viewModel = mockViewModel,
         navController = rememberNavController(),
-        canWriteReview = true,
+        canWriteReview = true
     )
 }
 
