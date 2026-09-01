@@ -765,7 +765,7 @@ private fun PostFooter(
             votes = post.upVotes - post.downVotes,
             onUpVote = { scope.launch { viewModel.upVote() } },
             onDownVote = { scope.launch { viewModel.downVote() } },
-            enabled = post.isMine == false
+            enabled = true
         )
         PostCommentButton(commentCount = post.commentCount) { onCommentClick() }
         Spacer(Modifier.weight(1f))

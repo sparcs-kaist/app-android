@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.feed.FeedVoteType
 import org.sparcs.soap.app.domain.error.feed.FeedPostUseCaseError
 import org.sparcs.soap.app.domain.helpers.AlertState
@@ -20,7 +21,6 @@ import org.sparcs.soap.app.domain.usecases.feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.app.features.feed.event.FeedPostRowEvent
 import org.sparcs.soap.app.features.feed.event.FeedViewEvent
 import org.sparcs.soap.app.shared.extensions.toAlertState
-import org.sparcs.soap.R
 import timber.log.Timber
 import javax.inject.Inject
 

@@ -232,6 +232,14 @@ class LectureDetailViewModel @Inject constructor(
     }
 
     override fun toggleReviewLike(review: LectureReview) {
+        if (review.id == _writtenReview.value?.id) {
+            alertState = AlertState(
+                titleResId = R.string.warning,
+                messageResId = R.string.review_like_warning
+            )
+            isAlertPresented = true
+            return
+        }
         val currentReviews = _reviews.value
         val isCurrentlyLiked = review.likedByUser
 

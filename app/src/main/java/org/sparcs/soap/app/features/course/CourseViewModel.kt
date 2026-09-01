@@ -134,6 +134,15 @@ class CourseViewModel @Inject constructor(
     override fun toggleReviewLike(review: LectureReview) {
         val currentState = _state.value as? ViewState.Loaded ?: return
 
+        if (review.id == currentState.writtenReview?.id) {
+            alertState = AlertState(
+                titleResId = R.string.warning,
+                messageResId = R.string.review_like_warning
+            )
+            isAlertPresented = true
+            return
+        }
+
         val isCurrentlyLiked = review.likedByUser
         val updatedReviews = currentState.reviews.map { target ->
             if (target.id == review.id) {
