@@ -24,6 +24,7 @@ import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -34,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
@@ -58,15 +58,7 @@ fun SummarizationView(
     LaunchedEffect(state) {
         if (state != SummarizationState.Idle) {
             isExpanded = true
-        }
-        when (state) {
-            SummarizationState.Loading -> {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            }
-            SummarizationState.Idle -> Unit
-            else -> {
-                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-            }
+            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
 
@@ -76,115 +68,122 @@ fun SummarizationView(
         exit = shrinkVertically() + fadeOut(),
         modifier = modifier
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { isExpanded = !isExpanded }
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                SummarizationHeader(
+                    isExpanded = isExpanded,
+                    onToggle = { isExpanded = !isExpanded },
+                    onDismiss = onDismiss
+                )
+
+                AnimatedVisibility(
+                    visible = isExpanded,
+                    enter = expandVertically() + fadeIn(),
+                    exit = shrinkVertically() + fadeOut()
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.AutoAwesome,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.summary),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Icon(
-                        imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.size(24.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-
-            AnimatedVisibility(
-                visible = isExpanded,
-                enter = expandVertically() + fadeIn(),
-                exit = shrinkVertically() + fadeOut()
-            ) {
-                Column(modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)) {
-                    when (state) {
-                        SummarizationState.Idle -> Unit
-
-                        SummarizationState.Loading -> {
-                            SummarizationSkeleton()
-                        }
-
-                        is SummarizationState.Summarized -> {
-                            Text(
-                                text = state.summary,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-
-                        SummarizationState.TooShort -> {
-                            Text(
-                                text = stringResource(R.string.summarization_too_short),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        SummarizationState.Unavailable -> {
-                            Text(
-                                text = stringResource(R.string.summarization_unavailable),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        SummarizationState.Failed -> {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.summarization_failed),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                TextButton(onClick = onRetry) {
-                                    Text(stringResource(R.string.retry))
-                                }
-                            }
-                        }
-                    }
+                    SummarizationContent(state = state, onRetry = onRetry)
                 }
             }
         }
     }
+}
+
+@Composable
+private fun SummarizationHeader(
+    isExpanded: Boolean,
+    onToggle: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clickable { onToggle() }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.AutoAwesome,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = stringResource(R.string.summary),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+            Icon(
+                imageVector = if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        IconButton(
+            onClick = onDismiss,
+            modifier = Modifier.size(24.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "Close",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun SummarizationContent(
+    state: SummarizationState,
+    onRetry: () -> Unit
+) {
+    Box(modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)) {
+        when (state) {
+            SummarizationState.Loading -> SummarizationSkeleton()
+            is SummarizationState.Summarized -> {
+                Text(
+                    text = state.summary,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            SummarizationState.TooShort -> StatusText(stringResource(R.string.summarization_too_short))
+            SummarizationState.Unavailable -> StatusText(stringResource(R.string.summarization_unavailable))
+            SummarizationState.Failed -> {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    StatusText(stringResource(R.string.summarization_failed), Modifier.weight(1f))
+                    TextButton(onClick = onRetry) {
+                        Text(stringResource(R.string.retry))
+                    }
+                }
+            }
+            else -> Unit
+        }
+    }
+}
+
+@Composable
+private fun StatusText(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -204,12 +203,12 @@ fun SummarizationSkeleton() {
     }
 }
 
-@Preview
+@Preview(showBackground = true)
 @Composable
-private fun Preview(){
+private fun PreviewSummarized() {
     Theme {
         SummarizationView(
-            state = SummarizationState.Summarized("This is a summary"),
+            state = SummarizationState.Summarized("This is a concise summary of the content."),
             onRetry = {},
             onDismiss = {}
         )
