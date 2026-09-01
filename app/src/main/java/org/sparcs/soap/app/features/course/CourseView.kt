@@ -113,7 +113,7 @@ fun CourseView(
 @Composable
 private fun CourseLandscapeLayout(
     state: CourseViewModel.ViewState,
-    viewModel: CourseViewModelProtocol
+    viewModel: CourseViewModelProtocol,
 ) {
     Row(
         modifier = Modifier
@@ -147,7 +147,7 @@ private fun CourseLandscapeLayout(
 @Composable
 private fun CoursePortraitLayout(
     state: CourseViewModel.ViewState,
-    viewModel: CourseViewModelProtocol
+    viewModel: CourseViewModelProtocol,
 ) {
     Column(
         modifier = Modifier
@@ -186,6 +186,7 @@ private fun ReviewSection(state: CourseViewModel.ViewState, viewModel: CourseVie
                 viewModel = viewModel
             )
         }
+
         else -> {}
     }
 }
@@ -376,12 +377,12 @@ fun CourseReviewSection(
 
         Column {
             myReview?.let {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column {
                     Text(
                         text = stringResource(R.string.my_review_title),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 4.dp),
+                        modifier = Modifier.padding(4.dp),
                         fontWeight = FontWeight.Bold
                     )
                     LectureReviewCell(
@@ -409,8 +410,10 @@ fun CourseReviewSection(
                             viewModel.hideSummary()
                         }
                     )
-                    Spacer(Modifier.padding(8.dp))
-                    HorizontalDivider(thickness = 0.5.dp)
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
                 }
             }
 
@@ -462,8 +465,21 @@ fun CourseReviewSection(
                 translationTarget = code
                 viewModel.translate(activeReviewContent, code, scope = scope)
             },
-            onRetry = { viewModel.translate(activeReviewContent, translationTarget, scope = scope) },
-            onDownload = { viewModel.translate(activeReviewContent, translationTarget, allowDownload = true, scope = scope) },
+            onRetry = {
+                viewModel.translate(
+                    activeReviewContent,
+                    translationTarget,
+                    scope = scope
+                )
+            },
+            onDownload = {
+                viewModel.translate(
+                    activeReviewContent,
+                    translationTarget,
+                    allowDownload = true,
+                    scope = scope
+                )
+            },
             onDismiss = {
                 showTranslationSheet = false
                 activeReviewId = null
