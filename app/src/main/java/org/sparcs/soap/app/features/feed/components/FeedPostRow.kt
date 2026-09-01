@@ -58,6 +58,7 @@ import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.enums.DeepLinkEventBus
 import org.sparcs.soap.app.domain.enums.feed.FeedVoteType
 import org.sparcs.soap.app.domain.models.feed.FeedPost
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
 import org.sparcs.soap.app.features.fullscreenImage.FullscreenImagesViewer
 import org.sparcs.soap.app.features.post.components.PostCommentButton
@@ -69,6 +70,7 @@ import org.sparcs.soap.app.shared.extensions.timeAgoDisplay
 import org.sparcs.soap.app.shared.extensions.toDetectedAnnotatedString
 import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.mocks.feed.mockList
+import org.sparcs.soap.app.shared.views.contentViews.SummarizationView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.darkGray
 import org.sparcs.soap.app.theme.ui.grayBB
@@ -82,6 +84,9 @@ fun FeedPostRow(
     onPostDeleted: ((String) -> Unit)?,
     onComment: () -> Unit, //post 또는 comment click
     singleLine: Boolean,
+    summarizationState: SummarizationState = SummarizationState.Idle,
+    onRetrySummarize: () -> Unit = {},
+    onDismissSummarize: () -> Unit = {},
 ) {
     var showDeleteConfirmation by remember { mutableStateOf(false) }
     var isHiddenPostExpanded by remember { mutableStateOf(false) }
@@ -98,6 +103,13 @@ fun FeedPostRow(
             isHiddenPostExpanded = isHiddenPostExpanded,
             setShowDelete = { showDeleteConfirmation = it },
             onExpandHiddenPostClick = { isHiddenPostExpanded = true }
+        )
+
+        SummarizationView(
+            state = summarizationState,
+            onRetry = onRetrySummarize,
+            onDismiss = onDismissSummarize,
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
 
         if (post.downVotes < 15 || isHiddenPostExpanded || onPostDeleted == null) {
