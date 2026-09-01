@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,6 +41,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,6 +80,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.enums.DeepLink
+import org.sparcs.soap.app.domain.enums.DeepLinkEventBus
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.ara.AraPostComment
@@ -120,60 +124,34 @@ fun PostView(
     viewModel: PostViewModelProtocol = hiltViewModel<PostViewModel>(),
     navController: NavController,
 ) {
-    val post = viewModel.post.collectAsState().value
-    val context = LocalContext.current
+    val post by viewModel.post.collectAsState()
     val state by viewModel.state.collectAsState()
-    val pullState = rememberPullToRefreshState()
-
-    val scope = rememberCoroutineScope()
-    val proxy = rememberLazyListState()
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusRequester = remember { FocusRequester() }
-
-    var htmlHeight by remember { mutableStateOf(0.dp) }
-    var tappedURL by remember { mutableStateOf<Uri?>(null) }
-    var comment by remember { mutableStateOf("") }
-    var isWritingComment by remember { mutableStateOf(false) }
-    var targetComment by remember { mutableStateOf<AraPostComment?>(null) }
-    var commentOnEdit by remember { mutableStateOf<AraPostComment?>(null) }
-    var isUploadingComment by remember { mutableStateOf(false) }
-    var isRefreshing by remember { mutableStateOf(false) }
-
-    var showDeleteConfirmation by remember { mutableStateOf(false) }
-
     val translationState by viewModel.translationState.collectAsState()
     val summarizationState by viewModel.summarizationState.collectAsState()
-    var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
+    val commentTranslations by viewModel.commentTranslations.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchPost()
-    }
+    val pullState = rememberPullToRefreshState()
+    val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusRequester = remember { FocusRequester() }
+    val lazyListState = rememberLazyListState()
+
+    var commentText by remember { mutableStateOf("") }
+    var targetComment by remember { mutableStateOf<AraPostComment?>(null) }
+    var commentOnEdit by remember { mutableStateOf<AraPostComment?>(null) }
+    var isWritingComment by remember { mutableStateOf(false) }
+    var isUploadingComment by remember { mutableStateOf(false) }
+    var isRefreshing by remember { mutableStateOf(false) }
+    var showDeleteConfirmation by remember { mutableStateOf(false) }
+    var htmlHeight by remember { mutableStateOf(0.dp) }
+
+    var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
+    var activeTranslationItem by remember { mutableStateOf<TranslationItem?>(null) }
+
+    LaunchedEffect(Unit) { viewModel.fetchPost() }
 
     LaunchedEffect(viewModel.isAlertPresented) {
-        if (viewModel.isAlertPresented) {
-            isUploadingComment = false
-        }
-    }
-
-    LaunchedEffect(tappedURL) {
-        tappedURL?.let { uri ->
-            try {
-                val urlString = uri.toString()
-                val finalUri =
-                    if (!urlString.startsWith("http://") && !urlString.startsWith("https://")) {
-                        "http://$urlString".toUri()
-                    } else {
-                        uri
-                    }
-
-                val intent = Intent(Intent.ACTION_VIEW, finalUri)
-                context.startActivity(intent)
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to open URL: $tappedURL")
-            } finally {
-                tappedURL = null
-            }
-        }
+        if (viewModel.isAlertPresented) isUploadingComment = false
     }
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
@@ -186,84 +164,64 @@ fun PostView(
                 boardGroup = post?.board?.group?.name?.localized() ?: "",
                 onClick = { navController.popBackStack() },
                 onDelete = { showDeleteConfirmation = true },
-                onReport = { type ->
-                    viewModel.report(type)
-                },
+                onReport = { viewModel.report(it) },
                 onTranslate = {
+                    viewModel.hideSummary()
                     translationTarget = viewModel.defaultTranslationLanguage()
+                    activeTranslationItem = TranslationItem.Post
                     viewModel.translatePost(translationTarget)
                 },
-                onSummarize = { viewModel.summarizePost() },
+                onSummarize = {
+                    viewModel.showOriginal()
+                    activeTranslationItem = null
+                    viewModel.summarizePost()
+                },
                 isMine = post?.isMine,
                 scrollBehavior = topBarScrollBehavior
             )
         },
         bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
-                    .navigationBarsPadding(),
-                contentAlignment = Alignment.Center
-            ) {
-                Box(modifier = Modifier.widthIn(max = 600.dp)) {
-                    InputBar(
-                        comment = comment,
-                        onCommentChange = { comment = it },
-                        isWritingComment = isWritingComment,
-                        onWritingCommentChange = {
-                            isWritingComment = it
-                            commentOnEdit = null
-                            comment = ""
-                        },
-                        commentOnEdit = commentOnEdit,
-                        isUploadingComment = isUploadingComment,
-                        onUploadComment = {
-                            scope.launch {
-                                isUploadingComment = true
+            PostInputBottomBar(
+                comment = commentText,
+                onCommentChange = { commentText = it },
+                isWritingComment = isWritingComment,
+                onWritingCommentChange = {
+                    isWritingComment = it; commentOnEdit = null; commentText = ""
+                },
+                commentOnEdit = commentOnEdit,
+                isUploadingComment = isUploadingComment,
+                onUploadComment = {
+                    scope.launch {
+                        isUploadingComment = true
+                        val success = when {
+                            commentOnEdit != null -> viewModel.editComment(
+                                commentOnEdit!!.id,
+                                commentText
+                            ) != null
 
-                                try {
-                                    val isSuccess = when {
-                                        commentOnEdit != null -> {
-                                            viewModel.editComment(
-                                                commentOnEdit!!.id,
-                                                comment
-                                            ) != null
-                                        }
+                            targetComment != null -> viewModel.writeThreadedComment(
+                                targetComment!!.id,
+                                commentText
+                            ) != null
 
-                                        targetComment != null -> {
-                                            viewModel.writeThreadedComment(
-                                                targetComment!!.id,
-                                                comment
-                                            ) != null
-                                        }
-
-                                        else -> {
-                                            viewModel.writeComment(comment)
-                                            true
-                                        }
-                                    }
-
-                                    if (isSuccess) {
-                                        comment = ""
-                                        targetComment = null
-                                        commentOnEdit = null
-                                        keyboardController?.hide()
-
-                                        proxy.animateScrollToItem(proxy.layoutInfo.totalItemsCount)
-                                    }
-                                } catch (_: Exception) {
-                                } finally {
-                                    isUploadingComment = false
-                                }
+                            else -> {
+                                viewModel.writeComment(commentText); true
                             }
-                        },
-                        profilePicture = { ProfilePicture(post, true) },
-                        placeholder = placeholder(viewModel, targetComment, commentOnEdit),
-                        focusRequester = focusRequester
-                    )
-                }
-            }
+                        }
+                        if (success) {
+                            commentText = ""
+                            targetComment = null
+                            commentOnEdit = null
+                            keyboardController?.hide()
+                            lazyListState.animateScrollToItem(lazyListState.layoutInfo.totalItemsCount)
+                        }
+                        isUploadingComment = false
+                    }
+                },
+                post = post,
+                placeholder = placeholder(viewModel, targetComment, commentOnEdit),
+                focusRequester = focusRequester
+            )
         },
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
@@ -274,150 +232,113 @@ fun PostView(
             ),
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        if (state is PostViewModel.ViewState.Error) {
-            ErrorView(
-                error = (state as PostViewModel.ViewState.Error).error,
-                onRetry = { scope.launch { viewModel.fetchPost() } }
-            )
-        } else {
-            PullToRefreshBox(
-                isRefreshing = isRefreshing,
-                onRefresh = {
-                    isRefreshing = true
+        PostMainContent(
+            innerPadding = innerPadding,
+            state = state,
+            post = post,
+            isRefreshing = isRefreshing,
+            onRefresh = {
+                isRefreshing = true
+                scope.launch { 
+                    viewModel.fetchPost()
+                    delay(500)
+                    isRefreshing = false
+                }
+            },
+            pullState = pullState,
+            lazyListState = lazyListState,
+            htmlHeight = htmlHeight,
+            onHtmlHeightChange = { htmlHeight = it },
+            summarizationState = summarizationState,
+            viewModel = viewModel,
+            focusRequester = focusRequester,
+            keyboardController = keyboardController,
+            onCommentUpdate = { update ->
+                targetComment = update.targetComment
+                commentOnEdit = update.commentOnEdit
+                commentText = update.comment
+            },
+            onTranslateComment = { comment ->
+                activeTranslationItem = TranslationItem.Comment(comment.id, comment.content ?: "")
+                translationTarget = viewModel.defaultTranslationLanguage()
+                viewModel.translateComment(comment.id, comment.content ?: "", translationTarget)
+            },
+            navController = navController
+        )
+
+        if (showDeleteConfirmation) {
+            PostDeleteDialog(
+                onDismiss = { showDeleteConfirmation = false },
+                onConfirm = {
+                    showDeleteConfirmation = false
                     scope.launch {
-                        viewModel.fetchPost()
-                        delay(500)
-                        isRefreshing = false
-                    }
-                },
-                state = pullState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-            ) {
-                LazyColumn(
-                    state = proxy,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .widthIn(max = 600.dp)
-                        .align(Alignment.TopCenter),
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
-                ) {
-                    item {
-                        if (post == null) {
-                            HeaderSkeleton()
-                        } else {
-                            Header(
-                                post = post,
-                                onAuthorClick = {
-                                    val json = Uri.encode(Gson().toJson(post.author))
-                                    navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
-                                }
+                        if (viewModel.deletePost()) {
+                            navController.previousBackStackEntry?.savedStateHandle?.set(
+                                "listNeedsRefresh",
+                                true
                             )
-                        }
-                    }
-                    item {
-                        Content(
-                            postId = viewModel.postId,
-                            htmlHeight = htmlHeight,
-                            onHtmlHeightChange = { htmlHeight = it },
-                            onLinkTapped = { tappedURL = it.toUri() },
-                            summarizationState = summarizationState,
-                            onRetrySummarize = { viewModel.summarizePost() },
-                            onDismissSummarize = { viewModel.hideSummary() }
-                        )
-                    }
-                    if (post != null && !post.attachments.isNullOrEmpty()) {
-                        item {
-                            PostAttachmentsSection(attachments = post.attachments)
-                            Spacer(modifier = Modifier.height(8.dp))
-                        }
-                    }
-                    item {
-                        if (post == null) {
-                            FooterSkeleton()
-                        } else {
-                            Footer(viewModel, scope = scope, post = post) {
-                                targetComment = null
-                                focusRequester.requestFocus()
-                                keyboardController?.show()
-                            }
-                        }
-                    }
-                    if (post == null) {
-                        items(2) { CommentSkeleton() }
-                    } else {
-                        item {
-                            Comments(
-                                post = post,
-                                onCommentChange = { update ->
-                                    targetComment = update.targetComment
-                                    commentOnEdit = update.commentOnEdit
-                                    comment = update.comment
-                                },
-                                viewModel = viewModel,
-                                focusRequester = focusRequester,
-                                keyboardController = keyboardController,
-                                translationTarget = translationTarget,
-                                onTranslationTargetChange = { translationTarget = it }
-                            )
+                            navController.popBackStack()
                         }
                     }
                 }
-            }
-        }
-
-        if (showDeleteConfirmation) {
-            AlertDialog(
-                onDismissRequest = { showDeleteConfirmation = false },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            showDeleteConfirmation = false
-
-                            scope.launch {
-                                val success = viewModel.deletePost()
-                                if (success) {
-                                    navController.previousBackStackEntry
-                                        ?.savedStateHandle?.set("listNeedsRefresh", true)
-                                    navController.popBackStack()
-
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.delete),
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                },
-                title = {
-                    Text(
-                        text = stringResource(R.string.delete_post),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
-                containerColor = MaterialTheme.colorScheme.background
-
             )
         }
 
-        if (translationState !is TranslationState.Idle) {
+        activeTranslationItem?.let { item ->
+            val currentSheetState = when (item) {
+                TranslationItem.Post -> translationState
+                is TranslationItem.Comment -> commentTranslations[item.id.toString()]
+                    ?: TranslationState.Idle
+            }
+
             PostTranslationSheet(
-                state = translationState,
+                state = currentSheetState,
                 targetLanguage = translationTarget,
                 languages = viewModel.translationLanguages(),
                 suggested = viewModel.suggestedTranslationLanguages(),
                 onTargetChange = { code ->
                     translationTarget = code
-                    viewModel.translatePost(code)
+                    when (item) {
+                        TranslationItem.Post -> viewModel.translatePost(code)
+                        is TranslationItem.Comment -> viewModel.translateComment(
+                            item.id,
+                            item.content,
+                            code
+                        )
+                    }
                 },
-                onRetry = { viewModel.translatePost(translationTarget) },
-                onDownload = { viewModel.translatePost(translationTarget, allowDownload = true) },
-                onDismiss = { viewModel.showOriginal() }
+                onRetry = {
+                    when (item) {
+                        TranslationItem.Post -> viewModel.translatePost(translationTarget)
+                        is TranslationItem.Comment -> viewModel.translateComment(
+                            item.id,
+                            item.content,
+                            translationTarget
+                        )
+                    }
+                },
+                onDownload = {
+                    when (item) {
+                        TranslationItem.Post -> viewModel.translatePost(
+                            translationTarget,
+                            allowDownload = true
+                        )
+
+                        is TranslationItem.Comment -> viewModel.translateComment(
+                            item.id,
+                            item.content,
+                            translationTarget,
+                            allowDownload = true
+                        )
+                    }
+                },
+                onDismiss = {
+                    when (item) {
+                        TranslationItem.Post -> viewModel.showOriginal()
+                        is TranslationItem.Comment -> viewModel.showCommentOriginal(item.id)
+                    }
+                    activeTranslationItem = null
+                }
             )
         }
 
@@ -429,223 +350,157 @@ fun PostView(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Header(
-    post: AraPost,
-    onAuthorClick: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = title(post),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = post.createdAt.formattedString(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
-            )
-            Text(
-                text = stringResource(R.string.views, post.views),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
-            )
-        }
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = if (post.author.username != "익명" && post.author.username != "Anonymous") {
-                Modifier.clickable { onAuthorClick() }
-            } else {
-                Modifier
-            }
-        ) {
-            ProfilePicture(post, false)
-            Text(
-                text = post.author.profile.nickname,
-                fontWeight = FontWeight.Medium,
-                style = MaterialTheme.typography.bodySmall
-            )
-            if (post.author.username != "익명" && post.author.username != "Anonymous") {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                    contentDescription = null,
-                    modifier = Modifier.size(15.dp)
-                )
-            }
-        }
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-            thickness = 0.5.dp
-        )
-    }
-}
-
-@Composable
-private fun Content(
-    postId: Int,
+private fun PostMainContent(
+    innerPadding: PaddingValues,
+    state: PostViewModel.ViewState,
+    post: AraPost?,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
+    pullState: PullToRefreshState,
+    lazyListState: LazyListState,
     htmlHeight: Dp,
     onHtmlHeightChange: (Dp) -> Unit,
-    onLinkTapped: (String) -> Unit,
-    summarizationState: SummarizationState = SummarizationState.Idle,
-    onRetrySummarize: () -> Unit = {},
-    onDismissSummarize: () -> Unit = {},
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier.padding(vertical = 8.dp)
-    ) {
-        SummarizationView(
-            state = summarizationState,
-            onRetry = onRetrySummarize,
-            onDismiss = onDismissSummarize,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        DynamicHeightWebView(
-            url = "${Constants.ARA_BACKEND_URL}users/exchange/?next=/web_view/PostFrame/$postId",
-            modifier = Modifier
-                .height(htmlHeight)
-                .fillMaxWidth(),
-            onHeightChanged = { pxHeight ->
-                onHtmlHeightChange(pxHeight.dp)
-            },
-            onLinkTapped = onLinkTapped
-        )
-    }
-}
-
-@Composable
-private fun Footer(
-    viewModel: PostViewModelProtocol,
-    scope: CoroutineScope,
-    post: AraPost,
-    onCommentClick: () -> Unit,
-) {
-    val context = LocalContext.current
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        PostVoteButton(
-            myVote = post.myVote,
-            votes = post.upVotes - post.downVotes,
-            onUpVote = { scope.launch { viewModel.upVote() } },
-            onDownVote = { scope.launch { viewModel.downVote() } },
-            enabled = post.isMine == false
-        )
-        PostCommentButton(commentCount = post.commentCount) { onCommentClick() }
-        Spacer(Modifier.weight(1f))
-        PostBookmarkButton(
-            post.myScrap,
-            onToggleBookmark = { scope.launch { viewModel.toggleBookmark() } })
-        PostShareButton(url = Constants.ARA_SHARE_URL + post.id.toString(), context = context)
-    }
-}
-
-@Composable
-private fun Comments(
-    post: AraPost,
-    onCommentChange: (CommentUpdate) -> Unit,
+    summarizationState: SummarizationState,
     viewModel: PostViewModelProtocol,
     focusRequester: FocusRequester,
     keyboardController: SoftwareKeyboardController?,
-    translationTarget: String,
-    onTranslationTargetChange: (String) -> Unit,
+    onCommentUpdate: (CommentUpdate) -> Unit,
+    onTranslateComment: (AraPostComment) -> Unit,
+    navController: NavController,
 ) {
-    val scope = rememberCoroutineScope()
-    val commentTranslations by viewModel.commentTranslations.collectAsState()
-    var activeComment by remember { mutableStateOf<AraPostComment?>(null) }
-
-    Box(
-        modifier = Modifier
-            .padding(top = 4.dp)
-            .animateContentSize()
-    ) {
-        PostCommentsSection(
-            comments = post.comments,
-            onReply = { selectedComment ->
-                onCommentChange(
-                    CommentUpdate(
-                        targetComment = selectedComment,
-                        commentOnEdit = null,
-                        comment = ""
-                    )
-                )
-                focusRequester.requestFocus()
-                keyboardController?.show()
-            },
-            onCommentDeleted = {
-                post.commentCount -= 1
-            },
-            onEdit = { selectedComment ->
-                onCommentChange(
-                    CommentUpdate(
-                        targetComment = null,
-                        commentOnEdit = selectedComment,
-                        comment = selectedComment.content ?: ""
-                    )
-                )
-                focusRequester.requestFocus()
-                keyboardController?.show()
-            },
-            onUpVote = { target ->
-                scope.launch { viewModel.upVoteComment(target) }
-            },
-            onDownVote = { target ->
-                scope.launch { viewModel.downVoteComment(target) }
-            },
-            onReport = { commentID, type ->
-                scope.launch {
-                    viewModel.reportComment(commentID, type)
-                }
-            },
-            onDeleteComment = { target ->
-                scope.launch { viewModel.deleteComment(target) }
-            },
-            onTranslateComment = { c ->
-                activeComment = c
-                onTranslationTargetChange(viewModel.defaultTranslationLanguage())
-                viewModel.translateComment(c.id.toString(), c.content ?: "", viewModel.defaultTranslationLanguage(), scope = scope)
-            }
-        )
+    if (state is PostViewModel.ViewState.Error) {
+        ErrorView(error = state.error, onRetry = onRefresh)
+        return
     }
 
-    activeComment?.let { c ->
-        PostTranslationSheet(
-            state = commentTranslations[c.id.toString()] ?: TranslationState.Loading,
-            targetLanguage = translationTarget,
-            languages = viewModel.translationLanguages(),
-            suggested = viewModel.suggestedTranslationLanguages(),
-            onTargetChange = { code ->
-                onTranslationTargetChange(code)
-                viewModel.translateComment(c.id.toString(), c.content ?: "", code, scope = scope)
-            },
-            onRetry = { viewModel.translateComment(c.id.toString(), c.content ?: "", translationTarget, scope = scope) },
-            onDownload = {
-                viewModel.translateComment(
-                    c.id.toString(),
-                    c.content ?: "",
-                    translationTarget,
-                    allowDownload = true,
-                    scope = scope
-                )
-            },
-            onDismiss = {
-                viewModel.showCommentOriginal(c.id)
-                activeComment = null
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    PullToRefreshBox(
+        isRefreshing = isRefreshing,
+        onRefresh = onRefresh,
+        state = pullState,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+    ) {
+        LazyColumn(
+            state = lazyListState,
+            modifier = Modifier
+                .fillMaxSize()
+                .widthIn(max = 600.dp)
+                .align(Alignment.TopCenter),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
+        ) {
+            item {
+                if (post == null) HeaderSkeleton()
+                else PostHeader(post = post, onAuthorClick = {
+                    val json = Uri.encode(Gson().toJson(post.author))
+                    navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
+                })
             }
-        )
+
+            item {
+                PostContent(
+                    postId = viewModel.postId,
+                    htmlHeight = htmlHeight,
+                    onHtmlHeightChange = onHtmlHeightChange,
+                    onLinkTapped = { url ->
+                        val uri = url.toUri()
+                        val deepLink = DeepLink.fromUri(uri)
+                        if (deepLink != null) {
+                            scope.launch { DeepLinkEventBus.post(deepLink) }
+                        } else {
+                            try {
+                                val finalUri =
+                                    if (!url.startsWith("http://") && !url.startsWith("https://")) "http://$url".toUri() else uri
+                                context.startActivity(Intent(Intent.ACTION_VIEW, finalUri))
+                            } catch (e: Exception) {
+                                Timber.e(e, "Failed to open URL: $url")
+                            }
+                        }
+                    },
+                    summarizationState = summarizationState,
+                    onRetrySummarize = { viewModel.summarizePost() },
+                    onDismissSummarize = { viewModel.hideSummary() }
+                )
+            }
+
+            if (post != null && !post.attachments.isNullOrEmpty()) {
+                item {
+                    PostAttachmentsSection(attachments = post.attachments)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+
+            item {
+                if (post == null) FooterSkeleton()
+                else PostFooter(viewModel, scope = rememberCoroutineScope(), post = post) {
+                    onCommentUpdate(CommentUpdate(targetComment = null))
+                    focusRequester.requestFocus()
+                    keyboardController?.show()
+                }
+            }
+
+            if (post == null) {
+                items(2) { CommentSkeleton() }
+            } else {
+                item {
+                    CommentsSection(
+                        post = post,
+                        viewModel = viewModel,
+                        focusRequester = focusRequester,
+                        keyboardController = keyboardController,
+                        onCommentUpdate = onCommentUpdate,
+                        onTranslateComment = onTranslateComment
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun InputBar(
+private fun PostInputBottomBar(
+    comment: String,
+    onCommentChange: (String) -> Unit,
+    isWritingComment: Boolean,
+    onWritingCommentChange: (Boolean) -> Unit,
+    commentOnEdit: AraPostComment?,
+    isUploadingComment: Boolean,
+    onUploadComment: () -> Unit,
+    post: AraPost?,
+    placeholder: String,
+    focusRequester: FocusRequester,
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.background)
+            .navigationBarsPadding(),
+        contentAlignment = Alignment.Center
+    ) {
+        Box(modifier = Modifier.widthIn(max = 600.dp)) {
+            PostInputBar(
+                comment = comment,
+                onCommentChange = onCommentChange,
+                isWritingComment = isWritingComment,
+                onWritingCommentChange = onWritingCommentChange,
+                commentOnEdit = commentOnEdit,
+                isUploadingComment = isUploadingComment,
+                onUploadComment = onUploadComment,
+                profilePicture = { ProfilePicture(post, true) },
+                placeholder = placeholder,
+                focusRequester = focusRequester
+            )
+        }
+    }
+}
+
+@Composable
+private fun PostInputBar(
     comment: String,
     onCommentChange: (String) -> Unit,
     isWritingComment: Boolean,
@@ -657,9 +512,7 @@ private fun InputBar(
     placeholder: String,
     focusRequester: FocusRequester,
 ) {
-    val isWritingState by remember { mutableStateOf(isWritingComment) }
-
-    val showProfile = (!isWritingState && comment.isEmpty())
+    val showProfile = (!isWritingComment && comment.isEmpty())
 
     Row(
         modifier = Modifier
@@ -668,7 +521,6 @@ private fun InputBar(
             .padding(8.dp),
         verticalAlignment = Alignment.Bottom
     ) {
-        // comment textfield
         Column(Modifier.weight(1f)) {
             if (commentOnEdit != null) {
                 Row(
@@ -682,14 +534,8 @@ private fun InputBar(
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    TextButton(onClick = {
-                        onCommentChange("")
-                        onWritingCommentChange(false)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Cancel"
-                        )
+                    TextButton(onClick = { onCommentChange(""); onWritingCommentChange(false) }) {
+                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
                     }
                 }
             }
@@ -707,9 +553,7 @@ private fun InputBar(
                 ) {
                     BasicTextField(
                         value = comment,
-                        onValueChange = {
-                            onCommentChange(it)
-                        },
+                        onValueChange = { onCommentChange(it) },
                         modifier = Modifier.focusRequester(focusRequester),
                         maxLines = 6,
                         textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
@@ -740,12 +584,9 @@ private fun InputBar(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Send Button
         MoveToLeftFadeIn(!showProfile) {
             Button(
-                onClick = {
-                    onUploadComment()
-                },
+                onClick = onUploadComment,
                 enabled = !isUploadingComment && comment.isNotEmpty(),
                 shape = CircleShape,
                 contentPadding = PaddingValues(0.dp),
@@ -771,10 +612,172 @@ private fun InputBar(
 }
 
 @Composable
-private fun ProfilePicture(
-    post: AraPost?,
-    isMe: Boolean,
+private fun PostDeleteDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                Text(
+                    text = stringResource(R.string.delete),
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        title = { Text(text = stringResource(R.string.delete_post), fontWeight = FontWeight.Bold) },
+        text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
+        containerColor = MaterialTheme.colorScheme.background
+    )
+}
+
+@Composable
+private fun CommentsSection(
+    post: AraPost,
+    viewModel: PostViewModelProtocol,
+    focusRequester: FocusRequester,
+    keyboardController: SoftwareKeyboardController?,
+    onCommentUpdate: (CommentUpdate) -> Unit,
+    onTranslateComment: (AraPostComment) -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
+    Box(
+        modifier = Modifier
+            .padding(top = 4.dp)
+            .animateContentSize()
+    ) {
+        PostCommentsSection(
+            comments = post.comments,
+            onReply = { c -> onCommentUpdate(CommentUpdate(targetComment = c)); focusRequester.requestFocus(); keyboardController?.show() },
+            onCommentDeleted = { post.commentCount -= 1 },
+            onEdit = { c ->
+                onCommentUpdate(
+                    CommentUpdate(
+                        commentOnEdit = c,
+                        comment = c.content ?: ""
+                    )
+                ); focusRequester.requestFocus(); keyboardController?.show()
+            },
+            onUpVote = { scope.launch { viewModel.upVoteComment(it) } },
+            onDownVote = { scope.launch { viewModel.downVoteComment(it) } },
+            onReport = { id, type -> scope.launch { viewModel.reportComment(id, type) } },
+            onDeleteComment = { scope.launch { viewModel.deleteComment(it) } },
+            onTranslateComment = onTranslateComment
+        )
+    }
+}
+
+@Composable
+private fun PostHeader(post: AraPost, onAuthorClick: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = title(post),
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = post.createdAt.formattedString(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.grayBB
+            )
+            Text(
+                text = stringResource(R.string.views, post.views),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.grayBB
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = if (post.author.username != "익명" && post.author.username != "Anonymous") Modifier.clickable { onAuthorClick() } else Modifier
+        ) {
+            ProfilePicture(post, false)
+            Text(
+                text = post.author.profile.nickname,
+                fontWeight = FontWeight.Medium,
+                style = MaterialTheme.typography.bodySmall
+            )
+            if (post.author.username != "익명" && post.author.username != "Anonymous") {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                    contentDescription = null,
+                    modifier = Modifier.size(15.dp)
+                )
+            }
+        }
+        HorizontalDivider(
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+            thickness = 0.5.dp
+        )
+    }
+}
+
+@Composable
+private fun PostContent(
+    postId: Int,
+    htmlHeight: Dp,
+    onHtmlHeightChange: (Dp) -> Unit,
+    onLinkTapped: (String) -> Unit,
+    summarizationState: SummarizationState,
+    onRetrySummarize: () -> Unit,
+    onDismissSummarize: () -> Unit,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(vertical = 8.dp)
+    ) {
+        SummarizationView(
+            state = summarizationState,
+            onRetry = onRetrySummarize,
+            onDismiss = onDismissSummarize,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+        DynamicHeightWebView(
+            url = "${Constants.ARA_BACKEND_URL}users/exchange/?next=/web_view/PostFrame/$postId",
+            modifier = Modifier
+                .height(htmlHeight)
+                .fillMaxWidth(),
+            onHeightChanged = { onHtmlHeightChange(it.dp) },
+            onLinkTapped = onLinkTapped
+        )
+    }
+}
+
+@Composable
+private fun PostFooter(
+    viewModel: PostViewModelProtocol,
+    scope: CoroutineScope,
+    post: AraPost,
+    onCommentClick: () -> Unit,
+) {
+    val context = LocalContext.current
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        PostVoteButton(
+            myVote = post.myVote,
+            votes = post.upVotes - post.downVotes,
+            onUpVote = { scope.launch { viewModel.upVote() } },
+            onDownVote = { scope.launch { viewModel.downVote() } },
+            enabled = post.isMine == false
+        )
+        PostCommentButton(commentCount = post.commentCount) { onCommentClick() }
+        Spacer(Modifier.weight(1f))
+        PostBookmarkButton(
+            post.myScrap,
+            onToggleBookmark = { scope.launch { viewModel.toggleBookmark() } })
+        PostShareButton(url = Constants.ARA_SHARE_URL + post.id.toString(), context = context)
+    }
+}
+
+@Composable
+private fun ProfilePicture(post: AraPost?, isMe: Boolean) {
     if (post == null) return
     val profileUrl =
         if (isMe) post.myCommentProfile?.profile?.profilePictureURL else post.author.profile.profilePictureURL
@@ -805,12 +808,9 @@ private fun title(post: AraPost): AnnotatedString {
                 style = SpanStyle(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary
-                ),
-                start = 0,
-                end = topicText.length
+                ), start = 0, end = topicText.length
             )
         }
-
         val postTitle = post.title ?: stringResource(R.string.untitled)
         val startIndex = length
         append(postTitle)
@@ -818,9 +818,7 @@ private fun title(post: AraPost): AnnotatedString {
             style = SpanStyle(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
-            ),
-            start = startIndex,
-            end = length
+            ), start = startIndex, end = length
         )
     }
 }
@@ -838,15 +836,17 @@ fun placeholder(
         )
 
         commentOnEdit != null -> commentOnEdit.content.orEmpty()
-        else -> {
-            val anonymousName = stringResource(R.string.anonymous)
-            stringResource(
-                R.string.reply_as,
-                viewModel.post.value?.myCommentProfile?.profile?.nickname?.postfixEuroRo()
-                    ?: anonymousName.postfixEuroRo()
-            )
-        }
+        else -> stringResource(
+            R.string.reply_as,
+            viewModel.post.value?.myCommentProfile?.profile?.nickname?.postfixEuroRo()
+                ?: stringResource(R.string.anonymous).postfixEuroRo()
+        )
     }
+}
+
+sealed class TranslationItem {
+    data object Post : TranslationItem()
+    data class Comment(val id: Int, val content: String) : TranslationItem()
 }
 
 data class CommentUpdate(
