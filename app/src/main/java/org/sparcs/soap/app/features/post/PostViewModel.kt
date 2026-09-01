@@ -137,6 +137,14 @@ class PostViewModel @Inject constructor(
 
     override fun upVote() {
         val currentPost = _post.value ?: return
+        if (currentPost.isMine == true) {
+            alertState = AlertState(
+                titleResId = R.string.warning,
+                messageResId = R.string.post_vote_warning
+            )
+            isAlertPresented = true
+            return
+        }
         val previousMyVote = currentPost.myVote
         val previousUpVotes = currentPost.upVotes
         val previousDownVotes = currentPost.downVotes
@@ -180,6 +188,14 @@ class PostViewModel @Inject constructor(
 
     override fun downVote() {
         val currentPost = _post.value ?: return
+        if (currentPost.isMine == true) {
+            alertState = AlertState(
+                titleResId = R.string.warning,
+                messageResId = R.string.post_vote_warning
+            )
+            isAlertPresented = true
+            return
+        }
         val previousMyVote = currentPost.myVote
         val previousUpVotes = currentPost.upVotes
         val previousDownVotes = currentPost.downVotes
@@ -355,6 +371,14 @@ class PostViewModel @Inject constructor(
     // MARK: - Comment Operations
     override fun upVoteComment(comment: AraPostComment) {
         val currentPost = _post.value ?: return
+        if (comment.isMine == true) {
+            alertState = AlertState(
+                titleResId = R.string.warning,
+                messageResId = R.string.comment_vote_warning
+            )
+            isAlertPresented = true
+            return
+        }
         val previousMyVote = comment.myVote
         val previousUpVotes = comment.upVotes
         val previousDownVotes = comment.downVotes
@@ -386,6 +410,14 @@ class PostViewModel @Inject constructor(
 
     override fun downVoteComment(comment: AraPostComment) {
         val currentPost = _post.value ?: return
+        if (comment.isMine == true) {
+            alertState = AlertState(
+                titleResId = R.string.warning,
+                messageResId = R.string.comment_vote_warning
+            )
+            isAlertPresented = true
+            return
+        }
         val previousMyVote = comment.myVote
         val previousUpVotes = comment.upVotes
         val previousDownVotes = comment.downVotes

@@ -204,6 +204,8 @@
     <string name="confirm">Confirm</string>
     <string name="warning">Warning</string>
     <string name="review_like_warning">Liking your own review is not allowed.</string>
+    <string name="post_vote_warning">Voting on your own post is not allowed.</string>
+    <string name="comment_vote_warning">Voting on your own comment is not allowed.</string>
     <string name="nickname_change_confirmation">
     Nicknames can only be changed every 3 months. Change nickname to %1$s?
     </string>

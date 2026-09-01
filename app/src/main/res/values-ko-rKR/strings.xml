@@ -184,6 +184,8 @@
     <string name="confirm">확인</string>
     <string name="warning">경고</string>
     <string name="review_like_warning">본인이 작성한 리뷰에는 좋아요를 누를 수 없습니다.</string>
+    <string name="post_vote_warning">본인이 작성한 게시글에는 투표할 수 없습니다.</string>
+    <string name="comment_vote_warning">본인이 작성한 댓글에는 투표할 수 없습니다.</string>
     <string name="nickname_change_confirmation">
     닉네임은 3개월에 한 번만 변경할 수 있습니다. 닉네임을 %1$s로 변경하시겠습니까?
     </string>

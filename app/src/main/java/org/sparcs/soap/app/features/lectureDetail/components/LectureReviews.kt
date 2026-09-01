@@ -14,13 +14,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.RateReview
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -73,7 +71,6 @@ fun LectureReviews(
     val translationState by viewModel.translationState.collectAsState()
     val summarizationState by viewModel.summarizationState.collectAsState()
 
-    var showOwnReviewLikeAlert by remember { mutableStateOf(false) }
     var showTranslationSheet by remember { mutableStateOf(false) }
     var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
     var activeReview by remember { mutableStateOf<LectureReview?>(null) }
@@ -102,10 +99,7 @@ fun LectureReviews(
             summarizationState = summarizationState,
             showTranslationSheet = showTranslationSheet,
             activeReview = activeReview,
-            onLikeClick = { review ->
-                if (review.id == writtenReview?.id) showOwnReviewLikeAlert = true
-                else viewModel.toggleReviewLike(review)
-            },
+            onLikeClick = { review -> viewModel.toggleReviewLike(review) },
             onTranslate = { review ->
                 viewModel.hideSummary()
                 activeReview = review
@@ -126,10 +120,6 @@ fun LectureReviews(
             },
             onRetryFetch = { viewModel.fetchReviews(lecture) }
         )
-
-        if (showOwnReviewLikeAlert) {
-            OwnReviewLikeWarningDialog(onDismiss = { showOwnReviewLikeAlert = false })
-        }
 
         if (showTranslationSheet) {
             PostTranslationSheet(
@@ -270,21 +260,6 @@ private fun MyReviewLabel() {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(start = 4.dp, bottom = 4.dp),
         fontWeight = FontWeight.Bold
-    )
-}
-
-@Composable
-private fun OwnReviewLikeWarningDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.warning)) },
-        text = { Text(text = stringResource(R.string.review_like_warning)) },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.confirm))
-            }
-        },
-        containerColor = MaterialTheme.colorScheme.background,
     )
 }
 

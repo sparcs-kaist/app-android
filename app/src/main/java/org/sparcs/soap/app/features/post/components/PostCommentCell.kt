@@ -396,7 +396,7 @@ private fun PostCommentFooter(
                         onDownVote()
                     }
                 },
-                enabled = comment.isMine != true,
+                enabled = true, //Post 자추 불가능
                 isCompact = true
             )
         }
