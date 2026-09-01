@@ -368,7 +368,6 @@ private fun PostCommentFooter(
     onDownVote: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
-    var commentState by remember { mutableStateOf(comment) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -385,8 +384,8 @@ private fun PostCommentFooter(
 
         if (!isDeleted) {
             PostVoteButton(
-                myVote = commentState.myVote,
-                votes = commentState.upVotes - commentState.downVotes,
+                myVote = comment.myVote,
+                votes = comment.upVotes - comment.downVotes,
                 onUpVote = {
                     scope.launch {
                         onUpVote()
@@ -397,7 +396,7 @@ private fun PostCommentFooter(
                         onDownVote()
                     }
                 },
-                enabled = commentState.isMine != true,
+                enabled = comment.isMine != true,
                 isCompact = true
             )
         }

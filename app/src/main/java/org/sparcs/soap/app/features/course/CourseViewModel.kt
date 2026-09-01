@@ -24,9 +24,10 @@ import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCaseProtocol
 import org.sparcs.soap.app.features.course.event.CourseViewEvent
 import org.sparcs.soap.app.shared.extensions.toAlertState
+import org.sparcs.soap.app.shared.viewModels.TextProcessingProtocol
 import javax.inject.Inject
 
-interface CourseViewModelProtocol {
+interface CourseViewModelProtocol : TextProcessingProtocol {
     val state: StateFlow<CourseViewModel.ViewState>
 
     val alertState: AlertState?
@@ -42,8 +43,9 @@ class CourseViewModel @Inject constructor(
     private val reviewUseCase: ReviewUseCaseProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
+    private val textProcessingDelegate: TextProcessingProtocol,
     savedStateHandle: SavedStateHandle,
-) : ViewModel(), CourseViewModelProtocol {
+) : ViewModel(), CourseViewModelProtocol, TextProcessingProtocol by textProcessingDelegate {
 
     sealed class ViewState {
         data object Loading : ViewState()

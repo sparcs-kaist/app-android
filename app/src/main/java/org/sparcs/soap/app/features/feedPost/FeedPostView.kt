@@ -62,7 +62,6 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.feed.FeedComment
 import org.sparcs.soap.app.domain.models.feed.FeedPost
-import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.feed.FeedViewModel
 import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
@@ -80,7 +79,6 @@ import org.sparcs.soap.app.shared.mocks.feed.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
-import org.sparcs.soap.app.shared.views.contentViews.PostSummarizationSheet
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.lightGray0
@@ -240,7 +238,10 @@ private fun FeedPostContent(
                         onComment = {
                             targetComment = null
                             isWritingCommentFocusState = true
-                        }
+                        },
+                        summarizationState = summarizationState,
+                        onRetrySummarize = { viewModel.summarizePost() },
+                        onDismissSummarize = { viewModel.hideSummary() }
                     )
                 }
 
@@ -305,14 +306,6 @@ private fun FeedPostContent(
                 onRetry = { viewModel.translatePost(translationTarget) },
                 onDownload = { viewModel.translatePost(translationTarget, allowDownload = true) },
                 onDismiss = { viewModel.showOriginal() }
-            )
-        }
-
-        if (summarizationState !is SummarizationState.Idle) {
-            PostSummarizationSheet(
-                state = summarizationState,
-                onRetry = { viewModel.summarizePost() },
-                onDismiss = { viewModel.hideSummary() }
             )
         }
     }

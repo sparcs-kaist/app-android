@@ -26,6 +26,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -41,6 +45,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.LectureReviewPage
+import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.course.components.CourseNavigationBar
 import org.sparcs.soap.app.features.course.components.CourseReviewSectionSkeleton
 import org.sparcs.soap.app.features.course.components.CourseSummarySkeleton
@@ -51,6 +56,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
+import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCourseViewModel
@@ -107,7 +113,7 @@ fun CourseView(
 @Composable
 private fun CourseLandscapeLayout(
     state: CourseViewModel.ViewState,
-    viewModel: CourseViewModelProtocol
+    viewModel: CourseViewModelProtocol,
 ) {
     Row(
         modifier = Modifier
@@ -141,7 +147,7 @@ private fun CourseLandscapeLayout(
 @Composable
 private fun CoursePortraitLayout(
     state: CourseViewModel.ViewState,
-    viewModel: CourseViewModelProtocol
+    viewModel: CourseViewModelProtocol,
 ) {
     Column(
         modifier = Modifier
@@ -180,6 +186,7 @@ private fun ReviewSection(state: CourseViewModel.ViewState, viewModel: CourseVie
                 viewModel = viewModel
             )
         }
+
         else -> {}
     }
 }
@@ -318,6 +325,16 @@ fun CourseReviewSection(
     myReview: LectureReview?,
     reviewPage: LectureReviewPage,
 ) {
+    val translationState by viewModel.translationState.collectAsState()
+    val summarizationState by viewModel.summarizationState.collectAsState()
+
+    var showTranslationSheet by remember { mutableStateOf(false) }
+    var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
+    var activeReviewId by remember { mutableStateOf<Int?>(null) }
+    var activeReviewContent by remember { mutableStateOf("") }
+
+    val scope = rememberCoroutineScope()
+
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {
@@ -360,21 +377,43 @@ fun CourseReviewSection(
 
         Column {
             myReview?.let {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column {
                     Text(
                         text = stringResource(R.string.my_review_title),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 4.dp),
+                        modifier = Modifier.padding(4.dp),
                         fontWeight = FontWeight.Bold
                     )
                     LectureReviewCell(
                         lectureReview = it,
                         onLikeClick = { viewModel.toggleReviewLike(it) },
-                        isMine = true
+                        isMine = true,
+                        onTranslate = {
+                            viewModel.hideSummary()
+                            activeReviewId = it.id
+                            activeReviewContent = it.content
+                            translationTarget = viewModel.defaultTranslationLanguage()
+                            showTranslationSheet = true
+                            viewModel.translate(it.content, translationTarget, scope = scope)
+                        },
+                        onSummarize = {
+                            viewModel.showOriginal()
+                            showTranslationSheet = false
+                            activeReviewId = it.id
+                            viewModel.summarize(it.content, scope = scope)
+                        },
+                        summarizationState = if (!showTranslationSheet && activeReviewId == it.id) summarizationState else SummarizationState.Idle,
+                        onRetrySummarize = { viewModel.summarize(it.content, scope = scope) },
+                        onDismissSummarize = {
+                            activeReviewId = null
+                            viewModel.hideSummary()
+                        }
                     )
-                    Spacer(Modifier.padding(8.dp))
-                    HorizontalDivider(thickness = 0.5.dp)
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
                 }
             }
 
@@ -389,11 +428,65 @@ fun CourseReviewSection(
                     LectureReviewCell(
                         lectureReview = review,
                         onLikeClick = { viewModel.toggleReviewLike(review) },
-                        isMine = false
+                        isMine = false,
+                        onTranslate = {
+                            viewModel.hideSummary()
+                            activeReviewId = review.id
+                            activeReviewContent = review.content
+                            translationTarget = viewModel.defaultTranslationLanguage()
+                            showTranslationSheet = true
+                            viewModel.translate(review.content, translationTarget, scope = scope)
+                        },
+                        onSummarize = {
+                            viewModel.showOriginal()
+                            showTranslationSheet = false
+                            activeReviewId = review.id
+                            viewModel.summarize(review.content, scope = scope)
+                        },
+                        summarizationState = if (!showTranslationSheet && activeReviewId == review.id) summarizationState else SummarizationState.Idle,
+                        onRetrySummarize = { viewModel.summarize(review.content, scope = scope) },
+                        onDismissSummarize = {
+                            activeReviewId = null
+                            viewModel.hideSummary()
+                        }
                     )
                 }
             }
         }
+    }
+
+    if (showTranslationSheet) {
+        PostTranslationSheet(
+            state = translationState,
+            targetLanguage = translationTarget,
+            languages = viewModel.translationLanguages(),
+            suggested = viewModel.suggestedTranslationLanguages(),
+            onTargetChange = { code ->
+                translationTarget = code
+                viewModel.translate(activeReviewContent, code, scope = scope)
+            },
+            onRetry = {
+                viewModel.translate(
+                    activeReviewContent,
+                    translationTarget,
+                    scope = scope
+                )
+            },
+            onDownload = {
+                viewModel.translate(
+                    activeReviewContent,
+                    translationTarget,
+                    allowDownload = true,
+                    scope = scope
+                )
+            },
+            onDismiss = {
+                showTranslationSheet = false
+                activeReviewId = null
+                activeReviewContent = ""
+                viewModel.showOriginal()
+            }
+        )
     }
 }
 
