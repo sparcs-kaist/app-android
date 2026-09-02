@@ -42,6 +42,7 @@ object CourseFilterProvider {
                 CourseFilterOption("15784", stringResource(R.string.dept_ts)),
                 CourseFilterOption("20184", stringResource(R.string.dept_ss)),
                 CourseFilterOption("20684", stringResource(R.string.dept_bcs)),
+                CourseFilterOption("24354", stringResource(R.string.dept_aic)),
                 CourseFilterOption(ETC_DEPARTMENT_ID, stringResource(R.string.dept_etc))
             )
 

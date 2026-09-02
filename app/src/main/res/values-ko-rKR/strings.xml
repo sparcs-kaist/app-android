@@ -603,6 +603,7 @@
     <string name="dept_ts">융인</string>
     <string name="dept_ss">반시공</string>
     <string name="dept_bcs">뇌인지</string>
+    <string name="dept_aic">AI컴</string>
     <string name="dept_etc">기타</string>
 
     <!-- Post translation -->

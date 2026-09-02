@@ -634,6 +634,7 @@
     <string name="dept_ts">TS</string>
     <string name="dept_ss">SS</string>
     <string name="dept_bcs">BCS</string>
+    <string name="dept_aic">AIC</string>
     <string name="dept_etc">ETC</string>
 
     <!-- Post translation -->
