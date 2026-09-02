@@ -146,7 +146,7 @@ fun TimetableGridCell(
                 if (layoutConfig.showLocation && layoutConfig.locationStyle != null) {
                     Text(
                         text = locationText,
-                        color = contentColor.copy(alpha = 0.8f),
+                        color = if (isCandidate) MaterialTheme.colorScheme.onPrimary else textColor.copy(alpha = 0.8f),
                         style = layoutConfig.locationStyle,
                         maxLines = layoutConfig.locationMaxLines,
                         overflow = TextOverflow.Ellipsis,

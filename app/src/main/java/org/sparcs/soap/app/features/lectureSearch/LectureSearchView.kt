@@ -21,9 +21,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CourseLecture
 import org.sparcs.soap.app.domain.models.otl.Lecture
@@ -32,6 +34,10 @@ import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchViewNa
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
 @Composable
 fun LectureSearchView(
@@ -146,5 +152,37 @@ fun CourseSectionHeader(course: CourseLecture) {
                 )
             }
         }
+    }
+}
+
+
+/* ____________________________________________________________________*/
+
+@Composable
+private fun MockView(state: LectureSearchViewModel.ViewState) {
+    LectureSearchView(
+        navController = rememberNavController(),
+        timetableName = "My Table",
+        timetableViewModel = PreviewTimetableViewModel(),
+        lectureSearchViewModel = PreviewLectureSearchViewModel(initialState = state)
+    ) {}
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun LoadedPreview() {
+    Theme { MockView(LectureSearchViewModel.ViewState.Loaded) }
+}
+
+@Preview
+@Composable
+private fun LectureRowPreview() {
+    Theme {
+        LectureRow(
+            lecture = Lecture.mock(),
+            onClick = {},
+            onInfoClick = {},
+            onAddClick = {}
+        )
     }
 }
