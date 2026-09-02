@@ -15,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextMeasurer
@@ -40,6 +41,7 @@ fun TimetableGridCell(
     isCandidate: Boolean,
     cellHeight: Dp,
     modifier: Modifier = Modifier,
+    isConflict: Boolean = false
 ) {
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
@@ -109,11 +111,19 @@ fun TimetableGridCell(
             )
         }
 
+        val backgroundColor = when {
+            isConflict -> Color(0xFFFF5252).copy(alpha = 0.8f) // Red Accent for Conflict
+            isCandidate -> MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) // Translucent Primary for Preview
+            else -> lectureItem.lecture.backgroundColor
+        }
+
+        val contentColor = if (isConflict || isCandidate) Color.White else textColor
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    if (isCandidate) MaterialTheme.colorScheme.primary else lectureItem.lecture.backgroundColor,
+                    backgroundColor,
                     RoundedCornerShape(4.dp)
                 )
                 .clip(RoundedCornerShape(4.dp))
@@ -126,7 +136,7 @@ fun TimetableGridCell(
             ) {
                 Text(
                     text = titleText,
-                    color = if (isCandidate) MaterialTheme.colorScheme.onPrimary else textColor,
+                    color = contentColor,
                     style = layoutConfig.titleStyle,
                     fontWeight = FontWeight.Medium,
                     maxLines = layoutConfig.titleMaxLines,
@@ -136,7 +146,7 @@ fun TimetableGridCell(
                 if (layoutConfig.showLocation && layoutConfig.locationStyle != null) {
                     Text(
                         text = locationText,
-                        color = if (isCandidate) MaterialTheme.colorScheme.onPrimary else textColor.copy(alpha = 0.8f),
+                        color = contentColor.copy(alpha = 0.8f),
                         style = layoutConfig.locationStyle,
                         maxLines = layoutConfig.locationMaxLines,
                         overflow = TextOverflow.Ellipsis,

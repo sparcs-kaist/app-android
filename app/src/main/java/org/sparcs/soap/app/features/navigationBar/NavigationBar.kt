@@ -63,6 +63,7 @@ import org.sparcs.soap.app.features.boardList.BoardListView
 import org.sparcs.soap.app.features.boardList.BoardListViewModel
 import org.sparcs.soap.app.features.course.CourseView
 import org.sparcs.soap.app.features.course.CourseViewModel
+import org.sparcs.soap.app.features.courseCompose.CourseComposeScreen
 import org.sparcs.soap.app.features.credit.CreditView
 import org.sparcs.soap.app.features.feed.FeedView
 import org.sparcs.soap.app.features.feed.FeedViewModel
@@ -151,6 +152,9 @@ enum class Channel(@param:StringRes val title: Int) {
     //Search
     SearchView(title = R.string.search),
 
+    //CourseCompose (Everytime Style Split View)
+    CourseCompose(title = R.string.timetable),
+
     //Setting
     SignOut(title = R.string.sign_out),
     Settings(title = R.string.settings),
@@ -203,7 +207,15 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
     val onTabClick: (Channel) -> Unit = { channel ->
         if (!isTabActive(currentRoute, channel)) {
-            navController.navigate(channel.name) {
+            val targetRoute = when (channel) {
+                Channel.Start -> "FeedGraph"
+                Channel.Boards -> "AraGraph"
+                Channel.TimeTable -> "OTLGraph"
+                Channel.Taxi -> "TaxiGraph"
+                Channel.SearchView -> Channel.SearchView.name
+                else -> channel.name
+            }
+            navController.navigate(targetRoute) {
                 popUpTo(navController.graph.findStartDestination().id) {
                     saveState = true
                 }
@@ -380,6 +392,25 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             TimetableView(
                                 viewModel = viewModel,
                                 navController = navController,
+                            )
+                        }
+
+                        composable(
+                            route = Channel.CourseCompose.name,
+                            enterTransition = trendingEnterTransition(),
+                            exitTransition = trendingExitTransition(),
+                            popEnterTransition = null,
+                            popExitTransition = trendingPopExitTransition()
+                        ) { backStackEntry ->
+                            val parentEntry = remember(backStackEntry) {
+                                navController.getBackStackEntry("OTLGraph")
+                            }
+                            val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
+                            val lectureSearchViewModel: LectureSearchViewModel =
+                                hiltViewModel(backStackEntry)
+                            CourseComposeScreen(
+                                navController = navController,
+                                timetableViewModel = viewModel,
                                 lectureSearchViewModel = lectureSearchViewModel
                             )
                         }
@@ -572,7 +603,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
                     /*___________Ara___________*/
                     navigation(
-                        startDestination = Channel.Boards.name,
+                        startDestination = "AraBoardList",
                         route = "AraGraph"
                     ) {
                         navigation(
