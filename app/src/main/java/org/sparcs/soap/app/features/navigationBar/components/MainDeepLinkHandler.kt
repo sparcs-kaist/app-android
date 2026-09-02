@@ -1,50 +1,26 @@
 package org.sparcs.soap.app.features.navigationBar.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.enums.DeepLinkEventBus
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.MainTabBarViewModel
-import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewView
-import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModel
-import org.sparcs.soap.app.theme.ui.grayBB
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainDeepLinkHandler(
     viewModel: MainTabBarViewModel = hiltViewModel(),
     navController: NavHostController,
     onTabSelected: (Channel) -> Unit
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val coroutineScope = rememberCoroutineScope()
-    val taxiPreviewViewModel: TaxiPreviewViewModel = hiltViewModel()
-
     LaunchedEffect(Unit) {
         DeepLinkEventBus.events.collect { deepLink ->
             when (deepLink) {
@@ -54,6 +30,7 @@ fun MainDeepLinkHandler(
                 }
                 is DeepLink.AraPost -> {
                     onTabSelected(Channel.Boards)
+                    // 탭 전환 애니메이션 등을 고려하여 아주 짧은 지연 후 포스트 로드
                     viewModel.resolvePost(deepLink.id)
                 }
             }
@@ -79,40 +56,5 @@ fun MainDeepLinkHandler(
             },
             containerColor = MaterialTheme.colorScheme.background
         )
-    }
-
-    viewModel.invitedRoom?.let { room ->
-        ModalBottomSheet(
-            onDismissRequest = {
-                viewModel.invitedRoom = null
-            },
-            sheetState = sheetState,
-            dragHandle = {
-                Column {
-                    Box(
-                        modifier = Modifier
-                            .width(30.dp)
-                            .padding(top = 4.dp)
-                            .height(4.dp)
-                            .align(Alignment.CenterHorizontally)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.grayBB)
-                    )
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.surface
-        ) {
-            TaxiPreviewView(
-                room = room,
-                viewModel = taxiPreviewViewModel,
-                onDismiss = {
-                    coroutineScope.launch {
-                        sheetState.hide()
-                        viewModel.invitedRoom = null
-                    }
-                },
-                navController = navController
-            )
-        }
     }
 }

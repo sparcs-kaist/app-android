@@ -12,7 +12,6 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.helpers.AlertState
-import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
 import javax.inject.Inject
@@ -22,7 +21,6 @@ class MainTabBarViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val araBoardUseCase: AraBoardUseCaseProtocol
 ) : ViewModel() {
-    var invitedRoom by mutableStateOf<TaxiRoom?>(null)
 
     var alertState by mutableStateOf<AlertState?>(null)
     var isAlertPresented by mutableStateOf(false)
@@ -58,7 +56,7 @@ class MainTabBarViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val room = taxiRoomRepository.getPublicRoom(code)
-                invitedRoom = room
+                _navigationEvent.emit(Channel.Taxi.name + "?roomId=${room.id}")
             } catch (_: Exception) {
                 showError(R.string.invalid_invitation_title, R.string.invalid_invitation_message)
             }
@@ -70,7 +68,8 @@ class MainTabBarViewModel @Inject constructor(
             try {
                 val post = araBoardUseCase.fetchPost(origin = null, postID = id)
                 _navigationEvent.emit(Channel.PostView.name + "?postId=${post.id}")
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 showError(R.string.post_not_found_title, R.string.post_not_found_message)
             }
         }
