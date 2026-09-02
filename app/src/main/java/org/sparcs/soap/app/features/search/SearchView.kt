@@ -87,7 +87,7 @@ fun SearchView(
 
     val coroutineScope = rememberCoroutineScope()
     var selectedRoom by remember { mutableStateOf<TaxiRoom?>(null) }
-    val sheetState = rememberModalBottomSheetState()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
     val filterSheetState = rememberModalBottomSheetState()
 
