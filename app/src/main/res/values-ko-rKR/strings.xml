@@ -55,6 +55,7 @@
     <string name="write_a_review">후기 작성하기</string>
     <string name="summarise">요약</string>
     <string name="translate">번역</string>
+    <string name="unknown">알 수 없음</string>
     <string name="reviews">과목 후기</string>
     <string name="information">정보</string>
     <string name="code">코드</string>
@@ -80,7 +81,7 @@
     <string name="services">서비스</string>
     <string name="change_language">언어 변경</string>
     <string name="send_feedback">의견 보내기</string>
-    <string name="chat_with_us">채널톡 문의하기</string>
+    <string name="chat_with_us">채팅 문의</string>
     <string name="app_version">앱 버전</string>
     <string name="privacy_policy">개인정보 처리 방침</string>
     <string name="my_posts">내 게시글</string>

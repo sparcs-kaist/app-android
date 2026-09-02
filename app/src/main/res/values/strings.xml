@@ -59,7 +59,7 @@
     <string name="edit_a_review">Edit a Review</string>
     <string name="summarise">Summarise</string>
     <string name="translate">Translate</string>
-    <string name="unknown" translatable="false">Unknown</string>
+    <string name="unknown">Unknown</string>
     <string name="reviews">Reviews</string>
     <string name="information">Information</string>
     <string name="code">Code</string>
