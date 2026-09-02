@@ -203,7 +203,15 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
     val onTabClick: (Channel) -> Unit = { channel ->
         if (!isTabActive(currentRoute, channel)) {
-            navController.navigate(channel.name) {
+            val targetRoute = when (channel) {
+                Channel.Start -> "FeedGraph"
+                Channel.Boards -> "AraGraph"
+                Channel.TimeTable -> "OTLGraph"
+                Channel.Taxi -> "TaxiGraph"
+                Channel.SearchView -> Channel.SearchView.name
+                else -> channel.name
+            }
+            navController.navigate(targetRoute) {
                 popUpTo(navController.graph.findStartDestination().id) {
                     saveState = true
                 }
@@ -572,7 +580,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
 
                     /*___________Ara___________*/
                     navigation(
-                        startDestination = Channel.Boards.name,
+                        startDestination = "AraBoardList",
                         route = "AraGraph"
                     ) {
                         navigation(
