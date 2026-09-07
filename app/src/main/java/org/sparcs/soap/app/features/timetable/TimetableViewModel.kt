@@ -39,7 +39,7 @@ interface TimetableViewModelProtocol {
     val selectedTimetableID: StateFlow<Int?>
     val candidateLecture: StateFlow<Lecture?>
     val isCandidateOverlapping: StateFlow<Boolean>
-    val overlappingLecture: StateFlow<Lecture?>
+    val overlappingLectures: StateFlow<List<Lecture>>
     val isEditable: StateFlow<Boolean>
     val timetableName: StateFlow<String>
 
@@ -120,15 +120,15 @@ class TimetableViewModel @Inject constructor(
             initialValue = false
         )
 
-    override val overlappingLecture: StateFlow<Lecture?> =
+    override val overlappingLectures: StateFlow<List<Lecture>> =
         combine(_timetable, _candidateLecture) { table, candidate ->
-            if (table == null || candidate == null) return@combine null
-            table.lectures.firstOrNull { table.hasCollision(candidate) && table.hasCollision(it) }
+            if (table == null || candidate == null) return@combine emptyList()
+            table.lectures.filter { table.hasCollisions(candidate, it) }
         }.distinctUntilChanged()
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5000),
-                initialValue = null
+                initialValue = emptyList()
             )
 
     override val timetableName: StateFlow<String> = combine(

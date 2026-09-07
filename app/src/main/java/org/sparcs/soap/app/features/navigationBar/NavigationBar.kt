@@ -63,7 +63,7 @@ import org.sparcs.soap.app.features.boardList.BoardListView
 import org.sparcs.soap.app.features.boardList.BoardListViewModel
 import org.sparcs.soap.app.features.course.CourseView
 import org.sparcs.soap.app.features.course.CourseViewModel
-import org.sparcs.soap.app.features.courseCompose.CourseComposeScreen
+import org.sparcs.soap.app.features.courseCompose.CourseComposeView
 import org.sparcs.soap.app.features.credit.CreditView
 import org.sparcs.soap.app.features.feed.FeedView
 import org.sparcs.soap.app.features.feed.FeedViewModel
@@ -408,7 +408,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
                             val lectureSearchViewModel: LectureSearchViewModel =
                                 hiltViewModel(backStackEntry)
-                            CourseComposeScreen(
+                            CourseComposeView(
                                 navController = navController,
                                 timetableViewModel = viewModel,
                                 lectureSearchViewModel = lectureSearchViewModel

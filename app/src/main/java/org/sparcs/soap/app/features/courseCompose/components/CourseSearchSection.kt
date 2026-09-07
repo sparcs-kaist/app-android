@@ -5,18 +5,21 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -35,8 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
@@ -53,17 +58,17 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
+import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
-/**
- * 하단 60% 영역: 과목 검색창과 리스트를 보여줌
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseSearchSection(
     modifier: Modifier = Modifier,
     navController: NavController,
     timetableViewModel: TimetableViewModelProtocol,
-    lectureSearchViewModel: LectureSearchViewModelProtocol
+    lectureSearchViewModel: LectureSearchViewModelProtocol,
 ) {
     val state by lectureSearchViewModel.state.collectAsState()
     val searchText by lectureSearchViewModel.searchText.collectAsState()
@@ -86,16 +91,19 @@ fun CourseSearchSection(
         }
     }
 
+    LaunchedEffect(searchText, courseFilterState) {
+        timetableViewModel.setCandidateLecture(null)
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = 12.dp)
             .imePadding()
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Search bar
         SearchCustomBar(
             value = searchText,
             onValueChange = { value ->
@@ -121,7 +129,6 @@ fun CourseSearchSection(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Lecture list
         Box(modifier = Modifier.weight(1f)) {
             when {
                 searchText.isEmpty() && courseFilterState.isEmpty() -> {
@@ -133,7 +140,16 @@ fun CourseSearchSection(
                 }
 
                 state is LectureSearchViewModel.ViewState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(10) {
+                            SkeletonLectureRow()
+                            HorizontalDivider(
+                                modifier = Modifier.padding(horizontal = 16.dp),
+                                thickness = 0.5.dp,
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                            )
+                        }
+                    }
                 }
 
                 courses.isEmpty() -> {
@@ -151,12 +167,15 @@ fun CourseSearchSection(
 
                             items(course.lectures.size) { index ->
                                 val lecture = course.lectures[index]
+                                val currentCandidate = timetableViewModel.candidateLecture.collectAsState().value
+                                val isSelected = currentCandidate?.id == lecture.id
+                                
                                 LectureRow(
                                     lecture = lecture,
+                                    isSelected = isSelected,
                                     onClick = {
                                         focusManager.clearFocus()
-                                        val currentCandidate = timetableViewModel.candidateLecture.value
-                                        if (currentCandidate?.id == lecture.id) {
+                                        if (isSelected) {
                                             timetableViewModel.setCandidateLecture(null)
                                         } else {
                                             timetableViewModel.setCandidateLecture(lecture)
@@ -169,7 +188,9 @@ fun CourseSearchSection(
                                         navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                                     },
                                     onAddClick = {
-                                        if (isOverlapping) {
+                                        val table = timetableViewModel.selectedTimetable.value
+                                        if (table?.hasCollision(lecture) == true) {
+                                            timetableViewModel.setCandidateLecture(lecture)
                                             pendingLectureToAdd = lecture
                                             showCannotAddLectureAlert = true
                                         } else {
@@ -193,7 +214,7 @@ fun CourseSearchSection(
     }
 
     if (showCannotAddLectureAlert) {
-        val overlappingLecture by timetableViewModel.overlappingLecture.collectAsState()
+        val overlappingLectures by timetableViewModel.overlappingLectures.collectAsState()
 
         AlertDialog(
             onDismissRequest = {
@@ -221,9 +242,13 @@ fun CourseSearchSection(
             },
             title = { Text(stringResource(R.string.add_overlapping_lecture)) },
             text = {
-                val currentName = overlappingLecture?.name ?: stringResource(R.string.the_existing_lecture)
+                val currentNames = if (overlappingLectures.isEmpty()) {
+                    stringResource(R.string.the_existing_lecture)
+                } else {
+                    overlappingLectures.joinToString(", ") { it.name }
+                }
                 val newName = pendingLectureToAdd?.name ?: stringResource(R.string.the_new_lecture)
-                Text(text = stringResource(id = R.string.lecture_overlap, currentName, newName))
+                Text(text = stringResource(id = R.string.lecture_overlap, currentNames, newName))
             },
             containerColor = MaterialTheme.colorScheme.background
         )
@@ -244,3 +269,68 @@ fun CourseSearchSection(
         }
     }
 }
+
+@Composable
+private fun SkeletonLectureRow() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier.weight(1f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(width = 100.dp, height = 14.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Box(
+                modifier = Modifier
+                    .size(width = 60.dp, height = 16.dp)
+                    .background(
+                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
+                        RoundedCornerShape(4.dp)
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+private fun MockViewModel(state: LectureSearchViewModel.ViewState) {
+    val vm = remember { PreviewLectureSearchViewModel(state) }
+    Theme {
+        CourseSearchSection(
+            navController = rememberNavController(),
+            timetableViewModel = PreviewTimetableViewModel(),
+            lectureSearchViewModel = vm
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun LoadingPreview() {
+    MockViewModel(LectureSearchViewModel.ViewState.Loading)
+}
+
+@Preview
+@Composable
+private fun LoadedPreview() {
+    MockViewModel(LectureSearchViewModel.ViewState.Loaded)
+}
+
+@Preview
+@Composable
+private fun ErrorPreview() {
+    MockViewModel(LectureSearchViewModel.ViewState.Error(Exception("Mock Error")))
+}
+
+

@@ -112,7 +112,7 @@ fun TimetableGridCell(
         }
 
         val backgroundColor = when {
-            isConflict -> Color(0xFFFF5252).copy(alpha = 0.8f) // Red Accent for Conflict
+            isConflict -> Color(0xFF000000).copy(alpha = 0.8f) // Black Accent for Conflict
             isCandidate -> MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) // Translucent Primary for Preview
             else -> lectureItem.lecture.backgroundColor
         }

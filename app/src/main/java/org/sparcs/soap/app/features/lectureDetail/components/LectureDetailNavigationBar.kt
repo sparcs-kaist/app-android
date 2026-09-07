@@ -63,10 +63,7 @@ fun LectureDetailNavigationBar(
             if(!isEnabled) return@CenterAlignedTopAppBar
             if(!isCurrentTimetable) {
                 IconButton(
-                    onClick = {
-                        onAdd()
-                        navController.popBackStack()
-                    },
+                    onClick = onAdd,
                     colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
                 ) {
                     Icon(
@@ -77,10 +74,7 @@ fun LectureDetailNavigationBar(
                 }
             } else {
                 IconButton(
-                    onClick = {
-                        onDelete()
-                        navController.popBackStack()
-                              },
+                    onClick = onDelete,
                     colors = IconButtonDefaults.iconButtonColors(Color.Transparent),
                 ) {
                     Icon(

@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -24,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,7 +66,6 @@ fun LectureDetailView(
     val isEditable by timetableViewModel.isEditable.collectAsState()
 
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
-    val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
 
     Scaffold(
@@ -71,14 +74,20 @@ fun LectureDetailView(
                 navController = navController,
                 text = lecture.name,
                 onAdd = {
-                    if (isOverlapping) {
-                        showCannotAddLectureAlert = true
+                    val table = timetableViewModel.selectedTimetable.value
+                    if (table?.hasCollision(lecture) == true) {
+                        timetableViewModel.setCandidateLecture(lecture)
                         pendingLectureToAdd = lecture
+                        showCannotAddLectureAlert = true
                     } else {
                         timetableViewModel.addLecture(lecture)
+                        navController.popBackStack()
                     }
                 },
-                onDelete = { timetableViewModel.deleteLecture(lecture) },
+                onDelete = {
+                    timetableViewModel.deleteLecture(lecture)
+                    navController.popBackStack()
+                },
                 isCurrentTimetable = isContained,
                 isEnabled = isEditable
             )
@@ -117,6 +126,48 @@ fun LectureDetailView(
         state = viewModel.alertState,
         onDismiss = { viewModel.isAlertPresented = false }
     )
+
+    if (showCannotAddLectureAlert) {
+        val overlappingLectures by timetableViewModel.overlappingLectures.collectAsState()
+
+        AlertDialog(
+            onDismissRequest = {
+                showCannotAddLectureAlert = false
+                pendingLectureToAdd = null
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showCannotAddLectureAlert = false
+                    pendingLectureToAdd?.let { lectureToAdd ->
+                        timetableViewModel.addLecture(lectureToAdd)
+                        pendingLectureToAdd = null
+                        navController.popBackStack()
+                    }
+                }) {
+                    Text(stringResource(R.string.ok))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showCannotAddLectureAlert = false
+                    pendingLectureToAdd = null
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            title = { Text(stringResource(R.string.add_overlapping_lecture)) },
+            text = {
+                val currentNames = if (overlappingLectures.isEmpty()) {
+                    stringResource(R.string.the_existing_lecture)
+                } else {
+                    overlappingLectures.joinToString(", ") { it.name }
+                }
+                val newName = pendingLectureToAdd?.name ?: stringResource(R.string.the_new_lecture)
+                Text(text = stringResource(id = R.string.lecture_overlap, currentNames, newName))
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        )
+    }
 }
 
 @Composable

@@ -1,6 +1,8 @@
 package org.sparcs.soap.app.features.lectureSearch
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -68,9 +71,11 @@ fun LectureSearchView(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LectureRow(
     lecture: Lecture,
+    isSelected: Boolean = false,
     onClick: () -> Unit,
     onInfoClick: () -> Unit,
     onAddClick: () -> Unit,
@@ -78,8 +83,15 @@ fun LectureRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onClick() },
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                else Color.Transparent
+            )
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onInfoClick
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Row(
@@ -98,27 +110,30 @@ fun LectureRow(
             Text(
                 text = lecture.professors.firstOrNull()?.name
                     ?: stringResource(R.string.unknown),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
             )
         }
 
-        Spacer(Modifier.width(12.dp))
+        if (isSelected) {
+            Spacer(Modifier.width(12.dp))
 
-        Icon(
-            imageVector = Icons.Outlined.Info,
-            contentDescription = "info",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.clickable { onInfoClick() }
-        )
+            Icon(
+                imageVector = Icons.Outlined.Info,
+                contentDescription = "info",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.combinedClickable(onClick = onInfoClick)
+            )
 
-        Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(16.dp))
 
-        Icon(
-            imageVector = Icons.Rounded.Add,
-            contentDescription = "add lecture",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.clickable { onAddClick() }
-        )
+            Icon(
+                imageVector = Icons.Rounded.Add,
+                contentDescription = "add lecture",
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.combinedClickable(onClick = onAddClick)
+            )
+        }
     }
 }
 

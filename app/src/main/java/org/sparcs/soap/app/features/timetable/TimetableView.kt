@@ -44,7 +44,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
@@ -54,7 +53,6 @@ import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.AddButton
-import org.sparcs.soap.app.features.timetable.components.CandidateInfoPanel
 import org.sparcs.soap.app.features.timetable.components.CompactTimetableSelector
 import org.sparcs.soap.app.features.timetable.components.LectureList
 import org.sparcs.soap.app.features.timetable.components.TimetableCreditGraph
@@ -84,7 +82,7 @@ fun TimetableView(
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
     val isEditable by viewModel.isEditable.collectAsState()
     val timetableName by viewModel.timetableName.collectAsState()
-    
+
     val candidateLecture by viewModel.candidateLecture.collectAsState()
     val isOverlapping by viewModel.isCandidateOverlapping.collectAsState()
 
@@ -152,27 +150,6 @@ fun TimetableView(
             }
         }
 
-        candidateLecture?.let { lecture ->
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .zIndex(1f)
-            ) {
-                CandidateInfoPanel(
-                    lecture = lecture,
-                    isOverlapping = isOverlapping,
-                    onAdd = { 
-                        viewModel.addLecture(lecture)
-                        viewModel.setCandidateLecture(null)
-                    },
-                    onCancel = { 
-                        viewModel.setCandidateLecture(null) 
-                    }
-                )
-            }
-        }
-
         if (showDeleteDialog && lectureToDelete != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
@@ -212,7 +189,7 @@ fun TimetableView(
                     viewModel.alertMessageRes?.let { Text(stringResource(it)) }
                 },
                 containerColor = MaterialTheme.colorScheme.background
-                
+
             )
         }
     }
@@ -226,7 +203,7 @@ private fun TimetableLandscapeLayout(
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
     onAddClick: () -> Unit,
-    isEditable: Boolean
+    isEditable: Boolean,
 ) {
     Column(
         modifier = Modifier
@@ -348,7 +325,7 @@ private fun TimetablePortraitLayout(
     screenHeight: Dp,
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
-    scrollState: ScrollState
+    scrollState: ScrollState,
 ) {
     Column(
         modifier = Modifier
@@ -359,7 +336,12 @@ private fun TimetablePortraitLayout(
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CompactTimetableSelector(viewModel, timetableName, modifier = Modifier.fillMaxWidth(), isWide = true)
+        CompactTimetableSelector(
+            viewModel,
+            timetableName,
+            modifier = Modifier.fillMaxWidth(),
+            isWide = true
+        )
 
         Card(
             modifier = Modifier
