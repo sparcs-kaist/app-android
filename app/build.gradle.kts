@@ -34,7 +34,7 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 37
-        versionCode = 33
+        versionCode = 34
         versionName = "1.4.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -47,11 +47,10 @@ android {
     buildTypes {
 
         getByName("debug") {
-            manifestPlaceholders += mapOf(
-                "taxiHost" to "taxi.dev.sparcs.org",
-                "araHost" to "newara.dev.sparcs.org",
-                "feedHost" to "buddy.dev.sparcs.org"
-            )
+            manifestPlaceholders["taxihost"] = "taxi.dev.sparcs.org"
+            manifestPlaceholders["arahost"] = "newara.dev.sparcs.org"
+            manifestPlaceholders["feedhost"] = "buddy.dev.sparcs.org"
+
             buildConfigField("String", "TAXI_HOST", "\"taxi.dev.sparcs.org\"")
             buildConfigField("String", "ARA_HOST", "\"newara.dev.sparcs.org\"")
             buildConfigField("String", "FEED_HOST", "\"buddy.dev.sparcs.org\"")
@@ -59,16 +58,14 @@ android {
         }
 
         getByName("release") {
-            manifestPlaceholders += mapOf(
-                "taxiHost" to "taxi.sparcs.org",
-                "araHost" to "newara.sparcs.org",
-                "feedHost" to "sparcs.org"
-            )
+            manifestPlaceholders["taxihost"] = "taxi.sparcs.org"
+            manifestPlaceholders["arahost"] = "newara.sparcs.org"
+            manifestPlaceholders["feedhost"] = "sparcs.org"
+
             buildConfigField("String", "TAXI_HOST", "\"taxi.sparcs.org\"")
             buildConfigField("String", "ARA_HOST", "\"newara.sparcs.org\"")
             buildConfigField("String", "FEED_HOST", "\"buddy.sparcs.org\"")
             buildConfigField("String", "OTL_HOST", "\"otl.sparcs.org\"")
-
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

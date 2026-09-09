@@ -62,8 +62,22 @@ class TaxiPreviewViewModel @Inject constructor(
 
     // MARK: - Init
     init {
-        fetchTaxiUser()
-        fetchBlockStatus()
+        viewModelScope.launch {
+            loadInitialData()
+        }
+    }
+
+    private suspend fun loadInitialData() {
+        try {
+            if (userUseCase.taxiUser == null) {
+                userUseCase.fetchTaxiUser()
+            }
+            _taxiUser.value = userUseCase.taxiUser
+        } catch (e: Exception) {
+            Timber.e(e, "Taxi user fetch failed")
+        }
+
+        _blockStatus.value = taxiRoomUseCase.isBlocked()
     }
 
     // MARK: - Logic
@@ -144,18 +158,6 @@ class TaxiPreviewViewModel @Inject constructor(
             alertState = e.toAlertState(R.string.error_failed_to_join_taxi_room)
             isAlertPresented = true
             throw e
-        }
-    }
-
-    private fun fetchTaxiUser() {
-        viewModelScope.launch {
-            _taxiUser.value = userUseCase.taxiUser
-        }
-    }
-
-    private fun fetchBlockStatus() {
-        viewModelScope.launch {
-            _blockStatus.value = taxiRoomUseCase.isBlocked()
         }
     }
 }

@@ -1,7 +1,10 @@
 package org.sparcs.soap.app.features.taxiPreview
 
 import android.content.Intent
+import android.graphics.Outline
 import android.net.Uri
+import android.view.View
+import android.view.ViewOutlineProvider
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -14,7 +17,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -33,13 +38,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -92,17 +93,19 @@ fun TaxiPreviewView(
     var isMapError by remember { mutableStateOf(false) }
 
     val blockStatus = viewModel.blockStatus.collectAsState().value
+    val taxiUser = viewModel.taxiUser.collectAsState().value
     var kakaoMap by remember { mutableStateOf<KakaoMap?>(null) }
     var pathPoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
 
     val pathColor = MaterialTheme.colorScheme.primary.toArgb()
     val sourceString = stringResource(R.string.source)
     val destinationString = stringResource(R.string.destination)
+    val mapCornerRadiusPx = with(androidx.compose.ui.platform.LocalDensity.current) { 28.dp.toPx() }
 
     val isJoinButtonDisabled: Boolean =
-        !viewModel.isJoined(room.participants) && (room.participants.size >= room.capacity ||
+        taxiUser == null || (!viewModel.isJoined(room.participants) && (room.participants.size >= room.capacity ||
                 room.isDeparted ||
-                blockStatus != TaxiRoomBlockStatus.Allow)
+                blockStatus != TaxiRoomBlockStatus.Allow))
 
     val shareUrl = "${Constants.TAXI_INVITE_URL}${room.id}"
     val shareMessage = stringResource(
@@ -139,16 +142,20 @@ fun TaxiPreviewView(
 
     Column(
         Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
+            .background(MaterialTheme.colorScheme.surface)
             .analyticsScreen("Taxi Preview")
     ) {
-        val mapCornerColor = MaterialTheme.colorScheme.background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
-                .clipToBounds()
+                .height(220.dp)
+                .graphicsLayer {
+                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                    clip = true
+                }
         ) {
             //MAP
             if (!isPreview && !isMapError) {
@@ -162,7 +169,14 @@ fun TaxiPreviewView(
                                 isMapError = true
                                 isMapLoading = false
                             }
-                        )
+                        ).apply {
+                            clipToOutline = true
+                            outlineProvider = object : ViewOutlineProvider() {
+                                override fun getOutline(view: View, outline: Outline) {
+                                    outline.setRoundRect(0, 0, view.width, view.height, mapCornerRadiusPx)
+                                }
+                            }
+                        }
                     }
                 )
                 if (isMapLoading) {
@@ -197,24 +211,6 @@ fun TaxiPreviewView(
             }
 
             Canvas(modifier = Modifier.matchParentSize()) {
-                val radius = 28.dp.toPx()
-                val cornerMask = Path().apply {
-                    fillType = PathFillType.EvenOdd
-                    addRect(Rect(0f, 0f, size.width, size.height))
-                    addRoundRect(
-                        RoundRect(
-                            left = 0f,
-                            top = 0f,
-                            right = size.width,
-                            bottom = size.height,
-                            topLeftCornerRadius = CornerRadius(radius, radius),
-                            topRightCornerRadius = CornerRadius(radius, radius),
-                            bottomLeftCornerRadius = CornerRadius.Zero,
-                            bottomRightCornerRadius = CornerRadius.Zero
-                        )
-                    )
-                }
-                drawPath(cornerMask, color = mapCornerColor)
             }
         }
         Column(modifier = Modifier.padding(16.dp)) {
@@ -253,7 +249,8 @@ fun TaxiPreviewView(
             Spacer(Modifier.padding(8.dp))
 
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
