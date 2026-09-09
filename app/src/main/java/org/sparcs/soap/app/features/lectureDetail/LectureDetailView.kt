@@ -64,6 +64,7 @@ fun LectureDetailView(
     val selectedTimetable by timetableViewModel.selectedTimetable.collectAsState()
     val isContained = selectedTimetable?.lectures?.any { it.id == lecture.id } ?: false
     val isEditable by timetableViewModel.isEditable.collectAsState()
+    val overlappingLectures by timetableViewModel.overlappingLectures.collectAsState()
 
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
@@ -128,8 +129,6 @@ fun LectureDetailView(
     )
 
     if (showCannotAddLectureAlert) {
-        val overlappingLectures by timetableViewModel.overlappingLectures.collectAsState()
-
         AlertDialog(
             onDismissRequest = {
                 showCannotAddLectureAlert = false

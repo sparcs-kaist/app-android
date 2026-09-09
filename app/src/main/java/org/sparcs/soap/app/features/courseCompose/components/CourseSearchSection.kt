@@ -3,14 +3,15 @@ package org.sparcs.soap.app.features.courseCompose.components
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -36,6 +38,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,6 +59,7 @@ import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.search.components.CourseFilterRow
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
+import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
@@ -69,20 +74,22 @@ fun CourseSearchSection(
     navController: NavController,
     timetableViewModel: TimetableViewModelProtocol,
     lectureSearchViewModel: LectureSearchViewModelProtocol,
+    onSearchFocusChange: (Boolean) -> Unit = {},
 ) {
     val state by lectureSearchViewModel.state.collectAsState()
     val searchText by lectureSearchViewModel.searchText.collectAsState()
     val courses by lectureSearchViewModel.courses.collectAsState()
     val courseFilterState by lectureSearchViewModel.courseFilterState.collectAsState()
+    
+    val candidateLecture by timetableViewModel.candidateLecture.collectAsState()
+    val overlappingLectures by timetableViewModel.overlappingLectures.collectAsState()
+    val selectedSemester by timetableViewModel.selectedSemester.collectAsState()
 
     var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
     val filterSheetState = rememberModalBottomSheetState()
-
-    val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
-
-    val selectedSemester by timetableViewModel.selectedSemester.collectAsState()
+    
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(selectedSemester) {
@@ -98,36 +105,44 @@ fun CourseSearchSection(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = 12.dp)
-            .imePadding()
+            .background(MaterialTheme.colorScheme.surface)
     ) {
-        Spacer(modifier = Modifier.height(16.dp))
+        Column {
+            Spacer(modifier = Modifier.height(8.dp))
 
-        SearchCustomBar(
-            value = searchText,
-            onValueChange = { value ->
-                lectureSearchViewModel.onSearchTextChange(value)
-            },
-            onValueClear = {
-                lectureSearchViewModel.onSearchTextChange("")
-            },
-            placeHolder = stringResource(R.string.search_by_course)
-        )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+                    .onFocusChanged { onSearchFocusChange(it.isFocused) }
+            ) {
+                SearchCustomBar(
+                    value = searchText,
+                    onValueChange = { value ->
+                        lectureSearchViewModel.onSearchTextChange(value)
+                    },
+                    onValueClear = {
+                        lectureSearchViewModel.onSearchTextChange("")
+                    },
+                    placeHolder = stringResource(R.string.search_by_course)
+                )
+            }
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(0.dp))
 
-        CourseFilterRow(
-            courseFilterState = courseFilterState,
-            onCategoryClick = { activeFilterCategory = it },
-            onResetFilters = { lectureSearchViewModel.onFilterChange(CourseFilterState()) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            showLeadingDivider = false
-        )
+            CourseFilterRow(
+                courseFilterState = courseFilterState,
+                onCategoryClick = { activeFilterCategory = it },
+                onResetFilters = { lectureSearchViewModel.onFilterChange(CourseFilterState()) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                showLeadingDivider = false
+            )
 
-        Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
+        }
 
         Box(modifier = Modifier.weight(1f)) {
             when {
@@ -140,14 +155,23 @@ fun CourseSearchSection(
                 }
 
                 state is LectureSearchViewModel.ViewState.Loading -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         items(10) {
-                            SkeletonLectureRow()
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                thickness = 0.5.dp,
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                            )
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = MaterialTheme.colorScheme.background,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .glassBorder(shape = RoundedCornerShape(16.dp), shadowElevation = 2.dp)
+                            ) {
+                                SkeletonLectureRow()
+                            }
                         }
                     }
                 }
@@ -161,49 +185,65 @@ fun CourseSearchSection(
                 }
 
                 else -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                         courses.forEach { course ->
-                            item { CourseSectionHeader(course) }
+                            item {
+                                Surface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = MaterialTheme.colorScheme.background,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .glassBorder(shape = RoundedCornerShape(16.dp), shadowElevation = 2.dp)
+                                ) {
+                                    Column {
+                                        CourseSectionHeader(course, backgroundColor = Color.Transparent)
 
-                            items(course.lectures.size) { index ->
-                                val lecture = course.lectures[index]
-                                val currentCandidate = timetableViewModel.candidateLecture.collectAsState().value
-                                val isSelected = currentCandidate?.id == lecture.id
-                                
-                                LectureRow(
-                                    lecture = lecture,
-                                    isSelected = isSelected,
-                                    onClick = {
-                                        focusManager.clearFocus()
-                                        if (isSelected) {
-                                            timetableViewModel.setCandidateLecture(null)
-                                        } else {
-                                            timetableViewModel.setCandidateLecture(lecture)
-                                        }
-                                    },
-                                    onInfoClick = {
-                                        focusManager.clearFocus()
-                                        timetableViewModel.setCandidateLecture(lecture)
-                                        val json = Uri.encode(Gson().toJson(lecture))
-                                        navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                                    },
-                                    onAddClick = {
-                                        val table = timetableViewModel.selectedTimetable.value
-                                        if (table?.hasCollision(lecture) == true) {
-                                            timetableViewModel.setCandidateLecture(lecture)
-                                            pendingLectureToAdd = lecture
-                                            showCannotAddLectureAlert = true
-                                        } else {
-                                            timetableViewModel.addLecture(lecture)
+                                        course.lectures.forEachIndexed { index, lecture ->
+                                            val isSelected = candidateLecture?.id == lecture.id
+                                            
+                                            LectureRow(
+                                                lecture = lecture,
+                                                isSelected = isSelected,
+                                                onClick = {
+                                                    focusManager.clearFocus()
+                                                    if (isSelected) {
+                                                        timetableViewModel.setCandidateLecture(null)
+                                                    } else {
+                                                        timetableViewModel.setCandidateLecture(lecture)
+                                                    }
+                                                },
+                                                onInfoClick = {
+                                                    focusManager.clearFocus()
+                                                    timetableViewModel.setCandidateLecture(lecture)
+                                                    val json = Uri.encode(Gson().toJson(lecture))
+                                                    navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
+                                                },
+                                                onAddClick = {
+                                                    val table = timetableViewModel.selectedTimetable.value
+                                                    if (table?.hasCollision(lecture) == true) {
+                                                        timetableViewModel.setCandidateLecture(lecture)
+                                                        pendingLectureToAdd = lecture
+                                                        showCannotAddLectureAlert = true
+                                                    } else {
+                                                        timetableViewModel.addLecture(lecture)
+                                                    }
+                                                }
+                                            )
+                                            if (index < course.lectures.lastIndex) {
+                                                HorizontalDivider(
+                                                    modifier = Modifier.padding(horizontal = 16.dp),
+                                                    thickness = 0.5.dp,
+                                                    color = MaterialTheme.colorScheme.outlineVariant
+                                                )
+                                            }
                                         }
                                     }
-                                )
-                                if (index < course.lectures.lastIndex) {
-                                    HorizontalDivider(
-                                        modifier = Modifier.padding(horizontal = 16.dp),
-                                        thickness = 0.5.dp,
-                                        color = MaterialTheme.colorScheme.outlineVariant
-                                    )
                                 }
                             }
                         }
@@ -214,8 +254,6 @@ fun CourseSearchSection(
     }
 
     if (showCannotAddLectureAlert) {
-        val overlappingLectures by timetableViewModel.overlappingLectures.collectAsState()
-
         AlertDialog(
             onDismissRequest = {
                 showCannotAddLectureAlert = false
@@ -332,5 +370,3 @@ private fun LoadedPreview() {
 private fun ErrorPreview() {
     MockViewModel(LectureSearchViewModel.ViewState.Error(Exception("Mock Error")))
 }
-
-

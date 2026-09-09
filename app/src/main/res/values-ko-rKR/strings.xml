@@ -171,6 +171,9 @@
     시간표에 추가하시겠습니까?
     </string>
     <string name="add_to_timetable">"%1$s"에 추가</string>
+    <string name="add_course">과목 추가</string>
+    <string name="add_custom_block">커스텀 블록 추가</string>
+    <string name="selected_count">%1$d개 선택됨</string>
     <string name="check_the_spelling">철자를 확인하거나 다른 검색어를 사용해 보세요.</string>
     <string name="empty_posts_default">표시할 내용이 없습니다.\n현재 이 페이지에는 게시물이 없습니다.</string>
     <string name="no_posts">현재 이 페이지에는 게시물이 없습니다.</string>

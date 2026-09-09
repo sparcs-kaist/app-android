@@ -1,12 +1,21 @@
 package org.sparcs.soap.app.features.courseCompose.components
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.app.domain.helpers.TimetableConstructor
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.theme.ui.Theme
@@ -16,17 +25,63 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 fun TimetablePreviewSection(
     modifier: Modifier = Modifier,
     viewModel: TimetableViewModelProtocol,
+    isScrollable: Boolean = false
 ) {
-    Box(
+    val density = LocalDensity.current
+    val scrollState = rememberScrollState()
+    val timetable by viewModel.selectedTimetable.collectAsState()
+    val candidateLecture by viewModel.candidateLecture.collectAsState()
+    
+    LaunchedEffect(candidateLecture) {
+        if (isScrollable && candidateLecture != null) {
+            val beginTime = candidateLecture?.classes?.minOfOrNull { it.begin } ?: return@LaunchedEffect
+            
+            val times = buildList {
+                timetable?.lectures?.forEach { addAll(it.classes) }
+                candidateLecture?.let { addAll(it.classes) }
+            }
+
+            // Exactly match logic from TimetableGrid
+            val minMinutes = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: 540
+            val maxMinutes = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: 1080
+            val duration = maxMinutes - minMinutes
+
+            if (duration > 0) {
+                val containerHeightDp = 1000.dp
+                val containerHeightPx = with(density) { containerHeightDp.toPx() }
+                val daysHeightPx = with(density) { TimetableConstructor.daysHeight.toPx() }
+                
+                // Match layout logic from TimetableConstructor/Grid
+                val timetableHeight = containerHeightPx - (daysHeightPx + 24f) - 14f
+                val difference = (timetableHeight / duration.toFloat()) * (beginTime - minMinutes).toFloat()
+                
+                // Calculate target scroll to center the lecture or at least show it clearly
+                val targetOffsetPx = daysHeightPx + 14f + difference
+                val viewportHeightPx = with(density) { 300.dp.toPx() } // Estimated visible height
+                val targetScrollPx = targetOffsetPx - (viewportHeightPx / 3f)
+                
+                scrollState.animateScrollTo(targetScrollPx.coerceAtLeast(0f).toInt())
+            }
+        }
+    }
+
+    Column(
         modifier = modifier
-            .fillMaxSize()
-            .padding(8.dp)
+            .then(if (isScrollable) Modifier.verticalScroll(scrollState) else Modifier)
+            .padding(horizontal = 12.dp)
+            .padding(top = 8.dp)
     ) {
-        TimetableGrid(
-            viewModel = viewModel,
-            onLectureSelected = {},
-            showDeleteDialog = {}
-        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(if (isScrollable) 1000.dp else 400.dp)
+        ) {
+            TimetableGrid(
+                viewModel = viewModel,
+                onLectureSelected = {},
+                showDeleteDialog = {}
+            )
+        }
     }
 }
 

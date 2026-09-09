@@ -72,15 +72,16 @@ fun CourseSearchSheetContent(
     val searchText by lectureSearchViewModel.searchText.collectAsState()
     val courses by lectureSearchViewModel.courses.collectAsState()
     val courseFilterState by lectureSearchViewModel.courseFilterState.collectAsState()
+    
+    val candidateLecture by timetableViewModel.candidateLecture.collectAsState()
+    val overlappingLectures by timetableViewModel.overlappingLectures.collectAsState()
+    val selectedSemester by timetableViewModel.selectedSemester.collectAsState()
 
     var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
     val filterSheetState = rememberModalBottomSheetState()
-
-    val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
     var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
-
-    val selectedSemester by timetableViewModel.selectedSemester.collectAsState()
+    
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(selectedSemester) {
@@ -161,13 +162,13 @@ fun CourseSearchSheetContent(
 
                                 items(course.lectures.size) { index ->
                                     val lecture = course.lectures[index]
+                                    val isSelected = candidateLecture?.id == lecture.id
+                                    
                                     LectureRow(
                                         lecture = lecture,
                                         onClick = {
-                                            focusManager.clearFocus() // 키보드 내리기
-                                            val currentCandidate =
-                                                timetableViewModel.candidateLecture.value
-                                            if (currentCandidate?.id == lecture.id) {
+                                            focusManager.clearFocus()
+                                            if (isSelected) {
                                                 timetableViewModel.setCandidateLecture(null)
                                             } else {
                                                 timetableViewModel.setCandidateLecture(lecture)
@@ -175,7 +176,7 @@ fun CourseSearchSheetContent(
                                             onFoldSheet()
                                         },
                                         onInfoClick = {
-                                            focusManager.clearFocus() // 키보드 내리기
+                                            focusManager.clearFocus()
                                             timetableViewModel.setCandidateLecture(lecture)
                                             val json = Uri.encode(Gson().toJson(lecture))
                                             navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
@@ -183,7 +184,9 @@ fun CourseSearchSheetContent(
                                         },
 
                                         onAddClick = {
-                                            if (isOverlapping) {
+                                            val table = timetableViewModel.selectedTimetable.value
+                                            if (table?.hasCollision(lecture) == true) {
+                                                timetableViewModel.setCandidateLecture(lecture)
                                                 pendingLectureToAdd = lecture
                                                 showCannotAddLectureAlert = true
                                             } else {
@@ -208,8 +211,6 @@ fun CourseSearchSheetContent(
     }
 
     if (showCannotAddLectureAlert) {
-        val overlappingLecture by timetableViewModel.overlappingLecture.collectAsState()
-
         AlertDialog(
             onDismissRequest = {
                 showCannotAddLectureAlert = false
@@ -237,15 +238,17 @@ fun CourseSearchSheetContent(
             },
             title = { Text(stringResource(R.string.add_overlapping_lecture)) },
             text = {
-                val currentName =
-                    overlappingLecture?.name
-                        ?: stringResource(R.string.the_existing_lecture)
+                val currentNames = if (overlappingLectures.isEmpty()) {
+                    stringResource(R.string.the_existing_lecture)
+                } else {
+                    overlappingLectures.joinToString(", ") { it.name }
+                }
                 val newName = pendingLectureToAdd?.name
                     ?: stringResource(R.string.the_new_lecture)
                 Text(
                     text = stringResource(
                         id = R.string.lecture_overlap,
-                        currentName,
+                        currentNames,
                         newName
                     )
                 )
