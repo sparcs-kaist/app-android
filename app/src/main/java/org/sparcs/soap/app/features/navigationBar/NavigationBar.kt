@@ -63,6 +63,7 @@ import org.sparcs.soap.app.features.boardList.BoardListView
 import org.sparcs.soap.app.features.boardList.BoardListViewModel
 import org.sparcs.soap.app.features.course.CourseView
 import org.sparcs.soap.app.features.course.CourseViewModel
+import org.sparcs.soap.app.features.courseCompose.CourseComposeView
 import org.sparcs.soap.app.features.credit.CreditView
 import org.sparcs.soap.app.features.feed.FeedView
 import org.sparcs.soap.app.features.feed.FeedViewModel
@@ -150,6 +151,9 @@ enum class Channel(@param:StringRes val title: Int) {
 
     //Search
     SearchView(title = R.string.search),
+
+    //CourseCompose (Everytime Style Split View)
+    CourseCompose(title = R.string.timetable),
 
     //Setting
     SignOut(title = R.string.sign_out),
@@ -388,6 +392,25 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             TimetableView(
                                 viewModel = viewModel,
                                 navController = navController,
+                            )
+                        }
+
+                        composable(
+                            route = Channel.CourseCompose.name,
+                            enterTransition = trendingEnterTransition(),
+                            exitTransition = trendingExitTransition(),
+                            popEnterTransition = null,
+                            popExitTransition = trendingPopExitTransition()
+                        ) { backStackEntry ->
+                            val parentEntry = remember(backStackEntry) {
+                                navController.getBackStackEntry("OTLGraph")
+                            }
+                            val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
+                            val lectureSearchViewModel: LectureSearchViewModel =
+                                hiltViewModel(backStackEntry)
+                            CourseComposeView(
+                                navController = navController,
+                                timetableViewModel = viewModel,
                                 lectureSearchViewModel = lectureSearchViewModel
                             )
                         }

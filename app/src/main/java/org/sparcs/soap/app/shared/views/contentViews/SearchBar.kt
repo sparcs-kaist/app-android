@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
@@ -32,19 +33,19 @@ import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 
-
 @Composable
 fun SearchCustomBar(
     value: String,
     onValueChange: (String) -> Unit,
     onValueClear: () -> Unit,
     placeHolder: String,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp),
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -52,7 +53,7 @@ fun SearchCustomBar(
                 .weight(1f)
                 .glassBorder(shape = RoundedCornerShape(24.dp))
                 .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.surface)
+                .background(containerColor)
                 .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
 

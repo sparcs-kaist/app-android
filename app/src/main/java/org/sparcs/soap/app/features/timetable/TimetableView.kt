@@ -33,7 +33,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,14 +51,10 @@ import com.google.gson.Gson
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Timetable
-import org.sparcs.soap.app.features.lectureSearch.LectureSearchView
-import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModel
-import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.AddButton
 import org.sparcs.soap.app.features.timetable.components.CompactTimetableSelector
 import org.sparcs.soap.app.features.timetable.components.LectureList
-import org.sparcs.soap.app.features.timetable.components.TimetableBottomSheet
 import org.sparcs.soap.app.features.timetable.components.TimetableCreditGraph
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
@@ -68,18 +63,15 @@ import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.escapeHash
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun TimetableView(
     viewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
-    lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
     navController: NavController,
 ) {
     val scrollState = rememberScrollState()
-    var expanded by rememberSaveable { mutableStateOf(false) }
     var lectureToDelete by remember { mutableStateOf<Lecture?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -91,9 +83,16 @@ fun TimetableView(
     val isEditable by viewModel.isEditable.collectAsState()
     val timetableName by viewModel.timetableName.collectAsState()
 
+    val candidateLecture by viewModel.candidateLecture.collectAsState()
+    val isOverlapping by viewModel.isCandidateOverlapping.collectAsState()
+
     val backStackEvent = {
-        navController.navigate(Channel.Start.name) {
-            popUpTo(0) { inclusive = true }
+        if (candidateLecture != null) {
+            viewModel.setCandidateLecture(null)
+        } else {
+            navController.navigate(Channel.Start.name) {
+                popUpTo(0) { inclusive = true }
+            }
         }
     }
 
@@ -102,14 +101,13 @@ fun TimetableView(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-
         Scaffold(
             topBar = {
                 if (!isLandscape) {
                     TimetableViewNavigationBar(
                         scrollState = scrollState,
                         isButtonEnabled = isEditable,
-                        onClick = { expanded = true }
+                        onClick = { navController.navigate(Channel.CourseCompose.name) }
                     )
                 }
             },
@@ -132,7 +130,7 @@ fun TimetableView(
                             lectureToDelete = lecture
                             showDeleteDialog = true
                         },
-                        onAddClick = { expanded = true },
+                        onAddClick = { navController.navigate(Channel.CourseCompose.name) },
                         isEditable = isEditable
                     )
                 } else {
@@ -148,24 +146,6 @@ fun TimetableView(
                         },
                         scrollState = scrollState
                     )
-                }
-            }
-        }
-
-        if (expanded) {
-            TimetableBottomSheet(
-                onDismiss = {
-                    expanded = false
-                    lectureSearchViewModel.onSearchTextChange("")
-                }
-            ) { onFold ->
-                LectureSearchView(
-                    navController = navController,
-                    timetableViewModel = viewModel,
-                    lectureSearchViewModel = lectureSearchViewModel,
-                    timetableName = timetableName,
-                ) {
-                    onFold()
                 }
             }
         }
@@ -209,7 +189,7 @@ fun TimetableView(
                     viewModel.alertMessageRes?.let { Text(stringResource(it)) }
                 },
                 containerColor = MaterialTheme.colorScheme.background
-                
+
             )
         }
     }
@@ -223,7 +203,7 @@ private fun TimetableLandscapeLayout(
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
     onAddClick: () -> Unit,
-    isEditable: Boolean
+    isEditable: Boolean,
 ) {
     Column(
         modifier = Modifier
@@ -345,7 +325,7 @@ private fun TimetablePortraitLayout(
     screenHeight: Dp,
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
-    scrollState: ScrollState
+    scrollState: ScrollState,
 ) {
     Column(
         modifier = Modifier
@@ -356,7 +336,12 @@ private fun TimetablePortraitLayout(
         verticalArrangement = Arrangement.spacedBy(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CompactTimetableSelector(viewModel, timetableName, modifier = Modifier.fillMaxWidth(), isWide = true)
+        CompactTimetableSelector(
+            viewModel,
+            timetableName,
+            modifier = Modifier.fillMaxWidth(),
+            isWide = true
+        )
 
         Card(
             modifier = Modifier
@@ -412,7 +397,6 @@ private fun Preview() {
     Theme {
         TimetableView(
             navController = rememberNavController(),
-            lectureSearchViewModel = PreviewLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded),
             viewModel = PreviewTimetableViewModel()
         )
     }

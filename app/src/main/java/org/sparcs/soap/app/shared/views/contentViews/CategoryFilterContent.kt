@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.shared.views.contentViews
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -31,6 +32,16 @@ import org.sparcs.soap.app.domain.models.otl.CourseFilterOption
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.theme.ui.Theme
 
+@Composable
+fun getTagChipColors() = FilterChipDefaults.filterChipColors(
+    containerColor = Color.Transparent,
+    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+    selectedLabelColor = MaterialTheme.colorScheme.primary,
+    selectedTrailingIconColor = MaterialTheme.colorScheme.primary
+)
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun CategoryFilterContent(
@@ -39,6 +50,13 @@ fun CategoryFilterContent(
     onFilterChange: (CourseFilterState) -> Unit,
     options: List<CourseFilterOption>,
 ) {
+    val selectedCount = when (category) {
+        CourseFilterCategory.Classification -> selectedFilters.classifications.size
+        CourseFilterCategory.Department -> selectedFilters.departments.size
+        CourseFilterCategory.Level -> selectedFilters.levels.size
+        CourseFilterCategory.Period -> if (selectedFilters.period != null) 1 else 0
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -49,32 +67,22 @@ fun CategoryFilterContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val title = stringResource(category.labelResId)
+            val subtitle = if (selectedCount > 0) " " + stringResource(R.string.selected_count, selectedCount) else ""
             Text(
-                text = stringResource(category.labelResId),
+                text = title + subtitle,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
-        }
-
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            val isAllSelected = when (category) {
-                CourseFilterCategory.Classification -> selectedFilters.classifications.isEmpty()
-                CourseFilterCategory.Department -> selectedFilters.departments.isEmpty()
-                CourseFilterCategory.Level -> selectedFilters.levels.isEmpty()
-                CourseFilterCategory.Period -> selectedFilters.period == null
-            }
-
-            TagChip(
-                label = stringResource(R.string.filter_all),
-                isSelected = isAllSelected,
-                onClick = {
+            
+            Text(
+                text = stringResource(R.string.reset),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.clickable {
                     val nextState = when (category) {
                         CourseFilterCategory.Classification -> selectedFilters.copy(classifications = emptyList())
                         CourseFilterCategory.Department -> selectedFilters.copy(departments = emptyList())
@@ -84,7 +92,13 @@ fun CategoryFilterContent(
                     onFilterChange(nextState)
                 }
             )
+        }
 
+        FlowRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             options.forEach { option ->
                 val isSelected = when (category) {
                     CourseFilterCategory.Classification ->
@@ -160,7 +174,7 @@ private fun TagChip(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                color = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
+                color = if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
@@ -169,7 +183,7 @@ private fun TagChip(
                 imageVector = if (isSelected) Icons.Default.Check else Icons.Default.Add,
                 contentDescription = null,
                 modifier = Modifier.size(16.dp),
-                tint = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer
+                tint = if (isSelected) MaterialTheme.colorScheme.primary
                 else MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
@@ -183,16 +197,6 @@ private fun TagChip(
         colors = getTagChipColors()
     )
 }
-
-@Composable
-fun getTagChipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = Color.Transparent,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-    selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-    selectedTrailingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
-)
 
 @Preview
 @Composable

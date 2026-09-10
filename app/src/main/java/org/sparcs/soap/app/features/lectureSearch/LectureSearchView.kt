@@ -1,105 +1,61 @@
 package org.sparcs.soap.app.features.lectureSearch
 
-import android.net.Uri
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.google.gson.Gson
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
-import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
-import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.otl.CourseLecture
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.features.lectureSearch.components.CourseSearchSheetContent
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchViewNavigationBar
-import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.search.components.CourseFilterRow
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
-import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
-import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
-import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LectureSearchView(
     navController: NavController,
     timetableName: String,
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
-    onFold: () -> Unit,
+    onFoldSheet: () -> Unit = {},
 ) {
-    val state by lectureSearchViewModel.state.collectAsState()
-    val searchText by lectureSearchViewModel.searchText.collectAsState()
-    val courses by lectureSearchViewModel.courses.collectAsState()
-    val courseFilterState by lectureSearchViewModel.courseFilterState.collectAsState()
-
-    var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
-    val filterSheetState = rememberModalBottomSheetState()
-
-    val isOverlapping by timetableViewModel.isCandidateOverlapping.collectAsState()
-    var showCannotAddLectureAlert by remember { mutableStateOf(false) }
-    var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
-
-    val selectedSemester by timetableViewModel.selectedSemester.collectAsState()
-
-    LaunchedEffect(selectedSemester) {
-        selectedSemester?.let { semester ->
-            lectureSearchViewModel.bind(semester)
-        }
-    }
-
     Scaffold(
         topBar = {
             LectureSearchViewNavigationBar(
@@ -108,279 +64,181 @@ fun LectureSearchView(
         },
         modifier = Modifier.analyticsScreen("Lecture Search")
     ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(innerPadding),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            Column(
-                modifier = Modifier
-                    .widthIn(max = 600.dp)
-                    .imePadding()
-                    .padding(horizontal = 16.dp)
-                    .fillMaxSize()
-            ) {
-                // Search bar
-                SearchCustomBar(
-                    value = searchText,
-                    onValueChange = { value ->
-                        lectureSearchViewModel.onSearchTextChange(value)
-                    },
-                    onValueClear = {
-                        lectureSearchViewModel.onSearchTextChange("")
-                    },
-                    placeHolder = stringResource(R.string.search_by_course)
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                CourseFilterRow(
-                    courseFilterState = courseFilterState,
-                    onCategoryClick = { activeFilterCategory = it },
-                    onResetFilters = { lectureSearchViewModel.onFilterChange(CourseFilterState()) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    showLeadingDivider = false
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Lecture list
-                Box(modifier = Modifier.fillMaxSize()) {
-                    when {
-                        searchText.isEmpty() && courseFilterState.isEmpty() -> {
-                            UnavailableView(
-                                icon = Icons.Rounded.Search,
-                                title = stringResource(R.string.search),
-                                description = stringResource(R.string.search_by_course)
-                            )
-                        }
-
-                        state is LectureSearchViewModel.ViewState.Loading -> {
-                            CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
-                        }
-
-                        courses.isEmpty() -> {
-                            UnavailableView(
-                                icon = Icons.Rounded.Search,
-                                title = stringResource(R.string.no_results_for, searchText),
-                                description = stringResource(R.string.check_the_spelling)
-                            )
-                        }
-
-                        else -> {
-                            LazyColumn(modifier = Modifier.fillMaxSize()) {
-                                courses.forEach { course ->
-                                    item { CourseSectionHeader(course) }
-
-                                    items(course.lectures.size) { index ->
-                                        val lecture = course.lectures[index]
-                                        LectureRow(
-                                            lecture = lecture,
-                                            onClick = {
-                                                val currentCandidate =
-                                                    timetableViewModel.candidateLecture.value
-                                                if (currentCandidate?.id == lecture.id) {
-                                                    timetableViewModel.setCandidateLecture(null)
-                                                } else {
-                                                    timetableViewModel.setCandidateLecture(lecture)
-                                                }
-                                                onFold()
-                                            },
-                                            onInfoClick = {
-                                                timetableViewModel.setCandidateLecture(lecture)
-                                                val json = Uri.encode(Gson().toJson(lecture))
-                                                navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
-                                                onFold()
-                                            },
-
-                                            onAddClick = {
-                                                if (isOverlapping) {
-                                                    pendingLectureToAdd = lecture
-                                                    showCannotAddLectureAlert = true
-                                                } else {
-                                                    timetableViewModel.addLecture(lecture)
-                                                }
-                                            }
-                                        )
-                                        if (index < course.lectures.lastIndex) {
-                                            HorizontalDivider(
-                                                modifier = Modifier.padding(horizontal = 16.dp),
-                                                thickness = 0.5.dp,
-                                                color = MaterialTheme.colorScheme.outlineVariant
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if (showCannotAddLectureAlert) {
-            val overlappingLecture by timetableViewModel.overlappingLecture.collectAsState()
-
-            AlertDialog(
-                onDismissRequest = {
-                    showCannotAddLectureAlert = false
-                    pendingLectureToAdd = null
-                },
-                confirmButton = {
-                    TextButton(onClick = {
-                        showCannotAddLectureAlert = false
-
-                        pendingLectureToAdd?.let { lecture ->
-                            timetableViewModel.addLecture(lecture)
-                            pendingLectureToAdd = null
-                        }
-                    }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        showCannotAddLectureAlert = false
-                        pendingLectureToAdd = null
-                    }) {
-                        Text(stringResource(R.string.cancel))
-                    }
-                },
-                title = { Text(stringResource(R.string.add_overlapping_lecture)) },
-                text = {
-                    val currentName =
-                        overlappingLecture?.name
-                            ?: stringResource(R.string.the_existing_lecture)
-                    val newName = pendingLectureToAdd?.name
-                        ?: stringResource(R.string.the_new_lecture)
-                    Text(
-                        text = stringResource(
-                            id = R.string.lecture_overlap,
-                            currentName,
-                            newName
-                        )
-                    )
-                },
-                containerColor = MaterialTheme.colorScheme.background
+        Box(modifier = Modifier.padding(innerPadding)) {
+            CourseSearchSheetContent(
+                navController = navController,
+                timetableViewModel = timetableViewModel,
+                lectureSearchViewModel = lectureSearchViewModel,
+                onFoldSheet = onFoldSheet,
             )
-        }
-
-        activeFilterCategory?.let { category ->
-            ModalBottomSheet(
-                onDismissRequest = { activeFilterCategory = null },
-                sheetState = filterSheetState,
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                CategoryFilterContent(
-                    category = category,
-                    selectedFilters = courseFilterState,
-                    onFilterChange = lectureSearchViewModel::onFilterChange,
-                    options = CourseFilterProvider.getOptions(category)
-                )
-            }
-        }
-
-        DisposableEffect(Unit) {
-            onDispose {
-                timetableViewModel.setCandidateLecture(null)
-            }
         }
     }
 }
 
-
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LectureRow(
     lecture: Lecture,
+    isSelected: Boolean = false,
     onClick: () -> Unit,
     onInfoClick: () -> Unit,
     onAddClick: () -> Unit,
 ) {
-    Row(
+    val letters = listOf("?", "F", "F", "F", "D-", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+")
+    fun toLetter(value: Double) = letters.getOrElse(value.toInt().coerceIn(0, letters.lastIndex)) { "?" }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
+            .background(
+                if (isSelected) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
+                else Color.Transparent
+            )
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onInfoClick
+            )
+            .padding(vertical = 12.dp, horizontal = 16.dp)
     ) {
-        Row(
-            modifier = Modifier.weight(1f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(modifier = Modifier.weight(1f, fill = false)) {
+        Row(verticalAlignment = Alignment.Top) {
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val isShortSection = lecture.section.isNotEmpty() && lecture.section.length <= 2
+                    if (isShortSection) {
+                        Text(
+                            text = lecture.section,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+                    Text(
+                        text = lecture.professors.firstOrNull()?.name ?: stringResource(R.string.unknown),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                val subtitleToDisplay = if (lecture.section.length > 2) lecture.section else lecture.subtitle
+                if (subtitleToDisplay.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = subtitleToDisplay,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                val roomText = lecture.classes.firstOrNull()?.let { "(${it.buildingCode}) ${it.roomName}" } ?: ""
+                if (roomText.isNotEmpty()) {
+                    Text(
+                        text = roomText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
                 Text(
-                    text = lecture.section + lecture.subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    softWrap = true
+                    text = lecture.classes.joinToString(" ") { it.day.name + " " + (it.begin / 60).toString() + ":" + (it.begin % 60).toString().padStart(2, '0') + "-" + (it.end / 60).toString() + ":" + (it.end % 60).toString().padStart(2, '0') },
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = lecture.professors.firstOrNull()?.name
-                    ?: stringResource(R.string.unknown),
-                style = MaterialTheme.typography.bodyMedium
-            )
+
+            Row(
+                modifier = Modifier.width(120.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(toLetter(lecture.grade), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                Text(toLetter(lecture.load), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+                Text(toLetter(lecture.speech), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f), textAlign = TextAlign.Center)
+            }
         }
 
-        Spacer(Modifier.width(12.dp))
-
-        Icon(
-            imageVector = Icons.Outlined.Info,
-            contentDescription = "info",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.clickable { onInfoClick() }
-        )
-
-        Spacer(Modifier.width(12.dp))
-
-        Icon(
-            imageVector = Icons.Rounded.Add,
-            contentDescription = "add lecture",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.clickable { onAddClick() }
-        )
+        if (isSelected) {
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = onInfoClick,
+                    modifier = Modifier.height(32.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    border = BorderStroke(0.5.dp, MaterialTheme.colorScheme.outline)
+                ) {
+                    Text(stringResource(R.string.more), style = MaterialTheme.typography.labelMedium)
+                }
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                Button(
+                    onClick = onAddClick,
+                    modifier = Modifier.height(32.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(stringResource(R.string.add_course), style = MaterialTheme.typography.labelMedium)
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun CourseSectionHeader(course: CourseLecture) {
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth()
+fun CourseSectionHeader(course: CourseLecture, backgroundColor: Color = MaterialTheme.colorScheme.surface) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(backgroundColor)
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 0.dp)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = course.name,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
+            Row(
                 modifier = Modifier.weight(1f),
-                maxLines = 2
-            )
-            Column(horizontalAlignment = Alignment.End) {
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = course.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
                 Text(
                     text = course.code,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-                Text(
-                    text = course.type.name,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
                 )
             }
+            
+            Row(
+                modifier = Modifier.width(120.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(stringResource(R.string.grade), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.load), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.speech), style = MaterialTheme.typography.labelSmall, modifier = Modifier.weight(1f), textAlign = TextAlign.Center, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
+        Spacer(modifier = Modifier.height(4.dp))
+        HorizontalDivider(thickness = 0.5.dp, color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
-
-
-/* ____________________________________________________________________*/
 
 @Composable
 private fun MockView(state: LectureSearchViewModel.ViewState) {

@@ -36,10 +36,10 @@ class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock())
 
     private val _isCandidateOverlapping = MutableStateFlow(false)
     override val isCandidateOverlapping: StateFlow<Boolean> = _isCandidateOverlapping.asStateFlow()
-
-    private val _overlappingLecture = MutableStateFlow<Lecture?>(null)
-    override val overlappingLecture: StateFlow<Lecture?> = _overlappingLecture.asStateFlow()
-
+    
+    private val _overlappingLectures = MutableStateFlow<List<Lecture>>(emptyList())
+    override val overlappingLectures: StateFlow<List<Lecture>> = _overlappingLectures.asStateFlow()
+    
     private val _isEditable = MutableStateFlow(true)
     override val isEditable: StateFlow<Boolean> = _isEditable.asStateFlow()
 

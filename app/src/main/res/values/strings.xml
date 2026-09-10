@@ -59,7 +59,7 @@
     <string name="edit_a_review">Edit a Review</string>
     <string name="summarise">Summarise</string>
     <string name="translate">Translate</string>
-    <string name="unknown" translatable="false">Unknown</string>
+    <string name="unknown">Unknown</string>
     <string name="reviews">Reviews</string>
     <string name="information">Information</string>
     <string name="code">Code</string>
@@ -190,6 +190,9 @@
     Would you like to add it to your timetable?
     </string>
     <string name="add_to_timetable">Add to &quot;%1$s&quot;</string>
+    <string name="add_course">Add Course</string>
+    <string name="add_custom_block">Add Custom Block</string>
+    <string name="selected_count">%1$d selected</string>
     <string name="check_the_spelling">Check the spelling or try a new search</string>
     <string name="empty_posts_default">Nothing here yet.\nIt looks like there are no posts on this page right now.</string>
     <string name="no_posts">It looks like there are no posts on this page right now.</string>
@@ -592,6 +595,7 @@
     <string name="cr">CR</string>
     <string name="timetable_rename">Rename</string>
     <string name="expand">Expand</string>
+    <string name="and_n_others">and %1$d others</string>
 
     <!-- Course category filter -->
     <string name="filter_classification">Classification</string>
@@ -634,6 +638,7 @@
     <string name="dept_ts">TS</string>
     <string name="dept_ss">SS</string>
     <string name="dept_bcs">BCS</string>
+    <string name="dept_aic">AIC</string>
     <string name="dept_etc">ETC</string>
 
     <!-- Post translation -->

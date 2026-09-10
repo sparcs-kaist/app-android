@@ -128,6 +128,7 @@ fun TimetableGrid(
 
                         val isCandidate =
                             item.lecture.id == candidateLecture?.id
+                        val isConflict = isCandidate && viewModel.isCandidateOverlapping.collectAsState().value
                         val animatedAlpha by animateFloatAsState(
                             targetValue = if (viewModel.isLoading.collectAsState().value) 0.5f else 1f,
                             label = "LectureAlpha"
@@ -136,6 +137,7 @@ fun TimetableGrid(
                         TimetableGridCell(
                             lectureItem = item,
                             isCandidate = isCandidate,
+                            isConflict = isConflict,
                             cellHeight = animatedCellHeight,
                             modifier = Modifier
                                 .offset(y = animatedCellOffsetY)

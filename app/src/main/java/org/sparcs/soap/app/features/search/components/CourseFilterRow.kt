@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -27,22 +29,33 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
+import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.shared.views.contentViews.getTagChipColors
 import org.sparcs.soap.app.theme.ui.Theme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseFilterRow(
+    modifier: Modifier = Modifier,
     courseFilterState: CourseFilterState,
     onCategoryClick: (CourseFilterCategory) -> Unit,
     onResetFilters: () -> Unit,
-    modifier: Modifier = Modifier,
     showLeadingDivider: Boolean = true
 ) {
+    val isAnyFilterSelected = !courseFilterState.isEmpty()
+
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        Icon(
+            imageVector = Icons.Outlined.FilterAlt,
+            contentDescription = "Filter",
+            modifier = Modifier.padding(start = 4.dp, end = 8.dp).size(20.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+        )
+
         if (showLeadingDivider) {
             Spacer(
                 modifier = Modifier
@@ -53,7 +66,7 @@ fun CourseFilterRow(
             )
         }
 
-        if (!courseFilterState.isEmpty()) {
+        if (isAnyFilterSelected) {
             FilterChip(
                 selected = false,
                 onClick = onResetFilters,
@@ -78,19 +91,39 @@ fun CourseFilterRow(
         }
 
         CourseFilterCategory.entries.forEach { category ->
-            val isSelected = when (category) {
-                CourseFilterCategory.Classification -> courseFilterState.classifications.isNotEmpty()
-                CourseFilterCategory.Department -> courseFilterState.departments.isNotEmpty()
-                CourseFilterCategory.Level -> courseFilterState.levels.isNotEmpty()
-                CourseFilterCategory.Period -> courseFilterState.period != null
+            val selectedOptionIds = when (category) {
+                CourseFilterCategory.Classification -> courseFilterState.classifications
+                CourseFilterCategory.Department -> courseFilterState.departments
+                CourseFilterCategory.Level -> courseFilterState.levels
+                CourseFilterCategory.Period -> listOfNotNull(courseFilterState.period)
+            }
+            val isSelected = selectedOptionIds.isNotEmpty()
+
+            val options = CourseFilterProvider.getOptions(category)
+            val selectedOptionLabels = selectedOptionIds.map { id ->
+                options.find { it.id == id }?.label ?: id
             }
 
             FilterChip(
                 selected = isSelected,
                 onClick = { onCategoryClick(category) },
                 label = {
+                    val baseLabel = stringResource(category.labelResId)
+                    val labelText = if (isSelected) {
+                        val displayOptions = selectedOptionLabels.take(2)
+                        val extraCount = selectedOptionLabels.size - 2
+                        val optionsText = displayOptions.joinToString(", ")
+                        if (extraCount > 0) {
+                            val othersText = stringResource(R.string.and_n_others, extraCount)
+                            "$baseLabel: $optionsText $othersText"
+                        } else {
+                            "$baseLabel: $optionsText"
+                        }
+                    } else {
+                        baseLabel
+                    }
                     Text(
-                        text = stringResource(category.labelResId),
+                        text = labelText,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 },
@@ -115,7 +148,7 @@ private fun Preview() {
     Theme {
         CourseFilterRow(
             courseFilterState = CourseFilterState(
-                classifications = listOf("MR"),
+                classifications = listOf("MR", "BR", "BE"),
                 departments = listOf("9945"),
                 levels = emptyList(),
                 period = "0"

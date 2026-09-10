@@ -9,7 +9,7 @@ sealed class PostViewEvent : Event {
     data object CommentSubmitted : PostViewEvent()
     data class PostReported(val type: String) : PostViewEvent()
     data object PostDeleted : PostViewEvent()
-//    data object SummariseRequested : PostViewEvent()
+    data object SummariseRequested : PostViewEvent()
 
     override val source: String = "PostView"
 
@@ -21,7 +21,7 @@ sealed class PostViewEvent : Event {
             is CommentSubmitted -> "comment_submitted"
             is PostReported -> "post_reported"
             is PostDeleted -> "post_deleted"
-//            is SummariseRequested -> "summarise_requested"
+            is SummariseRequested -> "summarise_requested"
         }
 
     override val parameters: Map<String, Any>

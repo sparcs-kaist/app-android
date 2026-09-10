@@ -6,6 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -93,7 +94,7 @@ class TaxiChatUseCase @Inject constructor(
         val delayMs = room.departAt.time - now.time
         if (delayMs > 0) {
             departureRefreshJob = scope.launch {
-                kotlinx.coroutines.delay(delayMs + 1000) // 1s buffer
+                delay(delayMs + 1000) // 1s buffer
                 refreshRoom()
             }
         } else if (!room.isDeparted) {
