@@ -66,7 +66,6 @@ fun CourseSearchSheetContent(
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
     onFoldSheet: () -> Unit = {},
-    onExpandSheet: () -> Unit = {},
 ) {
     val state by lectureSearchViewModel.state.collectAsState()
     val searchText by lectureSearchViewModel.searchText.collectAsState()
@@ -113,7 +112,8 @@ fun CourseSearchSheetContent(
                 onValueClear = {
                     lectureSearchViewModel.onSearchTextChange("")
                 },
-                placeHolder = stringResource(R.string.search_by_course)
+                placeHolder = stringResource(R.string.search_by_course),
+                containerColor = MaterialTheme.colorScheme.surface
             )
 
             Spacer(modifier = Modifier.height(8.dp))

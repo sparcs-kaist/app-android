@@ -565,6 +565,7 @@
     <string name="cr">학점</string>
     <string name="timetable_rename">이름 변경</string>
     <string name="expand">확장</string>
+    <string name="and_n_others">외 %1$d개</string>
 
     <!-- Course category filter -->
     <string name="filter_classification">구분</string>

@@ -47,7 +47,7 @@ fun TimetablePreviewSection(
             val duration = maxMinutes - minMinutes
 
             if (duration > 0) {
-                val containerHeightDp = 1000.dp
+                val containerHeightDp = 1200.dp
                 val containerHeightPx = with(density) { containerHeightDp.toPx() }
                 val daysHeightPx = with(density) { TimetableConstructor.daysHeight.toPx() }
                 
@@ -57,8 +57,7 @@ fun TimetablePreviewSection(
                 
                 // Calculate target scroll to center the lecture or at least show it clearly
                 val targetOffsetPx = daysHeightPx + 14f + difference
-                val viewportHeightPx = with(density) { 300.dp.toPx() } // Estimated visible height
-                val targetScrollPx = targetOffsetPx - (viewportHeightPx / 3f)
+                val targetScrollPx = targetOffsetPx - with(density) { 80.dp.toPx() }
                 
                 scrollState.animateScrollTo(targetScrollPx.coerceAtLeast(0f).toInt())
             }
@@ -74,7 +73,7 @@ fun TimetablePreviewSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (isScrollable) 1000.dp else 400.dp)
+                .height(if (isScrollable) 1200.dp else 400.dp)
         ) {
             TimetableGrid(
                 viewModel = viewModel,

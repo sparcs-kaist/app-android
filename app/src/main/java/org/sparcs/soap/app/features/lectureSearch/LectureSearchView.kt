@@ -55,7 +55,6 @@ fun LectureSearchView(
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
     onFoldSheet: () -> Unit = {},
-    onExpandSheet: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
@@ -71,7 +70,6 @@ fun LectureSearchView(
                 timetableViewModel = timetableViewModel,
                 lectureSearchViewModel = lectureSearchViewModel,
                 onFoldSheet = onFoldSheet,
-                onExpandSheet = onExpandSheet
             )
         }
     }
@@ -202,7 +200,7 @@ fun CourseSectionHeader(course: CourseLecture, backgroundColor: Color = Material
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 0.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically

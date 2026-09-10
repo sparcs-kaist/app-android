@@ -124,20 +124,21 @@ fun CourseSearchSection(
                     onValueClear = {
                         lectureSearchViewModel.onSearchTextChange("")
                     },
-                    placeHolder = stringResource(R.string.search_by_course)
+                    placeHolder = stringResource(R.string.search_by_course),
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             }
 
             Spacer(modifier = Modifier.height(0.dp))
 
             CourseFilterRow(
-                courseFilterState = courseFilterState,
-                onCategoryClick = { activeFilterCategory = it },
-                onResetFilters = { lectureSearchViewModel.onFilterChange(CourseFilterState()) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState())
                     .padding(horizontal = 16.dp),
+                courseFilterState = courseFilterState,
+                onCategoryClick = { activeFilterCategory = it },
+                onResetFilters = { lectureSearchViewModel.onFilterChange(CourseFilterState()) },
                 showLeadingDivider = false
             )
 

@@ -48,7 +48,10 @@ fun TimetableSummary(
                 .padding(vertical = 12.dp, horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(
+                modifier = Modifier.padding(end = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     SummaryMiniItem(stringResource(R.string.filter_basic_required), "${selectedTimetable?.getCreditsFor(LectureType.BR) ?: 0}")
                     SummaryMiniItem(stringResource(R.string.filter_major_required), "${selectedTimetable?.getCreditsFor(LectureType.MR) ?: 0}")
@@ -61,19 +64,21 @@ fun TimetableSummary(
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 SummaryStatItem("$totalCredits", stringResource(R.string.credit))
                 SummaryStatItem("$totalAUs", stringResource(R.string.au))
-                SummaryStatItem(selectedTimetable?.gradeLetter ?: "?", stringResource(R.string.grade), isAccent = false)
+                SummaryStatItem(selectedTimetable?.gradeLetter ?: "?", stringResource(R.string.grade))
                 SummaryStatItem(selectedTimetable?.loadLetter ?: "?", stringResource(R.string.load))
                 SummaryStatItem(selectedTimetable?.speechLetter ?: "?", stringResource(R.string.speech))
             }
         }
     } else {
         Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
             modifier = Modifier
                 .fillMaxWidth()
                 .glassBorder(shape = RoundedCornerShape(20.dp))

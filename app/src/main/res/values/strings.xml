@@ -595,6 +595,7 @@
     <string name="cr">CR</string>
     <string name="timetable_rename">Rename</string>
     <string name="expand">Expand</string>
+    <string name="and_n_others">and %1$d others</string>
 
     <!-- Course category filter -->
     <string name="filter_classification">Classification</string>
