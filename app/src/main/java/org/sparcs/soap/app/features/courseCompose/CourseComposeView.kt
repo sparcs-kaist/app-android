@@ -89,9 +89,6 @@ fun CourseComposeView(
                 onClose = {
                     timetableViewModel.setCandidateLecture(null)
                     navController.popBackStack()
-                },
-                onAddCustom = {
-                    // Navigate to custom block addition
                 }
             )
         }

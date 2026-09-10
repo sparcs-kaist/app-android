@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.courseCompose.components
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
@@ -15,10 +14,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -27,7 +24,6 @@ import org.sparcs.soap.app.theme.ui.Theme
 fun CourseComposeTopBar(
     title: String,
     onClose: () -> Unit,
-    onAddCustom: () -> Unit
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -46,19 +42,6 @@ fun CourseComposeTopBar(
                 )
             }
         },
-        actions = {
-            Text(
-                text = stringResource(R.string.add_custom_block),
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontSize = 13.sp,
-                    textDecoration = TextDecoration.Underline
-                ),
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .clickable { onAddCustom() }
-            )
-        },
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
@@ -72,7 +55,6 @@ private fun CourseComposeTopBarPreview() {
         CourseComposeTopBar(
             title = "title",
             onClose = {},
-            onAddCustom = {}
         )
     }
 }
