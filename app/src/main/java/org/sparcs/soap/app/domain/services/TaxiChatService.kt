@@ -101,8 +101,9 @@ class TaxiChatService @Inject constructor(
         val opts = IO.Options().apply {
             forceNew = true
             reconnection = true
-            reconnectionAttempts = 5
             reconnectionDelay = 2000
+            reconnectionDelayMax = 30000
+            randomizationFactor = 0.5
             extraHeaders = mutableMapOf(
                 "Origin" to listOf("taxi.sparcs.org"),
                 "Authorization" to listOf("Bearer $token")
@@ -201,7 +202,7 @@ class TaxiChatService @Inject constructor(
 
         socket?.on("chat_push_back") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-            val roomId = firstArg.optString("roomId") ?: return@on
+            val roomId = firstArg.optString("roomId", null) ?: currentRoomId ?: return@on
             val chatArray = (firstArg.optJSONArray("chats") ?: JSONArray()).let { array ->
                 (0 until array.length()).mapNotNull { i -> array.optJSONObject(i)?.toMap() }
             }

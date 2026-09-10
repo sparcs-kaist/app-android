@@ -123,6 +123,9 @@ class TaxiChatUseCase @Inject constructor(
         hasInitialChatsBeenFetched = true
         bind()
         try {
+            if (!taxiChatService.isConnectedPublisher.value) {
+                taxiChatService.reconnect()
+            }
             taxiChatService.isConnectedPublisher.filter { it }.first()
             taxiChatRepository.fetchChats(room.id)
         } catch (e: Exception) {
