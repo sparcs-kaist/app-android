@@ -102,6 +102,8 @@ class TaxiChatService @Inject constructor(
             forceNew = true
             reconnection = true
             reconnectionDelay = 2000
+            reconnectionDelayMax = 30000
+            randomizationFactor = 0.5
             extraHeaders = mutableMapOf(
                 "Origin" to listOf("taxi.sparcs.org"),
                 "Authorization" to listOf("Bearer $token")
