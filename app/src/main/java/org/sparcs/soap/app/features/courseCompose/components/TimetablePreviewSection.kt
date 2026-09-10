@@ -41,7 +41,6 @@ fun TimetablePreviewSection(
                 candidateLecture?.let { addAll(it.classes) }
             }
 
-            // Exactly match logic from TimetableGrid
             val minMinutes = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: 540
             val maxMinutes = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: 1080
             val duration = maxMinutes - minMinutes
@@ -51,11 +50,9 @@ fun TimetablePreviewSection(
                 val containerHeightPx = with(density) { containerHeightDp.toPx() }
                 val daysHeightPx = with(density) { TimetableConstructor.daysHeight.toPx() }
                 
-                // Match layout logic from TimetableConstructor/Grid
                 val timetableHeight = containerHeightPx - (daysHeightPx + 24f) - 14f
                 val difference = (timetableHeight / duration.toFloat()) * (beginTime - minMinutes).toFloat()
                 
-                // Calculate target scroll to center the lecture or at least show it clearly
                 val targetOffsetPx = daysHeightPx + 14f + difference
                 val targetScrollPx = targetOffsetPx - with(density) { 80.dp.toPx() }
                 

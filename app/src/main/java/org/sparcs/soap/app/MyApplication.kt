@@ -5,8 +5,6 @@ import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
 import org.sparcs.soap.BuildConfig
-import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
-import org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import timber.log.Timber
 import javax.inject.Inject
@@ -15,13 +13,7 @@ import javax.inject.Inject
 class MyApplication : Application() {
 
     @Inject
-    lateinit var authUseCase: AuthUseCaseProtocol
-
-    @Inject
     lateinit var userUseCase: UserUseCaseProtocol
-
-    @Inject
-    lateinit var fcmUseCase: FCMUseCaseProtocol
 
     override fun onCreate() {
         super.onCreate()
@@ -38,28 +30,6 @@ class MyApplication : Application() {
         } catch (e: Exception) {
             Timber.e(e, "ChannelManager init from MyApplication failed")
         }
-
-//        applicationScope.launch {
-//            try {
-//                authUseCase.refreshAccessToken(force = true)
-//                userUseCase.fetchUsers()
-//                FirebaseMessaging.getInstance().token
-//                    .addOnCompleteListener { task ->
-//                        if (task.isSuccessful) {
-//                            val token = task.result
-//                            applicationScope.launch {
-//                                try {
-//                                    fcmUseCase.register(token)
-//                                } catch (e: Exception) {
-//                                    Timber.e(e, "FCM registration failed")
-//                                }
-//                            }
-//                        }
-//                    }
-//            } catch (e: Exception) {
-//                Timber.e(e, "Initial data fetch failed")
-//            }
-//        }
     }
 
     private fun setupLogger() {

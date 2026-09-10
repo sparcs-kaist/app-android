@@ -136,7 +136,7 @@ fun CourseComposeView(
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(searchHeightFraction / (if (searchHeightFraction >= 1f) 1f else (1f))), // Using height fraction effectively
+                    .fillMaxHeight(searchHeightFraction / (if (searchHeightFraction >= 1f) 1f else (1f))),
                 shape = RoundedCornerShape(
                     topStart = if (searchHeightFraction > 0.99f) 0.dp else 32.dp,
                     topEnd = if (searchHeightFraction > 0.99f) 0.dp else 32.dp
