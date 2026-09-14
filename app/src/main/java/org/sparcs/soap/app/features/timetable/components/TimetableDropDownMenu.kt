@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
@@ -48,6 +49,7 @@ fun TimetableDropDownMenu(
     expanded: Boolean,
     onDismiss: () -> Unit,
     onRenameClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     viewModel: TimetableViewModelProtocol,
 ) {
     DropdownMenu(
@@ -58,7 +60,7 @@ fun TimetableDropDownMenu(
     ) {
         TimetableListItems(viewModel, onDismiss)
 
-        TimetableManagementItems(viewModel, onDismiss, onRenameClick)
+        TimetableManagementItems(viewModel, onDismiss, onRenameClick, onDeleteClick)
     }
 }
 
@@ -159,9 +161,11 @@ private fun TimetableManagementItems(
     viewModel: TimetableViewModelProtocol,
     onDismiss: () -> Unit,
     onRenameClick: () -> Unit,
+    onDeleteClick: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
+    val isDuplicating by viewModel.isDuplicatingTable.collectAsState()
     val isActionEnabled = selectedTimetableID != null
 
     val deleteColor =
@@ -185,6 +189,21 @@ private fun TimetableManagementItems(
                 contentDescription = null
             )
         }
+    )
+
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.timetable_duplicate)) },
+        onClick = {
+            viewModel.duplicateMyTable()
+            onDismiss()
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.ContentCopy,
+                contentDescription = null
+            )
+        },
+        enabled = !isDuplicating
     )
 
     HorizontalDivider(
@@ -215,7 +234,7 @@ private fun TimetableManagementItems(
         onClick = {
             onDismiss()
             if (isActionEnabled) {
-                scope.launch { viewModel.deleteTable() }
+                onDeleteClick()
             }
         },
         leadingIcon = {
@@ -241,6 +260,7 @@ private fun Preview() {
                     expanded = true,
                     onDismiss = {},
                     onRenameClick = {},
+                    onDeleteClick = {},
                     viewModel = PreviewTimetableViewModel()
                 )
             }

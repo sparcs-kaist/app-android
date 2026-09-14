@@ -46,7 +46,11 @@ class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock())
     private val _timetableName = MutableStateFlow("My Table")
     override val timetableName: StateFlow<String> = _timetableName.asStateFlow()
 
+    private val _isDuplicatingTable = MutableStateFlow(false)
+    override val isDuplicatingTable: StateFlow<Boolean> = _isDuplicatingTable.asStateFlow()
+
     override var showAlert: Boolean = false
+    override var alertTitleRes: Int? = null
     override var alertMessageRes: Int? = null
 
     override fun setCandidateLecture(lecture: Lecture?) {
@@ -62,6 +66,7 @@ class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock())
     }
 
     override fun createTable() {}
+    override fun duplicateMyTable() {}
     override fun deleteTable() {}
     override fun renameTable(title: String) {}
 

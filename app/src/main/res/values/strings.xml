@@ -74,6 +74,12 @@
     <string name="lecturedetail" translatable="false">LectureDetail</string>
     <string name="timetable_add">New Timetable</string>
     <string name="timetable_delete">Delete</string>
+    <string name="timetable_delete_confirm_title">Delete \"%1$s\"?</string>
+    <string name="timetable_delete_confirm_message">This timetable and its courses will be permanently deleted.</string>
+    <string name="timetable_duplicate">Duplicate My Table</string>
+    <string name="timetable_duplicate_title">My Table Copy</string>
+    <string name="timetable_duplicate_partial_title">Timetable partially duplicated.</string>
+    <string name="timetable_duplicate_partial_message">Some lectures or activities could not be copied.</string>
     <string name="taxi_room_creation">New Room</string>
     <string name="postcompose" translatable="false">PostCompose</string>
     <string name="taxi_preview" translatable="false">TaxiPreview</string>
@@ -415,6 +421,7 @@
     <string name="unexpected_error_reporting_user">An unexpected error occurred while reporting a user. Please try again later.</string>
     <string name="error_add_lecture">An unexpected error occurred while adding a lecture. Please try again later.</string>
     <string name="error_create_table">An unexpected error occurred while creating a new timetable. Please try again later.</string>
+    <string name="error_duplicate_table">Unable to duplicate timetable.</string>
     <string name="error_delete_lecture">An unexpected error occurred while removing a lecture. Please try again later.</string>
     <string name="error_delete_table">An unexpected error occurred while deleting a timetable. Please try again later.</string>
     <string name="error_fetch_data">An unexpected error occurred while loading timetables. Please try again later.</string>

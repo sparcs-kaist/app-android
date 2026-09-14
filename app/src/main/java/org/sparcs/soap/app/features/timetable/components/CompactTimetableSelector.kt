@@ -53,6 +53,7 @@ fun CompactTimetableSelector(
     isWide: Boolean = false
 ) {
     var showRenameDialog by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var renameText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
@@ -69,7 +70,30 @@ fun CompactTimetableSelector(
             onRenameClick = {
                 renameText = timetableName
                 showRenameDialog = true
-            }
+            },
+            onDeleteClick = { showDeleteDialog = true }
+        )
+    }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text(stringResource(R.string.timetable_delete_confirm_title, timetableName)) },
+            text = { Text(stringResource(R.string.timetable_delete_confirm_message)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    viewModel.deleteTable()
+                }) {
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.background,
         )
     }
     
@@ -174,6 +198,7 @@ fun TableSelector(
     viewModel: TimetableViewModelProtocol,
     displayName: String,
     onRenameClick: () -> Unit,
+    onDeleteClick: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -219,6 +244,7 @@ fun TableSelector(
                 expanded = expanded,
                 onDismiss = { expanded = false },
                 onRenameClick = onRenameClick,
+                onDeleteClick = onDeleteClick,
                 viewModel = viewModel
             )
         }

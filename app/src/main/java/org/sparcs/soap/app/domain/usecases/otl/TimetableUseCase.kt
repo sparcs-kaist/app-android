@@ -5,6 +5,8 @@ import org.sparcs.soap.app.domain.models.otl.ActivityConflictException
 import org.sparcs.soap.app.domain.models.otl.ActivityRefreshRequiredException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -15,6 +17,7 @@ import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.error.otl.TimetableUseCaseError
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.TableDuplication
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
@@ -43,6 +46,9 @@ interface TimetableUseCaseProtocol {
     suspend fun renameTable(id: Int, title: String)
 
     suspend fun createTable(semester: Semester): TimetableCreation
+
+    /** Creates a new table for the semester holding a copy of the semester's "my table". */
+    suspend fun duplicateMyTable(semester: Semester, title: String): TableDuplication
 
     suspend fun addLecture(timetableID: Int, lectureID: Int)
 
@@ -193,6 +199,68 @@ class TimetableUseCase @Inject constructor(
         )
         return execute(context) {
             otlTimetableRepository.createTable(semester.year, semester.semesterType)
+        }
+    }
+
+    override suspend fun duplicateMyTable(semester: Semester, title: String): TableDuplication {
+        val context = CrashContext(
+            feature,
+            metadata = mapOf(
+                "year" to semester.year.toString(),
+                "semester" to semester.semesterType.toString()
+            )
+        )
+
+        return execute(context) {
+            // Copy from the server, not the cache, so the duplicate matches what the user sees on
+            // other devices too.
+            val source = otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType)
+            val creation = otlTimetableRepository.createTable(semester.year, semester.semesterType)
+
+            var skippedLectures = 0
+            for (lecture in source.lectures) {
+                currentCoroutineContext().ensureActive()
+                try {
+                    otlTimetableRepository.addLecture(creation.id, lecture.id)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    skippedLectures += 1
+                    crashlyticsService?.record(e, context)
+                }
+            }
+
+            var skippedActivities = 0
+            for (activity in source.activities) {
+                currentCoroutineContext().ensureActive()
+                try {
+                    otlTimetableRepository.saveActivity(creation.id, null, activity.draft())
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    skippedActivities += 1
+                    crashlyticsService?.record(e, context)
+                }
+            }
+
+            if (title.isNotBlank()) {
+                // A failed rename leaves a usable, correctly populated table.
+                try {
+                    otlTimetableRepository.renameTable(creation.id, title)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    crashlyticsService?.record(e, context)
+                }
+            }
+
+            timetableCache.invalidate(creation.id.toString())
+
+            TableDuplication(
+                id = creation.id,
+                skippedLectureCount = skippedLectures,
+                skippedActivityCount = skippedActivities
+            )
         }
     }
 

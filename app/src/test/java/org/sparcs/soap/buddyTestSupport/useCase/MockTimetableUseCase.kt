@@ -1,6 +1,7 @@
 package org.sparcs.soap.buddyTestSupport.useCase
 
 import org.sparcs.soap.app.domain.models.otl.Semester
+import org.sparcs.soap.app.domain.models.otl.TableDuplication
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
@@ -23,7 +24,10 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
     var deleteTableResult: Result<Unit> = Result.success(Unit)
     var renameTableResult: Result<Unit> = Result.success(Unit)
 
+    var duplicateMyTableResult: Result<TableDuplication> = Result.success(TableDuplication(id = 99))
+
     var deleteLectureCallCount = 0
+    var duplicatedTitles = mutableListOf<String>()
 
     override suspend fun getSemesters(): List<Semester> = getSemestersResult.getOrThrow()
     override suspend fun getCurrentSemester(): Semester = getCurrentSemesterResult.getOrThrow()
@@ -46,6 +50,11 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
 
     override suspend fun createTable(semester: Semester): TimetableCreation =
         error("MockTimetableUseCase.createTable not configured")
+
+    override suspend fun duplicateMyTable(semester: Semester, title: String): TableDuplication {
+        duplicatedTitles.add(title)
+        return duplicateMyTableResult.getOrThrow()
+    }
 
     override suspend fun addLecture(timetableID: Int, lectureID: Int) {
         addLectureResult.getOrThrow()
