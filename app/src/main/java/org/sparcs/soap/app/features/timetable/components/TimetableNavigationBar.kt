@@ -24,7 +24,8 @@ import org.sparcs.soap.app.shared.extensions.elevation
 fun TimetableViewNavigationBar(
     scrollState: ScrollState,
     onClick: () -> Unit,
-    isButtonEnabled: Boolean
+    isButtonEnabled: Boolean,
+    onActivityClick: () -> Unit = {}
 ) {
     TopAppBar(
         title = {
@@ -37,11 +38,7 @@ fun TimetableViewNavigationBar(
             }
         },
         actions = {
-            AddButton(
-                contentDescription = "Add Timetable",
-                onClick = { onClick() },
-                isEnabled = isButtonEnabled
-            )
+            TimetableAddButton(enabled = isButtonEnabled, onAddClass = onClick, onAddActivity = onActivityClick)
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,

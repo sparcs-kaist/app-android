@@ -46,6 +46,7 @@ interface TimetableViewModelProtocol {
     var showAlert: Boolean
     var alertMessageRes: Int?
 
+    fun activityTableUpdated(table: Timetable) {}
     fun setCandidateLecture(lecture: Lecture?)
     fun fetchData()
     suspend fun selectPreviousSemester()
@@ -66,6 +67,10 @@ class TimetableViewModel @Inject constructor(
     private val analyticsService: AnalyticsServiceProtocol,
     @param:ApplicationContext private val context: Context
 ) : ViewModel(), TimetableViewModelProtocol {
+
+    override fun activityTableUpdated(table: Timetable) {
+        if (_selectedTimetableID.value?.toString() == table.id) _timetable.value = table
+    }
 
     enum class ErrorType {
         AddLecture,
@@ -270,8 +275,13 @@ class TimetableViewModel @Inject constructor(
         val tableId = _selectedTimetableID.value ?: return
         viewModelScope.launch {
             try {
-                val table = _timetable.value
-                if (table?.hasCollision(lecture) == true) {
+                val table = timetableUseCase.getTable(tableId, forceRefresh = true)
+                if (table.activities.any { block -> lecture.classes.any { it.day.value == block.day && it.begin < block.end && it.end > block.begin } }) {
+                    alertMessageRes = R.string.activity_conflict
+                    showAlert = true
+                    return@launch
+                }
+                if (table.hasCollision(lecture) == true) {
                     val collisions = table.lectures.filter { table.hasCollision(lecture) && table.hasCollisions(lecture, it) }
 
                     collisions.forEach { overlapping ->

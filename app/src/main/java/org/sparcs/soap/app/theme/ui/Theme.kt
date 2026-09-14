@@ -141,26 +141,13 @@ fun Theme(
 
     val view = LocalView.current
     if (!view.isInEditMode) {
-        val background = colorScheme.background
-
         SideEffect {
             val window = (view.context as Activity).window
-            window.setBackgroundDrawable(background.toArgb().toDrawable())
-        }
-
-        SideEffect {
-            val window = (view.context as Activity).window
-            val insetsController = WindowInsetsControllerCompat(window, window.decorView)
-
-            insetsController.isAppearanceLightStatusBars = !darkTheme
-            insetsController.isAppearanceLightNavigationBars = !darkTheme
             window.setBackgroundDrawable(colorScheme.background.toArgb().toDrawable())
 
-            window.navigationBarColor = if (darkTheme) {
-                android.graphics.Color.BLACK
-            } else {
-                android.graphics.Color.WHITE
-            }
+            val insetsController = WindowInsetsControllerCompat(window, window.decorView)
+            insetsController.isAppearanceLightStatusBars = !darkTheme
+            insetsController.isAppearanceLightNavigationBars = !darkTheme
         }
     }
     MaterialTheme(

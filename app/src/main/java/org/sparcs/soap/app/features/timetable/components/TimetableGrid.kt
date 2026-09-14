@@ -20,6 +20,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
+import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,7 +37,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -47,6 +55,7 @@ fun TimetableGrid(
     viewModel: TimetableViewModelProtocol,
     onLectureSelected: (Lecture) -> Unit = {},
     showDeleteDialog: (Lecture) -> Unit,
+    onEditActivity: (TimetableActivity) -> Unit = {},
 ) {
     val timetable by viewModel.selectedTimetable.collectAsState()
 
@@ -58,10 +67,13 @@ fun TimetableGrid(
         candidateLecture?.let { addAll(it.classes) }
     }
 
-    val minMinutes = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: timetable?.minMinutes ?: TimetableDefaults.DEFAULT_MIN_MINUTES
-    val maxMinutes = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: timetable?.gappedMaxMinutes ?: TimetableDefaults.DEFAULT_MAX_MINUTES
+    val minMinutes = ((times.map { it.begin } + timetable?.activities.orEmpty().map { it.begin }).minOrNull() ?: TimetableDefaults.DEFAULT_MIN_MINUTES) / 60 * 60
+    val maxMinutes = ((times.map { it.end } + timetable?.activities.orEmpty().map { it.end }).maxOrNull()?.let { (it / 60 + 1) * 60 } ?: TimetableDefaults.DEFAULT_MAX_MINUTES).coerceAtLeast(minMinutes + 60)
 
     val haptic = LocalHapticFeedback.current
+    var selectedActivity by remember { mutableStateOf<TimetableActivity?>(null) }
+    var activityActions by remember { mutableStateOf(false) }
+
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
@@ -91,28 +103,26 @@ fun TimetableGrid(
                         maxMinutes = maxMinutes
                     )
 
-                    timetable?.getLectures(day, candidateLecture)?.forEach { item ->
-                        val density = LocalDensity.current
-                        val containerHeightPx = with(density) { height.toPx() }
-                        val daysHeightPx = with(density) { TimetableConstructor.daysHeight.toPx() }
+                    timetable?.activities?.filter { it.day == day.value }?.forEach { activity ->
+                        val top = TimetableConstructor.daysHeight + 14.dp
+                        val usable = (height - top).coerceAtLeast(0.dp)
+                        val activityHeight = (usable * ((activity.end - activity.begin).toFloat() / (maxMinutes - minMinutes)) - 4.dp).coerceAtLeast(1.dp)
+                        Column(Modifier.offset(y = top + usable * ((activity.begin - minMinutes).toFloat() / (maxMinutes - minMinutes)))
+                            .height(activityHeight).fillMaxWidth().background(activity.backgroundColor, RoundedCornerShape(4.dp))
+                            .combinedClickable(onClick = { selectedActivity = activity; activityActions = false }, onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                selectedActivity = activity; activityActions = true
+                            }).padding(5.dp)) {
+                            Text(activity.title, style = MaterialTheme.typography.labelSmall, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            if (activity.location.isNotBlank()) Text(activity.location, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = .8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
 
-                        val cellHeight = with(density) {
-                            TimetableConstructor.getCellHeightPx(
-                                item,
-                                containerHeightPx,
-                                maxMinutes - minMinutes,
-                                daysHeightPx + 24
-                            ).toDp()
-                        }
-                        val cellOffsetY = with(density) {
-                            TimetableConstructor.getCellOffsetPx(
-                                item,
-                                containerHeightPx,
-                                minMinutes,
-                                maxMinutes - minMinutes,
-                                daysHeightPx + 24
-                            ).toDp()
-                        }
+                    timetable?.getLectures(day, candidateLecture)?.forEach { item ->
+                        val top = TimetableConstructor.daysHeight + 14.dp
+                        val usable = (height - top).coerceAtLeast(0.dp)
+                        val cellHeight = (usable * (item.lectureClass.duration.toFloat() / (maxMinutes - minMinutes)) - 4.dp).coerceAtLeast(1.dp)
+                        val cellOffsetY = top + usable * ((item.lectureClass.begin - minMinutes).toFloat() / (maxMinutes - minMinutes))
 
                         val animatedCellHeight by animateDpAsState(
                             targetValue = cellHeight,
@@ -160,6 +170,8 @@ fun TimetableGrid(
             }
         }
     }
+    ActivityDetailsDialog(selectedActivity, activityActions, viewModel, onEditActivity) { selectedActivity = null }
+
 }
 
 @Composable
