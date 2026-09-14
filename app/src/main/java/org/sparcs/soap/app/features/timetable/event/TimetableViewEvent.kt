@@ -10,6 +10,7 @@ sealed class TimetableViewEvent : Event {
     data object TableRenamed : TimetableViewEvent()
     data object TableDeleted : TimetableViewEvent()
     data object TableCreated : TimetableViewEvent()
+    data object TableDuplicated : TimetableViewEvent()
 
     override val source: String
         get() = "TimetableView"
@@ -23,6 +24,7 @@ sealed class TimetableViewEvent : Event {
             is TableRenamed -> "table_renamed"
             is TableDeleted -> "table_deleted"
             is TableCreated -> "table_created"
+            is TableDuplicated -> "table_duplicated"
         }
 
     override val parameters: Map<String, Any>

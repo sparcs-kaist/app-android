@@ -14,7 +14,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableSelectionStore
+import org.sparcs.soap.app.domain.models.otl.TableDuplication
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
@@ -100,6 +102,61 @@ class TimetableViewModelTest {
 
         viewModel.deleteLecture(Lecture.mock())
         assertEquals(1, mockTimetableUseCase.deleteLectureCallCount)
+    }
+
+    private fun configureDuplication(existingTitles: List<String> = emptyList()): List<Semester> {
+        val semesters = Semester.mockList().take(3)
+        mockTimetableUseCase.getSemestersResult = Result.success(semesters)
+        mockTimetableUseCase.getCurrentSemesterResult = Result.success(semesters.last())
+        val semester = semesters.last()
+        mockTimetableUseCase.getTimetableListResult = Result.success(
+            existingTitles.mapIndexed { index, title ->
+                TimetableSummary(99 - index, title, semester.year, semester.semesterType)
+            }
+        )
+        return semesters
+    }
+
+    @Test
+    fun `duplicateMyTable selects the copy and names it without clashing`() = runTest {
+        val copy = context.getString(R.string.timetable_duplicate_title)
+        configureDuplication(listOf("$copy 2", copy))
+
+        createViewModel()
+        viewModel.duplicateMyTable()
+
+        assertEquals(listOf("$copy 3"), mockTimetableUseCase.duplicatedTitles)
+        assertEquals(99, viewModel.selectedTimetableID.value)
+        assertFalse(viewModel.isDuplicatingTable.value)
+        assertFalse(viewModel.showAlert)
+    }
+
+    @Test
+    fun `an incomplete copy is reported but still selected`() = runTest {
+        configureDuplication()
+        mockTimetableUseCase.duplicateMyTableResult =
+            Result.success(TableDuplication(id = 99, skippedLectureCount = 2))
+
+        createViewModel()
+        viewModel.duplicateMyTable()
+
+        assertTrue(viewModel.showAlert)
+        assertEquals(R.string.timetable_duplicate_partial_title, viewModel.alertTitleRes)
+        assertEquals(R.string.timetable_duplicate_partial_message, viewModel.alertMessageRes)
+    }
+
+    @Test
+    fun `a failed duplication shows an error and frees the menu entry`() = runTest {
+        configureDuplication()
+        mockTimetableUseCase.duplicateMyTableResult = Result.failure(Exception("Test failure"))
+
+        createViewModel()
+        viewModel.duplicateMyTable()
+
+        assertTrue(viewModel.showAlert)
+        assertNull(viewModel.alertTitleRes)
+        assertEquals(R.string.error_duplicate_table, viewModel.alertMessageRes)
+        assertFalse(viewModel.isDuplicatingTable.value)
     }
 
     private fun configureSelection(): List<Semester> {

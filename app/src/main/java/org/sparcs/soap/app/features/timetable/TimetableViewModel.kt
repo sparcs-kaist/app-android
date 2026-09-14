@@ -45,8 +45,11 @@ interface TimetableViewModelProtocol {
     val overlappingLectures: StateFlow<List<Lecture>>
     val isEditable: StateFlow<Boolean>
     val timetableName: StateFlow<String>
+    /** Duplicating replays every lecture and activity, so the menu entry must not be tappable twice. */
+    val isDuplicatingTable: StateFlow<Boolean>
 
     var showAlert: Boolean
+    var alertTitleRes: Int?
     var alertMessageRes: Int?
 
     fun activityTableUpdated(table: Timetable) {}
@@ -56,6 +59,7 @@ interface TimetableViewModelProtocol {
     suspend fun selectNextSemester()
     fun selectTimetable(id: Int)
     fun createTable()
+    fun duplicateMyTable()
     fun deleteTable()
     fun renameTable(title: String)
     fun addLecture(lecture: Lecture)
@@ -79,6 +83,7 @@ class TimetableViewModel @Inject constructor(
     enum class ErrorType {
         AddLecture,
         CreateTable,
+        DuplicateTable,
         DeleteTable,
         DeleteLecture,
         FetchData,
@@ -90,6 +95,7 @@ class TimetableViewModel @Inject constructor(
     }
 
     override var showAlert by mutableStateOf(false)
+    override var alertTitleRes by mutableStateOf<Int?>(null)
     override var alertMessageRes by mutableStateOf<Int?>(null)
 
     override val isLoading = MutableStateFlow(false)
@@ -108,6 +114,9 @@ class TimetableViewModel @Inject constructor(
 
     private val _timetable = MutableStateFlow<Timetable?>(null)
     override val selectedTimetable: StateFlow<Timetable?> = _timetable.asStateFlow()
+
+    private val _isDuplicatingTable = MutableStateFlow(false)
+    override val isDuplicatingTable: StateFlow<Boolean> = _isDuplicatingTable.asStateFlow()
 
     private val _candidateLecture = MutableStateFlow<Lecture?>(null)
     override val candidateLecture: StateFlow<Lecture?> = _candidateLecture.asStateFlow()
@@ -299,6 +308,52 @@ class TimetableViewModel @Inject constructor(
         }
     }
 
+    /** Copies "My Table" of the selected semester into a new table and selects it. */
+    override fun duplicateMyTable() {
+        val semester = _selectedSemester.value ?: return
+        if (_isDuplicatingTable.value) return
+        _isDuplicatingTable.value = true
+        viewModelScope.launch {
+            try {
+                val duplication = timetableUseCase.duplicateMyTable(semester, duplicateTitle())
+                analyticsService.logEvent(TimetableViewEvent.TableDuplicated)
+                if (_selectedSemester.value == semester) {
+                    selectionRevision++
+                    _selectedTimetableID.value = duplication.id
+                    persistSelection()
+                    updateTimetableList(semester)
+                }
+                // The table exists either way; tell the user only when it is incomplete.
+                if (!duplication.isComplete) {
+                    alertTitleRes = R.string.timetable_duplicate_partial_title
+                    alertMessageRes = R.string.timetable_duplicate_partial_message
+                    showAlert = true
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Error duplicating table")
+                handleException(e, ErrorType.DuplicateTable)
+            } finally {
+                _isDuplicatingTable.value = false
+            }
+        }
+    }
+
+    /**
+     * A title that does not clash with the semester's existing tables, so repeated duplicates stay
+     * distinguishable in the selector.
+     */
+    private fun duplicateTitle(): String {
+        val base = context.getString(R.string.timetable_duplicate_title)
+        val existing = _timetableList.value.map { it.title }.toSet()
+        if (base !in existing) return base
+
+        var index = 2
+        while ("$base $index" in existing) index++
+        return "$base $index"
+    }
+
     override fun deleteTable() {
         val id = _selectedTimetableID.value ?: return
         viewModelScope.launch {
@@ -409,11 +464,13 @@ class TimetableViewModel @Inject constructor(
         val messageRes = when (type) {
             ErrorType.AddLecture -> R.string.error_add_lecture
             ErrorType.CreateTable -> R.string.error_create_table
+            ErrorType.DuplicateTable -> R.string.error_duplicate_table
             ErrorType.DeleteLecture -> R.string.error_delete_lecture
             ErrorType.DeleteTable -> R.string.error_delete_table
             ErrorType.FetchData -> R.string.error_fetch_data
             ErrorType.RenameTable -> R.string.error_rename_table
         }
+        alertTitleRes = null
         alertMessageRes = messageRes
         showAlert = true
         crashlyticsService.recordException(error)
