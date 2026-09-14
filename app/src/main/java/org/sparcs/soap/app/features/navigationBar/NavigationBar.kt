@@ -71,6 +71,7 @@ import org.sparcs.soap.app.features.settings.ara.AraMyPostView
 import org.sparcs.soap.app.features.settings.ara.AraMyPostViewModel
 import org.sparcs.soap.app.features.settings.ara.AraSettingsView
 import org.sparcs.soap.app.features.settings.ara.AraSettingsViewModel
+import org.sparcs.soap.app.features.settings.timetable.TimetableThemeSettingsView
 import org.sparcs.soap.app.features.settings.feed.FeedSettingsView
 import org.sparcs.soap.app.features.settings.feed.FeedSettingsViewModel
 import org.sparcs.soap.app.features.settings.notification.NotificationSettingsView
@@ -137,6 +138,7 @@ enum class Channel(@param:StringRes val title: Int) {
     NotificationSettings(title = R.string.notifications_title),
     CreditView(title = R.string.acknowledgements),
     FeedSettings(title = R.string.feed_settings),
+    TimetableThemeSettings(title = R.string.timetable_theme),
     AraSettings(title = R.string.ara_settings),
     AraMyPostSettings(title = R.string.ara_my_post_settings),
     TaxiSettings(title = R.string.taxi_settings),
@@ -672,6 +674,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             navController = navController,
                             settingsViewModel = viewModel
                         )
+                    }
+
+                    composable(route = Channel.TimetableThemeSettings.name) {
+                        TimetableThemeSettingsView(onBack = { navController.popBackStack() })
                     }
 
                     composable(

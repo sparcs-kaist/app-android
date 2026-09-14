@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.timetable.components
 
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sparcs.soap.app.domain.models.otl.Lecture
-import org.sparcs.soap.app.domain.models.otl.backgroundColor
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.R
@@ -46,7 +46,7 @@ fun LectureListRow(lecture: Lecture) {
             modifier = Modifier
                 .size(12.dp)
                 .clip(CircleShape)
-                .background(lecture.backgroundColor)
+                .background(LocalTimetableTheme.current.colorFor(lecture.courseID))
         )
 
         Spacer(modifier = Modifier.width(12.dp))

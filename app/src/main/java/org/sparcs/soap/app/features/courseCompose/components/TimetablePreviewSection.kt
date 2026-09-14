@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.courseCompose.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -61,8 +63,10 @@ fun TimetablePreviewSection(
         }
     }
 
+    val background = LocalTimetableTheme.current.backgroundColor
     Column(
         modifier = modifier
+            .then(if (background != null) Modifier.background(background) else Modifier)
             .then(if (isScrollable) Modifier.verticalScroll(scrollState) else Modifier)
             .padding(horizontal = 12.dp)
             .padding(top = 8.dp)

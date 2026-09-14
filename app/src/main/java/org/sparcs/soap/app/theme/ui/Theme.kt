@@ -8,6 +8,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
@@ -150,9 +151,8 @@ fun Theme(
             insetsController.isAppearanceLightNavigationBars = !darkTheme
         }
     }
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = getAppTypography(),
-        content = content
-    )
+    val timetableTheme = rememberTimetableThemeState(rememberTimetableThemeStore()).selected
+    CompositionLocalProvider(LocalTimetableTheme provides timetableTheme) {
+        MaterialTheme(colorScheme = colorScheme, typography = getAppTypography(), content = content)
+    }
 }

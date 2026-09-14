@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.timetable.components
 
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -26,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import androidx.compose.runtime.Composable
@@ -108,13 +108,13 @@ fun TimetableGrid(
                         val usable = (height - top).coerceAtLeast(0.dp)
                         val activityHeight = (usable * ((activity.end - activity.begin).toFloat() / (maxMinutes - minMinutes)) - 4.dp).coerceAtLeast(1.dp)
                         Column(Modifier.offset(y = top + usable * ((activity.begin - minMinutes).toFloat() / (maxMinutes - minMinutes)))
-                            .height(activityHeight).fillMaxWidth().background(activity.backgroundColor, RoundedCornerShape(4.dp))
+                            .height(activityHeight).fillMaxWidth().background(LocalTimetableTheme.current.colorFor(activity.id), RoundedCornerShape(4.dp))
                             .combinedClickable(onClick = { selectedActivity = activity; activityActions = false }, onLongClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 selectedActivity = activity; activityActions = true
                             }).padding(5.dp)) {
-                            Text(activity.title, style = MaterialTheme.typography.labelSmall, color = Color.White, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            if (activity.location.isNotBlank()) Text(activity.location, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = .8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(activity.title, style = MaterialTheme.typography.labelSmall, color = LocalTimetableTheme.current.textColor, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                            if (activity.location.isNotBlank()) Text(activity.location, style = MaterialTheme.typography.labelSmall, color = LocalTimetableTheme.current.textColor.copy(alpha = .8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     }
 
@@ -188,7 +188,7 @@ private fun DaysColumnHeader(visibleDays: List<DayType>) {
                 text = stringResource(day.stringValue),
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.weight(1f),
-                color = MaterialTheme.colorScheme.onSurface,
+                color = LocalTimetableTheme.current.gridLabelColor ?: MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
         }
@@ -214,7 +214,7 @@ private fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
                 text = hour.toString(),
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = LocalTimetableTheme.current.gridLabelColor ?: MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .width(TimetableConstructor.hoursWidth)
                     .offset(y = spacing * index)
@@ -226,7 +226,7 @@ private fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
 
 @Composable
 private fun GridHorizontalLines(minMinutes: Int, maxMinutes: Int) {
-    val lineColor = MaterialTheme.colorScheme.grayBB
+    val lineColor = LocalTimetableTheme.current.separatorColor ?: MaterialTheme.colorScheme.grayBB
     val animatedMinMinutes by animateIntAsState(
         targetValue = minMinutes,
         animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),

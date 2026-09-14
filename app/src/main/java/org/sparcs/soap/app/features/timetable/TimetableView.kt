@@ -62,6 +62,7 @@ import org.sparcs.soap.app.features.timetable.components.TimetableViewNavigation
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.escapeHash
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -265,7 +266,8 @@ private fun TimetableLandscapeLayout(
                             .glassBorder(shape = RoundedCornerShape(28.dp)),
                         shape = RoundedCornerShape(28.dp),
                         colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.background
+                            containerColor = LocalTimetableTheme.current.backgroundColor
+                                ?: MaterialTheme.colorScheme.background
                         ),
                     ) {
                         Box(modifier = Modifier.padding(8.dp)) {
@@ -359,7 +361,8 @@ private fun TimetablePortraitLayout(
                 .height(screenHeight * 0.66f),
             shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.background
+                containerColor = LocalTimetableTheme.current.backgroundColor
+                    ?: MaterialTheme.colorScheme.background
             ),
         ) {
             Box(modifier = Modifier.padding(8.dp)) {
