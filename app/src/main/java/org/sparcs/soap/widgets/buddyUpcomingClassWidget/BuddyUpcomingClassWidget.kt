@@ -2,7 +2,6 @@ package org.sparcs.soap.widgets.buddyUpcomingClassWidget
 
 import android.content.Context
 import android.content.Intent
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
@@ -47,11 +46,14 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
+import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.Timetable
-import org.sparcs.soap.app.domain.models.otl.backgroundColor
-import org.sparcs.soap.app.domain.models.otl.textColor
+import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.WidgetEntryPoint
+import org.sparcs.soap.widgets.themed
+import org.sparcs.soap.widgets.toWidgetHex
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassCircularWidgetView
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassRectangleWidgetView
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassSmallWidgetView
@@ -77,19 +79,21 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
         val entryPoint =
             EntryPointAccessors.fromApplication(appContext, WidgetEntryPoint::class.java)
         val tokenStorage = entryPoint.tokenStorage()
+        val themes = TimetableThemeStore(appContext).state
 
         provideContent {
             val prefs = currentState<Preferences>()
             val state = UpcomingClassStateParser.parse(prefs, tokenStorage)
 
+            // Each widget carries its own palette, chosen in its configuration screen.
+            val timetableTheme = themes.theme(prefs[WIDGET_THEME_ID])
             val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
             WidgetTheme(themeMode = themeMode) {
+                val surface = timetableTheme.backgroundColor ?: GlanceTheme.colors.background.getColor(context)
                 Box(
-                    modifier = GlanceModifier.fillMaxSize().background(
-                        GlanceTheme.colors.background.getColor(context).copy(alpha = transparency)
-                    )
+                    modifier = GlanceModifier.fillMaxSize().background(surface.copy(alpha = transparency))
                 ) {
                     when {
                         state.signInRequired -> {
@@ -120,7 +124,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
                         }
 
                         else -> {
-                            val entry = state.entry ?: WidgetLectureEntry.empty(false)
+                            val entry = (state.entry ?: WidgetLectureEntry.empty(false)).themed(timetableTheme)
                             val size = LocalSize.current
                             when {
                                 size.width >= 110.dp && size.height < 110.dp -> {
@@ -164,6 +168,8 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val syncManager = entryPoint.upComingSyncManager()
         val tokenStorage = entryPoint.tokenStorage()
         val timetableUseCase = entryPoint.timetableUseCase()
+        // The entry carries its palette slot; the widget recolors it with its own theme when it renders.
+        val palette = TimetableTheme.Default
 
         return try {
             if (tokenStorage.getAccessToken() == null) {
@@ -205,10 +211,10 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
                     day = time.day,
                     startMinutes = time.begin,
                     durationMinutes = time.let { it.end - it.begin },
-                    bgColor = "#" + Integer.toHexString(lecture.backgroundColor.toArgb())
-                        .uppercase(),
-                    textColor = "#" + Integer.toHexString(textColor.toArgb()).uppercase(),
-                    signInRequired = false
+                    bgColor = palette.colorFor(lecture.courseID).toWidgetHex(),
+                    textColor = palette.textColor.toWidgetHex(),
+                    signInRequired = false,
+                    colorID = lecture.courseID
                 )
             } else {
                 WidgetLectureEntry.empty(false)

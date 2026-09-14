@@ -39,6 +39,7 @@ import kotlin.math.roundToInt
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor.hoursWidth
+import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.widgets.theme.ui.TimetableWidgetTheme.grayBB
 
@@ -102,9 +103,18 @@ private fun TimetableWidgetCell(
     }
 }
 
+private fun Color.solid(): ColorProvider = ColorProvider(day = this, night = this)
+
 @Composable
-fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
+fun TimetableLargeWidgetView(
+    timetable: WidgetTimetableEntry?,
+    theme: TimetableTheme = TimetableTheme.Default,
+) {
     val size = LocalSize.current
+    val labelColor = theme.gridLabelColor?.solid()
+    val lineColor = theme.separatorColor?.solid() ?: GlanceTheme.colors.grayBB
+    // A theme separator is an explicit choice, so it is drawn as picked; the default grid keeps its faint hour lines.
+    val solidLineAlpha = if (theme.separatorColor != null) 1f else 0.15f
     val minMin = timetable?.minMinutes ?: 540 // 9:00 AM
     val maxMin = timetable?.maxMinutes ?: 1080 // 6:00 PM
     val visibleDays = timetable?.visibleDays ?: emptyList()
@@ -127,7 +137,7 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
             .roundToInt() / metrics.density
 
     Column(modifier = GlanceModifier.fillMaxSize()) {
-        DaysColumnHeader(visibleDays)
+        DaysColumnHeader(visibleDays, labelColor ?: GlanceTheme.colors.onSurface)
 
         Box(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
             Box(modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight()) {
@@ -140,7 +150,7 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
                                     modifier = GlanceModifier.fillMaxWidth().height(labelHeight.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(hour.toString(), style = TextStyle(fontSize = 10.sp, color = GlanceTheme.colors.onSurfaceVariant, textAlign = TextAlign.Center))
+                                    Text(hour.toString(), style = TextStyle(fontSize = 10.sp, color = labelColor ?: GlanceTheme.colors.onSurfaceVariant, textAlign = TextAlign.Center))
                                 }
                             }
                         }
@@ -158,8 +168,8 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
                             Box(modifier = GlanceModifier.fillMaxSize()) {
                                 times.forEach { minutes ->
                                     Box(modifier = GlanceModifier.fillMaxWidth().padding(top = position(minutes).dp)) {
-                                        if (minutes % 60 == 0) HorizontalLine(alpha = 0.15f)
-                                        else DashedHorizontalLine()
+                                        if (minutes % 60 == 0) HorizontalLine(color = lineColor, alpha = solidLineAlpha)
+                                        else DashedHorizontalLine(color = lineColor)
                                     }
                                 }
                             }
@@ -184,7 +194,7 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
 }
 
 @Composable
-private fun DaysColumnHeader(visibleDays: List<DayType>) {
+private fun DaysColumnHeader(visibleDays: List<DayType>, color: ColorProvider) {
     val context = LocalContext.current
     Row(
         modifier = GlanceModifier
@@ -200,7 +210,7 @@ private fun DaysColumnHeader(visibleDays: List<DayType>) {
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
-                    color = GlanceTheme.colors.onSurface
+                    color = color
                 ),
                 modifier = GlanceModifier.defaultWeight()
             )

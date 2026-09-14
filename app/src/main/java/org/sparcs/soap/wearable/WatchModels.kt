@@ -1,10 +1,11 @@
 package org.sparcs.soap.wearable
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.models.otl.Timetable
-import org.sparcs.soap.app.domain.models.otl.backgroundColor
 
 @Serializable
 data class WatchTimetable(
@@ -25,7 +26,9 @@ data class WatchLecture(
     val name: String,
     val code: String,
     val classes: List<WatchLectureClass>,
-    val color: String? = null
+    val color: String? = null,
+    /** Palette slot this lecture occupies, so the payload can be recolored without refetching it. */
+    val colorID: Int? = null
 )
 
 @Serializable
@@ -38,7 +41,7 @@ data class WatchLectureClass(
 
 // ...
 
-fun Timetable.toWatchModel(): WatchTimetable {
+fun Timetable.toWatchModel(theme: TimetableTheme): WatchTimetable {
     return WatchTimetable(
         id = id,
         lectures = lectures.map { lecture ->
@@ -54,8 +57,19 @@ fun Timetable.toWatchModel(): WatchTimetable {
                         location = "(" + cl.buildingCode + ") " + cl.roomName
                     )
                 },
-                color = "#" + Integer.toHexString(lecture.backgroundColor.toArgb()).uppercase()
+                color = theme.colorFor(lecture.courseID).toWatchHex(),
+                colorID = lecture.courseID
             )
         }
     )
 }
+
+/** Recolors a payload with [theme] so a theme change reaches the watch without refetching the table. */
+fun WatchTimetable.themed(theme: TimetableTheme): WatchTimetable = copy(
+    lectures = lectures.map { lecture ->
+        lecture.colorID?.let { lecture.copy(color = theme.colorFor(it).toWatchHex()) } ?: lecture
+    }
+)
+
+private fun Color.toWatchHex(): String =
+    String.format("#%06X", 0xFFFFFF and toArgb())

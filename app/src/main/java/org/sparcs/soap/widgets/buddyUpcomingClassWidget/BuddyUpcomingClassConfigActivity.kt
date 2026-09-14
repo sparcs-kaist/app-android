@@ -59,6 +59,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
+import org.sparcs.soap.widgets.WIDGET_THEME_ID
+import org.sparcs.soap.widgets.components.WidgetPaletteRow
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
@@ -89,6 +93,8 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
             Theme {
                 var selectedTheme by remember { mutableStateOf("System") }
                 var transparency by remember { mutableFloatStateOf(1f) }
+                val themeState = remember { TimetableThemeStore(this@BuddyUpcomingClassConfigActivity).state }
+                var timetableThemeID by remember { mutableStateOf(themeState.selectedID) }
 
                 LaunchedEffect(Unit) {
                     val manager = GlanceAppWidgetManager(this@BuddyUpcomingClassConfigActivity)
@@ -105,6 +111,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                         )
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
+                        timetableThemeID = themeState.theme(prefs[WIDGET_THEME_ID]).id
                     }
                 }
 
@@ -125,7 +132,11 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                     ) {
                         LazyColumn(modifier = Modifier.padding(16.dp)) {
                             item {
-                                UpcomingClassPreviewSection(selectedTheme, transparency)
+                                UpcomingClassPreviewSection(
+                                    selectedTheme,
+                                    transparency,
+                                    themeState.theme(timetableThemeID)
+                                )
                                 Spacer(modifier = Modifier.height(24.dp))
                                 Text(
                                     text = stringResource(R.string.widget_miscellaneous),
@@ -133,12 +144,15 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(8.dp)
                                 )
+                                WidgetPaletteRow(themeState.themes, timetableThemeID) {
+                                    timetableThemeID = it
+                                }
                                 WidgetThemeRow(selectedTheme) { selectedTheme = it }
                                 WidgetTransparencyRow(transparency) { transparency = it }
                                 HorizontalDivider(Modifier.padding(vertical = 8.dp))
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Button(
-                                    onClick = { saveAndFinish(selectedTheme, transparency) },
+                                    onClick = { saveAndFinish(selectedTheme, transparency, timetableThemeID) },
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .padding(horizontal = 8.dp)
@@ -154,10 +168,17 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
     }
 
     @Composable
-    private fun UpcomingClassPreviewSection(selectedTheme: String, transparency: Float) {
+    private fun UpcomingClassPreviewSection(
+        selectedTheme: String,
+        transparency: Float,
+        timetableTheme: TimetableTheme,
+    ) {
         val isDark =
             if (selectedTheme == "System") isSystemInDarkTheme() else selectedTheme == "Dark"
-        val surfaceColor = if (isDark) theme_dark_background else theme_light_background
+        val surfaceColor = timetableTheme.backgroundColor
+            ?: if (isDark) theme_dark_background else theme_light_background
+        // The widget paints the next class in its palette, so the preview shows a palette color.
+        val accentColor = timetableTheme.colorFor(0)
 
         Column(
             modifier = Modifier
@@ -193,7 +214,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                         Column(modifier = Modifier.fillMaxSize()) {
                             Text(
                                 text = stringResource(R.string.up_next),
-                                color = MaterialTheme.colorScheme.primary,
+                                color = accentColor,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -207,7 +228,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                             Spacer(modifier = Modifier.weight(1f))
                             Text(
                                 text = stringResource(R.string.preview_lecture_time),
-                                color = MaterialTheme.colorScheme.primary,
+                                color = accentColor,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -334,7 +355,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
         }
     }
 
-    private fun saveAndFinish(theme: String, transparency: Float) {
+    private fun saveAndFinish(theme: String, transparency: Float, timetableThemeID: String) {
         val appContext = applicationContext
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -353,6 +374,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                         prefs.toMutablePreferences().apply {
                             this[stringPreferencesKey("theme_mode")] = theme
                             this[floatPreferencesKey("background_transparency")] = transparency
+                            this[WIDGET_THEME_ID] = timetableThemeID
                         }
                     }
                     BuddyUpcomingClassWidget().update(appContext, glanceId)

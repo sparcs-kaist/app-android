@@ -14,7 +14,9 @@ data class WidgetLectureEntry(
     val durationMinutes: Int?,
     val bgColor: String = "#FFFFFF",
     val textColor: String = "#000000",
-    val activityID: Int? = null
+    val activityID: Int? = null,
+    /** Palette slot this entry occupies, so a theme change recolors it without a network sync. */
+    val colorID: Int? = null
 ) {
     companion object
 

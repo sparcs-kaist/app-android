@@ -63,18 +63,24 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
+import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
+import org.sparcs.soap.widgets.WIDGET_THEME_ID
+import org.sparcs.soap.widgets.components.WidgetPaletteRow
+import androidx.compose.runtime.CompositionLocalProvider
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -114,6 +120,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                 var semesters by remember { mutableStateOf<List<Semester>>(emptyList()) }
                 var selectedSemester by remember { mutableStateOf<Semester?>(null) }
                 var selectedTimetable by remember { mutableStateOf<Timetable?>(null) }
+                val themeState = remember { TimetableThemeStore(this@TimetableWidgetConfigActivity).state }
+                var timetableThemeID by remember { mutableStateOf(themeState.selectedID) }
 
                 LaunchedEffect(Unit) {
                     val manager = GlanceAppWidgetManager(this@TimetableWidgetConfigActivity)
@@ -138,6 +146,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                         savedSemesterYear = prefs[intPreferencesKey("selected_semester_year")] ?: -1
                         savedSemesterTypeInt =
                             prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
+                        timetableThemeID = themeState.theme(prefs[WIDGET_THEME_ID]).id
                     }
 
                     try {
@@ -211,7 +220,12 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             )
                         ) {
                             item {
-                                WidgetPreviewSection(selectedTheme, transparency, selectedTimetable)
+                                WidgetPreviewSection(
+                                    selectedTheme,
+                                    transparency,
+                                    selectedTimetable,
+                                    themeState.theme(timetableThemeID)
+                                )
 
                                 Text(
                                     text = stringResource(R.string.widget_timetable),
@@ -235,6 +249,9 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(8.dp)
                                 )
+                                WidgetPaletteRow(themeState.themes, timetableThemeID) {
+                                    timetableThemeID = it
+                                }
                                 WidgetThemeRow(selectedTheme) { selectedTheme = it }
                                 WidgetTransparencyRow(transparency) { transparency = it }
 
@@ -246,7 +263,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                             selectedTheme,
                                             transparency,
                                             selectedTimetableId,
-                                            selectedSemester
+                                            selectedSemester,
+                                            timetableThemeID
                                         )
                                     },
                                     modifier = Modifier
@@ -523,6 +541,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
         transparency: Float,
         selectedTimetableId: Int,
         selectedSemester: Semester?,
+        timetableThemeID: String,
     ) {
         val appContext = applicationContext
         lifecycleScope.launch {
@@ -543,6 +562,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                         prefs.toMutablePreferences().apply {
                             this[stringPreferencesKey("theme_mode")] = theme
                             this[floatPreferencesKey("background_transparency")] = transparency
+                            this[WIDGET_THEME_ID] = timetableThemeID
                             this[intPreferencesKey("selected_timetable_id")] = selectedTimetableId
                             selectedSemester?.let {
                                 this[intPreferencesKey("selected_semester_year")] = it.year
@@ -582,6 +602,7 @@ private fun WidgetPreviewSection(
     selectedTheme: String,
     transparency: Float,
     selectedTimetable: Timetable?,
+    timetableTheme: TimetableTheme,
 ) {
     val isDark = when (selectedTheme) {
         "Dark" -> true
@@ -589,7 +610,7 @@ private fun WidgetPreviewSection(
         else -> isSystemInDarkTheme()
     }
 
-    val surfaceColor = if (isDark) {
+    val surfaceColor = timetableTheme.backgroundColor ?: if (isDark) {
         theme_dark_background
     } else {
         theme_light_background
@@ -607,33 +628,36 @@ private fun WidgetPreviewSection(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
         )
         Theme(darkTheme = isDark) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(400.dp)
-                    .glassBorder(shape = RoundedCornerShape(28.dp))
-                    .background(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(28.dp)
-                    )
-            ) {
+            // Theme() re-provides the app's timetable theme, so the widget's own choice goes back on top.
+            CompositionLocalProvider(LocalTimetableTheme provides timetableTheme) {
                 Box(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
+                        .height(400.dp)
+                        .glassBorder(shape = RoundedCornerShape(28.dp))
                         .background(
-                            color = surfaceColor.copy(alpha = transparency),
+                            color = MaterialTheme.colorScheme.surface,
                             shape = RoundedCornerShape(28.dp)
                         )
-                        .padding(8.dp)
                 ) {
-                    val previewViewModel = remember(selectedTimetable) {
-                        PreviewTimetableViewModel(selectedTimetable)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = surfaceColor.copy(alpha = transparency),
+                                shape = RoundedCornerShape(28.dp)
+                            )
+                            .padding(8.dp)
+                    ) {
+                        val previewViewModel = remember(selectedTimetable) {
+                            PreviewTimetableViewModel(selectedTimetable)
+                        }
+                        TimetableGrid(
+                            viewModel = previewViewModel,
+                            onLectureSelected = {},
+                            showDeleteDialog = {}
+                        )
                     }
-                    TimetableGrid(
-                        viewModel = previewViewModel,
-                        onLectureSelected = {},
-                        showDeleteDialog = {}
-                    )
                 }
             }
         }

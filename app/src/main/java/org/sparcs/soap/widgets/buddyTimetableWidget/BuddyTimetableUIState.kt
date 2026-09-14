@@ -1,11 +1,10 @@
 package org.sparcs.soap.widgets.buddyTimetableWidget
 
-import androidx.compose.ui.graphics.toArgb
 import kotlinx.serialization.Serializable
 import org.sparcs.soap.app.domain.enums.otl.DayType
+import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.models.otl.Timetable
-import org.sparcs.soap.app.domain.models.otl.backgroundColor
-import org.sparcs.soap.app.domain.models.otl.textColor
+import org.sparcs.soap.widgets.toWidgetHex
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 
 @Serializable
@@ -16,7 +15,7 @@ data class TimetableUiState(
     val isLoading: Boolean = false,
 )
 
-fun Timetable.toWidgetUiState(): TimetableUiState {
+fun Timetable.toWidgetUiState(theme: TimetableTheme = TimetableTheme.Default): TimetableUiState {
     val times = lectures.flatMap { it.classes }.filter { it.end > it.begin }
     val validActivities = activities.filter { it.day in 0..6 && it.begin >= 0 && it.end <= 1440 && it.end > it.begin }
     val begins = times.map { it.begin } + validActivities.map { it.begin }
@@ -32,9 +31,10 @@ fun Timetable.toWidgetUiState(): TimetableUiState {
                 day = ct.day,
                 startMinutes = ct.begin,
                 durationMinutes = ct.end - ct.begin,
-                bgColor = String.format("#%06X", (0xFFFFFF and lecture.backgroundColor.toArgb())),
-                textColor = String.format("#%06X", (0xFFFFFF and textColor.toArgb())),
-                signInRequired = false
+                bgColor = theme.colorFor(lecture.courseID).toWidgetHex(),
+                textColor = theme.textColor.toWidgetHex(),
+                signInRequired = false,
+                colorID = lecture.courseID
             )
         }
     }
@@ -46,10 +46,11 @@ fun Timetable.toWidgetUiState(): TimetableUiState {
             day = DayType.fromValue(activity.day),
             startMinutes = activity.begin,
             durationMinutes = activity.end - activity.begin,
-            bgColor = String.format("#%06X", 0xFFFFFF and activity.backgroundColor.toArgb()),
-            textColor = String.format("#%06X", 0xFFFFFF and textColor.toArgb()),
+            bgColor = theme.colorFor(activity.id).toWidgetHex(),
+            textColor = theme.textColor.toWidgetHex(),
             signInRequired = false,
-            activityID = activity.id
+            activityID = activity.id,
+            colorID = activity.id
         )
     }
 

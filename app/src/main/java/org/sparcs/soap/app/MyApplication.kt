@@ -6,6 +6,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
 import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
+import org.sparcs.soap.app.theme.TimetableThemeSync
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -15,11 +16,15 @@ class MyApplication : Application() {
     @Inject
     lateinit var userUseCase: UserUseCaseProtocol
 
+    @Inject
+    lateinit var timetableThemeSync: TimetableThemeSync
+
     override fun onCreate() {
         super.onCreate()
 
         setupLogger()
         setupFirebase()
+        timetableThemeSync.start()
 
         try {
             val name = runCatching { userUseCase.taxiUser?.name }.getOrNull()
