@@ -23,6 +23,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -140,6 +141,9 @@ fun SettingsView(
                     ) { navController.navigate(Channel.NotificationSettings.name) }
 
                     ThemeSwitcherButton(settingsViewModel)
+                    ServiceNavButton(text = stringResource(R.string.timetable_theme), icon = { Icon(Icons.Outlined.Palette, null) }) {
+                        navController.navigate(Channel.TimetableThemeSettings.name)
+                    }
                     FeedbackButton(activity)
                     SendCrashReportsButton(isCrashlyticsEnabled) {
                         haptic.toggle(it)

@@ -47,9 +47,12 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
+import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.WidgetEntryPoint
+import org.sparcs.soap.widgets.themed
 import org.sparcs.soap.widgets.theme.ui.TimetableWidgetTheme.grayBB
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import timber.log.Timber
@@ -65,21 +68,23 @@ class TimetableWidget : GlanceAppWidget() {
         val entryPoint =
             EntryPointAccessors.fromApplication(appContext, WidgetEntryPoint::class.java)
         val tokenStorage = entryPoint.tokenStorage()
+        val themes = TimetableThemeStore(appContext).state
 
         provideContent {
             val prefs = currentState<Preferences>()
             val state = TimetableStateParser.parse(prefs, tokenStorage)
 
+            // Each widget carries its own palette, chosen in its configuration screen.
+            val timetableTheme = themes.theme(prefs[WIDGET_THEME_ID])
             val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
             WidgetTheme(themeMode = themeMode) {
+                val surface = timetableTheme.backgroundColor ?: GlanceTheme.colors.background.getColor(context)
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
-                        .background(
-                            GlanceTheme.colors.background.getColor(context).copy(alpha = transparency)
-                        )
+                        .background(surface.copy(alpha = transparency))
                 ) {
                     if (state.signInRequired) {
                         Box(
@@ -118,7 +123,10 @@ class TimetableWidget : GlanceAppWidget() {
                         Column(
                             modifier = GlanceModifier.fillMaxSize()
                         ) {
-                            TimetableLargeWidgetView(timetable = state.timetable)
+                            TimetableLargeWidgetView(
+                                timetable = state.timetable.themed(timetableTheme),
+                                theme = timetableTheme
+                            )
                         }
                     }
                     Box(
@@ -137,6 +145,7 @@ class TimetableWidget : GlanceAppWidget() {
 class TimetableWidgetSyncManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
+    // Synced entries carry palette slots; every widget resolves them with its own theme when it renders.
     suspend fun sync(timetable: Timetable, glanceId: GlanceId? = null) {
         val newState = timetable.toWidgetUiState()
         syncState(newState, glanceId, timetable.id.toIntOrNull()?.takeIf { it >= 0 })

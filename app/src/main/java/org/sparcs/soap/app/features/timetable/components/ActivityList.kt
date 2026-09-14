@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.timetable.components
 
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -57,7 +58,7 @@ fun ActivityList(
                         onClick = { selected = activity; showActions = false },
                         onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); selected = activity; showActions = true }
                     ).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(12.dp).background(activity.backgroundColor, CircleShape))
+                        Box(Modifier.size(12.dp).background(LocalTimetableTheme.current.colorFor(activity.id), CircleShape))
                         Spacer(Modifier.width(12.dp))
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             Text(activity.title, style = MaterialTheme.typography.titleMedium, maxLines = 2, overflow = TextOverflow.Ellipsis)

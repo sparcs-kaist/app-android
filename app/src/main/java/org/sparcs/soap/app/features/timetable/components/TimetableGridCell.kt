@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.timetable.components
 
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,8 +32,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import org.sparcs.soap.app.domain.models.otl.LectureItem
-import org.sparcs.soap.app.domain.models.otl.backgroundColor
-import org.sparcs.soap.app.domain.models.otl.textColor
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 
 @Composable
@@ -114,10 +113,10 @@ fun TimetableGridCell(
         val backgroundColor = when {
             isConflict -> Color(0xFF000000).copy(alpha = 0.8f) // Black Accent for Conflict
             isCandidate -> MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) // Translucent Primary for Preview
-            else -> lectureItem.lecture.backgroundColor
+            else -> LocalTimetableTheme.current.colorFor(lectureItem.lecture.courseID)
         }
 
-        val contentColor = if (isConflict || isCandidate) Color.White else textColor
+        val contentColor = if (isConflict || isCandidate) Color.White else LocalTimetableTheme.current.textColor
 
         Box(
             modifier = Modifier
@@ -146,7 +145,7 @@ fun TimetableGridCell(
                 if (layoutConfig.showLocation && layoutConfig.locationStyle != null) {
                     Text(
                         text = locationText,
-                        color = if (isCandidate) MaterialTheme.colorScheme.onPrimary else textColor.copy(alpha = 0.8f),
+                        color = contentColor.copy(alpha = 0.8f),
                         style = layoutConfig.locationStyle,
                         maxLines = layoutConfig.locationMaxLines,
                         overflow = TextOverflow.Ellipsis,
