@@ -47,6 +47,7 @@ class TokenStorage @Inject constructor(
         private const val AES_MODE = "AES/GCM/NoPadding"
     }
 
+    private val timetableSelectionStore = TimetableSelectionStore(context)
     private val prefs: SharedPreferences =
         context.getSharedPreferences(PREF_FILE_NAME, Context.MODE_PRIVATE)
     private val keyStore: KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
@@ -135,6 +136,7 @@ class TokenStorage @Inject constructor(
     }
 
     override fun clearTokens() {
+        timetableSelectionStore.clear()
         prefs.edit().apply {
             remove(ACCESS_TOKEN_KEY)
             remove(REFRESH_TOKEN_KEY)

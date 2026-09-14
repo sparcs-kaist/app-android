@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.TimetableSelectionStore
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
@@ -148,17 +150,39 @@ class TimetableViewModel @Inject constructor(
         initialValue = context.getString(R.string.my_table)
     )
 
+    private val selectionStore = TimetableSelectionStore(context)
+    private var selectionRevision = 0L
+
+    private fun persistSelection() {
+        _selectedSemester.value?.let { selectionStore.save(it, _selectedTimetableID.value) }
+    }
+
     init { fetchData() }
     // MARK: - Functions
     override fun fetchData() {
         viewModelScope.launch {
             isLoading.value = true
+            val revision = selectionRevision
             try {
                 val semesterList = timetableUseCase.getSemesters()
-                val current = timetableUseCase.getCurrentSemester()
+                val saved = selectionStore.selection
+                val previous = _selectedSemester.value
+                val preferredID = previous?.id ?: saved?.semesterID
+                val semester = semesterList.firstOrNull { it.id == preferredID }
+                    ?: timetableUseCase.getCurrentSemester()
+                // A refresh must not undo a choice made while its request was in flight.
+                if (revision != selectionRevision) return@launch
                 _semesters.value = semesterList
-                _selectedSemester.value = current
-                updateTimetableList(current, forceRefresh = true)
+                _selectedSemester.value = semester
+                _selectedTimetableID.value = when {
+                    previous?.id == semester.id -> _selectedTimetableID.value
+                    previous == null && saved?.semesterID == semester.id -> saved.timetableID
+                    else -> null
+                }
+                persistSelection()
+                updateTimetableList(semester, forceRefresh = true)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "failed to fetch Timetable Data")
                 handleException(e, ErrorType.FetchData)
@@ -169,17 +193,22 @@ class TimetableViewModel @Inject constructor(
     }
 
     private suspend fun updateTimetableList(semester: Semester, forceRefresh: Boolean = false) {
+        val revision = selectionRevision
         try {
             val list = timetableUseCase.getTimetableList(semester)
+            if (_selectedSemester.value != semester || revision != selectionRevision) return
             _timetableList.value = list
 
             if (list.none { it.id == _selectedTimetableID.value }) {
                 _selectedTimetableID.value = null
             }
+            persistSelection()
 
             loadTimetable(forceRefresh = forceRefresh)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            handleException(e, ErrorType.FetchData)
+            if (_selectedSemester.value == semester && revision == selectionRevision) handleException(e, ErrorType.FetchData)
         }
     }
 
@@ -188,20 +217,25 @@ class TimetableViewModel @Inject constructor(
         val semester = _selectedSemester.value
 
         try {
-            when {
+            val table = when {
                 id == MY_TABLE_ID || (id == null && semester != null) -> {
-                    _timetable.value = timetableUseCase.getMyTable(semester!!, forceRefresh = forceRefresh)
+                    timetableUseCase.getMyTable(semester!!, forceRefresh = forceRefresh)
                 }
                 id != null -> {
-                    _timetable.value = timetableUseCase.getTable(id, forceRefresh = forceRefresh)
+                    timetableUseCase.getTable(id, forceRefresh = forceRefresh)
                 }
-                else -> {
-                    _timetable.value = null
-                }
+                else -> null
             }
+            if (_selectedSemester.value == semester && _selectedTimetableID.value == id) {
+                _timetable.value = table
+            }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            _timetable.value = null
-            handleException(e, ErrorType.FetchData)
+            if (_selectedSemester.value == semester && _selectedTimetableID.value == id) {
+                _timetable.value = null
+                handleException(e, ErrorType.FetchData)
+            }
         }
     }
 
@@ -213,6 +247,9 @@ class TimetableViewModel @Inject constructor(
             _selectedTimetableID.value = id
         }
 
+        selectionRevision++
+        _timetable.value = null
+        persistSelection()
         viewModelScope.launch { loadTimetable() }
     }
 
@@ -242,8 +279,12 @@ class TimetableViewModel @Inject constructor(
             try {
                 val creation = timetableUseCase.createTable(semester)
                 analyticsService.logEvent(TimetableViewEvent.TableCreated)
-                _selectedTimetableID.value = creation.id
-                updateTimetableList(semester)
+                if (_selectedSemester.value == semester) {
+                    selectionRevision++
+                    _selectedTimetableID.value = creation.id
+                    persistSelection()
+                    updateTimetableList(semester)
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Error creating table")
                 handleException(e, ErrorType.CreateTable)
@@ -257,7 +298,11 @@ class TimetableViewModel @Inject constructor(
             try {
                 timetableUseCase.deleteTable(id)
                 analyticsService.logEvent(TimetableViewEvent.TableDeleted)
-                _selectedTimetableID.value = null
+                if (_selectedTimetableID.value == id) {
+                    selectionRevision++
+                    _selectedTimetableID.value = null
+                    persistSelection()
+                }
                 _selectedSemester.value?.let { updateTimetableList(it) }
             } catch (e: Exception) {
                 Timber.e(e, "Error deleting table")
@@ -338,7 +383,12 @@ class TimetableViewModel @Inject constructor(
         val targetIndex = currentIndex + offset
         if (targetIndex in list.indices) {
             val newSemester = list[targetIndex]
+            selectionRevision++
             _selectedSemester.value = newSemester
+            _selectedTimetableID.value = null
+            _timetableList.value = emptyList()
+            _timetable.value = null
+            persistSelection()
             updateTimetableList(newSemester)
         }
     }

@@ -1,6 +1,7 @@
 package org.sparcs.soap.timetableTests
 
 import android.content.Context
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -13,6 +14,11 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.sparcs.soap.app.domain.helpers.TimetableSelectionStore
+import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.TimetableCreation
+import org.sparcs.soap.app.domain.models.otl.TimetableSummary
+import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
@@ -38,9 +44,9 @@ class TimetableViewModelTest {
         mockTimetableUseCase = MockTimetableUseCase()
     }
 
-    private fun createViewModel() {
+    private fun createViewModel(useCase: TimetableUseCaseProtocol = mockTimetableUseCase) {
         viewModel = TimetableViewModel(
-            timetableUseCase = mockTimetableUseCase,
+            timetableUseCase = useCase,
             crashlyticsService = MockCrashlyticsService(),
             analyticsService = MockAnalyticsService(),
             context = context,
@@ -94,4 +100,200 @@ class TimetableViewModelTest {
         viewModel.deleteLecture(Lecture.mock())
         assertEquals(1, mockTimetableUseCase.deleteLectureCallCount)
     }
+
+    private fun configureSelection(): List<Semester> {
+        val semesters = Semester.mockList().take(3)
+        mockTimetableUseCase.getSemestersResult = Result.success(semesters)
+        mockTimetableUseCase.getCurrentSemesterResult = Result.success(semesters.last())
+        mockTimetableUseCase.getTimetableListResult = Result.success(listOf(
+            TimetableSummary(5, "Plan", semesters[1].year, semesters[1].semesterType)
+        ))
+        mockTimetableUseCase.getTableResult = Result.success(Timetable("5", emptyList()))
+        mockTimetableUseCase.getMyTableResult = Result.success(Timetable("my", emptyList()))
+        return semesters
+    }
+
+    @Test
+    fun `new view model restores the chosen semester and timetable`() = runTest {
+        val semesters = configureSelection()
+        createViewModel()
+        viewModel.selectPreviousSemester()
+        viewModel.selectTimetable(5)
+
+        createViewModel()
+
+        assertEquals(semesters[1], viewModel.selectedSemester.value)
+        assertEquals(5, viewModel.selectedTimetableID.value)
+        assertEquals("5", viewModel.selectedTimetable.value?.id)
+    }
+
+    @Test
+    fun `choosing My Table replaces the saved table choice`() = runTest {
+        val semesters = configureSelection()
+        createViewModel()
+        viewModel.selectPreviousSemester()
+        viewModel.selectTimetable(5)
+        viewModel.selectTimetable(TimetableViewModel.MY_TABLE_ID)
+
+        createViewModel()
+
+        assertEquals(semesters[1], viewModel.selectedSemester.value)
+        assertNull(viewModel.selectedTimetableID.value)
+        assertEquals("my", viewModel.selectedTimetable.value?.id)
+    }
+
+    @Test
+    fun `refresh keeps the selected semester and timetable`() = runTest {
+        val semesters = configureSelection()
+        createViewModel()
+        viewModel.selectPreviousSemester()
+        viewModel.selectTimetable(5)
+
+        viewModel.fetchData()
+
+        assertEquals(semesters[1], viewModel.selectedSemester.value)
+        assertEquals(5, viewModel.selectedTimetableID.value)
+        assertEquals("5", viewModel.selectedTimetable.value?.id)
+    }
+
+    @Test
+    fun `missing saved timetable falls back to My Table and persists fallback`() = runTest {
+        val semesters = configureSelection()
+        TimetableSelectionStore(context).save(semesters[1], 5)
+        mockTimetableUseCase.getTimetableListResult = Result.success(emptyList())
+
+        createViewModel()
+
+        assertEquals(semesters[1], viewModel.selectedSemester.value)
+        assertNull(viewModel.selectedTimetableID.value)
+        assertEquals("my", viewModel.selectedTimetable.value?.id)
+        assertNull(TimetableSelectionStore(context).selection?.timetableID)
+    }
+
+    @Test
+    fun `unavailable semester falls back to current semester`() = runTest {
+        val semesters = configureSelection()
+        TimetableSelectionStore(context).save(semesters[1].copy(year = 1990), 5)
+
+        createViewModel()
+
+        assertEquals(semesters.last(), viewModel.selectedSemester.value)
+        assertNull(viewModel.selectedTimetableID.value)
+        assertEquals(semesters.last().id, TimetableSelectionStore(context).selection?.semesterID)
+    }
+
+    @Test
+    fun `failed list fetch preserves saved choice for next restart`() = runTest {
+        val semesters = configureSelection()
+        TimetableSelectionStore(context).save(semesters[1], 5)
+        mockTimetableUseCase.getTimetableListResult = Result.failure(Exception("Offline"))
+
+        createViewModel()
+
+        assertTrue(viewModel.showAlert)
+        assertEquals(semesters[1], viewModel.selectedSemester.value)
+        assertEquals(5, viewModel.selectedTimetableID.value)
+        assertEquals(5, TimetableSelectionStore(context).selection?.timetableID)
+        configureSelection()
+        createViewModel()
+        assertEquals("5", viewModel.selectedTimetable.value?.id)
+    }
+
+    @Test
+    fun `failed semester fetch does not overwrite saved preference`() = runTest {
+        val semesters = configureSelection()
+        val store = TimetableSelectionStore(context)
+        store.save(semesters[1], 5)
+        mockTimetableUseCase.getSemestersResult = Result.failure(Exception("Offline"))
+
+        createViewModel()
+
+        assertEquals(TimetableSelectionStore.Selection(semesters[1].id, 5), store.selection)
+    }
+
+    @Test
+    fun `semester navigation saves a consistent choice even when loading fails`() = runTest {
+        val semesters = configureSelection()
+        createViewModel()
+        viewModel.selectTimetable(5)
+        mockTimetableUseCase.getTimetableListResult = Result.failure(Exception("Offline"))
+
+        viewModel.selectPreviousSemester()
+
+        assertEquals(TimetableSelectionStore.Selection(semesters[1].id, null), TimetableSelectionStore(context).selection)
+        assertNull(viewModel.selectedTimetableID.value)
+        assertNull(viewModel.selectedTimetable.value)
+    }
+
+    @Test
+    fun `creating and deleting selected table updates the restored choice`() = runTest {
+        val semesters = configureSelection()
+        val api = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun createTable(semester: Semester) = TimetableCreation(5)
+        }
+        createViewModel(api)
+        viewModel.selectPreviousSemester()
+        viewModel.createTable()
+        createViewModel()
+        assertEquals(5, viewModel.selectedTimetableID.value)
+
+        viewModel.deleteTable()
+        createViewModel()
+
+        assertEquals(semesters[1], viewModel.selectedSemester.value)
+        assertNull(viewModel.selectedTimetableID.value)
+        assertEquals("my", viewModel.selectedTimetable.value?.id)
+    }
+
+    @Test
+    fun `late timetable response cannot replace a newer selection`() = runTest {
+        configureSelection()
+        val delayedTable = CompletableDeferred<Timetable>()
+        val api = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = delayedTable.await()
+        }
+        createViewModel(api)
+        viewModel.selectTimetable(5)
+        viewModel.selectTimetable(TimetableViewModel.MY_TABLE_ID)
+
+        delayedTable.complete(Timetable("5", emptyList()))
+
+        assertNull(viewModel.selectedTimetableID.value)
+        assertEquals("my", viewModel.selectedTimetable.value?.id)
+        assertNull(TimetableSelectionStore(context).selection?.timetableID)
+    }
+
+    @Test
+    fun `late list refresh cannot clear a newer saved choice`() = runTest {
+        configureSelection()
+        val delayedList = CompletableDeferred<List<TimetableSummary>>()
+        var delayRefresh = false
+        val api = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTimetableList(semester: Semester): List<TimetableSummary> =
+                if (delayRefresh) delayedList.await() else mockTimetableUseCase.getTimetableList(semester)
+        }
+        createViewModel(api)
+        delayRefresh = true
+        viewModel.fetchData()
+        viewModel.selectTimetable(5)
+
+        delayedList.complete(emptyList())
+
+        assertEquals(5, viewModel.selectedTimetableID.value)
+        assertEquals("5", viewModel.selectedTimetable.value?.id)
+        assertEquals(5, TimetableSelectionStore(context).selection?.timetableID)
+    }
+
+    @Test
+    fun `clearing session preference starts with the default selection`() = runTest {
+        val semesters = configureSelection()
+        TimetableSelectionStore(context).save(semesters[1], 5)
+        TimetableSelectionStore(context).clear()
+
+        createViewModel()
+
+        assertEquals(semesters.last(), viewModel.selectedSemester.value)
+        assertNull(viewModel.selectedTimetableID.value)
+    }
+
 }
