@@ -20,6 +20,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.widgets.buddyTimetableWidget.*
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import java.io.File
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalGlanceRemoteViewsApi::class)
 class ActivityWidgetTest {
@@ -51,7 +52,42 @@ class ActivityWidgetTest {
         }
     }
 
-    private suspend fun render(table: Timetable, size: DpSize, name: String, check: (List<TextView>) -> Unit) {
+    @Test fun cellsAndGridShareHourAndHalfHourBoundaries() = runBlocking {
+        val table = Timetable("12", emptyList(), listOf(
+            TimetableActivity(17, "First hour", "", 0, 540, 600),
+            TimetableActivity(18, "First half hour", "", 1, 570, 630),
+            TimetableActivity(19, "Last hour", "", 2, 960, 990),
+            TimetableActivity(20, "Last half hour", "", 3, 990, 1080)
+        ))
+        for (size in listOf(DpSize(360.dp, 400.dp), DpSize(240.dp, 240.dp))) {
+            render(table, size, "activity-widget-alignment-${size.width.value.toInt()}", checkBitmap = { bitmap ->
+                val context = InstrumentationRegistry.getInstrumentation().targetContext
+                val density = context.resources.displayMetrics.density
+                val gridLeft = (28 * density).roundToInt()
+                val dayWidth = (bitmap.width - gridLeft) / 5f
+                val firstLine = ((22 + 8 * context.resources.configuration.fontScale) * density).roundToInt()
+                // Friday is empty, so its lines remain visible beside every activity.
+                val referenceStart = (gridLeft + 4 * dayWidth + 4 * density).roundToInt()
+                val referenceEnd = bitmap.width - (4 * density).roundToInt()
+                for (entry in table.toWidgetUiState().timetable!!.activitiesByDay.values.flatten()) {
+                    val column = entry.day!!.value
+                    val x = (gridLeft + (column + 0.5f) * dayWidth).roundToInt()
+                    val color = android.graphics.Color.parseColor(entry.bgColor)
+                    val cellTop = (0 until bitmap.height).first { bitmap.getPixel(x, it) == color }
+                    val expectedTop = firstLine + ((entry.startMinutes!! - 540) * (bitmap.height - firstLine) / 540f).roundToInt()
+                    assertEquals("Cell start at ${entry.startMinutes} in $size", expectedTop, cellTop)
+                    val lineTop = (cellTop - 2..cellTop + 2).firstOrNull { y ->
+                        (referenceStart until referenceEnd).any { bitmap.getPixel(it, y) != android.graphics.Color.WHITE }
+                    }
+                    assertNotNull("Missing grid line beside ${entry.title}", lineTop)
+                    // The dashed drawable antialiases its stroke within a two-dp image.
+                    assertTrue("Grid and cell at ${entry.startMinutes} in $size", kotlin.math.abs(cellTop - lineTop!!) <= 1)
+                }
+            }) {}
+        }
+    }
+
+    private suspend fun render(table: Timetable, size: DpSize, name: String, checkBitmap: (Bitmap) -> Unit = {}, check: (List<TextView>) -> Unit) {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
         val state = table.toWidgetUiState().timetable!!
@@ -77,6 +113,7 @@ class ActivityWidgetTest {
             canvas.drawColor(android.graphics.Color.WHITE)
             view.draw(canvas)
             File(context.getExternalFilesDir(null), "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            checkBitmap(bitmap)
             bitmap.recycle()
         }
     }
