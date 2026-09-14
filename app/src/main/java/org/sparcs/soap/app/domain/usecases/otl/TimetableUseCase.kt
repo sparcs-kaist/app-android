@@ -1,5 +1,9 @@
 package org.sparcs.soap.app.domain.usecases.otl
 
+import org.sparcs.soap.app.domain.models.otl.ActivityDraft
+import org.sparcs.soap.app.domain.models.otl.ActivityConflictException
+import org.sparcs.soap.app.domain.models.otl.ActivityRefreshRequiredException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -21,6 +25,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 interface TimetableUseCaseProtocol {
+    suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Timetable
+    suspend fun deleteActivity(timetableID: Int, activityID: Int): Timetable
+
     suspend fun getSemesters(): List<Semester>
 
     suspend fun getCurrentSemester(): Semester
@@ -100,19 +107,15 @@ class TimetableUseCase @Inject constructor(
         val context = CrashContext(feature, metadata = mapOf("timetableID" to key))
 
         return execute(context) {
-            if (!forceRefresh) {
-                timetableCache.timetable(key)?.let { cached ->
-                    launchUpdate(key) {
-                        val fresh = otlTimetableRepository.getTimetable(id)
-                        timetableCache.store(fresh, key)
-                    }
-                    return@execute cached
-                }
+            try {
+                val result = otlTimetableRepository.getTimetable(id)
+                timetableCache.store(result, key)
+                result
+            } catch (e: Exception) {
+                if (e is CancellationException || forceRefresh || !(e is NetworkError.NoConnection || e is NetworkError.Timeout || (e is NetworkError.ServerError && e.code >= 500))) throw e
+                // Offline launch can still show the last complete table, including activities.
+                timetableCache.timetable(key) ?: throw e
             }
-
-            val result = otlTimetableRepository.getTimetable(id)
-            timetableCache.store(result, key)
-            result
         }
     }
 
@@ -223,6 +226,30 @@ class TimetableUseCase @Inject constructor(
         }
     }
 
+    override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Timetable {
+        require(draft.isValid)
+        updateJobs[timetableID.toString()]?.cancel()
+        val fresh = getTable(timetableID, forceRefresh = true)
+        if (draft.conflict(fresh, activityID)) throw ActivityConflictException()
+        otlTimetableRepository.saveActivity(timetableID, activityID, draft.copy(title = draft.title.trim(), location = draft.location.trim()))
+        return refreshAfterActivityWrite(timetableID)
+    }
+
+    override suspend fun deleteActivity(timetableID: Int, activityID: Int): Timetable {
+        updateJobs[timetableID.toString()]?.cancel()
+        otlTimetableRepository.deleteActivity(timetableID, activityID)
+        return refreshAfterActivityWrite(timetableID)
+    }
+
+    private suspend fun refreshAfterActivityWrite(timetableID: Int): Timetable {
+        timetableCache.invalidate(timetableID.toString())
+        return try { getTable(timetableID, forceRefresh = true) }
+        catch (e: Exception) {
+            if (e is CancellationException) throw e
+            throw ActivityRefreshRequiredException(e)
+        }
+    }
+
     private fun launchUpdate(key: String, block: suspend CoroutineScope.() -> Unit) {
         if (updateJobs[key]?.isActive == true) return
 
@@ -243,6 +270,7 @@ class TimetableUseCase @Inject constructor(
         return try {
             operation()
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             val mappedError = e as? NetworkError ?: TimetableUseCaseError.Unknown(e)
             crashlyticsService?.record(mappedError as Throwable, context)
             throw mappedError

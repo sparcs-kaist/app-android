@@ -13,7 +13,6 @@ import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.appwidget.cornerRadius
-import androidx.glance.appwidget.lazy.LazyColumn
 import androidx.glance.background
 import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
@@ -35,6 +34,8 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import kotlin.math.ceil
+import kotlin.math.roundToInt
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor.hoursWidth
@@ -42,41 +43,51 @@ import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.widgets.theme.ui.TimetableWidgetTheme.grayBB
 
 @Composable
-private fun TimetableGridCell(
+private fun TimetableWidgetCell(
     lecture: WidgetLectureEntry,
-    height: Int,
+    height: Float,
     modifier: GlanceModifier = GlanceModifier,
 ) {
     if (lecture.title == null || lecture.classroom == null || lecture.startMinutes == null || lecture.durationMinutes == null) return
 
+    val compact = height < 44
+    val inset = if (compact) 2 else 6
+    val gap = if (compact) 2 else 4
+    val fontSize = if (compact) 9 else 10
+    val fontScale = LocalContext.current.resources.configuration.fontScale
+    val titleLineHeight = ceil(fontSize * 1.3f * fontScale).toInt().coerceAtLeast(1)
+    val locationLineHeight = ceil(8 * 1.3f * fontScale).toInt()
+    val availableTextHeight = height - gap - inset * 2
+    val showLocation = lecture.classroom.isNotBlank() && availableTextHeight >= titleLineHeight + locationLineHeight + 2
+    val titleLines = ((availableTextHeight - if (showLocation) locationLineHeight + 2 else 0) / titleLineHeight).toInt().coerceIn(1, 3)
     val backgroundColor = Color(lecture.bgColor.toColorInt())
     val textColor = Color(lecture.textColor.toColorInt())
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(bottom = 4.dp)
+            .padding(bottom = gap.dp)
             .height(height.dp)
     ) {
         Column(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .padding(6.dp)
+                .padding(inset.dp)
                 .cornerRadius(4.dp)
                 .background(ColorProvider(day = backgroundColor, night = backgroundColor)),
             verticalAlignment = Alignment.Top,
             horizontalAlignment = Alignment.Start
         ) {
-            Text(
+            if (availableTextHeight >= titleLineHeight) Text(
                 text = lecture.title,
                 style = TextStyle(
                     color = ColorProvider(day = textColor, night = textColor),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.Bold
+                    fontSize = fontSize.sp,
+                    fontWeight = FontWeight.Medium
                 ),
-                maxLines = 3
+                maxLines = titleLines
             )
 
-            if (height > 40) {
+            if (showLocation) {
                 Spacer(modifier = GlanceModifier.height(2.dp))
                 Text(
                     text = lecture.classroom,
@@ -84,7 +95,7 @@ private fun TimetableGridCell(
                         color = ColorProvider(day = textColor.copy(alpha = 0.8f), night = textColor.copy(alpha = 0.8f)),
                         fontSize = 8.sp
                     ),
-                    maxLines = 2
+                    maxLines = 1
                 )
             }
         }
@@ -94,59 +105,43 @@ private fun TimetableGridCell(
 @Composable
 fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
     val size = LocalSize.current
-    val minMin = timetable?.minMinutes ?: 540 // 8:00 AM
+    val minMin = timetable?.minMinutes ?: 540 // 9:00 AM
     val maxMin = timetable?.maxMinutes ?: 1080 // 6:00 PM
     val visibleDays = timetable?.visibleDays ?: emptyList()
 
     val startHour = minMin / 60
     val endHour = (maxMin + 59) / 60
-    val totalHours = endHour - startHour
+    val totalHours = (endHour - startHour).coerceAtLeast(1)
 
-    val headerHeight = 32.dp
-    val availableHeight = size.height - headerHeight
-    val minuteHeight = availableHeight.value / (totalHours * 60f)
-    val dynamicHourHeight = minuteHeight * 60f
+    val metrics = LocalContext.current.resources.displayMetrics
+    val fontScale = LocalContext.current.resources.configuration.fontScale
+    val headerHeight = 22.dp
+    val labelHeight = 16 * fontScale
+    val topInset = labelHeight / 2
+    val availableHeight = (size.height.value - headerHeight.value - topInset).coerceAtLeast(0f)
+
+    // Resolve every boundary on the same pixel scale. Stacking rounded hour rows
+    // accumulates rounding errors, especially across a full-day timetable.
+    fun position(minutes: Int): Float =
+        (((minutes - startHour * 60) * availableHeight / (totalHours * 60)) * metrics.density)
+            .roundToInt() / metrics.density
 
     Column(modifier = GlanceModifier.fillMaxSize()) {
         DaysColumnHeader(visibleDays)
 
         Box(modifier = GlanceModifier.fillMaxWidth().defaultWeight()) {
-            LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-                for (hour in startHour until endHour) {
-                    item {
-                        Box(modifier = GlanceModifier.fillMaxWidth().height(dynamicHourHeight.dp)) {
-                            Row(
-                                modifier = GlanceModifier.fillMaxSize()
-                                    .padding(start = hoursWidth + 8.dp, top = 6.dp)
-                            ) {
-                                visibleDays.forEach { _ ->
-                                    Column(
-                                        modifier = GlanceModifier.defaultWeight().fillMaxHeight()
-                                            .padding(horizontal = 2.dp)
-                                    ) {
-                                        HorizontalLine(alpha = 0.15f)
-                                        Spacer(modifier = GlanceModifier.defaultWeight())
-                                        DashedHorizontalLine()
-                                        Spacer(modifier = GlanceModifier.defaultWeight())
-                                    }
+            Box(modifier = GlanceModifier.width(hoursWidth + 8.dp).fillMaxHeight()) {
+                // Glance containers support at most ten direct children.
+                (startHour until endHour).toList().chunked(10).forEach { hours ->
+                    Box(modifier = GlanceModifier.fillMaxSize()) {
+                        hours.forEach { hour ->
+                            Box(modifier = GlanceModifier.padding(top = position(hour * 60).dp)) {
+                                Box(
+                                    modifier = GlanceModifier.fillMaxWidth().height(labelHeight.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(hour.toString(), style = TextStyle(fontSize = 10.sp, color = GlanceTheme.colors.onSurfaceVariant, textAlign = TextAlign.Center))
                                 }
-                            }
-
-                            Box(
-                                modifier = GlanceModifier
-                                    .width(hoursWidth + 8.dp)
-                                    .fillMaxHeight(),
-                                contentAlignment = Alignment.TopCenter
-                            ) {
-                                Text(
-                                    text = hour.toString(),
-                                    style = TextStyle(
-                                        fontSize = 11.sp,
-                                        color = GlanceTheme.colors.onSurface,
-                                        textAlign = TextAlign.Center
-                                    ),
-                                    modifier = GlanceModifier.padding(top = 0.dp)
-                                )
                             }
                         }
                     }
@@ -155,24 +150,30 @@ fun TimetableLargeWidgetView(timetable: WidgetTimetableEntry?) {
 
             Row(
                 modifier = GlanceModifier.fillMaxSize()
-                    .padding(start = hoursWidth + 8.dp, top = 6.dp)
+                    .padding(start = hoursWidth + 8.dp, top = topInset.dp)
             ) {
                 visibleDays.forEach { day ->
-                    Box(modifier = GlanceModifier.defaultWeight().fillMaxHeight()) {
-                        timetable?.getLectures(day)?.forEach { lecture ->
-                            val topOffset =
-                                (lecture.startMinutes!! - (startHour * 60)) * minuteHeight
-                            val lHeight = lecture.durationMinutes!! * minuteHeight
-
-                            Box(
-                                modifier = GlanceModifier
-                                    .padding(top = topOffset.dp)
-                                    .padding(horizontal = 2.dp)
-                            ) {
-                                TimetableGridCell(
-                                    lecture = lecture,
-                                    height = lHeight.toInt()
-                                )
+                    Box(modifier = GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = 2.dp)) {
+                        (startHour * 60 until endHour * 60 step 30).toList().chunked(10).forEach { times ->
+                            Box(modifier = GlanceModifier.fillMaxSize()) {
+                                times.forEach { minutes ->
+                                    Box(modifier = GlanceModifier.fillMaxWidth().padding(top = position(minutes).dp)) {
+                                        if (minutes % 60 == 0) HorizontalLine(alpha = 0.15f)
+                                        else DashedHorizontalLine()
+                                    }
+                                }
+                            }
+                        }
+                        timetable?.getEntries(day).orEmpty().chunked(10).forEach { entries ->
+                            Box(modifier = GlanceModifier.fillMaxSize()) {
+                                entries.forEach { entry ->
+                                    val begin = entry.startMinutes ?: startHour * 60
+                                    val top = position(begin)
+                                    val bottom = position(begin + (entry.durationMinutes ?: 0))
+                                    Box(modifier = GlanceModifier.fillMaxWidth().padding(top = top.dp)) {
+                                        TimetableWidgetCell(lecture = entry, height = bottom - top)
+                                    }
+                                }
                             }
                         }
                     }
@@ -187,14 +188,16 @@ private fun DaysColumnHeader(visibleDays: List<DayType>) {
     val context = LocalContext.current
     Row(
         modifier = GlanceModifier
-            .padding(start = hoursWidth + 8.dp, bottom = 2.dp, top = 2.dp)
-            .fillMaxWidth()
+            .padding(start = hoursWidth + 8.dp)
+            .height(22.dp)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         visibleDays.forEach { day ->
             Text(
                 text = context.getString(day.stringValue),
                 style = TextStyle(
-                    fontSize = 12.sp,
+                    fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center,
                     color = GlanceTheme.colors.onSurface
@@ -215,7 +218,6 @@ private fun HorizontalLine(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .padding(1.dp)
             .height(1.dp)
             .background(ColorProvider(day = color.getColor(context).copy(alpha), night = color.getColor(context).copy(alpha)))
     ) {}

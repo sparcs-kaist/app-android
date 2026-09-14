@@ -2,6 +2,7 @@ package org.sparcs.soap.widgets.buddyTimetableWidget
 
 import androidx.compose.ui.graphics.toArgb
 import kotlinx.serialization.Serializable
+import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.backgroundColor
 import org.sparcs.soap.app.domain.models.otl.textColor
@@ -16,13 +17,15 @@ data class TimetableUiState(
 )
 
 fun Timetable.toWidgetUiState(): TimetableUiState {
-    val times = this.lectures.flatMap { it.classes }
-
-    val calculatedMin = times.minOfOrNull { it.begin }?.let { (it / 60) * 60 } ?: (9 * 60)
-    val calculatedMax = times.maxOfOrNull { it.end }?.let { ((it / 60) + 1) * 60 } ?: (18 * 60)
+    val times = lectures.flatMap { it.classes }.filter { it.end > it.begin }
+    val validActivities = activities.filter { it.day in 0..6 && it.begin >= 0 && it.end <= 1440 && it.end > it.begin }
+    val begins = times.map { it.begin } + validActivities.map { it.begin }
+    val ends = times.map { it.end } + validActivities.map { it.end }
+    val calculatedMin = (begins.minOrNull() ?: 540) / 60 * 60
+    val calculatedMax = (ends.maxOrNull()?.let { ((it + 59) / 60) * 60 } ?: 1080).coerceAtLeast(calculatedMin + 60)
 
     val widgetItems = this.lectures.flatMap { lecture ->
-        lecture.classes.map { ct ->
+        lecture.classes.filter { it.end > it.begin }.map { ct ->
             WidgetLectureEntry(
                 title = lecture.name + lecture.subtitle,
                 classroom = "(${ct.buildingCode}) ${ct.roomName}",
@@ -36,11 +39,26 @@ fun Timetable.toWidgetUiState(): TimetableUiState {
         }
     }
 
+    val activityItems = validActivities.map { activity ->
+        WidgetLectureEntry(
+            title = activity.title,
+            classroom = activity.location,
+            day = DayType.fromValue(activity.day),
+            startMinutes = activity.begin,
+            durationMinutes = activity.end - activity.begin,
+            bgColor = String.format("#%06X", 0xFFFFFF and activity.backgroundColor.toArgb()),
+            textColor = String.format("#%06X", 0xFFFFFF and textColor.toArgb()),
+            signInRequired = false,
+            activityID = activity.id
+        )
+    }
+
     return TimetableUiState(
         signInRequired = false,
         timetable = WidgetTimetableEntry(
             lecturesByDay = widgetItems.groupBy { it.day },
-            visibleDays = this.visibleDays,
+            visibleDays = (DayType.weekdays() + (widgetItems + activityItems).mapNotNull { it.day }).distinct().sortedBy { it.value },
+            activitiesByDay = activityItems.groupBy { it.day!! },
             minMinutes = calculatedMin,
             maxMinutes = calculatedMax
         ),

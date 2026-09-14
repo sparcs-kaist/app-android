@@ -41,6 +41,8 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
+import org.sparcs.soap.app.domain.error.NetworkError
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
@@ -137,14 +139,27 @@ class TimetableWidgetSyncManager @Inject constructor(
 ) {
     suspend fun sync(timetable: Timetable, glanceId: GlanceId? = null) {
         val newState = timetable.toWidgetUiState()
-        syncState(newState, glanceId)
+        syncState(newState, glanceId, timetable.id.toIntOrNull()?.takeIf { it >= 0 })
+    }
+
+    suspend fun syncSavedTimetable(timetable: Timetable) {
+        val tableID = timetable.id.toIntOrNull()?.takeIf { it >= 0 } ?: return
+        try {
+            val manager = GlanceAppWidgetManager(context)
+            val state = timetable.toWidgetUiState()
+            for (id in manager.getGlanceIds(TimetableWidget::class.java)) {
+                val prefs = getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
+                if (matchesSavedTimetable(prefs, timetable.id)) syncState(state, id, tableID)
+            }
+        } catch (e: CancellationException) { throw e
+        } catch (_: Exception) { Timber.tag("WidgetSync").e("Saved timetable widget sync failed") }
     }
 
     suspend fun syncSignInRequired() {
         syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
 
-    private suspend fun syncState(state: TimetableUiState, specificGlanceId: GlanceId? = null) {
+    private suspend fun syncState(state: TimetableUiState, specificGlanceId: GlanceId? = null, expectedTimetableID: Int? = null) {
         try {
             val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
@@ -155,6 +170,8 @@ class TimetableWidgetSyncManager @Inject constructor(
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
                     prefs.toMutablePreferences().apply {
+                        // Recheck inside the update in case widget configuration changed during sync.
+                        if (expectedTimetableID != null && this[intPreferencesKey("selected_timetable_id")] != expectedTimetableID) return@apply
                         this[stringPreferencesKey("timetable_state")] = jsonString
                     }
                 }
@@ -164,10 +181,16 @@ class TimetableWidgetSyncManager @Inject constructor(
             } else {
                 TimetableWidget().updateAll(context)
             }
+        } catch (e: CancellationException) { throw e
         } catch (_: Exception) {
             Timber.tag("WidgetSync").e("Timetable widget sync failed")
         }
     }
+}
+
+internal fun matchesSavedTimetable(prefs: Preferences, timetableID: String): Boolean {
+    val id = timetableID.toIntOrNull()?.takeIf { it >= 0 } ?: return false
+    return prefs[intPreferencesKey("selected_timetable_id")] == id
 }
 
 class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
@@ -191,41 +214,50 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
                 return Result.success()
             }
 
+            var retryNeeded = false
             for (glanceId in glanceIds) {
-                val prefs = getAppWidgetState(
-                    applicationContext,
-                    PreferencesGlanceStateDefinition,
-                    glanceId
-                )
-                val selectedTimetableId = prefs[intPreferencesKey("selected_timetable_id")] ?: -1
+                try {
+                    val prefs = getAppWidgetState(
+                        applicationContext,
+                        PreferencesGlanceStateDefinition,
+                        glanceId
+                    )
+                    val selectedTimetableId = prefs[intPreferencesKey("selected_timetable_id")] ?: -1
 
-                val timetable = if (selectedTimetableId == -1) {
-                    val savedYear = prefs[intPreferencesKey("selected_semester_year")] ?: -1
-                    val savedTypeInt = prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
-                    if (savedYear != -1 && savedTypeInt != -1) {
-                        val savedType =
-                            org.sparcs.soap.app.domain.enums.otl.SemesterType.fromRawValue(
-                                savedTypeInt
-                            )
-                        timetableUseCase.getMyTable(savedYear, savedType)
-                    } else {
-                        val currentSemester = timetableUseCase.getCurrentSemester()
-                        if (currentSemester != null) {
-                            timetableUseCase.getMyTable(
-                                currentSemester.year,
-                                currentSemester.semesterType
-                            )
+                    val timetable = if (selectedTimetableId == -1) {
+                        val savedYear = prefs[intPreferencesKey("selected_semester_year")] ?: -1
+                        val savedTypeInt = prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
+                        if (savedYear != -1 && savedTypeInt != -1) {
+                            val savedType =
+                                org.sparcs.soap.app.domain.enums.otl.SemesterType.fromRawValue(
+                                    savedTypeInt
+                                )
+                            timetableUseCase.getMyTable(savedYear, savedType)
                         } else {
-                            Timetable(id = "-1", lectures = emptyList())
+                            val currentSemester = timetableUseCase.getCurrentSemester()
+                            if (currentSemester != null) {
+                                timetableUseCase.getMyTable(
+                                    currentSemester.year,
+                                    currentSemester.semesterType
+                                )
+                            } else {
+                                Timetable(id = "-1", lectures = emptyList())
+                            }
                         }
+                    } else {
+                        timetableUseCase.getTable(selectedTimetableId)
                     }
-                } else {
-                    timetableUseCase.getTable(selectedTimetableId)
-                }
 
-                syncManager.sync(timetable, glanceId)
+                    syncManager.sync(timetable, glanceId)
+                } catch (e: CancellationException) { throw e
+                } catch (e: Exception) {
+                    retryNeeded = retryNeeded || e is NetworkError.NoConnection || e is NetworkError.Timeout ||
+                        (e is NetworkError.ServerError && e.code >= 500)
+                    Timber.e(e, "Timetable widget update failed")
+                }
             }
-            Result.success()
+            if (retryNeeded) Result.retry() else Result.success()
+        } catch (e: CancellationException) { throw e
         } catch (e: Exception) {
             Timber.e(e, "TimetableUpdateWorker Error")
             return Result.success()

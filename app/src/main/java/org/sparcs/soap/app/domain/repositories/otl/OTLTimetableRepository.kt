@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.domain.repositories.otl
 
 import com.google.gson.Gson
+import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
@@ -15,6 +16,9 @@ import org.sparcs.soap.app.networking.retrofitAPI.otl.RenameTableRequest
 import javax.inject.Inject
 
 interface OTLTimetableRepositoryProtocol {
+    suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft)
+    suspend fun deleteActivity(timetableID: Int, activityID: Int)
+
     suspend fun getTimetables(year: Int, semester: SemesterType): List<TimetableSummary>
     suspend fun getMyTimetable(year: Int, semester: SemesterType): Timetable
     suspend fun getTimetable(timetableID: Int): Timetable
@@ -41,8 +45,18 @@ class OTLTimetableRepository @Inject constructor(
     }.toModel(id = "$year-${semester.name}-myTable")
 
     override suspend fun getTimetable(timetableID: Int): Timetable = safeApiCall(gson) {
-        api.fetchTimeTable(timetableID)
-    }.toModel(id = timetableID.toString())
+        val table = api.fetchTimeTable(timetableID).toModel(id = timetableID.toString())
+        table.copy(customBlocks = api.fetchActivities(timetableID).custom_blocks)
+    }
+
+    override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft) = safeApiCall(gson) {
+        if (activityID == null) api.createActivity(timetableID, draft)
+        else api.updateActivity(timetableID, activityID, draft)
+    }
+
+    override suspend fun deleteActivity(timetableID: Int, activityID: Int) = safeApiCall(gson) {
+        api.deleteActivity(timetableID, activityID)
+    }
 
     override suspend fun createTable(year: Int, semester: SemesterType): TimetableCreation = safeApiCall(gson) {
         api.createTable(request = CreateTableRequest(year, semester.intValue))

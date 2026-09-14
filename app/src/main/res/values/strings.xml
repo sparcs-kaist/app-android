@@ -664,4 +664,39 @@
     <string name="summarization_unavailable">On-device summarization isn\'t available on this device.</string>
     <string name="summarization_too_short">Text must be at least 400 characters to summarize.</string>
     <string name="summarization_failed">Summarization failed.</string>
+
+    <string name="activity_new">New activity</string>
+    <string name="activity_edit">Edit activity</string>
+    <string name="activity_close">Close</string>
+    <string name="activity_back">Back</string>
+    <string name="activity_save">Save</string>
+    <string name="activity_refresh">Refresh</string>
+    <string name="activity_title">Title</string>
+    <string name="activity_location">Location</string>
+    <string name="activity_day">Day</string>
+    <string name="activity_starts">Starts</string>
+    <string name="activity_ends">Ends</string>
+    <string name="activity_adjust">Adjust on timetable</string>
+    <string name="activity_conflict">Activities cannot overlap a class or another activity. Choose a different time.</string>
+    <string name="activity_saved_refresh">Your change was saved, but the timetable could not refresh. Tap Refresh to load it.</string>
+    <string name="activity_save_error">Could not save the activity. Please try again.</string>
+    <string name="activity_clock">Use clock</string>
+    <string name="activity_keyboard">Use keyboard</string>
+    <string name="activity_midnight">24:00</string>
+    <string name="activity_earlier">Move 15 minutes earlier</string>
+    <string name="activity_later">Move 15 minutes later</string>
+    <string name="activity_add_class">Add class</string>
+    <string name="activity_delete_question">Delete this activity?</string>
+    <string name="activity_delete">Delete</string>
+    <string name="activity_no_table">Select a saved timetable to add activities.</string>
+    <string name="activity_add">Add to timetable</string>
+    <string name="activity_load_error">This timetable or activity could not be loaded. Try refreshing.</string>
+    <string name="activity_start_handle">Adjust start time</string>
+    <string name="activity_end_handle">Adjust end time</string>
+    <string name="activity_list_empty">No activities in this timetable</string>
+    <string name="activity_options">Options for %1$s</string>
+    <plurals name="activities_count">
+        <item quantity="one">%d Activity</item>
+        <item quantity="other">%d Activities</item>
+    </plurals>
 </resources>

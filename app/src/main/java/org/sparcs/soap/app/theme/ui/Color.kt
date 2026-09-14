@@ -11,7 +11,7 @@ val theme_light_onPrimaryContainer = Color(0xFFEFEBFF)
 // Secondary colors
 val theme_light_secondary = Color(0xFF5A5798)
 val theme_light_onSecondary = Color(0xFFFFFFFF)
-val theme_light_secondaryContainer = Color(0xFFBAB7FF)
+val theme_light_secondaryContainer = Color(0xFFE3E2F7)
 val theme_light_onSecondaryContainer = Color(0xFF484585)
 
 // Tertiary colors
@@ -67,7 +67,7 @@ val theme_dark_onPrimaryContainer = Color(0xFFEFEBFF)
 // Secondary colors
 val theme_dark_secondary = Color(0xFFC2BFFF)
 val theme_dark_onSecondary = Color(0xFF2E2B6A)
-val theme_dark_secondaryContainer = Color(0xFF434079)
+val theme_dark_secondaryContainer = Color(0xFF2F2D3A)
 val theme_dark_onSecondaryContainer = Color(0xFFBAB7FF)
 
 // Tertiary colors

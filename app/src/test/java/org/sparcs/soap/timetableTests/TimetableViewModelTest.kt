@@ -41,6 +41,7 @@ class TimetableViewModelTest {
 
     @Before
     fun setup() {
+        TimetableSelectionStore(context).clear()
         mockTimetableUseCase = MockTimetableUseCase()
     }
 

@@ -13,7 +13,8 @@ data class WidgetLectureEntry(
     val startMinutes: Int?,
     val durationMinutes: Int?,
     val bgColor: String = "#FFFFFF",
-    val textColor: String = "#000000"
+    val textColor: String = "#000000",
+    val activityID: Int? = null
 ) {
     companion object
 

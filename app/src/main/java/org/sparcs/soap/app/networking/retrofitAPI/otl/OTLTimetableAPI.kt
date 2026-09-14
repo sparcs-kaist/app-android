@@ -13,7 +13,21 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
+data class CustomBlocksResponse(val custom_blocks: List<org.sparcs.soap.app.domain.models.otl.TimetableActivity>)
+
 interface OTLTimetableApi {
+    @GET("api/v2/timetables/{timetableId}/custom-blocks")
+    suspend fun fetchActivities(@Path("timetableId") timetableId: Int): CustomBlocksResponse
+
+    @POST("api/v2/timetables/{timetableId}/custom-blocks")
+    suspend fun createActivity(@Path("timetableId") timetableId: Int, @Body draft: org.sparcs.soap.app.domain.models.otl.ActivityDraft)
+
+    @PATCH("api/v2/timetables/{timetableId}/custom-blocks/{activityId}")
+    suspend fun updateActivity(@Path("timetableId") timetableId: Int, @Path("activityId") activityId: Int, @Body draft: org.sparcs.soap.app.domain.models.otl.ActivityDraft)
+
+    @retrofit2.http.DELETE("api/v2/timetables/{timetableId}/custom-blocks/{activityId}")
+    suspend fun deleteActivity(@Path("timetableId") timetableId: Int, @Path("activityId") activityId: Int)
+
     @GET("api/v2/timetables")
     suspend fun fetchTimeTables(
         @Query("year") year: Int,

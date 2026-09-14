@@ -7,7 +7,10 @@ import kotlin.math.roundToInt
 data class Timetable(
     val id: String,
     var lectures: List<Lecture>,
+    private val customBlocks: List<TimetableActivity>? = emptyList(),
 ) {
+    val activities: List<TimetableActivity> get() = customBlocks.orEmpty()
+
     private val defaultMinMinutes = 540  // 9:00 AM
     private val defaultMaxMinutes = 1080 // 6:00 PM
 
@@ -47,7 +50,7 @@ data class Timetable(
     val visibleDays: List<DayType>
         get() {
             val classDays = lectures.flatMap { it.classes.map { ct -> ct.day } }
-            return (classDays + DayType.weekdays()).distinct().sorted()
+            return (classDays + activities.mapNotNull { DayType.fromValue(it.day) } + DayType.weekdays()).distinct().sortedBy { it.value }
         }
 
     // Get all lectures for day. Return LectureItem that includes index of ClassTime of the Lecture.
@@ -124,6 +127,7 @@ data class Timetable(
         lectures.filter { it.type == type }.sumOf { it.credit + it.creditAU }
 
     fun hasCollision(newLecture: Lecture): Boolean {
+        if (activities.any { activity -> newLecture.classes.any { it.day.value == activity.day && it.begin < activity.end && it.end > activity.begin } }) return true
         for (existingLecture in lectures) {
             for (existingTime in existingLecture.classes) {
                 for (newTime in newLecture.classes) {

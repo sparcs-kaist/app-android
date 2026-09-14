@@ -107,7 +107,8 @@ fun TimetableView(
                     TimetableViewNavigationBar(
                         scrollState = scrollState,
                         isButtonEnabled = isEditable,
-                        onClick = { navController.navigate(Channel.CourseCompose.name) }
+                        onClick = { navController.navigate(Channel.CourseCompose.name) },
+                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("ActivityCreation/$it") } }
                     )
                 }
             },
@@ -131,6 +132,7 @@ fun TimetableView(
                             showDeleteDialog = true
                         },
                         onAddClick = { navController.navigate(Channel.CourseCompose.name) },
+                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("ActivityCreation/$it") } },
                         isEditable = isEditable
                     )
                 } else {
@@ -203,6 +205,7 @@ private fun TimetableLandscapeLayout(
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
     onAddClick: () -> Unit,
+    onActivityClick: () -> Unit,
     isEditable: Boolean,
 ) {
     Column(
@@ -228,10 +231,8 @@ private fun TimetableLandscapeLayout(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 CompactTimetableSelector(viewModel, timetableName)
                 Spacer(modifier = Modifier.width(12.dp))
-                AddButton(
-                    contentDescription = "Add Timetable",
-                    onClick = onAddClick,
-                    isEnabled = isEditable
+                org.sparcs.soap.app.features.timetable.components.TimetableAddButton(
+                    enabled = isEditable, onAddClass = onAddClick, onAddActivity = onActivityClick
                 )
             }
         }
@@ -274,7 +275,8 @@ private fun TimetableLandscapeLayout(
                                     val json = Gson().toJson(lecture).escapeHash()
                                     navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                                 },
-                                showDeleteDialog = onDeleteClick
+                                showDeleteDialog = onDeleteClick,
+                                    onEditActivity = { navController.navigate("ActivityCreation/${selectedTimetable?.id}?activityId=${it.id}") }
                             )
                         }
                     }
@@ -305,6 +307,13 @@ private fun TimetableLandscapeLayout(
                                     }
                                 )
                             }
+                        }
+
+                        selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
+                            org.sparcs.soap.app.features.timetable.components.ActivityList(
+                                activities = table.activities, viewModel = viewModel,
+                                onEdit = { navController.navigate("ActivityCreation/${table.id}?activityId=${it.id}") }
+                            )
                         }
 
                         selectedTimetable?.let { TimetableCreditGraph(it) }
@@ -360,7 +369,8 @@ private fun TimetablePortraitLayout(
                         val json = Gson().toJson(lecture).escapeHash()
                         navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                     },
-                    showDeleteDialog = onDeleteClick
+                    showDeleteDialog = onDeleteClick,
+                                    onEditActivity = { navController.navigate("ActivityCreation/${selectedTimetable?.id}?activityId=${it.id}") }
                 )
             }
         }
@@ -383,6 +393,13 @@ private fun TimetablePortraitLayout(
                     }
                 )
             }
+        }
+
+        selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
+            org.sparcs.soap.app.features.timetable.components.ActivityList(
+                activities = table.activities, viewModel = viewModel,
+                onEdit = { navController.navigate("ActivityCreation/${table.id}?activityId=${it.id}") }
+            )
         }
 
         selectedTimetable?.let { TimetableCreditGraph(it) }
