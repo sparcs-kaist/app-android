@@ -65,6 +65,17 @@ class ActivityUseCaseTest {
         try { useCase.getTable(12); fail("Expected unauthorized") } catch (_: NetworkError.Unauthorized) { }
     }
 
+    @Test fun widgetBackgroundFetchCachesActivitiesAndKeepsThemOffline() = runBlocking {
+        useCase().saveActivity(12, null, ActivityDraft("Study"))
+        val background = org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground(repository, cache)
+        assertEquals(1, background.getTable(12).activities.size)
+        repository.failure = NetworkError.NoConnection()
+        assertEquals(1, background.getTable(12).activities.size)
+        cache.invalidate("12")
+        try { background.getTable(12); fail("Should preserve the rendered widget, not return an empty table") }
+        catch (_: NetworkError.NoConnection) { }
+    }
+
     private class CacheDAO : TimetableCacheDAO {
         val records = mutableMapOf<String, CachedTimetable>()
         override suspend fun getTimetable(key: String) = records[key]

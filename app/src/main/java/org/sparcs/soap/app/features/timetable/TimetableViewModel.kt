@@ -27,6 +27,7 @@ import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.event.TimetableViewEvent
 import timber.log.Timber
+import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
@@ -70,6 +71,7 @@ class TimetableViewModel @Inject constructor(
 
     override fun activityTableUpdated(table: Timetable) {
         if (_selectedTimetableID.value?.toString() == table.id) _timetable.value = table
+        viewModelScope.launch { TimetableWidgetSyncManager(context).syncSavedTimetable(table) }
     }
 
     enum class ErrorType {

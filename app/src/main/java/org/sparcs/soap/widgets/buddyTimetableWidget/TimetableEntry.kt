@@ -10,10 +10,14 @@ data class WidgetTimetableEntry(
     val visibleDays: List<DayType>,
     val minMinutes: Int,
     val maxMinutes: Int,
+    val activitiesByDay: Map<DayType, List<WidgetLectureEntry>> = emptyMap(),
 ) {
     fun getLectures(dayName: DayType): List<WidgetLectureEntry> {
         return lecturesByDay[dayName] ?: emptyList()
     }
+
+    fun getEntries(day: DayType): List<WidgetLectureEntry> =
+        (getLectures(day) + activitiesByDay[day].orEmpty()).sortedBy { it.startMinutes }
 
     companion object
 }
