@@ -15,7 +15,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.navigationBar.components.AddButton
 import org.sparcs.soap.app.shared.extensions.elevation
 
 
@@ -25,7 +24,7 @@ fun TimetableViewNavigationBar(
     scrollState: ScrollState,
     onClick: () -> Unit,
     isButtonEnabled: Boolean,
-    onActivityClick: () -> Unit = {}
+    onActivityClick: () -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -38,7 +37,11 @@ fun TimetableViewNavigationBar(
             }
         },
         actions = {
-            TimetableAddButton(enabled = isButtonEnabled, onAddClass = onClick, onAddActivity = onActivityClick)
+            TimetableAddButton(
+                enabled = isButtonEnabled,
+                onAddClass = onClick,
+                onAddActivity = onActivityClick
+            )
         },
         colors = TopAppBarDefaults.mediumTopAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface,

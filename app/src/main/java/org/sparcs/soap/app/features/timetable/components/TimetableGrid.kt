@@ -1,16 +1,17 @@
 package org.sparcs.soap.app.features.timetable.components
 
-import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,19 +20,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.text.style.TextOverflow
-import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
@@ -40,12 +37,15 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -67,8 +67,14 @@ fun TimetableGrid(
         candidateLecture?.let { addAll(it.classes) }
     }
 
-    val minMinutes = ((times.map { it.begin } + timetable?.activities.orEmpty().map { it.begin }).minOrNull() ?: TimetableDefaults.DEFAULT_MIN_MINUTES) / 60 * 60
-    val maxMinutes = ((times.map { it.end } + timetable?.activities.orEmpty().map { it.end }).maxOrNull()?.let { (it / 60 + 1) * 60 } ?: TimetableDefaults.DEFAULT_MAX_MINUTES).coerceAtLeast(minMinutes + 60)
+    val minMinutes =
+        ((times.map { it.begin } + timetable?.activities.orEmpty().map { it.begin }).minOrNull()
+            ?: TimetableDefaults.DEFAULT_MIN_MINUTES) / 60 * 60
+    val maxMinutes =
+        ((times.map { it.end } + timetable?.activities.orEmpty().map { it.end }).maxOrNull()
+            ?.let { (it / 60 + 1) * 60 } ?: TimetableDefaults.DEFAULT_MAX_MINUTES).coerceAtLeast(
+            minMinutes + 60
+        )
 
     val haptic = LocalHapticFeedback.current
     var selectedActivity by remember { mutableStateOf<TimetableActivity?>(null) }
@@ -106,39 +112,76 @@ fun TimetableGrid(
                     timetable?.activities?.filter { it.day == day.value }?.forEach { activity ->
                         val top = TimetableConstructor.daysHeight + 14.dp
                         val usable = (height - top).coerceAtLeast(0.dp)
-                        val activityHeight = (usable * ((activity.end - activity.begin).toFloat() / (maxMinutes - minMinutes)) - 4.dp).coerceAtLeast(1.dp)
-                        Column(Modifier.offset(y = top + usable * ((activity.begin - minMinutes).toFloat() / (maxMinutes - minMinutes)))
-                            .height(activityHeight).fillMaxWidth().background(LocalTimetableTheme.current.colorFor(activity.id), RoundedCornerShape(4.dp))
-                            .combinedClickable(onClick = { selectedActivity = activity; activityActions = false }, onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                selectedActivity = activity; activityActions = true
-                            }).padding(5.dp)) {
-                            Text(activity.title, style = MaterialTheme.typography.labelSmall, color = LocalTimetableTheme.current.textColor, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                            if (activity.location.isNotBlank()) Text(activity.location, style = MaterialTheme.typography.labelSmall, color = LocalTimetableTheme.current.textColor.copy(alpha = .8f), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        val activityHeight =
+                            (usable * ((activity.end - activity.begin).toFloat() / (maxMinutes - minMinutes)) - 4.dp).coerceAtLeast(
+                                1.dp
+                            )
+                        Column(
+                            Modifier
+                                .offset(y = top + usable * ((activity.begin - minMinutes).toFloat() / (maxMinutes - minMinutes)))
+                                .height(activityHeight)
+                                .fillMaxWidth()
+                                .background(
+                                    LocalTimetableTheme.current.colorFor(activity.id),
+                                    RoundedCornerShape(4.dp)
+                                )
+                                .combinedClickable(onClick = {
+                                    selectedActivity = activity; activityActions = false
+                                }, onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    selectedActivity = activity; activityActions = true
+                                })
+                                .padding(5.dp)
+                        ) {
+                            Text(
+                                activity.title,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = LocalTimetableTheme.current.textColor,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            if (activity.location.isNotBlank()) Text(
+                                activity.location,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = LocalTimetableTheme.current.textColor.copy(alpha = .8f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
                         }
                     }
 
                     timetable?.getLectures(day, candidateLecture)?.forEach { item ->
                         val top = TimetableConstructor.daysHeight + 14.dp
                         val usable = (height - top).coerceAtLeast(0.dp)
-                        val cellHeight = (usable * (item.lectureClass.duration.toFloat() / (maxMinutes - minMinutes)) - 4.dp).coerceAtLeast(1.dp)
-                        val cellOffsetY = top + usable * ((item.lectureClass.begin - minMinutes).toFloat() / (maxMinutes - minMinutes))
+                        val cellHeight =
+                            (usable * (item.lectureClass.duration.toFloat() / (maxMinutes - minMinutes)) - 4.dp).coerceAtLeast(
+                                1.dp
+                            )
+                        val cellOffsetY =
+                            top + usable * ((item.lectureClass.begin - minMinutes).toFloat() / (maxMinutes - minMinutes))
 
                         val animatedCellHeight by animateDpAsState(
                             targetValue = cellHeight,
-                            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                            animationSpec = tween(
+                                durationMillis = 500,
+                                easing = FastOutSlowInEasing
+                            ),
                             label = "HeightAnimation"
                         )
 
                         val animatedCellOffsetY by animateDpAsState(
                             targetValue = cellOffsetY,
-                            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                            animationSpec = tween(
+                                durationMillis = 500,
+                                easing = FastOutSlowInEasing
+                            ),
                             label = "OffsetAnimation"
                         )
 
                         val isCandidate =
                             item.lecture.id == candidateLecture?.id
-                        val isConflict = isCandidate && viewModel.isCandidateOverlapping.collectAsState().value
+                        val isConflict =
+                            isCandidate && viewModel.isCandidateOverlapping.collectAsState().value
                         val animatedAlpha by animateFloatAsState(
                             targetValue = if (viewModel.isLoading.collectAsState().value) 0.5f else 1f,
                             label = "LectureAlpha"
@@ -170,7 +213,12 @@ fun TimetableGrid(
             }
         }
     }
-    ActivityDetailsDialog(selectedActivity, activityActions, viewModel, onEditActivity) { selectedActivity = null }
+    ActivityDetailsDialog(
+        selectedActivity,
+        activityActions,
+        viewModel,
+        onEditActivity
+    ) { selectedActivity = null }
 
 }
 
@@ -188,7 +236,8 @@ private fun DaysColumnHeader(visibleDays: List<DayType>) {
                 text = stringResource(day.stringValue),
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.weight(1f),
-                color = LocalTimetableTheme.current.gridLabelColor ?: MaterialTheme.colorScheme.onSurface,
+                color = LocalTimetableTheme.current.gridLabelColor
+                    ?: MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
         }
@@ -214,12 +263,13 @@ private fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
                 text = hour.toString(),
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
-                color = LocalTimetableTheme.current.gridLabelColor ?: MaterialTheme.colorScheme.onSurface,
+                color = LocalTimetableTheme.current.gridLabelColor
+                    ?: MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .width(TimetableConstructor.hoursWidth)
                     .offset(y = spacing * index)
                     .padding(top = 6.dp),
-                )
+            )
         }
     }
 }
@@ -278,6 +328,9 @@ object TimetableDefaults {
 @Composable
 private fun Preview() {
     Theme {
-        TimetableGrid(viewModel = PreviewTimetableViewModel(), onLectureSelected = {}, showDeleteDialog = {})
+        TimetableGrid(
+            viewModel = PreviewTimetableViewModel(),
+            onLectureSelected = {},
+            showDeleteDialog = {})
     }
 }

@@ -81,6 +81,11 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.components.WidgetPaletteRow
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -588,6 +593,22 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                     TimetableWidget().updateAll(appContext)
                 }
             }
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
+                .setConstraints(constraints)
+                .addTag("timetable_one_time_sync")
+                .build()
+
+            WorkManager.getInstance(appContext).enqueueUniqueWork(
+                "timetable_one_time_sync",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+
             val resultValue = Intent().apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }

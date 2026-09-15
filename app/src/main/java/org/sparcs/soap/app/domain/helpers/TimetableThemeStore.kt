@@ -18,17 +18,23 @@ class TimetableThemeStore(context: Context) {
         fun theme(id: String?): TimetableTheme = themes.firstOrNull { it.id == id } ?: selected
     }
 
-    val state: State get() {
-        val custom = runCatching {
-            json.decodeFromString<List<TimetableTheme>>(preferences.getString("custom", "[]")!!)
-                .filter { !it.isBuiltIn && it.id.startsWith("custom.") && it.isValid }.distinctBy { it.id }
-        }.getOrDefault(emptyList())
-        val id = preferences.getString("selected", null) ?: TimetableTheme.Default.id
-        return State(custom, id.takeIf { candidate -> (TimetableTheme.builtIn + custom).any { it.id == candidate } } ?: TimetableTheme.Default.id)
-    }
+    val state: State
+        get() {
+            val custom = runCatching {
+                json.decodeFromString<List<TimetableTheme>>(preferences.getString("custom", "[]")!!)
+                    .filter { !it.isBuiltIn && it.id.startsWith("custom.") && it.isValid }
+                    .distinctBy { it.id }
+            }.getOrDefault(emptyList())
+            val id = preferences.getString("selected", null) ?: TimetableTheme.Default.id
+            return State(
+                custom,
+                id.takeIf { candidate -> (TimetableTheme.builtIn + custom).any { it.id == candidate } }
+                    ?: TimetableTheme.Default.id)
+        }
 
     fun observe(onChange: (State) -> Unit): () -> Unit {
-        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> onChange(state) }
+        val listener =
+            SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> onChange(state) }
         preferences.registerOnSharedPreferenceChangeListener(listener)
         onChange(state)
         return { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
@@ -44,18 +50,21 @@ class TimetableThemeStore(context: Context) {
         val themes = state.customThemes.toMutableList()
         val index = themes.indexOfFirst { it.id == theme.id }
         if (index < 0) themes.add(saved) else themes[index] = saved
-        preferences.edit().putString("custom", json.encodeToString(themes)).putString("selected", saved.id).apply()
+        preferences.edit().putString("custom", json.encodeToString(themes))
+            .putString("selected", saved.id).apply()
     }
 
     fun delete(id: String) {
         if (state.customThemes.none { it.id == id }) return
-        val editor = preferences.edit().putString("custom", json.encodeToString(state.customThemes.filterNot { it.id == id }))
+        val editor = preferences.edit()
+            .putString("custom", json.encodeToString(state.customThemes.filterNot { it.id == id }))
         if (state.selectedID == id) editor.remove("selected")
         editor.apply()
     }
 
     companion object {
         /** Reads the selected theme outside of composition, for widgets and wearable payloads. */
-        fun selectedTheme(context: Context): TimetableTheme = TimetableThemeStore(context).state.selected
+        fun selectedTheme(context: Context): TimetableTheme =
+            TimetableThemeStore(context).state.selected
     }
 }

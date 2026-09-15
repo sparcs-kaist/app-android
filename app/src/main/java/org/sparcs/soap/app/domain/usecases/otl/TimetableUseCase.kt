@@ -1,27 +1,29 @@
 package org.sparcs.soap.app.domain.usecases.otl
 
-import org.sparcs.soap.app.domain.models.otl.ActivityDraft
-import org.sparcs.soap.app.domain.models.otl.ActivityConflictException
-import org.sparcs.soap.app.domain.models.otl.ActivityRefreshRequiredException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.cache.TimetableCache
 import org.sparcs.soap.app.domain.error.CrashContext
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.error.otl.TimetableUseCaseError
+import org.sparcs.soap.app.domain.models.otl.ActivityConflictException
+import org.sparcs.soap.app.domain.models.otl.ActivityDraft
+import org.sparcs.soap.app.domain.models.otl.ActivityRefreshRequiredException
 import org.sparcs.soap.app.domain.models.otl.Semester
-import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TableDuplication
+import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
+import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.wearable.WearableDataManager
 import timber.log.Timber
 import javax.inject.Inject
@@ -363,4 +365,50 @@ private class SemesterCache {
     fun setCurrentSemester(value: Semester) {
         currentSemester = value
     }
+}
+
+class MockTimetableUseCase(
+    private val defaultTimetable: Timetable = Timetable.mock(),
+    private val defaultSemesters: List<Semester> = Semester.mockList(),
+    private val defaultSummaries: List<TimetableSummary> = TimetableSummary.mockList()
+) : TimetableUseCaseProtocol {
+
+    override suspend fun saveActivity(
+        timetableID: Int,
+        activityID: Int?,
+        draft: ActivityDraft
+    ): Timetable = defaultTimetable
+
+    override suspend fun deleteActivity(
+        timetableID: Int,
+        activityID: Int
+    ): Timetable = defaultTimetable
+
+    override suspend fun getSemesters(): List<Semester> = defaultSemesters
+
+    override suspend fun getCurrentSemester(): Semester =
+        defaultSemesters.firstOrNull() ?: Semester.mockList().first()
+
+    override suspend fun getTimetableList(semester: Semester): List<TimetableSummary> =
+        defaultSummaries
+
+    override suspend fun getTable(id: Int, forceRefresh: Boolean): Timetable =
+        defaultTimetable
+
+    override suspend fun getMyTable(semester: Semester, forceRefresh: Boolean): Timetable =
+        defaultTimetable
+
+    override suspend fun deleteTable(id: Int) {}
+
+    override suspend fun renameTable(id: Int, title: String) {}
+
+    override suspend fun createTable(semester: Semester): TimetableCreation =
+        TimetableCreation(id = 1)
+
+    override suspend fun duplicateMyTable(semester: Semester, title: String): TableDuplication =
+        TableDuplication(id = 1, skippedLectureCount = 0, skippedActivityCount = 0)
+
+    override suspend fun addLecture(timetableID: Int, lectureID: Int) {}
+
+    override suspend fun deleteLecture(timetableID: Int, lectureID: Int) {}
 }
