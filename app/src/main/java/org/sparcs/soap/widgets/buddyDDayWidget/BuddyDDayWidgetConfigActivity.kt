@@ -54,6 +54,11 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -382,6 +387,22 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
                     BuddyDDayWidget().updateAll(appContext)
                 }
             }
+
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val request = OneTimeWorkRequestBuilder<DDayUpdateWorker>()
+                .setConstraints(constraints)
+                .addTag("d_day_one_time_sync")
+                .build()
+
+            WorkManager.getInstance(appContext).enqueueUniqueWork(
+                "d_day_one_time_sync",
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+
             val resultValue = Intent().apply {
                 putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
             }

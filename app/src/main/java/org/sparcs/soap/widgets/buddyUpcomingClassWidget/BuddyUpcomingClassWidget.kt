@@ -1,11 +1,9 @@
 package org.sparcs.soap.widgets.buddyUpcomingClassWidget
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.content.edit
-import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -19,7 +17,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
@@ -45,19 +43,19 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.WidgetEntryPoint
-import org.sparcs.soap.widgets.themed
-import org.sparcs.soap.widgets.toWidgetHex
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassCircularWidgetView
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassRectangleWidgetView
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassSmallWidgetView
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
+import org.sparcs.soap.widgets.themed
+import org.sparcs.soap.widgets.timetableWidgetIntent
+import org.sparcs.soap.widgets.toWidgetHex
 import timber.log.Timber
 import java.util.Calendar
 import javax.inject.Inject
@@ -144,7 +142,7 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
                     modifier = GlanceModifier
                         .fillMaxSize()
                         .clickable(
-                            onClick = actionRunCallback<RefreshAndOpenAppAction>()
+                            onClick = actionStartActivity(timetableWidgetIntent(context))
                         )
                 ) {}
             }
@@ -172,7 +170,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val palette = TimetableTheme.Default
 
         return try {
-            if (tokenStorage.getAccessToken() == null) {
+            if (tokenStorage.getRefreshToken() == null) {
                 return Result.success()
             }
 
@@ -266,6 +264,7 @@ object UpcomingClassStateParser {
 
     fun parse(prefs: Preferences, tokenStorage: TokenStorageProtocol): UpcomingClassUiState {
         val hasRefreshToken = tokenStorage.getRefreshToken() != null
+        if (!hasRefreshToken) return UpcomingClassUiState(signInRequired = true)
         val jsonString = prefs[STATE_KEY]
         if (!jsonString.isNullOrBlank()) {
             val decoded = try {
@@ -297,7 +296,7 @@ class RefreshAndOpenAppAction : ActionCallback {
             WidgetEntryPoint::class.java
         )
         val tokenStorage = entryPoint.tokenStorage()
-        if (tokenStorage.getAccessToken() != null && shouldEnqueueRefresh(context)) {
+        if (tokenStorage.getRefreshToken() != null && shouldEnqueueRefresh(context)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -314,18 +313,7 @@ class RefreshAndOpenAppAction : ActionCallback {
             )
         }
 
-        val intent = if (tokenStorage.getAccessToken() == null) {
-            context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                putExtra(EXTRA_FROM_WIDGET, true)
-            }
-        } else {
-            Intent(Intent.ACTION_VIEW, Constants.OTL_SHARE_URL.toUri())
-        }
-
-        intent?.apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(this)
-        }
+        context.startActivity(timetableWidgetIntent(context))
     }
 
     private fun shouldEnqueueRefresh(context: Context): Boolean {
@@ -343,6 +331,5 @@ class RefreshAndOpenAppAction : ActionCallback {
         private const val REFRESH_PREFS = "widget_refresh"
         private const val KEY_LAST_REFRESH = "upcoming_last_refresh"
         private const val MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000L
-        private const val EXTRA_FROM_WIDGET = "extra_from_widget"
     }
 }

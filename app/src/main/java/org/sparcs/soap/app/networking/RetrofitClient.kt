@@ -161,6 +161,10 @@ class TokenAuthenticator @Inject constructor(
 
         return try {
             val newToken = runBlocking(Dispatchers.IO) {
+                val currentToken = authUseCase.getAccessToken()
+                if (currentToken != null && response.request.header("Authorization") == "Bearer $currentToken") {
+                    authUseCase.refreshAccessToken(force = true)
+                }
                 authUseCase.getValidAccessToken()
             }
 
