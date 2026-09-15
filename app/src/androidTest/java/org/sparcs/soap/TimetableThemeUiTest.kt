@@ -1,6 +1,8 @@
 package org.sparcs.soap
 
 import androidx.activity.ComponentActivity
+import android.graphics.Bitmap
+import java.io.File
 import androidx.activity.compose.setContent
 import androidx.compose.ui.test.*
 import androidx.compose.ui.Modifier
@@ -40,8 +42,8 @@ class TimetableThemeUiTest {
     }
     private fun screenshot(name: String) {
         compose.waitForIdle()
-        java.io.File(context.getExternalFilesDir(null), "$name.png").outputStream().use {
-            InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        File(context.getExternalFilesDir(null), "$name.png").outputStream().use {
+            InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot().compress(Bitmap.CompressFormat.PNG, 100, it)
         }
     }
 
@@ -65,7 +67,7 @@ class TimetableThemeUiTest {
         compose.onNodeWithText(text(R.string.theme_hex)).performTextInput("0B1622")
         compose.onNodeWithText(text(R.string.theme_apply)).performClick()
         screenshot("theme-advanced")
-        compose.onNodeWithText(text(R.string.theme_save)).performClick()
+        compose.onNodeWithText(text(R.string.done)).performClick()
         compose.runOnIdle {
             val theme = TimetableThemeStore(context).state.selected
             assertEquals("My Palette", theme.name)
@@ -80,12 +82,11 @@ class TimetableThemeUiTest {
         compose.runOnIdle { assertEquals("builtin.default", TimetableThemeStore(context).state.selectedID) }
     }
 
-    @Test fun cancelEditorDoesNotChangeSelectedTheme() {
+    @Test fun leavingInvalidDraftDoesNotCreateTheme() {
         compose.onNodeWithText(text(R.string.theme_new)).performScrollTo().performClick()
         compose.onNodeWithText(text(R.string.theme_name)).performTextClearance()
-        compose.onNodeWithText(text(R.string.theme_save)).assertIsNotEnabled()
+        compose.onNodeWithText(text(R.string.done)).assertIsNotEnabled()
         compose.onNodeWithContentDescription(text(R.string.back)).performClick()
-        compose.onNodeWithText(text(R.string.theme_discard)).performClick()
         compose.runOnIdle { assertTrue(TimetableThemeStore(context).state.customThemes.isEmpty()) }
     }
     @Test fun selectedPaletteRecolorsAnExistingCellImmediately() {

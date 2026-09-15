@@ -7,8 +7,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,17 +17,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -44,19 +45,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimetableThemeEditor(
     seed: String,
@@ -65,14 +66,41 @@ fun TimetableThemeEditor(
 ) {
     var draftJson by rememberSaveable(seed) { mutableStateOf(seed) }
     val draft = remember(draftJson) { Json.decodeFromString<TimetableTheme>(draftJson) }
+    var savedJson by rememberSaveable(seed) { mutableStateOf(seed) }
+    var showDiscardDialog by rememberSaveable(seed) { mutableStateOf(false) }
+    var paletteJson by rememberSaveable(seed) {
+        mutableStateOf(Json.encodeToString(TimetableThemePalette.from(draft.hexColors)))
+    }
+    val palette = remember(paletteJson) {
+        Json.decodeFromString<TimetableThemePalette>(paletteJson)
+    }
     fun update(theme: TimetableTheme) {
         draftJson = Json.encodeToString(theme)
     }
 
+    fun updatePalette(updated: TimetableThemePalette) {
+        paletteJson = Json.encodeToString(updated)
+        update(draft.copy(hexColors = updated.hexColors))
+    }
+
+    val listState = rememberLazyListState()
+    val dragState = rememberPaletteDragState(listState, palette.colors.map { it.id }) { source, target ->
+        val sourceIndex = palette.colors.indexOfFirst { it.id == source }
+        val targetIndex = palette.colors.indexOfFirst { it.id == target }
+        if (sourceIndex >= 0 && targetIndex >= 0) {
+            updatePalette(palette.move(source, targetIndex - sourceIndex))
+        }
+    }
+
     var expanded by rememberSaveable { mutableStateOf(false) }
     var target by rememberSaveable { mutableStateOf<String?>(null) }
-    var discard by rememberSaveable { mutableStateOf(false) }
-    val back = { if (draftJson != seed) discard = true else onBack() }
+    val back = {
+        if (draftJson != savedJson) {
+            showDiscardDialog = true
+        } else {
+            onBack()
+        }
+    }
     BackHandler(onBack = back)
 
     Scaffold(
@@ -82,7 +110,11 @@ fun TimetableThemeEditor(
                 onDismiss = back,
                 isEditable = true,
                 isDoneEnabled = draft.isValid,
-                onClickDone = { onSave(draft) }
+                onClickDone = {
+                    onSave(draft)
+                    savedJson = draftJson
+                    onBack()
+                }
             )
         }
     ) { padding ->
@@ -95,7 +127,8 @@ fun TimetableThemeEditor(
                     .fillMaxSize()
                     .imePadding(),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                state = listState
             ) {
                 item { ThemePreview(draft) }
                 item {
@@ -104,6 +137,10 @@ fun TimetableThemeEditor(
                         { update(draft.copy(name = it)) },
                         Modifier.fillMaxWidth(),
                         label = { Text(stringResource(R.string.theme_name)) },
+                        isError = draft.name.isBlank(),
+                        supportingText = {
+                            if (draft.name.isBlank()) Text(stringResource(R.string.theme_name_required))
+                        },
                         singleLine = true
                     )
                 }
@@ -115,31 +152,46 @@ fun TimetableThemeEditor(
                 }
                 item {
                     ThemeSectionTitle(stringResource(R.string.theme_palette))
-                    FlowRow(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        maxItemsInEachRow = 4
+                    Text(
+                        stringResource(R.string.theme_palette_description, TimetableTheme.maximumColors),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                itemsIndexed(palette.colors, key = { _, color -> color.id }) { index, color ->
+                    ThemePaletteRow(
+                        color = color,
+                        index = index,
+                        count = palette.colors.size,
+                        onEdit = { target = color.id },
+                        onMove = { offset -> updatePalette(palette.move(color.id, offset)) },
+                        onDelete = {
+                            updatePalette(palette.remove(color.id))
+                        },
+                        dragState = dragState,
+                        modifier = (if (dragState.draggedId == color.id) Modifier else Modifier.animateItem())
+                            .zIndex(if (dragState.draggedId == color.id) 1f else 0f)
+                            .graphicsLayer { translationY = dragState.translation(color.id) }
+                    )
+                }
+                item {
+                    OutlinedButton(
+                        onClick = { updatePalette(palette.add()) },
+                        enabled = palette.canAdd,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        draft.hexColors.forEachIndexed { index, hex ->
-                            val colorLabel = stringResource(R.string.theme_color, index + 1)
-                            FilledTonalButton(
-                                onClick = { target = index.toString() },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .semantics { contentDescription = colorLabel },
-                                contentPadding = PaddingValues(8.dp)
-                            ) {
-                                Box(
-                                    Modifier
-                                        .size(24.dp)
-                                        .background(TimetableTheme.color(hex), CircleShape)
-                                )
-                                Spacer(Modifier.width(6.dp))
-                                Text("${index + 1}")
-                            }
-                        }
+                        Icon(Icons.Default.Add, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text(stringResource(R.string.theme_add_color))
                     }
+                    Text(
+                        stringResource(
+                            R.string.theme_unsaved_changes_note
+                        ),
+                        modifier = Modifier.padding(top = 8.dp),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 item {
                     ListItem(
@@ -180,51 +232,51 @@ fun TimetableThemeEditor(
             }
         }
     }
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.theme_discard_title)) },
+            text = { Text(stringResource(R.string.theme_unsaved_changes_message)) },
+            confirmButton = {
+                TextButton(onClick = onBack) { Text(stringResource(R.string.theme_discard)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDiscardDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
     target?.let { key ->
-        val index = key.toIntOrNull()
         val hex = when (key) {
-            "text" -> draft.textColorHex; "separator" -> draft.separatorColorHex; "background" -> draft.backgroundColorHex; "labels" -> draft.gridLabelColorHex; else -> draft.hexColors.getOrNull(
-                index ?: -1
-            )
+            "text" -> draft.textColorHex
+            "separator" -> draft.separatorColorHex
+            "background" -> draft.backgroundColorHex
+            "labels" -> draft.gridLabelColorHex
+            else -> palette.colors.firstOrNull { it.id == key }?.hex
         }
         if (hex != null) AdvancedColorPicker(
             hex,
             onDismiss = { target = null },
             onApply = { value ->
-                update(
-                    when (key) {
-                        "text" -> draft.copy(textColorHex = value)
-                        "separator" -> draft.copy(separatorColorHex = value)
-                        "background" -> draft.copy(backgroundColorHex = value)
-                        "labels" -> draft.copy(gridLabelColorHex = value)
-                        else -> draft.copy(hexColors = draft.hexColors.mapIndexed { i, old -> if (i == index) value else old })
-                    }
-                ); target = null
-            },
-            onRemove = if (index != null && draft.hexColors.size > 1) ({
-                update(draft.copy(hexColors = draft.hexColors.filterIndexed { i, _ -> i != index })); target =
-                null
-            }) else null
+                when (key) {
+                    "text" -> update(draft.copy(textColorHex = value))
+                    "separator" -> update(draft.copy(separatorColorHex = value))
+                    "background" -> update(draft.copy(backgroundColorHex = value))
+                    "labels" -> update(draft.copy(gridLabelColorHex = value))
+                    else -> updatePalette(palette.update(key, value))
+                }
+                target = null
+            }
         )
     }
-    if (discard) AlertDialog(
-        onDismissRequest = { discard = false },
-        title = { Text(stringResource(R.string.theme_discard_title)) },
-        text = { Text(stringResource(R.string.theme_discard_message)) },
-        containerColor = MaterialTheme.colorScheme.background,
-        confirmButton = { TextButton(onClick = onBack) { Text(stringResource(R.string.theme_discard)) } },
-        dismissButton = {
-            TextButton(onClick = {
-                discard = false
-            }) { Text(stringResource(R.string.cancel)) }
-        })
 }
 
 @Composable
 private fun ThemeColorRow(label: String, hex: String, onClick: () -> Unit) {
     ListItem(
         headlineContent = { Text(label) },
-        supportingContent = { Text("#$hex") },
+        supportingContent = { Text(stringResource(R.string.theme_color_hex_value, hex)) },
         trailingContent = {
             Box(
                 Modifier

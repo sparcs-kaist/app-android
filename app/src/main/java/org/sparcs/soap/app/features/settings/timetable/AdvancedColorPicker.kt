@@ -73,7 +73,7 @@ fun AdvancedColorPicker(
     val color = remember(hex) {
         try {
             Color("#$hex".toColorInt())
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             Color.Black
         }
     }

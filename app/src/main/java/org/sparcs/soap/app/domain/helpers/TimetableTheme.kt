@@ -16,7 +16,7 @@ data class TimetableTheme(
     val isBuiltIn: Boolean = false,
 ) {
     val isValid: Boolean
-        get() = name.isNotBlank() && hexColors.size in 1..16 &&
+        get() = name.isNotBlank() && hexColors.size in minimumColors..maximumColors &&
                 (hexColors + listOfNotNull(
                     textColorHex,
                     separatorColorHex,
@@ -40,6 +40,9 @@ data class TimetableTheme(
         copy(id = "custom.${UUID.randomUUID()}", name = name, isBuiltIn = false)
 
     companion object {
+        const val minimumColors = 1
+        const val maximumColors = 16
+
         fun color(hex: String) = Color(0xFF000000L or hex.toLong(16))
         val builtIn = listOf(
             TimetableTheme(

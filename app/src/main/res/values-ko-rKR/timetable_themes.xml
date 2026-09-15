@@ -12,6 +12,14 @@
     <string name="theme_color">색상 %1$d</string>
     <string name="theme_add_color">색상 추가</string>
     <string name="theme_remove_color">색상 삭제</string>
+    <string name="theme_move_color_up">위로 이동</string>
+    <string name="theme_move_color_down">아래로 이동</string>
+    <string name="theme_color_hex_value">#%1$s</string>
+    <string name="theme_palette_description">색상은 최대 %1$d개까지 추가할 수 있습니다. 왼쪽 핸들을 드래그해 순서를 바꾸세요. 메뉴에서 색상을 삭제한 뒤 완료를 눌러 저장할 수 있습니다.</string>
+    <string name="theme_drag_color">색상 %1$d 순서 변경 핸들</string>
+    <string name="theme_unsaved_changes_note">완료를 눌러야 변경 사항이 저장됩니다.</string>
+    <string name="theme_unsaved_changes_message">저장하지 않은 변경 사항이 있습니다. 저장하지 않고 나가시겠습니까?</string>
+    <string name="theme_name_required">변경 사항을 저장하려면 이름을 입력해 주세요.</string>
     <string name="theme_text">셀 글자</string>
     <string name="theme_advanced">고급</string>
     <string name="theme_separator">격자선 색상 지정</string>

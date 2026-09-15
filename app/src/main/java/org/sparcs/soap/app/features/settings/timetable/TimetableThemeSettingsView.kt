@@ -86,7 +86,7 @@ fun TimetableThemeSettingsView(onBack: () -> Unit) {
             TimetableThemeEditor(
                 currentEditing,
                 onBack = { editing = null },
-                onSave = { store.saveAndSelect(it); editing = null })
+                onSave = store::saveAndSelect)
         } else {
             val newName = stringResource(R.string.theme_my_name)
             Scaffold(
