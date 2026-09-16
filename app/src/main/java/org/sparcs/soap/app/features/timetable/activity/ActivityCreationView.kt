@@ -130,345 +130,349 @@ fun ActivityCreationView(
             onBack = { adjusting = false })
     } else {
         Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                stringResource(if (activity == null) R.string.activity_new else R.string.activity_edit),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(
-                                onClick = onClose,
-                                enabled = !saving
-                            ) {
-                                Icon(
-                                    Icons.Rounded.Close,
-                                    stringResource(R.string.activity_close),
-                                    modifier = Modifier.padding(start = 8.dp)
-                                )
-                            }
-                        },
-                        actions = {
-                            if (saving) CircularProgressIndicator(
-                                Modifier
-                                    .padding(16.dp)
-                                    .size(24.dp),
-                                strokeWidth = 2.dp
-                            )
-                            else TextButton(
-                                enabled = needsRefresh || (draft.isValid && !conflict),
-                                onClick = {
-                                    focus.clearFocus()
-                                    scope.launch {
-                                        saving = true
-                                        try {
-                                            if (needsRefresh) onRefresh() else onSave(draft)
-                                            onClose()
-                                        } catch (e: CancellationException) {
-                                            throw e
-                                        } catch (e: Exception) {
-                                            error = when (e) {
-                                                is ActivityConflictException -> R.string.activity_conflict
-                                                is ActivityRefreshRequiredException -> {
-                                                    needsRefresh = true; R.string.activity_saved_refresh
-                                                }
-
-                                                else -> R.string.activity_save_error
-                                            }
-                                        } finally {
-                                            saving = false
-                                        }
-                                    }
-                                }) {
-                                Text(
-                                    stringResource(if (needsRefresh) R.string.activity_refresh else R.string.activity_save),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Normal,
-                                    color = if (needsRefresh || (draft.isValid && !conflict)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
-                                )
-                            }
-                        },
-                        colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            stringResource(if (activity == null) R.string.activity_new else R.string.activity_edit),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
+                    },
+                    navigationIcon = {
+                        IconButton(
+                            onClick = onClose,
+                            enabled = !saving
+                        ) {
+                            Icon(
+                                Icons.Rounded.Close,
+                                stringResource(R.string.activity_close),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    },
+                    actions = {
+                        if (saving) CircularProgressIndicator(
+                            Modifier
+                                .padding(16.dp)
+                                .size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                        else TextButton(
+                            enabled = needsRefresh || (draft.isValid && !conflict),
+                            onClick = {
+                                focus.clearFocus()
+                                scope.launch {
+                                    saving = true
+                                    try {
+                                        if (needsRefresh) onRefresh() else onSave(draft)
+                                        onClose()
+                                    } catch (e: CancellationException) {
+                                        throw e
+                                    } catch (e: Exception) {
+                                        error = when (e) {
+                                            is ActivityConflictException -> R.string.activity_conflict
+                                            is ActivityRefreshRequiredException -> {
+                                                needsRefresh = true; R.string.activity_saved_refresh
+                                            }
+
+                                            else -> R.string.activity_save_error
+                                        }
+                                    } finally {
+                                        saving = false
+                                    }
+                                }
+                            }) {
+                            Text(
+                                stringResource(if (needsRefresh) R.string.activity_refresh else R.string.activity_save),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Normal,
+                                color = if (needsRefresh || (draft.isValid && !conflict)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
-                },
-                containerColor = MaterialTheme.colorScheme.surface
-            ) { padding ->
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .imePadding()
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 16.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.surface
+        ) { padding ->
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .imePadding()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    timetableName,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
                 ) {
-                    Text(
-                        timetableName,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
-
-                    ElevatedCard(
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.background
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
-                    ) {
-                        Column(Modifier.padding(vertical = 8.dp)) {
-                            BasicTextField(
-                                value = title,
-                                onValueChange = { title = it },
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.onSurface
-                                ),
-                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                enabled = !saving && !needsRefresh,
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                                decorationBox = { innerTextField ->
-                                    if (title.isEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.activity_title),
-                                            color = MaterialTheme.colorScheme.grayBB,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            )
-
-                            HorizontalDivider(Modifier.padding(horizontal = 16.dp))
-
-                            BasicTextField(
-                                value = location,
-                                onValueChange = { location = it },
-                                textStyle = MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.onSurface
-                                ),
-                                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                enabled = !saving && !needsRefresh,
-                                singleLine = true,
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
-                                decorationBox = { innerTextField ->
-                                    if (location.isEmpty()) {
-                                        Text(
-                                            text = stringResource(R.string.activity_location),
-                                            color = MaterialTheme.colorScheme.grayBB,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                    }
-                                    innerTextField()
-                                }
-                            )
-                        }
-                    }
-
-                    ElevatedCard(
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = MaterialTheme.colorScheme.background
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier
-                            .glassBorder(shape = RoundedCornerShape(16.dp))
-                    ) {
-                        Column(Modifier.padding(16.dp)) {
-                            var expandedDay by remember { mutableStateOf(false) }
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    stringResource(R.string.activity_day),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
-                                    Row(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(16.dp))
-                                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                            .clickable(enabled = !saving && !needsRefresh) {
-                                                focus.clearFocus(); expandedDay = true
-                                            }
-                                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            stringResource(DayType.fromValue(day)!!.fullStringValue),
-                                            color = if (expandedDay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                                            style = MaterialTheme.typography.bodyLarge
-                                        )
-                                        Icon(
-                                            Icons.Rounded.ExpandMore,
-                                            null,
-                                            modifier = Modifier.size(20.dp),
-                                            tint = if (expandedDay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                        )
-                                    }
-
-                                    DropdownMenu(
-                                        expanded = expandedDay,
-                                        onDismissRequest = { expandedDay = false },
-                                        containerColor = MaterialTheme.colorScheme.background,
-                                        shape = RoundedCornerShape(16.dp)
-                                    ) {
-                                        DayType.entries.sortedBy { it.value }.forEach { option ->
-                                            DropdownMenuItem(
-                                                text = { Text(stringResource(option.fullStringValue)) },
-                                                onClick = {
-                                                    day = option.value
-                                                    expandedDay = false
-                                                }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-
-                            HorizontalDivider(Modifier.padding(vertical = 16.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    stringResource(R.string.activity_starts),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                        .clickable(enabled = !saving && !needsRefresh) {
-                                            focus.clearFocus()
-                                            timeField = if (timeField == 1) 0 else 1
-                                        }
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
+                    Column(Modifier.padding(vertical = 8.dp)) {
+                        BasicTextField(
+                            value = title,
+                            onValueChange = { title = it },
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            enabled = !saving && !needsRefresh,
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                            decorationBox = { innerTextField ->
+                                if (title.isEmpty()) {
                                     Text(
-                                        activityTime(begin),
-                                        color = if (timeField == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        text = stringResource(R.string.activity_title),
+                                        color = MaterialTheme.colorScheme.grayBB,
                                         style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
+                                innerTextField()
                             }
+                        )
 
-                            if (timeField == 1) {
-                                var selectedHour by remember(begin) { mutableIntStateOf(begin / 60) }
-                                var selectedMinute by remember(begin) { mutableIntStateOf(begin % 60) }
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    WheelTimePicker(
-                                        hour = selectedHour,
-                                        minute = selectedMinute,
-                                        onTimeSelected = { h, m ->
-                                            selectedHour = h
-                                            selectedMinute = m
-                                            val newBegin = h * 60 + m
-                                            if (newBegin >= end) {
-                                                end = (newBegin + 15).coerceAtMost(1440)
-                                            }
-                                            begin = newBegin
-                                        }
-                                    )
-                                }
-                            }
+                        HorizontalDivider(Modifier.padding(horizontal = 16.dp))
 
-                            HorizontalDivider(Modifier.padding(vertical = 16.dp))
-
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    stringResource(R.string.activity_ends),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-
-                                Box(
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                                        .clickable(enabled = !saving && !needsRefresh) {
-                                            focus.clearFocus()
-                                            timeField = if (timeField == 2) 0 else 2
-                                        }
-                                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                                ) {
+                        BasicTextField(
+                            value = location,
+                            onValueChange = { location = it },
+                            textStyle = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            ),
+                            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            enabled = !saving && !needsRefresh,
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }),
+                            decorationBox = { innerTextField ->
+                                if (location.isEmpty()) {
                                     Text(
-                                        activityTime(end),
-                                        color = if (timeField == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        text = stringResource(R.string.activity_location),
+                                        color = MaterialTheme.colorScheme.grayBB,
                                         style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
+                                innerTextField()
                             }
-
-                            if (timeField == 2) {
-                                val currentEnd = end % 1440
-                                var selectedHour by remember(end) { mutableIntStateOf(currentEnd / 60) }
-                                var selectedMinute by remember(end) { mutableIntStateOf(currentEnd % 60) }
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    WheelTimePicker(
-                                        hour = selectedHour,
-                                        minute = selectedMinute,
-                                        onTimeSelected = { h, m ->
-                                            selectedHour = h
-                                            selectedMinute = m
-                                            val newEnd = if (h * 60 + m == 0) 1440 else h * 60 + m
-                                            if (newEnd <= begin) {
-                                                begin = (newEnd - 15).coerceAtLeast(0)
-                                            }
-                                            end = newEnd
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                        )
                     }
-
-                    FilledTonalButton(
-                        onClick = { focus.clearFocus(); adjusting = true },
-                        enabled = !saving && !needsRefresh,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Rounded.CalendarMonth, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.activity_adjust))
-                    }
-                    ActivityConflictNotice(conflict)
-                    Spacer(Modifier.height(16.dp))
                 }
+
+                ElevatedCard(
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .glassBorder(shape = RoundedCornerShape(16.dp))
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        var expandedDay by remember { mutableStateOf(false) }
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                stringResource(R.string.activity_day),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
+                                Row(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                alpha = 0.5f
+                                            )
+                                        )
+                                        .clickable(enabled = !saving && !needsRefresh) {
+                                            focus.clearFocus(); expandedDay = true
+                                        }
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        stringResource(DayType.fromValue(day)!!.fullStringValue),
+                                        color = if (expandedDay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Icon(
+                                        Icons.Rounded.ExpandMore,
+                                        null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = if (expandedDay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = expandedDay,
+                                    onDismissRequest = { expandedDay = false },
+                                    containerColor = MaterialTheme.colorScheme.background,
+                                    shape = RoundedCornerShape(16.dp)
+                                ) {
+                                    DayType.entries.sortedBy { it.value }.forEach { option ->
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(option.fullStringValue)) },
+                                            onClick = {
+                                                day = option.value
+                                                expandedDay = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                stringResource(R.string.activity_starts),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                    .clickable(enabled = !saving && !needsRefresh) {
+                                        focus.clearFocus()
+                                        timeField = if (timeField == 1) 0 else 1
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    activityTime(begin),
+                                    color = if (timeField == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+
+                        if (timeField == 1) {
+                            var selectedHour by remember(begin) { mutableIntStateOf(begin / 60) }
+                            var selectedMinute by remember(begin) { mutableIntStateOf(begin % 60) }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                WheelTimePicker(
+                                    hour = selectedHour,
+                                    minute = selectedMinute,
+                                    onTimeSelected = { h, m ->
+                                        selectedHour = h
+                                        selectedMinute = m
+                                        val newBegin = h * 60 + m
+                                        if (newBegin >= end) {
+                                            end = (newBegin + 15).coerceAtMost(1440)
+                                        }
+                                        begin = newBegin
+                                    }
+                                )
+                            }
+                        }
+
+                        HorizontalDivider(Modifier.padding(vertical = 16.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                stringResource(R.string.activity_ends),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                    .clickable(enabled = !saving && !needsRefresh) {
+                                        focus.clearFocus()
+                                        timeField = if (timeField == 2) 0 else 2
+                                    }
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    activityTime(end),
+                                    color = if (timeField == 2) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+
+                        if (timeField == 2) {
+                            val currentEnd = end % 1440
+                            var selectedHour by remember(end) { mutableIntStateOf(currentEnd / 60) }
+                            var selectedMinute by remember(end) { mutableIntStateOf(currentEnd % 60) }
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                WheelTimePicker(
+                                    hour = selectedHour,
+                                    minute = selectedMinute,
+                                    onTimeSelected = { h, m ->
+                                        selectedHour = h
+                                        selectedMinute = m
+                                        val newEnd = if (h * 60 + m == 0) 1440 else h * 60 + m
+                                        if (newEnd <= begin) {
+                                            begin = (newEnd - 15).coerceAtLeast(0)
+                                        }
+                                        end = newEnd
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                FilledTonalButton(
+                    onClick = { focus.clearFocus(); adjusting = true },
+                    enabled = !saving && !needsRefresh,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Rounded.CalendarMonth, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.activity_adjust))
+                }
+                ActivityConflictNotice(conflict)
+                Spacer(Modifier.height(16.dp))
             }
         }
+    }
 
     if (error != 0) AlertDialog(
         onDismissRequest = { error = 0 },
