@@ -58,6 +58,7 @@ fun TimetableGrid(
     onEditActivity: (TimetableActivity) -> Unit = {},
 ) {
     val timetable by viewModel.selectedTimetable.collectAsState()
+    val isEditable by viewModel.isEditable.collectAsState()
 
     val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
 
@@ -127,10 +128,10 @@ fun TimetableGrid(
                                 )
                                 .combinedClickable(onClick = {
                                     selectedActivity = activity; activityActions = false
-                                }, onLongClick = {
+                                }, onLongClick = if (isEditable) { {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     selectedActivity = activity; activityActions = true
-                                })
+                                } } else null)
                                 .padding(5.dp)
                         ) {
                             Text(
@@ -201,10 +202,10 @@ fun TimetableGrid(
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         onLectureSelected(item.lecture)
                                     },
-                                    onLongClick = {
+                                    onLongClick = if (isEditable) { {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         showDeleteDialog(item.lecture)
-                                    }
+                                    } } else null
                                 )
                                 .graphicsLayer { alpha = animatedAlpha }
                         )
