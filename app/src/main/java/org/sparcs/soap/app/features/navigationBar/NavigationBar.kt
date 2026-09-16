@@ -2,6 +2,8 @@ package org.sparcs.soap.app.features.navigationBar
 
 import android.content.Intent
 import androidx.annotation.StringRes
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -236,6 +238,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
     )
+    val navSuiteColors = NavigationSuiteDefaults.colors(
+        navigationBarContainerColor = MaterialTheme.colorScheme.surface,
+        navigationRailContainerColor = MaterialTheme.colorScheme.surface
+    )
 
     NavigationSuiteScaffold(
         navigationSuiteItems = {
@@ -255,7 +261,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 )
             }
         },
-        contentColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
+        navigationSuiteColors = navSuiteColors,
         layoutType = navigationLayoutType
     ) {
         Box(
@@ -271,6 +278,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 ) {
                     composable(
                         route = Channel.Start.name,
+                        enterTransition = { EnterTransition.None },
+                        exitTransition = { ExitTransition.None },
+                        popEnterTransition = { EnterTransition.None },
+                        popExitTransition = { ExitTransition.None }
                     ) { backStackEntry ->
                         val parentEntry = remember(backStackEntry) {
                             navController.getBackStackEntry("FeedGraph")
@@ -333,7 +344,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         deepLinks = listOf(navDeepLink {
                             uriPattern = Constants.OTL_SHARE_URL
                             action = Intent.ACTION_VIEW
-                        })
+                        }),
+                        enterTransition = { EnterTransition.None },
+                        exitTransition = { ExitTransition.None },
+                        popEnterTransition = { EnterTransition.None },
+                        popExitTransition = { ExitTransition.None }
                     ) { backStackEntry ->
                         val parentEntry = remember(backStackEntry) {
                             navController.getBackStackEntry("OTLGraph")
@@ -483,7 +498,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                                 uriPattern = Constants.TAXI_INVITE_URL + "{roomId}"
                                 action = Intent.ACTION_VIEW
                             }
-                        )
+                        ),
+                        enterTransition = { EnterTransition.None },
+                        exitTransition = { ExitTransition.None },
+                        popEnterTransition = { EnterTransition.None },
+                        popExitTransition = { ExitTransition.None }
                     )
                     { backStackEntry ->
                         val parentEntry = remember(backStackEntry) {
@@ -583,7 +602,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         route = "AraBoardList"
                     ) {
                         composable(
-                            route = Channel.Boards.name
+                            route = Channel.Boards.name,
+                            enterTransition = { EnterTransition.None },
+                            exitTransition = { ExitTransition.None },
+                            popEnterTransition = { EnterTransition.None },
+                            popExitTransition = { ExitTransition.None }
                         ) { backStackEntry ->
                             val viewModel: BoardListViewModel = hiltViewModel(backStackEntry)
                             BoardListView(viewModel = viewModel, navController = navController)
@@ -669,7 +692,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                 }
 
                 composable(
-                    route = Channel.SearchView.name
+                    route = Channel.SearchView.name,
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None }
                 ) { backStackEntry ->
                     val viewModel: SearchViewModel = hiltViewModel(backStackEntry)
                     val taxiPreviewViewModel: TaxiPreviewViewModel =
