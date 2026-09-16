@@ -156,6 +156,7 @@ class FeedPostViewModel @Inject constructor(
     }
 
     override suspend fun submitComment(postID: String, replyingTo: FeedComment?): FeedComment? {
+        if (isSubmittingComment) return null
         isSubmittingComment = true
         return try {
             val request = FeedCreateComment(
