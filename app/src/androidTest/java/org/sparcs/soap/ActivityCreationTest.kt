@@ -1,5 +1,14 @@
 package org.sparcs.soap
 
+import android.graphics.Bitmap
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.navigation.compose.rememberNavController
+import org.sparcs.soap.app.features.timetable.TimetableView
+import org.sparcs.soap.app.features.timetable.components.TimetableGrid
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
+import java.io.File
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.activity.ComponentActivity
@@ -22,8 +31,8 @@ class ActivityCreationTest {
     private fun screenshot(name: String) {
         compose.waitForIdle()
         val instrumentation = InstrumentationRegistry.getInstrumentation()
-        val file = java.io.File(instrumentation.targetContext.getExternalFilesDir(null), "$name.png")
-        file.outputStream().use { instrumentation.uiAutomation.takeScreenshot().compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) }
+        val file = File(instrumentation.targetContext.getExternalFilesDir(null), "$name.png")
+        file.outputStream().use { instrumentation.uiAutomation.takeScreenshot().compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
     private fun text(id: Int) = InstrumentationRegistry.getInstrumentation().targetContext.getString(id)
 
@@ -64,7 +73,7 @@ class ActivityCreationTest {
             onClose = {}, onSave = { saved = it }, onRefresh = {}) } }
         compose.onNodeWithText(text(R.string.activity_adjust)).performScrollTo().performClick()
         compose.onNode(hasContentDescription("Study", substring = true)).performTouchInput {
-            down(center); advanceEventTime(700); moveBy(androidx.compose.ui.geometry.Offset(0f, height.toFloat() * 2)); up()
+            down(center); advanceEventTime(700); moveBy(Offset(0f, height.toFloat() * 2)); up()
         }
         screenshot("activity-conflict")
         compose.onNodeWithText(text(R.string.activity_conflict)).assertExists()
@@ -83,13 +92,13 @@ class ActivityCreationTest {
         val originalHeight = indicator.fetchSemanticsNode().boundsInRoot.height
         indicator.performTouchInput {
             down(center); advanceEventTime(700)
-            moveBy(androidx.compose.ui.geometry.Offset(width * 1.1f, height * .4f)); up()
+            moveBy(Offset(width * 1.1f, height * .4f)); up()
         }
         compose.onNodeWithContentDescription(text(R.string.activity_end_handle)).performTouchInput {
-            down(center); moveBy(androidx.compose.ui.geometry.Offset(0f, originalHeight * .5f)); up()
+            down(center); moveBy(Offset(0f, originalHeight * .5f)); up()
         }
         compose.onNodeWithContentDescription(text(R.string.activity_start_handle)).performTouchInput {
-            down(center); moveBy(androidx.compose.ui.geometry.Offset(0f, originalHeight * .25f)); up()
+            down(center); moveBy(Offset(0f, originalHeight * .25f)); up()
         }
         screenshot("activity-adjusted")
         compose.onNodeWithContentDescription(text(R.string.activity_back)).performClick()
@@ -106,9 +115,9 @@ class ActivityCreationTest {
         var edited: TimetableActivity? = null
         var lectureOpened = false
         setContent { Theme {
-            androidx.compose.foundation.layout.Box(androidx.compose.ui.Modifier.fillMaxWidth().height(500.dp)) {
-                org.sparcs.soap.app.features.timetable.components.TimetableGrid(
-                    org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel(Timetable("12", emptyList(), listOf(activity))),
+            Box(Modifier.fillMaxWidth().height(500.dp)) {
+                TimetableGrid(
+                    PreviewTimetableViewModel(Timetable("12", emptyList(), listOf(activity))),
                     onLectureSelected = { lectureOpened = true }, showDeleteDialog = {}, onEditActivity = { edited = it })
             }
         } }
@@ -123,9 +132,9 @@ class ActivityCreationTest {
 
     @Test fun activityListAppearsBelowLecturesAndOpensDetails() {
         val activity = TimetableActivity(17, "Study group", "Library", 0, 540, 600)
-        val model = org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel(Timetable("12", emptyList(), listOf(activity)))
+        val model = PreviewTimetableViewModel(Timetable("12", emptyList(), listOf(activity)))
         setContent { Theme {
-            org.sparcs.soap.app.features.timetable.TimetableView(model, androidx.navigation.compose.rememberNavController())
+            TimetableView(model, rememberNavController())
         } }
         val count = InstrumentationRegistry.getInstrumentation().targetContext.resources.getQuantityString(R.plurals.activities_count, 1, 1)
         compose.onNodeWithText(count).performScrollTo().assertIsDisplayed()

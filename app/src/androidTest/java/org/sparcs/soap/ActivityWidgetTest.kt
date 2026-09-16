@@ -2,6 +2,7 @@ package org.sparcs.soap
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -21,6 +22,7 @@ import org.sparcs.soap.widgets.buddyTimetableWidget.*
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import java.io.File
 import kotlin.math.roundToInt
+import kotlin.math.abs
 
 @OptIn(ExperimentalGlanceRemoteViewsApi::class)
 class ActivityWidgetTest {
@@ -72,16 +74,16 @@ class ActivityWidgetTest {
                 for (entry in table.toWidgetUiState().timetable!!.activitiesByDay.values.flatten()) {
                     val column = entry.day!!.value
                     val x = (gridLeft + (column + 0.5f) * dayWidth).roundToInt()
-                    val color = android.graphics.Color.parseColor(entry.bgColor)
+                    val color = Color.parseColor(entry.bgColor)
                     val cellTop = (0 until bitmap.height).first { bitmap.getPixel(x, it) == color }
                     val expectedTop = firstLine + ((entry.startMinutes!! - 540) * (bitmap.height - firstLine) / 540f).roundToInt()
                     assertEquals("Cell start at ${entry.startMinutes} in $size", expectedTop, cellTop)
                     val lineTop = (cellTop - 2..cellTop + 2).firstOrNull { y ->
-                        (referenceStart until referenceEnd).any { bitmap.getPixel(it, y) != android.graphics.Color.WHITE }
+                        (referenceStart until referenceEnd).any { bitmap.getPixel(it, y) != Color.WHITE }
                     }
                     assertNotNull("Missing grid line beside ${entry.title}", lineTop)
                     // The dashed drawable antialiases its stroke within a two-dp image.
-                    assertTrue("Grid and cell at ${entry.startMinutes} in $size", kotlin.math.abs(cellTop - lineTop!!) <= 1)
+                    assertTrue("Grid and cell at ${entry.startMinutes} in $size", abs(cellTop - lineTop!!) <= 1)
                 }
             }) {}
         }
@@ -110,7 +112,7 @@ class ActivityWidgetTest {
             check(textViews)
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(bitmap)
-            canvas.drawColor(android.graphics.Color.WHITE)
+            canvas.drawColor(Color.WHITE)
             view.draw(canvas)
             File(context.getExternalFilesDir(null), "$name.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
             checkBitmap(bitmap)

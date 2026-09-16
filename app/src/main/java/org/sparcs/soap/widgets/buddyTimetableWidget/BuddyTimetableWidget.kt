@@ -1,10 +1,9 @@
 package org.sparcs.soap.widgets.buddyTimetableWidget
 
 import android.content.Context
-import android.content.Intent
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
-import androidx.core.net.toUri
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -18,7 +17,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
@@ -29,6 +28,7 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.padding
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -42,19 +42,20 @@ import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
-import org.sparcs.soap.app.domain.error.NetworkError
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.helpers.Constants
+import org.sparcs.soap.app.domain.enums.otl.SemesterType
+import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.WidgetEntryPoint
-import org.sparcs.soap.widgets.themed
 import org.sparcs.soap.widgets.theme.ui.TimetableWidgetTheme.grayBB
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
+import org.sparcs.soap.widgets.themed
+import org.sparcs.soap.widgets.timetableWidgetIntent
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -80,10 +81,12 @@ class TimetableWidget : GlanceAppWidget() {
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
 
             WidgetTheme(themeMode = themeMode) {
-                val surface = timetableTheme.backgroundColor ?: GlanceTheme.colors.background.getColor(context)
+                val surface = timetableTheme.backgroundColor
+                    ?: GlanceTheme.colors.background.getColor(context)
                 Box(
                     modifier = GlanceModifier
                         .fillMaxSize()
+                        .padding(8.dp)
                         .background(surface.copy(alpha = transparency))
                 ) {
                     if (state.signInRequired) {
@@ -132,7 +135,7 @@ class TimetableWidget : GlanceAppWidget() {
                     Box(
                         modifier = GlanceModifier
                             .fillMaxSize()
-                            .clickable(onClick = actionRunCallback<RefreshTimetableAction>())
+                            .clickable(onClick = actionStartActivity(timetableWidgetIntent(context)))
 
                     ) {}
                 }
@@ -160,15 +163,22 @@ class TimetableWidgetSyncManager @Inject constructor(
                 val prefs = getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
                 if (matchesSavedTimetable(prefs, timetable.id)) syncState(state, id, tableID)
             }
-        } catch (e: CancellationException) { throw e
-        } catch (_: Exception) { Timber.tag("WidgetSync").e("Saved timetable widget sync failed") }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            Timber.tag("WidgetSync").e("Saved timetable widget sync failed")
+        }
     }
 
     suspend fun syncSignInRequired() {
         syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
 
-    private suspend fun syncState(state: TimetableUiState, specificGlanceId: GlanceId? = null, expectedTimetableID: Int? = null) {
+    private suspend fun syncState(
+        state: TimetableUiState,
+        specificGlanceId: GlanceId? = null,
+        expectedTimetableID: Int? = null,
+    ) {
         try {
             val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
@@ -190,7 +200,8 @@ class TimetableWidgetSyncManager @Inject constructor(
             } else {
                 TimetableWidget().updateAll(context)
             }
-        } catch (e: CancellationException) { throw e
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Timber.tag("WidgetSync").e("Timetable widget sync failed")
         }
@@ -219,7 +230,8 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            if (tokenStorage.getAccessToken() == null) {
+            if (tokenStorage.getRefreshToken() == null) {
+                syncManager.syncSignInRequired()
                 return Result.success()
             }
 
@@ -231,14 +243,16 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
                         PreferencesGlanceStateDefinition,
                         glanceId
                     )
-                    val selectedTimetableId = prefs[intPreferencesKey("selected_timetable_id")] ?: -1
+                    val selectedTimetableId =
+                        prefs[intPreferencesKey("selected_timetable_id")] ?: -1
 
                     val timetable = if (selectedTimetableId == -1) {
                         val savedYear = prefs[intPreferencesKey("selected_semester_year")] ?: -1
-                        val savedTypeInt = prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
+                        val savedTypeInt =
+                            prefs[intPreferencesKey("selected_semester_type_int")] ?: -1
                         if (savedYear != -1 && savedTypeInt != -1) {
                             val savedType =
-                                org.sparcs.soap.app.domain.enums.otl.SemesterType.fromRawValue(
+                                SemesterType.fromRawValue(
                                     savedTypeInt
                                 )
                             timetableUseCase.getMyTable(savedYear, savedType)
@@ -258,15 +272,18 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
                     }
 
                     syncManager.sync(timetable, glanceId)
-                } catch (e: CancellationException) { throw e
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (e: Exception) {
-                    retryNeeded = retryNeeded || e is NetworkError.NoConnection || e is NetworkError.Timeout ||
-                        (e is NetworkError.ServerError && e.code >= 500)
+                    retryNeeded =
+                        retryNeeded || e is NetworkError.NoConnection || e is NetworkError.Timeout ||
+                                (e is NetworkError.ServerError && e.code >= 500)
                     Timber.e(e, "Timetable widget update failed")
                 }
             }
             if (retryNeeded) Result.retry() else Result.success()
-        } catch (e: CancellationException) { throw e
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "TimetableUpdateWorker Error")
             return Result.success()
@@ -278,7 +295,7 @@ object TimetableStateParser {
     private val STATE_KEY = stringPreferencesKey("timetable_state")
 
     fun parse(prefs: Preferences, tokenStorage: TokenStorageProtocol): TimetableUiState {
-        val hasRefreshToken = tokenStorage.getRefreshToken() != null
+        if (tokenStorage.getRefreshToken() == null) return TimetableUiState(signInRequired = true)
         val jsonString = prefs[STATE_KEY]
         if (!jsonString.isNullOrBlank()) {
             val decoded = try {
@@ -286,16 +303,12 @@ object TimetableStateParser {
             } catch (_: Exception) {
                 TimetableUiState(signInRequired = true)
             }
-            if (hasRefreshToken && decoded.signInRequired) {
+            if (decoded.signInRequired) {
                 return TimetableUiState(signInRequired = false, timetable = null, isLoading = true)
             }
             return decoded
         }
-        return if (hasRefreshToken) {
-            TimetableUiState(signInRequired = false, timetable = null, isLoading = true)
-        } else {
-            TimetableUiState(signInRequired = true)
-        }
+        return TimetableUiState(signInRequired = false, timetable = null, isLoading = true)
     }
 }
 
@@ -310,7 +323,7 @@ class RefreshTimetableAction : ActionCallback {
             WidgetEntryPoint::class.java
         )
         val tokenStorage = entryPoint.tokenStorage()
-        if (tokenStorage.getAccessToken() != null && shouldEnqueueRefresh(context)) {
+        if (tokenStorage.getRefreshToken() != null && shouldEnqueueRefresh(context)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -327,18 +340,7 @@ class RefreshTimetableAction : ActionCallback {
             )
         }
 
-        val intent = if (tokenStorage.getAccessToken() == null) {
-            context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {
-                putExtra(EXTRA_FROM_WIDGET, true)
-            }
-        } else {
-            Intent(Intent.ACTION_VIEW, Constants.OTL_SHARE_URL.toUri())
-        }
-
-        intent?.apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            context.startActivity(this)
-        }
+        context.startActivity(timetableWidgetIntent(context))
     }
 
     private fun shouldEnqueueRefresh(context: Context): Boolean {
@@ -356,6 +358,5 @@ class RefreshTimetableAction : ActionCallback {
         private const val REFRESH_PREFS = "widget_refresh"
         private const val KEY_LAST_REFRESH = "timetable_last_refresh"
         private const val MIN_REFRESH_INTERVAL_MS = 5 * 60 * 1000L
-        private const val EXTRA_FROM_WIDGET = "extra_from_widget"
     }
 }

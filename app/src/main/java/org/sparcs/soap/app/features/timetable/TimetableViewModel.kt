@@ -28,12 +28,12 @@ import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.event.TimetableViewEvent
-import timber.log.Timber
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
+import timber.log.Timber
 import javax.inject.Inject
 
 interface TimetableViewModelProtocol {
-    val timetableUseCase: TimetableUseCaseProtocol?
+    val timetableUseCase: TimetableUseCaseProtocol
     val isLoading: MutableStateFlow<Boolean>
     val semesters: StateFlow<List<Semester>>
     val selectedSemester: StateFlow<Semester?>

@@ -30,8 +30,10 @@ fun MainDeepLinkHandler(
                 }
                 is DeepLink.AraPost -> {
                     onTabSelected(Channel.Boards)
-                    // 탭 전환 애니메이션 등을 고려하여 아주 짧은 지연 후 포스트 로드
                     viewModel.resolvePost(deepLink.id)
+                }
+                is DeepLink.Timetable -> {
+                    onTabSelected(Channel.TimeTable)
                 }
             }
         }
@@ -39,6 +41,14 @@ fun MainDeepLinkHandler(
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { route ->
+            if (route.startsWith(Channel.TimeTable.name)) {
+                onTabSelected(Channel.TimeTable)
+            } else if (route.startsWith(Channel.Taxi.name)) {
+                onTabSelected(Channel.Taxi)
+            } else if (route.startsWith(Channel.Boards.name) || route.startsWith(Channel.PostView.name)) {
+                onTabSelected(Channel.Boards)
+            }
+
             navController.navigate(route) {
                 launchSingleTop = true
                 restoreState = true

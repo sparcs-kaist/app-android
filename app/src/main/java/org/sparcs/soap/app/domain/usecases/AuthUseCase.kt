@@ -6,13 +6,12 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.firebase.messaging.FirebaseMessaging
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +22,7 @@ import kotlinx.coroutines.withContext
 import org.sparcs.soap.app.ChannelManager
 import org.sparcs.soap.app.domain.error.auth.AuthUseCaseError
 import org.sparcs.soap.app.domain.error.auth.AuthenticationServiceError
+import org.sparcs.soap.app.domain.helpers.TokenRefreshCoordinator
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.repositories.ara.AraUserRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.feed.FeedUserRepositoryProtocol
@@ -69,8 +69,6 @@ class AuthUseCase @Inject constructor(
     private val _isAuthenticated = MutableStateFlow(tokenStorage.getRefreshToken() != null)
     override val isAuthenticatedFlow: Flow<Boolean> = _isAuthenticated.asStateFlow()
 
-    // Coalesce concurrent refresh calls
-    private var refreshJob: Deferred<Unit>? = null
     private var scheduledRefreshJob: Job? = null
 
     // Cooldown: skip refresh attempts for 10s after a failure
@@ -82,6 +80,7 @@ class AuthUseCase @Inject constructor(
     // Called after a successful token refresh
     var onTokenRefresh: (() -> Unit)? = null
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val refreshCoordinator = TokenRefreshCoordinator(coroutineScope)
 
     init {
         val hasAccess = tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()
@@ -134,8 +133,7 @@ class AuthUseCase @Inject constructor(
     }
 
     private fun cancelRefreshToken() {
-        refreshJob?.cancel()
-        refreshJob = null
+        refreshCoordinator.cancel()
     }
 
     private suspend fun syncFcmTokenIfAuthenticated() {
@@ -156,30 +154,26 @@ class AuthUseCase @Inject constructor(
 
     override suspend fun getValidAccessToken(): String {
         return try {
-            if (tokenStorage.isTokenExpired()) {
+            if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
                 refreshAccessToken()
             }
             tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken()
+        } catch (error: CancellationException) {
+            throw error
         } catch (_: Exception) {
             throw AuthUseCaseError.NoAccessToken()
         }
     }
 
     override suspend fun refreshAccessToken(force: Boolean) {
-        // If a refresh is already in-flight, coalesce by awaiting it
-        if (!force) {
-            refreshJob?.let {
-                if (it.isActive) {
-                    it.await()
-                    return
-                }
-            }
-        } else {
-            refreshJob?.cancel()
+        refreshCoordinator.refresh {
+            performTokenRefresh(force)
         }
+    }
 
+    private suspend fun performTokenRefresh(force: Boolean) {
         val now = System.currentTimeMillis()
-        if (now - lastRefreshSuccess < minRefreshIntervalMillis) {
+        if (!force && !tokenStorage.isTokenExpired() && now - lastRefreshSuccess < minRefreshIntervalMillis) {
             scheduleRefreshToken()
             return
         }
@@ -195,44 +189,39 @@ class AuthUseCase @Inject constructor(
             return
         }
 
-        val job = coroutineScope.async(Dispatchers.IO) {
+        val currentRefreshToken = tokenStorage.getRefreshToken() ?: run {
+            signOut()
+            throw AuthUseCaseError.RefreshFailed(Exception("No refresh token available"))
+        }
+
+        val tokenResponse = try {
+            authenticationService.refreshAccessToken(currentRefreshToken)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            lastRefreshFailure = System.currentTimeMillis()
+            if (isRefreshTokenRejected(httpStatusCode(e))) {
+                signOut()
+            }
+            throw e
+        }
+
+        tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
+        _isAuthenticated.value = true
+        lastRefreshFailure = 0
+        lastRefreshSuccess = System.currentTimeMillis()
+        scheduleRefreshToken()
+
+        coroutineScope.launch {
             try {
-                val currentRefreshToken = tokenStorage.getRefreshToken() ?: run {
-                    // No refresh token found, sign out.
-                    signOut()
-                    throw AuthUseCaseError.RefreshFailed(Exception("No refresh token available"))
-                }
-
-                // Attempts to refresh token using refresh token from Keychain
-                val tokenResponse = try {
-                    authenticationService.refreshAccessToken(currentRefreshToken)
-                } catch (e: Exception) {
-                    lastRefreshFailure = System.currentTimeMillis()
-                    if (isRefreshTokenRejected(httpStatusCode(e))) {
-                        signOut()
-                    }
-                    throw e
-                }
-
-                tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
-
-                _isAuthenticated.value = true
-                lastRefreshFailure = 0
-                lastRefreshSuccess = System.currentTimeMillis()
-                scheduleRefreshToken() // set timer on success
-
-                try {
-                    onTokenRefresh?.invoke()
-                    syncFcmTokenIfAuthenticated()
-                } catch (e: Exception) {
-                    Timber.e(e, "Post-refresh side effect failed")
-                }
-            } finally {
-                refreshJob = null
+                onTokenRefresh?.invoke()
+                syncFcmTokenIfAuthenticated()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Post-refresh side effect failed")
             }
         }
-        refreshJob = job
-        job.await()
     }
 
     override suspend fun signIn(activity: Activity) {
@@ -273,7 +262,7 @@ class AuthUseCase @Inject constructor(
 
     private fun isRefreshTokenRejected(code: Int?): Boolean {
         if (code == null) return false
-        return code in 400..499 && code != 408 && code != 429
+        return code == 400 || code == 401
     }
 
     private fun httpStatusCode(throwable: Throwable?): Int? {

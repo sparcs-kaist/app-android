@@ -7,13 +7,14 @@ import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
+import org.sparcs.soap.app.domain.usecases.otl.MockTimetableUseCase
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 
 class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock()) : TimetableViewModelProtocol {
-    override val timetableUseCase: TimetableUseCaseProtocol? = null
+    override val timetableUseCase: TimetableUseCaseProtocol = MockTimetableUseCase()
     override val isLoading = MutableStateFlow(false)
 
     private val _semesters = MutableStateFlow(Semester.mockList())

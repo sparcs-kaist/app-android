@@ -11,11 +11,14 @@ import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.TableChart
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
-import androidx.window.core.layout.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -33,6 +36,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import androidx.navigation.navigation
+import androidx.window.core.layout.WindowWidthSizeClass
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.features.boardList.BoardListView
@@ -71,7 +75,6 @@ import org.sparcs.soap.app.features.settings.ara.AraMyPostView
 import org.sparcs.soap.app.features.settings.ara.AraMyPostViewModel
 import org.sparcs.soap.app.features.settings.ara.AraSettingsView
 import org.sparcs.soap.app.features.settings.ara.AraSettingsViewModel
-import org.sparcs.soap.app.features.settings.timetable.TimetableThemeSettingsView
 import org.sparcs.soap.app.features.settings.feed.FeedSettingsView
 import org.sparcs.soap.app.features.settings.feed.FeedSettingsViewModel
 import org.sparcs.soap.app.features.settings.notification.NotificationSettingsView
@@ -80,6 +83,7 @@ import org.sparcs.soap.app.features.settings.taxi.TaxiReportListView
 import org.sparcs.soap.app.features.settings.taxi.TaxiReportListViewModel
 import org.sparcs.soap.app.features.settings.taxi.TaxiSettingsView
 import org.sparcs.soap.app.features.settings.taxi.TaxiSettingsViewModel
+import org.sparcs.soap.app.features.settings.timetable.TimetableThemeSettingsView
 import org.sparcs.soap.app.features.signIn.SignInView
 import org.sparcs.soap.app.features.signIn.SignInViewModel
 import org.sparcs.soap.app.features.taxiChat.TaxiChatView
@@ -96,6 +100,7 @@ import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationView
 import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationViewModel
 import org.sparcs.soap.app.features.timetable.TimetableView
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
+import org.sparcs.soap.app.features.timetable.activity.ActivityCreationRoute
 import org.sparcs.soap.app.features.userPostList.UserPostListView
 import org.sparcs.soap.app.features.userPostList.UserPostListViewModel
 import org.sparcs.soap.app.theme.ui.Theme
@@ -215,6 +220,23 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         else -> NavigationSuiteType.NavigationBar
     }
 
+    val navItemColors = NavigationSuiteDefaults.itemColors(
+        navigationBarItemColors = NavigationBarItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            selectedTextColor = MaterialTheme.colorScheme.primary,
+            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
+        navigationRailItemColors = NavigationRailItemDefaults.colors(
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            selectedTextColor = MaterialTheme.colorScheme.primary,
+            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    )
+
     NavigationSuiteScaffold(
         navigationSuiteItems = {
             navigationItems.forEach { (channel, label, icon) ->
@@ -228,10 +250,12 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                    }
+                    },
+                    colors = navItemColors
                 )
             }
         },
+        contentColor = MaterialTheme.colorScheme.background,
         layoutType = navigationLayoutType
     ) {
         Box(
@@ -323,13 +347,20 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         )
                     }
 
-                    composable("ActivityCreation/{timetableId}?activityId={activityId}", arguments = listOf(
-                        navArgument("timetableId") { type = NavType.IntType },
-                        navArgument("activityId") { type = NavType.IntType; defaultValue = -1 }
-                    )) { entry ->
+                    composable(
+                        "ActivityCreation/{timetableId}?activityId={activityId}",
+                        arguments = listOf(
+                            navArgument("timetableId") { type = NavType.IntType },
+                            navArgument("activityId") { type = NavType.IntType; defaultValue = -1 }
+                        ),
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { entry ->
                         val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val model: TimetableViewModel = hiltViewModel(parentEntry)
-                        org.sparcs.soap.app.features.timetable.activity.ActivityCreationRoute(
+                        ActivityCreationRoute(
                             model, entry.arguments!!.getInt("timetableId"),
                             entry.arguments?.getInt("activityId")?.takeIf { it >= 0 },
                             onClose = { navController.popBackStack() }
@@ -676,7 +707,13 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         )
                     }
 
-                    composable(route = Channel.TimetableThemeSettings.name) {
+                    composable(
+                        route = Channel.TimetableThemeSettings.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) {
                         TimetableThemeSettingsView(onBack = { navController.popBackStack() })
                     }
 

@@ -397,6 +397,7 @@
     <string name="open_app_prompt">Open the app to continue.</string>
     <string name="zero_left">0 left</string>
     <string name="feed_settings">Feed Settings</string>
+    <string name="screen_style">Screen Style</string>
     <string name="karma">Karma</string>
     <string name="reset">Reset</string>
     <string name="nickname_error_conflict">This nickname is already taken.</string>
@@ -687,6 +688,7 @@
     <string name="activity_conflict">Activities cannot overlap a class or another activity. Choose a different time.</string>
     <string name="activity_saved_refresh">Your change was saved, but the timetable could not refresh. Tap Refresh to load it.</string>
     <string name="activity_save_error">Could not save the activity. Please try again.</string>
+    <string name="activity_delete_error">Could not delete the activity. Please try again.</string>
     <string name="activity_clock">Use clock</string>
     <string name="activity_keyboard">Use keyboard</string>
     <string name="activity_midnight">24:00</string>
@@ -706,4 +708,31 @@
         <item quantity="one">%d Activity</item>
         <item quantity="other">%d Activities</item>
     </plurals>
+    <string name="theme_share">Share Theme</string>
+    <string name="theme_import">Import Theme via Code</string>
+    <string name="theme_share_code">6-character code</string>
+    <string name="theme_find">Find Theme</string>
+    <string name="theme_retry">Try Again</string>
+    <string name="theme_loading">Loading theme…</string>
+    <string name="theme_share_error">Could not share this theme. Please try again.</string>
+    <string name="theme_import_error">Could not load this theme. Please try again.</string>
+    <string name="theme_code_not_found">No theme found for this code.</string>
+    <string name="theme_import_instructions">Enter the six letters or numbers from the theme you want to import.</string>
+    <string name="theme_share_instructions">Enter this code on another device to import this theme.</string>
+    <string name="theme_copy_code">Copy Code</string>
+    <string name="theme_code_copied">Code Copied</string>
+    <string name="theme_import_note">This theme will be added to My Themes and used right away.</string>
+    <string name="theme_save_import">Save and Use Theme</string>
+    <string name="theme_photo_generate">Generate using a Photo</string>
+    <string name="theme_photo_description">Use a wallpaper or photo to replace the palette, text and advanced colors with a matching theme.</string>
+    <string name="theme_photo_generating">Generating Colors…</string>
+    <string name="theme_photo_error_title">Couldn\'t Generate Theme</string>
+    <string name="theme_photo_error">The photo couldn\'t be read. Please try again or choose another photo.</string>
+    <string name="monday">Monday</string>
+    <string name="tuesday">Tuesday</string>
+    <string name="wednesday">Wednesday</string>
+    <string name="thursday">Thursday</string>
+    <string name="friday">Friday</string>
+    <string name="saturday">Saturday</string>
+    <string name="sunday">Sunday</string>
 </resources>

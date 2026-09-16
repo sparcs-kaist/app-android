@@ -17,10 +17,18 @@ object DeepLinkEventBus {
 sealed class DeepLink {
     data class TaxiInvite(val code: String) : DeepLink()
     data class AraPost(val id: Int) : DeepLink()
+    data object Timetable : DeepLink()
 
     companion object {
         fun fromUri(uri: Uri?): DeepLink? {
             if (uri == null) return null
+
+            if (uri.scheme == "sparcsapp") {
+                return when (uri.host) {
+                    "otl" -> if (uri.pathSegments.contains("timetable")) Timetable else null
+                    else -> null
+                }
+            }
 
             val taxiBaseURL = BuildConfig.TAXI_HOST
             val araBaseURL = BuildConfig.ARA_HOST

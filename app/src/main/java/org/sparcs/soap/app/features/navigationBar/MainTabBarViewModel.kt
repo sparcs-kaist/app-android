@@ -6,8 +6,8 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.DeepLink
@@ -15,6 +15,7 @@ import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
 import javax.inject.Inject
+import kotlinx.coroutines.channels.Channel as CoroutineChannel
 
 @HiltViewModel
 class MainTabBarViewModel @Inject constructor(
@@ -25,8 +26,8 @@ class MainTabBarViewModel @Inject constructor(
     var alertState by mutableStateOf<AlertState?>(null)
     var isAlertPresented by mutableStateOf(false)
 
-    private val _navigationEvent = MutableSharedFlow<String>()
-    val navigationEvent = _navigationEvent.asSharedFlow()
+    private val _navigationEvent = CoroutineChannel<String>(CoroutineChannel.BUFFERED)
+    val navigationEvent = _navigationEvent.receiveAsFlow()
 
     private var pendingDeepLink: DeepLink? = null
 
@@ -49,6 +50,11 @@ class MainTabBarViewModel @Inject constructor(
         when (deepLink) {
             is DeepLink.TaxiInvite -> resolveInvite(deepLink.code)
             is DeepLink.AraPost -> resolvePost(deepLink.id)
+            is DeepLink.Timetable -> {
+                viewModelScope.launch {
+                    _navigationEvent.send(Channel.TimeTable.name)
+                }
+            }
         }
     }
 
@@ -56,7 +62,7 @@ class MainTabBarViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val room = taxiRoomRepository.getPublicRoom(code)
-                _navigationEvent.emit(Channel.Taxi.name + "?roomId=${room.id}")
+                _navigationEvent.send(Channel.Taxi.name + "?roomId=${room.id}")
             } catch (_: Exception) {
                 showError(R.string.invalid_invitation_title, R.string.invalid_invitation_message)
             }
@@ -67,9 +73,9 @@ class MainTabBarViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val post = araBoardUseCase.fetchPost(origin = null, postID = id)
-                _navigationEvent.emit(Channel.PostView.name + "?postId=${post.id}")
+                _navigationEvent.send(Channel.PostView.name + "?postId=${post.id}")
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
+                if (e is CancellationException) throw e
                 showError(R.string.post_not_found_title, R.string.post_not_found_message)
             }
         }

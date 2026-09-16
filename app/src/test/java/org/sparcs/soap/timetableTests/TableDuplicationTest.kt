@@ -1,5 +1,6 @@
 package org.sparcs.soap.timetableTests
 
+import android.app.Application
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
@@ -19,7 +20,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.wearable.WearableDataManager
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = android.app.Application::class)
+@Config(sdk = [34], application = Application::class)
 class TableDuplicationTest {
     private val semester = Semester.mockList().first()
     private val repository = Repository()

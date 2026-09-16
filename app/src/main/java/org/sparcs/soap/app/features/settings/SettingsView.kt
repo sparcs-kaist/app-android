@@ -141,14 +141,11 @@ fun SettingsView(
                     ) { navController.navigate(Channel.NotificationSettings.name) }
 
                     ThemeSwitcherButton(settingsViewModel)
-                    ServiceNavButton(text = stringResource(R.string.timetable_theme), icon = { Icon(Icons.Outlined.Palette, null) }) {
-                        navController.navigate(Channel.TimetableThemeSettings.name)
-                    }
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                }
+
+                item {
                     FeedbackButton(activity)
-                    SendCrashReportsButton(isCrashlyticsEnabled) {
-                        haptic.toggle(it)
-                        isCrashlyticsEnabled = it
-                    }
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 }
 
@@ -198,6 +195,24 @@ fun SettingsView(
 
                 item {
                     Text(
+                        text = stringResource(R.string.screen_style),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(8.dp)
+                    )
+
+                    ServiceNavButton(
+                        text = stringResource(R.string.timetable_theme),
+                        icon = { Icon(Icons.Outlined.Palette, null) }
+                    ) {
+                        navController.navigate(Channel.TimetableThemeSettings.name)
+                    }
+
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                }
+
+                item {
+                    Text(
                         text = stringResource(R.string.information),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
@@ -221,6 +236,11 @@ fun SettingsView(
                     )
                     SignOutButton {
                         settingsViewModel.signOut()
+                    }
+                    
+                    SendCrashReportsButton(isCrashlyticsEnabled) {
+                        haptic.toggle(it)
+                        isCrashlyticsEnabled = it
                     }
                 }
 

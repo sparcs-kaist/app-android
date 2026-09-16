@@ -33,7 +33,7 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 @Composable
 fun TimetableSummary(
     viewModel: TimetableViewModelProtocol,
-    compact: Boolean = false
+    compact: Boolean = false,
 ) {
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
     val candidateLecture by viewModel.candidateLecture.collectAsState()
@@ -53,14 +53,32 @@ fun TimetableSummary(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SummaryMiniItem(stringResource(R.string.filter_basic_required), "${selectedTimetable?.getCreditsFor(LectureType.BR) ?: 0}")
-                    SummaryMiniItem(stringResource(R.string.filter_major_required), "${selectedTimetable?.getCreditsFor(LectureType.MR) ?: 0}")
-                    SummaryMiniItem(stringResource(R.string.hse), "${selectedTimetable?.getCreditsFor(LectureType.HSE) ?: 0}")
+                    SummaryMiniItem(
+                        stringResource(R.string.filter_basic_required),
+                        "${selectedTimetable?.getCreditsFor(LectureType.BR) ?: 0}"
+                    )
+                    SummaryMiniItem(
+                        stringResource(R.string.filter_major_required),
+                        "${selectedTimetable?.getCreditsFor(LectureType.MR) ?: 0}"
+                    )
+                    SummaryMiniItem(
+                        stringResource(R.string.hse),
+                        "${selectedTimetable?.getCreditsFor(LectureType.HSE) ?: 0}"
+                    )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    SummaryMiniItem(stringResource(R.string.filter_basic_elective), "${selectedTimetable?.getCreditsFor(LectureType.BE) ?: 0}")
-                    SummaryMiniItem(stringResource(R.string.filter_major_elective), "${selectedTimetable?.getCreditsFor(LectureType.ME) ?: 0}")
-                    SummaryMiniItem(stringResource(R.string.etc), "${selectedTimetable?.getCreditsFor(LectureType.ETC) ?: 0}")
+                    SummaryMiniItem(
+                        stringResource(R.string.filter_basic_elective),
+                        "${selectedTimetable?.getCreditsFor(LectureType.BE) ?: 0}"
+                    )
+                    SummaryMiniItem(
+                        stringResource(R.string.filter_major_elective),
+                        "${selectedTimetable?.getCreditsFor(LectureType.ME) ?: 0}"
+                    )
+                    SummaryMiniItem(
+                        stringResource(R.string.etc),
+                        "${selectedTimetable?.getCreditsFor(LectureType.ETC) ?: 0}"
+                    )
                 }
             }
 
@@ -71,9 +89,15 @@ fun TimetableSummary(
             ) {
                 SummaryStatItem("$totalCredits", stringResource(R.string.credit))
                 SummaryStatItem("$totalAUs", stringResource(R.string.au))
-                SummaryStatItem(selectedTimetable?.gradeLetter ?: "?", stringResource(R.string.grade))
+                SummaryStatItem(
+                    selectedTimetable?.gradeLetter ?: "?",
+                    stringResource(R.string.grade)
+                )
                 SummaryStatItem(selectedTimetable?.loadLetter ?: "?", stringResource(R.string.load))
-                SummaryStatItem(selectedTimetable?.speechLetter ?: "?", stringResource(R.string.speech))
+                SummaryStatItem(
+                    selectedTimetable?.speechLetter ?: "?",
+                    stringResource(R.string.speech)
+                )
             }
         }
     } else {
@@ -103,7 +127,11 @@ fun TimetableSummary(
 @Composable
 private fun SummaryMiniItem(label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(text = label, style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp), color = Color.Gray)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
+            color = Color.Gray
+        )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = value,
@@ -121,9 +149,9 @@ private fun SummaryStatItem(value: String, label: String, isAccent: Boolean = fa
             text = value,
             style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp),
             fontWeight = FontWeight.ExtraBold,
-            color = if (isAccent) MaterialTheme.colorScheme.primary 
-                    else if (value == "0" || value == "?") Color.LightGray 
-                    else MaterialTheme.colorScheme.onSurface
+            color = if (isAccent) MaterialTheme.colorScheme.primary
+            else if (value == "0" || value == "?") Color.LightGray
+            else MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = label,

@@ -52,9 +52,10 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.navigationBar.components.AddButton
+import org.sparcs.soap.app.features.timetable.components.ActivityList
 import org.sparcs.soap.app.features.timetable.components.CompactTimetableSelector
 import org.sparcs.soap.app.features.timetable.components.LectureList
+import org.sparcs.soap.app.features.timetable.components.TimetableAddButton
 import org.sparcs.soap.app.features.timetable.components.TimetableCreditGraph
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
@@ -232,7 +233,7 @@ private fun TimetableLandscapeLayout(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 CompactTimetableSelector(viewModel, timetableName)
                 Spacer(modifier = Modifier.width(12.dp))
-                org.sparcs.soap.app.features.timetable.components.TimetableAddButton(
+                TimetableAddButton(
                     enabled = isEditable, onAddClass = onAddClick, onAddActivity = onActivityClick
                 )
             }
@@ -312,7 +313,7 @@ private fun TimetableLandscapeLayout(
                         }
 
                         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
-                            org.sparcs.soap.app.features.timetable.components.ActivityList(
+                            ActivityList(
                                 activities = table.activities, viewModel = viewModel,
                                 onEdit = { navController.navigate("ActivityCreation/${table.id}?activityId=${it.id}") }
                             )
@@ -399,7 +400,7 @@ private fun TimetablePortraitLayout(
         }
 
         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
-            org.sparcs.soap.app.features.timetable.components.ActivityList(
+            ActivityList(
                 activities = table.activities, viewModel = viewModel,
                 onEdit = { navController.navigate("ActivityCreation/${table.id}?activityId=${it.id}") }
             )

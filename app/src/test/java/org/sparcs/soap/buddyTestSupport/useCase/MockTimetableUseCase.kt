@@ -1,5 +1,6 @@
 package org.sparcs.soap.buddyTestSupport.useCase
 
+import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.TableDuplication
 import org.sparcs.soap.app.domain.models.otl.Timetable
@@ -11,7 +12,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mockList
 
 class MockTimetableUseCase : TimetableUseCaseProtocol {
 
-    override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: org.sparcs.soap.app.domain.models.otl.ActivityDraft) = getTableResult.getOrThrow()
+    override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft) = getTableResult.getOrThrow()
     override suspend fun deleteActivity(timetableID: Int, activityID: Int) = getTableResult.getOrThrow()
 
     var getSemestersResult: Result<List<Semester>> = Result.success(Semester.mockList())

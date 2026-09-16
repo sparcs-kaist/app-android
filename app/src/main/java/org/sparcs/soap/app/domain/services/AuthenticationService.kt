@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.core.net.toUri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +19,8 @@ import org.sparcs.soap.app.networking.responseDTO.auth.TokenResponseDTO
 import org.sparcs.soap.app.shared.extensions.base64UrlEncodedString
 import org.sparcs.soap.app.shared.extensions.sha256
 import timber.log.Timber
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.Base64
@@ -139,8 +142,10 @@ class AuthenticationService @Inject constructor(
     override suspend fun refreshAccessToken(refreshToken: String): TokenResponseDTO {
         return try {
             authRepository.refreshToken(refreshToken)
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            if (e is java.net.UnknownHostException || e is java.net.SocketTimeoutException) {
+            if (e is UnknownHostException || e is SocketTimeoutException) {
                 Timber.w("Network error during token refresh. Stopping retry.")
             } else {
                 Timber.e(e, "Failed to refresh access token")

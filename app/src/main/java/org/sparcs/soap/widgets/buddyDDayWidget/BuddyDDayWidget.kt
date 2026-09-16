@@ -148,6 +148,7 @@ class DDayUpdateWorker(context: Context, params: WorkerParameters) :
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "DDayUpdateWorker Error")
+            syncManager.syncError()
             Result.success()
         }
     }
