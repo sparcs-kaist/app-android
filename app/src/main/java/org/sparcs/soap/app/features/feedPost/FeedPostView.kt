@@ -186,7 +186,7 @@ private fun FeedPostContent(
                     isWritingCommentFocusState = isWritingCommentFocusState,
                     focusRequester = focusRequester,
                     onCommentUploaded = {
-                        if (viewModel.text.isEmpty()) return@InputBar
+                        if (viewModel.text.isEmpty() || viewModel.isSubmittingComment) return@InputBar
                         scope.launch {
                             val uploaded = viewModel.submitComment(post.id, targetComment)
                             if (uploaded != null) {
@@ -459,16 +459,25 @@ private fun InputBar(
                 MoveToLeftFadeIn(viewModel.text.isNotEmpty()) {
                     Button(
                         onClick = onCommentUploaded,
+                        enabled = !viewModel.isSubmittingComment,
                         shape = CircleShape,
                         contentPadding = PaddingValues(0.dp),
                         modifier = Modifier.size(45.dp)
                     ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.outline_send),
-                            modifier = Modifier.size(20.dp),
-                            tint = MaterialTheme.colorScheme.onPrimary,
-                            contentDescription = stringResource(R.string.send)
-                        )
+                        if (viewModel.isSubmittingComment) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.outline_send),
+                                modifier = Modifier.size(20.dp),
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                contentDescription = stringResource(R.string.send)
+                            )
+                        }
                     }
                 }
             }

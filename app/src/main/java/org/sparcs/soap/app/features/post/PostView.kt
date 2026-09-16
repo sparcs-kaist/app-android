@@ -191,31 +191,35 @@ fun PostView(
                 commentOnEdit = commentOnEdit,
                 isUploadingComment = isUploadingComment,
                 onUploadComment = {
+                    if (isUploadingComment) return@PostInputBottomBar
+                    isUploadingComment = true
                     scope.launch {
-                        isUploadingComment = true
-                        val success = when {
-                            commentOnEdit != null -> viewModel.editComment(
-                                commentOnEdit!!.id,
-                                commentText
-                            ) != null
+                        try {
+                            val success = when {
+                                commentOnEdit != null -> viewModel.editComment(
+                                    commentOnEdit!!.id,
+                                    commentText
+                                ) != null
 
-                            targetComment != null -> viewModel.writeThreadedComment(
-                                targetComment!!.id,
-                                commentText
-                            ) != null
+                                targetComment != null -> viewModel.writeThreadedComment(
+                                    targetComment!!.id,
+                                    commentText
+                                ) != null
 
-                            else -> {
-                                viewModel.writeComment(commentText); true
+                                else -> {
+                                    viewModel.writeComment(commentText); true
+                                }
                             }
+                            if (success) {
+                                commentText = ""
+                                targetComment = null
+                                commentOnEdit = null
+                                keyboardController?.hide()
+                                lazyListState.animateScrollToItem(lazyListState.layoutInfo.totalItemsCount)
+                            }
+                        } finally {
+                            isUploadingComment = false
                         }
-                        if (success) {
-                            commentText = ""
-                            targetComment = null
-                            commentOnEdit = null
-                            keyboardController?.hide()
-                            lazyListState.animateScrollToItem(lazyListState.layoutInfo.totalItemsCount)
-                        }
-                        isUploadingComment = false
                     }
                 },
                 post = post,
