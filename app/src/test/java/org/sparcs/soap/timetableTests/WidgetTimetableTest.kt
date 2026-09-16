@@ -1,5 +1,6 @@
 package org.sparcs.soap.timetableTests
 
+import android.app.Application
 import androidx.compose.ui.graphics.toArgb
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.preferencesOf
@@ -16,7 +17,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.widgets.buddyTimetableWidget.*
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = android.app.Application::class)
+@Config(sdk = [34], application = Application::class)
 class WidgetTimetableTest {
     private val activity = TimetableActivity(17, "Study", "Library", 0, 600, 660)
 

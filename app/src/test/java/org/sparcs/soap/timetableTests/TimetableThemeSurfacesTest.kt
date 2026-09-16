@@ -1,5 +1,6 @@
 package org.sparcs.soap.timetableTests
 
+import android.app.Application
 import androidx.datastore.preferences.core.preferencesOf
 import kotlinx.serialization.json.Json
 import org.junit.Assert.*
@@ -27,7 +28,7 @@ import org.sparcs.soap.widgets.themed
 import org.sparcs.soap.widgets.toWidgetHex
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = android.app.Application::class)
+@Config(sdk = [34], application = Application::class)
 class TimetableThemeSurfacesTest {
     private val theme = TimetableTheme.builtIn.first { it.id == "builtin.ocean" }
     private val activity = TimetableActivity(17, "Study", "Library", 0, 600, 660)

@@ -1,5 +1,6 @@
 package org.sparcs.soap.timetableTests
 
+import android.app.Application
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
@@ -12,11 +13,12 @@ import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.models.otl.*
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCase
+import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.wearable.WearableDataManager
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [34], application = android.app.Application::class)
+@Config(sdk = [34], application = Application::class)
 class ActivityUseCaseTest {
     private val repository = Repository()
     private val dao = CacheDAO()
@@ -67,7 +69,7 @@ class ActivityUseCaseTest {
 
     @Test fun widgetBackgroundFetchCachesActivitiesAndKeepsThemOffline() = runBlocking {
         useCase().saveActivity(12, null, ActivityDraft("Study"))
-        val background = org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground(repository, cache)
+        val background = TimetableUseCaseBackground(repository, cache)
         assertEquals(1, background.getTable(12).activities.size)
         repository.failure = NetworkError.NoConnection()
         assertEquals(1, background.getTable(12).activities.size)

@@ -657,7 +657,8 @@
     <string name="activity_adjust">시간표에서 시간 조정</string>
     <string name="activity_conflict">활동은 수업이나 다른 활동과 겹칠 수 없어요. 다른 시간을 선택해 주세요.</string>
     <string name="activity_saved_refresh">변경 사항은 저장되었지만 시간표를 불러오지 못했어요. 새로고침을 눌러 주세요.</string>
-    <string name="activity_save_error">활동을 저장하지 못했어요. 다시 시도해 주세요.</string>
+    <string name="activity_save_error">활동을 저장할 수 없습니다. 다시 시도해 주세요.</string>
+    <string name="activity_delete_error">활동을 삭제할 수 없습니다. 다시 시도해 주세요.</string>
     <string name="activity_clock">시계로 입력</string>
     <string name="activity_keyboard">키보드로 입력</string>
     <string name="activity_midnight">24:00</string>
@@ -677,4 +678,31 @@
         <item quantity="one">활동 %d개</item>
         <item quantity="other">활동 %d개</item>
     </plurals>
+    <string name="theme_share">테마 공유</string>
+    <string name="theme_import">코드로 테마 가져오기</string>
+    <string name="theme_share_code">6자리 코드</string>
+    <string name="theme_find">테마 찾기</string>
+    <string name="theme_retry">다시 시도</string>
+    <string name="theme_loading">테마 불러오는 중…</string>
+    <string name="theme_share_error">테마를 공유하지 못했습니다. 다시 시도해 주세요.</string>
+    <string name="theme_import_error">테마를 불러오지 못했습니다. 다시 시도해 주세요.</string>
+    <string name="theme_code_not_found">이 코드에 해당하는 테마가 없습니다.</string>
+    <string name="theme_import_instructions">가져올 테마의 영문 또는 숫자 6자리 코드를 입력하세요.</string>
+    <string name="theme_share_instructions">다른 기기에 이 코드를 입력하여 테마를 가져오세요.</string>
+    <string name="theme_copy_code">코드 복사</string>
+    <string name="theme_code_copied">코드 복사됨</string>
+    <string name="theme_import_note">내 테마에 추가하고 바로 적용합니다.</string>
+    <string name="theme_save_import">저장하고 테마 적용</string>
+    <string name="theme_photo_generate">사진으로 테마 만들기</string>
+    <string name="theme_photo_description">배경화면이나 사진으로 팔레트, 글자 및 고급 색상을 어울리는 테마로 바꿉니다.</string>
+    <string name="theme_photo_generating">색상 생성 중…</string>
+    <string name="theme_photo_error_title">테마를 만들 수 없습니다</string>
+    <string name="theme_photo_error">사진을 읽지 못했습니다. 다시 시도하거나 다른 사진을 선택해 주세요.</string>
+    <string name="monday">월요일</string>
+    <string name="tuesday">화요일</string>
+    <string name="wednesday">수요일</string>
+    <string name="thursday">목요일</string>
+    <string name="friday">금요일</string>
+    <string name="saturday">토요일</string>
+    <string name="sunday">일요일</string>
 </resources>

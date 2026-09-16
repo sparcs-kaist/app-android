@@ -109,7 +109,6 @@ fun ActivityCreationView(
     var begin by rememberSaveable { mutableIntStateOf(initial.begin) }
     var end by rememberSaveable { mutableIntStateOf(initial.end) }
     var adjusting by rememberSaveable { mutableStateOf(false) }
-    var choosingDay by rememberSaveable { mutableStateOf(false) }
     var timeField by rememberSaveable { mutableIntStateOf(0) }
     var saving by remember { mutableStateOf(false) }
     var needsRefresh by rememberSaveable { mutableStateOf(false) }
@@ -311,7 +310,7 @@ fun ActivityCreationView(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            stringResource(DayType.fromValue(day)!!.stringValue),
+                                            stringResource(DayType.fromValue(day)!!.fullStringValue),
                                             color = if (expandedDay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.bodyLarge
                                         )
@@ -331,7 +330,7 @@ fun ActivityCreationView(
                                     ) {
                                         DayType.entries.sortedBy { it.value }.forEach { option ->
                                             DropdownMenuItem(
-                                                text = { Text(stringResource(option.stringValue)) },
+                                                text = { Text(stringResource(option.fullStringValue)) },
                                                 onClick = {
                                                     day = option.value
                                                     expandedDay = false
@@ -489,11 +488,13 @@ private fun WheelTimePicker(
     onTimeSelected: (Int, Int) -> Unit,
 ) {
     val hours = remember { (0..23).toList() }
-    val minutes = remember { (0..59).toList() }
+    val minutes = remember { (0..59 step 15).toList() }
 
     val itemHeight = 35.dp
     val hourState = rememberLazyListState(initialFirstVisibleItemIndex = hour)
-    val minuteState = rememberLazyListState(initialFirstVisibleItemIndex = minute)
+    val minuteState = rememberLazyListState(
+        initialFirstVisibleItemIndex = (minute / 15).coerceIn(0, minutes.lastIndex)
+    )
 
     LaunchedEffect(hourState.isScrollInProgress, minuteState.isScrollInProgress) {
         if (!hourState.isScrollInProgress && !minuteState.isScrollInProgress) {

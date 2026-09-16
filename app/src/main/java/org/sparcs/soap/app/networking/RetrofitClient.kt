@@ -121,6 +121,7 @@ import org.sparcs.soap.app.networking.responseDTO.AuthRetryConfig
 import org.sparcs.soap.app.networking.retrofitAPI.AppVersionApi
 import org.sparcs.soap.app.networking.retrofitAPI.AuthApi
 import org.sparcs.soap.app.networking.retrofitAPI.FCMApi
+import org.sparcs.soap.app.networking.retrofitAPI.TimetableThemeApi
 import org.sparcs.soap.app.networking.retrofitAPI.ara.AraBoardApi
 import org.sparcs.soap.app.networking.retrofitAPI.ara.AraCommentApi
 import org.sparcs.soap.app.networking.retrofitAPI.ara.AraUserApi
@@ -433,6 +434,12 @@ object NetworkModule {
     @Singleton
     fun provideFeedPostApi(@Named("FeedBackend") retrofit: Retrofit): FeedPostApi {
         return retrofit.create(FeedPostApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideTimetableThemeApi(@Named("FeedBackend") retrofit: Retrofit): TimetableThemeApi {
+        return retrofit.create(TimetableThemeApi::class.java)
     }
 
     @Provides

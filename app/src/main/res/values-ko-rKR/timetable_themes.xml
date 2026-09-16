@@ -6,7 +6,7 @@
     <string name="theme_my_name">내 테마</string>
     <string name="theme_copy">%1$s 복사본</string>
     <string name="theme_duplicate">복제</string>
-    <string name="theme_presets_note">컬렉션 테마를 복제하여 나만의 테마를 만들어 보세요.</string>
+    <string name="theme_presets_note">\'컬렉션\'의 테마는 편집할 수 없습니다. 복제하여 나만의 테마를 만들어보세요.</string>
     <string name="theme_name">이름</string>
     <string name="theme_palette">팔레트</string>
     <string name="theme_color">색상 %1$d</string>
@@ -15,12 +15,11 @@
     <string name="theme_move_color_up">위로 이동</string>
     <string name="theme_move_color_down">아래로 이동</string>
     <string name="theme_color_hex_value">#%1$s</string>
-    <string name="theme_palette_description">색상은 최대 %1$d개까지 추가할 수 있습니다. 왼쪽 핸들을 드래그해 순서를 바꾸세요. 메뉴에서 색상을 삭제한 뒤 완료를 눌러 저장할 수 있습니다.</string>
+    <string name="theme_palette_description">색상은 최대 %1$d개까지 추가할 수 있습니다. 과목에는 색상이 순서대로 지정되며 필요하면 반복됩니다.</string>
     <string name="theme_drag_color">색상 %1$d 순서 변경 핸들</string>
-    <string name="theme_unsaved_changes_note">완료를 눌러야 변경 사항이 저장됩니다.</string>
     <string name="theme_unsaved_changes_message">저장하지 않은 변경 사항이 있습니다. 저장하지 않고 나가시겠습니까?</string>
     <string name="theme_name_required">변경 사항을 저장하려면 이름을 입력해 주세요.</string>
-    <string name="theme_text">셀 글자</string>
+    <string name="theme_text">텍스트 색상</string>
     <string name="theme_advanced">고급</string>
     <string name="theme_separator">격자선 색상 지정</string>
     <string name="theme_background">배경 색상 지정</string>

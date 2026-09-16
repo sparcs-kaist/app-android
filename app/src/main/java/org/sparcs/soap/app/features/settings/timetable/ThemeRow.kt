@@ -35,6 +35,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun ThemeRow(
@@ -44,6 +45,7 @@ fun ThemeRow(
     onEdit: () -> Unit,
     onDuplicate: () -> Unit,
     onDelete: () -> Unit,
+    onShare: () -> Unit = {},
 ) {
     var menu by remember { mutableStateOf(false) }
     Surface(
@@ -95,6 +97,9 @@ fun ThemeRow(
                     shape = RoundedCornerShape(16.dp),
                     containerColor = MaterialTheme.colorScheme.background
                 ) {
+                    DropdownMenuItem(
+                        text = { Text(stringResource(R.string.theme_share)) },
+                        onClick = { menu = false; onShare() })
                     if (!theme.isBuiltIn) DropdownMenuItem(
                         text = { Text(stringResource(R.string.edit)) },
                         onClick = { menu = false; onEdit() })
@@ -113,7 +118,7 @@ fun ThemeRow(
 @Preview(showBackground = true)
 @Composable
 private fun ThemeRowPreview() {
-    MaterialTheme {
+    Theme {
         Box(Modifier.padding(16.dp)) {
             ThemeRow(
                 theme = TimetableTheme.Default,

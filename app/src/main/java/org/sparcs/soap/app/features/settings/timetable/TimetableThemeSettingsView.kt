@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -43,6 +44,7 @@ import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.rememberTimetableThemeState
 import org.sparcs.soap.app.theme.ui.rememberTimetableThemeStore
 
@@ -70,6 +72,20 @@ fun TimetableThemeSettingsView(onBack: () -> Unit) {
     val state = rememberTimetableThemeState(store)
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
+    var sharing by rememberSaveable { mutableStateOf<String?>(null) }
+    var importing by rememberSaveable { mutableStateOf(false) }
+
+    if (sharing != null || importing) {
+        TimetableThemeExchangeRoute(
+            sharing = sharing?.let { Json.decodeFromString<TimetableTheme>(it) },
+            onBack = { sharing = null; importing = false },
+            onImport = { theme ->
+                store.saveAndSelect(theme)
+                importing = false
+            }
+        )
+        return
+    }
 
     AnimatedContent(
         targetState = editing,
@@ -117,12 +133,14 @@ fun TimetableThemeSettingsView(onBack: () -> Unit) {
                                 stringResource(R.string.theme_mine)
                             )
                             val copyName = stringResource(R.string.theme_copy, theme.displayName())
+                            val shareName = theme.displayName()
                             ThemeRow(
                                 theme, state.selectedID == theme.id,
                                 onSelect = { store.select(theme.id) },
                                 onEdit = { editing = Json.encodeToString(theme) },
                                 onDuplicate = { editing = Json.encodeToString(theme.duplicate(copyName)) },
-                                onDelete = { deleting = theme.id })
+                                onDelete = { deleting = theme.id },
+                                onShare = { sharing = Json.encodeToString(theme.copy(name = shareName)) })
                         }
                         item {
                             if (state.customThemes.isEmpty()) ThemeSectionTitle(stringResource(R.string.theme_mine))
@@ -135,6 +153,14 @@ fun TimetableThemeSettingsView(onBack: () -> Unit) {
                                 Icon(Icons.Default.Add, null)
                                 Spacer(Modifier.width(8.dp))
                                 Text(stringResource(R.string.theme_new))
+                            }
+                            OutlinedButton(
+                                onClick = { importing = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(Icons.Outlined.Download, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(R.string.theme_import))
                             }
                             Text(
                                 stringResource(R.string.theme_presets_note),
@@ -181,7 +207,7 @@ internal fun ThemeSectionTitle(title: String) {
 @Preview(showBackground = true)
 @Composable
 private fun TimetableThemeSettingsViewPreview() {
-    MaterialTheme {
+    Theme {
         TimetableThemeSettingsView(onBack = {})
     }
 }

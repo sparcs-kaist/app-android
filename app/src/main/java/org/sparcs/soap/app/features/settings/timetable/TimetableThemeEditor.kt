@@ -1,6 +1,9 @@
 package org.sparcs.soap.app.features.settings.timetable
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,6 +40,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,16 +50,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.TimetablePhotoDecoder
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -84,6 +94,29 @@ fun TimetableThemeEditor(
     }
 
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+    var selectedPhoto by remember { mutableStateOf<Uri?>(null) }
+    var photoError by remember { mutableStateOf(false) }
+    val isGenerating = selectedPhoto != null
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        selectedPhoto = uri
+    }
+    LaunchedEffect(selectedPhoto) {
+        val uri = selectedPhoto ?: return@LaunchedEffect
+        try {
+            val generated = TimetablePhotoDecoder.generate(context.contentResolver, uri)
+            currentCoroutineContext().ensureActive()
+            paletteJson = Json.encodeToString(TimetableThemePalette.from(generated.colors))
+            update(generated.applyTo(draft))
+            listState.animateScrollToItem(0)
+        } catch (error: CancellationException) {
+            throw error
+        } catch (_: Exception) {
+            photoError = true
+        } finally {
+            if (selectedPhoto == uri) selectedPhoto = null
+        }
+    }
     val dragState = rememberPaletteDragState(listState, palette.colors.map { it.id }) { source, target ->
         val sourceIndex = palette.colors.indexOfFirst { it.id == source }
         val targetIndex = palette.colors.indexOfFirst { it.id == target }
@@ -109,7 +142,7 @@ fun TimetableThemeEditor(
                 title = stringResource(R.string.theme_edit),
                 onDismiss = back,
                 isEditable = true,
-                isDoneEnabled = draft.isValid,
+                isDoneEnabled = draft.isValid && !isGenerating,
                 onClickDone = {
                     onSave(draft)
                     savedJson = draftJson
@@ -184,14 +217,6 @@ fun TimetableThemeEditor(
                         Spacer(Modifier.width(8.dp))
                         Text(stringResource(R.string.theme_add_color))
                     }
-                    Text(
-                        stringResource(
-                            R.string.theme_unsaved_changes_note
-                        ),
-                        modifier = Modifier.padding(top = 8.dp),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
                 item {
                     ListItem(
@@ -229,9 +254,12 @@ fun TimetableThemeEditor(
                         }
                     }
                 }
+                item { ThemePhotoSection(onPick = { photoPicker.launch("image/*") }) }
             }
         }
     }
+    if (isGenerating) ThemePhotoProgressDialog(onCancel = { selectedPhoto = null })
+    if (photoError) ThemePhotoErrorDialog(onDismiss = { photoError = false })
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
@@ -310,7 +338,7 @@ private fun OptionalThemeColor(
 @Preview(showBackground = true)
 @Composable
 private fun TimetableThemeEditorPreview() {
-    MaterialTheme {
+    Theme {
         TimetableThemeEditor(
             seed = Json.encodeToString(TimetableTheme.Default),
             onBack = {},

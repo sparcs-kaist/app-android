@@ -18,6 +18,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.CancellationException
@@ -31,7 +33,6 @@ import org.sparcs.soap.app.features.timetable.activity.activityTime
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
-/** Shared by grid cells and the activity list so both use the same mutation/refresh flow. */
 @Composable
 internal fun ActivityDetailsDialog(
     activity: TimetableActivity?,
@@ -55,7 +56,7 @@ internal fun ActivityDetailsDialog(
                 DayType.fromValue(activity.day)?.let { Text(stringResource(it.stringValue)) }
                 Text("${activityTime(activity.begin)} – ${activityTime(activity.end)}")
                 if (failed) Text(
-                    stringResource(if (refreshing) R.string.activity_saved_refresh else R.string.activity_save_error),
+                    stringResource(if (refreshing) R.string.activity_saved_refresh else R.string.activity_delete_error),
                     color = MaterialTheme.colorScheme.error
                 )
             }
@@ -65,7 +66,7 @@ internal fun ActivityDetailsDialog(
             if (deleting) CircularProgressIndicator()
             else if (showActions || refreshing) TextButton(onClick = {
                 val tableID = timetable?.id?.toIntOrNull() ?: return@TextButton
-                val useCase = viewModel.timetableUseCase ?: return@TextButton
+                val useCase = viewModel.timetableUseCase
                 scope.launch {
                     deleting = true
                     try {
@@ -106,10 +107,10 @@ private fun ActivityDetailsDialogPreview() {
         var showDialog by remember { mutableStateOf(true) }
         
         Box(
-            modifier = androidx.compose.ui.Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
-            contentAlignment = androidx.compose.ui.Alignment.Center
+            contentAlignment = Alignment.Center
         ) {
             Button(onClick = { showDialog = true }) {
                 Text("Show Dialog")
