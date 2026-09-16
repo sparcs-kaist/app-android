@@ -263,6 +263,7 @@ fun TimetableThemeEditor(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
+            containerColor = MaterialTheme.colorScheme.background,
             title = { Text(stringResource(R.string.theme_discard_title)) },
             text = { Text(stringResource(R.string.theme_unsaved_changes_message)) },
             confirmButton = {
