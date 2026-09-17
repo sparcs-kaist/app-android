@@ -178,7 +178,7 @@ fun SearchView(
                         Box(
                             modifier = Modifier
                                 .width(30.dp)
-                                .padding(top = 4.dp)
+                                .padding(top = 4.dp, bottom = 4.dp)
                                 .height(4.dp)
                                 .align(Alignment.CenterHorizontally)
                                 .clip(RoundedCornerShape(16.dp))

@@ -1,11 +1,7 @@
 package org.sparcs.soap.app.features.taxiPreview
 
 import android.content.Intent
-import android.graphics.Outline
 import android.net.Uri
-import android.view.View
-import android.view.ViewOutlineProvider
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -38,9 +33,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -100,7 +99,7 @@ fun TaxiPreviewView(
     val pathColor = MaterialTheme.colorScheme.primary.toArgb()
     val sourceString = stringResource(R.string.source)
     val destinationString = stringResource(R.string.destination)
-    val mapCornerRadiusPx = with(androidx.compose.ui.platform.LocalDensity.current) { 28.dp.toPx() }
+    val sheetColor = MaterialTheme.colorScheme.surface
 
     val isJoinButtonDisabled: Boolean =
         taxiUser == null || (!viewModel.isJoined(room.participants) && (room.participants.size >= room.capacity ||
@@ -144,7 +143,6 @@ fun TaxiPreviewView(
         Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
             .background(MaterialTheme.colorScheme.surface)
             .analyticsScreen("Taxi Preview")
     ) {
@@ -152,9 +150,20 @@ fun TaxiPreviewView(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(220.dp)
-                .graphicsLayer {
-                    shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
-                    clip = true
+                .drawWithCache {
+                    val radius = CornerRadius(28.dp.toPx())
+                    val bounds = Rect(0f, 0f, size.width, size.height)
+                    val corners = Path.combine(
+                        PathOperation.Difference,
+                        Path().apply { addRect(bounds) },
+                        Path().apply {
+                            addRoundRect(RoundRect(bounds, topLeft = radius, topRight = radius))
+                        }
+                    )
+                    onDrawWithContent {
+                        drawContent()
+                        drawPath(corners, sheetColor)
+                    }
                 }
         ) {
             //MAP
@@ -169,14 +178,7 @@ fun TaxiPreviewView(
                                 isMapError = true
                                 isMapLoading = false
                             }
-                        ).apply {
-                            clipToOutline = true
-                            outlineProvider = object : ViewOutlineProvider() {
-                                override fun getOutline(view: View, outline: Outline) {
-                                    outline.setRoundRect(0, 0, view.width, view.height, mapCornerRadiusPx)
-                                }
-                            }
-                        }
+                        )
                     }
                 )
                 if (isMapLoading) {
@@ -208,9 +210,6 @@ fun TaxiPreviewView(
                 ) {
                     Text("Map Preview")
                 }
-            }
-
-            Canvas(modifier = Modifier.matchParentSize()) {
             }
         }
         Column(modifier = Modifier.padding(16.dp)) {
@@ -286,7 +285,7 @@ fun TaxiPreviewView(
                         }
                     },
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 4.dp),
+                    contentPadding = PaddingValues(vertical = 12.dp),
                     enabled = !isJoinButtonDisabled
                 ) {
                     Text(
