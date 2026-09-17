@@ -40,7 +40,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,11 +53,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -64,6 +71,7 @@ import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetablePhotoDecoder
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.domain.usecases.ThemeModelStatus
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -95,6 +103,25 @@ fun TimetableThemeEditor(
 
     val listState = rememberLazyListState()
     val context = LocalContext.current
+    val generator: TimetableThemeGeneratorViewModel = viewModel(key = "theme-generator-$seed")
+    val generatorState by generator.state.collectAsState()
+    var showGenerator by rememberSaveable(seed) { mutableStateOf(false) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    val inspecting = LocalInspectionMode.current
+    DisposableEffect(generator, lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> if (!inspecting) generator.refreshAvailability()
+                Lifecycle.Event.ON_STOP -> generator.cancel()
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose {
+            lifecycle.removeObserver(observer)
+            generator.reset()
+        }
+    }
     var selectedPhoto by remember { mutableStateOf<Uri?>(null) }
     var photoError by remember { mutableStateOf(false) }
     val isGenerating = selectedPhoto != null
@@ -134,7 +161,28 @@ fun TimetableThemeEditor(
             onBack()
         }
     }
-    BackHandler(onBack = back)
+    BackHandler(enabled = !showGenerator, onBack = back)
+
+    if (showGenerator) {
+        TimetableThemeGeneratorView(
+            state = generatorState,
+            baseTheme = draft,
+            onDescriptionChange = generator::describe,
+            onGenerate = { generator.generate(draft, it) },
+            onDownload = generator::download,
+            onRefresh = generator::refreshAvailability,
+            onCancel = generator::cancel,
+            onBack = { generator.cancel(); showGenerator = false },
+            onApply = { theme ->
+                paletteJson = Json.encodeToString(TimetableThemePalette.from(theme.hexColors))
+                update(theme)
+                expanded = false
+                generator.reset()
+                showGenerator = false
+            },
+        )
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -255,6 +303,12 @@ fun TimetableThemeEditor(
                     }
                 }
                 item { ThemePhotoSection(onPick = { photoPicker.launch("image/*") }) }
+                if (generatorState.modelStatus != ThemeModelStatus.CHECKING &&
+                    generatorState.modelStatus != ThemeModelStatus.UNAVAILABLE) {
+                    item {
+                        ThemeGenerationSection(onOpen = { showGenerator = true; generator.refreshAvailability() })
+                    }
+                }
             }
         }
     }

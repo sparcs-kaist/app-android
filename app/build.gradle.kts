@@ -183,4 +183,5 @@ dependencies {
     implementation(libs.mlkit.translate)
     implementation(libs.mlkit.language.id)
     implementation(libs.mlkit.genai.summarization)
+    implementation(libs.mlkit.genai.prompt)
 }

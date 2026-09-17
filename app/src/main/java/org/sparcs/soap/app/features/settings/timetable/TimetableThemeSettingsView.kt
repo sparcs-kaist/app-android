@@ -235,7 +235,7 @@ fun TimetableThemeSettingsView(onBack: () -> Unit) {
 }
 
 @Composable
-private fun ThemeSettingsSectionTitle(title: String) {
+internal fun ThemeSettingsSectionTitle(title: String) {
     Text(
         title,
         modifier = Modifier.padding(8.dp),
@@ -246,24 +246,34 @@ private fun ThemeSettingsSectionTitle(title: String) {
 }
 
 @Composable
-private fun ThemeSettingsAction(text: String, icon: ImageVector, onClick: () -> Unit) {
+internal fun ThemeSettingsAction(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    enabled: Boolean = true,
+    showChevron: Boolean = true,
+) {
+    val color =
+        if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(
+            alpha = 0.38f
+        )
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(role = Role.Button, onClick = onClick)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+        Icon(icon, contentDescription = null, tint = color)
         Spacer(Modifier.width(8.dp))
         Text(
             text,
             modifier = Modifier.weight(1f),
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+            color = color
         )
         Spacer(Modifier.width(8.dp))
-        Icon(
+        if (showChevron) Icon(
             Icons.AutoMirrored.Rounded.ArrowForwardIos,
             contentDescription = null,
             modifier = Modifier.size(15.dp),
