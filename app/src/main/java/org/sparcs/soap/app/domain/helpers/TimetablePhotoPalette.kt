@@ -67,6 +67,29 @@ object TimetablePhotoPalette {
         val averageLightness = samples.sumOf { it.perceptual[0] * it.weight } / totalWeight
         val dominant = clusters.first().color.oklab
         val dark = 0.7 * dominant.lightness + 0.3 * averageLightness < 0.58
+        val seeds = distinctSeeds(clusters.filter { it.weight / totalWeight >= 0.01 }.map { it.color.oklab })
+        return derive(seeds, dominant, dark, CellCount)
+    }
+
+    fun fromBrief(brief: TimetableThemeBrief): Palette? {
+        val appearance = brief.appearance ?: return null
+        val colors = brief.anchorHexColors.mapNotNull(TimetableThemeBrief::normalizeHex).distinct().map { hex ->
+            val value = hex.toInt(16)
+            RGB((value shr 16 and 255) / 255.0, (value shr 8 and 255) / 255.0, (value and 255) / 255.0).oklab
+        }
+        if (colors.isEmpty()) return null
+        return derive(distinctSeeds(colors), colors.first(), appearance == TimetableThemeBrief.Appearance.DARK, TimetableTheme.maximumColors)
+    }
+
+    private fun distinctSeeds(colors: List<Oklab>): List<Oklab> {
+        val seeds = mutableListOf<Oklab>()
+        for (color in colors) {
+            if (seeds.all { sqrt((it.a - color.a).pow(2) + (it.b - color.b).pow(2)) >= 0.03 }) seeds.add(color)
+        }
+        return seeds
+    }
+
+    private fun derive(seeds: List<Oklab>, dominant: Oklab, dark: Boolean, cellCount: Int): Palette {
         val background = Oklab.fromLch(
             if (dark) (dominant.lightness * 0.62).coerceIn(0.10, 0.30)
             else (1 - (1 - dominant.lightness) * 0.55).coerceIn(0.84, 0.96),
@@ -81,14 +104,7 @@ object TimetablePhotoPalette {
         val gridLabel = Oklab.fromLch(
             if (dark) 0.84 else 0.36, min(dominant.chroma * 0.5, 0.05), dominant.hue
         ).contrasting(background.rgb, darker = !dark)
-        val seeds = mutableListOf<Oklab>()
-        for (cluster in clusters.filter { it.weight / totalWeight >= 0.01 }) {
-            val color = cluster.color.oklab
-            if (seeds.all { sqrt((it.a - color.a).pow(2) + (it.b - color.b).pow(2)) >= 0.03 }) {
-                seeds.add(color)
-            }
-        }
-        return Palette(cellColors(seeds, background, text, dark), text.rgb.hex, background.rgb.hex, separator.rgb.hex, gridLabel.rgb.hex)
+        return Palette(cellColors(seeds, background, text, dark, cellCount), text.rgb.hex, background.rgb.hex, separator.rgb.hex, gridLabel.rgb.hex)
     }
 
     private fun merged(clusters: List<Sample>): List<Sample> {
@@ -101,7 +117,7 @@ object TimetablePhotoPalette {
         return groups.map { it.second.sample() }.sortedByDescending { it.weight }
     }
 
-    private fun cellColors(seeds: List<Oklab>, background: Oklab, text: Oklab, dark: Boolean): List<String> {
+    private fun cellColors(seeds: List<Oklab>, background: Oklab, text: Oklab, dark: Boolean, cellCount: Int): List<String> {
         val limit = if (dark) (text.rgb.luminance + 0.05) / ReadableContrast - 0.05
         else (text.rgb.luminance + 0.05) * ReadableContrast - 0.05
         val edge = cbrt(limit.coerceIn(0.0, 1.0))
@@ -115,12 +131,12 @@ object TimetablePhotoPalette {
                 ranks[index] = position.toDouble() / (seeds.size - 1)
             }
         }
-        val rounds = (CellCount + seeds.size - 1) / seeds.size
+        val rounds = (cellCount + seeds.size - 1) / seeds.size
         val offsets = if (rounds == 1) listOf(0.0) else (0 until rounds)
             .map { -0.5 + it.toDouble() / (rounds - 1) }
             .sortedWith(compareBy<Double> { abs(it) }.thenByDescending { it })
         val anchor = min(0.8, 1.0 / rounds)
-        return List(CellCount) { index ->
+        return List(cellCount) { index ->
             val seed = seeds[index % seeds.size]
             val round = index / seeds.size
             val tone = (anchor * ranks[index % seeds.size] + (1 - anchor) * (0.5 + offsets[round] * 0.95)).coerceIn(0.0, 1.0)
