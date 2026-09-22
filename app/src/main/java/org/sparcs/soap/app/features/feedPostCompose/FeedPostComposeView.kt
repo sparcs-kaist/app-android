@@ -12,10 +12,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -138,116 +139,119 @@ fun FeedPostComposeView(
                 isUploading = viewModel.isUploading
             )
         },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 8.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                FeedPostOptionsRow(
-                    isUploading = viewModel.isUploading,
-                    onPhotoButton = { showPhotosPicker = true }
-                )
-            }
-        },
         modifier = Modifier
             .analyticsScreen(name = "Feed Compose"),
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(16.dp)
-                .verticalScroll(scrollState)
-                .focusRequester(contentFocusRequester)
-                .noRippleClickable { contentFocusRequester.requestFocus() }
+                .consumeWindowInsets(innerPadding)
+                .imePadding()
         ) {
-            Header(viewModel)
-            Spacer(Modifier.padding(4.dp))
-            BasicTextField(
-                value = contentField,
-                onValueChange = {
-                    contentField = it
-                    viewModel.text = it.text
-                },
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = KeyboardOptions.Default,
-                onTextLayout = { textLayoutResult = it },
-                decorationBox = { inner ->
-                    if (viewModel.text.isEmpty())
-                        Text(
-                            text = stringResource(R.string.enter_the_description),
-                            color = MaterialTheme.colorScheme.grayBB,
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                    inner()
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Row(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                horizontalArrangement = Arrangement.End
+                    .fillMaxSize()
+                    .padding(16.dp)
+                    .verticalScroll(scrollState)
+                    .focusRequester(contentFocusRequester)
+                    .noRippleClickable { contentFocusRequester.requestFocus() }
             ) {
-                Text("${viewModel.text.length}/280", style = MaterialTheme.typography.bodySmall)
-            }
-            if (viewModel.selectedImages.isNotEmpty()) {
-                LazyRow(
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    itemsIndexed(viewModel.selectedImages) { index, bitmap ->
-                        var isSpoiler by remember(bitmap.id) { mutableStateOf(bitmap.spoiler) }
-                        Box {
-                            Image(
-                                bitmap = bitmap.image.asImageBitmap(),
-                                contentScale = ContentScale.Crop,
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(120.dp)
-                                    .clip(RoundedCornerShape(8.dp))
+                Header(viewModel)
+                Spacer(Modifier.padding(4.dp))
+                BasicTextField(
+                    value = contentField,
+                    onValueChange = {
+                        contentField = it
+                        viewModel.text = it.text
+                    },
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                    keyboardOptions = KeyboardOptions.Default,
+                    onTextLayout = { textLayoutResult = it },
+                    decorationBox = { inner ->
+                        if (viewModel.text.isEmpty())
+                            Text(
+                                text = stringResource(R.string.enter_the_description),
+                                color = MaterialTheme.colorScheme.grayBB,
+                                style = MaterialTheme.typography.bodyMedium
                             )
-
-                            IconButton(
-                                onClick = { viewModel.removeImage(index) },
-                                modifier = Modifier
-                                    .align(Alignment.TopEnd)
-                                    .background(
-                                        Color.Black.copy(alpha = 0.3f),
-                                        shape = CircleShape
-                                    )
-                                    .size(24.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = stringResource(R.string.remove_image),
-                                    tint = Color.White
+                        inner()
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Text("${viewModel.text.length}/280", style = MaterialTheme.typography.bodySmall)
+                }
+                if (viewModel.selectedImages.isNotEmpty()) {
+                    LazyRow(
+                        modifier = Modifier.padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(viewModel.selectedImages) { index, bitmap ->
+                            var isSpoiler by remember(bitmap.id) { mutableStateOf(bitmap.spoiler) }
+                            Box {
+                                Image(
+                                    bitmap = bitmap.image.asImageBitmap(),
+                                    contentScale = ContentScale.Crop,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(120.dp)
+                                        .clip(RoundedCornerShape(8.dp))
                                 )
-                            }
 
-                            IconButton(
-                                onClick = { isSpoiler = !isSpoiler; bitmap.spoiler = isSpoiler },
-                                modifier = Modifier
-                                    .align(Alignment.BottomEnd)
-                                    .background(
-                                        Color.Black.copy(alpha = 0.3f),
-                                        shape = CircleShape
+                                IconButton(
+                                    onClick = { viewModel.removeImage(index) },
+                                    modifier = Modifier
+                                        .align(Alignment.TopEnd)
+                                        .background(
+                                            Color.Black.copy(alpha = 0.3f),
+                                            shape = CircleShape
+                                        )
+                                        .size(24.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Close,
+                                        contentDescription = stringResource(R.string.remove_image),
+                                        tint = Color.White
                                     )
-                                    .size(24.dp)
-                            ) {
-                                Icon(
-                                    if (isSpoiler) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
-                                    contentDescription = stringResource(R.string.show_spoiler),
-                                    tint = Color.White
-                                )
+                                }
+
+                                IconButton(
+                                    onClick = { isSpoiler = !isSpoiler; bitmap.spoiler = isSpoiler },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .background(
+                                            Color.Black.copy(alpha = 0.3f),
+                                            shape = CircleShape
+                                        )
+                                        .size(24.dp)
+                                ) {
+                                    Icon(
+                                        if (isSpoiler) Icons.Rounded.VisibilityOff else Icons.Rounded.Visibility,
+                                        contentDescription = stringResource(R.string.show_spoiler),
+                                        tint = Color.White
+                                    )
+                                }
                             }
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(80.dp))
             }
+
+            FeedPostOptionsRow(
+                isUploading = viewModel.isUploading,
+                onPhotoButton = { showPhotosPicker = true },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 16.dp)
+            )
         }
         if (showPhotosPicker) {
             launcher.launch(
@@ -387,14 +391,12 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
 private fun FeedPostOptionsRow(
     isUploading: Boolean,
     onPhotoButton: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
         shape = RoundedCornerShape(50),
         color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier
-            .navigationBarsPadding()
-            .imePadding()
-            .padding(8.dp)
+        modifier = modifier
             .glassBorder(shape = RoundedCornerShape(50.dp))
     ) {
         Row(

@@ -12,11 +12,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -153,150 +153,149 @@ fun PostComposeView(
                 isUploading = isUploading
             )
         },
-        bottomBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(end = 8.dp),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                PostOptionsRow(
-                    writeAsAnonymous = viewModel.writeAsAnonymous,
-                    onAnonymousChange = {
-                        viewModel.writeAsAnonymous = !viewModel.writeAsAnonymous
-                    },
-                    isNSFW = viewModel.isNSFW,
-                    onNSFWChange = { viewModel.isNSFW = !viewModel.isNSFW },
-                    isPolitical = viewModel.isPolitical,
-                    onPoliticalChange = { viewModel.isPolitical = !viewModel.isPolitical },
-                    isUploading = isUploading,
-                    onPhotoButton = { showPhotosPicker = true }
-                )
-            }
-        },
         modifier = Modifier.analyticsScreen(name = "Ara Post Compose")
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
-                .navigationBarsPadding()
-                .padding(innerPadding)
-                .padding(16.dp)
                 .fillMaxSize()
-                .verticalScroll(scrollState)
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+                .imePadding()
         ) {
-            TopicSelector(
-                viewModel = viewModel
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            BasicTextField(
-                value = titleField,
-                onValueChange = {
-                    titleField = it
-                    viewModel.title = it.text
-                },
-                singleLine = true,
-                textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { contentFocusRequester.requestFocus() }
-                ),
-                decorationBox = { inner ->
-                    if (viewModel.title.isEmpty())
-                        Text(
-                            text = stringResource(R.string.enter_the_title),
-                            color = MaterialTheme.colorScheme.grayBB,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    inner()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(titleFocusRequester)
-            )
-
-            Spacer(Modifier.padding(2.dp))
-
-            HorizontalDivider()
-
-            Spacer(Modifier.padding(4.dp))
-
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                    .fillMaxSize()
+                    .padding(16.dp)
                     .verticalScroll(scrollState)
-                    .focusRequester(contentFocusRequester)
-                    .noRippleClickable { contentFocusRequester.requestFocus() }
             ) {
+                TopicSelector(
+                    viewModel = viewModel
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+
                 BasicTextField(
-                    value = contentField,
+                    value = titleField,
                     onValueChange = {
-                        contentField = it
-                        viewModel.content = it.text
+                        titleField = it
+                        viewModel.title = it.text
                     },
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                    singleLine = true,
+                    textStyle = MaterialTheme.typography.titleLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    keyboardOptions = KeyboardOptions.Default,
-                    onTextLayout = { textLayoutResult = it },
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = { contentFocusRequester.requestFocus() }
+                    ),
                     decorationBox = { inner ->
-                        if (contentField.text.isEmpty())
+                        if (viewModel.title.isEmpty())
                             Text(
-                                text = stringResource(R.string.enter_the_description),
+                                text = stringResource(R.string.enter_the_title),
                                 color = MaterialTheme.colorScheme.grayBB,
-                                style = MaterialTheme.typography.bodyMedium
+                                style = MaterialTheme.typography.titleLarge
                             )
                         inner()
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(titleFocusRequester)
                 )
+
+                Spacer(Modifier.padding(2.dp))
+
+                HorizontalDivider()
 
                 Spacer(Modifier.padding(4.dp))
 
-                if (viewModel.selectedImages.isNotEmpty()) {
-                    LazyRow(
-                        contentPadding = PaddingValues(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        itemsIndexed(viewModel.selectedImages) { index, bitmap ->
-                            Box {
-                                Image(
-                                    bitmap = bitmap.asImageBitmap(),
-                                    contentScale = ContentScale.Crop,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(120.dp)
-                                        .clip(RoundedCornerShape(8.dp))
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(contentFocusRequester)
+                        .noRippleClickable { contentFocusRequester.requestFocus() }
+                ) {
+                    BasicTextField(
+                        value = contentField,
+                        onValueChange = {
+                            contentField = it
+                            viewModel.content = it.text
+                        },
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                        keyboardOptions = KeyboardOptions.Default,
+                        onTextLayout = { textLayoutResult = it },
+                        decorationBox = { inner ->
+                            if (contentField.text.isEmpty())
+                                Text(
+                                    text = stringResource(R.string.enter_the_description),
+                                    color = MaterialTheme.colorScheme.grayBB,
+                                    style = MaterialTheme.typography.bodyMedium
                                 )
+                            inner()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                                IconButton(
-                                    onClick = { viewModel.removeImage(index) },
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .background(
-                                            Color.Black.copy(alpha = 0.3f),
-                                            shape = CircleShape
-                                        )
-                                        .size(24.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Remove Image",
-                                        tint = Color.White
+                    Spacer(Modifier.padding(4.dp))
+
+                    if (viewModel.selectedImages.isNotEmpty()) {
+                        LazyRow(
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            itemsIndexed(viewModel.selectedImages) { index, bitmap ->
+                                Box {
+                                    Image(
+                                        bitmap = bitmap.asImageBitmap(),
+                                        contentScale = ContentScale.Crop,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(120.dp)
+                                            .clip(RoundedCornerShape(8.dp))
                                     )
+
+                                    IconButton(
+                                        onClick = { viewModel.removeImage(index) },
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .background(
+                                                Color.Black.copy(alpha = 0.3f),
+                                                shape = CircleShape
+                                            )
+                                            .size(24.dp)
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Remove Image",
+                                            tint = Color.White
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
+                    Box(Modifier.align(Alignment.End)) {
+                        TermsOfUseButton()
+                    }
                 }
-                Box(Modifier.align(Alignment.End)) {
-                    TermsOfUseButton()
-                }
+                Spacer(modifier = Modifier.height(80.dp))
             }
 
+            PostOptionsRow(
+                writeAsAnonymous = viewModel.writeAsAnonymous,
+                onAnonymousChange = {
+                    viewModel.writeAsAnonymous = !viewModel.writeAsAnonymous
+                },
+                isNSFW = viewModel.isNSFW,
+                onNSFWChange = { viewModel.isNSFW = !viewModel.isNSFW },
+                isPolitical = viewModel.isPolitical,
+                onPoliticalChange = { viewModel.isPolitical = !viewModel.isPolitical },
+                isUploading = isUploading,
+                onPhotoButton = { showPhotosPicker = true },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 16.dp)
+            )
         }
     }
     if (showPhotosPicker) {
@@ -321,15 +320,13 @@ fun PostOptionsRow(
     onPoliticalChange: () -> Unit,
     isUploading: Boolean,
     onPhotoButton: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier
-            .navigationBarsPadding()
-            .imePadding()
-            .padding(8.dp)
+        modifier = modifier
             .glassBorder(shape = RoundedCornerShape(50.dp))
     ) {
         Row(
