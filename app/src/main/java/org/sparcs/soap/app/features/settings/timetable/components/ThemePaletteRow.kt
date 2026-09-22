@@ -1,4 +1,4 @@
-package org.sparcs.soap.app.features.settings.timetable
+package org.sparcs.soap.app.features.settings.timetable.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DeleteOutline
@@ -35,9 +36,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.features.settings.timetable.PaletteColor
+import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 internal fun ThemePaletteRow(
@@ -123,5 +127,20 @@ internal fun ThemePaletteRow(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, locale = "en")
+@Preview(showBackground = true, locale = "ko")
+@Composable
+private fun ThemePaletteRowPreview() {
+    Theme {
+        val color = PaletteColor("preview", "307878")
+        val listState = rememberLazyListState()
+        val dragState = rememberPaletteDragState(listState, listOf(color.id)) { _, _ -> }
+        ThemePaletteRow(
+            color = color, index = 0, count = 1,
+            onEdit = {}, onMove = {}, onDelete = {}, dragState = dragState
+        )
     }
 }

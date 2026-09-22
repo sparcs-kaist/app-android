@@ -1,4 +1,4 @@
-package org.sparcs.soap.app.features.settings.timetable
+package org.sparcs.soap.app.features.settings.timetable.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

@@ -1,4 +1,4 @@
-package org.sparcs.soap.app.features.settings.timetable
+package org.sparcs.soap.app.features.settings.timetable.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -71,7 +71,7 @@ internal fun ThemeColorDialog(
                     },
                     Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.theme_hex)) },
-                    prefix = { Text("#") },
+                    prefix = { Text(stringResource(R.string.theme_hex_prefix)) },
                     singleLine = true,
                     isError = !valid,
                     supportingText = { if (!valid) Text(stringResource(R.string.theme_hex_error)) })
@@ -83,7 +83,7 @@ internal fun ThemeColorDialog(
                     val shift = (2 - index) * 8
                     val channel = (value shr shift) and 255
                     val label = stringResource(res)
-                    Text("$label · $channel", style = MaterialTheme.typography.labelMedium)
+                    Text(stringResource(R.string.theme_color_channel_value, label, channel), style = MaterialTheme.typography.labelMedium)
                     Slider(
                         channel.toFloat(),
                         { number ->
@@ -121,7 +121,7 @@ private fun ThemeColorDialogPreview() {
     Theme() {
         Box(Modifier.background(Color.White).fillMaxSize()) {
             TextButton(onClick = { showDialog = true }) {
-                Text("Show Color Dialog")
+                Text(stringResource(R.string.theme_change_color))
             }
             if (showDialog) {
                 ThemeColorDialog(

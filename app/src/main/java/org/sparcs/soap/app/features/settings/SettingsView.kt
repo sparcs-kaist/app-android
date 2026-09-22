@@ -23,7 +23,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.Logout
-import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.ErrorOutline
@@ -31,6 +30,7 @@ import androidx.compose.material.icons.outlined.Feedback
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
@@ -141,6 +141,11 @@ fun SettingsView(
                     ) { navController.navigate(Channel.NotificationSettings.name) }
 
                     ThemeSwitcherButton(settingsViewModel)
+
+                    SendCrashReportsButton(isCrashlyticsEnabled) {
+                        haptic.toggle(it)
+                        isCrashlyticsEnabled = it
+                    }
                     HorizontalDivider(Modifier.padding(vertical = 8.dp))
                 }
 
@@ -236,11 +241,6 @@ fun SettingsView(
                     )
                     SignOutButton {
                         settingsViewModel.signOut()
-                    }
-                    
-                    SendCrashReportsButton(isCrashlyticsEnabled) {
-                        haptic.toggle(it)
-                        isCrashlyticsEnabled = it
                     }
                 }
 

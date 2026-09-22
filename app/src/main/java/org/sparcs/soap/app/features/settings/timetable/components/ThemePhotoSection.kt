@@ -1,4 +1,4 @@
-package org.sparcs.soap.app.features.settings.timetable
+package org.sparcs.soap.app.features.settings.timetable.components
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -36,7 +36,11 @@ internal fun ThemePhotoSection(onPick: () -> Unit) {
                 .fillMaxWidth()
                 .clickable(role = Role.Button, onClick = onPick),
             leadingContent = {
-                Icon(Icons.Outlined.Photo, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+                Icon(
+                    Icons.Outlined.Photo,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
             },
             headlineContent = {
                 Text(stringResource(R.string.theme_photo_generate))
@@ -49,12 +53,6 @@ internal fun ThemePhotoSection(onPick: () -> Unit) {
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun ThemePhotoSectionPreview() {
-    Theme { Column(Modifier.padding(16.dp)) { ThemePhotoSection {} } }
 }
 
 @Composable
@@ -74,6 +72,25 @@ internal fun ThemePhotoProgressDialog(onCancel: () -> Unit) {
     )
 }
 
+@Composable
+internal fun ThemePhotoErrorDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.theme_photo_error_title)) },
+        text = { Text(stringResource(R.string.theme_photo_error)) },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ThemePhotoSectionPreview() {
+    Theme { Column(Modifier.padding(16.dp)) { ThemePhotoSection {} } }
+}
+
 @Preview(showBackground = true)
 @Composable
 private fun ThemePhotoProgressPreview() {
@@ -86,19 +103,6 @@ private fun ThemePhotoProgressPreview() {
             ThemePhotoProgressDialog(onCancel = { showDialog = false })
         }
     }
-}
-
-@Composable
-internal fun ThemePhotoErrorDialog(onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.theme_photo_error_title)) },
-        text = { Text(stringResource(R.string.theme_photo_error)) },
-        confirmButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.done)) }
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    )
 }
 
 @Preview(showBackground = true)

@@ -33,7 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
-import org.sparcs.soap.app.features.settings.timetable.displayName
+import org.sparcs.soap.app.features.settings.timetable.components.displayName
 import org.sparcs.soap.app.theme.ui.grayBB
 
 /**

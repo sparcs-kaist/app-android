@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.timetable.components
 
-import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import org.sparcs.soap.app.domain.models.otl.LectureItem
 import org.sparcs.soap.app.shared.mocks.otl.mockList
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 
 @Composable
 fun TimetableGridCell(

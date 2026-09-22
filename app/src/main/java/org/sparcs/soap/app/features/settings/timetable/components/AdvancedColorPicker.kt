@@ -1,4 +1,4 @@
-package org.sparcs.soap.app.features.settings.timetable
+package org.sparcs.soap.app.features.settings.timetable.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -61,6 +61,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
+import android.graphics.Color as AndroidColor
 
 @Composable
 fun AdvancedColorPicker(
@@ -90,7 +91,7 @@ fun AdvancedColorPicker(
                 Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Preview Box
+
                 Box(
                     Modifier
                         .fillMaxWidth()
@@ -114,8 +115,8 @@ fun AdvancedColorPicker(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Hex") },
-                    prefix = { Text("#") },
+                    label = { Text(stringResource(R.string.theme_hex)) },
+                    prefix = { Text(stringResource(R.string.theme_hex_prefix)) },
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp)
                 )
@@ -126,10 +127,10 @@ fun AdvancedColorPicker(
                     divider = {}
                 ) {
                     Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
-                        Text("HSB", Modifier.padding(8.dp))
+                        Text(stringResource(R.string.theme_color_hsb), Modifier.padding(8.dp))
                     }
                     Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) {
-                        Text("RGB", Modifier.padding(8.dp))
+                        Text(stringResource(R.string.theme_color_rgb), Modifier.padding(8.dp))
                     }
                 }
 
@@ -174,7 +175,7 @@ fun HsvPickerComponent(
 ) {
     val hsv = remember(color) {
         val hsv = FloatArray(3)
-        android.graphics.Color.colorToHSV(color.toArgb(), hsv)
+        AndroidColor.colorToHSV(color.toArgb(), hsv)
         hsv
     }
     val hue = hsv[0]
@@ -183,14 +184,14 @@ fun HsvPickerComponent(
 
     Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
         Box(modifier = Modifier.size(220.dp)) {
-            // Hue Ring
+
             Canvas(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
                 detectDragGestures { change, _ ->
                     val center = Offset(size.width / 2f, size.height / 2f)
                     val pos = change.position - center
                     var angle = Math.toDegrees(atan2(pos.y.toDouble(), pos.x.toDouble())).toFloat()
                     if (angle < 0) angle += 360f
-                    onColorChange(Color(android.graphics.Color.HSVToColor(floatArrayOf(angle, saturation, value))))
+                    onColorChange(Color(AndroidColor.HSVToColor(floatArrayOf(angle, saturation, value))))
                 }
             }.pointerInput(Unit) {
                 detectTapGestures { offset ->
@@ -198,7 +199,7 @@ fun HsvPickerComponent(
                     val pos = offset - center
                     var angle = Math.toDegrees(atan2(pos.y.toDouble(), pos.x.toDouble())).toFloat()
                     if (angle < 0) angle += 360f
-                    onColorChange(Color(android.graphics.Color.HSVToColor(floatArrayOf(angle, saturation, value))))
+                    onColorChange(Color(AndroidColor.HSVToColor(floatArrayOf(angle, saturation, value))))
                 }
             }) {
                 val radius = size.minDimension / 2
@@ -210,8 +211,7 @@ fun HsvPickerComponent(
                     radius = radius - thickness / 2,
                     style = Stroke(width = thickness)
                 )
-                
-                // Hue selector handle
+
                 val angleRad = Math.toRadians(hue.toDouble())
                 val handleRadius = radius - thickness / 2
                 val handleCenter = Offset(
@@ -221,8 +221,7 @@ fun HsvPickerComponent(
                 drawCircle(Color.White, radius = 10.dp.toPx(), center = handleCenter)
                 drawCircle(Color.Black, radius = 10.dp.toPx(), center = handleCenter, style = Stroke(2.dp.toPx()))
             }
-            
-            // Saturation-Value Diamond
+
             Box(
                 modifier = Modifier
                     .size(110.dp)
@@ -232,32 +231,31 @@ fun HsvPickerComponent(
                         detectDragGestures { change, _ ->
                             val s = (change.position.x / size.width).coerceIn(0f, 1f)
                             val v = (1f - change.position.y / size.height).coerceIn(0f, 1f)
-                            onColorChange(Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, s, v))))
+                            onColorChange(Color(AndroidColor.HSVToColor(floatArrayOf(hue, s, v))))
                         }
                     }
                     .pointerInput(Unit) {
                         detectTapGestures { offset ->
                             val s = (offset.x / size.width).coerceIn(0f, 1f)
                             val v = (1f - offset.y / size.height).coerceIn(0f, 1f)
-                            onColorChange(Color(android.graphics.Color.HSVToColor(floatArrayOf(hue, s, v))))
+                            onColorChange(Color(AndroidColor.HSVToColor(floatArrayOf(hue, s, v))))
                         }
                     }
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
-                    // Saturation gradient (horizontal)
+
                     drawRect(
                         brush = Brush.horizontalGradient(
                             colors = listOf(Color.White, Color.hsv(hue, 1f, 1f))
                         )
                     )
-                    // Value gradient (vertical)
+
                     drawRect(
                         brush = Brush.verticalGradient(
                             colors = listOf(Color.Transparent, Color.Black)
                         )
                     )
-                    
-                    // SV selector handle
+
                     val handleX = saturation * size.width
                     val handleY = (1f - value) * size.height
                     drawCircle(
@@ -276,7 +274,7 @@ fun HsvPickerComponent(
 fun HsbSliders(color: Color, onColorChange: (Color) -> Unit) {
     val hsv = remember(color) {
         val hsv = FloatArray(3)
-        android.graphics.Color.colorToHSV(color.toArgb(), hsv)
+        AndroidColor.colorToHSV(color.toArgb(), hsv)
         hsv
     }
     val hue = hsv[0]
@@ -287,7 +285,7 @@ fun HsbSliders(color: Color, onColorChange: (Color) -> Unit) {
         ColorSliderWithButtons(
             value = hue,
             range = 0f..360f,
-            unit = "°",
+            unit = stringResource(R.string.theme_unit_degrees),
             onValueChange = { onColorChange(Color.hsv(it, saturation, value)) },
             backgroundBrush = Brush.horizontalGradient(
                 colors = List(360) { Color.hsv(it.toFloat(), 1f, 1f) }
@@ -296,7 +294,7 @@ fun HsbSliders(color: Color, onColorChange: (Color) -> Unit) {
         ColorSliderWithButtons(
             value = saturation * 100f,
             range = 0f..100f,
-            unit = "%",
+            unit = stringResource(R.string.theme_unit_percent),
             onValueChange = { onColorChange(Color.hsv(hue, it / 100f, value)) },
             backgroundBrush = Brush.horizontalGradient(
                 colors = listOf(Color.hsv(hue, 0f, value), Color.hsv(hue, 1f, value))
@@ -305,7 +303,7 @@ fun HsbSliders(color: Color, onColorChange: (Color) -> Unit) {
         ColorSliderWithButtons(
             value = value * 100f,
             range = 0f..100f,
-            unit = "%",
+            unit = stringResource(R.string.theme_unit_percent),
             onValueChange = { onColorChange(Color.hsv(hue, saturation, it / 100f)) },
             backgroundBrush = Brush.horizontalGradient(
                 colors = listOf(Color.Black, Color.hsv(hue, saturation, 1f))
@@ -362,7 +360,7 @@ fun ColorSliderWithButtons(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(
-            text = "${value.roundToInt()}$unit",
+            text = stringResource(R.string.theme_color_value_unit, value.roundToInt(), unit),
             modifier = Modifier.width(40.dp),
             style = MaterialTheme.typography.labelMedium,
             fontSize = 12.sp
@@ -414,7 +412,7 @@ fun AdvancedColorPickerPreview() {
     Theme {
         Box(Modifier.fillMaxSize().padding(16.dp)) {
             TextButton(onClick = { show = true }) {
-                Text("Show Color Picker")
+                Text(stringResource(R.string.theme_change_color))
             }
             if (show) {
                 AdvancedColorPicker(
