@@ -721,6 +721,12 @@
     <string name="theme_share_instructions">Enter this code on another device to import this theme.</string>
     <string name="theme_copy_code">Copy Code</string>
     <string name="theme_code_copied">Code Copied</string>
+    <string name="theme_share_instagram_story">Share to Instagram Story</string>
+    <string name="theme_share_feed">Share to Feed</string>
+    <string name="theme_share_other_apps">Share to Other Apps</string>
+    <string name="theme_share_instagram_not_installed">Instagram app is not installed.</string>
+    <string name="theme_share_instagram_failed">Could not share to Instagram.</string>
+    <string name="theme_share_feed_content">Sharing a timetable theme! 🎨\nTheme: %1$s\nCode: %2$s\n\nEnter this code in [Settings > Timetable Theme > Import] to use this theme!</string>
     <string name="theme_import_note">This theme will be added to My Themes and used right away.</string>
     <string name="theme_save_import">Save and Use Theme</string>
     <string name="theme_photo_generate">Generate using a Photo</string>

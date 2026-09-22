@@ -7,6 +7,8 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -59,6 +61,7 @@ class FeedPostComposeViewModel @Inject constructor(
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
     @param:ApplicationContext private val context: Context,
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel(), FeedPostComposeViewModelProtocol {
 
     sealed class ComposeType(val value: Int) {
@@ -69,7 +72,7 @@ class FeedPostComposeViewModel @Inject constructor(
     // MARK: - Properties
     override var feedUser by mutableStateOf<FeedUser?>(null)
 
-    override var text by mutableStateOf("")
+    override var text by mutableStateOf(savedStateHandle.get<String>("initial_text") ?: "")
     override var selectedComposeType: ComposeType by mutableStateOf(ComposeType.Anonymously)
 
     private var _selectedItems by mutableStateOf(emptyList<Uri>())
@@ -81,6 +84,15 @@ class FeedPostComposeViewModel @Inject constructor(
                 loadImagesAndReconcile()
             }
         }
+
+    init {
+        savedStateHandle.get<String>("initial_image_uri")?.let { uriStr ->
+            if (uriStr.isNotBlank()) {
+                val uri = uriStr.toUri()
+                selectedItems = listOf(uri)
+            }
+        }
+    }
 
     override var selectedImages by mutableStateOf(emptyList<FeedPostPhotoItem>())
     override var alertState: AlertState? by mutableStateOf(null)
