@@ -4,43 +4,25 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,20 +30,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
@@ -73,6 +48,18 @@ import org.sparcs.soap.app.domain.helpers.TimetablePhotoDecoder
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.usecases.ThemeModelStatus
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.features.settings.timetable.components.AdvancedColorPicker
+import org.sparcs.soap.app.features.settings.timetable.components.ThemeAdvancedColors
+import org.sparcs.soap.app.features.settings.timetable.components.ThemeColorRow
+import org.sparcs.soap.app.features.settings.timetable.components.ThemeNameField
+import org.sparcs.soap.app.features.settings.timetable.components.ThemePaletteRow
+import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoErrorDialog
+import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoProgressDialog
+import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoSection
+import org.sparcs.soap.app.features.settings.timetable.components.ThemePreview
+import org.sparcs.soap.app.features.settings.timetable.components.ThemeSectionTitle
+import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
+import org.sparcs.soap.app.features.settings.timetable.components.rememberPaletteDragState
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -92,6 +79,7 @@ fun TimetableThemeEditor(
     val palette = remember(paletteJson) {
         Json.decodeFromString<TimetableThemePalette>(paletteJson)
     }
+
     fun update(theme: TimetableTheme) {
         draftJson = Json.encodeToString(theme)
     }
@@ -106,28 +94,14 @@ fun TimetableThemeEditor(
     val generator: TimetableThemeGeneratorViewModel = viewModel(key = "theme-generator-$seed")
     val generatorState by generator.state.collectAsState()
     var showGenerator by rememberSaveable(seed) { mutableStateOf(false) }
-    val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val inspecting = LocalInspectionMode.current
-    DisposableEffect(generator, lifecycle) {
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> if (!inspecting) generator.refreshAvailability()
-                Lifecycle.Event.ON_STOP -> generator.cancel()
-                else -> Unit
-            }
-        }
-        lifecycle.addObserver(observer)
-        onDispose {
-            lifecycle.removeObserver(observer)
-            generator.reset()
-        }
-    }
+    ThemeGeneratorLifecycleEffect(generator)
     var selectedPhoto by remember { mutableStateOf<Uri?>(null) }
     var photoError by remember { mutableStateOf(false) }
     val isGenerating = selectedPhoto != null
-    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        selectedPhoto = uri
-    }
+    val photoPicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            selectedPhoto = uri
+        }
     LaunchedEffect(selectedPhoto) {
         val uri = selectedPhoto ?: return@LaunchedEffect
         try {
@@ -144,13 +118,14 @@ fun TimetableThemeEditor(
             if (selectedPhoto == uri) selectedPhoto = null
         }
     }
-    val dragState = rememberPaletteDragState(listState, palette.colors.map { it.id }) { source, target ->
-        val sourceIndex = palette.colors.indexOfFirst { it.id == source }
-        val targetIndex = palette.colors.indexOfFirst { it.id == target }
-        if (sourceIndex >= 0 && targetIndex >= 0) {
-            updatePalette(palette.move(source, targetIndex - sourceIndex))
+    val dragState =
+        rememberPaletteDragState(listState, palette.colors.map { it.id }) { source, target ->
+            val sourceIndex = palette.colors.indexOfFirst { it.id == source }
+            val targetIndex = palette.colors.indexOfFirst { it.id == target }
+            if (sourceIndex >= 0 && targetIndex >= 0) {
+                updatePalette(palette.move(source, targetIndex - sourceIndex))
+            }
         }
-    }
 
     var expanded by rememberSaveable { mutableStateOf(false) }
     var target by rememberSaveable { mutableStateOf<String?>(null) }
@@ -172,7 +147,10 @@ fun TimetableThemeEditor(
             onDownload = generator::download,
             onRefresh = generator::refreshAvailability,
             onCancel = generator::cancel,
-            onBack = { generator.cancel(); showGenerator = false },
+            onBack = {
+                generator.cancel()
+                showGenerator = false
+            },
             onApply = { theme ->
                 paletteJson = Json.encodeToString(TimetableThemePalette.from(theme.hexColors))
                 update(theme)
@@ -199,115 +177,80 @@ fun TimetableThemeEditor(
             )
         }
     ) { padding ->
-        Box(Modifier
-            .fillMaxSize()
-            .padding(padding), contentAlignment = Alignment.TopCenter) {
-            LazyColumn(
-                Modifier
-                    .widthIn(max = 680.dp)
-                    .fillMaxSize()
-                    .imePadding(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                state = listState
+        ThemeSettingsList(
+            padding = padding,
+            modifier = Modifier.imePadding(),
+            maxWidth = 680.dp,
+            state = listState,
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            item { ThemePreview(draft) }
+            item {
+                ThemeNameField(draft.name) { update(draft.copy(name = it)) }
+            }
+            item {
+                ThemeColorRow(
+                    stringResource(R.string.theme_text),
+                    draft.textColorHex
+                ) { target = "text" }
+            }
+            item {
+                ThemeSectionTitle(stringResource(R.string.theme_palette))
+                Text(
+                    stringResource(
+                        R.string.theme_palette_description,
+                        TimetableTheme.maximumColors
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            itemsIndexed(palette.colors, key = { _, color -> color.id }) { index, color ->
+                ThemePaletteRow(
+                    color = color,
+                    index = index,
+                    count = palette.colors.size,
+                    onEdit = { target = color.id },
+                    onMove = { offset -> updatePalette(palette.move(color.id, offset)) },
+                    onDelete = {
+                        updatePalette(palette.remove(color.id))
+                    },
+                    dragState = dragState,
+                    modifier = (if (dragState.draggedId == color.id) Modifier else Modifier.animateItem())
+                        .zIndex(if (dragState.draggedId == color.id) 1f else 0f)
+                        .graphicsLayer { translationY = dragState.translation(color.id) }
+                )
+            }
+            item {
+                OutlinedButton(
+                    onClick = { updatePalette(palette.add()) },
+                    enabled = palette.canAdd,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Add, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.theme_add_color))
+                }
+            }
+            item {
+                ThemeAdvancedColors(
+                    draft = draft,
+                    expanded = expanded,
+                    onToggle = { expanded = !expanded },
+                    update = ::update,
+                    onPick = { target = it }
+                )
+            }
+            item { ThemePhotoSection(onPick = { photoPicker.launch("image/*") }) }
+            if (generatorState.modelStatus != ThemeModelStatus.CHECKING &&
+                generatorState.modelStatus != ThemeModelStatus.UNAVAILABLE
             ) {
-                item { ThemePreview(draft) }
                 item {
-                    OutlinedTextField(
-                        draft.name,
-                        { update(draft.copy(name = it)) },
-                        Modifier.fillMaxWidth(),
-                        label = { Text(stringResource(R.string.theme_name)) },
-                        isError = draft.name.isBlank(),
-                        supportingText = {
-                            if (draft.name.isBlank()) Text(stringResource(R.string.theme_name_required))
-                        },
-                        singleLine = true
-                    )
-                }
-                item {
-                    ThemeColorRow(
-                        stringResource(R.string.theme_text),
-                        draft.textColorHex
-                    ) { target = "text" }
-                }
-                item {
-                    ThemeSectionTitle(stringResource(R.string.theme_palette))
-                    Text(
-                        stringResource(R.string.theme_palette_description, TimetableTheme.maximumColors),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                itemsIndexed(palette.colors, key = { _, color -> color.id }) { index, color ->
-                    ThemePaletteRow(
-                        color = color,
-                        index = index,
-                        count = palette.colors.size,
-                        onEdit = { target = color.id },
-                        onMove = { offset -> updatePalette(palette.move(color.id, offset)) },
-                        onDelete = {
-                            updatePalette(palette.remove(color.id))
-                        },
-                        dragState = dragState,
-                        modifier = (if (dragState.draggedId == color.id) Modifier else Modifier.animateItem())
-                            .zIndex(if (dragState.draggedId == color.id) 1f else 0f)
-                            .graphicsLayer { translationY = dragState.translation(color.id) }
-                    )
-                }
-                item {
-                    OutlinedButton(
-                        onClick = { updatePalette(palette.add()) },
-                        enabled = palette.canAdd,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Icon(Icons.Default.Add, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(stringResource(R.string.theme_add_color))
-                    }
-                }
-                item {
-                    ListItem(
-                        headlineContent = { Text(stringResource(R.string.theme_advanced)) },
-                        trailingContent = {
-                            Icon(
-                                if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                                null
-                            )
-                        },
-                        modifier = Modifier.clickable(role = Role.Button) { expanded = !expanded })
-                    AnimatedVisibility(expanded) {
-                        Column {
-                            OptionalThemeColor(
-                                stringResource(R.string.theme_separator),
-                                draft.separatorColorHex,
-                                MaterialTheme.colorScheme.outlineVariant,
-                                { update(draft.copy(separatorColorHex = it)) }) {
-                                target = "separator"
-                            }
-                            OptionalThemeColor(
-                                stringResource(R.string.theme_background),
-                                draft.backgroundColorHex,
-                                MaterialTheme.colorScheme.surface,
-                                { update(draft.copy(backgroundColorHex = it)) }) {
-                                target = "background"
-                            }
-                            OptionalThemeColor(
-                                stringResource(R.string.theme_labels),
-                                draft.gridLabelColorHex,
-                                draft.gridLabelColor ?: MaterialTheme.colorScheme.onSurface,
-                                { update(draft.copy(gridLabelColorHex = it)) }) {
-                                target = "labels"
-                            }
-                        }
-                    }
-                }
-                item { ThemePhotoSection(onPick = { photoPicker.launch("image/*") }) }
-                if (generatorState.modelStatus != ThemeModelStatus.CHECKING &&
-                    generatorState.modelStatus != ThemeModelStatus.UNAVAILABLE) {
-                    item {
-                        ThemeGenerationSection(onOpen = { showGenerator = true; generator.refreshAvailability() })
-                    }
+                    ThemeGenerationSection(onOpen = {
+                        showGenerator = true
+                        generator.refreshAvailability()
+                    })
                 }
             }
         }
@@ -353,41 +296,6 @@ fun TimetableThemeEditor(
             }
         )
     }
-}
-
-@Composable
-private fun ThemeColorRow(label: String, hex: String, onClick: () -> Unit) {
-    ListItem(
-        headlineContent = { Text(label) },
-        supportingContent = { Text(stringResource(R.string.theme_color_hex_value, hex)) },
-        trailingContent = {
-            Box(
-                Modifier
-                    .size(32.dp)
-                    .background(TimetableTheme.color(hex), CircleShape)
-            )
-        },
-        modifier = Modifier.clickable(onClick = onClick)
-    )
-}
-
-@Composable
-private fun OptionalThemeColor(
-    label: String,
-    hex: String?,
-    fallback: Color,
-    onChange: (String?) -> Unit,
-    onPick: () -> Unit,
-) {
-    ListItem(
-        headlineContent = { Text(label) },
-        trailingContent = { Switch(hex != null, onCheckedChange = null) },
-        modifier = Modifier.toggleable(
-            value = hex != null,
-            role = Role.Switch,
-            onValueChange = { onChange(if (it) fallback.hex() else null) })
-    )
-    if (hex != null) ThemeColorRow(stringResource(R.string.theme_change_color), hex, onPick)
 }
 
 @Preview(showBackground = true)
