@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.domain.helpers
 
+import kotlinx.coroutines.CancellationException
 import org.sparcs.soap.app.domain.error.NetworkError
 import retrofit2.HttpException
 import java.net.ConnectException
@@ -9,6 +10,7 @@ import java.net.UnknownHostException
 object NetworkErrorMapper {
     fun map(throwable: Throwable): NetworkError {
         return when (throwable) {
+            is CancellationException -> throw throwable
             is NetworkError -> throwable
 
             is UnknownHostException,
