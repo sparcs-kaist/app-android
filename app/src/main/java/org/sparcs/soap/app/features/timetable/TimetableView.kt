@@ -24,10 +24,12 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -58,6 +60,7 @@ import org.sparcs.soap.app.features.timetable.components.LectureList
 import org.sparcs.soap.app.features.timetable.components.TimetableAddButton
 import org.sparcs.soap.app.features.timetable.components.TimetableCreditGraph
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
+import org.sparcs.soap.app.features.timetable.components.TimetableOfflineStatus
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
 import org.sparcs.soap.app.features.timetable.components.TimetableViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -67,12 +70,15 @@ import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("ConfigurationScreenWidthHeight")
 @Composable
 fun TimetableView(
     viewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     navController: NavController,
 ) {
+    TimetableLifecycleEffect(viewModel)
+    val loadState by viewModel.loadState.collectAsState()
     val scrollState = rememberScrollState()
     var lectureToDelete by remember { mutableStateOf<Lecture?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -116,7 +122,9 @@ fun TimetableView(
             },
             modifier = Modifier.analyticsScreen("Timetable")
         ) { innerPadding ->
-            Box(
+            PullToRefreshBox(
+                isRefreshing = loadState.isRefreshing,
+                onRefresh = viewModel::fetchData,
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
@@ -210,6 +218,7 @@ private fun TimetableLandscapeLayout(
     onActivityClick: () -> Unit,
     isEditable: Boolean,
 ) {
+    val loadState by viewModel.loadState.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -237,6 +246,10 @@ private fun TimetableLandscapeLayout(
                     enabled = isEditable, onAddClass = onAddClick, onAddActivity = onActivityClick
                 )
             }
+        }
+
+        if (loadState.isOffline) {
+            TimetableOfflineStatus(loadState, Modifier.padding(horizontal = 24.dp))
         }
 
         BoxWithConstraints(
@@ -339,6 +352,7 @@ private fun TimetablePortraitLayout(
     onDeleteClick: (Lecture) -> Unit,
     scrollState: ScrollState,
 ) {
+    val loadState by viewModel.loadState.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -354,6 +368,10 @@ private fun TimetablePortraitLayout(
             modifier = Modifier.fillMaxWidth(),
             isWide = true
         )
+
+        if (loadState.isOffline) {
+            TimetableOfflineStatus(loadState)
+        }
 
         Card(
             modifier = Modifier

@@ -2,6 +2,14 @@ package org.sparcs.soap.lectureDetailTests
 
 import androidx.lifecycle.SavedStateHandle
 import com.google.gson.Gson
+import kotlinx.coroutines.CancellationException
+import org.sparcs.soap.app.domain.error.NetworkError
+import org.sparcs.soap.app.domain.helpers.NetworkErrorMapper
+import org.sparcs.soap.app.shared.viewModels.TextProcessingDelegate
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -51,6 +59,18 @@ class LectureDetailViewModelTest {
             userUseCase = mockUserUseCase,
             crashlyticsService = MockCrashlyticsService(),
             analyticsService = MockAnalyticsService(),
+            textProcessingDelegate = TextProcessingDelegate(
+                object : PostTranslationUseCaseProtocol {
+                    override fun availableLanguages() = emptyList<String>()
+                    override fun suggestedLanguages() = emptyList<String>()
+                    override fun deviceLanguage() = "en"
+                    override suspend fun translate(text: String, targetLanguage: String, isHtml: Boolean, allowDownload: Boolean) = PostTranslationResult.Unsupported
+                },
+                object : SummarizationUseCaseProtocol {
+                    override suspend fun isAvailable() = false
+                    override suspend fun summarise(text: String, isHtml: Boolean) = SummarizationResultState.Unavailable
+                },
+            ),
             savedStateHandle = savedStateHandle,
         )
     }
@@ -86,4 +106,28 @@ class LectureDetailViewModelTest {
         assertEquals(4, updated.like)
         assertEquals(1, mockReviewUseCase.likeReviewCallCount)
     }
+    @Test fun offlineReviewFailureIsHandledAndRetrySucceeds() = runTest {
+        val error = NetworkError.NoConnection()
+        mockReviewUseCase.fetchReviewsResult = Result.failure(error)
+        createViewModel()
+        assertEquals(error, (viewModel.state.value as LectureDetailViewModel.ViewState.Error).error)
+        assertEquals(false, viewModel.canWriteReview.value)
+        mockReviewUseCase.fetchReviewsResult = Result.success(LectureReviewPage.mock())
+        viewModel.fetchReviews(Lecture.mock())
+        assertEquals(LectureDetailViewModel.ViewState.Loaded, viewModel.state.value)
+    }
+
+    @Test fun writtenReviewFailureIsHandled() = runTest {
+        val error = NetworkError.NoConnection()
+        mockReviewUseCase.writtenReviewsResult = Result.failure(error)
+        createViewModel()
+        assertEquals(error, (viewModel.state.value as LectureDetailViewModel.ViewState.Error).error)
+    }
+
+    @Test fun cancellationIsNotMappedToNetworkFailure() {
+        val cancellation = CancellationException("Screen closed")
+        val result = runCatching { NetworkErrorMapper.map(cancellation) }
+        assertTrue(result.exceptionOrNull() === cancellation)
+    }
+
 }

@@ -41,6 +41,7 @@ internal fun ActivityDetailsDialog(
     onEdit: (TimetableActivity) -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val loadState by viewModel.loadState.collectAsState()
     val timetable by viewModel.selectedTimetable.collectAsState()
     var deleting by remember { mutableStateOf(false) }
     var refreshing by rememberSaveable { mutableStateOf(false) }
@@ -64,17 +65,13 @@ internal fun ActivityDetailsDialog(
         containerColor = MaterialTheme.colorScheme.background,
         confirmButton = {
             if (deleting) CircularProgressIndicator()
-            else if (showActions || refreshing) TextButton(onClick = {
+            else if ((showActions && !loadState.isReadOnly) || refreshing) TextButton(onClick = {
                 val tableID = timetable?.id?.toIntOrNull() ?: return@TextButton
-                val useCase = viewModel.timetableUseCase
                 scope.launch {
                     deleting = true
                     try {
-                        val fresh = if (refreshing) useCase.getTable(
-                            tableID,
-                            true
-                        ) else useCase.deleteActivity(tableID, activity.id)
-                        viewModel.activityTableUpdated(fresh)
+                        if (refreshing) viewModel.refreshActivityTable(tableID)
+                        else viewModel.deleteActivity(tableID, activity.id)
                         refreshing = false
                         failed = false
                         onDismiss()
@@ -91,7 +88,7 @@ internal fun ActivityDetailsDialog(
             else TextButton(onClick = onDismiss) { Text(stringResource(R.string.activity_close)) }
         },
         dismissButton = {
-            if (showActions && !refreshing) TextButton(
+            if (showActions && !refreshing && !loadState.isReadOnly) TextButton(
                 enabled = !deleting,
                 onClick = { onDismiss(); onEdit(activity) }) {
                 Text(stringResource(R.string.activity_edit))

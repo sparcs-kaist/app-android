@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -36,10 +37,11 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -57,22 +59,25 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import androidx.work.Constraints
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
-import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
-import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
@@ -80,23 +85,17 @@ import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.components.WidgetPaletteRow
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.work.Constraints
-import androidx.work.ExistingWorkPolicy
-import androidx.work.NetworkType
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import timber.log.Timber
 import javax.inject.Inject
+import org.sparcs.soap.widgets.TimetableWidget as TimetableWidgetQualifier
 
 @AndroidEntryPoint
 class TimetableWidgetConfigActivity : ComponentActivity() {
 
-    @Inject
-    lateinit var timetableUseCase: TimetableUseCaseProtocol
+    private val viewModel: TimetableWidgetConfigViewModel by viewModels()
 
     @Inject
-    @org.sparcs.soap.widgets.TimetableWidget
+    @TimetableWidgetQualifier
     lateinit var syncManager: TimetableWidgetSyncManager
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -120,11 +119,12 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             Theme {
                 var selectedTheme by remember { mutableStateOf("System") }
                 var transparency by remember { mutableFloatStateOf(1f) }
-                var selectedTimetableId by remember { mutableIntStateOf(-1) }
-                var timetableList by remember { mutableStateOf<List<TimetableSummary>>(emptyList()) }
-                var semesters by remember { mutableStateOf<List<Semester>>(emptyList()) }
-                var selectedSemester by remember { mutableStateOf<Semester?>(null) }
-                var selectedTimetable by remember { mutableStateOf<Timetable?>(null) }
+                val state by viewModel.state.collectAsState()
+                val selectedTimetableId = state.selectedTimetableId
+                val timetableList = state.timetableList
+                val semesters = state.semesters
+                val selectedSemester = state.selectedSemester
+                val selectedTimetable = state.selectedTimetable
                 val themeState = remember { TimetableThemeStore(this@TimetableWidgetConfigActivity).state }
                 var timetableThemeID by remember { mutableStateOf(themeState.selectedID) }
 
@@ -136,6 +136,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                         null
                     }
 
+                    var savedTimetableId = -1
                     var savedSemesterYear = -1
                     var savedSemesterTypeInt = -1
 
@@ -146,7 +147,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                         )
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
-                        selectedTimetableId =
+                        savedTimetableId =
                             prefs[intPreferencesKey("selected_timetable_id")] ?: -1
                         savedSemesterYear = prefs[intPreferencesKey("selected_semester_year")] ?: -1
                         savedSemesterTypeInt =
@@ -154,53 +155,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                         timetableThemeID = themeState.theme(prefs[WIDGET_THEME_ID]).id
                     }
 
-                    try {
-                        semesters = timetableUseCase.getSemesters().sortedDescending()
-                        val current = timetableUseCase.getCurrentSemester()
-                        if (savedSemesterYear != -1 && savedSemesterTypeInt != -1) {
-                            val savedType = SemesterType.fromRawValue(savedSemesterTypeInt)
-                            selectedSemester =
-                                semesters.find { it.year == savedSemesterYear && it.semesterType == savedType }
-                                    ?: current
-                        } else {
-                            selectedSemester = current
-                        }
-                    } catch (e: Exception) {
-                        Timber.e(e, "Failed to load semesters")
-                    }
-                }
-
-                LaunchedEffect(selectedSemester) {
-                    selectedSemester?.let {
-                        try {
-                            timetableList = timetableUseCase.getTimetableList(it)
-                            if (selectedTimetableId != -1 && timetableList.none { t -> t.id == selectedTimetableId }) {
-                                selectedTimetableId = -1
-                            }
-                        } catch (e: Exception) {
-                            Timber.e(e, "Failed to load timetable list for semester")
-                            timetableList = emptyList()
-                            selectedTimetableId = -1
-                        }
-                    }
-                }
-
-                LaunchedEffect(selectedTimetableId, selectedSemester) {
-                    selectedSemester?.let {
-                        try {
-                            selectedTimetable = if (selectedTimetableId == -1) {
-                                timetableUseCase.getMyTable(it)
-                            } else {
-                                timetableUseCase.getTable(selectedTimetableId)
-                            }
-                        } catch (e: Exception) {
-                            selectedTimetable = null
-                            Timber.e(
-                                e,
-                                "Failed to load selected timetable with id $selectedTimetableId"
-                            )
-                        }
-                    }
+                    viewModel.initialize(savedTimetableId, savedSemesterYear, savedSemesterTypeInt)
                 }
 
                 Scaffold(
@@ -239,14 +194,12 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                     modifier = Modifier.padding(8.dp)
                                 )
 
-                                WidgetSemesterRow(selectedSemester, semesters) {
-                                    selectedSemester = it
-                                }
+                                WidgetSemesterRow(selectedSemester, semesters, viewModel::selectSemester)
 
                                 WidgetTimetableRow(
                                     selectedTimetableId,
                                     timetableList
-                                ) { selectedTimetableId = it }
+                                ) { viewModel.selectTimetable(it) }
 
                                 Text(
                                     text = stringResource(R.string.widget_miscellaneous),
@@ -359,7 +312,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             stringResource(R.string.main_timetable)
         } else {
             timetableList.find { it.id == selectedTimetableId }?.title
-                ?: stringResource(R.string.main_timetable)
+                ?: stringResource(R.string.timetable_number, selectedTimetableId)
         }
 
         Row(
@@ -578,13 +531,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                     }
 
                     try {
-                        val timetable = if (selectedTimetableId == -1) {
-                            timetableUseCase.getMyTable(
-                                selectedSemester ?: timetableUseCase.getCurrentSemester()
-                            )
-                        } else {
-                            timetableUseCase.getTable(selectedTimetableId)
-                        }
+                        val timetable = viewModel.loadTimetableForWidget(selectedTimetableId, selectedSemester)
                         syncManager.sync(timetable, glanceId)
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to sync timetable data for widget with id $appWidgetId")

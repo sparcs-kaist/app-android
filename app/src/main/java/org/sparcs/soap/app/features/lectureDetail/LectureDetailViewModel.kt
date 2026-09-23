@@ -8,7 +8,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -108,6 +110,8 @@ class LectureDetailViewModel @Inject constructor(
                 val initialLecture = Gson().fromJson(json, Lecture::class.java)
                 fetchCourse(initialLecture.courseID)
                 fetchReviews(initialLecture)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _state.value = ViewState.Error(e)
             }
@@ -121,6 +125,8 @@ class LectureDetailViewModel @Inject constructor(
             try {
                 _course.value = courseUseCase.getCourse(courseID = courseID)
                 analyticsService.logEvent(LectureDetailViewEvent.CourseLoaded)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 crashlyticsService.recordException(e)
                 _state.value = ViewState.Error(e)
@@ -132,36 +138,41 @@ class LectureDetailViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _state.value = ViewState.Loading
+                _canWriteReview.value = false
 
                 ensureUserLoaded()
 
-                val currentUserId = userUseCase.otlUser?.id
+                coroutineScope {
+                    val currentUserId = userUseCase.otlUser?.id
 
-                val allReviewsDef = async {
-                    reviewUseCase.fetchReviews(
-                        lecture.courseID,
-                        lecture.professors.firstOrNull()?.id,
-                        0,
-                        100
-                    )
+                    val allReviewsDef = async {
+                        reviewUseCase.fetchReviews(
+                            lecture.courseID,
+                            lecture.professors.firstOrNull()?.id,
+                            0,
+                            100
+                        )
+                    }
+                    val myWrittenReviewsDef = async { reviewUseCase.getWrittenReviews() }
+                    val currentSemesterDef = async { timetableUseCase.getCurrentSemester() }
+
+                    val historyDef = async {
+                        if (currentUserId != null) reviewUseCase.fetchLectureHistory(currentUserId) else null
+                    }
+
+                    val allReviews = allReviewsDef.await().reviews
+                    val myTotalReviews = myWrittenReviewsDef.await()
+                    val currentSemester = currentSemesterDef.await()
+                    val historyList = historyDef.await()
+
+                    splitMyReviewFromOthers(allReviews, myTotalReviews, lecture.courseID)
+                    updateWritingPermission(lecture, historyList, currentSemester)
                 }
-                val myWrittenReviewsDef = async { reviewUseCase.getWrittenReviews() }
-                val currentSemesterDef = async { timetableUseCase.getCurrentSemester() }
-
-                val historyDef = async {
-                    if (currentUserId != null) reviewUseCase.fetchLectureHistory(currentUserId) else null
-                }
-
-                val allReviews = allReviewsDef.await().reviews
-                val myTotalReviews = myWrittenReviewsDef.await()
-                val currentSemester = currentSemesterDef.await()
-                val historyList = historyDef.await()
-
-                splitMyReviewFromOthers(allReviews, myTotalReviews, lecture.courseID)
-                updateWritingPermission(lecture, historyList, currentSemester)
 
                 _state.value = ViewState.Loaded
                 analyticsService.logEvent(LectureDetailViewEvent.ReviewsLoaded)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 crashlyticsService.recordException(e)
                 _state.value = ViewState.Error(e)
@@ -173,6 +184,8 @@ class LectureDetailViewModel @Inject constructor(
         if (userUseCase.otlUser == null) {
             try {
                 userUseCase.fetchOTLUser()
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "User fetch failed")
             }
@@ -261,6 +274,8 @@ class LectureDetailViewModel @Inject constructor(
             try {
                 reviewUseCase.likeReview(review.id, !isCurrentlyLiked)
                 analyticsService.logEvent(LectureDetailViewEvent.ReviewLiked)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _reviews.value = currentReviews
                 crashlyticsService.recordException(e)
