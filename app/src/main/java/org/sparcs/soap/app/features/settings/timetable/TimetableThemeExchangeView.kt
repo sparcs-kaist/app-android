@@ -7,7 +7,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -50,7 +48,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -209,7 +206,6 @@ private fun ThemeShareCardView(
     val cardBgColor = theme.backgroundColor ?: MaterialTheme.colorScheme.surface
     val isDark = isColorDark(cardBgColor)
 
-    val subtitleColor = if (isDark) Color(0xFF94A3B8) else Color(0xFF64748B)
     val titleColor = if (isDark) Color.White else Color(0xFF0F172A)
     val codeBgColor = if (isDark) Color.White.copy(alpha = 0.15f) else Color(0xFF0F172A).copy(alpha = 0.08f)
     val codeTextColor = if (isDark) Color.White else Color(0xFF0F172A)
@@ -236,32 +232,13 @@ private fun ThemeShareCardView(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_buddy_icon),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(18.dp)
-                                .clip(CircleShape)
-                        )
-                        Text(
-                            text = "BUDDY TIMETABLE THEME",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = subtitleColor,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                    Text(
-                        text = theme.displayName(),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = titleColor,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+                Text(
+                    text = theme.displayName(),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = titleColor,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f).padding(end = 12.dp)
+                )
                 if (code != null) {
                     Text(
                         text = code,
@@ -276,6 +253,26 @@ private fun ThemeShareCardView(
                 }
             }
             ThemePreview(theme = theme)
+            Row(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(vertical = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.buddy_icon_flat),
+                    contentDescription = null,
+                    tint = titleColor,
+                    modifier = Modifier.size(18.dp)
+                )
+                Text(
+                    text = "Buddy",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = titleColor
+                )
+            }
         }
     }
 }
