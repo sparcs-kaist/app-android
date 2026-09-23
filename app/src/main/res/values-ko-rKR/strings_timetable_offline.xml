@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="timetable_offline">오프라인</string>
+    <string name="timetable_download_required">시간표를 내려받으려면 인터넷에 연결해 주세요.</string>
+    <string name="timetable_unavailable_offline">아직 저장되지 않은 시간표예요. 인터넷에 연결해 내려받아 주세요.</string>
+    <string name="timetable_last_updated">마지막 업데이트: %1$s</string>
+    <string name="timetable_number">시간표 %1$d</string>
+</resources>

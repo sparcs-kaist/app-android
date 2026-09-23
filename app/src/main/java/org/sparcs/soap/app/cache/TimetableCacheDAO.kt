@@ -14,4 +14,10 @@ interface TimetableCacheDAO {
 
     @Query("DELETE FROM cached_timetables WHERE cacheKey = :key")
     suspend fun invalidate(key: String)
+
+    @Query("SELECT * FROM cached_timetables WHERE cacheKey LIKE '%-summaries'")
+    suspend fun getSummaries(): List<CachedTimetable>
+
+    @Query("DELETE FROM cached_timetables")
+    suspend fun clear()
 }

@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.domain.usecases.otl
 
+import kotlinx.coroutines.CancellationException
 import org.sparcs.soap.app.domain.error.CrashContext
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.error.otl.CourseUseCaseError
@@ -51,6 +52,8 @@ class CourseUseCase @Inject constructor(
     ): T {
         return try {
             operation()
+        } catch (e: CancellationException) {
+            throw e
         } catch (networkError: NetworkError) {
             crashlyticsService?.record(networkError as Throwable, context)
             throw networkError

@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.app.ChannelManager
+import org.sparcs.soap.app.cache.TimetableCache
 import org.sparcs.soap.app.domain.error.auth.AuthUseCaseError
 import org.sparcs.soap.app.domain.error.auth.AuthenticationServiceError
 import org.sparcs.soap.app.domain.helpers.TokenRefreshCoordinator
@@ -63,17 +64,21 @@ class AuthUseCase @Inject constructor(
     private val feedUserRepository: FeedUserRepositoryProtocol,
     private val otlUserRepository: OTLUserRepositoryProtocol,
     private val fcmUseCase: FCMUseCaseProtocol,
-    private val widgetSyncHelper: WidgetSyncHelper
+    private val widgetSyncHelper: WidgetSyncHelper,
+    private val timetableCache: TimetableCache,
 ) : AuthUseCaseProtocol {
 
-    private val _isAuthenticated = MutableStateFlow(tokenStorage.getRefreshToken() != null)
+    private val _isAuthenticated = MutableStateFlow(tokenStorage.hasStoredRefreshToken())
     override val isAuthenticatedFlow: Flow<Boolean> = _isAuthenticated.asStateFlow()
+
+    private val sessionLock = Any()
+    private var sessionRevision = 0L
 
     private var scheduledRefreshJob: Job? = null
 
     // Cooldown: skip refresh attempts for 10s after a failure
     private var lastRefreshFailure: Long = 0
-    private var lastRefreshSuccess: Long = 0
+    private var lastRefreshError: Exception? = null
     private val refreshCooldownMillis = TimeUnit.SECONDS.toMillis(10)
     private val minRefreshIntervalMillis = TimeUnit.MINUTES.toMillis(5)
 
@@ -84,7 +89,7 @@ class AuthUseCase @Inject constructor(
 
     init {
         val hasAccess = tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()
-        val hasRefresh = tokenStorage.getRefreshToken() != null
+        val hasRefresh = tokenStorage.hasStoredRefreshToken()
 
         _isAuthenticated.value = hasAccess || hasRefresh
 
@@ -103,11 +108,11 @@ class AuthUseCase @Inject constructor(
             ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
                 override fun onStart(owner: LifecycleOwner) {
                     coroutineScope.launch {
-                        if (_isAuthenticated.value) {
-                            try {
-                                refreshAccessToken(force = false)
-                            } catch (_: Exception) { /* ignore */ }
-                        }
+                        try {
+                            refreshAccessToken(force = false)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (_: Exception) { /* ignore */ }
                     }
                 }
             })
@@ -125,7 +130,7 @@ class AuthUseCase @Inject constructor(
         scheduledRefreshJob = coroutineScope.launch {
             delay(delayMillis)
             try {
-                refreshAccessToken(force = true)
+                refreshAccessToken(force = false)
             } catch (e: Exception) {
                 Timber.e(e, "Scheduled token refresh failed")
             }
@@ -153,16 +158,10 @@ class AuthUseCase @Inject constructor(
     }
 
     override suspend fun getValidAccessToken(): String {
-        return try {
-            if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
-                refreshAccessToken()
-            }
-            tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (_: Exception) {
-            throw AuthUseCaseError.NoAccessToken()
+        if (tokenStorage.getAccessToken() == null || tokenStorage.isTokenExpired()) {
+            refreshAccessToken()
         }
+        return tokenStorage.getAccessToken() ?: throw AuthUseCaseError.NoAccessToken()
     }
 
     override suspend fun refreshAccessToken(force: Boolean) {
@@ -172,26 +171,23 @@ class AuthUseCase @Inject constructor(
     }
 
     private suspend fun performTokenRefresh(force: Boolean) {
+        val revision = synchronized(sessionLock) { sessionRevision }
         val now = System.currentTimeMillis()
-        if (!force && !tokenStorage.isTokenExpired() && now - lastRefreshSuccess < minRefreshIntervalMillis) {
-            scheduleRefreshToken()
-            return
+        synchronized(sessionLock) {
+            if (sessionRevision != revision) throw CancellationException("Authentication session changed")
+            if (!force && tokenStorage.getAccessToken() != null && !tokenStorage.isTokenExpired()) {
+                _isAuthenticated.value = true
+                scheduleRefreshToken()
+                return
+            }
         }
-
         if (now - lastRefreshFailure < refreshCooldownMillis) {
-            throw AuthUseCaseError.RefreshFailed(Exception("Refresh on cooldown"))
+            throw AuthUseCaseError.RefreshFailed(lastRefreshError ?: Exception("Refresh on cooldown"))
         }
 
-        val accessToken = tokenStorage.getAccessToken()
-        if (accessToken != null && !tokenStorage.isTokenExpired() && !force) {
-            Timber.d("[AuthUseCase] Still valid. No refresh needed.")
-            scheduleRefreshToken()
-            return
-        }
-
-        val currentRefreshToken = tokenStorage.getRefreshToken() ?: run {
-            signOut()
-            throw AuthUseCaseError.RefreshFailed(Exception("No refresh token available"))
+        val currentRefreshToken = tokenStorage.readRefreshToken() ?: run {
+            clearSession(revision)
+            throw AuthUseCaseError.NoAccessToken()
         }
 
         val tokenResponse = try {
@@ -200,16 +196,20 @@ class AuthUseCase @Inject constructor(
             throw e
         } catch (e: Exception) {
             lastRefreshFailure = System.currentTimeMillis()
+            lastRefreshError = e
             if (isRefreshTokenRejected(httpStatusCode(e))) {
-                signOut()
+                clearSession(revision)
             }
             throw e
         }
 
-        tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
-        _isAuthenticated.value = true
+        synchronized(sessionLock) {
+            if (sessionRevision != revision) throw CancellationException("Authentication session changed")
+            tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
+            _isAuthenticated.value = true
+        }
         lastRefreshFailure = 0
-        lastRefreshSuccess = System.currentTimeMillis()
+        lastRefreshError = null
         scheduleRefreshToken()
 
         coroutineScope.launch {
@@ -225,11 +225,15 @@ class AuthUseCase @Inject constructor(
     }
 
     override suspend fun signIn(activity: Activity) {
+        val revision = synchronized(sessionLock) { ++sessionRevision }
         try {
             val tokenResponse =
                 (authenticationService as AuthenticationService).authenticate(activity as ComponentActivity)
             withContext(Dispatchers.IO + NonCancellable) {
-                tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
+                synchronized(sessionLock) {
+                    if (sessionRevision != revision) throw CancellationException("Authentication session changed")
+                    tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
+                }
 
                 // MARK - Sign up Ara
                 val userInfo: AraSignInResponseDTO =
@@ -248,14 +252,17 @@ class AuthUseCase @Inject constructor(
 
                 syncFcmTokenIfAuthenticated()
 
+                synchronized(sessionLock) {
+                    if (sessionRevision != revision) throw CancellationException("Authentication session changed")
+                    _isAuthenticated.value = true
+                    scheduleRefreshToken()
+                }
                 widgetSyncHelper.refreshAllWidgets()
-                _isAuthenticated.value = true
-                scheduleRefreshToken()
             }
         } catch (e: Exception) {
-            tokenStorage.clearTokens()
-            _isAuthenticated.value = false
+            clearSession(revision)
             cancelRefreshToken()
+            if (e is CancellationException) throw e
             throw AuthUseCaseError.SignInFailed(e)
         }
     }
@@ -279,13 +286,20 @@ class AuthUseCase @Inject constructor(
         return null
     }
 
-    override suspend fun signOut() {
+    override suspend fun signOut() = clearSession()
+
+    private suspend fun clearSession(expectedRevision: Long? = null) {
         withContext(Dispatchers.IO + NonCancellable) {
+            synchronized(sessionLock) {
+                if (expectedRevision != null && sessionRevision != expectedRevision) return@withContext
+                sessionRevision++
+                tokenStorage.clearTokens()
+                _isAuthenticated.value = false
+            }
             ChannelManager.clearIdentity()
-            tokenStorage.clearTokens()
+            timetableCache.clear()
             scheduledRefreshJob?.cancel()
             widgetSyncHelper.clearAllWidgets()
-            _isAuthenticated.value = false
         }
     }
 }
