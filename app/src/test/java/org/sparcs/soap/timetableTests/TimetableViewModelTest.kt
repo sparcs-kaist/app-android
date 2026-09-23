@@ -21,6 +21,8 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
+import org.sparcs.soap.app.domain.models.otl.ActivityDraft
+import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
@@ -71,14 +73,13 @@ class TimetableViewModelTest {
     }
 
     @Test
-    fun `fetchData failure shows alert`() = runTest {
+    fun `fetchData failure shows inline status`() = runTest {
         mockTimetableUseCase.getSemestersResult = Result.failure(Exception("Test failure"))
 
         createViewModel()
 
-        assertTrue(viewModel.showAlert)
-        assertNotNull(viewModel.alertMessageRes)
-        assertNull(viewModel.selectedTimetable.value)
+        assertFalse(viewModel.showAlert)
+        assertTrue(viewModel.loadState.value.refreshFailed)
         assertFalse(viewModel.isLoading.value)
     }
 
@@ -248,7 +249,8 @@ class TimetableViewModelTest {
 
         createViewModel()
 
-        assertTrue(viewModel.showAlert)
+        assertFalse(viewModel.showAlert)
+        assertTrue(viewModel.loadState.value.isReadOnly)
         assertEquals(semesters[1], viewModel.selectedSemester.value)
         assertEquals(5, viewModel.selectedTimetableID.value)
         assertEquals(5, TimetableSelectionStore(context).selection?.timetableID)
@@ -280,7 +282,7 @@ class TimetableViewModelTest {
 
         assertEquals(TimetableSelectionStore.Selection(semesters[1].id, null), TimetableSelectionStore(context).selection)
         assertNull(viewModel.selectedTimetableID.value)
-        assertNull(viewModel.selectedTimetable.value)
+        assertEquals("my", viewModel.selectedTimetable.value?.id)
     }
 
     @Test
@@ -327,7 +329,7 @@ class TimetableViewModelTest {
         val delayedList = CompletableDeferred<List<TimetableSummary>>()
         var delayRefresh = false
         val api = object : TimetableUseCaseProtocol by mockTimetableUseCase {
-            override suspend fun getTimetableList(semester: Semester): List<TimetableSummary> =
+            override suspend fun refreshTimetableList(semester: Semester): List<TimetableSummary> =
                 if (delayRefresh) delayedList.await() else mockTimetableUseCase.getTimetableList(semester)
         }
         createViewModel(api)
@@ -352,6 +354,32 @@ class TimetableViewModelTest {
 
         assertEquals(semesters.last(), viewModel.selectedSemester.value)
         assertNull(viewModel.selectedTimetableID.value)
+    }
+
+    @Test
+    fun `activity save and deletion update selected table through view model`() = runTest {
+        configureSelection()
+        createViewModel()
+        viewModel.selectTimetable(5)
+        val saved = Timetable("5", emptyList(), listOf(TimetableActivity(1, "Study", "", 0, 600, 660)))
+        mockTimetableUseCase.getTableResult = Result.success(saved)
+        assertEquals(saved, viewModel.saveActivity(5, null, ActivityDraft("Study")))
+        assertEquals(saved, viewModel.selectedTimetable.value)
+        val deleted = Timetable("5", emptyList())
+        mockTimetableUseCase.getTableResult = Result.success(deleted)
+        assertEquals(deleted, viewModel.deleteActivity(5, 1))
+        assertEquals(deleted, viewModel.selectedTimetable.value)
+    }
+
+    @Test
+    fun `refreshing another activity table does not replace current selection`() = runTest {
+        configureSelection()
+        createViewModel()
+        viewModel.selectTimetable(5)
+        val other = Timetable("44", emptyList())
+        mockTimetableUseCase.getTableResult = Result.success(other)
+        assertEquals(other, viewModel.refreshActivityTable(44))
+        assertEquals("5", viewModel.selectedTimetable.value?.id)
     }
 
 }
