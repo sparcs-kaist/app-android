@@ -8,6 +8,7 @@ import android.util.Base64
 import com.google.gson.Gson
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
+import java.io.IOException
 import java.nio.charset.Charset
 import java.security.KeyStore
 import java.util.Date
@@ -20,6 +21,8 @@ import javax.inject.Inject
 interface TokenStorageProtocol {
     fun save(accessToken: String, refreshToken: String)
     fun getAccessToken(): String?
+    fun readRefreshToken(): String? = getRefreshToken()
+    fun hasStoredRefreshToken(): Boolean = getRefreshToken() != null
     fun getRefreshToken(): String?
     fun isTokenExpired(): Boolean
     fun getTokenExpirationDate(): Date?
@@ -86,41 +89,46 @@ class TokenStorage @Inject constructor(
         return Base64.encodeToString(combined, Base64.NO_WRAP)
     }
 
-    private fun decrypt(cipherText: String): String? {
-        return try {
-            val combined = Base64.decode(cipherText, Base64.NO_WRAP)
-            val iv = combined.sliceArray(0 until 12)
-            val encrypted = combined.sliceArray(12 until combined.size)
-            val cipher = Cipher.getInstance(AES_MODE)
-            cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), GCMParameterSpec(128, iv))
-            String(cipher.doFinal(encrypted), charset)
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to decrypt token")
-            null
-        }
+    private fun decrypt(cipherText: String): String {
+        val combined = Base64.decode(cipherText, Base64.NO_WRAP)
+        require(combined.size >= 28)
+        val iv = combined.sliceArray(0 until 12)
+        val encrypted = combined.sliceArray(12 until combined.size)
+        val cipher = Cipher.getInstance(AES_MODE)
+        cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), GCMParameterSpec(128, iv))
+        return String(cipher.doFinal(encrypted), charset)
     }
 
     override fun save(accessToken: String, refreshToken: String) {
         val expiration = extractExpirationDate(accessToken)?.time ?: 0L
         val a = encrypt(accessToken)
         val r = encrypt(refreshToken)
-        prefs.edit().apply {
-            putString(ACCESS_TOKEN_KEY, a)
-            putString(REFRESH_TOKEN_KEY, r)
-            putLong(TOKEN_EXPIRATION_KEY, expiration)
-            apply()
-        }
+        val saved = prefs.edit()
+            .putString(ACCESS_TOKEN_KEY, a)
+            .putString(REFRESH_TOKEN_KEY, r)
+            .putLong(TOKEN_EXPIRATION_KEY, expiration)
+            .commit()
+        if (!saved) throw IOException("Unable to persist tokens")
     }
 
-    override fun getAccessToken(): String? {
-        val encrypted = prefs.getString(ACCESS_TOKEN_KEY, null) ?: return null
-        return decrypt(encrypted)
+    override fun getAccessToken(): String? = try {
+        prefs.getString(ACCESS_TOKEN_KEY, null)?.let { decrypt(it) }
+    } catch (e: Exception) {
+        Timber.e(e, "Failed to read access token")
+        null
     }
 
-    override fun getRefreshToken(): String? {
-        val encrypted = prefs.getString(REFRESH_TOKEN_KEY, null) ?: return null
-        return decrypt(encrypted)
+    override fun getRefreshToken(): String? = try {
+        readRefreshToken()
+    } catch (e: Exception) {
+        Timber.e(e, "Failed to read refresh token")
+        null
     }
+
+    override fun readRefreshToken(): String? =
+        prefs.getString(REFRESH_TOKEN_KEY, null)?.let { decrypt(it) }
+
+    override fun hasStoredRefreshToken(): Boolean = prefs.contains(REFRESH_TOKEN_KEY)
 
     override fun isTokenExpired(): Boolean {
         val expiration = prefs.getLong(TOKEN_EXPIRATION_KEY, 0L)

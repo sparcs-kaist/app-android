@@ -3,6 +3,7 @@ package org.sparcs.soap.timetableTests
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Assert.assertSame
 import org.junit.Test
 import org.sparcs.soap.app.cache.CachedTimetable
@@ -11,10 +12,12 @@ import org.sparcs.soap.app.cache.TimetableCacheDAO
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.models.otl.ActivityDraft
+import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
+import org.sparcs.soap.app.shared.mocks.otl.mockList
 
 class BackgroundTimetableTest {
     private val repository = TestRepository()
@@ -47,6 +50,19 @@ class BackgroundTimetableTest {
     }
 
     @Test
+    fun currentWidgetWorksWhenSemesterLookupIsOffline() = runTest {
+        cache.storeCurrentMyTable(timetable, Semester.mockList().first())
+        assertEquals(timetable, useCase.getCurrentMyTable())
+    }
+
+    @Test
+    fun authorizationFailureDoesNotReuseCurrentWidgetCache() = runTest {
+        cache.storeCurrentMyTable(timetable, Semester.mockList().first())
+        repository.failure = NetworkError.Unauthorized()
+        assertTrue(runCatching { useCase.getCurrentMyTable() }.exceptionOrNull() is NetworkError.Unauthorized)
+    }
+
+    @Test
     fun cancellationPropagatesEvenWhenCacheExists() = runTest {
         cache.store(timetable, timetable.id)
         val cancellation = CancellationException("Widget update cancelled")
@@ -54,10 +70,14 @@ class BackgroundTimetableTest {
 
         val result = runCatching { useCase.getMyTable(2026, SemesterType.AUTUMN) }
 
-        assertSame(cancellation, result.exceptionOrNull())
+        assertTrue(result.exceptionOrNull() is CancellationException)
+        assertEquals(cancellation.message, result.exceptionOrNull()?.message)
     }
 
     private class MemoryTimetableCacheDAO : TimetableCacheDAO {
+        override suspend fun getSummaries(): List<CachedTimetable> = emptyList()
+        override suspend fun clear() {}
+
         private val entries = mutableMapOf<String, CachedTimetable>()
 
         override suspend fun getTimetable(key: String): CachedTimetable? = entries[key]

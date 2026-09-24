@@ -37,12 +37,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.lightGray0
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
 @Composable
 fun TimetableDropDownMenu(
@@ -166,7 +166,8 @@ private fun TimetableManagementItems(
     val scope = rememberCoroutineScope()
     val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
     val isDuplicating by viewModel.isDuplicatingTable.collectAsState()
-    val isActionEnabled = selectedTimetableID != null
+    val loadState by viewModel.loadState.collectAsState()
+    val isActionEnabled = selectedTimetableID != null && !loadState.isReadOnly
 
     val deleteColor =
         if (isActionEnabled) Color(0xFFE54C65) else MaterialTheme.colorScheme.grayBB.copy(alpha = 0.5f)
@@ -177,6 +178,7 @@ private fun TimetableManagementItems(
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_add)) },
+        enabled = !loadState.isReadOnly,
         onClick = {
             scope.launch {
                 viewModel.createTable()
@@ -203,7 +205,7 @@ private fun TimetableManagementItems(
                 contentDescription = null
             )
         },
-        enabled = !isDuplicating
+        enabled = !isDuplicating && !loadState.isReadOnly
     )
 
     HorizontalDivider(

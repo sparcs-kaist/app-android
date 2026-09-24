@@ -50,12 +50,12 @@ fun ActivityCreationRoute(
     var table by remember { mutableStateOf(selected?.takeIf { it.id == timetableID.toString() }) }
     var failed by remember { mutableStateOf(false) }
     var retry by remember { mutableIntStateOf(0) }
-    val update: (Timetable) -> Unit = { table = it; model.activityTableUpdated(it) }
+    val update: (Timetable) -> Unit = { table = it }
     LaunchedEffect(timetableID, retry) {
         if (table == null) {
             failed = false
             try {
-                update(model.timetableUseCase.getTable(timetableID, true))
+                update(model.refreshActivityTable(timetableID))
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
@@ -67,8 +67,8 @@ fun ActivityCreationRoute(
     if (current != null && (activityID == null || current.activities.any { it.id == activityID })) {
         ActivityCreationView(
             current, name, current.activities.find { it.id == activityID }, onClose,
-            onSave = { update(model.timetableUseCase.saveActivity(timetableID, activityID, it)) },
-            onRefresh = { update(model.timetableUseCase.getTable(timetableID, true)) })
+            onSave = { update(model.saveActivity(timetableID, activityID, it)) },
+            onRefresh = { update(model.refreshActivityTable(timetableID)) })
     } else {
         Scaffold(topBar = {
             TopAppBar(

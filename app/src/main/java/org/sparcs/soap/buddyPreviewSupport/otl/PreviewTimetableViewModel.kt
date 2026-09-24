@@ -3,18 +3,19 @@ package org.sparcs.soap.buddyPreviewSupport.otl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
-import org.sparcs.soap.app.domain.usecases.otl.MockTimetableUseCase
-import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 
 class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock()) : TimetableViewModelProtocol {
-    override val timetableUseCase: TimetableUseCaseProtocol = MockTimetableUseCase()
+    override suspend fun refreshActivityTable(timetableID: Int): Timetable = _selectedTimetable.value ?: Timetable.mock()
+    override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Timetable = refreshActivityTable(timetableID)
+    override suspend fun deleteActivity(timetableID: Int, activityID: Int): Timetable = refreshActivityTable(timetableID)
     override val isLoading = MutableStateFlow(false)
 
     private val _semesters = MutableStateFlow(Semester.mockList())

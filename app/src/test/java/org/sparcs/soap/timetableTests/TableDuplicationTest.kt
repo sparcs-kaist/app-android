@@ -93,6 +93,9 @@ class TableDuplicationTest {
     }
 
     private class CacheDAO : TimetableCacheDAO {
+        override suspend fun getSummaries(): List<CachedTimetable> = emptyList()
+        override suspend fun clear() {}
+
         val records = mutableMapOf<String, CachedTimetable>()
         override suspend fun getTimetable(key: String) = records[key]
         override suspend fun saveTimetable(timetable: CachedTimetable) { records[timetable.cacheKey] = timetable }

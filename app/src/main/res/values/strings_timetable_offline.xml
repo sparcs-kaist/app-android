@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="timetable_offline">Offline</string>
+    <string name="timetable_download_required">Connect to the internet to download your timetable.</string>
+    <string name="timetable_unavailable_offline">This timetable is not available offline. Connect to download it.</string>
+    <string name="timetable_last_updated">Last updated: %1$s</string>
+    <string name="timetable_number">Timetable %1$d</string>
+</resources>

@@ -1,5 +1,7 @@
 package org.sparcs.soap.widgets.buddyTimetableWidget
 
+import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Context
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,6 +51,7 @@ import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
+import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.WidgetEntryPoint
@@ -154,7 +157,26 @@ class TimetableWidgetSyncManager @Inject constructor(
         syncState(newState, glanceId, timetable.id.toIntOrNull()?.takeIf { it >= 0 })
     }
 
+    suspend fun syncMatchingTimetable(timetable: Timetable, semester: Semester) {
+        if (!hasTimetableWidgets()) return
+        if (timetable.id.toIntOrNull() != null) {
+            syncSavedTimetable(timetable)
+            return
+        }
+        try {
+            val manager = GlanceAppWidgetManager(context)
+            for (id in manager.getGlanceIds(TimetableWidget::class.java)) {
+                val prefs = getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
+                if (matchesMyTimetable(prefs, semester)) {
+                    syncState(timetable.toWidgetUiState(), id, expectedSemester = semester)
+                }
+            }
+        } catch (e: CancellationException) { throw e }
+        catch (e: Exception) { Timber.e(e, "My timetable widget sync failed") }
+    }
+
     suspend fun syncSavedTimetable(timetable: Timetable) {
+        if (!hasTimetableWidgets()) return
         val tableID = timetable.id.toIntOrNull()?.takeIf { it >= 0 } ?: return
         try {
             val manager = GlanceAppWidgetManager(context)
@@ -170,6 +192,9 @@ class TimetableWidgetSyncManager @Inject constructor(
         }
     }
 
+    private fun hasTimetableWidgets(): Boolean = AppWidgetManager.getInstance(context)
+        .getAppWidgetIds(ComponentName(context, BuddyTimetableWidgetReceiver::class.java)).isNotEmpty()
+
     suspend fun syncSignInRequired() {
         syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
     }
@@ -178,6 +203,7 @@ class TimetableWidgetSyncManager @Inject constructor(
         state: TimetableUiState,
         specificGlanceId: GlanceId? = null,
         expectedTimetableID: Int? = null,
+        expectedSemester: Semester? = null,
     ) {
         try {
             val jsonString = Json.encodeToString(state)
@@ -191,6 +217,7 @@ class TimetableWidgetSyncManager @Inject constructor(
                     prefs.toMutablePreferences().apply {
                         // Recheck inside the update in case widget configuration changed during sync.
                         if (expectedTimetableID != null && this[intPreferencesKey("selected_timetable_id")] != expectedTimetableID) return@apply
+                        if (expectedSemester != null && !matchesMyTimetable(this, expectedSemester)) return@apply
                         this[stringPreferencesKey("timetable_state")] = jsonString
                     }
                 }
@@ -207,6 +234,11 @@ class TimetableWidgetSyncManager @Inject constructor(
         }
     }
 }
+
+internal fun matchesMyTimetable(prefs: Preferences, semester: Semester): Boolean =
+    (prefs[intPreferencesKey("selected_timetable_id")] ?: -1) == -1 &&
+        prefs[intPreferencesKey("selected_semester_year")] == semester.year &&
+        prefs[intPreferencesKey("selected_semester_type_int")] == semester.semesterType.intValue
 
 internal fun matchesSavedTimetable(prefs: Preferences, timetableID: String): Boolean {
     val id = timetableID.toIntOrNull()?.takeIf { it >= 0 } ?: return false
@@ -230,7 +262,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
         val timetableUseCase = entryPoint.timetableUseCase()
 
         return try {
-            if (tokenStorage.getRefreshToken() == null) {
+            if (!tokenStorage.hasStoredRefreshToken()) {
                 syncManager.syncSignInRequired()
                 return Result.success()
             }
@@ -257,15 +289,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
                                 )
                             timetableUseCase.getMyTable(savedYear, savedType)
                         } else {
-                            val currentSemester = timetableUseCase.getCurrentSemester()
-                            if (currentSemester != null) {
-                                timetableUseCase.getMyTable(
-                                    currentSemester.year,
-                                    currentSemester.semesterType
-                                )
-                            } else {
-                                Timetable(id = "-1", lectures = emptyList())
-                            }
+                            timetableUseCase.getCurrentMyTable()
                         }
                     } else {
                         timetableUseCase.getTable(selectedTimetableId)
@@ -286,7 +310,7 @@ class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
             throw e
         } catch (e: Exception) {
             Timber.e(e, "TimetableUpdateWorker Error")
-            return Result.success()
+            return Result.retry()
         }
     }
 }
@@ -295,7 +319,7 @@ object TimetableStateParser {
     private val STATE_KEY = stringPreferencesKey("timetable_state")
 
     fun parse(prefs: Preferences, tokenStorage: TokenStorageProtocol): TimetableUiState {
-        if (tokenStorage.getRefreshToken() == null) return TimetableUiState(signInRequired = true)
+        if (!tokenStorage.hasStoredRefreshToken()) return TimetableUiState(signInRequired = true)
         val jsonString = prefs[STATE_KEY]
         if (!jsonString.isNullOrBlank()) {
             val decoded = try {
@@ -323,7 +347,7 @@ class RefreshTimetableAction : ActionCallback {
             WidgetEntryPoint::class.java
         )
         val tokenStorage = entryPoint.tokenStorage()
-        if (tokenStorage.getRefreshToken() != null && shouldEnqueueRefresh(context)) {
+        if (tokenStorage.hasStoredRefreshToken() && shouldEnqueueRefresh(context)) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()

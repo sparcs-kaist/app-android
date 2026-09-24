@@ -52,6 +52,7 @@ fun CompactTimetableSelector(
     modifier: Modifier = Modifier,
     isWide: Boolean = false
 ) {
+    val loadState by viewModel.loadState.collectAsState()
     var showRenameDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var renameText by remember { mutableStateOf("") }
@@ -118,7 +119,7 @@ fun CompactTimetableSelector(
                             renameText = ""
                         }
                     },
-                    enabled = renameText.isNotBlank()
+                    enabled = renameText.isNotBlank() && !loadState.isReadOnly
                 ) { Text(stringResource(R.string.confirm)) }
             },
             dismissButton = {

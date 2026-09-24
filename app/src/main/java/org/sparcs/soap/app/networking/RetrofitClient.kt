@@ -24,6 +24,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.app.cache.AppDatabase
 import org.sparcs.soap.app.cache.TaxiRouteCacheDAO
+import org.sparcs.soap.app.cache.TimetableCache
 import org.sparcs.soap.app.cache.TimetableCacheDAO
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.helpers.TaxiLocationStorage
@@ -810,7 +811,8 @@ object AuthUseCaseModule {
         otlUserRepository: OTLUserRepositoryProtocol,
         taxiChatServiceProvider: Provider<TaxiChatService>,
         fcmUseCase: FCMUseCaseProtocol,
-        widgetSyncHelper: WidgetSyncHelper
+        widgetSyncHelper: WidgetSyncHelper,
+        timetableCache: TimetableCache,
     ): AuthUseCase {
 
         val useCase = AuthUseCase(
@@ -820,7 +822,8 @@ object AuthUseCaseModule {
             feedUserRepository,
             otlUserRepository,
             fcmUseCase,
-            widgetSyncHelper
+            widgetSyncHelper,
+            timetableCache,
         )
 
         AuthRetryConfig.tokenRefresher = {

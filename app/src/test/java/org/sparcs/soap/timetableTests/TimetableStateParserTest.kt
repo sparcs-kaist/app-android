@@ -50,6 +50,17 @@ class TimetableStateParserTest {
         assertTrue(state.isLoading)
     }
 
+    @Test
+    fun temporarilyUnreadableRefreshTokenKeepsSavedWidget() {
+        val cached = Timetable("12", emptyList()).toWidgetUiState()
+        val prefs = preferencesOf(stateKey to Json.encodeToString(cached))
+        val storage = object : TokenStorageProtocol by TestTokenStorage(null) {
+            override fun hasStoredRefreshToken() = true
+            override fun readRefreshToken(): String = error("Keystore temporarily unavailable")
+        }
+        assertEquals(cached, TimetableStateParser.parse(prefs, storage))
+    }
+
     private class TestTokenStorage(private var refreshToken: String?) : TokenStorageProtocol {
         override fun save(accessToken: String, refreshToken: String) {
             this.refreshToken = refreshToken
