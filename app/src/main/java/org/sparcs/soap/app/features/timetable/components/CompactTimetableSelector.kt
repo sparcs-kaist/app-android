@@ -50,7 +50,8 @@ fun CompactTimetableSelector(
     viewModel: TimetableViewModelProtocol,
     timetableName: String,
     modifier: Modifier = Modifier,
-    isWide: Boolean = false
+    isWide: Boolean = false,
+    onShareClick: (() -> Unit)? = null,
 ) {
     var showRenameDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -71,7 +72,8 @@ fun CompactTimetableSelector(
                 renameText = timetableName
                 showRenameDialog = true
             },
-            onDeleteClick = { showDeleteDialog = true }
+            onDeleteClick = { showDeleteDialog = true },
+            onShareClick = onShareClick
         )
     }
 
@@ -199,6 +201,7 @@ fun TableSelector(
     displayName: String,
     onRenameClick: () -> Unit,
     onDeleteClick: () -> Unit,
+    onShareClick: (() -> Unit)? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -245,6 +248,7 @@ fun TableSelector(
                 onDismiss = { expanded = false },
                 onRenameClick = onRenameClick,
                 onDeleteClick = onDeleteClick,
+                onShareClick = onShareClick,
                 viewModel = viewModel
             )
         }

@@ -1,5 +1,6 @@
 package org.sparcs.soap
 
+import androidx.navigation.compose.rememberNavController
 import androidx.activity.ComponentActivity
 import android.graphics.Bitmap
 import java.io.File
@@ -33,7 +34,7 @@ class TimetableThemeUiTest {
     @Before fun setup() {
         originalPreferences = context.getSharedPreferences("timetable_themes", 0).all.toMap()
         context.getSharedPreferences("timetable_themes", 0).edit().clear().commit()
-        compose.runOnUiThread { compose.activity.setContent { Theme { TimetableThemeSettingsView {} } } }
+        compose.runOnUiThread { compose.activity.setContent { Theme { TimetableThemeSettingsView(rememberNavController()) } } }
     }
     @After fun restorePreferences() {
         context.getSharedPreferences("timetable_themes", 0).edit().clear().apply {

@@ -60,9 +60,12 @@ import org.sparcs.soap.app.features.timetable.components.TimetableCreditGraph
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
 import org.sparcs.soap.app.features.timetable.components.TimetableViewNavigationBar
+import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSheet
+import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.escapeHash
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.shared.sharing.navigateToShareFeed
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -80,6 +83,19 @@ fun TimetableView(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
     val screenHeight = configuration.screenHeightDp.dp
+
+    var shareSnapshot by remember { mutableStateOf<TimetableShareSnapshot?>(null) }
+    val timetableTheme = LocalTimetableTheme.current
+    val onShareClick: () -> Unit = {
+        val semester = viewModel.selectedSemester.value
+        val timetable = viewModel.selectedTimetable.value
+        if (semester != null && timetable != null) {
+            shareSnapshot = TimetableShareSnapshot(semester, timetable.copy(lectures = timetable.lectures.toList(), customBlocks = timetable.activities.toList()), timetableTheme)
+        }
+    }
+    shareSnapshot?.let { snapshot ->
+        TimetableShareSheet(snapshot, onDismiss = { shareSnapshot = null }, onFeed = navController::navigateToShareFeed)
+    }
 
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
     val isEditable by viewModel.isEditable.collectAsState()
@@ -127,6 +143,7 @@ fun TimetableView(
                     TimetableLandscapeLayout(
                         viewModel = viewModel,
                         timetableName = timetableName,
+                        onShareClick = onShareClick,
                         selectedTimetable = selectedTimetable,
                         navController = navController,
                         onDeleteClick = { lecture ->
@@ -141,6 +158,7 @@ fun TimetableView(
                     TimetablePortraitLayout(
                         viewModel = viewModel,
                         timetableName = timetableName,
+                        onShareClick = onShareClick,
                         selectedTimetable = selectedTimetable,
                         screenHeight = screenHeight,
                         navController = navController,
@@ -203,6 +221,7 @@ fun TimetableView(
 private fun TimetableLandscapeLayout(
     viewModel: TimetableViewModelProtocol,
     timetableName: String,
+    onShareClick: () -> Unit,
     selectedTimetable: Timetable?,
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
@@ -231,7 +250,7 @@ private fun TimetableLandscapeLayout(
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                CompactTimetableSelector(viewModel, timetableName)
+                CompactTimetableSelector(viewModel, timetableName, onShareClick = onShareClick)
                 Spacer(modifier = Modifier.width(12.dp))
                 TimetableAddButton(
                     enabled = isEditable, onAddClass = onAddClick, onAddActivity = onActivityClick
@@ -333,6 +352,7 @@ private fun TimetableLandscapeLayout(
 private fun TimetablePortraitLayout(
     viewModel: TimetableViewModelProtocol,
     timetableName: String,
+    onShareClick: () -> Unit,
     selectedTimetable: Timetable?,
     screenHeight: Dp,
     navController: NavController,
@@ -352,7 +372,8 @@ private fun TimetablePortraitLayout(
             viewModel,
             timetableName,
             modifier = Modifier.fillMaxWidth(),
-            isWide = true
+            isWide = true,
+            onShareClick = onShareClick,
         )
 
         Card(

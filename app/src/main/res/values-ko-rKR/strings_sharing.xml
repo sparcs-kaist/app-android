@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="timetable_share">시간표 공유</string>
+    <string name="share_messages">메시지</string>
+    <string name="share_more">더보기 (시스템 공유)</string>
+    <string name="share_copy_image">이미지 복사</string>
+    <string name="share_copy_link">링크 복사</string>
+    <string name="share_copied">복사했어요</string>
+    <string name="share_preparing">이미지 준비 중…</string>
+    <string name="share_image_failed">이미지를 만들지 못했어요. 다시 시도해 주세요.</string>
+    <string name="share_failed">공유 화면을 열지 못했어요. 다시 시도해 주세요.</string>
+    <string name="timetable_share_text">나의 %1$s 시간표 · %2$d학점</string>
+    <string name="timetable_share_credits">학점</string>
+    <string name="share_brand">Buddy</string>
+</resources>

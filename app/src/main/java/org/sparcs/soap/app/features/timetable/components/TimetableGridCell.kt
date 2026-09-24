@@ -40,7 +40,8 @@ fun TimetableGridCell(
     isCandidate: Boolean,
     cellHeight: Dp,
     modifier: Modifier = Modifier,
-    isConflict: Boolean = false
+    isConflict: Boolean = false,
+    placement: TimetablePlacement = TimetablePlacement.View,
 ) {
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
@@ -82,7 +83,9 @@ fun TimetableGridCell(
         }
 
         val titleText = lectureItem.lecture.name + lectureItem.lecture.subtitle
-        val locationText = "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName
+        val locationText = if (placement == TimetablePlacement.Render) {
+            lectureItem.lecture.professors.map { it.name }.filter { it.isNotBlank() }.distinct().joinToString(", ")
+        } else "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName
 
         val layoutConfig = remember(
             titleText,
@@ -142,7 +145,7 @@ fun TimetableGridCell(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (layoutConfig.showLocation && layoutConfig.locationStyle != null) {
+                if (locationText.isNotBlank() && layoutConfig.showLocation && layoutConfig.locationStyle != null) {
                     Text(
                         text = locationText,
                         color = contentColor.copy(alpha = 0.8f),
@@ -324,4 +327,10 @@ private fun PreviewStandard() {
 @Composable
 private fun PreviewTight() {
     TimetableGridCell(LectureItem.mockList()[1], false, 45.dp)
+}
+
+@Preview(name = "Shared timetable cell", showBackground = true)
+@Composable
+private fun PreviewRender() {
+    TimetableGridCell(LectureItem.mockList()[1], false, 100.dp, placement = TimetablePlacement.Render)
 }

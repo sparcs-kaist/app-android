@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
@@ -37,12 +38,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.lightGray0
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
 @Composable
 fun TimetableDropDownMenu(
@@ -51,6 +52,7 @@ fun TimetableDropDownMenu(
     onRenameClick: () -> Unit,
     onDeleteClick: () -> Unit,
     viewModel: TimetableViewModelProtocol,
+    onShareClick: (() -> Unit)? = null,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -60,7 +62,7 @@ fun TimetableDropDownMenu(
     ) {
         TimetableListItems(viewModel, onDismiss)
 
-        TimetableManagementItems(viewModel, onDismiss, onRenameClick, onDeleteClick)
+        TimetableManagementItems(viewModel, onDismiss, onRenameClick, onDeleteClick, onShareClick)
     }
 }
 
@@ -162,6 +164,7 @@ private fun TimetableManagementItems(
     onDismiss: () -> Unit,
     onRenameClick: () -> Unit,
     onDeleteClick: () -> Unit,
+    onShareClick: (() -> Unit)?,
 ) {
     val scope = rememberCoroutineScope()
     val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
@@ -210,6 +213,17 @@ private fun TimetableManagementItems(
         modifier = Modifier.padding(vertical = 4.dp, horizontal = 8.dp),
         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.1f)
     )
+
+    if (onShareClick != null) {
+        val semester by viewModel.selectedSemester.collectAsState()
+        val timetable by viewModel.selectedTimetable.collectAsState()
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.timetable_share)) },
+            leadingIcon = { Icon(Icons.Outlined.Share, null) },
+            enabled = semester != null && timetable != null,
+            onClick = { onDismiss(); onShareClick() },
+        )
+    }
 
     DropdownMenuItem(
         text = { Text(stringResource(R.string.timetable_rename), color = renameColor) },

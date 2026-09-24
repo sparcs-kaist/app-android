@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="timetable_share">Share timetable</string>
+    <string name="share_messages">Messages</string>
+    <string name="share_more">More sharing options</string>
+    <string name="share_copy_image">Copy image</string>
+    <string name="share_copy_link">Copy link</string>
+    <string name="share_copied">Copied</string>
+    <string name="share_preparing">Preparing image&#8230;</string>
+    <string name="share_image_failed">Unable to create the image. Please try again.</string>
+    <string name="share_failed">Unable to open sharing. Please try again.</string>
+    <string name="timetable_share_text">My %1$s timetable &#183; %2$d credits</string>
+    <string name="timetable_share_credits">Credits</string>
+    <string name="share_brand">Buddy</string>
+</resources>

@@ -43,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
@@ -60,27 +61,45 @@ fun TimetableGrid(
     val timetable by viewModel.selectedTimetable.collectAsState()
     val isEditable by viewModel.isEditable.collectAsState()
 
-    val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
-
     val candidateLecture by viewModel.candidateLecture.collectAsState()
-    val times = buildList {
-        timetable?.lectures?.forEach { addAll(it.classes) }
-        candidateLecture?.let { addAll(it.classes) }
-    }
-
-    val minMinutes =
-        ((times.map { it.begin } + timetable?.activities.orEmpty().map { it.begin }).minOrNull()
-            ?: TimetableDefaults.DEFAULT_MIN_MINUTES) / 60 * 60
-    val maxMinutes =
-        ((times.map { it.end } + timetable?.activities.orEmpty().map { it.end }).maxOrNull()
-            ?.let { (it / 60 + 1) * 60 } ?: TimetableDefaults.DEFAULT_MAX_MINUTES).coerceAtLeast(
-            minMinutes + 60
-        )
-
-    val haptic = LocalHapticFeedback.current
+    val isOverlapping by viewModel.isCandidateOverlapping.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     var selectedActivity by remember { mutableStateOf<TimetableActivity?>(null) }
     var activityActions by remember { mutableStateOf(false) }
+    TimetableGrid(
+        timetable = timetable,
+        candidateLecture = candidateLecture,
+        isEditable = isEditable,
+        isOverlapping = isOverlapping,
+        isLoading = isLoading,
+        onLectureSelected = onLectureSelected,
+        showDeleteDialog = showDeleteDialog,
+        onActivitySelected = { activity, actions -> selectedActivity = activity; activityActions = actions },
+    )
+    ActivityDetailsDialog(selectedActivity, activityActions, viewModel, onEditActivity) { selectedActivity = null }
+}
 
+enum class TimetablePlacement { View, Render }
+
+@Composable
+fun TimetableGrid(
+    timetable: Timetable?,
+    placement: TimetablePlacement = TimetablePlacement.View,
+    candidateLecture: Lecture? = null,
+    isEditable: Boolean = false,
+    isOverlapping: Boolean = false,
+    isLoading: Boolean = false,
+    onLectureSelected: (Lecture) -> Unit = {},
+    showDeleteDialog: (Lecture) -> Unit = {},
+    onActivitySelected: (TimetableActivity, Boolean) -> Unit = { _, _ -> },
+) {
+    val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
+    val times = timetable?.lectures.orEmpty().flatMap { it.classes } + candidateLecture?.classes.orEmpty()
+    val minMinutes = ((times.map { it.begin } + timetable?.activities.orEmpty().map { it.begin }).minOrNull()
+        ?: TimetableDefaults.DEFAULT_MIN_MINUTES) / 60 * 60
+    val maxMinutes = ((times.map { it.end } + timetable?.activities.orEmpty().map { it.end }).maxOrNull()
+        ?.let { (it / 60 + 1) * 60 } ?: TimetableDefaults.DEFAULT_MAX_MINUTES).coerceAtLeast(minMinutes + 60)
+    val haptic = LocalHapticFeedback.current
 
     BoxWithConstraints(
         modifier = Modifier.fillMaxWidth()
@@ -126,11 +145,11 @@ fun TimetableGrid(
                                     LocalTimetableTheme.current.colorFor(activity.id),
                                     RoundedCornerShape(4.dp)
                                 )
-                                .combinedClickable(onClick = {
-                                    selectedActivity = activity; activityActions = false
+                                .combinedClickable(enabled = placement == TimetablePlacement.View, onClick = {
+                                    onActivitySelected(activity, false)
                                 }, onLongClick = if (isEditable) { {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    selectedActivity = activity; activityActions = true
+                                    onActivitySelected(activity, true)
                                 } } else null)
                                 .padding(5.dp)
                         ) {
@@ -182,14 +201,15 @@ fun TimetableGrid(
                         val isCandidate =
                             item.lecture.id == candidateLecture?.id
                         val isConflict =
-                            isCandidate && viewModel.isCandidateOverlapping.collectAsState().value
+                            isCandidate && isOverlapping
                         val animatedAlpha by animateFloatAsState(
-                            targetValue = if (viewModel.isLoading.collectAsState().value) 0.5f else 1f,
+                            targetValue = if (isLoading) 0.5f else 1f,
                             label = "LectureAlpha"
                         )
 
                         TimetableGridCell(
                             lectureItem = item,
+                            placement = placement,
                             isCandidate = isCandidate,
                             isConflict = isConflict,
                             cellHeight = animatedCellHeight,
@@ -198,6 +218,7 @@ fun TimetableGrid(
                                 .height(animatedCellHeight)
                                 .fillMaxWidth()
                                 .combinedClickable(
+                                    enabled = placement == TimetablePlacement.View,
                                     onClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
                                         onLectureSelected(item.lecture)
@@ -214,12 +235,6 @@ fun TimetableGrid(
             }
         }
     }
-    ActivityDetailsDialog(
-        selectedActivity,
-        activityActions,
-        viewModel,
-        onEditActivity
-    ) { selectedActivity = null }
 
 }
 
