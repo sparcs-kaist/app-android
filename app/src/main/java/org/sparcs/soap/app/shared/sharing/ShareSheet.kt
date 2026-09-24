@@ -69,6 +69,7 @@ fun ShareSheet(
     onFeed: ((Uri, String) -> Unit)? = null,
     preview: @Composable () -> Unit = {},
     viewModel: ShareViewModel = hiltViewModel(),
+    options: @Composable (Boolean) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
@@ -97,7 +98,7 @@ fun ShareSheet(
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
-        ShareSheetContent(content, state, onFeed != null, { viewModel.prepare(it, content, capture) }, preview)
+        ShareSheetContent(content, state, onFeed != null, { viewModel.prepare(it, content, capture) }, preview, options)
     }
 }
 
@@ -108,6 +109,7 @@ internal fun ShareSheetContent(
     hasFeed: Boolean,
     onTarget: (ShareTarget) -> Unit,
     preview: @Composable () -> Unit = {},
+    options: @Composable (Boolean) -> Unit = {},
 ) {
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(bottom = 24.dp),
@@ -115,6 +117,7 @@ internal fun ShareSheetContent(
     ) {
         Text(content.title, Modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
         preview()
+        options(!state.preparing)
         if (state.preparing) Row(Modifier.padding(horizontal = 24.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
             Text(stringResource(R.string.share_preparing))

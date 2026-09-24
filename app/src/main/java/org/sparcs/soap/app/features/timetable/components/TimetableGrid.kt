@@ -209,7 +209,6 @@ fun TimetableGrid(
 
                         TimetableGridCell(
                             lectureItem = item,
-                            placement = placement,
                             isCandidate = isCandidate,
                             isConflict = isConflict,
                             cellHeight = animatedCellHeight,

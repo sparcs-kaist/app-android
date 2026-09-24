@@ -711,4 +711,9 @@
     <string name="friday">금요일</string>
     <string name="saturday">토요일</string>
     <string name="sunday">일요일</string>
+    <string name="share_story_background">인스타그램 스토리 배경</string>
+    <string name="share_background_palette">테마 색</string>
+    <string name="share_background_theme">테마 배경색</string>
+    <string name="share_background_default">기본 색</string>
+    <string name="share_timetable_theme">시간표 테마</string>
 </resources>

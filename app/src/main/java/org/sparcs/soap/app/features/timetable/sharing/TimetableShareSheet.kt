@@ -3,8 +3,13 @@ package org.sparcs.soap.app.features.timetable.sharing
 import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.res.stringResource
@@ -20,6 +25,8 @@ import org.sparcs.soap.app.shared.sharing.ShareContent
 import org.sparcs.soap.app.shared.sharing.ShareImagePreview
 import org.sparcs.soap.app.shared.sharing.ShareSheet
 import org.sparcs.soap.app.shared.sharing.ShareViewModel
+import org.sparcs.soap.app.shared.sharing.StoryBackground
+import org.sparcs.soap.app.shared.sharing.StoryBackgroundOptions
 
 data class TimetableShareSnapshot(val semester: Semester, val timetable: Timetable, val theme: TimetableTheme)
 
@@ -31,11 +38,13 @@ fun TimetableShareSheet(
     viewModel: ShareViewModel = hiltViewModel(),
 ) {
     val layer = rememberGraphicsLayer()
+    var background by rememberSaveable(snapshot.theme.id) { mutableStateOf(StoryBackground.initial(snapshot.theme)) }
+    val (top, bottom) = background.colors(snapshot.theme)
     val content = ShareContent(
         title = stringResource(R.string.timetable_share),
         text = stringResource(R.string.timetable_share_text, snapshot.semester.description, snapshot.timetable.credits),
-        topColor = "#${snapshot.theme.hexColors.first()}",
-        bottomColor = "#${snapshot.theme.hexColors.getOrElse(1) { snapshot.theme.hexColors.first() }}",
+        topColor = top,
+        bottomColor = bottom,
     )
     ShareSheet(
         viewModel = viewModel,
@@ -43,8 +52,9 @@ fun TimetableShareSheet(
         capture = { layer.toImageBitmap().asAndroidBitmap() },
         onDismiss = onDismiss,
         onFeed = onFeed,
+        options = { enabled -> StoryBackgroundOptions(snapshot.theme, background, enabled) { background = it } },
         preview = {
-            ShareImagePreview {
+            ShareImagePreview(widthDp = 440, heightDp = 780, background = Brush.verticalGradient(listOf(TimetableTheme.color(top.removePrefix("#")), TimetableTheme.color(bottom.removePrefix("#"))))) {
                 Box(Modifier.drawWithContent { layer.record { this@drawWithContent.drawContent() }; drawContent() }) {
                     TimetableShareRenderingView(snapshot.semester, snapshot.timetable, snapshot.theme)
                 }

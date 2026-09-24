@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
@@ -18,9 +19,9 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ShareImagePreview(widthDp: Int = 390, heightDp: Int = 844, content: @Composable () -> Unit) {
+fun ShareImagePreview(widthDp: Int = 390, heightDp: Int = 844, background: Brush? = null, content: @Composable () -> Unit) {
     Layout(
-        modifier = Modifier.fillMaxWidth().height(280.dp),
+        modifier = Modifier.fillMaxWidth().height(280.dp).then(if (background != null) Modifier.background(background) else Modifier),
         content = { CompositionLocalProvider(LocalDensity provides Density(3f, 1f), content = content) },
     ) { measurables, constraints ->
         val imageWidth = widthDp * 3

@@ -1,24 +1,18 @@
 package org.sparcs.soap.app.features.settings.timetable
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -37,14 +31,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.compose.ui.graphics.rememberGraphicsLayer
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -55,13 +46,16 @@ import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeShareCode
+import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
-import org.sparcs.soap.app.features.settings.timetable.components.ThemePreview
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
 import org.sparcs.soap.app.features.settings.timetable.components.displayName
+import org.sparcs.soap.app.features.timetable.sharing.TimetableShareCard
 import org.sparcs.soap.app.shared.sharing.ShareContent
 import org.sparcs.soap.app.shared.sharing.ShareImagePreview
 import org.sparcs.soap.app.shared.sharing.ShareSheet
+import org.sparcs.soap.app.shared.sharing.StoryBackground
+import org.sparcs.soap.app.shared.sharing.StoryBackgroundOptions
 import org.sparcs.soap.app.shared.sharing.navigateToShareFeed
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -184,83 +178,22 @@ private fun ThemeShareCardView(
     code: String?,
     graphicsLayer: GraphicsLayer,
 ) {
-    val cardBgColor = theme.backgroundColor ?: MaterialTheme.colorScheme.surface
-    val isDark = isColorDark(cardBgColor)
-
-    val titleColor = if (isDark) Color.White else Color(0xFF0F172A)
-    val codeBgColor = if (isDark) Color.White.copy(alpha = 0.15f) else Color(0xFF0F172A).copy(alpha = 0.08f)
-    val codeTextColor = if (isDark) Color.White else Color(0xFF0F172A)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .drawWithContent {
-                graphicsLayer.record {
-                    this@drawWithContent.drawContent()
-                }
-                drawContent()
-            },
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = cardBgColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = theme.displayName(),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = titleColor,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f).padding(end = 12.dp)
-                )
-                if (code != null) {
-                    Text(
-                        text = code,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        color = codeTextColor,
-                        modifier = Modifier
-                            .background(codeBgColor, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
-            }
-            ThemePreview(theme = theme)
-            Row(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(vertical = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.buddy_icon_flat),
-                    contentDescription = null,
-                    tint = titleColor,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = stringResource(R.string.share_brand),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = titleColor
-                )
-            }
+    val sample = rememberThemeSample()
+    ShareImagePreview(widthDp = 440, heightDp = 600) {
+        Box(Modifier.drawWithContent {
+            graphicsLayer.record { this@drawWithContent.drawContent() }
+            drawContent()
+        }) {
+            ThemeShareRenderingView(theme, code, sample.map { it.lecture }.distinctBy { it.courseID })
         }
     }
 }
 
-private fun isColorDark(color: Color): Boolean {
-    val luminance = 0.299f * color.red + 0.587f * color.green + 0.114f * color.blue
-    return luminance < 0.5f
+@Composable
+private fun ThemeShareRenderingView(theme: TimetableTheme, code: String?, lectures: List<org.sparcs.soap.app.domain.models.otl.Lecture>) {
+    TimetableShareCard(theme, Timetable(id = "theme-share", lectures = lectures),
+        stringResource(R.string.share_timetable_theme), theme.displayName(),
+        stringResource(R.string.code), code ?: "\u2014", isCode = true)
 }
 
 @Composable
@@ -301,6 +234,9 @@ private fun ThemeShareActions(
 ) {
     var showShareSheet by rememberSaveable { mutableStateOf(false) }
     val shareLayer = rememberGraphicsLayer()
+    var background by rememberSaveable(theme.id) { mutableStateOf(StoryBackground.initial(theme)) }
+    val (top, bottom) = background.colors(theme)
+    val sample = rememberThemeSample()
 
     val shareTitle = stringResource(R.string.theme_share)
     val feedContent = stringResource(R.string.theme_share_feed_content, theme.displayName(), code)
@@ -330,17 +266,22 @@ private fun ThemeShareActions(
             content = ShareContent(
                 title = shareTitle,
                 text = feedContent,
-                topColor = "#${theme.hexColors.first()}",
-                bottomColor = "#${theme.hexColors.getOrElse(1) { theme.hexColors.first() }}",
+                topColor = top,
+                bottomColor = bottom,
                 copyText = code,
                 copyLabel = R.string.theme_copy_code,
             ),
             capture = { shareLayer.toImageBitmap().asAndroidBitmap() },
             onDismiss = { showShareSheet = false },
+            options = { enabled -> StoryBackgroundOptions(theme, background, enabled) { background = it } },
             preview = {
-                ShareImagePreview(heightDp = 580) {
-                    Box(contentAlignment = Alignment.Center) {
-                        ThemeShareCardView(theme, code, shareLayer)
+                ShareImagePreview(widthDp = 440, heightDp = 600,
+                    background = Brush.verticalGradient(listOf(TimetableTheme.color(top.removePrefix("#")), TimetableTheme.color(bottom.removePrefix("#"))))) {
+                    Box(Modifier.drawWithContent {
+                        shareLayer.record { this@drawWithContent.drawContent() }
+                        drawContent()
+                    }) {
+                        ThemeShareRenderingView(theme, code, sample.map { it.lecture }.distinctBy { it.courseID })
                     }
                 }
             },

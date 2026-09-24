@@ -741,4 +741,9 @@
     <string name="friday">Friday</string>
     <string name="saturday">Saturday</string>
     <string name="sunday">Sunday</string>
+    <string name="share_story_background">Instagram story background</string>
+    <string name="share_background_palette">Theme colors</string>
+    <string name="share_background_theme">Theme background</string>
+    <string name="share_background_default">Default color</string>
+    <string name="share_timetable_theme">Timetable theme</string>
 </resources>

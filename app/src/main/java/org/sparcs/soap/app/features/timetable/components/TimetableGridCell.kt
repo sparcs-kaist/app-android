@@ -41,15 +41,16 @@ fun TimetableGridCell(
     cellHeight: Dp,
     modifier: Modifier = Modifier,
     isConflict: Boolean = false,
-    placement: TimetablePlacement = TimetablePlacement.View,
 ) {
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
 
     val themeTitleStyle = MaterialTheme.typography.bodySmall.copy(
-        lineBreak = LineBreak.Heading
+        lineBreak = LineBreak.Heading,
+        fontWeight = FontWeight.Medium
     )
     val themeLocationStyle = MaterialTheme.typography.labelSmall.copy(
+        fontWeight = FontWeight.Light,
         lineBreak = LineBreak.Heading
     )
 
@@ -83,9 +84,8 @@ fun TimetableGridCell(
         }
 
         val titleText = lectureItem.lecture.name + lectureItem.lecture.subtitle
-        val locationText = if (placement == TimetablePlacement.Render) {
-            lectureItem.lecture.professors.map { it.name }.filter { it.isNotBlank() }.distinct().joinToString(", ")
-        } else "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName
+        val locationText = "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName
+
 
         val layoutConfig = remember(
             titleText,
@@ -222,6 +222,8 @@ private fun pickBestLayout(
     }
 
     val candidates = buildList {
+        add(CellLayoutConfig(compactTitleStyle, minOf(compactTitleLineCount, 2), compactLocationStyle, compactLocationLineCount))
+        add(CellLayoutConfig(compactTitleStyle, 1, compactLocationStyle, compactLocationLineCount))
         add(CellLayoutConfig(normalTitleStyle, minOf(normalTitleLineCount, 2), normalLocationStyle, minOf(normalLocationLineCount, 2)))
         add(CellLayoutConfig(normalTitleStyle, minOf(normalTitleLineCount, 2), normalLocationStyle, 1))
         add(CellLayoutConfig(normalTitleStyle, 1, normalLocationStyle, 1))
@@ -332,5 +334,5 @@ private fun PreviewTight() {
 @Preview(name = "Shared timetable cell", showBackground = true)
 @Composable
 private fun PreviewRender() {
-    TimetableGridCell(LectureItem.mockList()[1], false, 100.dp, placement = TimetablePlacement.Render)
+    TimetableGridCell(LectureItem.mockList()[1], false, 100.dp)
 }
