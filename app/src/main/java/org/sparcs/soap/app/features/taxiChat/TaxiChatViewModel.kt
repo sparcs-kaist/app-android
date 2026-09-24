@@ -273,6 +273,7 @@ class TaxiChatViewModel @Inject constructor(
 
 
     override fun commitSettlement(amount: Int) {
+        if (amount <= 0 || room.value.participants.isEmpty()) return
         viewModelScope.launch {
             try {
                 val newRoom = taxiRoomRepository.commitSettlement(room.value.id, amount)
@@ -351,14 +352,8 @@ class TaxiChatViewModel @Inject constructor(
     }
 
     override val isCommitPaymentAvailable: Boolean
-        get() {
-            val userOid = taxiUser.value?.oid ?: return false
-            val currentRoom = room.value
-            val me = currentRoom.participants.firstOrNull { it.id == userOid }
-            val isSettled = (currentRoom.settlementTotal ?: 0) > 0
-            
-            return isSettled && (me?.isSettlement == TaxiParticipant.SettlementType.PaymentRequired)
-        }
+        get() = room.value.canCommitPayment(taxiUser.value?.oid)
+
 
     override val account: String?
         get() {

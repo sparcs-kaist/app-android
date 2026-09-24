@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
@@ -26,7 +25,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -50,7 +48,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -74,6 +71,7 @@ import org.sparcs.soap.app.features.taxiChat.components.DefaultMessagePresentati
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatInputBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatViewNavigationBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiGroupingPolicy
+import org.sparcs.soap.app.features.taxiChat.components.TaxiSettlementAmountSheet
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModel
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModelProtocol
 import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomList
@@ -103,7 +101,6 @@ fun TaxiChatView(
     var showCallTaxiAlert by remember { mutableStateOf(false) }
     var showPayMoneyAlert by remember { mutableStateOf(false) }
     var showSettlementAmountDialog by remember { mutableStateOf(false) }
-    var settlementAmountText by remember { mutableStateOf("") }
     var tappedImageID by remember { mutableStateOf<String?>(null) }
 
     val configuration = LocalConfiguration.current
@@ -118,7 +115,6 @@ fun TaxiChatView(
     fun dismissPayMoneyAlert() { showPayMoneyAlert = false }
     fun resetSettlementDialog() {
         showSettlementAmountDialog = false
-        settlementAmountText = ""
     }
     fun dismissFullscreenImage() { tappedImageID = null }
 
@@ -354,42 +350,10 @@ fun TaxiChatView(
     }
 
     if (showSettlementAmountDialog) {
-        AlertDialog(
-            onDismissRequest = { resetSettlementDialog() },
-            title = { Text(stringResource(R.string.enter_settlement_amount)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    OutlinedTextField(
-                        value = settlementAmountText,
-                        onValueChange = {
-                            if (it.all { char -> char.isDigit() }) { settlementAmountText = it }
-                        },
-                        label = { Text(stringResource(R.string.settlement_amount_hint)) },
-                        modifier = Modifier.fillMaxWidth(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        singleLine = true,
-                        suffix = { Text(stringResource(R.string.currency_unit)) }
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val amount = settlementAmountText.toIntOrNull()
-                        if (amount != null && amount > 0) {
-                            viewModel.commitSettlement(amount)
-                            resetSettlementDialog()
-                        }
-                    },
-                    enabled = settlementAmountText.isNotBlank()
-                ) { Text(stringResource(R.string.confirm)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { resetSettlementDialog() }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.background
+        TaxiSettlementAmountSheet(
+            participantCount = room.participants.size,
+            onDismiss = ::resetSettlementDialog,
+            onCommit = viewModel::commitSettlement,
         )
     }
 

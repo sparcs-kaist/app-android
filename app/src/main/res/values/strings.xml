@@ -746,4 +746,7 @@
     <string name="share_background_theme">Theme background</string>
     <string name="share_background_default">Default color</string>
     <string name="share_timetable_theme">Timetable theme</string>
+    <string name="taxi_settlement_participants">Participants: %1$d people</string>
+    <string name="taxi_settlement_per_person">Per person: %1$,d KRW</string>
+    <string name="taxi_settlement_rounding">The per-person amount is rounded down to whole won.</string>
 </resources>

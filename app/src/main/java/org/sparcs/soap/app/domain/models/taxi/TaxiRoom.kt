@@ -17,5 +17,9 @@ data class TaxiRoom(
     val isDeparted: Boolean,
     val isOver: Boolean?
 ){
+    fun canCommitPayment(userID: String?): Boolean =
+        userID != null && isDeparted && (settlementTotal ?: 0) > 0 &&
+            participants.any { it.id == userID && it.isSettlement == TaxiParticipant.SettlementType.PaymentRequired }
+
     companion object
 }

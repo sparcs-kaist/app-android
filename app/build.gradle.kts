@@ -15,7 +15,7 @@ plugins {
 val properties = Properties().apply {
     load(rootProject.file("local.properties").inputStream())
 }
-val sidAuthToken: String = properties.getProperty("otl_sid_auth_token")
+val sidAuthToken: String = properties.getProperty("otl_sid_auth_token", "")
 val kakaoMapKey: String = properties.getProperty("KAKAO_MAP_KEY")
 val kakaoNaviKey: String = properties.getProperty("KAKAO_NAVI_KEY")
 val channelPluginKey: String = properties.getProperty("CHANNEL_PLUGIN_KEY")
@@ -27,7 +27,6 @@ android {
     defaultConfig {
 
         manifestPlaceholders += mapOf(
-            "sidAuthToken" to sidAuthToken,
             "kakaoMapKey" to kakaoMapKey,
             "kakaoNaviKey" to kakaoNaviKey,
             "appAuthRedirectScheme" to "sparcsapp"
@@ -39,7 +38,7 @@ android {
         versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"$sidAuthToken\"")
+        buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"\"")
         buildConfigField("String", "KAKAO_MAP_KEY", "\"$kakaoMapKey\"")
         buildConfigField("String", "KAKAO_NAVI_KEY", "\"$kakaoNaviKey\"")
         buildConfigField("String", "CHANNEL_PLUGIN_KEY", "\"$channelPluginKey\"")
@@ -49,6 +48,7 @@ android {
     buildTypes {
 
         getByName("debug") {
+            buildConfigField("String", "OTL_SID_AUTH_TOKEN", "\"${sidAuthToken.replace("\\", "\\\\").replace("\"", "\\\"")}\"")
             manifestPlaceholders["taxihost"] = "taxi.dev.sparcs.org"
             manifestPlaceholders["arahost"] = "newara.dev.sparcs.org"
             manifestPlaceholders["feedhost"] = "buddy.dev.sparcs.org"

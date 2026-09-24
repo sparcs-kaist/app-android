@@ -62,14 +62,7 @@ fun ChatCollectionView(
     }
 
     val isCommitPaymentAvailable = remember(room, user?.oid) {
-        val departed = room.isDeparted
-        val myParticipantInfo = user?.let { currentUser ->
-            room.participants.find { it.id == currentUser.oid }
-        }
-        val paymentRequired = myParticipantInfo?.isSettlement?.let {
-            it == TaxiParticipant.SettlementType.PaymentRequired
-        } ?: false
-        departed && paymentRequired
+        room.canCommitPayment(user?.oid)
     }
 
     val isPayer = remember(room, user?.oid) {
@@ -192,7 +185,7 @@ private fun ChatItem(
                     )
 
                     TaxiChat.ChatType.ARRIVAL -> ChatArrivalBubble()
-                    TaxiChat.ChatType.SETTLEMENT -> ChatSettlementBubble()
+                    TaxiChat.ChatType.SETTLEMENT -> ChatSettlementBubble(item.chat.settlementMeta)
                     TaxiChat.ChatType.PAYMENT -> ChatPaymentBubble()
                     TaxiChat.ChatType.ACCOUNT -> ChatAccountBubble(
                         content = item.chat.content,

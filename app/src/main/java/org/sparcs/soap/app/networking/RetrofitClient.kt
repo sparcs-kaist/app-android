@@ -344,9 +344,7 @@ object NetworkModule {
                     .header("Accept-Language", languageTag)
                     .header("Content-Type", "application/json")
                     .apply {
-                        if (BuildConfig.DEBUG) {
-                            addHeader("X-SID-AUTH-TOKEN", BuildConfig.OTL_SID_AUTH_TOKEN)
-                        }
+                        otlDebugAuth(BuildConfig.DEBUG, BuildConfig.OTL_SID_AUTH_TOKEN)
                         accessToken?.let { header("Authorization", "Bearer $it") }
                     }
                     .build()

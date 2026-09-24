@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.networking.responseDTO.taxi
 
+import com.google.gson.JsonParser
 import com.google.gson.annotations.SerializedName
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.shared.extensions.toDate
@@ -67,15 +68,27 @@ data class TaxiChatDTO(
             time = time.toDate() ?: Date(),
             isValid = isValid,
             inOutNames = inOutNames,
-            settlementMeta = settlementMeta?.let {
+            settlementMeta = settlementMeta?.takeIf { it.total > 0 && it.perPerson >= 0 && it.participantCount > 0 }?.let {
                 TaxiChat.SettlementMeta(
                     total = it.total,
                     perPerson = it.perPerson,
                     participantCount = it.participantCount
                 )
-            }
+            } ?: if (type == "settlement") parseSettlementContent(content) else null
         )
     }
 }
+
+// Accept metadata both as a separate response field and as JSON message content.
+private fun parseSettlementContent(content: String): TaxiChat.SettlementMeta? = runCatching {
+    val json = JsonParser.parseString(content).asJsonObject
+    fun integer(key: String): Int? = json.get(key)?.takeIf { it.isJsonPrimitive }
+        ?.asJsonPrimitive?.takeIf { it.isNumber }?.asString?.toIntOrNull()
+    val total = integer("total") ?: return null
+    val perPerson = integer("perPerson") ?: return null
+    val count = integer("participantCount") ?: return null
+    if (total <= 0 || perPerson < 0 || count <= 0) return null
+    TaxiChat.SettlementMeta(total, perPerson, count)
+}.getOrNull()
 
 

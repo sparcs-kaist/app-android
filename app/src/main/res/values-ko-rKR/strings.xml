@@ -716,4 +716,7 @@
     <string name="share_background_theme">테마 배경색</string>
     <string name="share_background_default">기본 색</string>
     <string name="share_timetable_theme">시간표 테마</string>
+    <string name="taxi_settlement_participants">정산 인원: %1$d명</string>
+    <string name="taxi_settlement_per_person">1인당 금액: %1$,d원</string>
+    <string name="taxi_settlement_rounding">1인당 금액은 원 단위로 버림 처리됩니다.</string>
 </resources>
