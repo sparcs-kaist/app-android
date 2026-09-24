@@ -40,15 +40,17 @@ fun TimetableGridCell(
     isCandidate: Boolean,
     cellHeight: Dp,
     modifier: Modifier = Modifier,
-    isConflict: Boolean = false
+    isConflict: Boolean = false,
 ) {
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
 
     val themeTitleStyle = MaterialTheme.typography.bodySmall.copy(
-        lineBreak = LineBreak.Heading
+        lineBreak = LineBreak.Heading,
+        fontWeight = FontWeight.Medium
     )
     val themeLocationStyle = MaterialTheme.typography.labelSmall.copy(
+        fontWeight = FontWeight.Light,
         lineBreak = LineBreak.Heading
     )
 
@@ -83,6 +85,7 @@ fun TimetableGridCell(
 
         val titleText = lectureItem.lecture.name + lectureItem.lecture.subtitle
         val locationText = "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName
+
 
         val layoutConfig = remember(
             titleText,
@@ -142,7 +145,7 @@ fun TimetableGridCell(
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (layoutConfig.showLocation && layoutConfig.locationStyle != null) {
+                if (locationText.isNotBlank() && layoutConfig.showLocation && layoutConfig.locationStyle != null) {
                     Text(
                         text = locationText,
                         color = contentColor.copy(alpha = 0.8f),
@@ -219,6 +222,8 @@ private fun pickBestLayout(
     }
 
     val candidates = buildList {
+        add(CellLayoutConfig(compactTitleStyle, minOf(compactTitleLineCount, 2), compactLocationStyle, compactLocationLineCount))
+        add(CellLayoutConfig(compactTitleStyle, 1, compactLocationStyle, compactLocationLineCount))
         add(CellLayoutConfig(normalTitleStyle, minOf(normalTitleLineCount, 2), normalLocationStyle, minOf(normalLocationLineCount, 2)))
         add(CellLayoutConfig(normalTitleStyle, minOf(normalTitleLineCount, 2), normalLocationStyle, 1))
         add(CellLayoutConfig(normalTitleStyle, 1, normalLocationStyle, 1))
@@ -324,4 +329,10 @@ private fun PreviewStandard() {
 @Composable
 private fun PreviewTight() {
     TimetableGridCell(LectureItem.mockList()[1], false, 45.dp)
+}
+
+@Preview(name = "Shared timetable cell", showBackground = true)
+@Composable
+private fun PreviewRender() {
+    TimetableGridCell(LectureItem.mockList()[1], false, 100.dp)
 }

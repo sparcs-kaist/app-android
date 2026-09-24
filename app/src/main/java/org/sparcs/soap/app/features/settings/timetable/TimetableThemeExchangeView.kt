@@ -1,18 +1,21 @@
 package org.sparcs.soap.app.features.settings.timetable
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
-import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -27,21 +30,33 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.layer.GraphicsLayer
+import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeShareCode
+import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
-import org.sparcs.soap.app.features.settings.timetable.components.ThemePreview
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
 import org.sparcs.soap.app.features.settings.timetable.components.displayName
+import org.sparcs.soap.app.features.timetable.sharing.TimetableShareCard
+import org.sparcs.soap.app.shared.sharing.ShareContent
+import org.sparcs.soap.app.shared.sharing.ShareImagePreview
+import org.sparcs.soap.app.shared.sharing.ShareSheet
+import org.sparcs.soap.app.shared.sharing.StoryBackground
+import org.sparcs.soap.app.shared.sharing.StoryBackgroundOptions
+import org.sparcs.soap.app.shared.sharing.navigateToShareFeed
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -49,6 +64,7 @@ fun TimetableThemeExchangeRoute(
     sharing: TimetableTheme?,
     onBack: () -> Unit,
     onImport: (TimetableTheme) -> Unit,
+    navController: NavController,
     viewModel: TimetableThemeExchangeViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(sharing) {
@@ -63,7 +79,8 @@ fun TimetableThemeExchangeRoute(
         onImport = onImport,
         onFind = viewModel::fetch,
         onRetryShare = { sharing?.let(viewModel::share) },
-        onCodeChanged = viewModel::reset
+        onCodeChanged = viewModel::reset,
+        navController = navController
     )
 }
 
@@ -77,8 +94,11 @@ internal fun TimetableThemeExchangeView(
     onFind: (String) -> Unit,
     onRetryShare: () -> Unit,
     onCodeChanged: () -> Unit,
+    navController: NavController? = null,
 ) {
     var input by rememberSaveable { mutableStateOf("") }
+    val graphicsLayer = rememberGraphicsLayer()
+
     BackHandler(onBack = onBack)
     Scaffold(topBar = {
         SettingsViewNavigationBar(
@@ -105,8 +125,11 @@ internal fun TimetableThemeExchangeView(
             }
             val theme = sharing ?: state.theme
             if (theme != null) item {
-                Text(theme.displayName(), style = MaterialTheme.typography.titleMedium)
-                ThemePreview(theme)
+                ThemeShareCardView(
+                    theme = theme,
+                    code = state.code,
+                    graphicsLayer = graphicsLayer
+                )
             }
             if (state.loading) item {
                 Column(
@@ -129,7 +152,11 @@ internal fun TimetableThemeExchangeView(
             }
             if (sharing != null) state.code?.let { code ->
                 item {
-                    ThemeShareCode(code)
+                    ThemeShareActions(
+                        theme = sharing,
+                        code = code,
+                        navController = navController
+                    )
                 }
             }
             if (sharing == null && state.theme != null && !state.loading) item {
@@ -143,6 +170,30 @@ internal fun TimetableThemeExchangeView(
             }
         }
     }
+}
+
+@Composable
+private fun ThemeShareCardView(
+    theme: TimetableTheme,
+    code: String?,
+    graphicsLayer: GraphicsLayer,
+) {
+    val sample = rememberThemeSample()
+    ShareImagePreview(widthDp = 440, heightDp = 600) {
+        Box(Modifier.drawWithContent {
+            graphicsLayer.record { this@drawWithContent.drawContent() }
+            drawContent()
+        }) {
+            ThemeShareRenderingView(theme, code, sample.map { it.lecture }.distinctBy { it.courseID })
+        }
+    }
+}
+
+@Composable
+private fun ThemeShareRenderingView(theme: TimetableTheme, code: String?, lectures: List<org.sparcs.soap.app.domain.models.otl.Lecture>) {
+    TimetableShareCard(theme, Timetable(id = "theme-share", lectures = lectures),
+        stringResource(R.string.share_timetable_theme), theme.displayName(),
+        stringResource(R.string.code), code ?: "\u2014", isCode = true)
 }
 
 @Composable
@@ -174,33 +225,71 @@ private fun ThemeImportForm(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ThemeShareCode(code: String) {
-    var copied by rememberSaveable(code) { mutableStateOf(false) }
-    val context = LocalContext.current
+private fun ThemeShareActions(
+    theme: TimetableTheme,
+    code: String,
+    navController: NavController? = null,
+) {
+    var showShareSheet by rememberSaveable { mutableStateOf(false) }
+    val shareLayer = rememberGraphicsLayer()
+    var background by rememberSaveable(theme.id) { mutableStateOf(StoryBackground.initial(theme)) }
+    val (top, bottom) = background.colors(theme)
+    val sample = rememberThemeSample()
+
     val shareTitle = stringResource(R.string.theme_share)
-    val codeLabel = stringResource(R.string.theme_share_code)
-    Text(
-        code,
-        style = MaterialTheme.typography.headlineLarge,
-        fontFamily = FontFamily.Monospace
-    )
-    Text(stringResource(R.string.theme_share_instructions))
-    OutlinedButton(onClick = {
-        val clipboard =
-            context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText(codeLabel, code))
-        copied = true
-    }, modifier = Modifier.fillMaxWidth()) {
-        Text(stringResource(if (copied) R.string.theme_code_copied else R.string.theme_copy_code))
-    }
-    Button(onClick = {
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, code)
+    val feedContent = stringResource(R.string.theme_share_feed_content, theme.displayName(), code)
+
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            stringResource(R.string.theme_share_instructions),
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        Button(
+            onClick = { showShareSheet = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Share,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(8.dp))
+            Text(stringResource(R.string.theme_share))
         }
-        context.startActivity(Intent.createChooser(intent, shareTitle))
-    }, modifier = Modifier.fillMaxWidth()) { Text(shareTitle) }
+    }
+
+    if (showShareSheet) {
+        ShareSheet(
+            content = ShareContent(
+                title = shareTitle,
+                text = feedContent,
+                topColor = top,
+                bottomColor = bottom,
+                copyText = code,
+                copyLabel = R.string.theme_copy_code,
+            ),
+            capture = { shareLayer.toImageBitmap().asAndroidBitmap() },
+            onDismiss = { showShareSheet = false },
+            options = { enabled -> StoryBackgroundOptions(theme, background, enabled) { background = it } },
+            preview = {
+                ShareImagePreview(widthDp = 440, heightDp = 600,
+                    background = Brush.verticalGradient(listOf(TimetableTheme.color(top.removePrefix("#")), TimetableTheme.color(bottom.removePrefix("#"))))) {
+                    Box(Modifier.drawWithContent {
+                        shareLayer.record { this@drawWithContent.drawContent() }
+                        drawContent()
+                    }) {
+                        ThemeShareRenderingView(theme, code, sample.map { it.lecture }.distinctBy { it.courseID })
+                    }
+                }
+            },
+            onFeed = navController?.let { controller ->
+                { uri, text -> controller.navigateToShareFeed(uri, text) }
+            },
+        )
+    }
 }
 
 @Preview(showBackground = true)
@@ -214,7 +303,8 @@ private fun ThemeSharingPreview() {
             onImport = {},
             onFind = {},
             onRetryShare = {},
-            onCodeChanged = {}
+            onCodeChanged = {},
+            navController = rememberNavController()
         )
     }
 }
@@ -230,7 +320,8 @@ private fun ThemeImportPreview() {
             onImport = {},
             onFind = {},
             onRetryShare = {},
-            onCodeChanged = {}
+            onCodeChanged = {},
+            navController = rememberNavController()
         )
     }
 }

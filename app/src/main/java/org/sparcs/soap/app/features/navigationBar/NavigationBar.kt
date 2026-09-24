@@ -320,7 +320,19 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     }
 
                     composable(
-                        route = Channel.FeedPostCompose.name,
+                        route = Channel.FeedPostCompose.name + "?initial_text={initial_text}&initial_image_uri={initial_image_uri}",
+                        arguments = listOf(
+                            navArgument("initial_text") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            },
+                            navArgument("initial_image_uri") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
+                        ),
                         enterTransition = trendingEnterTransition(),
                         exitTransition = trendingExitTransition(),
                         popEnterTransition = null,
@@ -741,7 +753,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         popEnterTransition = null,
                         popExitTransition = trendingPopExitTransition()
                     ) {
-                        TimetableThemeSettingsView(onBack = { navController.popBackStack() })
+                        TimetableThemeSettingsView(navController = navController)
                     }
 
                     composable(

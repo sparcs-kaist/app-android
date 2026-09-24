@@ -17,6 +17,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
@@ -27,7 +29,7 @@ import org.sparcs.soap.app.theme.ui.rememberTimetableThemeState
 import org.sparcs.soap.app.theme.ui.rememberTimetableThemeStore
 
 @Composable
-fun TimetableThemeSettingsView(onBack: () -> Unit) {
+fun TimetableThemeSettingsView(navController: NavController) {
     val store = rememberTimetableThemeStore()
     val state = rememberTimetableThemeState(store)
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
@@ -45,7 +47,8 @@ fun TimetableThemeSettingsView(onBack: () -> Unit) {
             onImport = { theme ->
                 store.saveAndSelect(theme)
                 importing = false
-            }
+            },
+            navController = navController
         )
         return
     }
@@ -70,7 +73,7 @@ fun TimetableThemeSettingsView(onBack: () -> Unit) {
         } else {
             ThemeSettingsContent(
                 state = state,
-                onBack = onBack,
+                onBack = { navController.popBackStack() },
                 onSelect = store::select,
                 onEdit = { editing = Json.encodeToString(it) },
                 onDelete = { deleting = it },
@@ -104,6 +107,6 @@ fun TimetableThemeSettingsView(onBack: () -> Unit) {
 @Composable
 private fun TimetableThemeSettingsViewPreview() {
     Theme {
-        TimetableThemeSettingsView(onBack = {})
+        TimetableThemeSettingsView(navController = rememberNavController())
     }
 }
