@@ -37,4 +37,16 @@
     <string name="comp_upcoming_title">다음 수업</string>
     <string name="d_day_mock_title">26 봄</string>
     <string name="days_suffix">일</string>
+    <string name="view_list">목록</string>
+    <string name="view_day">일별</string>
+    <string name="view_week">주별</string>
+    <string name="view_options">보기 설정</string>
+    <string name="no_schedule">이 날은 일정이 없어요</string>
+    <string name="schedule_in">%1$s 후</string>
+    <string name="schedule_ago">%1$s 전</string>
+    <string name="duration_days_hours">%1$d일 %2$d시간</string>
+    <string name="duration_days">%1$d일</string>
+    <string name="duration_hours_minutes">%1$d시간 %2$d분</string>
+    <string name="duration_hours">%1$d시간</string>
+    <string name="duration_minutes">%1$d분</string>
 </resources>

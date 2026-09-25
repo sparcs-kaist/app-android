@@ -1,6 +1,7 @@
 package org.sparcs.soap.presentation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,15 +27,17 @@ import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import org.sparcs.soap.data.models.Lecture
 import org.sparcs.soap.data.models.LectureClass
+import org.sparcs.soap.data.models.ScheduleEntry
 import org.sparcs.soap.presentation.theme.SoapTheme
 import org.sparcs.soap.shared.formatTimeRange
 
 
 @Composable
-fun LectureItem(lecture: Lecture, cl: LectureClass) {
-    val accentColor = remember(lecture.color) {
+fun LectureItem(entry: ScheduleEntry, onSelect: () -> Unit = {}) {
+    val cl = entry.classTime
+    val accentColor = remember(entry.color) {
         try {
-            lecture.color?.let { Color(it.toColorInt()) } ?: Color(0xFF4A90E2)
+            entry.color?.let { Color(it.toColorInt()) } ?: Color(0xFF4A90E2)
         } catch (_: Exception) {
             Color(0xFF4A90E2)
         }
@@ -48,6 +51,7 @@ fun LectureItem(lecture: Lecture, cl: LectureClass) {
                 color = Color.White.copy(alpha = 0.05f),
                 shape = MaterialTheme.shapes.medium
             )
+            .clickable(onClick = onSelect)
             .padding(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -59,7 +63,7 @@ fun LectureItem(lecture: Lecture, cl: LectureClass) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = lecture.name,
+                text = entry.title,
                 style = MaterialTheme.typography.button.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
@@ -96,8 +100,7 @@ private fun LectureItemPreview() {
                 .background(Color.Black)
         ) {
             LectureItem(
-                lecture = Lecture.mock(),
-                cl = LectureClass.mock()
+                entry = ScheduleEntry("preview", Lecture.mock().name, LectureClass.mock(), "#4A90E2")
             )
         }
     }

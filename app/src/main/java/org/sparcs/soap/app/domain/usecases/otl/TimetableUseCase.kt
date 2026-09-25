@@ -135,6 +135,7 @@ class TimetableUseCase @Inject constructor(
                 val result = otlTimetableRepository.getTimetable(id)
                 currentCoroutineContext().ensureActive()
                 timetableCache.store(result, key)
+                wearableDataManager.pushToWatchIfSelected(result, timetableID = id)
                 result
             } catch (e: Exception) {
                 if (e is CancellationException || forceRefresh || !(e is NetworkError.NoConnection || e is NetworkError.Timeout || (e is NetworkError.ServerError && e.code >= 500))) throw e
@@ -155,12 +156,9 @@ class TimetableUseCase @Inject constructor(
         val result = otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType)
         currentCoroutineContext().ensureActive()
         timetableCache.store(result, key)
-        launchUpdate("${key}-watch") {
-            if (refreshCurrentSemester() == semester) {
-                val latest = timetableCache.timetable(key) ?: return@launchUpdate
-                wearableDataManager.sendTimetableToWatch(latest, semester)
-            }
-        }
+        wearableDataManager.pushToWatchIfSelected(
+            result, semester = semester, currentSemester = timetableCache.currentSemester()
+        )
         result
     }
 
@@ -271,6 +269,7 @@ class TimetableUseCase @Inject constructor(
             otlTimetableRepository.addLecture(timetableID, lectureID)
             val freshTable = otlTimetableRepository.getTimetable(timetableID)
             timetableCache.store(freshTable, timetableID.toString())
+            wearableDataManager.pushToWatchIfSelected(freshTable, timetableID = timetableID)
         }
     }
 
@@ -286,6 +285,7 @@ class TimetableUseCase @Inject constructor(
             otlTimetableRepository.deleteLecture(timetableID, lectureID)
             val freshTable = otlTimetableRepository.getTimetable(timetableID)
             timetableCache.store(freshTable, timetableID.toString())
+            wearableDataManager.pushToWatchIfSelected(freshTable, timetableID = timetableID)
         }
     }
 

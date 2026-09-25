@@ -13,8 +13,8 @@ data class LectureClass(
     companion object {
         fun mock(
             day: String = "MON",
-            begin: Int = 900,
-            end: Int = 1030,
+            begin: Int = 540,
+            end: Int = 630,
             location: String = "정보전자공학동 101호"
         ) = LectureClass(
             day = day,

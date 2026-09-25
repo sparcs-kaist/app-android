@@ -38,4 +38,16 @@
     <string name="comp_upcoming_title">Upcoming</string>
     <string name="d_day_mock_title">26 Spring</string>
     <string name="days_suffix">days</string>
+    <string name="view_list">List</string>
+    <string name="view_day">Day</string>
+    <string name="view_week">Week</string>
+    <string name="view_options">View options</string>
+    <string name="no_schedule">No events on this day</string>
+    <string name="schedule_in">in %1$s</string>
+    <string name="schedule_ago">%1$s ago</string>
+    <string name="duration_days_hours">%1$dd %2$dh</string>
+    <string name="duration_days">%1$dd</string>
+    <string name="duration_hours_minutes">%1$dh %2$dm</string>
+    <string name="duration_hours">%1$dh</string>
+    <string name="duration_minutes">%1$dm</string>
 </resources>

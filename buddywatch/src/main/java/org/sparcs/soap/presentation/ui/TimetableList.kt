@@ -25,13 +25,14 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.foundation.rotary.RotaryScrollableDefaults
+import androidx.wear.compose.foundation.rotary.rotaryScrollable
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
-import androidx.wear.compose.foundation.rotary.rotaryScrollable
 import org.sparcs.soap.R
 import org.sparcs.soap.data.models.Lecture
 import org.sparcs.soap.data.models.LectureClass
+import org.sparcs.soap.data.models.ScheduleEntry
 import org.sparcs.soap.data.models.Timetable
 import org.sparcs.soap.presentation.theme.SoapTheme
 import java.util.Calendar
@@ -87,7 +88,7 @@ fun TimetableList(timetable: Timetable?, listState: ScalingLazyListState) {
             timetable == null -> item { EmptyStateMessage(R.string.no_sync) }
             todayLectures.isEmpty() -> item { EmptyStateMessage(R.string.no_more_classes) }
             else -> items(todayLectures) { (lecture, cl) ->
-                LectureItem(lecture, cl)
+                LectureItem(ScheduleEntry("${lecture.id}-${cl.begin}", lecture.name, cl, lecture.color))
             }
         }
 

@@ -14,7 +14,8 @@ import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.data.WatchDataStore
 import org.sparcs.soap.data.models.Timetable
-import java.util.Calendar
+import org.sparcs.soap.data.models.upcomingEntry
+import java.time.LocalDateTime
 import java.util.Locale
 
 class UpcomingClassComplicationService : SuspendingComplicationDataSourceService() {
@@ -51,24 +52,15 @@ class UpcomingClassComplicationService : SuspendingComplicationDataSourceService
             try { json.decodeFromString<Timetable>(it) } catch (_: Exception) { null }
         }
 
-        val now = Calendar.getInstance()
-        val dayOfWeek = getDayOfWeekString(now)
-        val currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
-
-        val nextLectureData = timetable?.lectures
-            ?.flatMap { lecture -> lecture.classes.map { cl -> lecture to cl } }
-            ?.filter { (_, cl) -> cl.day == dayOfWeek && cl.end > currentMinutes }
-            ?.minByOrNull { (_, cl) -> cl.begin }
-
-        if (nextLectureData == null) {
-            return createNoClassData(request.complicationType)
-        }
-
-        val (lecture, cl) = nextLectureData
+        val now = LocalDateTime.now()
+        val currentMinutes = now.hour * 60 + now.minute
+        val entry = timetable?.upcomingEntry(now)
+            ?: return createNoClassData(request.complicationType)
+        val cl = entry.classTime
         val isOngoing = currentMinutes >= cl.begin
         val timeLabel = if (isOngoing) getString(R.string.comp_ongoing) else formatTime(cl.begin)
 
-        val displayTitle = lecture.code.ifEmpty { lecture.name }
+        val displayTitle = entry.code.ifEmpty { entry.title }
         val icon = MonochromaticImage.Builder(
             image = Icon.createWithResource(applicationContext, R.drawable.buddy_icon_flat)
         ).build()
@@ -78,7 +70,7 @@ class UpcomingClassComplicationService : SuspendingComplicationDataSourceService
                 ShortTextComplicationData.Builder(
                     text = PlainComplicationText.Builder(timeLabel).build(),
                     contentDescription = PlainComplicationText.Builder(
-                        getString(R.string.comp_next_class_desc, lecture.name, timeLabel)
+                        getString(R.string.comp_next_class_desc, entry.title, timeLabel)
                     ).build()
                 )
                     .setTitle(PlainComplicationText.Builder(truncateText(displayTitle, 10)).build())
@@ -90,10 +82,10 @@ class UpcomingClassComplicationService : SuspendingComplicationDataSourceService
                 LongTextComplicationData.Builder(
                     text = PlainComplicationText.Builder(detailText).build(),
                     contentDescription = PlainComplicationText.Builder(
-                        getString(R.string.comp_next_class_desc, lecture.name, timeLabel)
+                        getString(R.string.comp_next_class_desc, entry.title, timeLabel)
                     ).build()
                 )
-                    .setTitle(PlainComplicationText.Builder(truncateText(lecture.name, 20)).build())
+                    .setTitle(PlainComplicationText.Builder(truncateText(entry.title, 20)).build())
                     .setMonochromaticImage(icon)
                     .build()
             }
@@ -122,12 +114,4 @@ class UpcomingClassComplicationService : SuspendingComplicationDataSourceService
         return String.format(Locale.getDefault(), "%02d:%02d", h, m)
     }
 
-    private fun getDayOfWeekString(cal: Calendar): String = when (cal.get(Calendar.DAY_OF_WEEK)) {
-        Calendar.MONDAY -> "MON"
-        Calendar.TUESDAY -> "TUE"
-        Calendar.WEDNESDAY -> "WED"
-        Calendar.THURSDAY -> "THU"
-        Calendar.FRIDAY -> "FRI"
-        else -> ""
-    }
 }
