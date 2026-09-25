@@ -4,13 +4,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.models.otl.Timetable
 
 @Serializable
 data class WatchTimetable(
     val id: String,
-    val lectures: List<WatchLecture>
+    val lectures: List<WatchLecture>,
+    val activities: List<WatchActivity> = emptyList(),
+    val textColor: String = "#FFFFFF"
+)
+
+@Serializable
+data class WatchActivity(
+    val id: Int,
+    val title: String,
+    val day: String,
+    val begin: Int,
+    val end: Int,
+    val location: String,
+    val color: String? = null
 )
 
 @Serializable
@@ -39,8 +53,6 @@ data class WatchLectureClass(
     @SerialName("location") val location: String
 )
 
-// ...
-
 fun Timetable.toWatchModel(theme: TimetableTheme): WatchTimetable {
     return WatchTimetable(
         id = id,
@@ -60,7 +72,20 @@ fun Timetable.toWatchModel(theme: TimetableTheme): WatchTimetable {
                 color = theme.colorFor(lecture.courseID).toWatchHex(),
                 colorID = lecture.courseID
             )
-        }
+        },
+        activities = activities.mapNotNull { activity ->
+            val day = DayType.fromValue(activity.day) ?: return@mapNotNull null
+            WatchActivity(
+                id = activity.id,
+                title = activity.title,
+                day = day.name,
+                begin = activity.begin,
+                end = activity.end,
+                location = activity.location,
+                color = theme.colorFor(activity.id).toWatchHex()
+            )
+        },
+        textColor = theme.textColor.toWatchHex()
     )
 }
 
@@ -68,7 +93,9 @@ fun Timetable.toWatchModel(theme: TimetableTheme): WatchTimetable {
 fun WatchTimetable.themed(theme: TimetableTheme): WatchTimetable = copy(
     lectures = lectures.map { lecture ->
         lecture.colorID?.let { lecture.copy(color = theme.colorFor(it).toWatchHex()) } ?: lecture
-    }
+    },
+    activities = activities.map { it.copy(color = theme.colorFor(it.id).toWatchHex()) },
+    textColor = theme.textColor.toWatchHex()
 )
 
 private fun Color.toWatchHex(): String =

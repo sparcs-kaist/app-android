@@ -7,6 +7,7 @@ import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.sparcs.soap.app.domain.helpers.TimetableSelectionStore
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
@@ -27,6 +28,21 @@ class WearableDataManager @Inject constructor(
 
     private val json = Json { ignoreUnknownKeys = true }
     private val lastSent = context.getSharedPreferences(LAST_SENT_PREFS, Context.MODE_PRIVATE)
+
+    fun pushToWatchIfSelected(
+        timetable: Timetable,
+        semester: Semester? = null,
+        timetableID: Int? = null,
+        currentSemester: Semester? = null
+    ) {
+        val saved = TimetableSelectionStore(context).selection
+        val isSelected = when {
+            saved == null -> timetableID == null && semester != null && semester == currentSemester
+            timetableID != null -> saved.timetableID == timetableID
+            else -> saved.timetableID == null && saved.semesterID == semester?.id
+        }
+        if (isSelected) sendTimetableToWatch(timetable, semester)
+    }
 
     fun sendTimetableToWatch(timetable: Timetable, semester: Semester? = null) {
         val watchModel = timetable.toWatchModel(TimetableThemeStore.selectedTheme(context))

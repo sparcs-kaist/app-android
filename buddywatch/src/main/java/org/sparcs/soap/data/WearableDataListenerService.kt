@@ -1,6 +1,8 @@
 package org.sparcs.soap.data
 
+import android.content.ComponentName
 import androidx.wear.tiles.TileService
+import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
 import com.google.android.gms.wearable.DataEvent
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMapItem
@@ -10,6 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.sparcs.soap.complication.DDayComplicationService
+import org.sparcs.soap.complication.UpcomingClassComplicationService
 import org.sparcs.soap.tile.DDayTileService
 import org.sparcs.soap.tile.MainTileService
 import timber.log.Timber
@@ -26,7 +30,12 @@ class WearableDataListenerService : WearableListenerService() {
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         try {
             dataEvents.forEach { event ->
-                if (event.type == DataEvent.TYPE_CHANGED) {
+                if (event.type == DataEvent.TYPE_DELETED && event.dataItem.uri.path == "/timetable/current") {
+                    scope.launch {
+                        watchDataStore.clearTimetable()
+                        refreshSurfaces()
+                    }
+                } else if (event.type == DataEvent.TYPE_CHANGED) {
                     val path = event.dataItem.uri.path
                     if (path == "/timetable/current") {
                         val dataMap = DataMapItem.fromDataItem(event.dataItem).dataMap
@@ -43,10 +52,7 @@ class WearableDataListenerService : WearableListenerService() {
                             }
 
                             if (timetableJson != null || semesterJson != null) {
-                                TileService.getUpdater(applicationContext)
-                                    .requestUpdate(MainTileService::class.java)
-                                TileService.getUpdater(applicationContext)
-                                    .requestUpdate(DDayTileService::class.java)
+                                refreshSurfaces()
                                 Timber.d("Data updated. Timetable: ${timetableJson != null}, Semester: ${semesterJson != null}")
                             }
                         }
@@ -55,6 +61,14 @@ class WearableDataListenerService : WearableListenerService() {
             }
         } finally {
             dataEvents.release()
+        }
+    }
+
+    private fun refreshSurfaces() {
+        TileService.getUpdater(this).requestUpdate(MainTileService::class.java)
+        TileService.getUpdater(this).requestUpdate(DDayTileService::class.java)
+        listOf(UpcomingClassComplicationService::class.java, DDayComplicationService::class.java).forEach { service ->
+            ComplicationDataSourceUpdateRequester.create(this, ComponentName(this, service)).requestUpdateAll()
         }
     }
 

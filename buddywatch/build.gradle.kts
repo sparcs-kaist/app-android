@@ -17,6 +17,7 @@ android {
         targetSdk = 36
         versionCode = 31
         versionName = "1.2"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
 
@@ -66,7 +67,10 @@ dependencies {
     implementation(libs.androidx.watchface.complications.data.source.ktx)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
+    androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.tiles.tooling)
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
 }

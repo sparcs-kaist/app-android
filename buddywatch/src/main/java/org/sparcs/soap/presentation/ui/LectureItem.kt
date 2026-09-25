@@ -1,6 +1,7 @@
 package org.sparcs.soap.presentation.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,43 +12,37 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.toColorInt
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
 import org.sparcs.soap.data.models.Lecture
 import org.sparcs.soap.data.models.LectureClass
+import org.sparcs.soap.data.models.ScheduleEntry
 import org.sparcs.soap.presentation.theme.SoapTheme
 import org.sparcs.soap.shared.formatTimeRange
+import org.sparcs.soap.shared.scheduleColor
 
 
 @Composable
-fun LectureItem(lecture: Lecture, cl: LectureClass) {
-    val accentColor = remember(lecture.color) {
-        try {
-            lecture.color?.let { Color(it.toColorInt()) } ?: Color(0xFF4A90E2)
-        } catch (_: Exception) {
-            Color(0xFF4A90E2)
-        }
-    }
+fun LectureItem(entry: ScheduleEntry, onSelect: () -> Unit = {}) {
+    val cl = entry.classTime
+    val accentColor = entry.color.scheduleColor()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .background(
-                color = Color.White.copy(alpha = 0.05f),
-                shape = MaterialTheme.shapes.medium
-            )
+            .clip(MaterialTheme.shapes.medium)
+            .background(accentColor.copy(alpha = 0.18f))
+            .clickable(onClick = onSelect)
             .padding(12.dp)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -59,7 +54,7 @@ fun LectureItem(lecture: Lecture, cl: LectureClass) {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = lecture.name,
+                text = entry.title,
                 style = MaterialTheme.typography.button.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
@@ -86,7 +81,8 @@ fun LectureItem(lecture: Lecture, cl: LectureClass) {
     }
 }
 
-@Preview(device = WearDevices.RECT, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showBackground = true, backgroundColor = 0xFF000000)
+@Preview(device = WearDevices.LARGE_ROUND, showBackground = true, backgroundColor = 0xFF000000)
 @Composable
 private fun LectureItemPreview() {
     SoapTheme {
@@ -96,8 +92,7 @@ private fun LectureItemPreview() {
                 .background(Color.Black)
         ) {
             LectureItem(
-                lecture = Lecture.mock(),
-                cl = LectureClass.mock()
+                entry = ScheduleEntry("preview", Lecture.mock().name, LectureClass.mock(), "#4A90E2")
             )
         }
     }

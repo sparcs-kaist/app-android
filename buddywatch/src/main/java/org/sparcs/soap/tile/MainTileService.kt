@@ -23,8 +23,11 @@ import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.data.WatchDataStore
 import org.sparcs.soap.data.models.Timetable
+import org.sparcs.soap.data.models.scheduleEntries
+import org.sparcs.soap.data.models.upcomingEntry
 import org.sparcs.soap.shared.formatTimeRange
-import java.util.Calendar
+import java.time.LocalDateTime
+import java.time.ZoneId
 
 private const val RESOURCES_VERSION = "0"
 private const val FRESHNESS_INTERVAL_MILLIS = 60L * 60 * 1000
@@ -69,96 +72,20 @@ private fun tile(
 ): TileBuilders.Tile {
     val timelineBuilder = TimelineBuilders.Timeline.Builder()
 
-    val now = Calendar.getInstance()
-    val today = when (now.get(Calendar.DAY_OF_WEEK)) {
-        Calendar.MONDAY -> "MON"
-        Calendar.TUESDAY -> "TUE"
-        Calendar.WEDNESDAY -> "WED"
-        Calendar.THURSDAY -> "THU"
-        Calendar.FRIDAY -> "FRI"
-        else -> "MON"
-    }
-
-    if (timetable != null && today.isNotEmpty()) {
-        val todayClasses = timetable.lectures
-            .flatMap { lecture -> lecture.classes.map { cl -> lecture to cl } }
-            .filter { (_, cl) -> cl.day == today }
-            .sortedBy { (_, cl) -> cl.end }
-
-        var lastTransitionMillis = 0L
-
-        todayClasses.forEach { (_, cl) ->
-            val transitionCalendar = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, cl.end / 60)
-                set(Calendar.MINUTE, cl.end % 60)
-                set(Calendar.SECOND, 0)
-                set(Calendar.MILLISECOND, 0)
-            }
-            val transitionMillis = transitionCalendar.timeInMillis
-
-            if (transitionMillis > System.currentTimeMillis()) {
-                val entryBuilder = TimelineBuilders.TimelineEntry.Builder()
-                if (lastTransitionMillis == 0L) {
-                    entryBuilder.setValidity(
-                        TimelineBuilders.TimeInterval.Builder()
-                            .setEndMillis(transitionMillis)
-                            .build()
-                    )
-                } else {
-                    entryBuilder.setValidity(
-                        TimelineBuilders.TimeInterval.Builder()
-                            .setStartMillis(lastTransitionMillis)
-                            .setEndMillis(transitionMillis)
-                            .build()
-                    )
-                }
-                timelineBuilder.addTimelineEntry(
-                    entryBuilder
-                        .setLayout(
-                            LayoutElementBuilders.Layout.Builder()
-                                .setRoot(
-                                    tileLayout(
-                                        requestParams,
-                                        context,
-                                        timetable,
-                                        Calendar.getInstance().apply {
-                                            timeInMillis =
-                                                if (lastTransitionMillis == 0L) System.currentTimeMillis() else lastTransitionMillis
-                                        })
-                                )
-                                .build()
-                        )
-                        .build()
-                )
-                lastTransitionMillis = transitionMillis
-            }
-        }
-
-        val finalEntryBuilder = TimelineBuilders.TimelineEntry.Builder()
-        if (lastTransitionMillis != 0L) {
-            finalEntryBuilder.setValidity(
-                TimelineBuilders.TimeInterval.Builder()
-                    .setStartMillis(lastTransitionMillis)
-                    .build()
-            )
-        }
-        timelineBuilder.addTimelineEntry(
-            finalEntryBuilder
-                .setLayout(
-                    LayoutElementBuilders.Layout.Builder()
-                        .setRoot(tileLayout(requestParams, context, timetable, now))
-                        .build()
-                )
-                .build()
-        )
-    } else {
+    val now = LocalDateTime.now()
+    val midnight = now.toLocalDate().plusDays(1).atStartOfDay()
+    val boundaries = (listOf(now, midnight) + timetable?.scheduleEntries(now.dayOfWeek).orEmpty()
+        .flatMap { entry -> listOf(entry.classTime.begin, entry.classTime.end) }
+        .map { now.toLocalDate().atStartOfDay().plusMinutes(it.toLong()) }
+        .filter { it > now }).distinct().sorted()
+    boundaries.zipWithNext().forEach { (start, end) ->
         timelineBuilder.addTimelineEntry(
             TimelineBuilders.TimelineEntry.Builder()
-                .setLayout(
-                    LayoutElementBuilders.Layout.Builder()
-                        .setRoot(tileLayout(requestParams, context, timetable, now))
-                        .build()
-                )
+                .setValidity(TimelineBuilders.TimeInterval.Builder()
+                    .setStartMillis(start.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
+                    .setEndMillis(end.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()).build())
+                .setLayout(LayoutElementBuilders.Layout.Builder()
+                    .setRoot(tileLayout(requestParams, context, timetable, start)).build())
                 .build()
         )
     }
@@ -174,24 +101,9 @@ private fun tileLayout(
     requestParams: RequestBuilders.TileRequest,
     context: Context,
     timetable: Timetable?,
-    now: Calendar,
+    now: LocalDateTime,
 ): LayoutElementBuilders.LayoutElement {
-    val dayOfWeekString = when (now.get(Calendar.DAY_OF_WEEK)) {
-        Calendar.MONDAY -> "MON"
-        Calendar.TUESDAY -> "TUE"
-        Calendar.WEDNESDAY -> "WED"
-        Calendar.THURSDAY -> "THU"
-        Calendar.FRIDAY -> "FRI"
-        else -> ""
-    }
-    val currentMinutes = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE)
-    val nextLectureData = timetable?.lectures
-        ?.flatMap { lecture ->
-            lecture.classes.map { cl -> lecture to cl }
-        }
-        ?.filter { (_, cl) -> cl.day == dayOfWeekString }
-        ?.filter { (_, cl) -> cl.end > currentMinutes }
-        ?.minByOrNull { (_, cl) -> cl.begin }
+    val nextEntry = timetable?.upcomingEntry(now)
 
     val content = if (timetable == null) {
         LayoutElementBuilders.Column.Builder()
@@ -204,10 +116,10 @@ private fun tileLayout(
                     .build()
             )
             .build()
-    } else if (nextLectureData != null) {
-        val (lecture, cl) = nextLectureData
+    } else if (nextEntry != null) {
+        val cl = nextEntry.classTime
         val accentColor = try {
-            lecture.color?.toColorInt() ?: Colors.DEFAULT.primary
+            nextEntry.color?.toColorInt() ?: Colors.DEFAULT.primary
         } catch (_: Exception) {
             Colors.DEFAULT.primary
         }
@@ -225,7 +137,7 @@ private fun tileLayout(
                     .build()
             )
             .addContent(
-                Text.Builder(context, lecture.name)
+                Text.Builder(context, nextEntry.title)
                     .setColor(argb(Colors.DEFAULT.onSurface))
                     .setTypography(Typography.TYPOGRAPHY_TITLE3)
                     .setMaxLines(2)

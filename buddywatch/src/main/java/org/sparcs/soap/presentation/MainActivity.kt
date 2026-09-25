@@ -6,16 +6,18 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.wear.compose.material.PositionIndicator
-import androidx.wear.compose.material.Scaffold
-import androidx.wear.compose.material.TimeText
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.delay
 import org.sparcs.soap.data.WatchDataStore
-import org.sparcs.soap.presentation.ui.TimetableList
 import org.sparcs.soap.presentation.theme.SoapTheme
+import org.sparcs.soap.presentation.ui.LectureRootView
+import java.time.LocalDateTime
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,16 +46,19 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun WearApp(viewModel: MainViewModel) {
     val timetable by viewModel.timetableState.collectAsState()
-    val listState = rememberScalingLazyListState()
-
-    SoapTheme {
-        Scaffold(
-            timeText = { TimeText() },
-            positionIndicator = {
-                PositionIndicator(scalingLazyListState = listState)
+    val viewOption by viewModel.viewOption.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val now by produceState(LocalDateTime.now(), lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            while (true) {
+                value = LocalDateTime.now()
+                delay(60_000 - System.currentTimeMillis() % 60_000)
             }
-        ) {
-            TimetableList(timetable, listState)
+        }
+    }
+    SoapTheme {
+        viewOption?.let { option ->
+            LectureRootView(timetable, option, now, viewModel::selectViewOption)
         }
     }
 }
