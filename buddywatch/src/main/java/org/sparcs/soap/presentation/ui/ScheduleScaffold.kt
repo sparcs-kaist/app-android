@@ -1,5 +1,6 @@
 package org.sparcs.soap.presentation.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +21,7 @@ import androidx.wear.compose.foundation.rotary.RotaryScrollableDefaults
 import androidx.wear.compose.foundation.rotary.rotaryScrollable
 import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.ListHeader
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.Text
@@ -38,7 +40,8 @@ fun ScheduleScaffold(
 ) {
     val focusRequester = remember { FocusRequester() }
     Scaffold(
-        timeText = { TimeText(modifier = Modifier.scrollAway(state)) },
+        modifier = Modifier.background(MaterialTheme.colors.background),
+        timeText = { TimeText(modifier = Modifier.scrollAway(state, itemIndex = 0)) },
         positionIndicator = { PositionIndicator(scalingLazyListState = state) }
     ) {
         ScalingLazyColumn(

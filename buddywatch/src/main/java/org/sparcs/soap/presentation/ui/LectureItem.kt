@@ -12,16 +12,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.toColorInt
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
@@ -30,27 +29,19 @@ import org.sparcs.soap.data.models.LectureClass
 import org.sparcs.soap.data.models.ScheduleEntry
 import org.sparcs.soap.presentation.theme.SoapTheme
 import org.sparcs.soap.shared.formatTimeRange
+import org.sparcs.soap.shared.scheduleColor
 
 
 @Composable
 fun LectureItem(entry: ScheduleEntry, onSelect: () -> Unit = {}) {
     val cl = entry.classTime
-    val accentColor = remember(entry.color) {
-        try {
-            entry.color?.let { Color(it.toColorInt()) } ?: Color(0xFF4A90E2)
-        } catch (_: Exception) {
-            Color(0xFF4A90E2)
-        }
-    }
+    val accentColor = entry.color.scheduleColor()
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .background(
-                color = Color.White.copy(alpha = 0.05f),
-                shape = MaterialTheme.shapes.medium
-            )
+            .clip(MaterialTheme.shapes.medium)
+            .background(accentColor.copy(alpha = 0.18f))
             .clickable(onClick = onSelect)
             .padding(12.dp)
     ) {
@@ -90,7 +81,8 @@ fun LectureItem(entry: ScheduleEntry, onSelect: () -> Unit = {}) {
     }
 }
 
-@Preview(device = WearDevices.RECT, showSystemUi = true)
+@Preview(device = WearDevices.SMALL_ROUND, showBackground = true, backgroundColor = 0xFF000000)
+@Preview(device = WearDevices.LARGE_ROUND, showBackground = true, backgroundColor = 0xFF000000)
 @Composable
 private fun LectureItemPreview() {
     SoapTheme {

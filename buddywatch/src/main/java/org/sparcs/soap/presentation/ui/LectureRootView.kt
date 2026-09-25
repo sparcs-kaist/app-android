@@ -72,19 +72,19 @@ fun LectureRootView(
                     item { Text(stringResource(R.string.no_sync), textAlign = TextAlign.Center) }
                 }
                 screen == LectureViewOption.WEEK -> WeekTimetableView(
-                    timetable, now.dayOfWeek, onShowOptions = showViewOptions
+                    timetable, now.dayOfWeek, now = now, onShowOptions = showViewOptions
                 ) {
                     selectedDay = it.value
                     screen = LectureViewOption.DAY
                 }
                 screen == LectureViewOption.DAY -> DayTimetableView(
-                    timetable, day, onShowOptions = showViewOptions
+                    timetable, day, now = now, onShowOptions = showViewOptions
                 ) {
                     focusedID = it.id
                     detailParent = LectureViewOption.DAY
                     screen = LectureViewOption.UP_NEXT
                 }
-                screen == LectureViewOption.LIST -> LectureListView(
+                screen == LectureViewOption.LIST -> TimetableList(
                     timetable.scheduleEntries(day), title, showViewOptions
                 ) {
                     focusedID = it.id

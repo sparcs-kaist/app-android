@@ -5,14 +5,6 @@
     <string name="up_next">다음 수업</string>
     <string name="no_more_classes">오늘 수업 끝!</string>
     <string name="enjoy_day">즐거운 하루 보내세요</string>
-    <string name="today_schedule">오늘의 시간표</string>
-    <string name="monday">월요일</string>
-    <string name="tuesday">화요일</string>
-    <string name="wednesday">수요일</string>
-    <string name="thursday">목요일</string>
-    <string name="friday">금요일</string>
-    <string name="saturday">토요일</string>
-    <string name="sunday">일요일</string>
     <string name="no_sync">먼저 휴대폰 앱을 열어 시간표를 동기화해 주세요.</string>
     <string name="d_day_widget_title">디데이</string>
     <plurals name="d_day_widget_ends_in_days">
