@@ -226,4 +226,7 @@ object Constants {
 
     const val KAKAO_MAP_KEY = BuildConfig.KAKAO_MAP_KEY
     const val KAKAO_NAVI_KEY = BuildConfig.KAKAO_NAVI_KEY
+
+    // MARK: Meta
+    const val META_APP_ID = "2510700999432824"
 }
