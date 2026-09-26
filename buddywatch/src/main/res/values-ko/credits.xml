@@ -1,0 +1,6 @@
+<resources>
+    <string name="credits_title">학점</string>
+    <string name="credits_open_phone">휴대폰 Buddy에서 학점 계산을 열어 주세요</string>
+    <string name="credits_progress">%1$d / %2$d학점</string>
+    <string name="credits_gpa">평점 %1$s</string>
+</resources>

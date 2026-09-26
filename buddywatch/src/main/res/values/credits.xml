@@ -1,0 +1,6 @@
+<resources>
+    <string name="credits_title">Credits</string>
+    <string name="credits_open_phone">Open Credits in Buddy on your phone</string>
+    <string name="credits_progress">%1$d / %2$d credits</string>
+    <string name="credits_gpa">GPA %1$s</string>
+</resources>
