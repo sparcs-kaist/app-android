@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.creditCompleteColor
 
 private data class RequirementRow(
     val key: String,
@@ -250,7 +251,7 @@ private fun RequirementProgress(row: RequirementRow, onEdit: () -> Unit) {
             )
             if (isMet) Icon(
                 Icons.Rounded.CheckCircle, stringResource(R.string.credit_requirement_met),
-                tint = CreditCompleteColor, modifier = Modifier.size(18.dp)
+                tint = creditCompleteColor, modifier = Modifier.size(18.dp)
             )
             Text(
                 "${row.taken}",
