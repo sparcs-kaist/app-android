@@ -47,7 +47,12 @@ private data class RequirementRow(
     val update: (CreditRequirements, Int) -> CreditRequirements = { requirements, _ -> requirements },
 )
 
-private data class RequirementGroup(val key: String, val title: String, val icon: ImageVector, val rows: List<RequirementRow>)
+private data class RequirementGroup(
+    val key: String,
+    val title: String,
+    val icon: ImageVector,
+    val rows: List<RequirementRow>,
+)
 
 @Composable
 internal fun CreditRequirementsView(
@@ -57,32 +62,77 @@ internal fun CreditRequirementsView(
 ) {
     val rows = requirementRows(state)
     val groups = buildList {
-        add(RequirementGroup("graduation", stringResource(R.string.credit_graduation), Icons.Outlined.School, rows.filter { it.key == "graduation" }))
-        add(RequirementGroup("basic", stringResource(R.string.credit_basic),
-            Icons.AutoMirrored.Outlined.MenuBook, rows.filter { it.key in listOf("br", "be") }))
+        add(
+            RequirementGroup(
+                "graduation",
+                stringResource(R.string.credit_graduation),
+                Icons.Outlined.School,
+                rows.filter { it.key == "graduation" })
+        )
+        add(
+            RequirementGroup(
+                "basic", stringResource(R.string.credit_basic),
+                Icons.AutoMirrored.Outlined.MenuBook, rows.filter { it.key in listOf("br", "be") })
+        )
         state.creditBreakdown.majors.forEach { group ->
             val id = group.department.id
-            add(RequirementGroup("major.$id", group.department.name, Icons.Outlined.Apartment,
-                rows.filter { it.key == "mr.$id" || it.key == "me.$id" }))
+            add(
+                RequirementGroup(
+                    "major.$id", group.department.name, Icons.Outlined.Apartment,
+                    rows.filter { it.key == "mr.$id" || it.key == "me.$id" })
+            )
         }
-        add(RequirementGroup("hse", stringResource(R.string.credit_humanities), Icons.Outlined.People, rows.filter { it.key.startsWith("hse") }))
-        add(RequirementGroup("au", "AU",
-            Icons.AutoMirrored.Outlined.DirectionsRun, rows.filter { it.key == "au" }))
+        add(
+            RequirementGroup(
+                "hse",
+                stringResource(R.string.credit_humanities),
+                Icons.Outlined.People,
+                rows.filter { it.key.startsWith("hse") })
+        )
+        add(
+            RequirementGroup(
+                "au", "AU",
+                Icons.AutoMirrored.Outlined.DirectionsRun, rows.filter { it.key == "au" })
+        )
         rows.filter { it.key == "etc" }.takeIf { it.isNotEmpty() }?.let {
-            add(RequirementGroup("etc", stringResource(R.string.lecture_type_etc_full), Icons.Outlined.MoreHoriz, it))
+            add(
+                RequirementGroup(
+                    "etc",
+                    stringResource(R.string.lecture_type_etc_full),
+                    Icons.Outlined.MoreHoriz,
+                    it
+                )
+            )
         }
     }
     var editingKey by rememberSaveable { mutableStateOf<String?>(null) }
     val editing = rows.find { it.key == editingKey }
     CreditScreen(stringResource(R.string.credit_requirements), onBack) { modifier ->
         LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            item { Text(stringResource(R.string.credit_requirements_notice), style = MaterialTheme.typography.bodySmall) }
+            item {
+                Text(
+                    stringResource(R.string.credit_requirements_notice),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
             items(groups, key = { it.key }) { group ->
                 CreditCard {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Icon(group.icon, null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(20.dp))
-                        Text(group.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            group.icon,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Text(
+                            group.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
                     group.rows.forEach { row -> RequirementProgress(row) { editingKey = row.key } }
                 }
@@ -93,7 +143,10 @@ internal fun CreditRequirementsView(
         }
     }
     if (editing != null) {
-        CreditRequirementEditor(editing.title, editing.minimum ?: 0, { editingKey = null }) { minimum ->
+        CreditRequirementEditor(
+            editing.title,
+            editing.minimum ?: 0,
+            { editingKey = null }) { minimum ->
             onSave(editing.update(state.requirements, minimum))
             editingKey = null
         }
@@ -105,23 +158,79 @@ private fun requirementRows(state: CreditCalculationViewState): List<Requirement
     val breakdown = state.creditBreakdown
     val requirements = state.requirements
     return buildList {
-        add(RequirementRow("graduation", stringResource(R.string.credit_total), state.overallSummary.earnedCredits, requirements.graduation) { r, n -> r.copy(graduation = n) })
-        add(RequirementRow("br", stringResource(R.string.lecture_type_br_full), breakdown.basicRequired, requirements.basicRequired) { r, n -> r.copy(basicRequired = n) })
-        add(RequirementRow("be", stringResource(R.string.lecture_type_be_full), breakdown.basicElective, requirements.basicElective) { r, n -> r.copy(basicElective = n) })
+        add(
+            RequirementRow(
+                "graduation",
+                stringResource(R.string.credit_total),
+                state.overallSummary.earnedCredits,
+                requirements.graduation
+            ) { r, n -> r.copy(graduation = n) })
+        add(
+            RequirementRow(
+                "br",
+                stringResource(R.string.lecture_type_br_full),
+                breakdown.basicRequired,
+                requirements.basicRequired
+            ) { r, n -> r.copy(basicRequired = n) })
+        add(
+            RequirementRow(
+                "be",
+                stringResource(R.string.lecture_type_be_full),
+                breakdown.basicElective,
+                requirements.basicElective
+            ) { r, n -> r.copy(basicElective = n) })
         breakdown.majors.forEach { group ->
             val department = group.department
-            add(RequirementRow("mr.${department.id}", "${department.name} · ${stringResource(R.string.mr)}", group.required, requirements.majorRequired(department)) { r, n ->
-                r.copy(majorRequired = r.majorRequired + (department.id to n))
-            })
-            add(RequirementRow("me.${department.id}", "${department.name} · ${stringResource(R.string.me)}", group.elective, requirements.majorElective(department)) { r, n ->
-                r.copy(majorElective = r.majorElective + (department.id to n))
-            })
+            add(
+                RequirementRow(
+                    "mr.${department.id}",
+                    "${department.name} · ${stringResource(R.string.mr)}",
+                    group.required,
+                    requirements.majorRequired(department)
+                ) { r, n ->
+                    r.copy(majorRequired = r.majorRequired + (department.id to n))
+                })
+            add(
+                RequirementRow(
+                    "me.${department.id}",
+                    "${department.name} · ${stringResource(R.string.me)}",
+                    group.elective,
+                    requirements.majorElective(department)
+                ) { r, n ->
+                    r.copy(majorElective = r.majorElective + (department.id to n))
+                })
         }
-        add(RequirementRow("hseCore", stringResource(R.string.lecture_type_hse_core_full), breakdown.hseCore, requirements.hseCore) { r, n -> r.copy(hseCore = n) })
-        add(RequirementRow("hseGeneral", stringResource(R.string.lecture_type_hse_general_full), breakdown.hseGeneral, requirements.hseGeneral) { r, n -> r.copy(hseGeneral = n) })
-        if (breakdown.hse > 0) add(RequirementRow("hse", stringResource(R.string.lecture_type_hse_full), breakdown.hse, null))
+        add(
+            RequirementRow(
+                "hseCore",
+                stringResource(R.string.lecture_type_hse_core_full),
+                breakdown.hseCore,
+                requirements.hseCore
+            ) { r, n -> r.copy(hseCore = n) })
+        add(
+            RequirementRow(
+                "hseGeneral",
+                stringResource(R.string.lecture_type_hse_general_full),
+                breakdown.hseGeneral,
+                requirements.hseGeneral
+            ) { r, n -> r.copy(hseGeneral = n) })
+        if (breakdown.hse > 0) add(
+            RequirementRow(
+                "hse",
+                stringResource(R.string.lecture_type_hse_full),
+                breakdown.hse,
+                null
+            )
+        )
         add(RequirementRow("au", "AU", breakdown.au, requirements.au) { r, n -> r.copy(au = n) })
-        if (breakdown.etc > 0) add(RequirementRow("etc", stringResource(R.string.lecture_type_etc_full), breakdown.etc, null))
+        if (breakdown.etc > 0) add(
+            RequirementRow(
+                "etc",
+                stringResource(R.string.lecture_type_etc_full),
+                breakdown.etc,
+                null
+            )
+        )
     }
 }
 
@@ -129,22 +238,51 @@ private fun requirementRows(state: CreditCalculationViewState): List<Requirement
 private fun RequirementProgress(row: RequirementRow, onEdit: () -> Unit) {
     val isMet = row.minimum?.let { row.taken >= it } == true
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(row.title, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-            if (isMet) Icon(Icons.Rounded.CheckCircle, stringResource(R.string.credit_requirement_met),
-                tint = CreditCompleteColor, modifier = Modifier.size(18.dp))
-            Text("${row.taken}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            row.minimum?.let { Text("/$it", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                row.title,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            if (isMet) Icon(
+                Icons.Rounded.CheckCircle, stringResource(R.string.credit_requirement_met),
+                tint = CreditCompleteColor, modifier = Modifier.size(18.dp)
+            )
+            Text(
+                "${row.taken}",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            row.minimum?.let {
+                Text(
+                    "/$it",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         row.minimum?.let { minimum ->
             CreditProgressBar(row.taken, minimum)
-            TextButton(onClick = onEdit, modifier = Modifier.align(Alignment.End)) { Text(stringResource(R.string.credit_edit)) }
+            TextButton(onClick = onEdit, modifier = Modifier.align(Alignment.End)) {
+                Text(
+                    stringResource(R.string.credit_edit)
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun CreditRequirementEditor(title: String, minimum: Int, onDismiss: () -> Unit, onSave: (Int) -> Unit) {
+private fun CreditRequirementEditor(
+    title: String,
+    minimum: Int,
+    onDismiss: () -> Unit,
+    onSave: (Int) -> Unit,
+) {
     var value by rememberSaveable(title) { mutableStateOf(minimum.toString()) }
     val number = value.toIntOrNull()?.takeIf { it >= 0 }
     AlertDialog(
@@ -153,25 +291,48 @@ private fun CreditRequirementEditor(title: String, minimum: Int, onDismiss: () -
         title = { Text(title) },
         text = {
             Column {
-                OutlinedTextField(value = value, onValueChange = { value = it },
-                    label = { Text(stringResource(R.string.credit_requirements)) }, singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), isError = number == null)
-                if (number == null) Text(stringResource(R.string.credit_invalid_minimum), color = MaterialTheme.colorScheme.error)
+                OutlinedTextField(
+                    value = value,
+                    onValueChange = { value = it },
+                    label = { Text(stringResource(R.string.credit_requirements)) },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    isError = number == null
+                )
+                if (number == null) Text(
+                    stringResource(R.string.credit_invalid_minimum),
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         },
-        confirmButton = { TextButton(onClick = { number?.let(onSave) }, enabled = number != null) { Text(stringResource(R.string.credit_save)) } },
+        confirmButton = {
+            TextButton(
+                onClick = { number?.let(onSave) },
+                enabled = number != null
+            ) { Text(stringResource(R.string.credit_save)) }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.credit_cancel)) } }
     )
 }
 
 @Preview
 @Composable
-private fun CreditRequirementsPreview() { Theme { CreditRequirementsView(creditPreviewState(), {}, {}) } }
+private fun CreditRequirementsPreview() {
+    Theme { CreditRequirementsView(creditPreviewState(), {}, {}) }
+}
 
 @Preview
 @Composable
 private fun RequirementProgressPreview() {
-    Theme { RequirementProgress(RequirementRow("br", stringResource(R.string.lecture_type_br_full), 25, 23), {}) }
+    Theme {
+        RequirementProgress(
+            RequirementRow(
+                "br",
+                stringResource(R.string.lecture_type_br_full),
+                25,
+                23
+            ), {})
+    }
 }
 
 @Preview

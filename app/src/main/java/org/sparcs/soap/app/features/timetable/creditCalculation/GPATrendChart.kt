@@ -65,9 +65,11 @@ internal fun GPATrendChart(state: CreditCalculationViewState) {
             color = secondary, fontWeight = FontWeight.Medium
         )
         if (points.isEmpty()) {
-            Box(Modifier
-                .fillMaxWidth()
-                .height(180.dp), contentAlignment = Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(180.dp), contentAlignment = Alignment.Center
+            ) {
                 Text(
                     stringResource(R.string.credit_chart_empty),
                     color = secondary,

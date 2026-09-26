@@ -20,7 +20,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.progressBarRangeInfo
@@ -33,8 +32,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.shared.formatters.creditProgress
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.theme.ui.Theme
-
-internal val CreditCompleteColor = Color(0xFF34A853)
+import org.sparcs.soap.app.theme.ui.creditCompleteColor
 
 @Composable
 internal fun GPASummaryContent(
@@ -44,17 +42,30 @@ internal fun GPASummaryContent(
     showArrow: Boolean = true,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
             SummaryValue(stringResource(R.string.credit_gpa_label), formatGPA(gpa), "4.3")
             Spacer(Modifier.weight(1f))
-            SummaryValue(stringResource(R.string.credit_units_label), "$earnedCredits", "$graduationCredits", Alignment.End)
+            SummaryValue(
+                stringResource(R.string.credit_units_label),
+                "$earnedCredits",
+                "$graduationCredits",
+                Alignment.End
+            )
             if (earnedCredits >= graduationCredits) {
-                Icon(Icons.Rounded.CheckCircle, stringResource(R.string.credit_requirement_met),
-                    tint = CreditCompleteColor, modifier = Modifier.size(18.dp))
+                Icon(
+                    Icons.Rounded.CheckCircle, stringResource(R.string.credit_requirement_met),
+                    tint = creditCompleteColor, modifier = Modifier.size(18.dp)
+                )
             }
             if (showArrow) {
-                Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(
+                    Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
         CreditProgressBar(earnedCredits, graduationCredits, height = 18.dp)
@@ -62,24 +73,57 @@ internal fun GPASummaryContent(
 }
 
 @Composable
-private fun SummaryValue(title: String, value: String, total: String, alignment: Alignment.Horizontal = Alignment.Start) {
+private fun SummaryValue(
+    title: String,
+    value: String,
+    total: String,
+    alignment: Alignment.Horizontal = Alignment.Start,
+) {
     Column(horizontalAlignment = alignment, verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(title, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(value, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
-            Text("/$total", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            title,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                value,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "/$total",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
 
 @Composable
-internal fun CreditProgressBar(taken: Int, minimum: Int, modifier: Modifier = Modifier, height: Dp = 8.dp) {
+internal fun CreditProgressBar(
+    taken: Int,
+    minimum: Int,
+    modifier: Modifier = Modifier,
+    height: Dp = 8.dp,
+) {
     val progress = creditProgress(taken, minimum)
-    val color = if (taken >= minimum) CreditCompleteColor else MaterialTheme.colorScheme.primary
-    Box(modifier.fillMaxWidth().height(height).clip(CircleShape)
-        .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-        .semantics { progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f) }) {
-        Box(Modifier.fillMaxWidth(progress).height(height).clip(CircleShape).background(color))
+    val color = if (taken >= minimum) creditCompleteColor else MaterialTheme.colorScheme.primary
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(height)
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+            .semantics { progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f) }) {
+        Box(Modifier
+            .fillMaxWidth(progress)
+            .height(height)
+            .clip(CircleShape)
+            .background(color))
     }
 }
 

@@ -66,7 +66,9 @@ class CreditCalculationViewModel @Inject constructor(
     private val saveMutex = Mutex()
     private var sessionRevision = creditSummaryPublisher.revision
 
-    init { load() }
+    init {
+        load()
+    }
 
     fun refresh() = load(forceRefresh = true)
 
@@ -85,7 +87,8 @@ class CreditCalculationViewModel @Inject constructor(
                 val requirements = lectureGradeUseCase.requirements(user.id)
                 coroutineScope {
                     val history = async { lectureUseCase.fetchUserLectureHistory(user.id) }
-                    val available = async { (if (forceRefresh) timetableUseCase.refreshSemesters() else timetableUseCase.getSemesters()).associateBy { it.id } }
+                    val available =
+                        async { (if (forceRefresh) timetableUseCase.refreshSemesters() else timetableUseCase.getSemesters()).associateBy { it.id } }
                     val semesters = history.await().semesters.filter { it.lectures.isNotEmpty() }
                         .sortedWith(compareBy({ it.year }, { it.semesterType.intValue }))
                     val semestersByID = available.await()
@@ -99,7 +102,8 @@ class CreditCalculationViewModel @Inject constructor(
                                 } catch (cancelled: CancellationException) {
                                     throw cancelled
                                 } catch (error: Exception) {
-                                    if (keepsContent) previous.timetables[item.id] ?: throw error else throw error
+                                    if (keepsContent) previous.timetables[item.id]
+                                        ?: throw error else throw error
                                 }
                                 item.id to table
                             }
@@ -128,7 +132,9 @@ class CreditCalculationViewModel @Inject constructor(
 
     fun setGrade(grade: LectureGrade?, lectureID: Int) {
         val accountID = userID?.takeIf { it == userUseCase.otlUser?.id } ?: return
-        val lecture = state.value.timetables.values.flatMap { it.lectures }.find { it.id == lectureID } ?: return
+        val lecture =
+            state.value.timetables.values.flatMap { it.lectures }.find { it.id == lectureID }
+                ?: return
         if (grade != null && grade !in LectureGrade.options(lecture)) return
         viewModelScope.launch {
             saveMutex.withLock {
@@ -172,10 +178,16 @@ class CreditCalculationViewModel @Inject constructor(
         if (current.isLoading || current.error != null || userID != userUseCase.otlUser?.id) return
         val summary = current.overallSummary
         creditSummaryPublisher.publish(
-            CreditSummarySnapshot(summary.gpa, summary.earnedCredits, current.requirements.graduation),
+            CreditSummarySnapshot(
+                summary.gpa,
+                summary.earnedCredits,
+                current.requirements.graduation
+            ),
             sessionRevision,
         )
     }
 
-    fun dismissSaveError() { mutableState.update { it.copy(saveError = false) } }
+    fun dismissSaveError() {
+        mutableState.update { it.copy(saveError = false) }
+    }
 }

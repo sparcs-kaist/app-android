@@ -57,23 +57,50 @@ internal fun GradeEntryView(
     onGrade: (LectureGrade?, Int) -> Unit,
 ) {
     val timetable = state.timetables[item.id]
-    CreditScreen(semesterTitle(item), onBack, subtitle = stringResource(R.string.credit_gpa, formatGPA(state.summary(item)?.gpa))) { modifier ->
+    CreditScreen(
+        semesterTitle(item),
+        onBack,
+        subtitle = stringResource(R.string.credit_gpa, formatGPA(state.summary(item)?.gpa))
+    ) { modifier ->
         LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
             item {
-                Surface(shape = RoundedCornerShape(28.dp),
-                    color = LocalTimetableTheme.current.backgroundColor ?: MaterialTheme.colorScheme.background,
-                    modifier = Modifier.fillMaxWidth().glassBorder(RoundedCornerShape(28.dp))) {
-                    Box(Modifier.height(500.dp).padding(8.dp)) { TimetableGrid(timetable = timetable) }
+                Surface(
+                    shape = RoundedCornerShape(28.dp),
+                    color = LocalTimetableTheme.current.backgroundColor
+                        ?: MaterialTheme.colorScheme.background,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .glassBorder(RoundedCornerShape(28.dp))
+                ) {
+                    Box(
+                        Modifier
+                            .height(500.dp)
+                            .padding(8.dp)
+                    ) { TimetableGrid(timetable = timetable) }
                 }
             }
             item {
                 CreditCard {
                     val lectures = timetable?.lectures.orEmpty()
-                    Text(pluralStringResource(R.plurals.lectures_count, lectures.size, lectures.size),
-                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Text(
+                        pluralStringResource(
+                            R.plurals.lectures_count,
+                            lectures.size,
+                            lectures.size
+                        ),
+                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
+                    )
                     lectures.forEachIndexed { index, lecture ->
-                        GradeEntryRow(lecture, state.grades[lecture.id], lecture.id in state.supersededLectureIDs) { onGrade(it, lecture.id) }
-                        if (index < lectures.lastIndex) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                        GradeEntryRow(
+                            lecture,
+                            state.grades[lecture.id],
+                            lecture.id in state.supersededLectureIDs
+                        ) { onGrade(it, lecture.id) }
+                        if (index < lectures.lastIndex) HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(
+                                alpha = 0.5f
+                            )
+                        )
                     }
                 }
             }
@@ -82,7 +109,12 @@ internal fun GradeEntryView(
 }
 
 @Composable
-private fun GradeEntryRow(lecture: Lecture, grade: LectureGrade?, isSuperseded: Boolean = false, onGrade: (LectureGrade?) -> Unit) {
+private fun GradeEntryRow(
+    lecture: Lecture,
+    grade: LectureGrade?,
+    isSuperseded: Boolean = false,
+    onGrade: (LectureGrade?) -> Unit,
+) {
     var expanded by remember { mutableStateOf(false) }
     val description = stringResource(R.string.credit_grade_for, lecture.name)
     Box {
@@ -94,12 +126,20 @@ private fun GradeEntryRow(lecture: Lecture, grade: LectureGrade?, isSuperseded: 
                 badge = if (isSuperseded) stringResource(R.string.credit_retaken) else null,
             )
             Box {
-                val tint = if (grade == null) Color(0xFFEF8B23) else MaterialTheme.colorScheme.primary
-                TextButton(onClick = { expanded = true },
-                    modifier = Modifier.widthIn(min = 48.dp).semantics { contentDescription = description },
+                val tint =
+                    if (grade == null) Color(0xFFEF8B23) else MaterialTheme.colorScheme.primary
+                TextButton(
+                    onClick = { expanded = true },
+                    modifier = Modifier
+                        .widthIn(min = 48.dp)
+                        .semantics { contentDescription = description },
                     shape = CircleShape,
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
-                    colors = ButtonDefaults.textButtonColors(containerColor = tint.copy(alpha = 0.15f), contentColor = tint)) {
+                    colors = ButtonDefaults.textButtonColors(
+                        containerColor = tint.copy(alpha = 0.15f),
+                        contentColor = tint
+                    )
+                ) {
                     Text(grade?.title ?: "\u2014", fontWeight = FontWeight.SemiBold)
                 }
                 DropdownMenu(
@@ -109,12 +149,24 @@ private fun GradeEntryRow(lecture: Lecture, grade: LectureGrade?, isSuperseded: 
                     shape = RoundedCornerShape(24.dp)
                 ) {
                     if (grade != null) DropdownMenuItem(
-                        text = { Text(stringResource(R.string.credit_clear_grade), color = MaterialTheme.colorScheme.error) },
+                        text = {
+                            Text(
+                                stringResource(R.string.credit_clear_grade),
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        },
                         onClick = { onGrade(null); expanded = false }
                     )
                     LectureGrade.options(lecture).forEach { option ->
-                        DropdownMenuItem(text = { Text(gradeTitle(option)) },
-                            trailingIcon = { if (grade == option) Icon(Icons.Rounded.Check, null, tint = MaterialTheme.colorScheme.primary) },
+                        DropdownMenuItem(
+                            text = { Text(gradeTitle(option)) },
+                            trailingIcon = {
+                                if (grade == option) Icon(
+                                    Icons.Rounded.Check,
+                                    null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
                             onClick = { onGrade(option); expanded = false })
                     }
                 }
@@ -143,5 +195,10 @@ private fun GradeEntryPreview() {
 @Preview
 @Composable
 private fun GradeEntryRowPreview() {
-    Theme { GradeEntryRow(creditPreviewState().timetables.values.first().lectures.first(), LectureGrade.A_PLUS, onGrade = {}) }
+    Theme {
+        GradeEntryRow(
+            creditPreviewState().timetables.values.first().lectures.first(),
+            LectureGrade.A_PLUS,
+            onGrade = {})
+    }
 }

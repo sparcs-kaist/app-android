@@ -60,7 +60,10 @@ import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
-fun CreditCalculationView(onBack: () -> Unit, viewModel: CreditCalculationViewModel = hiltViewModel()) {
+fun CreditCalculationView(
+    onBack: () -> Unit,
+    viewModel: CreditCalculationViewModel = hiltViewModel(),
+) {
     val state by viewModel.state.collectAsState()
     var selectedSemesterID by rememberSaveable { mutableStateOf<String?>(null) }
     var showsRequirements by rememberSaveable { mutableStateOf(false) }
@@ -73,11 +76,19 @@ fun CreditCalculationView(onBack: () -> Unit, viewModel: CreditCalculationViewMo
         state.isLoading || state.error != null -> CreditCalculationContent(
             state, onBack, { viewModel.load() }, {}, {}
         )
-        showsRequirements -> CreditRequirementsView(state, { showsRequirements = false }, viewModel::updateRequirements)
+
+        showsRequirements -> CreditRequirementsView(
+            state,
+            { showsRequirements = false },
+            viewModel::updateRequirements
+        )
+
         selectedSemester != null -> GradeEntryView(
             selectedSemester, state, { selectedSemesterID = null }, viewModel::setGrade
         )
-        else -> CreditCalculationContent(state, onBack, { viewModel.load() },
+
+        else -> CreditCalculationContent(
+            state, onBack, { viewModel.load() },
             { selectedSemesterID = it.id }, { showsRequirements = true })
     }
     if (state.saveError) {
@@ -85,7 +96,13 @@ fun CreditCalculationView(onBack: () -> Unit, viewModel: CreditCalculationViewMo
             onDismissRequest = viewModel::dismissSaveError,
             containerColor = MaterialTheme.colorScheme.background,
             text = { Text(stringResource(R.string.credit_save_error)) },
-            confirmButton = { TextButton(onClick = viewModel::dismissSaveError) { Text(stringResource(R.string.ok)) } }
+            confirmButton = {
+                TextButton(onClick = viewModel::dismissSaveError) {
+                    Text(
+                        stringResource(R.string.ok)
+                    )
+                }
+            }
         )
     }
 }
@@ -100,30 +117,66 @@ internal fun CreditCalculationContent(
 ) {
     CreditScreen(stringResource(R.string.credit_calculation), onBack) { modifier ->
         when {
-            state.isLoading -> Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            state.isLoading -> Box(
+                modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) { CircularProgressIndicator() }
+
             state.error != null -> Box(modifier) {
-                ErrorView(error = state.error, defaultMessageResId = R.string.credit_load_error, onRetry = onRetry)
+                ErrorView(
+                    error = state.error,
+                    defaultMessageResId = R.string.credit_load_error,
+                    onRetry = onRetry
+                )
             }
+
             else -> LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                item { Text(stringResource(R.string.credit_summary_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
+                item {
+                    Text(
+                        stringResource(R.string.credit_summary_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 item { GPATrendChart(state) }
                 item {
                     val description = stringResource(R.string.credit_requirements)
-                    CreditCard(modifier = Modifier.semantics { contentDescription = description }.clickable(onClick = onRequirements)) {
-                        GPASummaryContent(state.overallSummary.gpa, state.overallSummary.earnedCredits, state.requirements.graduation)
+                    CreditCard(modifier = Modifier
+                        .semantics { contentDescription = description }
+                        .clickable(onClick = onRequirements)) {
+                        GPASummaryContent(
+                            state.overallSummary.gpa,
+                            state.overallSummary.earnedCredits,
+                            state.requirements.graduation
+                        )
                     }
                 }
-                item { Text(stringResource(R.string.credit_semesters_title), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
+                item {
+                    Text(
+                        stringResource(R.string.credit_semesters_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 if (state.semesters.isEmpty()) item { Text(stringResource(R.string.credit_empty)) }
                 items(state.semesters.chunked(2), key = { it.first().id }) { row ->
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                         row.forEach { semester ->
-                            SemesterCard(semester, state, Modifier.weight(1f)) { onSemester(semester) }
+                            SemesterCard(
+                                semester,
+                                state,
+                                Modifier.weight(1f)
+                            ) { onSemester(semester) }
                         }
                         if (row.size == 1) Spacer(Modifier.weight(1f))
                     }
                 }
-                item { Text(stringResource(R.string.credit_notice), style = MaterialTheme.typography.bodySmall) }
+                item {
+                    Text(
+                        stringResource(R.string.credit_notice),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
                 item { CreditsPrivacyFooter() }
             }
         }
@@ -132,55 +185,116 @@ internal fun CreditCalculationContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun CreditScreen(title: String, onBack: () -> Unit, subtitle: String? = null, content: @Composable (Modifier) -> Unit) {
+internal fun CreditScreen(
+    title: String,
+    onBack: () -> Unit,
+    subtitle: String? = null,
+    content: @Composable (Modifier) -> Unit,
+) {
     Scaffold(
-        topBar = { TopAppBar(title = {
-            Column {
-                Text(title, fontWeight = FontWeight.Bold)
-                subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            }
-        }, navigationIcon = { DismissButton(onBack) }) },
+        topBar = {
+            TopAppBar(title = {
+                Column {
+                    Text(title, fontWeight = FontWeight.Bold)
+                    subtitle?.let {
+                        Text(
+                            it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }, navigationIcon = { DismissButton(onBack) })
+        },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {
-            content(Modifier.widthIn(max = 720.dp).fillMaxWidth().padding(16.dp))
+        Box(Modifier
+            .fillMaxSize()
+            .padding(padding), contentAlignment = Alignment.TopCenter) {
+            content(Modifier
+                .widthIn(max = 720.dp)
+                .fillMaxWidth()
+                .padding(16.dp))
         }
     }
 }
 
 @Composable
-internal fun CreditCard(modifier: Modifier = Modifier, contentPadding: PaddingValues = PaddingValues(16.dp), content: @Composable ColumnScope.() -> Unit) {
+internal fun CreditCard(
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = PaddingValues(16.dp),
+    content: @Composable ColumnScope.() -> Unit,
+) {
     Surface(
         shape = RoundedCornerShape(20.dp), color = MaterialTheme.colorScheme.background,
-        modifier = modifier.fillMaxWidth().glassBorder(RoundedCornerShape(20.dp))
+        modifier = modifier
+            .fillMaxWidth()
+            .glassBorder(RoundedCornerShape(20.dp))
     ) {
-        Column(Modifier.padding(contentPadding), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
+        Column(
+            Modifier.padding(contentPadding),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content
+        )
     }
 }
 
 @Composable
-private fun SemesterCard(semester: OTLUserLectureSemester, state: CreditCalculationViewState, modifier: Modifier, onClick: () -> Unit) {
+private fun SemesterCard(
+    semester: OTLUserLectureSemester,
+    state: CreditCalculationViewState,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
     val summary = state.summary(semester)
     val timetable = state.timetables[semester.id]
-    CreditCard(modifier.clickable(enabled = timetable != null, onClick = onClick), PaddingValues(10.dp)) {
+    CreditCard(
+        modifier.clickable(enabled = timetable != null, onClick = onClick),
+        PaddingValues(10.dp)
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(semesterTitle(semester), modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                semesterTitle(semester), modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold
+            )
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
-        TimetableSilhouetteView(timetable, Modifier.fillMaxWidth().aspectRatio(1f))
+        TimetableSilhouetteView(timetable, Modifier
+            .fillMaxWidth()
+            .aspectRatio(1f))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("${formatGPA(summary?.gpa)} GPA", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
+            Text(
+                "${formatGPA(summary?.gpa)} GPA",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold
+            )
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text("${summary?.recordedCredits ?: 0} ${stringResource(R.string.cr)}", style = MaterialTheme.typography.labelMedium)
+                Text(
+                    "${summary?.recordedCredits ?: 0} ${stringResource(R.string.cr)}",
+                    style = MaterialTheme.typography.labelMedium
+                )
                 if ((summary?.recordedAUs ?: 0) > 0) {
-                    Text("${summary?.recordedAUs} ${stringResource(R.string.au)}", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        "${summary?.recordedAUs} ${stringResource(R.string.au)}",
+                        style = MaterialTheme.typography.labelMedium
+                    )
                 }
             }
         }
         if (summary != null && !summary.isComplete) {
-            Text(stringResource(R.string.credit_completion, summary.gradedCount, summary.lectureCount),
-                style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+            Text(
+                stringResource(
+                    R.string.credit_completion,
+                    summary.gradedCount,
+                    summary.lectureCount
+                ),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
@@ -194,11 +308,19 @@ private fun SemesterCardPreview() {
 
 @Composable
 internal fun GradeSummary(summary: SemesterGradeSummary) {
-    Text(stringResource(R.string.credit_gpa, formatGPA(summary.gpa)), style = MaterialTheme.typography.titleLarge)
-    Text(stringResource(R.string.credit_recorded, summary.recordedCredits), style = MaterialTheme.typography.bodyMedium)
-    Text(stringResource(R.string.credit_completion, summary.gradedCount, summary.lectureCount),
+    Text(
+        stringResource(R.string.credit_gpa, formatGPA(summary.gpa)),
+        style = MaterialTheme.typography.titleLarge
+    )
+    Text(
+        stringResource(R.string.credit_recorded, summary.recordedCredits),
+        style = MaterialTheme.typography.bodyMedium
+    )
+    Text(
+        stringResource(R.string.credit_completion, summary.gradedCount, summary.lectureCount),
         color = if (summary.isComplete) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
-        style = MaterialTheme.typography.bodySmall)
+        style = MaterialTheme.typography.bodySmall
+    )
 }
 
 @Composable
@@ -208,8 +330,11 @@ internal fun semesterTitle(semester: OTLUserLectureSemester): String =
 internal fun creditPreviewState(): CreditCalculationViewState {
     val table = Timetable.mock()
     val semester = OTLUserLectureSemester(2026, SemesterType.SPRING, emptyList())
-    return CreditCalculationViewState(isLoading = false, semesters = listOf(semester),
-        timetables = mapOf(semester.id to table), grades = table.lectures.associate { it.id to LectureGrade.A_MINUS },
+    return CreditCalculationViewState(
+        isLoading = false,
+        semesters = listOf(semester),
+        timetables = mapOf(semester.id to table),
+        grades = table.lectures.associate { it.id to LectureGrade.A_MINUS },
         majorDepartments = table.lectures.take(1).map { it.department })
 }
 

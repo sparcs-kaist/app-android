@@ -30,21 +30,33 @@ internal fun CreditsSummaryCard(state: CreditCalculationViewState, onClick: () -
         onClick = onClick,
         shape = MaterialTheme.shapes.large,
         color = MaterialTheme.colorScheme.background,
-        modifier = Modifier.fillMaxWidth().glassBorder(MaterialTheme.shapes.large),
+        modifier = Modifier
+            .fillMaxWidth()
+            .glassBorder(MaterialTheme.shapes.large),
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.credit_calculation), modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.credit_calculation), modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold
+                )
                 Icon(Icons.AutoMirrored.Rounded.KeyboardArrowRight, contentDescription = null)
             }
             when {
                 state.isLoading -> LinearProgressIndicator(Modifier.fillMaxWidth())
-                state.error != null -> Text(stringResource(R.string.credit_load_error),
-                    style = MaterialTheme.typography.bodySmall)
+                state.error != null -> Text(
+                    stringResource(R.string.credit_load_error),
+                    style = MaterialTheme.typography.bodySmall
+                )
+
                 else -> {
                     val summary = state.overallSummary
-                    GPASummaryContent(summary.gpa, summary.earnedCredits, state.requirements.graduation, showArrow = false)
+                    GPASummaryContent(
+                        summary.gpa,
+                        summary.earnedCredits,
+                        state.requirements.graduation,
+                        showArrow = false
+                    )
                 }
             }
         }

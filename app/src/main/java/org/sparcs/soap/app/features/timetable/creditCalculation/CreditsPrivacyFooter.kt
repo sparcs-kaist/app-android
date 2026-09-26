@@ -27,19 +27,35 @@ import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 internal fun CreditsPrivacyFooter(modifier: Modifier = Modifier) {
-    Box(modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.TopCenter) {
+    Box(modifier
+        .fillMaxWidth()
+        .padding(top = 8.dp), contentAlignment = Alignment.TopCenter) {
         Column(
-            modifier = Modifier.widthIn(max = 480.dp).semantics(mergeDescendants = true) {},
+            modifier = Modifier
+                .widthIn(max = 480.dp)
+                .semantics(mergeDescendants = true) {},
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Icon(Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(16.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(stringResource(R.string.credit_privacy_title), style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Icon(
+                    Icons.Outlined.Lock, contentDescription = null, modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    stringResource(R.string.credit_privacy_title),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
-            Text(stringResource(R.string.credit_privacy_description), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                stringResource(R.string.credit_privacy_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
