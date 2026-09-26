@@ -166,7 +166,12 @@ private fun SemesterCard(semester: OTLUserLectureSemester, state: CreditCalculat
         TimetableSilhouetteView(timetable, Modifier.fillMaxWidth().aspectRatio(1f))
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text("${formatGPA(summary?.gpa)} GPA", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.SemiBold)
-            Text("${summary?.recordedCredits ?: 0} ${stringResource(R.string.cr)}", style = MaterialTheme.typography.labelMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text("${summary?.recordedCredits ?: 0} ${stringResource(R.string.cr)}", style = MaterialTheme.typography.labelMedium)
+                if ((summary?.recordedAUs ?: 0) > 0) {
+                    Text("${summary?.recordedAUs} ${stringResource(R.string.au)}", style = MaterialTheme.typography.labelMedium)
+                }
+            }
         }
         if (summary != null && !summary.isComplete) {
             Text(stringResource(R.string.credit_completion, summary.gradedCount, summary.lectureCount),

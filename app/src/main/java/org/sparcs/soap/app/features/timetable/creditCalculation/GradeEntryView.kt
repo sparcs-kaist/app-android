@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -69,7 +71,12 @@ private fun GradeEntryRow(lecture: Lecture, grade: LectureGrade?, isSuperseded: 
                 TextButton(onClick = { expanded = true }, modifier = Modifier.semantics { contentDescription = description }) {
                     Text(grade?.title ?: stringResource(R.string.credit_enter_grade))
                 }
-                DropdownMenu(expanded, onDismissRequest = { expanded = false }) {
+                DropdownMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    containerColor = MaterialTheme.colorScheme.background,
+                    shape = RoundedCornerShape(16.dp)
+                ) {
                     if (grade != null) DropdownMenuItem(
                         text = { Text(stringResource(R.string.credit_clear_grade)) },
                         onClick = { onGrade(null); expanded = false }

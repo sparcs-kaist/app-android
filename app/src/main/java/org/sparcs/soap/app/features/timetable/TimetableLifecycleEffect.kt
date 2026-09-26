@@ -46,7 +46,6 @@ internal fun TimetableLifecycleEffect(viewModel: TimetableViewModelProtocol) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
                 updateConnectivity()
-                viewModel.fetchData()
             }
         }
         manager.registerDefaultNetworkCallback(callback)

@@ -6,6 +6,7 @@ data class SemesterGradeSummary(
     val lectureCount: Int,
     val recordedCredits: Int,
     val earnedCredits: Int,
+    val recordedAUs: Int = 0,
 ) {
     val isComplete: Boolean get() = gradedCount == lectureCount
 
@@ -16,10 +17,12 @@ data class SemesterGradeSummary(
             var gradedCount = 0
             var recordedCredits = 0
             var earnedCredits = 0
+            var recordedAUs = 0
             lectures.forEach { lecture ->
                 val grade = grades[lecture.id]
                 if (grade != LectureGrade.NON_RECORD) {
                     recordedCredits += lecture.credit
+                    recordedAUs += lecture.creditAU
                     if (grade != LectureGrade.FAIL) earnedCredits += lecture.credit
                 }
                 if (grade != null) gradedCount++
@@ -30,7 +33,7 @@ data class SemesterGradeSummary(
             }
             return SemesterGradeSummary(
                 if (gpaCredits > 0) weightedPoints / gpaCredits else null,
-                gradedCount, lectures.size, recordedCredits, earnedCredits
+                gradedCount, lectures.size, recordedCredits, earnedCredits, recordedAUs
             )
         }
     }
