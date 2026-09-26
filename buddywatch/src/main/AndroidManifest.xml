@@ -92,6 +92,7 @@
                 <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
                 <data android:host="*" android:pathPrefix="/timetable/current" android:scheme="wear" />
                 <data android:host="*" android:pathPrefix="/credits/summary" android:scheme="wear" />
+                <data android:host="*" android:pathPrefix="/semester/current" android:scheme="wear" />
             </intent-filter>
         </service>
 

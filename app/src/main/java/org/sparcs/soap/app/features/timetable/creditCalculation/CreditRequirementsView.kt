@@ -9,9 +9,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
+import androidx.compose.material.icons.automirrored.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Apartment
-import androidx.compose.material.icons.outlined.DirectionsRun
-import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.School
@@ -58,14 +58,16 @@ internal fun CreditRequirementsView(
     val rows = requirementRows(state)
     val groups = buildList {
         add(RequirementGroup("graduation", stringResource(R.string.credit_graduation), Icons.Outlined.School, rows.filter { it.key == "graduation" }))
-        add(RequirementGroup("basic", stringResource(R.string.credit_basic), Icons.Outlined.MenuBook, rows.filter { it.key in listOf("br", "be") }))
+        add(RequirementGroup("basic", stringResource(R.string.credit_basic),
+            Icons.AutoMirrored.Outlined.MenuBook, rows.filter { it.key in listOf("br", "be") }))
         state.creditBreakdown.majors.forEach { group ->
             val id = group.department.id
             add(RequirementGroup("major.$id", group.department.name, Icons.Outlined.Apartment,
                 rows.filter { it.key == "mr.$id" || it.key == "me.$id" }))
         }
         add(RequirementGroup("hse", stringResource(R.string.credit_humanities), Icons.Outlined.People, rows.filter { it.key.startsWith("hse") }))
-        add(RequirementGroup("au", "AU", Icons.Outlined.DirectionsRun, rows.filter { it.key == "au" }))
+        add(RequirementGroup("au", "AU",
+            Icons.AutoMirrored.Outlined.DirectionsRun, rows.filter { it.key == "au" }))
         rows.filter { it.key == "etc" }.takeIf { it.isNotEmpty() }?.let {
             add(RequirementGroup("etc", stringResource(R.string.lecture_type_etc_full), Icons.Outlined.MoreHoriz, it))
         }

@@ -107,6 +107,7 @@ class TimetableUseCase @Inject constructor(
         val result = otlTimetableRepository.getCurrentSemester()
         currentCoroutineContext().ensureActive()
         timetableCache.storeCurrentSemester(result)
+        wearableDataManager.updateCurrentSemester(result)
         result
     }
 

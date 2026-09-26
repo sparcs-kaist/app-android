@@ -132,9 +132,14 @@ internal fun CreditCalculationContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun CreditScreen(title: String, onBack: () -> Unit, content: @Composable (Modifier) -> Unit) {
+internal fun CreditScreen(title: String, onBack: () -> Unit, subtitle: String? = null, content: @Composable (Modifier) -> Unit) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(title, fontWeight = FontWeight.Bold) }, navigationIcon = { DismissButton(onBack) }) },
+        topBar = { TopAppBar(title = {
+            Column {
+                Text(title, fontWeight = FontWeight.Bold)
+                subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
+        }, navigationIcon = { DismissButton(onBack) }) },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
         Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.TopCenter) {

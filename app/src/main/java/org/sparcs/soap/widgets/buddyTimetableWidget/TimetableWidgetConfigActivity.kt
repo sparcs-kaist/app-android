@@ -50,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -76,6 +77,7 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
+import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
@@ -118,6 +120,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
         setContent {
             Theme {
                 var selectedTheme by remember { mutableStateOf("System") }
+                var silhouette by remember { mutableStateOf(false) }
                 var transparency by remember { mutableFloatStateOf(1f) }
                 val state by viewModel.state.collectAsState()
                 val selectedTimetableId = state.selectedTimetableId
@@ -146,6 +149,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             PreferencesGlanceStateDefinition, glanceId
                         )
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
+                        silhouette = prefs[booleanPreferencesKey("silhouette")] ?: false
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
                         savedTimetableId =
                             prefs[intPreferencesKey("selected_timetable_id")] ?: -1
@@ -184,7 +188,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                     selectedTheme,
                                     transparency,
                                     selectedTimetable,
-                                    themeState.theme(timetableThemeID)
+                                    themeState.theme(timetableThemeID),
+                                    silhouette,
                                 )
 
                                 Text(
@@ -210,6 +215,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                 WidgetPaletteRow(themeState.themes, timetableThemeID) {
                                     timetableThemeID = it
                                 }
+                                WidgetSilhouetteRow(silhouette) { silhouette = it }
                                 WidgetThemeRow(selectedTheme) { selectedTheme = it }
                                 WidgetTransparencyRow(transparency) { transparency = it }
 
@@ -222,7 +228,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                             transparency,
                                             selectedTimetableId,
                                             selectedSemester,
-                                            timetableThemeID
+                                            timetableThemeID,
+                                            silhouette,
                                         )
                                     },
                                     modifier = Modifier
@@ -500,6 +507,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
         selectedTimetableId: Int,
         selectedSemester: Semester?,
         timetableThemeID: String,
+        silhouette: Boolean,
     ) {
         val appContext = applicationContext
         lifecycleScope.launch {
@@ -519,6 +527,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                     ) { prefs ->
                         prefs.toMutablePreferences().apply {
                             this[stringPreferencesKey("theme_mode")] = theme
+                            this[booleanPreferencesKey("silhouette")] = silhouette
                             this[floatPreferencesKey("background_transparency")] = transparency
                             this[WIDGET_THEME_ID] = timetableThemeID
                             this[intPreferencesKey("selected_timetable_id")] = selectedTimetableId
@@ -572,6 +581,7 @@ private fun WidgetPreviewSection(
     transparency: Float,
     selectedTimetable: Timetable?,
     timetableTheme: TimetableTheme,
+    silhouette: Boolean = false,
 ) {
     val isDark = when (selectedTheme) {
         "Dark" -> true
@@ -621,11 +631,11 @@ private fun WidgetPreviewSection(
                         val previewViewModel = remember(selectedTimetable) {
                             PreviewTimetableViewModel(selectedTimetable)
                         }
-                        TimetableGrid(
-                            viewModel = previewViewModel,
-                            onLectureSelected = {},
-                            showDeleteDialog = {}
-                        )
+                        if (silhouette) {
+                            TimetableSilhouetteView(selectedTimetable, Modifier.fillMaxSize().padding(8.dp))
+                        } else {
+                            TimetableGrid(viewModel = previewViewModel, onLectureSelected = {}, showDeleteDialog = {})
+                        }
                     }
                 }
             }

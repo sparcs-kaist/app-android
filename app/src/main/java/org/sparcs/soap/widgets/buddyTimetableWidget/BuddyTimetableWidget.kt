@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -131,7 +132,7 @@ class TimetableWidget : GlanceAppWidget() {
                             modifier = GlanceModifier.fillMaxSize()
                         ) {
                             val timetable = state.timetable.themed(timetableTheme)
-                            if (LocalSize.current.width < 220.dp && LocalSize.current.height < 240.dp) {
+                            if (prefs[booleanPreferencesKey("silhouette")] == true || (LocalSize.current.width < 220.dp && LocalSize.current.height < 240.dp)) {
                                 TimetableSmallWidgetView(timetable, timetableTheme)
                             } else {
                                 TimetableLargeWidgetView(timetable = timetable, theme = timetableTheme)
