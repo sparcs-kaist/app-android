@@ -7,6 +7,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import org.sparcs.soap.widgets.buddyCreditsWidget.CreditSummarySyncManager
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayUpdateWorker
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableUpdateWorker
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
@@ -20,6 +21,7 @@ class WidgetSyncHelper @Inject constructor(
     @param:ApplicationContext private val context: Context,
     @param:TimetableWidget private val timetableSyncManager: TimetableWidgetSyncManager,
     @param:UpcomingWidget private val upComingSyncManager: UpComingWidgetSyncManager,
+    private val creditSummarySyncManager: CreditSummarySyncManager,
 ) {
     fun refreshAllWidgets() {
         val constraints = Constraints.Builder()
@@ -63,6 +65,7 @@ class WidgetSyncHelper @Inject constructor(
     }
 
     suspend fun clearAllWidgets() {
+        creditSummarySyncManager.clear()
         timetableSyncManager.syncSignInRequired()
         upComingSyncManager.syncSignInRequired()
     }

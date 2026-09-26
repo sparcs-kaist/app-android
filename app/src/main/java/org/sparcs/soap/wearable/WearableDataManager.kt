@@ -9,6 +9,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.app.domain.helpers.TimetableSelectionStore
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
+import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import timber.log.Timber
@@ -63,6 +64,15 @@ class WearableDataManager @Inject constructor(
             return
         }
         send(json.encodeToString(recolored), lastSent.getString(SEMESTER_KEY, null))
+    }
+
+    fun updateCreditSummary(snapshot: CreditSummarySnapshot?) {
+        val request = PutDataMapRequest.create("/credits/summary").apply {
+            dataMap.putString("credit_summary_json", snapshot?.let { json.encodeToString(it) } ?: "")
+            dataMap.putLong("timestamp", System.currentTimeMillis())
+        }.asPutDataRequest().setUrgent()
+        Wearable.getDataClient(context).putDataItem(request)
+            .addOnFailureListener { Timber.e(it, "Failed to send credit summary to watch") }
     }
 
     private fun send(timetableJson: String, semesterJson: String?) {

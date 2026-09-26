@@ -15,20 +15,20 @@ data class LectureClassDTO(
     val end: Int,
 
     @SerializedName("buildingCode")
-    val buildingCode: String,
+    val buildingCode: String?,
 
     @SerializedName("buildingName")
-    val buildingName: String,
+    val buildingName: String?,
 
     @SerializedName("roomName")
-    val roomName: String,
+    val roomName: String?,
 ) {
     fun toModel(): LectureClass = LectureClass(
         day = DayType.fromValue(day) ?: DayType.SUN,
         begin = begin,
         end = end,
-        buildingCode = buildingCode,
-        buildingName = buildingName,
-        roomName = roomName,
+        buildingCode = buildingCode.orEmpty(),
+        buildingName = buildingName.orEmpty(),
+        roomName = roomName.orEmpty(),
     )
 }

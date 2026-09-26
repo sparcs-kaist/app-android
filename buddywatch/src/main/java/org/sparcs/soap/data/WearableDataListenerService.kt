@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import org.sparcs.soap.complication.CreditsComplicationService
 import org.sparcs.soap.complication.DDayComplicationService
 import org.sparcs.soap.complication.UpcomingClassComplicationService
 import org.sparcs.soap.tile.DDayTileService
@@ -30,6 +31,19 @@ class WearableDataListenerService : WearableListenerService() {
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         try {
             dataEvents.forEach { event ->
+                if (event.dataItem.uri.path == "/credits/summary") {
+                    val summary = if (event.type == DataEvent.TYPE_CHANGED) {
+                        DataMapItem.fromDataItem(event.dataItem).dataMap.getString("credit_summary_json")
+                    } else null
+                    scope.launch {
+                        watchDataStore.saveCreditSummaryJson(summary)
+                        ComplicationDataSourceUpdateRequester.create(
+                            this@WearableDataListenerService,
+                            ComponentName(this@WearableDataListenerService, CreditsComplicationService::class.java),
+                        ).requestUpdateAll()
+                    }
+                    return@forEach
+                }
                 if (event.type == DataEvent.TYPE_DELETED && event.dataItem.uri.path == "/timetable/current") {
                     scope.launch {
                         watchDataStore.clearTimetable()

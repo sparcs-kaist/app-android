@@ -9,17 +9,26 @@ enum class LectureType(@param:StringRes val labelRes: Int, val displayName: Int)
     MR(R.string.mr, R.string.lecture_type_mr_full),
     ME(R.string.me, R.string.lecture_type_me_full),
     HSE(R.string.hse, R.string.lecture_type_hse_full),
+    HSE_CORE(R.string.hse_core, R.string.lecture_type_hse_core_full),
+    HSE_GENERAL(R.string.hse_general, R.string.lecture_type_hse_general_full),
     ETC(R.string.etc, R.string.lecture_type_etc_full);
     companion object {
         fun fromString(string: String): LectureType {
-            return when {
-                string.contains("기초필수") || string.contains("Basic Required") -> BR
-                string.contains("기초선택") || string.contains("Basic Elective") -> BE
-                string.contains("전공필수") || string.contains("Major Required") -> MR
-                string.contains("전공선택") || string.contains("Major Elective") -> ME
-                string.contains("인문사회선택") || string.contains("Humanities and Social Elective") -> HSE
-
-                else -> entries.find { string.contains(it.name, ignoreCase = true) } ?: ETC
+            val normalized = string.filterNot(Char::isWhitespace).lowercase()
+            if (normalized.startsWith("인문사회") || normalized.startsWith("인선") ||
+                normalized.startsWith("humanities") || normalized.startsWith("hse")) {
+                return when {
+                    normalized.contains("핵심") || normalized.contains("core") -> HSE_CORE
+                    normalized.contains("일반") || normalized.contains("general") -> HSE_GENERAL
+                    else -> HSE
+                }
+            }
+            return when (normalized.substringBefore('(')) {
+                "기초필수", "basicrequired", "br" -> BR
+                "기초선택", "basicelective", "be" -> BE
+                "전공필수", "majorrequired", "mr" -> MR
+                "전공선택", "majorelective", "me" -> ME
+                else -> ETC
             }
         }
     }

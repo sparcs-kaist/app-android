@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.timetable.components
 
-import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -21,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -29,15 +29,23 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.R
+
+enum class LectureListRowDetail { STANDARD, GRADING }
 
 @Composable
-fun LectureListRow(lecture: Lecture) {
+fun LectureListRow(
+    lecture: Lecture,
+    modifier: Modifier = Modifier,
+    detail: LectureListRowDetail = LectureListRowDetail.STANDARD,
+    badge: String? = null,
+) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -59,7 +67,18 @@ fun LectureListRow(lecture: Lecture) {
                 overflow = TextOverflow.Ellipsis
             )
 
-            Row(
+            if (badge != null) {
+                Text(badge, style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            if (detail == LectureListRowDetail.GRADING) {
+                Text("${lecture.code} · ${stringResource(lecture.type.labelRes)}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.credit_lecture_units, lecture.credit, lecture.creditAU),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -78,17 +97,19 @@ fun LectureListRow(lecture: Lecture) {
             }
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        if (detail == LectureListRowDetail.STANDARD) {
+            Spacer(modifier = Modifier.width(8.dp))
 
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            if (lecture.credit > 0) {
-                CreditLabel(credits = lecture.credit, label = stringResource(R.string.cr))
-            }
-            if (lecture.creditAU > 0) {
-                CreditLabel(credits = lecture.creditAU, label = stringResource(R.string.au))
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (lecture.credit > 0) {
+                    CreditLabel(credits = lecture.credit, label = stringResource(R.string.cr))
+                }
+                if (lecture.creditAU > 0) {
+                    CreditLabel(credits = lecture.creditAU, label = stringResource(R.string.au))
+                }
             }
         }
     }
@@ -97,7 +118,7 @@ fun LectureListRow(lecture: Lecture) {
 @Composable
 private fun Label(
     text: String,
-    iconPainter: androidx.compose.ui.graphics.painter.Painter? = null,
+    iconPainter: Painter? = null,
     iconImageVector: ImageVector? = null
 ) {
     Row(
@@ -155,5 +176,14 @@ private fun CreditLabel(credits: Int, label: String) {
 private fun LectureListRowPreview() {
     Theme {
         LectureListRow(lecture = Lecture.mock())
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LectureListGradingRowPreview() {
+    Theme {
+        LectureListRow(Lecture.mock(), detail = LectureListRowDetail.GRADING,
+            badge = stringResource(R.string.credit_retaken))
     }
 }

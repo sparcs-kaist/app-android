@@ -7,8 +7,10 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import org.sparcs.soap.app.domain.helpers.CreditSummaryPublisher
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackgroundProtocol
+import org.sparcs.soap.widgets.buddyCreditsWidget.CreditSummarySyncManager
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayWidgetSyncManager
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.UpComingWidgetSyncManager
@@ -45,6 +47,9 @@ interface WidgetEntryPoint {
 @Module
 @InstallIn(SingletonComponent::class)
 object WidgetModule {
+
+    @Provides
+    fun provideCreditSummaryPublisher(manager: CreditSummarySyncManager): CreditSummaryPublisher = manager
 
     @UpcomingWidget
     @Provides

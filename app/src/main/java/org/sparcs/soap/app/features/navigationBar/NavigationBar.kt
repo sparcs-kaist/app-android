@@ -22,6 +22,8 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaul
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -103,6 +105,8 @@ import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationViewModel
 import org.sparcs.soap.app.features.timetable.TimetableView
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.activity.ActivityCreationRoute
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationView
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModel
 import org.sparcs.soap.app.features.userPostList.UserPostListView
 import org.sparcs.soap.app.features.userPostList.UserPostListViewModel
 import org.sparcs.soap.app.theme.ui.Theme
@@ -351,6 +355,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     startDestination = Channel.TimeTable.name,
                     route = "OTLGraph"
                 ) {
+                    composable("CreditCalculation") { entry ->
+                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
+                        CreditCalculationView(onBack = { navController.popBackStack() }, viewModel = creditViewModel)
+                    }
                     composable(
                         route = Channel.TimeTable.name,
                         deepLinks = listOf(navDeepLink {
@@ -368,9 +377,13 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
                         val lectureSearchViewModel: LectureSearchViewModel =
                             hiltViewModel(backStackEntry)
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
+                        val creditState by creditViewModel.state.collectAsState()
                         TimetableView(
                             viewModel = viewModel,
                             navController = navController,
+                            creditState = creditState,
+                            onRefreshCredits = creditViewModel::refresh,
                         )
                     }
 
