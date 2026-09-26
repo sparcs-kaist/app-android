@@ -1,4 +1,15 @@
 <resources>
+    <string name="credit_summary_title">Summary</string>
+    <string name="credit_semesters_title">Semesters</string>
+    <string name="credit_gpa_label">GPA</string>
+    <string name="credit_units_label">Credits</string>
+    <string name="credit_requirement_met">Requirement met</string>
+    <string name="credit_chart_empty">Enter grades to see your GPA by semester.</string>
+    <string name="credit_graduation">Graduation</string>
+    <string name="credit_basic">Basic</string>
+    <string name="credit_humanities">Humanities &amp; Social</string>
+    <string name="widget_silhouette">Timetable silhouette</string>
+    <string name="widget_silhouette_description">Show colored day columns at any widget size</string>
     <string name="credit_calculation">Credits</string>
     <string name="credit_requirements">Credit requirements</string>
     <string name="credit_total">Total credits</string>

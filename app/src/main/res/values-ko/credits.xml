@@ -1,4 +1,15 @@
 <resources>
+    <string name="credit_summary_title">요약</string>
+    <string name="credit_semesters_title">학기</string>
+    <string name="credit_gpa_label">평점</string>
+    <string name="credit_units_label">학점</string>
+    <string name="credit_requirement_met">요건 충족</string>
+    <string name="credit_chart_empty">성적을 입력하면 학기별 평점을 볼 수 있어요.</string>
+    <string name="credit_graduation">졸업</string>
+    <string name="credit_basic">기초</string>
+    <string name="credit_humanities">인문·사회</string>
+    <string name="widget_silhouette">시간표 실루엣</string>
+    <string name="widget_silhouette_description">위젯 크기에 관계없이 요일별 색상 막대로 표시해요</string>
     <string name="credit_calculation">학점 계산</string>
     <string name="credit_requirements">졸업 학점 요건</string>
     <string name="credit_total">총 학점</string>
