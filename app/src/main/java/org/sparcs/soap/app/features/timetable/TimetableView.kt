@@ -63,6 +63,8 @@ import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableOfflineStatus
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
 import org.sparcs.soap.app.features.timetable.components.TimetableViewNavigationBar
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewState
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditsSummaryCard
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSheet
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -79,9 +81,14 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 fun TimetableView(
     viewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     navController: NavController,
+    creditState: CreditCalculationViewState? = null,
+    onRefreshCredits: () -> Unit = {},
 ) {
     TimetableLifecycleEffect(viewModel)
     val loadState by viewModel.loadState.collectAsState()
+    val creditsContent: @Composable () -> Unit = {
+        creditState?.let { CreditsSummaryCard(it) { navController.navigate("CreditCalculation") } }
+    }
     val scrollState = rememberScrollState()
     var lectureToDelete by remember { mutableStateOf<Lecture?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -131,6 +138,7 @@ fun TimetableView(
                     TimetableViewNavigationBar(
                         scrollState = scrollState,
                         isButtonEnabled = isEditable,
+                        onCreditsClick = { navController.navigate("CreditCalculation") },
                         onClick = { navController.navigate(Channel.CourseCompose.name) },
                         onActivityClick = { selectedTimetable?.id?.let { navController.navigate("ActivityCreation/$it") } }
                     )
@@ -140,7 +148,10 @@ fun TimetableView(
         ) { innerPadding ->
             PullToRefreshBox(
                 isRefreshing = loadState.isRefreshing,
-                onRefresh = viewModel::fetchData,
+                onRefresh = {
+                    viewModel.fetchData()
+                    onRefreshCredits()
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
@@ -160,7 +171,8 @@ fun TimetableView(
                         },
                         onAddClick = { navController.navigate(Channel.CourseCompose.name) },
                         onActivityClick = { selectedTimetable?.id?.let { navController.navigate("ActivityCreation/$it") } },
-                        isEditable = isEditable
+                        isEditable = isEditable,
+                        creditsContent = creditsContent,
                     )
                 } else {
                     TimetablePortraitLayout(
@@ -174,7 +186,8 @@ fun TimetableView(
                             lectureToDelete = lecture
                             showDeleteDialog = true
                         },
-                        scrollState = scrollState
+                        scrollState = scrollState,
+                        creditsContent = creditsContent,
                     )
                 }
             }
@@ -236,6 +249,7 @@ private fun TimetableLandscapeLayout(
     onAddClick: () -> Unit,
     onActivityClick: () -> Unit,
     isEditable: Boolean,
+    creditsContent: @Composable () -> Unit,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     Column(
@@ -259,6 +273,9 @@ private fun TimetableLandscapeLayout(
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = { navController.navigate("CreditCalculation") }) {
+                    Text(stringResource(R.string.credit_calculation))
+                }
                 CompactTimetableSelector(viewModel, timetableName, onShareClick = onShareClick)
                 Spacer(modifier = Modifier.width(12.dp))
                 TimetableAddButton(
@@ -354,6 +371,7 @@ private fun TimetableLandscapeLayout(
                         selectedTimetable?.let { TimetableCreditGraph(it) }
 
                         TimetableSummary(viewModel)
+                        creditsContent()
                     }
                 }
             }
@@ -371,6 +389,7 @@ private fun TimetablePortraitLayout(
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
     scrollState: ScrollState,
+    creditsContent: @Composable () -> Unit,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     Column(
@@ -448,6 +467,7 @@ private fun TimetablePortraitLayout(
         selectedTimetable?.let { TimetableCreditGraph(it) }
 
         TimetableSummary(viewModel)
+        creditsContent()
     }
 }
 

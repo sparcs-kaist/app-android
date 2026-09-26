@@ -20,6 +20,9 @@ import org.sparcs.soap.app.domain.services.AuthenticationServiceProtocol
 import org.sparcs.soap.app.domain.usecases.AuthUseCase
 import org.sparcs.soap.app.networking.responseDTO.auth.TokenResponseDTO
 import org.sparcs.soap.testSupport.MainDispatcherRule
+import org.sparcs.soap.app.domain.helpers.CreditSummarySnapshotStore
+import org.sparcs.soap.wearable.WearableDataManager
+import org.sparcs.soap.widgets.buddyCreditsWidget.CreditSummarySyncManager
 import org.sparcs.soap.widgets.WidgetSyncHelper
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.UpComingWidgetSyncManager
@@ -44,7 +47,8 @@ class AuthRefreshTest {
         }
         return AuthUseCase(
             service, storage, unused(), unused(), unused(), unused(),
-            WidgetSyncHelper(context, TimetableWidgetSyncManager(context), UpComingWidgetSyncManager(context)),
+            WidgetSyncHelper(context, TimetableWidgetSyncManager(context), UpComingWidgetSyncManager(context),
+                CreditSummarySyncManager(context, CreditSummarySnapshotStore(context), storage, WearableDataManager(context))),
             TimetableCache(dao),
         )
     }

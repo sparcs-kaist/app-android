@@ -538,6 +538,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                     }
                 } else {
                     TimetableWidget().updateAll(appContext)
+                    BuddySilhouetteWidget().updateAll(appContext)
                 }
             }
 

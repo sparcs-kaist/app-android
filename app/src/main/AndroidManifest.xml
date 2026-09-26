@@ -41,6 +41,16 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/timetable_widget_info" />
         </receiver>
+        <receiver android:name="org.sparcs.soap.widgets.buddyTimetableWidget.BuddySilhouetteWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_silhouette">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/buddy_silhouette_widget_info" />
+        </receiver>
         <receiver
             android:name="org.sparcs.soap.widgets.buddyUpcomingClassWidget.BuddyUpcomingClassWidgetReceiver"
             android:exported="true"
