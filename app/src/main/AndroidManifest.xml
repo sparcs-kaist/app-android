@@ -62,6 +62,15 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/buddy_d_day_widget_info" />
         </receiver>
+        <receiver
+            android:name="org.sparcs.soap.widgets.buddyCreditsWidget.BuddyCreditsWidgetReceiver"
+            android:exported="true"
+            android:label="@string/credit_calculation">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/buddy_credits_widget_info" />
+        </receiver>
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
