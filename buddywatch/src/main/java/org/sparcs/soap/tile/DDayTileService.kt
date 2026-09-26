@@ -46,7 +46,7 @@ class DDayTileService : SuspendingTileService() {
     override suspend fun tileRequest(
         requestParams: RequestBuilders.TileRequest,
     ): TileBuilders.Tile {
-        val semesterJson = watchDataStore.semesterJsonFlow.firstOrNull()
+        val semesterJson = watchDataStore.currentSemesterJsonFlow.firstOrNull()
         val timetableJson = watchDataStore.timetableJsonFlow.firstOrNull()
 
         val semester = semesterJson?.let {

@@ -31,6 +31,16 @@ class WearableDataListenerService : WearableListenerService() {
     override fun onDataChanged(dataEvents: DataEventBuffer) {
         try {
             dataEvents.forEach { event ->
+                if (event.dataItem.uri.path == "/semester/current") {
+                    val semester = if (event.type == DataEvent.TYPE_CHANGED) {
+                        DataMapItem.fromDataItem(event.dataItem).dataMap.getString("semester_json")
+                    } else null
+                    scope.launch {
+                        watchDataStore.saveCurrentSemesterJson(semester)
+                        refreshSurfaces()
+                    }
+                    return@forEach
+                }
                 if (event.dataItem.uri.path == "/credits/summary") {
                     val summary = if (event.type == DataEvent.TYPE_CHANGED) {
                         DataMapItem.fromDataItem(event.dataItem).dataMap.getString("credit_summary_json")

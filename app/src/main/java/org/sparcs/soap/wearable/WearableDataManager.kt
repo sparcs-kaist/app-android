@@ -66,6 +66,15 @@ class WearableDataManager @Inject constructor(
         send(json.encodeToString(recolored), lastSent.getString(SEMESTER_KEY, null))
     }
 
+    fun updateCurrentSemester(semester: Semester) {
+        val request = PutDataMapRequest.create("/semester/current").apply {
+            dataMap.putString("semester_json", json.encodeToString(semester.toWatchModel(context)))
+            dataMap.putLong("timestamp", System.currentTimeMillis())
+        }.asPutDataRequest().setUrgent()
+        Wearable.getDataClient(context).putDataItem(request)
+            .addOnFailureListener { Timber.e(it, "Failed to send current semester to watch") }
+    }
+
     fun updateCreditSummary(snapshot: CreditSummarySnapshot?) {
         val request = PutDataMapRequest.create("/credits/summary").apply {
             dataMap.putString("credit_summary_json", snapshot?.let { json.encodeToString(it) } ?: "")
