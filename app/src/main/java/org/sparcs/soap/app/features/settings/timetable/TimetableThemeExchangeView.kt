@@ -46,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeShareCode
+import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
@@ -190,7 +191,7 @@ private fun ThemeShareCardView(
 }
 
 @Composable
-private fun ThemeShareRenderingView(theme: TimetableTheme, code: String?, lectures: List<org.sparcs.soap.app.domain.models.otl.Lecture>) {
+private fun ThemeShareRenderingView(theme: TimetableTheme, code: String?, lectures: List<Lecture>) {
     TimetableShareCard(theme, Timetable(id = "theme-share", lectures = lectures),
         stringResource(R.string.share_timetable_theme), theme.displayName(),
         stringResource(R.string.code), code ?: "\u2014", isCode = true)

@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.models.otl.LectureGrade
@@ -61,9 +62,10 @@ import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun CreditCalculationView(
-    onBack: () -> Unit,
+    navController: NavController,
     viewModel: CreditCalculationViewModel = hiltViewModel(),
 ) {
+    val onBack: () -> Unit = { navController.popBackStack() }
     val state by viewModel.state.collectAsState()
     var selectedSemesterID by rememberSaveable { mutableStateOf<String?>(null) }
     var showsRequirements by rememberSaveable { mutableStateOf(false) }

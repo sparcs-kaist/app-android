@@ -1,6 +1,7 @@
 package org.sparcs.soap.widgets.buddyTimetableWidget
 
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -102,6 +103,10 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
+    private val isSilhouetteWidget: Boolean
+        get() = AppWidgetManager.getInstance(this).getAppWidgetInfo(appWidgetId)?.provider ==
+            ComponentName(this, BuddySilhouetteWidgetReceiver::class.java)
+
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -120,7 +125,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
         setContent {
             Theme {
                 var selectedTheme by remember { mutableStateOf("System") }
-                var silhouette by remember { mutableStateOf(false) }
+                var silhouette by remember { mutableStateOf(isSilhouetteWidget) }
                 var transparency by remember { mutableFloatStateOf(1f) }
                 val state by viewModel.state.collectAsState()
                 val selectedTimetableId = state.selectedTimetableId
@@ -149,7 +154,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             PreferencesGlanceStateDefinition, glanceId
                         )
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
-                        silhouette = prefs[booleanPreferencesKey("silhouette")] ?: false
+                        silhouette = isSilhouetteWidget || (prefs[booleanPreferencesKey("silhouette")] ?: false)
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
                         savedTimetableId =
                             prefs[intPreferencesKey("selected_timetable_id")] ?: -1
@@ -215,7 +220,9 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                 WidgetPaletteRow(themeState.themes, timetableThemeID) {
                                     timetableThemeID = it
                                 }
-                                WidgetSilhouetteRow(silhouette) { silhouette = it }
+                                if (!isSilhouetteWidget) {
+                                    WidgetSilhouetteRow(silhouette) { silhouette = it }
+                                }
                                 WidgetThemeRow(selectedTheme) { selectedTheme = it }
                                 WidgetTransparencyRow(transparency) { transparency = it }
 

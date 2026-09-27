@@ -11,6 +11,7 @@ import androidx.glance.LocalContext
 import androidx.glance.LocalSize
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
@@ -26,7 +27,6 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextAlign
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import java.time.LocalDate
@@ -42,25 +42,56 @@ internal fun TimetableSmallWidgetView(timetable: WidgetTimetableEntry, theme: Ti
     val blockGapDp = 2f
     Row(GlanceModifier.fillMaxSize()) {
         timetable.visibleDays.forEach { day ->
-            Column(GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = 2.dp),
-                horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(context.getString(day.stringValue), modifier = GlanceModifier.fillMaxWidth().height(24.dp),
-                    style = TextStyle(fontSize = 11.sp, textAlign = TextAlign.Center,
+            val dayLabelColor = if (day.value == today) labelColor else labelColor.copy(alpha = 0.6f)
+            Column(
+                GlanceModifier.defaultWeight().fillMaxHeight().padding(horizontal = 2.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    context.getString(day.stringValue),
+                    modifier = GlanceModifier.fillMaxWidth().height(24.dp),
+                    style = TextStyle(
+                        fontSize = 11.sp, textAlign = TextAlign.Center,
                         fontWeight = if (day.value == today) FontWeight.Bold else FontWeight.Normal,
-                        color = ColorProvider(if (day.value == today) labelColor else labelColor.copy(alpha = 0.6f))))
-                Box(GlanceModifier.fillMaxWidth().height(availableHeight.dp).cornerRadius(4.dp).background(trackColor)) {
+                        color = ColorProvider(
+                            day = dayLabelColor,
+                            night = dayLabelColor,
+                        )
+                    )
+                )
+                Box(
+                    GlanceModifier.fillMaxWidth().height(availableHeight.dp).cornerRadius(4.dp)
+                        .background(trackColor)
+                ) {
                     timetable.getEntries(day).chunked(10).forEach { entries ->
                         Box(GlanceModifier.fillMaxSize()) {
-                            entries.forEach entryLoop@ { entry ->
+                            entries.forEach entryLoop@{ entry ->
                                 val start = entry.startMinutes ?: return@entryLoop
                                 val length = entry.durationMinutes ?: return@entryLoop
-                                val top = ((start - timetable.minMinutes).toFloat() / duration).coerceIn(0f, 1f)
-                                val bottom = ((start + length - timetable.minMinutes).toFloat() / duration).coerceIn(top, 1f)
+                                val top =
+                                    ((start - timetable.minMinutes).toFloat() / duration).coerceIn(
+                                        0f,
+                                        1f
+                                    )
+                                val bottom =
+                                    ((start + length - timetable.minMinutes).toFloat() / duration).coerceIn(
+                                        top,
+                                        1f
+                                    )
                                 if (bottom > top) {
-                                    val blockHeight = (((bottom - top) * availableHeight) - blockGapDp).coerceAtLeast(1f)
-                                    Box(GlanceModifier.fillMaxWidth().padding(top = (top * availableHeight).dp)) {
-                                        Box(GlanceModifier.fillMaxWidth().height(blockHeight.dp)
-                                            .cornerRadius(3.dp).background(Color(entry.bgColor.toColorInt()))) {}
+                                    val blockHeight =
+                                        (((bottom - top) * availableHeight) - blockGapDp).coerceAtLeast(
+                                            1f
+                                        )
+                                    Box(
+                                        GlanceModifier.fillMaxWidth()
+                                            .padding(top = (top * availableHeight).dp)
+                                    ) {
+                                        Box(
+                                            GlanceModifier.fillMaxWidth().height(blockHeight.dp)
+                                                .cornerRadius(3.dp)
+                                                .background(Color(entry.bgColor.toColorInt()))
+                                        ) {}
                                     }
                                 }
                             }

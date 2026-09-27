@@ -23,7 +23,7 @@ import org.sparcs.soap.app.domain.helpers.TimetableThemeBrief
 import org.sparcs.soap.app.domain.usecases.ThemeBriefParser
 import org.sparcs.soap.app.domain.usecases.ThemeGenerationError
 import org.sparcs.soap.app.domain.usecases.ThemeGenerationException
-import org.sparcs.soap.app.domain.usecases.ThemeGenerationUseCase
+import org.sparcs.soap.app.domain.usecases.ThemeGenerationUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.ThemeModelStatus
 import org.sparcs.soap.app.features.settings.timetable.TimetableThemeGeneratorViewModel
 import org.sparcs.soap.testSupport.MainDispatcherRule
@@ -228,7 +228,7 @@ class TimetableThemeGenerationTest {
         assertFalse(model.state.value.generating)
     }
 
-    private class FakeUseCase(val stream: Flow<TimetableThemeBrief>, var status: ThemeModelStatus = ThemeModelStatus.AVAILABLE) : ThemeGenerationUseCase {
+    private class FakeUseCase(val stream: Flow<TimetableThemeBrief>, var status: ThemeModelStatus = ThemeModelStatus.AVAILABLE) : ThemeGenerationUseCaseProtocol {
         var requests = 0
         val seeds = mutableListOf<Int>()
         override suspend fun availability() = status

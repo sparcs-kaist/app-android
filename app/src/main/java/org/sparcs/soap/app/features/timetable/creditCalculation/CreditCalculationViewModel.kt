@@ -27,7 +27,7 @@ import org.sparcs.soap.app.domain.models.otl.RetakeResolver
 import org.sparcs.soap.app.domain.models.otl.SemesterGradeSummary
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
-import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCase
+import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.LectureUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import javax.inject.Inject
@@ -56,7 +56,7 @@ class CreditCalculationViewModel @Inject constructor(
     private val lectureUseCase: LectureUseCaseProtocol,
     private val timetableUseCase: TimetableUseCaseProtocol,
     private val userUseCase: UserUseCaseProtocol,
-    private val lectureGradeUseCase: LectureGradeUseCase,
+    private val lectureGradeUseCase: LectureGradeUseCaseProtocol,
     private val creditSummaryPublisher: CreditSummaryPublisher,
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(CreditCalculationViewState())

@@ -16,13 +16,13 @@ enum class ThemeModelStatus { CHECKING, AVAILABLE, DOWNLOADABLE, DOWNLOADING, UN
 enum class ThemeGenerationError { UNAVAILABLE, UNSAFE_REQUEST, INCOMPLETE, BUSY, QUOTA_EXCEEDED, FAILED, DOWNLOAD_FAILED }
 class ThemeGenerationException(val reason: ThemeGenerationError) : Exception()
 
-interface ThemeGenerationUseCase {
+interface ThemeGenerationUseCaseProtocol {
     suspend fun availability(): ThemeModelStatus
     suspend fun download()
     fun generate(prompt: String, variation: Int): Flow<TimetableThemeBrief>
 }
 
-class TimetableThemeGenerationUseCase : ThemeGenerationUseCase {
+class TimetableThemeGenerationUseCase : ThemeGenerationUseCaseProtocol {
     override suspend fun availability(): ThemeModelStatus {
         val model = Generation.getClient()
         return try {

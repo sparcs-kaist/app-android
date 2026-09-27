@@ -1,7 +1,6 @@
 package org.sparcs.soap.widgets.buddyCreditsWidget
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
@@ -13,6 +12,7 @@ import androidx.glance.appwidget.LinearProgressIndicator
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
+import androidx.glance.color.ColorProvider
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -26,11 +26,11 @@ import androidx.glance.preview.Preview
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.app.shared.formatters.creditProgress
 import org.sparcs.soap.app.shared.formatters.formatGPA
+import org.sparcs.soap.app.theme.ui.creditCompleteColor
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import org.sparcs.soap.widgets.timetableWidgetIntent
 
@@ -41,18 +41,17 @@ internal fun CreditsWidgetView(snapshot: CreditSummarySnapshot?, signInRequired:
     val compact = size.height < 110.dp
     val wide = size.width >= 240.dp
     val complete = snapshot != null && snapshot.earnedCredits >= snapshot.graduationCredits
-    val progressColor = if (complete) ColorProvider(Color(0xFF34A853)) else GlanceTheme.colors.primary
+    val progressColor = if (complete) {
+        ColorProvider(day = creditCompleteColor, night = creditCompleteColor)
+    } else {
+        GlanceTheme.colors.primary
+    }
     Column(
         modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.background)
             .cornerRadius(20.dp).padding(if (compact) 8.dp else 16.dp)
             .clickable(actionStartActivity(timetableWidgetIntent(context))),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (!compact) {
-            Text(context.getString(R.string.credit_calculation), style = TextStyle(
-                color = GlanceTheme.colors.onSurface, fontSize = 14.sp, fontWeight = FontWeight.Bold))
-            Spacer(GlanceModifier.defaultWeight())
-        }
         if (snapshot == null) {
             Text(context.getString(if (signInRequired) R.string.login_required else R.string.credit_widget_open),
                 style = TextStyle(color = GlanceTheme.colors.onSurfaceVariant, fontSize = if (compact) 12.sp else 14.sp),
@@ -89,7 +88,6 @@ internal fun CreditsWidgetView(snapshot: CreditSummarySnapshot?, signInRequired:
                 color = progressColor, backgroundColor = GlanceTheme.colors.surfaceVariant,
             )
         }
-        if (!compact) Spacer(GlanceModifier.defaultWeight())
     }
 }
 

@@ -5,11 +5,15 @@ import org.sparcs.soap.app.networking.responseDTO.MinimumRequiredAppVersionDTO
 import org.sparcs.soap.app.networking.retrofitAPI.AppVersionApi
 import javax.inject.Inject
 
+interface AppVersionRepositoryProtocol {
+    suspend fun fetchMinimumVersion(): MinimumRequiredAppVersionDTO
+}
+
 class AppVersionRepository @Inject constructor(
     private val appVersionApi: AppVersionApi,
     private val crashlyticsService: CrashlyticsService
-) {
-    suspend fun fetchMinimumVersion(): MinimumRequiredAppVersionDTO {
+) : AppVersionRepositoryProtocol {
+    override suspend fun fetchMinimumVersion(): MinimumRequiredAppVersionDTO {
         return try {
             appVersionApi.getMinimumRequiredVersion()
         } catch (e: Exception) {

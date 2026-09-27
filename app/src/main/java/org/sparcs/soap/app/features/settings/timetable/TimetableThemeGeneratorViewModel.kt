@@ -19,7 +19,7 @@ import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeBrief
 import org.sparcs.soap.app.domain.usecases.ThemeGenerationError
 import org.sparcs.soap.app.domain.usecases.ThemeGenerationException
-import org.sparcs.soap.app.domain.usecases.ThemeGenerationUseCase
+import org.sparcs.soap.app.domain.usecases.ThemeGenerationUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.ThemeModelStatus
 import org.sparcs.soap.app.domain.usecases.TimetableThemeGenerationUseCase
 import timber.log.Timber
@@ -38,7 +38,7 @@ internal data class ThemeGeneratorState(
 }
 
 internal class TimetableThemeGeneratorViewModel(
-    private val useCase: ThemeGenerationUseCase = TimetableThemeGenerationUseCase(),
+    private val useCase: ThemeGenerationUseCaseProtocol = TimetableThemeGenerationUseCase(),
 ) : ViewModel() {
     private val mutableState = MutableStateFlow(ThemeGeneratorState())
     val state = mutableState.asStateFlow()

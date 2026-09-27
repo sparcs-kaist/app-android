@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.error.auth.AuthUseCaseError
 import org.sparcs.soap.app.domain.helpers.AlertState
-import org.sparcs.soap.app.domain.repositories.settings.SettingsRepository
+import org.sparcs.soap.app.domain.repositories.settings.SettingsRepositoryProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsService
 import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
 import org.sparcs.soap.app.shared.extensions.toAlertState
@@ -33,7 +33,7 @@ interface SettingsViewModelProtocol {
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository,
+    private val settingsRepository: SettingsRepositoryProtocol,
     private val crashlyticsService: CrashlyticsService,
     private val authUseCase: AuthUseCaseProtocol,
 ) : ViewModel(), SettingsViewModelProtocol {

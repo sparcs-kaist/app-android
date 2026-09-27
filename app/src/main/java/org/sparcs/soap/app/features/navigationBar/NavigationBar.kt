@@ -358,7 +358,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     composable("CreditCalculation") { entry ->
                         val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
-                        CreditCalculationView(onBack = { navController.popBackStack() }, viewModel = creditViewModel)
+                        CreditCalculationView(navController = navController, viewModel = creditViewModel)
                     }
                     composable(
                         route = Channel.TimeTable.name,

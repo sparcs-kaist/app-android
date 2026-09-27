@@ -14,13 +14,20 @@ import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
+interface LectureGradeUseCaseProtocol {
+    suspend fun grades(userID: Int): Map<Int, LectureGrade>
+    suspend fun setGrade(grade: LectureGrade?, lectureID: Int, userID: Int)
+    suspend fun requirements(userID: Int): CreditRequirements
+    suspend fun saveRequirements(requirements: CreditRequirements, userID: Int)
+}
+
 @Singleton
-class LectureGradeUseCase @Inject constructor(@ApplicationContext context: Context) {
+class LectureGradeUseCase @Inject constructor(@ApplicationContext context: Context) : LectureGradeUseCaseProtocol {
     private val preferences = context.getSharedPreferences("lecture_grades", Context.MODE_PRIVATE)
     private val mutex = Mutex()
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun grades(userID: Int): Map<Int, LectureGrade> = withContext(Dispatchers.IO) {
+    override suspend fun grades(userID: Int): Map<Int, LectureGrade> = withContext(Dispatchers.IO) {
         val prefix = "grade.$userID."
         preferences.all.mapNotNull { (key, value) ->
             val lectureID = key.takeIf { it.startsWith(prefix) }?.removePrefix(prefix)?.toIntOrNull()
@@ -29,7 +36,7 @@ class LectureGradeUseCase @Inject constructor(@ApplicationContext context: Conte
         }.toMap()
     }
 
-    suspend fun setGrade(grade: LectureGrade?, lectureID: Int, userID: Int) = withContext(Dispatchers.IO) {
+    override suspend fun setGrade(grade: LectureGrade?, lectureID: Int, userID: Int) = withContext(Dispatchers.IO) {
         mutex.withLock {
             val key = "grade.$userID.$lectureID"
             val editor = preferences.edit()
@@ -38,14 +45,14 @@ class LectureGradeUseCase @Inject constructor(@ApplicationContext context: Conte
         }
     }
 
-    suspend fun requirements(userID: Int): CreditRequirements = withContext(Dispatchers.IO) {
+    override suspend fun requirements(userID: Int): CreditRequirements = withContext(Dispatchers.IO) {
         preferences.getString("requirements.$userID", null)?.let { value ->
             runCatching { json.decodeFromString<CreditRequirements>(value) }.getOrNull()
                 ?.takeIf { it.isValid }
         } ?: CreditRequirements()
     }
 
-    suspend fun saveRequirements(requirements: CreditRequirements, userID: Int) = withContext(Dispatchers.IO) {
+    override suspend fun saveRequirements(requirements: CreditRequirements, userID: Int) = withContext(Dispatchers.IO) {
         require(requirements.isValid)
         mutex.withLock {
             if (!preferences.edit().putString("requirements.$userID", json.encodeToString(requirements)).commit()) {

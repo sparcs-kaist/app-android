@@ -234,8 +234,14 @@ class TimetableWidgetSyncManager @Inject constructor(
                 }
             }
             if (specificGlanceId != null) {
-                try { TimetableWidget().update(context, specificGlanceId) } catch (_: Exception) {}
-                try { BuddySilhouetteWidget().update(context, specificGlanceId) } catch (_: Exception) {}
+                val provider = AppWidgetManager.getInstance(context)
+                    .getAppWidgetInfo(manager.getAppWidgetId(specificGlanceId))?.provider
+                when (provider) {
+                    ComponentName(context, BuddySilhouetteWidgetReceiver::class.java) ->
+                        BuddySilhouetteWidget().update(context, specificGlanceId)
+                    ComponentName(context, BuddyTimetableWidgetReceiver::class.java) ->
+                        TimetableWidget().update(context, specificGlanceId)
+                }
             } else {
                 TimetableWidget().updateAll(context)
                 BuddySilhouetteWidget().updateAll(context)

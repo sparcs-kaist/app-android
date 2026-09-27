@@ -26,14 +26,14 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.repositories.settings.SettingsRepository
+import org.sparcs.soap.app.domain.repositories.settings.SettingsRepositoryProtocol
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class GatewayActivity : ComponentActivity() {
 
     @Inject
-    lateinit var settingsRepository: SettingsRepository
+    lateinit var settingsRepository: SettingsRepositoryProtocol
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()

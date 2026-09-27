@@ -11,17 +11,17 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.ChannelManager
-import org.sparcs.soap.app.shared.extensions.isUpdateRequired
-import org.sparcs.soap.app.domain.repositories.AppVersionRepository
+import org.sparcs.soap.app.domain.repositories.AppVersionRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiLocationUseCaseProtocol
+import org.sparcs.soap.app.shared.extensions.isUpdateRequired
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val appVersionRepository: AppVersionRepository,
+    private val appVersionRepository: AppVersionRepositoryProtocol,
     private val authUseCase: AuthUseCaseProtocol,
     private val userUseCase: UserUseCaseProtocol,
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,

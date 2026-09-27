@@ -5,7 +5,7 @@ import org.sparcs.soap.app.domain.error.CrashContext
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.error.feed.FeedImageUseCaseError
 import org.sparcs.soap.app.domain.models.feed.FeedImage
-import org.sparcs.soap.app.domain.repositories.feed.FeedImageRepository
+import org.sparcs.soap.app.domain.repositories.feed.FeedImageRepositoryProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import javax.inject.Inject
 
@@ -13,7 +13,7 @@ interface FeedImageUseCaseProtocol {
     suspend fun uploadPostImage(item: FeedPostPhotoItem): FeedImage
 }
 class FeedImageUseCase @Inject constructor(
-    private val feedImageRepository: FeedImageRepository,
+    private val feedImageRepository: FeedImageRepositoryProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol?
 ) : FeedImageUseCaseProtocol {
     // MARK: - Properties

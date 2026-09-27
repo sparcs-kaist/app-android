@@ -6,20 +6,25 @@ import kotlinx.coroutines.ensureActive
 import org.sparcs.soap.app.domain.error.CrashContext
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeShareCode
-import org.sparcs.soap.app.domain.repositories.settings.TimetableThemeRepository
+import org.sparcs.soap.app.domain.repositories.settings.TimetableThemeRepositoryProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import javax.inject.Inject
 
+interface TimetableThemeUseCaseProtocol {
+    suspend fun share(theme: TimetableTheme): String
+    suspend fun fetch(input: String): TimetableTheme
+}
+
 class TimetableThemeUseCase @Inject constructor(
-    private val repository: TimetableThemeRepository,
+    private val repository: TimetableThemeRepositoryProtocol,
     private val crashlytics: CrashlyticsServiceProtocol,
-) {
-    suspend fun share(theme: TimetableTheme): String = execute("share") {
+) : TimetableThemeUseCaseProtocol {
+    override suspend fun share(theme: TimetableTheme): String = execute("share") {
         require(theme.isValid)
         requireNotNull(TimetableThemeShareCode.normalized(repository.share(theme)))
     }
 
-    suspend fun fetch(input: String): TimetableTheme {
+    override suspend fun fetch(input: String): TimetableTheme {
         val code = requireNotNull(TimetableThemeShareCode.normalized(input))
         return execute("fetch") { repository.fetch(code) }
     }
