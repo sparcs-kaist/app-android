@@ -64,7 +64,7 @@ class CreditCalculationViewModel @Inject constructor(
     private var userID: Int? = null
     private var loadJob: Job? = null
     private val saveMutex = Mutex()
-    private var sessionRevision = creditSummaryPublisher.revision
+    private val sessionRevision = creditSummaryPublisher.revision
 
     init {
         load()
@@ -73,23 +73,22 @@ class CreditCalculationViewModel @Inject constructor(
     fun refresh() = load(forceRefresh = true)
 
     fun load(forceRefresh: Boolean = false) {
-        if (loadJob?.isActive == true) return
+        if (loadJob?.isActive == true || sessionRevision != creditSummaryPublisher.revision) return
         val previous = state.value
         val keepsContent = forceRefresh && !previous.isLoading && previous.error == null
         loadJob = viewModelScope.launch {
             if (!keepsContent) mutableState.update { it.copy(isLoading = true, error = null) }
             try {
-                if (userUseCase.otlUser == null) userUseCase.fetchOTLUser()
+                if (userID == null || userUseCase.otlUser == null) userUseCase.fetchOTLUser()
                 val user = checkNotNull(userUseCase.otlUser)
+                if (sessionRevision != creditSummaryPublisher.revision || (userID != null && userID != user.id)) return@launch
                 userID = user.id
-                sessionRevision = creditSummaryPublisher.revision
-                val grades = lectureGradeUseCase.grades(user.id)
-                val requirements = lectureGradeUseCase.requirements(user.id)
                 coroutineScope {
                     val history = async { lectureUseCase.fetchUserLectureHistory(user.id) }
                     val available =
                         async { (if (forceRefresh) timetableUseCase.refreshSemesters() else timetableUseCase.getSemesters()).associateBy { it.id } }
                     val semesters = history.await().semesters.filter { it.lectures.isNotEmpty() }
+                        .distinctBy { it.id }
                         .sortedWith(compareBy({ it.year }, { it.semesterType.intValue }))
                     val semestersByID = available.await()
                     val limiter = Semaphore(4)
@@ -110,13 +109,16 @@ class CreditCalculationViewModel @Inject constructor(
                         }
                     }.awaitAll().filterNotNull().toMap()
                     saveMutex.withLock {
-                        if (userUseCase.otlUser?.id != user.id || sessionRevision != creditSummaryPublisher.revision) return@withLock
+                        if (!isCurrentSession(user.id)) return@withLock
+                        val grades = lectureGradeUseCase.grades(user.id)
+                        val requirements = lectureGradeUseCase.requirements(user.id)
+                        if (!isCurrentSession(user.id)) return@withLock
                         mutableState.value = CreditCalculationViewState(
                             isLoading = false,
                             semesters = semesters,
                             timetables = timetables,
-                            grades = if (keepsContent) state.value.grades else grades,
-                            requirements = if (keepsContent) state.value.requirements else requirements,
+                            grades = grades,
+                            requirements = requirements,
                             majorDepartments = user.majorDepartments,
                         )
                         publishWidgetSnapshot()
@@ -125,22 +127,25 @@ class CreditCalculationViewModel @Inject constructor(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {
-                if (!keepsContent) mutableState.update { it.copy(isLoading = false, error = error) }
+                if (!keepsContent && sessionRevision == creditSummaryPublisher.revision) {
+                    mutableState.update { it.copy(isLoading = false, error = error) }
+                }
             }
         }
     }
 
     fun setGrade(grade: LectureGrade?, lectureID: Int) {
-        val accountID = userID?.takeIf { it == userUseCase.otlUser?.id } ?: return
+        val accountID = userID?.takeIf(::isCurrentSession) ?: return
         val lecture =
             state.value.timetables.values.flatMap { it.lectures }.find { it.id == lectureID }
                 ?: return
         if (grade != null && grade !in LectureGrade.options(lecture)) return
         viewModelScope.launch {
             saveMutex.withLock {
-                if (userUseCase.otlUser?.id != accountID) return@withLock
+                if (!isCurrentSession(accountID)) return@withLock
                 try {
                     lectureGradeUseCase.setGrade(grade, lectureID, accountID)
+                    if (!isCurrentSession(accountID)) return@withLock
                     mutableState.update {
                         it.copy(grades = if (grade == null) it.grades - lectureID else it.grades + (lectureID to grade))
                     }
@@ -148,26 +153,27 @@ class CreditCalculationViewModel @Inject constructor(
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (_: Exception) {
-                    mutableState.update { it.copy(saveError = true) }
+                    if (isCurrentSession(accountID)) mutableState.update { it.copy(saveError = true) }
                 }
             }
         }
     }
 
     fun updateRequirements(requirements: CreditRequirements) {
-        val accountID = userID?.takeIf { it == userUseCase.otlUser?.id } ?: return
+        val accountID = userID?.takeIf(::isCurrentSession) ?: return
         if (!requirements.isValid) return
         viewModelScope.launch {
             saveMutex.withLock {
-                if (userUseCase.otlUser?.id != accountID) return@withLock
+                if (!isCurrentSession(accountID)) return@withLock
                 try {
                     lectureGradeUseCase.saveRequirements(requirements, accountID)
+                    if (!isCurrentSession(accountID)) return@withLock
                     mutableState.update { it.copy(requirements = requirements) }
                     publishWidgetSnapshot()
                 } catch (cancelled: CancellationException) {
                     throw cancelled
                 } catch (_: Exception) {
-                    mutableState.update { it.copy(saveError = true) }
+                    if (isCurrentSession(accountID)) mutableState.update { it.copy(saveError = true) }
                 }
             }
         }
@@ -175,17 +181,19 @@ class CreditCalculationViewModel @Inject constructor(
 
     private suspend fun publishWidgetSnapshot() {
         val current = state.value
-        if (current.isLoading || current.error != null || userID != userUseCase.otlUser?.id) return
+        if (current.isLoading || current.error != null || userID?.let(::isCurrentSession) != true) return
+        if (current.semesters.any { it.id !in current.timetables }) return
         val summary = current.overallSummary
         creditSummaryPublisher.publish(
             CreditSummarySnapshot(
-                summary.gpa,
-                summary.earnedCredits,
-                current.requirements.graduation
+                summary.gpa, summary.earnedCredits, current.requirements.graduation
             ),
             sessionRevision,
         )
     }
+
+    private fun isCurrentSession(accountID: Int): Boolean =
+        userUseCase.otlUser?.id == accountID && sessionRevision == creditSummaryPublisher.revision
 
     fun dismissSaveError() {
         mutableState.update { it.copy(saveError = false) }

@@ -117,14 +117,20 @@ internal fun CreditCalculationContent(
     onSemester: (OTLUserLectureSemester) -> Unit,
     onRequirements: () -> Unit,
 ) {
-    CreditScreen(stringResource(R.string.credit_calculation), onBack) { modifier ->
+    CreditScreen(stringResource(R.string.credit_calculation), onBack) { padding ->
         when {
             state.isLoading -> Box(
-                modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
                 contentAlignment = Alignment.Center
             ) { CircularProgressIndicator() }
 
-            state.error != null -> Box(modifier) {
+            state.error != null -> Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+            ) {
                 ErrorView(
                     error = state.error,
                     defaultMessageResId = R.string.credit_load_error,
@@ -132,7 +138,18 @@ internal fun CreditCalculationContent(
                 )
             }
 
-            else -> LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            else -> LazyColumn(
+                modifier = Modifier
+                    .widthIn(max = 720.dp)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = padding.calculateTopPadding() + 16.dp,
+                    bottom = padding.calculateBottomPadding() + 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
                 item {
                     Text(
                         stringResource(R.string.credit_summary_title),
@@ -191,7 +208,7 @@ internal fun CreditScreen(
     title: String,
     onBack: () -> Unit,
     subtitle: String? = null,
-    content: @Composable (Modifier) -> Unit,
+    content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
         topBar = {
@@ -210,13 +227,11 @@ internal fun CreditScreen(
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
-        Box(Modifier
-            .fillMaxSize()
-            .padding(padding), contentAlignment = Alignment.TopCenter) {
-            content(Modifier
-                .widthIn(max = 720.dp)
-                .fillMaxWidth()
-                .padding(16.dp))
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            content(padding)
         }
     }
 }

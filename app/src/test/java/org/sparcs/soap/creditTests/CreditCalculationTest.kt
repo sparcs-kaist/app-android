@@ -47,7 +47,18 @@ class CreditCalculationTest {
         assertFalse(summary.isComplete)
         assertEquals(2, CreditBreakdown(lectures, grades, emptyList()).au)
         assertEquals(listOf(LectureGrade.SATISFIED, LectureGrade.UNSATISFIED), LectureGrade.options(lectures[2]))
-        assertFalse(LectureGrade.options(lectures[0]).contains(LectureGrade.SATISFIED))
+        assertTrue(LectureGrade.options(lectures[0]).containsAll(listOf(LectureGrade.SATISFIED, LectureGrade.UNSATISFIED)))
+    }
+
+    @Test fun `S earns credits but U earns neither credits nor AU and neither affects GPA`() {
+        val lectures = listOf(lecture(1), lecture(2, au = 1), lecture(3))
+        val grades = mapOf(1 to LectureGrade.SATISFIED, 2 to LectureGrade.UNSATISFIED, 3 to LectureGrade.A)
+        val summary = SemesterGradeSummary.calculate(lectures, grades)
+        assertEquals(4.0, summary.gpa!!, 0.00001)
+        assertEquals(9, summary.recordedCredits)
+        assertEquals(6, summary.earnedCredits)
+        assertEquals(6, CreditBreakdown(lectures, grades, emptyList()).basicRequired)
+        assertEquals(0, CreditBreakdown(lectures, grades, emptyList()).au)
     }
 
     @Test fun `breakdown keeps own majors first and matches department aliases`() {
