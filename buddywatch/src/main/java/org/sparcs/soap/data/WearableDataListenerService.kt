@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.complication.CreditsComplicationService
 import org.sparcs.soap.complication.DDayComplicationService
@@ -22,10 +23,21 @@ import timber.log.Timber
 class WearableDataListenerService : WearableListenerService() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var watchDataStore: WatchDataStore
+    private val creditUpdates = Channel<String?>(Channel.UNLIMITED)
 
     override fun onCreate() {
         super.onCreate()
         watchDataStore = WatchDataStore(applicationContext)
+        scope.launch {
+            // Apply in delivery order: parallel launches can resurrect a value after a clear.
+            for (summary in creditUpdates) {
+                watchDataStore.saveCreditSummaryJson(summary)
+                ComplicationDataSourceUpdateRequester.create(
+                    this@WearableDataListenerService,
+                    ComponentName(this@WearableDataListenerService, CreditsComplicationService::class.java),
+                ).requestUpdateAll()
+            }
+        }
     }
 
     override fun onDataChanged(dataEvents: DataEventBuffer) {
@@ -45,13 +57,7 @@ class WearableDataListenerService : WearableListenerService() {
                     val summary = if (event.type == DataEvent.TYPE_CHANGED) {
                         DataMapItem.fromDataItem(event.dataItem).dataMap.getString("credit_summary_json")
                     } else null
-                    scope.launch {
-                        watchDataStore.saveCreditSummaryJson(summary)
-                        ComplicationDataSourceUpdateRequester.create(
-                            this@WearableDataListenerService,
-                            ComponentName(this@WearableDataListenerService, CreditsComplicationService::class.java),
-                        ).requestUpdateAll()
-                    }
+                    creditUpdates.trySend(summary)
                     return@forEach
                 }
                 if (event.type == DataEvent.TYPE_DELETED && event.dataItem.uri.path == "/timetable/current") {
@@ -98,6 +104,7 @@ class WearableDataListenerService : WearableListenerService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        creditUpdates.close()
         scope.cancel()
     }
 }

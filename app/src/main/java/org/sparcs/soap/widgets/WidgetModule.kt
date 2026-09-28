@@ -31,6 +31,7 @@ annotation class DDayWidget
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface WidgetEntryPoint {
+    fun creditSummarySyncManager(): CreditSummarySyncManager
     fun tokenStorage(): TokenStorageProtocol
     @UpcomingWidget
     fun upComingSyncManager(): UpComingWidgetSyncManager
