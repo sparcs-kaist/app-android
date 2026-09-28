@@ -10,7 +10,6 @@
     android:widgetFeatures="reconfigurable|configuration_optional"
     android:previewImage="@drawable/credit_calculation_widget_preview"
     android:initialLayout="@layout/glance_default_loading_layout"
-    android:previewLayout="@layout/glance_default_loading_layout"
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="43200000"
     android:description="@string/credit_widget_description"

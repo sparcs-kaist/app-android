@@ -60,7 +60,7 @@ class CreditSummarySyncManager @Inject constructor(
         wearableDataManager.updateCreditSummary(snapshot)
     }
 
-    private suspend fun refreshWidgets() {
+    suspend fun refreshWidgets() {
         try {
             BuddyCreditsWidget().updateAll(context)
         } catch (cancelled: CancellationException) {

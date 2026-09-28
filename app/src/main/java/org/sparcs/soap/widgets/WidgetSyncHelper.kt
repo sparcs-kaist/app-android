@@ -8,6 +8,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import org.sparcs.soap.widgets.buddyCreditsWidget.CreditSummarySyncManager
+import org.sparcs.soap.widgets.buddyCreditsWidget.CreditSummaryWatchSyncWorker
 import org.sparcs.soap.widgets.buddyDDayWidget.DDayUpdateWorker
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableUpdateWorker
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
@@ -43,6 +44,11 @@ class WidgetSyncHelper @Inject constructor(
             .addTag("timetable_one_time_sync")
             .build()
 
+        val creditWatchRequest = OneTimeWorkRequestBuilder<CreditSummaryWatchSyncWorker>()
+            .setConstraints(constraints)
+            .addTag("credit_summary_watch_one_time_sync")
+            .build()
+
         val workManager = WorkManager.getInstance(context)
         
         workManager.enqueueUniqueWork(
@@ -61,6 +67,12 @@ class WidgetSyncHelper @Inject constructor(
             "timetable_one_time_sync",
             ExistingWorkPolicy.REPLACE,
             timetableRequest
+        )
+
+        workManager.enqueueUniqueWork(
+            "credit_summary_watch_one_time_sync",
+            ExistingWorkPolicy.REPLACE,
+            creditWatchRequest
         )
     }
 
