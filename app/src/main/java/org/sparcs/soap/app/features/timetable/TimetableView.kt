@@ -87,7 +87,7 @@ fun TimetableView(
     TimetableLifecycleEffect(viewModel)
     val loadState by viewModel.loadState.collectAsState()
     val creditsContent: @Composable () -> Unit = {
-        creditState?.let { CreditsSummaryCard(it) { navController.navigate("CreditCalculation") } }
+        creditState?.let { CreditsSummaryCard(it) { navController.navigate(Channel.CreditCalculation.name) } }
     }
     val scrollState = rememberScrollState()
     var lectureToDelete by remember { mutableStateOf<Lecture?>(null) }
@@ -138,9 +138,9 @@ fun TimetableView(
                     TimetableViewNavigationBar(
                         scrollState = scrollState,
                         isButtonEnabled = isEditable,
-                        onCreditsClick = { navController.navigate("CreditCalculation") },
+                        onCreditsClick = { navController.navigate(Channel.CreditCalculation.name) },
                         onClick = { navController.navigate(Channel.CourseCompose.name) },
-                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("ActivityCreation/$it") } }
+                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } }
                     )
                 }
             },
@@ -170,7 +170,7 @@ fun TimetableView(
                             showDeleteDialog = true
                         },
                         onAddClick = { navController.navigate(Channel.CourseCompose.name) },
-                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("ActivityCreation/$it") } },
+                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } },
                         isEditable = isEditable,
                         creditsContent = creditsContent,
                     )
@@ -273,7 +273,7 @@ private fun TimetableLandscapeLayout(
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = { navController.navigate("CreditCalculation") }) {
+                TextButton(onClick = { navController.navigate(Channel.CreditCalculation.name) }) {
                     Text(stringResource(R.string.credit_calculation))
                 }
                 CompactTimetableSelector(viewModel, timetableName, onShareClick = onShareClick)
@@ -328,7 +328,7 @@ private fun TimetableLandscapeLayout(
                                     navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                                 },
                                 showDeleteDialog = onDeleteClick,
-                                    onEditActivity = { navController.navigate("ActivityCreation/${selectedTimetable?.id}?activityId=${it.id}") }
+                                    onEditActivity = { navController.navigate("${Channel.ActivityCreation.name}/${selectedTimetable?.id}?activityId=${it.id}") }
                             )
                         }
                     }
@@ -364,7 +364,7 @@ private fun TimetableLandscapeLayout(
                         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
                             ActivityList(
                                 activities = table.activities, viewModel = viewModel,
-                                onEdit = { navController.navigate("ActivityCreation/${table.id}?activityId=${it.id}") }
+                                onEdit = { navController.navigate("${Channel.ActivityCreation.name}/${table.id}?activityId=${it.id}") }
                             )
                         }
 
@@ -432,7 +432,7 @@ private fun TimetablePortraitLayout(
                         navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                     },
                     showDeleteDialog = onDeleteClick,
-                                    onEditActivity = { navController.navigate("ActivityCreation/${selectedTimetable?.id}?activityId=${it.id}") }
+                                    onEditActivity = { navController.navigate("${Channel.ActivityCreation.name}/${selectedTimetable?.id}?activityId=${it.id}") }
                 )
             }
         }
@@ -460,7 +460,7 @@ private fun TimetablePortraitLayout(
         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
             ActivityList(
                 activities = table.activities, viewModel = viewModel,
-                onEdit = { navController.navigate("ActivityCreation/${table.id}?activityId=${it.id}") }
+                onEdit = { navController.navigate("${Channel.ActivityCreation.name}/${table.id}?activityId=${it.id}") }
             )
         }
 

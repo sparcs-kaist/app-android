@@ -2,9 +2,12 @@ package org.sparcs.soap.app.features.timetable.creditCalculation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -108,8 +111,19 @@ internal fun CreditRequirementsView(
     }
     var editingKey by rememberSaveable { mutableStateOf<String?>(null) }
     val editing = rows.find { it.key == editingKey }
-    CreditScreen(stringResource(R.string.credit_requirements), onBack) { modifier ->
-        LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    CreditScreen(stringResource(R.string.credit_requirements), onBack) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .widthIn(max = 720.dp)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = padding.calculateTopPadding() + 16.dp,
+                bottom = padding.calculateBottomPadding() + 16.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             item {
                 Text(
                     stringResource(R.string.credit_requirements_notice),

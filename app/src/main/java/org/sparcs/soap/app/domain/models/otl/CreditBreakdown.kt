@@ -10,7 +10,8 @@ class CreditBreakdown(
     data class MajorGroup(val department: Department, val required: Int = 0, val elective: Int = 0)
 
     private val earnedLectures = lectures.filter {
-        grades[it.id] != LectureGrade.FAIL && grades[it.id] != LectureGrade.NON_RECORD
+        grades[it.id] != LectureGrade.FAIL && grades[it.id] != LectureGrade.NON_RECORD &&
+            grades[it.id] != LectureGrade.UNSATISFIED
     }
     val basicRequired = credits(LectureType.BR)
     val basicElective = credits(LectureType.BE)
@@ -18,7 +19,7 @@ class CreditBreakdown(
     val hseGeneral = credits(LectureType.HSE_GENERAL)
     val hse = credits(LectureType.HSE)
     val etc = credits(LectureType.ETC)
-    val au = earnedLectures.filter { grades[it.id] != LectureGrade.UNSATISFIED }.sumOf { it.creditAU }
+    val au = earnedLectures.sumOf { it.creditAU }
     val majors: List<MajorGroup>
 
     init {

@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -61,8 +62,19 @@ internal fun GradeEntryView(
         semesterTitle(item),
         onBack,
         subtitle = stringResource(R.string.credit_gpa, formatGPA(state.summary(item)?.gpa))
-    ) { modifier ->
-        LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .widthIn(max = 720.dp)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = 16.dp,
+                end = 16.dp,
+                top = padding.calculateTopPadding() + 16.dp,
+                bottom = padding.calculateBottomPadding() + 16.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             item {
                 Surface(
                     shape = RoundedCornerShape(28.dp),

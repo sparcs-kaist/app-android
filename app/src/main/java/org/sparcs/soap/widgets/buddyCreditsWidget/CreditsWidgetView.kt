@@ -35,7 +35,11 @@ import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import org.sparcs.soap.widgets.timetableWidgetIntent
 
 @Composable
-internal fun CreditsWidgetView(snapshot: CreditSummarySnapshot?, signInRequired: Boolean = false) {
+internal fun CreditsWidgetView(
+    snapshot: CreditSummarySnapshot?,
+    signInRequired: Boolean = false,
+    transparency: Float = 1f,
+) {
     val context = LocalContext.current
     val size = LocalSize.current
     val compact = size.height < 110.dp
@@ -46,9 +50,13 @@ internal fun CreditsWidgetView(snapshot: CreditSummarySnapshot?, signInRequired:
     } else {
         GlanceTheme.colors.primary
     }
+    val surfaceColor = GlanceTheme.colors.background.getColor(context)
     Column(
-        modifier = GlanceModifier.fillMaxSize().background(GlanceTheme.colors.background)
-            .cornerRadius(20.dp).padding(if (compact) 8.dp else 16.dp)
+        modifier = GlanceModifier
+            .fillMaxSize()
+            .background(surfaceColor.copy(alpha = transparency))
+            .cornerRadius(20.dp)
+            .padding(if (compact) 8.dp else 16.dp)
             .clickable(actionStartActivity(timetableWidgetIntent(context))),
         verticalAlignment = Alignment.CenterVertically,
     ) {

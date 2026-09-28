@@ -122,6 +122,8 @@ enum class Channel(@param:StringRes val title: Int) {
     LectureDetail(title = R.string.lecturedetail),
     ReviewCompose(title = R.string.reviewcompose),
     CourseView(title = R.string.course_view),
+    CreditCalculation(title = R.string.credit_calculation),
+    ActivityCreation(title = R.string.activity_new),
 
     //Ara
     BoardList(title = R.string.general_board),
@@ -355,11 +357,6 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     startDestination = Channel.TimeTable.name,
                     route = "OTLGraph"
                 ) {
-                    composable("CreditCalculation") { entry ->
-                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
-                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
-                        CreditCalculationView(navController = navController, viewModel = creditViewModel)
-                    }
                     composable(
                         route = Channel.TimeTable.name,
                         deepLinks = listOf(navDeepLink {
@@ -388,7 +385,19 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     }
 
                     composable(
-                        "ActivityCreation/{timetableId}?activityId={activityId}",
+                        route = Channel.CreditCalculation.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { entry ->
+                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
+                        CreditCalculationView(navController = navController, viewModel = creditViewModel)
+                    }
+
+                    composable(
+                        route = Channel.ActivityCreation.name + "/{timetableId}?activityId={activityId}",
                         arguments = listOf(
                             navArgument("timetableId") { type = NavType.IntType },
                             navArgument("activityId") { type = NavType.IntType; defaultValue = -1 }

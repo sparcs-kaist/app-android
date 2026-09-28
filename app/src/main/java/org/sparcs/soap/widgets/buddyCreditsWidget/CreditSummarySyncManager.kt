@@ -2,6 +2,9 @@ package org.sparcs.soap.widgets.buddyCreditsWidget
 
 import android.content.Context
 import androidx.glance.appwidget.updateAll
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
@@ -23,6 +26,7 @@ class CreditSummarySyncManager @Inject constructor(
     private val wearableDataManager: WearableDataManager,
 ) : CreditSummaryPublisher {
     private val mutex = Mutex()
+    private val watchMutex = Mutex()
     @Volatile override var revision: Long = 0
         private set
 
@@ -30,15 +34,30 @@ class CreditSummarySyncManager @Inject constructor(
         if (expectedRevision != revision || tokenStorage.getAccessToken() == null) return@withLock
         val changed = store.snapshot?.hasSameValues(snapshot) != true
         if (changed) store.save(snapshot)
-        wearableDataManager.updateCreditSummary(snapshot)
+        enqueueWatchSync()
         if (changed) refreshWidgets()
     }
 
     suspend fun clear() = mutex.withLock {
         revision++
         store.clear()
-        wearableDataManager.updateCreditSummary(null)
+        enqueueWatchSync()
         refreshWidgets()
+    }
+
+    private fun enqueueWatchSync() {
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "credit_summary_watch_sync",
+            ExistingWorkPolicy.APPEND_OR_REPLACE,
+            OneTimeWorkRequestBuilder<CreditSummaryWatchSyncWorker>().build(),
+        )
+    }
+
+    suspend fun syncWatch() = watchMutex.withLock {
+        val snapshot = mutex.withLock {
+            if (tokenStorage.getAccessToken() == null) null else store.snapshot
+        }
+        wearableDataManager.updateCreditSummary(snapshot)
     }
 
     private suspend fun refreshWidgets() {

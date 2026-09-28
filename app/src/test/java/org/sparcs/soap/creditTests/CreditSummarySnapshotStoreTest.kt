@@ -2,6 +2,8 @@ package org.sparcs.soap.creditTests
 
 import android.app.Application
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -35,5 +37,12 @@ class CreditSummarySnapshotStoreTest {
     @Test fun unchangedValuesIgnoreTimestamp() {
         val snapshot = CreditSummarySnapshot(null, 0, 0, 1)
         assertTrue(snapshot.hasSameValues(snapshot.copy(updatedAt = 2)))
+    }
+
+    @Test fun creationTimestampIsAlwaysEncodedEvenWhenItMatchesTheDefault() {
+        val snapshot = CreditSummarySnapshot(null, 0, 138)
+        val encoded = Json.encodeToString(snapshot)
+        assertTrue(encoded.contains("\"updatedAt\":${snapshot.updatedAt}"))
+        assertEquals(snapshot, Json.decodeFromString<CreditSummarySnapshot>(encoded))
     }
 }
