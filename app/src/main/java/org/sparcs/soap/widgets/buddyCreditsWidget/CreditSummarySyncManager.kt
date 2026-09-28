@@ -1,7 +1,10 @@
 package org.sparcs.soap.widgets.buddyCreditsWidget
 
 import android.content.Context
+import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.appwidget.updateAll
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -9,6 +12,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.sparcs.soap.app.domain.helpers.CreditSummaryPublisher
 import org.sparcs.soap.app.domain.helpers.CreditSummarySnapshotStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
@@ -35,7 +40,7 @@ class CreditSummarySyncManager @Inject constructor(
         val changed = store.snapshot?.hasSameValues(snapshot) != true
         if (changed) store.save(snapshot)
         enqueueWatchSync()
-        if (changed) refreshWidgets()
+        refreshWidgets()
     }
 
     suspend fun clear() = mutex.withLock {
@@ -62,6 +67,17 @@ class CreditSummarySyncManager @Inject constructor(
 
     suspend fun refreshWidgets() {
         try {
+            val snapshot = if (tokenStorage.getAccessToken() == null) null else store.snapshot
+            val jsonString = snapshot?.let { Json.encodeToString(it) } ?: ""
+            val manager = GlanceAppWidgetManager(context)
+            val glanceIds = manager.getGlanceIds(BuddyCreditsWidget::class.java)
+            glanceIds.forEach { glanceId ->
+                updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+                    prefs.toMutablePreferences().apply {
+                        this[CREDIT_SUMMARY_STATE_KEY] = jsonString
+                    }
+                }
+            }
             BuddyCreditsWidget().updateAll(context)
         } catch (cancelled: CancellationException) {
             throw cancelled

@@ -107,6 +107,7 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.activity.ActivityCreationRoute
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationView
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModel
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditRequirementsView
 import org.sparcs.soap.app.features.userPostList.UserPostListView
 import org.sparcs.soap.app.features.userPostList.UserPostListViewModel
 import org.sparcs.soap.app.theme.ui.Theme
@@ -123,6 +124,7 @@ enum class Channel(@param:StringRes val title: Int) {
     ReviewCompose(title = R.string.reviewcompose),
     CourseView(title = R.string.course_view),
     CreditCalculation(title = R.string.credit_calculation),
+    CreditRequirements(title = R.string.credit_requirements),
     ActivityCreation(title = R.string.activity_new),
 
     //Ara
@@ -394,6 +396,23 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
                         CreditCalculationView(navController = navController, viewModel = creditViewModel)
+                    }
+
+                    composable(
+                        route = Channel.CreditRequirements.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { entry ->
+                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
+                        val state by creditViewModel.state.collectAsState()
+                        CreditRequirementsView(
+                            state = state,
+                            onBack = { navController.popBackStack() },
+                            onSave = creditViewModel::updateRequirements
+                        )
                     }
 
                     composable(

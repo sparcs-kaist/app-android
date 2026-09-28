@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.features.timetable.creditCalculation
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -40,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
+import org.sparcs.soap.app.features.timetable.creditCalculation.components.CreditRequirementsNavigationBar
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.creditCompleteColor
 
@@ -111,49 +114,59 @@ internal fun CreditRequirementsView(
     }
     var editingKey by rememberSaveable { mutableStateOf<String?>(null) }
     val editing = rows.find { it.key == editingKey }
-    CreditScreen(stringResource(R.string.credit_requirements), onBack) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .widthIn(max = 720.dp)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = padding.calculateTopPadding() + 16.dp,
-                bottom = padding.calculateBottomPadding() + 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+    Scaffold(
+        topBar = {
+            CreditRequirementsNavigationBar(onBack = onBack)
+        },
+        containerColor = MaterialTheme.colorScheme.surface
+    ) { padding ->
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.TopCenter
         ) {
-            item {
-                Text(
-                    stringResource(R.string.credit_requirements_notice),
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            items(groups, key = { it.key }) { group ->
-                CreditCard {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            group.icon,
-                            null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Text(
-                            group.title,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    group.rows.forEach { row -> RequirementProgress(row) { editingKey = row.key } }
+            LazyColumn(
+                modifier = Modifier
+                    .widthIn(max = 720.dp)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = padding.calculateTopPadding() + 16.dp,
+                    bottom = padding.calculateBottomPadding() + 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    Text(
+                        stringResource(R.string.credit_requirements_notice),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
-            }
-            item {
-                TextButton(onClick = { onSave(CreditRequirements()) }) { Text(stringResource(R.string.credit_reset)) }
+                items(groups, key = { it.key }) { group ->
+                    CreditCard {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                group.icon,
+                                null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                group.title,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        group.rows.forEach { row -> RequirementProgress(row) { editingKey = row.key } }
+                    }
+                }
+                item {
+                    TextButton(onClick = { onSave(CreditRequirements()) }) { Text(stringResource(R.string.credit_reset)) }
+                }
             }
         }
     }
