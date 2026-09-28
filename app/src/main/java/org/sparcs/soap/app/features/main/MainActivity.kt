@@ -57,8 +57,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.sparcs.soap.R
 import org.sparcs.soap.app.ChannelManager
 import org.sparcs.soap.app.InAppUpdateHelper
+import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.helpers.Constants
-import org.sparcs.soap.app.domain.helpers.NotificationDeepLink
 import org.sparcs.soap.app.domain.helpers.PopupManager
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.AuthenticationCallbackHandler
@@ -231,7 +231,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun handleNotificationOrDeepLink(intent: Intent) {
-        val deepLink = NotificationDeepLink.fromIntent(intent) ?: return
+        val deepLink = DeepLink.fromIntent(intent) ?: return
         val authed = viewModel.isAuthenticated.value ?: false
         deepLinkViewModel.handleDeepLink(deepLink, authed)
     }
