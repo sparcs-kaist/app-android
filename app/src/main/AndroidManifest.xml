@@ -209,6 +209,14 @@
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="org.sparcs.soap.widgets.buddyCreditsWidget.BuddyCreditsWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Soap">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

@@ -15,19 +15,19 @@ import org.sparcs.soap.app.shared.mocks.otl.mockList
 class RetakeResolverTest {
     private val attempts = (1..3).map { Lecture.mockList().first().copy(id = it, code = "CS101", credit = 3) }
 
-    @Test fun highestGradeCountsOnceAndLaterAttemptWinsTies() {
-        val grades = mapOf(1 to LectureGrade.A, 2 to LectureGrade.B, 3 to LectureGrade.A)
+    @Test fun latestGradeCountsEvenWhenItIsLower() {
+        val grades = mapOf(1 to LectureGrade.A, 2 to LectureGrade.C_PLUS, 3 to LectureGrade.C_MINUS)
         assertEquals(listOf(3), RetakeResolver.countedLectures(attempts, grades).map { it.id })
         assertEquals(setOf(1, 2), RetakeResolver.supersededLectureIDs(attempts, grades))
     }
 
-    @Test fun pendingAttemptReplacesFailureButNotAPassingGrade() {
+    @Test fun pendingAttemptReplacesBothFailureAndPassingGrade() {
         assertEquals(listOf(3), RetakeResolver.countedLectures(attempts, mapOf(1 to LectureGrade.FAIL)).map { it.id })
-        assertEquals(listOf(1), RetakeResolver.countedLectures(attempts, mapOf(1 to LectureGrade.PASS)).map { it.id })
+        assertEquals(listOf(3), RetakeResolver.countedLectures(attempts, mapOf(1 to LectureGrade.PASS)).map { it.id })
     }
 
-    @Test fun passRanksAboveFailureAndBelowLetterGrades() {
-        val grades = mapOf(1 to LectureGrade.FAIL, 2 to LectureGrade.PASS, 3 to LectureGrade.D_MINUS)
+    @Test fun latestPassReplacesLetterGradeAndLatestFailureReplacesPass() {
+        val grades = mapOf(1 to LectureGrade.A, 2 to LectureGrade.PASS, 3 to LectureGrade.FAIL)
         assertEquals(listOf(3), RetakeResolver.countedLectures(attempts, grades).map { it.id })
         assertEquals(listOf(2), RetakeResolver.countedLectures(attempts.take(2), grades).map { it.id })
     }
@@ -38,10 +38,23 @@ class RetakeResolverTest {
         assertTrue(RetakeResolver.supersededLectureIDs(attempts, grades).isEmpty())
     }
 
-    @Test fun auRetakesUseSatisfiedAndUnsatisfiedRanking() {
+    @Test fun auRetakesUseLatestAttempt() {
         val lectures = attempts.map { it.copy(credit = 0, creditAU = 1) }
         val grades = mapOf(1 to LectureGrade.SATISFIED, 2 to LectureGrade.UNSATISFIED)
-        assertEquals(listOf(1), RetakeResolver.countedLectures(lectures, grades).map { it.id })
+        assertEquals(listOf(3), RetakeResolver.countedLectures(lectures, grades).map { it.id })
+        assertEquals(listOf(2), RetakeResolver.countedLectures(lectures.take(2), grades).map { it.id })
+    }
+
+    @Test fun latestNonRecordDoesNotReplaceEarlierGrade() {
+        val grades = mapOf(1 to LectureGrade.A, 2 to LectureGrade.C, 3 to LectureGrade.NON_RECORD)
+        assertEquals(listOf(2), RetakeResolver.countedLectures(attempts, grades).map { it.id })
+        assertEquals(setOf(1), RetakeResolver.supersededLectureIDs(attempts, grades))
+    }
+
+    @Test fun duplicateRowsAndMissingCodesDoNotRemoveUnrelatedCourses() {
+        val lectures = attempts.map { it.copy(code = " ", courseID = it.id) }
+        assertEquals(lectures, RetakeResolver.countedLectures(lectures + lectures, emptyMap()))
+        assertTrue(RetakeResolver.supersededLectureIDs(lectures + lectures, emptyMap()).isEmpty())
     }
 
     @Test fun differentCodesKeepTheirOriginalOrder() {

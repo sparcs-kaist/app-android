@@ -6,6 +6,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,6 +23,10 @@ import org.sparcs.soap.app.domain.usecases.AuthUseCase
 import org.sparcs.soap.app.networking.responseDTO.auth.TokenResponseDTO
 import org.sparcs.soap.testSupport.MainDispatcherRule
 import org.sparcs.soap.app.domain.helpers.CreditSummarySnapshotStore
+import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
+import okhttp3.ResponseBody.Companion.toResponseBody
+import retrofit2.HttpException
+import retrofit2.Response
 import org.sparcs.soap.wearable.WearableDataManager
 import org.sparcs.soap.widgets.buddyCreditsWidget.CreditSummarySyncManager
 import org.sparcs.soap.widgets.WidgetSyncHelper
@@ -106,9 +112,31 @@ class AuthRefreshTest {
         assertTrue(model.isAuthenticatedFlow.first())
     }
 
+    @Test fun rejectedRefreshClearsCreditSnapshotAndAuthentication() = runTest {
+        val store = CreditSummarySnapshotStore(RuntimeEnvironment.getApplication())
+        store.save(CreditSummarySnapshot(4.0, 100, 138))
+        val model = useCase()
+        service.failure = HttpException(Response.error<Any>(401, "Unauthorized".toResponseBody()))
+        assertTrue(runCatching { model.refreshAccessToken(force = true) }.isFailure)
+        assertFalse(model.isAuthenticatedFlow.first())
+        assertNull(store.snapshot)
+        assertEquals(1, storage.clears)
+    }
+
+    @Test fun missingRefreshTokenClearsCreditSnapshot() = runTest {
+        val store = CreditSummarySnapshotStore(RuntimeEnvironment.getApplication())
+        store.save(CreditSummarySnapshot(4.0, 100, 138))
+        val model = useCase()
+        storage.refresh = null
+        assertTrue(runCatching { model.refreshAccessToken(force = true) }.isFailure)
+        assertFalse(model.isAuthenticatedFlow.first())
+        assertNull(store.snapshot)
+        assertEquals(1, storage.clears)
+    }
+
     private class Storage : TokenStorageProtocol {
         var access: String? = null
-        var refresh = "old-refresh"
+        var refresh: String? = "old-refresh"
         var expired = true
         var clears = 0
         var readFailure: Exception? = null
@@ -122,7 +150,7 @@ class AuthRefreshTest {
         override fun getAccessToken() = access
         override fun getRefreshToken(): String? = null
         override fun hasStoredRefreshToken() = true
-        override fun readRefreshToken(): String {
+        override fun readRefreshToken(): String? {
             readFailure?.let { throw it }
             return refresh
         }
