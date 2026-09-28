@@ -291,9 +291,14 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     }
 
                     composable(
-                        route = Channel.FeedPost.name + "?feedId={feedId}",
+                        route = Channel.FeedPost.name + "?feedId={feedId}&commentId={commentId}",
                         arguments = listOf(
-                            navArgument("feedId") { type = NavType.StringType }
+                            navArgument("feedId") { type = NavType.StringType },
+                            navArgument("commentId") {
+                                type = NavType.StringType
+                                nullable = true
+                                defaultValue = null
+                            }
                         ),
                         deepLinks = listOf(
                             navDeepLink {
