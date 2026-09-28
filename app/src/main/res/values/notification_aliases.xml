@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="NEW_COMMENT" translatable="false">@string/new_comment</string>
+    <string name="NEW_REPLY" translatable="false">@string/new_reply</string>
+</resources>
