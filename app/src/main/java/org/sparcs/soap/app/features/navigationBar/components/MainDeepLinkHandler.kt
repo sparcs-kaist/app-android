@@ -32,6 +32,10 @@ fun MainDeepLinkHandler(
                     onTabSelected(Channel.Boards)
                     viewModel.resolvePost(deepLink.id)
                 }
+                is DeepLink.FeedPost -> {
+                    onTabSelected(Channel.Start)
+                    viewModel.resolveFeedPost(deepLink)
+                }
                 is DeepLink.Timetable -> {
                     onTabSelected(Channel.TimeTable)
                 }
@@ -41,7 +45,9 @@ fun MainDeepLinkHandler(
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvent.collect { route ->
-            if (route.startsWith(Channel.TimeTable.name)) {
+            if (route.startsWith(Channel.FeedPost.name)) {
+                onTabSelected(Channel.Start)
+            } else if (route.startsWith(Channel.TimeTable.name)) {
                 onTabSelected(Channel.TimeTable)
             } else if (route.startsWith(Channel.Taxi.name)) {
                 onTabSelected(Channel.Taxi)
@@ -50,8 +56,9 @@ fun MainDeepLinkHandler(
             }
 
             navController.navigate(route) {
-                launchSingleTop = true
-                restoreState = true
+                val isFeedPost = route.startsWith(Channel.FeedPost.name)
+                launchSingleTop = !isFeedPost
+                restoreState = !isFeedPost
             }
         }
     }

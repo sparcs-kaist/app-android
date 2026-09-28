@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.navigationBar
 
+import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -50,12 +51,22 @@ class MainTabBarViewModel @Inject constructor(
         when (deepLink) {
             is DeepLink.TaxiInvite -> resolveInvite(deepLink.code)
             is DeepLink.AraPost -> resolvePost(deepLink.id)
+            is DeepLink.FeedPost -> resolveFeedPost(deepLink)
             is DeepLink.Timetable -> {
                 viewModelScope.launch {
                     _navigationEvent.send(Channel.TimeTable.name)
                 }
             }
         }
+    }
+
+    fun resolveFeedPost(deepLink: DeepLink.FeedPost) {
+        val route = buildString {
+            append(Channel.FeedPost.name)
+            append("?feedId=${Uri.encode(deepLink.postID)}")
+            deepLink.commentID?.let { append("&commentId=${Uri.encode(it)}") }
+        }
+        viewModelScope.launch { _navigationEvent.send(route) }
     }
 
     fun resolveInvite(code: String) {
