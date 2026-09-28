@@ -1,6 +1,8 @@
 package org.sparcs.soap.app.domain.enums
 
+import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.sparcs.soap.BuildConfig
@@ -27,6 +29,23 @@ sealed class DeepLink {
     data object Timetable : DeepLink()
 
     companion object {
+        fun fromNotificationData(data: Map<String, String>): DeepLink? {
+            val link = data["url"] ?: data["deep_link"]
+            link?.let { fromUri(it.toUri()) }?.let { return it }
+            val postID = (data["post_id"] ?: data["postId"])?.takeIf { it.isNotBlank() } ?: return null
+            val commentID = (data["comment_id"] ?: data["commentId"])?.takeIf { it.isNotBlank() }
+            return FeedPost(postID, commentID)
+        }
+
+        fun fromIntent(intent: Intent): DeepLink? {
+            fromUri(intent.data)?.let { return it }
+            val extras = intent.extras ?: return null
+            val data = listOf("url", "deep_link", "post_id", "postId", "comment_id", "commentId")
+                .mapNotNull { key -> extras.getString(key)?.let { key to it } }
+                .toMap()
+            return fromNotificationData(data)
+        }
+
         fun fromUri(uri: Uri?): DeepLink? {
             if (uri == null) return null
 

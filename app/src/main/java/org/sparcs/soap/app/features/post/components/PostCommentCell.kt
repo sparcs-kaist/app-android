@@ -8,8 +8,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,6 +21,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.rounded.Reply
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SmsFailed
@@ -198,6 +201,7 @@ fun <T> PostCommentActionsMenu(
     onTranslate: () -> Unit,
     onSummarize: () -> Unit = {},
     isComment: Boolean,
+    onReply: (() -> Unit)? = null,
 ) where T : Enum<T>, T : ReportLabelProvider {
     var expanded by remember { mutableStateOf(false) }
     var reportExpanded by remember { mutableStateOf(false) }
@@ -219,6 +223,13 @@ fun <T> PostCommentActionsMenu(
                 expanded = false
                 reportExpanded = false
             }) {
+            onReply?.let { reply ->
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.feed_reply_action)) },
+                    onClick = { expanded = false; reply() },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Rounded.Reply, contentDescription = null) },
+                )
+            }
             if (isMine == false) {
                 DropdownMenuItem(
                     text = { Text(stringResource(R.string.report)) },
@@ -234,7 +245,7 @@ fun <T> PostCommentActionsMenu(
                     trailingIcon = {
                         Icon(
                             imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                            contentDescription = "show Report",
+                            contentDescription = stringResource(R.string.report),
                             modifier = Modifier
                                 .size(18.dp)
                                 .rotate(if (reportExpanded) 270f else 0f)
@@ -369,17 +380,16 @@ private fun PostCommentFooter(
 ) {
     val scope = rememberCoroutineScope()
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 4.dp, end = 4.dp)
     ) {
-        Spacer(modifier = Modifier.weight(1f))
-
         if (!isThreaded) {
             PostCommentButton(commentCount = comment.comments.size, onClick = onComment, isCompact = true)
-            Spacer(modifier = Modifier.padding(4.dp))
         }
 
         if (!isDeleted) {

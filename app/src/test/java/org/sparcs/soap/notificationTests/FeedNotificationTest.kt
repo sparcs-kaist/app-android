@@ -15,7 +15,6 @@ import org.robolectric.annotation.Config
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.helpers.NotificationContent
-import org.sparcs.soap.app.domain.helpers.NotificationDeepLink
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33], application = Application::class)
@@ -77,25 +76,25 @@ class FeedNotificationTest {
 
     @Test fun backgroundLaunchExtrasPreserveReplyDestination() {
         val intent = Intent().putExtra("post_id", "post-1").putExtra("comment_id", "reply-2")
-        assertEquals(DeepLink.FeedPost("post-1", "reply-2"), NotificationDeepLink.fromIntent(intent))
+        assertEquals(DeepLink.FeedPost("post-1", "reply-2"), DeepLink.fromIntent(intent))
     }
 
     @Test fun feedDestinationsRoundTripWithoutLosingEncodedIds() {
         val destination = DeepLink.FeedPost("post/a?b", "reply&c=d")
         assertEquals(destination, DeepLink.fromUri(destination.toUri()))
-        assertEquals(destination, NotificationDeepLink.fromIntent(Intent(Intent.ACTION_VIEW, destination.toUri())))
+        assertEquals(destination, DeepLink.fromIntent(Intent(Intent.ACTION_VIEW, destination.toUri())))
     }
 
     @Test fun separateNotificationsKeepSeparateCommentDestinations() {
-        val first = NotificationDeepLink.fromData(mapOf("post_id" to "post", "comment_id" to "first"))
-        val second = NotificationDeepLink.fromData(mapOf("post_id" to "post", "comment_id" to "second"))
+        val first = DeepLink.fromNotificationData(mapOf("post_id" to "post", "comment_id" to "first"))
+        val second = DeepLink.fromNotificationData(mapOf("post_id" to "post", "comment_id" to "second"))
         assertEquals(DeepLink.FeedPost("post", "first"), first)
         assertEquals(DeepLink.FeedPost("post", "second"), second)
     }
 
     @Test fun missingPostIdCannotInventACommentDestination() {
-        assertNull(NotificationDeepLink.fromData(mapOf("title_loc_key" to "NEW_COMMENT")))
-        assertNull(NotificationDeepLink.fromData(mapOf("post_id" to " ", "comment_id" to "reply")))
+        assertNull(DeepLink.fromNotificationData(mapOf("title_loc_key" to "NEW_COMMENT")))
+        assertNull(DeepLink.fromNotificationData(mapOf("post_id" to " ", "comment_id" to "reply")))
         assertNull(DeepLink.fromUri("https://example.com/feed/post?commentId=reply".toUri()))
         assertEquals(DeepLink.FeedPost("post"), DeepLink.fromUri("https://sparcs.org/feed/post".toUri()))
     }
