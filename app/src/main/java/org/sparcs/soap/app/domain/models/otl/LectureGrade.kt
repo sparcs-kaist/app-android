@@ -11,7 +11,8 @@ enum class LectureGrade(val rawValue: String, val gradePoint: Double? = null) {
     val title: String get() = rawValue.removeSuffix("0")
 
     companion object {
-        val creditOptions = entries.filter { it != SATISFIED && it != UNSATISFIED }
+        val creditOptions = listOf(PASS, NON_RECORD, SATISFIED, UNSATISFIED) +
+            entries.filter { it.gradePoint != null && it != FAIL } + FAIL
         val auOptions = listOf(SATISFIED, UNSATISFIED)
         fun options(lecture: Lecture): List<LectureGrade> =
             if (lecture.isAUOnly) auOptions else creditOptions

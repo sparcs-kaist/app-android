@@ -23,7 +23,9 @@ data class SemesterGradeSummary(
                 if (grade != LectureGrade.NON_RECORD) {
                     recordedCredits += lecture.credit
                     recordedAUs += lecture.creditAU
-                    if (grade != LectureGrade.FAIL) earnedCredits += lecture.credit
+                    if (grade != LectureGrade.FAIL && grade != LectureGrade.UNSATISFIED) {
+                        earnedCredits += lecture.credit
+                    }
                 }
                 if (grade != null) gradedCount++
                 grade?.gradePoint?.takeIf { lecture.credit > 0 }?.let { point ->
