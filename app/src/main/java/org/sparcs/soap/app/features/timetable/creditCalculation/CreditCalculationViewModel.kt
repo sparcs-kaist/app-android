@@ -182,7 +182,7 @@ class CreditCalculationViewModel @Inject constructor(
     private suspend fun publishWidgetSnapshot() {
         val current = state.value
         if (current.isLoading || current.error != null || userID?.let(::isCurrentSession) != true) return
-        if (current.semesters.any { it.id !in current.timetables }) return
+        if (current.timetables.isEmpty()) return
         val summary = current.overallSummary
         creditSummaryPublisher.publish(
             CreditSummarySnapshot(

@@ -52,6 +52,7 @@ import org.sparcs.soap.app.domain.models.otl.LectureGrade
 import org.sparcs.soap.app.domain.models.otl.OTLUserLectureSemester
 import org.sparcs.soap.app.domain.models.otl.SemesterGradeSummary
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.DismissButton
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.glassBorder
@@ -68,31 +69,29 @@ fun CreditCalculationView(
     val onBack: () -> Unit = { navController.popBackStack() }
     val state by viewModel.state.collectAsState()
     var selectedSemesterID by rememberSaveable { mutableStateOf<String?>(null) }
-    var showsRequirements by rememberSaveable { mutableStateOf(false) }
-    val selectedSemester = state.semesters.find { it.id == selectedSemesterID }
-    BackHandler(selectedSemesterID != null || showsRequirements) {
+
+    BackHandler(selectedSemesterID != null) {
         selectedSemesterID = null
-        showsRequirements = false
     }
-    when {
-        state.isLoading || state.error != null -> CreditCalculationContent(
-            state, onBack, { viewModel.load() }, {}, {}
-        )
 
-        showsRequirements -> CreditRequirementsView(
-            state,
-            { showsRequirements = false },
-            viewModel::updateRequirements
+    val selectedSemester = selectedSemesterID?.let { id -> state.semesters.find { it.id == id } }
+    if (selectedSemester != null) {
+        GradeEntryView(
+            item = selectedSemester,
+            state = state,
+            onBack = { selectedSemesterID = null },
+            onGrade = viewModel::setGrade
         )
-
-        selectedSemester != null -> GradeEntryView(
-            selectedSemester, state, { selectedSemesterID = null }, viewModel::setGrade
+    } else {
+        CreditCalculationContent(
+            state = state,
+            onBack = onBack,
+            onRetry = { viewModel.load() },
+            onSemester = { selectedSemesterID = it.id },
+            onRequirements = { navController.navigate(Channel.CreditRequirements.name) }
         )
-
-        else -> CreditCalculationContent(
-            state, onBack, { viewModel.load() },
-            { selectedSemesterID = it.id }, { showsRequirements = true })
     }
+
     if (state.saveError) {
         AlertDialog(
             onDismissRequest = viewModel::dismissSaveError,
