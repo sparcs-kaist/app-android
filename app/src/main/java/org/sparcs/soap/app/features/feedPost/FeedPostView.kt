@@ -1,7 +1,9 @@
 package org.sparcs.soap.app.features.feedPost
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -20,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.toggleable
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -55,6 +56,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -81,7 +83,6 @@ import org.sparcs.soap.app.features.feed.components.FeedPostRow
 import org.sparcs.soap.app.features.feedPost.components.FeedCommentReplyPreview
 import org.sparcs.soap.app.features.feedPost.components.FeedCommentRow
 import org.sparcs.soap.app.features.feedPost.components.FeedPostNavigationBar
-import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeIn
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
@@ -403,6 +404,7 @@ private fun InputBar(
     onCancelReply: () -> Unit,
 ) {
     val haptic = LocalHapticFeedback.current
+    var isFocused by remember { mutableStateOf(false) }
     val rawName = targetComment?.authorName ?: ""
     val authorName = if (rawName.contains("Anonymous")) {
         rawName.replace("Anonymous", stringResource(R.string.anonymous))
@@ -410,110 +412,103 @@ private fun InputBar(
         rawName
     }
 
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .imePadding()
             .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(Modifier.weight(1f)) {
-            AnimatedVisibility(targetComment != null) {
-                targetComment?.let {
-                    FeedCommentReplyPreview(it, onCancelReply)
-                }
-            }
-            Row(verticalAlignment = Alignment.Bottom) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .heightIn(min = 48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .toggleable(
-                            value = viewModel.isAnonymous,
-                            role = Role.Checkbox,
-                            onValueChange = {
-                                haptic.toggle(it)
-                                viewModel.isAnonymous = it
-                            },
-                        )
-                        .padding(horizontal = 8.dp),
-                ) {
-                    Checkbox(
-                        checked = viewModel.isAnonymous,
-                        onCheckedChange = null,
-                        modifier = Modifier.size(20.dp),
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(R.string.anonymous),
-                        style = MaterialTheme.typography.labelSmall,
-                    )
-                }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                ) {
-                    BasicTextField(
-                        value = viewModel.text,
-                        onValueChange = { viewModel.text = it },
-                        modifier = Modifier
-                            .focusRequester(focusRequester),
-                        maxLines = 6,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        decorationBox = { innerTextField ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(4.dp),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                if (viewModel.text.isEmpty()) {
-                                    Text(
-                                        text = if (targetComment != null)
-                                            stringResource(
-                                                R.string.write_a_reply_to,
-                                                authorName
-                                            )
-                                        else
-                                            stringResource(R.string.write_a_comment),
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        overflow = TextOverflow.Ellipsis,
-                                        maxLines = 1
-                                    )
-                                }
-                                innerTextField()
-                            }
+        AnimatedVisibility(targetComment != null) {
+            targetComment?.let { FeedCommentReplyPreview(it, onCancelReply) }
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+        ) {
+            BasicTextField(
+                value = viewModel.text,
+                onValueChange = { viewModel.text = it },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { isFocused = it.isFocused }
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                maxLines = 6,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { innerTextField ->
+                    Box(contentAlignment = Alignment.CenterStart) {
+                        if (viewModel.text.isEmpty()) {
+                            Text(
+                                text = if (targetComment != null)
+                                    stringResource(R.string.write_a_reply_to, authorName)
+                                else stringResource(R.string.write_a_comment),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyLarge,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
+                            )
                         }
-                    )
+                        innerTextField()
+                    }
                 }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                MoveToLeftFadeIn(viewModel.text.isNotEmpty()) {
+            )
+            val showBottomRow = isFocused || viewModel.text.isNotEmpty()
+            AnimatedVisibility(visible = showBottomRow) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 8.dp, bottom = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .heightIn(min = 48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .toggleable(
+                                value = viewModel.isAnonymous,
+                                role = Role.Checkbox,
+                                onValueChange = {
+                                    haptic.toggle(it)
+                                    viewModel.isAnonymous = it
+                                },
+                            )
+                            .padding(horizontal = 8.dp),
+                    ) {
+                        Checkbox(
+                            checked = viewModel.isAnonymous,
+                            onCheckedChange = null,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.anonymous),
+                            style = MaterialTheme.typography.labelMedium,
+                        )
+                    }
+                    Spacer(Modifier.weight(1f))
                     Button(
                         onClick = onCommentUploaded,
-                        enabled = !viewModel.isSubmittingComment,
-                        shape = CircleShape,
+                        enabled = viewModel.text.isNotEmpty() && !viewModel.isSubmittingComment,
+                        shape = RoundedCornerShape(12.dp),
                         contentPadding = PaddingValues(0.dp),
-                        modifier = Modifier.size(45.dp)
+                        modifier = Modifier.size(48.dp)
                     ) {
                         if (viewModel.isSubmittingComment) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         } else {
                             Icon(
                                 painter = painterResource(id = R.drawable.outline_send),
                                 modifier = Modifier.size(20.dp),
-                                tint = MaterialTheme.colorScheme.onPrimary,
                                 contentDescription = stringResource(R.string.send)
                             )
                         }
@@ -522,6 +517,29 @@ private fun InputBar(
             }
         }
     }
+}
+
+@Preview(showBackground = true, name = "Comment composer", widthDp = 360)
+@Preview(showBackground = true, name = "Comment composer dark", widthDp = 360, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun InputBarPreview() {
+    val viewModel = remember {
+        MockFeedPostViewModel(FeedPostViewModel.ViewState.Loaded(FeedPost.mock())).apply {
+            isAnonymous = true
+        }
+    }
+    Theme { InputBar(viewModel, null, {}, remember { FocusRequester() }, {}) }
+}
+
+@Preview(showBackground = true, name = "Reply composer - multiline", widthDp = 320)
+@Composable
+private fun ReplyInputBarPreview() {
+    val viewModel = remember {
+        MockFeedPostViewModel(FeedPostViewModel.ViewState.Loaded(FeedPost.mock())).apply {
+            text = "? ?? ?? ??? ?????.\n?? ?? ???? ?? ??? ??? ?????."
+        }
+    }
+    Theme { InputBar(viewModel, FeedComment.mockList().first(), {}, remember { FocusRequester() }, {}) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
