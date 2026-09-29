@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,26 +15,20 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -58,19 +51,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -113,6 +101,7 @@ import org.sparcs.soap.app.shared.extensions.postfixEuroRo
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostViewModel
+import org.sparcs.soap.app.shared.views.contentViews.CommentInputBar
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
@@ -522,61 +511,27 @@ private fun PostInputBar(
     placeholder: String,
     focusRequester: FocusRequester,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .imePadding()
-            .padding(8.dp),
-    ) {
-        AnimatedVisibility(targetComment != null) {
-            targetComment?.let {
-                PostCommentReplyPreview(
-                    comment = it,
-                    onCancel = onCancelReply,
-                )
+    CommentInputBar(
+        value = comment,
+        onValueChange = onCommentChange,
+        placeholder = placeholder,
+        onSend = onUploadComment,
+        focusRequester = focusRequester,
+        isSubmitting = isUploadingComment,
+        onFocusChange = onWritingCommentChange,
+        replyPreview = {
+            AnimatedVisibility(targetComment != null) {
+                targetComment?.let {
+                    PostCommentReplyPreview(
+                        comment = it,
+                        onCancel = onCancelReply,
+                    )
+                }
             }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(16.dp))
-                .background(MaterialTheme.colorScheme.surface)
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
-                .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            profilePicture()
-            Spacer(modifier = Modifier.width(8.dp))
-            BasicTextField(
-                value = comment,
-                onValueChange = { onCommentChange(it) },
-                modifier = Modifier
-                    .weight(1f)
-                    .heightIn(min = 40.dp)
-                    .focusRequester(focusRequester)
-                    .onFocusChanged {
-                        onWritingCommentChange(it.isFocused)
-                    }
-                    .padding(vertical = 8.dp),
-                maxLines = 6,
-                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                decorationBox = { innerTextField ->
-                    Box(contentAlignment = Alignment.CenterStart) {
-                        if (comment.isEmpty()) {
-                            Text(
-                                text = placeholder,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.bodyLarge,
-                                overflow = TextOverflow.Ellipsis,
-                                maxLines = 1,
-                            )
-                        }
-                        innerTextField()
-                    }
-                },
-            )
-            if (commentOnEdit != null) {
+        },
+        leadingContent = profilePicture,
+        trailingContent = if (commentOnEdit != null) {
+            {
                 IconButton(
                     onClick = {
                         onCommentChange("")
@@ -590,30 +545,8 @@ private fun PostInputBar(
                     )
                 }
             }
-            Spacer(modifier = Modifier.width(4.dp))
-            Button(
-                onClick = onUploadComment,
-                enabled = !isUploadingComment && comment.isNotEmpty(),
-                shape = RoundedCornerShape(12.dp),
-                contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(40.dp),
-            ) {
-                if (isUploadingComment) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                } else {
-                    Icon(
-                        painter = painterResource(id = R.drawable.outline_send),
-                        modifier = Modifier.size(20.dp),
-                        contentDescription = "Send",
-                    )
-                }
-            }
-        }
-    }
+        } else null,
+    )
 }
 
 @Composable
