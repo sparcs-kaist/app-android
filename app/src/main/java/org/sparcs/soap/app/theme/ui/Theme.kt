@@ -18,7 +18,8 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowInsetsControllerCompat
 
-private val DarkColorScheme = darkColorScheme(
+/** Also used directly by screens that are always dark, like Add Friends. */
+internal val DarkColorScheme = darkColorScheme(
     primary = theme_dark_primary,
     secondary = theme_dark_secondary,
     tertiary = theme_dark_tertiary,

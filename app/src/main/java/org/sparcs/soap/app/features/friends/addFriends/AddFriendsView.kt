@@ -1,6 +1,8 @@
 package org.sparcs.soap.app.features.friends.addFriends
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
@@ -33,7 +35,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -43,12 +47,15 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -59,12 +66,14 @@ import org.sparcs.soap.app.domain.models.nearby.NearbyUnavailableReason
 import org.sparcs.soap.app.features.friends.FriendsListViewModel
 import org.sparcs.soap.app.features.friends.FriendsListViewModelProtocol
 import org.sparcs.soap.app.features.friends.addFriends.components.AddFriendByCodeDialog
+import org.sparcs.soap.app.features.friends.addFriends.components.AnimatedMeshGradient
 import org.sparcs.soap.app.features.friends.addFriends.components.IncomingRequestQueue
 import org.sparcs.soap.app.features.friends.addFriends.components.MyFriendCodeRow
 import org.sparcs.soap.app.features.friends.addFriends.components.NearbyFriendsSection
 import org.sparcs.soap.app.features.friends.addFriends.components.NearbyHeader
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.nearby.mockList
+import org.sparcs.soap.app.theme.ui.DarkColorScheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.friends.PreviewFriendsListViewModel
 import timber.log.Timber
@@ -120,9 +129,47 @@ private fun NearbyDiscoveryEffect(isScanning: Boolean, run: suspend () -> Unit) 
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddFriendsView(
+    isNearbyEnabled: Boolean,
+    nearbyState: NearbyFriendsViewState,
+    myCode: String?,
+    isMyCodeUnavailable: Boolean,
+    isAddingFriend: Boolean,
+    onClose: () -> Unit,
+    onGrantPermission: () -> Unit,
+    onOpenSettings: (NearbyUnavailableReason) -> Unit,
+    onTapPeer: (NearbyPeer) -> Unit,
+    onAcceptPeer: (NearbyPeer) -> Unit,
+    onDeclinePeer: (NearbyPeer) -> Unit,
+    onAddByCode: (String) -> Unit,
+) {
+    // Always dark, like iOS: the content sits on the dark mesh gradient.
+    MaterialTheme(colorScheme = DarkColorScheme) {
+        LightSystemBarIconsEffect()
+        Box(Modifier.fillMaxSize()) {
+            AnimatedMeshGradient()
+            AddFriendsScaffold(
+                isNearbyEnabled = isNearbyEnabled,
+                nearbyState = nearbyState,
+                myCode = myCode,
+                isMyCodeUnavailable = isMyCodeUnavailable,
+                isAddingFriend = isAddingFriend,
+                onClose = onClose,
+                onGrantPermission = onGrantPermission,
+                onOpenSettings = onOpenSettings,
+                onTapPeer = onTapPeer,
+                onAcceptPeer = onAcceptPeer,
+                onDeclinePeer = onDeclinePeer,
+                onAddByCode = onAddByCode
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddFriendsScaffold(
     isNearbyEnabled: Boolean,
     nearbyState: NearbyFriendsViewState,
     myCode: String?,
@@ -147,14 +194,17 @@ fun AddFriendsView(
                     IconButton(onClick = onClose) {
                         Icon(Icons.Rounded.Close, contentDescription = stringResource(R.string.add_friends_close))
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    scrolledContainerColor = Color.Transparent
+                )
             )
         },
         bottomBar = {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.surface)
                     .navigationBarsPadding()
                     .padding(16.dp)
                     .animateContentSize(),
@@ -181,7 +231,9 @@ fun AddFriendsView(
                 }
             }
         },
-        containerColor = MaterialTheme.colorScheme.surface,
+        // Transparent so the gradient behind shows through every part.
+        containerColor = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         modifier = Modifier.analyticsScreen("AddFriends")
     ) { innerPadding ->
         Column(
@@ -254,6 +306,34 @@ private fun CodeOnlyIntro(modifier: Modifier = Modifier) {
             )
         }
     }
+}
+
+/**
+ * The gradient is dark in both themes, so status and navigation bar icons turn
+ * light while this screen is shown and go back to what they were afterwards.
+ */
+@Composable
+private fun LightSystemBarIconsEffect() {
+    val view = LocalView.current
+    if (view.isInEditMode) return
+    DisposableEffect(view) {
+        val window = view.context.findActivity()?.window ?: return@DisposableEffect onDispose {}
+        val controller = WindowCompat.getInsetsController(window, view)
+        val wasLightStatusBars = controller.isAppearanceLightStatusBars
+        val wasLightNavigationBars = controller.isAppearanceLightNavigationBars
+        controller.isAppearanceLightStatusBars = false
+        controller.isAppearanceLightNavigationBars = false
+        onDispose {
+            controller.isAppearanceLightStatusBars = wasLightStatusBars
+            controller.isAppearanceLightNavigationBars = wasLightNavigationBars
+        }
+    }
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 private fun Context.openSettings(reason: NearbyUnavailableReason) {
