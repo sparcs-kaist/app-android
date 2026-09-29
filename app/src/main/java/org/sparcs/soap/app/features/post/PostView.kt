@@ -2,8 +2,10 @@ package org.sparcs.soap.app.features.post
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -36,10 +39,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -56,6 +59,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -88,8 +92,6 @@ import org.sparcs.soap.app.domain.models.ara.AraPostComment
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.domain.models.translation.TranslationState
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeIn
-import org.sparcs.soap.app.features.navigationBar.animation.MoveToLeftFadeOut
 import org.sparcs.soap.app.features.post.components.CommentSkeleton
 import org.sparcs.soap.app.features.post.components.DynamicHeightWebView
 import org.sparcs.soap.app.features.post.components.FooterSkeleton
@@ -97,6 +99,7 @@ import org.sparcs.soap.app.features.post.components.HeaderSkeleton
 import org.sparcs.soap.app.features.post.components.PostAttachmentsSection
 import org.sparcs.soap.app.features.post.components.PostBookmarkButton
 import org.sparcs.soap.app.features.post.components.PostCommentButton
+import org.sparcs.soap.app.features.post.components.PostCommentReplyPreview
 import org.sparcs.soap.app.features.post.components.PostCommentsSection
 import org.sparcs.soap.app.features.post.components.PostNavigationBar
 import org.sparcs.soap.app.features.post.components.PostShareButton
@@ -139,7 +142,6 @@ fun PostView(
     var commentText by remember { mutableStateOf("") }
     var targetComment by remember { mutableStateOf<AraPostComment?>(null) }
     var commentOnEdit by remember { mutableStateOf<AraPostComment?>(null) }
-    var isWritingComment by remember { mutableStateOf(false) }
     var isUploadingComment by remember { mutableStateOf(false) }
     var isRefreshing by remember { mutableStateOf(false) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -184,11 +186,12 @@ fun PostView(
             PostInputBottomBar(
                 comment = commentText,
                 onCommentChange = { commentText = it },
-                isWritingComment = isWritingComment,
                 onWritingCommentChange = {
-                    isWritingComment = it; commentOnEdit = null; commentText = ""
+                    commentOnEdit = null; commentText = ""
                 },
                 commentOnEdit = commentOnEdit,
+                targetComment = targetComment,
+                onCancelReply = { targetComment = null },
                 isUploadingComment = isUploadingComment,
                 onUploadComment = {
                     if (isUploadingComment) return@PostInputBottomBar
@@ -224,7 +227,7 @@ fun PostView(
                 },
                 post = post,
                 placeholder = placeholder(viewModel, targetComment, commentOnEdit),
-                focusRequester = focusRequester
+                focusRequester = focusRequester,
             )
         },
         modifier = Modifier
@@ -243,7 +246,7 @@ fun PostView(
             isRefreshing = isRefreshing,
             onRefresh = {
                 isRefreshing = true
-                scope.launch { 
+                scope.launch {
                     viewModel.fetchPost()
                     delay(500)
                     isRefreshing = false
@@ -470,9 +473,10 @@ private fun PostMainContent(
 private fun PostInputBottomBar(
     comment: String,
     onCommentChange: (String) -> Unit,
-    isWritingComment: Boolean,
     onWritingCommentChange: (Boolean) -> Unit,
     commentOnEdit: AraPostComment?,
+    targetComment: AraPostComment?,
+    onCancelReply: () -> Unit,
     isUploadingComment: Boolean,
     onUploadComment: () -> Unit,
     post: AraPost?,
@@ -484,20 +488,21 @@ private fun PostInputBottomBar(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.background)
             .navigationBarsPadding(),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Box(modifier = Modifier.widthIn(max = 600.dp)) {
             PostInputBar(
                 comment = comment,
                 onCommentChange = onCommentChange,
-                isWritingComment = isWritingComment,
                 onWritingCommentChange = onWritingCommentChange,
                 commentOnEdit = commentOnEdit,
+                targetComment = targetComment,
+                onCancelReply = onCancelReply,
                 isUploadingComment = isUploadingComment,
                 onUploadComment = onUploadComment,
                 profilePicture = { ProfilePicture(post, true) },
                 placeholder = placeholder,
-                focusRequester = focusRequester
+                focusRequester = focusRequester,
             )
         }
     }
@@ -507,107 +512,103 @@ private fun PostInputBottomBar(
 private fun PostInputBar(
     comment: String,
     onCommentChange: (String) -> Unit,
-    isWritingComment: Boolean,
     onWritingCommentChange: (Boolean) -> Unit,
     commentOnEdit: AraPostComment?,
+    targetComment: AraPostComment?,
+    onCancelReply: () -> Unit,
     isUploadingComment: Boolean,
     onUploadComment: () -> Unit,
     profilePicture: @Composable () -> Unit,
     placeholder: String,
     focusRequester: FocusRequester,
 ) {
-    val showProfile = (!isWritingComment && comment.isEmpty())
-
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .imePadding()
             .padding(8.dp),
-        verticalAlignment = Alignment.Bottom
     ) {
-        Column(Modifier.weight(1f)) {
-            if (commentOnEdit != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = "${stringResource(R.string.editing)}...",
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    TextButton(onClick = { onCommentChange(""); onWritingCommentChange(false) }) {
-                        Icon(imageVector = Icons.Default.Close, contentDescription = "Cancel")
-                    }
-                }
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                MoveToLeftFadeOut(showProfile) {
-                    Row { profilePicture(); Spacer(Modifier.width(4.dp)) }
-                }
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                ) {
-                    BasicTextField(
-                        value = comment,
-                        onValueChange = { onCommentChange(it) },
-                        modifier = Modifier.focusRequester(focusRequester),
-                        maxLines = 6,
-                        textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        decorationBox = { innerTextField ->
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(4.dp),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                if (comment.isEmpty()) {
-                                    Text(
-                                        text = placeholder,
-                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        overflow = TextOverflow.Ellipsis,
-                                        maxLines = 1
-                                    )
-                                }
-                                innerTextField()
-                            }
-                        }
-                    )
-                }
+        AnimatedVisibility(targetComment != null) {
+            targetComment?.let {
+                PostCommentReplyPreview(
+                    comment = it,
+                    onCancel = onCancelReply,
+                )
             }
         }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        MoveToLeftFadeIn(!showProfile) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(16.dp))
+                .background(MaterialTheme.colorScheme.surface)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                .padding(start = 12.dp, end = 8.dp, top = 4.dp, bottom = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            profilePicture()
+            Spacer(modifier = Modifier.width(8.dp))
+            BasicTextField(
+                value = comment,
+                onValueChange = { onCommentChange(it) },
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = 40.dp)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged {
+                        onWritingCommentChange(it.isFocused)
+                    }
+                    .padding(vertical = 8.dp),
+                maxLines = 6,
+                textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+                decorationBox = { innerTextField ->
+                    Box(contentAlignment = Alignment.CenterStart) {
+                        if (comment.isEmpty()) {
+                            Text(
+                                text = placeholder,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                style = MaterialTheme.typography.bodyLarge,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
+                            )
+                        }
+                        innerTextField()
+                    }
+                },
+            )
+            if (commentOnEdit != null) {
+                IconButton(
+                    onClick = {
+                        onCommentChange("")
+                        onWritingCommentChange(false)
+                    },
+                    modifier = Modifier.size(36.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Cancel",
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(4.dp))
             Button(
                 onClick = onUploadComment,
                 enabled = !isUploadingComment && comment.isNotEmpty(),
-                shape = CircleShape,
+                shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(0.dp),
-                modifier = Modifier.size(45.dp)
+                modifier = Modifier.size(40.dp),
             ) {
                 if (isUploadingComment) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
                         strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 } else {
                     Icon(
                         painter = painterResource(id = R.drawable.outline_send),
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        contentDescription = "Send"
+                        contentDescription = "Send",
                     )
                 }
             }
