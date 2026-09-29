@@ -57,6 +57,8 @@ import org.sparcs.soap.app.domain.repositories.feed.FeedUserRepository
 import org.sparcs.soap.app.domain.repositories.feed.FeedUserRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.otl.OTLCourseRepository
 import org.sparcs.soap.app.domain.repositories.otl.OTLCourseRepositoryProtocol
+import org.sparcs.soap.app.domain.repositories.otl.OTLFriendRepository
+import org.sparcs.soap.app.domain.repositories.otl.OTLFriendRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.otl.OTLLectureRepository
 import org.sparcs.soap.app.domain.repositories.otl.OTLLectureRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.otl.OTLReviewRepository
@@ -106,6 +108,8 @@ import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCase
 import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCase
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.otl.FriendUseCase
+import org.sparcs.soap.app.domain.usecases.otl.FriendUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCase
 import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.LectureUseCase
@@ -142,6 +146,7 @@ import org.sparcs.soap.app.networking.retrofitAPI.feed.FeedPostApi
 import org.sparcs.soap.app.networking.retrofitAPI.feed.FeedProfileApi
 import org.sparcs.soap.app.networking.retrofitAPI.feed.FeedUserApi
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLCourseApi
+import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLFriendApi
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLLectureApi
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLReviewApi
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLTimetableApi
@@ -483,6 +488,12 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideOTLFriendApi(@Named("OTLBackend") retrofit: Retrofit): OTLFriendApi {
+        return retrofit.create(OTLFriendApi::class.java)
+    }
+
+    @Provides
+    @Singleton
     fun provideAppVersionApi(@Named("FeedBackend") retrofit: Retrofit): AppVersionApi {
         return retrofit.create(AppVersionApi::class.java)
     }
@@ -631,6 +642,12 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindOTLFriendRepository(
+        impl: OTLFriendRepository,
+    ): OTLFriendRepositoryProtocol
+
+    @Binds
+    @Singleton
     abstract fun bindTaxiChatRepository(
         impl: TaxiChatRepository,
     ): TaxiChatRepositoryProtocol
@@ -762,6 +779,12 @@ abstract class UseCaseModule {
     abstract fun bindReviewUseCase(
         impl: ReviewUseCase,
     ): ReviewUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindFriendUseCase(
+        impl: FriendUseCase,
+    ): FriendUseCaseProtocol
 
     @Binds
     @Singleton
