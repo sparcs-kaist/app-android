@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.School
+import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,6 +35,7 @@ fun TimetableViewNavigationBar(
     isButtonEnabled: Boolean,
     onActivityClick: () -> Unit = {},
     onCreditsClick: () -> Unit = {},
+    onFriendsClick: () -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -49,6 +51,7 @@ fun TimetableViewNavigationBar(
             IconButton(onClick = onCreditsClick) {
                 Icon(Icons.Outlined.School, contentDescription = stringResource(R.string.credit_calculation))
             }
+            TimetableFriendsButton(onClick = onFriendsClick)
             TimetableAddButton(
                 enabled = isButtonEnabled,
                 onAddClass = onClick,
@@ -61,6 +64,13 @@ fun TimetableViewNavigationBar(
         ),
         modifier = Modifier.shadow(scrollState.elevation())
     )
+}
+
+@Composable
+fun TimetableFriendsButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(Icons.Rounded.Group, contentDescription = stringResource(R.string.friends_title))
+    }
 }
 
 @Preview

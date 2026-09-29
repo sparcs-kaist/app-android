@@ -59,6 +59,7 @@ import org.sparcs.soap.app.features.timetable.components.CompactTimetableSelecto
 import org.sparcs.soap.app.features.timetable.components.LectureList
 import org.sparcs.soap.app.features.timetable.components.TimetableAddButton
 import org.sparcs.soap.app.features.timetable.components.TimetableCreditGraph
+import org.sparcs.soap.app.features.timetable.components.TimetableFriendsButton
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableOfflineStatus
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
@@ -140,7 +141,8 @@ fun TimetableView(
                         isButtonEnabled = isEditable,
                         onCreditsClick = { navController.navigate(Channel.CreditCalculation.name) },
                         onClick = { navController.navigate(Channel.CourseCompose.name) },
-                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } }
+                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } },
+                        onFriendsClick = { navController.navigate(Channel.FriendsList.name) }
                     )
                 }
             },
@@ -277,7 +279,8 @@ private fun TimetableLandscapeLayout(
                     Text(stringResource(R.string.credit_calculation))
                 }
                 CompactTimetableSelector(viewModel, timetableName, onShareClick = onShareClick)
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                TimetableFriendsButton(onClick = { navController.navigate(Channel.FriendsList.name) })
                 TimetableAddButton(
                     enabled = isEditable, onAddClass = onAddClick, onAddActivity = onActivityClick
                 )

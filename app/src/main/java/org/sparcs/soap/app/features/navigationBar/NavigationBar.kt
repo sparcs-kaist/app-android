@@ -100,6 +100,10 @@ import org.sparcs.soap.app.features.taxiReport.TaxiReportView
 import org.sparcs.soap.app.features.taxiReport.TaxiReportViewModel
 import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationView
 import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationViewModel
+import org.sparcs.soap.app.features.friends.FriendTimetableView
+import org.sparcs.soap.app.features.friends.FriendsListView
+import org.sparcs.soap.app.features.friends.FriendsListViewModel
+import org.sparcs.soap.app.features.friends.addFriends.AddFriendsRoute
 import org.sparcs.soap.app.features.timetable.TimetableView
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.activity.ActivityCreationRoute
@@ -126,6 +130,9 @@ enum class Channel(@param:StringRes val title: Int) {
     CreditRequirements(title = R.string.credit_requirements),
     GradeEntry(title = R.string.credit_enter_grade),
     ActivityCreation(title = R.string.activity_new),
+    FriendsList(title = R.string.friends_title),
+    AddFriends(title = R.string.add_friends_title),
+    FriendTimetable(title = R.string.friends_title),
 
     //Ara
     BoardList(title = R.string.general_board),
@@ -545,6 +552,60 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             viewModel = viewModel,
                             lectureDetailViewModel = lectureDetailViewModel,
                             navController = navController
+                        )
+                    }
+
+                    composable(
+                        route = Channel.FriendsList.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { backStackEntry ->
+                        val viewModel: FriendsListViewModel = hiltViewModel(backStackEntry)
+                        FriendsListView(viewModel = viewModel, navController = navController)
+                    }
+
+                    composable(
+                        route = Channel.AddFriends.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { backStackEntry ->
+                        // Shares the list's view model so an added friend shows up there.
+                        val parentEntry = remember(backStackEntry) {
+                            navController.getBackStackEntry(Channel.FriendsList.name)
+                        }
+                        val friendsViewModel: FriendsListViewModel = hiltViewModel(parentEntry)
+                        AddFriendsRoute(
+                            friendsViewModel = friendsViewModel,
+                            onClose = {
+                                // An add can finish after the user already backed out.
+                                if (navController.currentBackStackEntry == backStackEntry) {
+                                    navController.popBackStack()
+                                }
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = Channel.FriendTimetable.name + "/{friendId}?name={name}",
+                        arguments = listOf(
+                            navArgument("friendId") { type = NavType.IntType },
+                            navArgument("name") {
+                                type = NavType.StringType
+                                defaultValue = ""
+                            }
+                        ),
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { backStackEntry ->
+                        FriendTimetableView(
+                            friendName = backStackEntry.arguments?.getString("name").orEmpty(),
+                            onBack = { navController.popBackStack() }
                         )
                     }
                 }
