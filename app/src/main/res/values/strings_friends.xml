@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Friends list -->
+    <string name="friends_title">Friends</string>
+    <string name="friends_add_friend">Add friend</string>
+    <string name="friends_empty_title">No friends yet</string>
+    <string name="friends_empty_message">Add a friend with their code to see them here.</string>
+    <string name="friends_load_error_title">Couldn’t load friends</string>
+    <string name="friends_try_again">Try again</string>
+    <string name="friends_in_class_now">In class now</string>
+    <string name="friends_favorite">Add to favorites</string>
+    <string name="friends_unfavorite">Remove from favorites</string>
+    <string name="friends_favorite_badge">Favorite</string>
+    <string name="friends_more_options">More options</string>
+    <string name="friends_delete_title">Delete friend?</string>
+    <string name="friends_delete_message">%1$s will be removed from your friends.</string>
+    <string name="friends_error_title">Something went wrong</string>
+    <string name="friends_timetable_coming_soon_title">Timetable coming soon</string>
+    <string name="friends_timetable_coming_soon_message">You’ll be able to see %1$s’s timetable here soon.</string>
+
+    <!-- Add friends -->
+    <string name="add_friends_title">Add friends</string>
+    <string name="add_friends_close">Close</string>
+    <string name="add_friends_via_code">Add friend with code</string>
+    <string name="add_friends_code_dialog_title">Add friend</string>
+    <string name="add_friends_code_dialog_message">Enter your friend’s code to add them.</string>
+    <string name="add_friends_code_placeholder">6-character code</string>
+    <string name="add_friends_add">Add</string>
+    <string name="add_friends_your_code">Your code</string>
+    <string name="add_friends_code_unavailable">Unavailable</string>
+    <string name="add_friends_copy_code">Copy code</string>
+    <string name="add_friends_code_copied">Code copied</string>
+    <string name="add_friends_code_only_title">Add friends with a code</string>
+    <string name="add_friends_code_only_message">Share your code with a friend, or enter theirs to add them.</string>
+
+    <!-- Nearby friends -->
+    <string name="nearby_title">Nearby friends</string>
+    <string name="nearby_searching">Searching</string>
+    <string name="nearby_searching_title">Looking for friends nearby…</string>
+    <string name="nearby_searching_message">Ask your friend to open Add friends on their phone too.</string>
+    <string name="nearby_permission_required_title">Find friends nearby</string>
+    <string name="nearby_permission_required_message">Allow access to nearby devices so Buddy can find friends who have Add friends open next to you.</string>
+    <string name="nearby_permission_required_action">Allow</string>
+    <string name="nearby_permission_denied_title">Nearby devices permission needed</string>
+    <string name="nearby_permission_denied_message">Buddy needs the Nearby devices permission to find friends nearby. You can allow it in Settings.</string>
+    <string name="nearby_open_settings">Open settings</string>
+    <string name="nearby_bluetooth_off_title">Bluetooth is off</string>
+    <string name="nearby_bluetooth_off_message">Turn on Bluetooth in Quick Settings or Settings to find friends nearby.</string>
+    <string name="nearby_bluetooth_settings">Bluetooth settings</string>
+    <string name="nearby_unsupported_title">Not available on this device</string>
+    <string name="nearby_unsupported_message">This device can’t find friends nearby. You can still add friends with a code.</string>
+    <string name="nearby_status_idle">Tap to add</string>
+    <string name="nearby_status_requested">Waiting…</string>
+    <string name="nearby_status_incoming">Wants to add you</string>
+    <string name="nearby_status_adding">Adding…</string>
+    <string name="nearby_status_added">Added</string>
+    <string name="nearby_status_failed">Tap to retry</string>
+    <string name="nearby_action_request">Send friend request</string>
+    <string name="nearby_action_cancel">Cancel request</string>
+    <string name="nearby_action_accept">Accept request</string>
+    <string name="nearby_action_retry">Try again</string>
+    <string name="nearby_incoming_message">wants to add you as a friend</string>
+    <string name="nearby_accept">Accept</string>
+    <string name="nearby_decline">Decline</string>
+    <plurals name="nearby_more_requests">
+        <item quantity="one">%d more request</item>
+        <item quantity="other">%d more requests</item>
+    </plurals>
+</resources>
