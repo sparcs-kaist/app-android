@@ -58,7 +58,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
@@ -88,6 +87,8 @@ import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.components.WidgetPaletteRow
+import org.sparcs.soap.widgets.ownsAppWidget
+import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
 import javax.inject.Inject
 import org.sparcs.soap.widgets.TimetableWidget as TimetableWidgetQualifier
@@ -117,7 +118,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             AppWidgetManager.INVALID_APPWIDGET_ID
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+        if (!ownsAppWidget(appWidgetId)) {
             finish()
             return
         }
@@ -516,6 +517,10 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
         timetableThemeID: String,
         silhouette: Boolean,
     ) {
+        if (!ownsAppWidget(appWidgetId)) {
+            finish()
+            return
+        }
         val appContext = applicationContext
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -553,8 +558,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                         Timber.e(e, "Failed to sync timetable data for widget with id $appWidgetId")
                     }
                 } else {
-                    TimetableWidget().updateAll(appContext)
-                    BuddySilhouetteWidget().updateAll(appContext)
+                    TimetableWidget().updateInstalledWidgets(appContext)
+                    BuddySilhouetteWidget().updateInstalledWidgets(appContext)
                 }
             }
 

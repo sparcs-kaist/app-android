@@ -1,9 +1,7 @@
 package org.sparcs.soap.widgets.buddyCreditsWidget
 
 import android.content.Context
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
@@ -19,6 +17,8 @@ import org.sparcs.soap.app.domain.helpers.CreditSummarySnapshotStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.wearable.WearableDataManager
+import org.sparcs.soap.widgets.installedWidgetIds
+import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -69,8 +69,7 @@ class CreditSummarySyncManager @Inject constructor(
         try {
             val snapshot = if (tokenStorage.getAccessToken() == null) null else store.snapshot
             val jsonString = snapshot?.let { Json.encodeToString(it) } ?: ""
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(BuddyCreditsWidget::class.java)
+            val glanceIds = installedWidgetIds(context, BuddyCreditsWidget::class.java)
             glanceIds.forEach { glanceId ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
                     prefs.toMutablePreferences().apply {
@@ -78,7 +77,7 @@ class CreditSummarySyncManager @Inject constructor(
                     }
                 }
             }
-            BuddyCreditsWidget().updateAll(context)
+            BuddyCreditsWidget().updateInstalledWidgets(context)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (error: Exception) {

@@ -15,13 +15,11 @@ import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
@@ -48,7 +46,9 @@ import org.sparcs.soap.widgets.buddyDDayWidget.ui.DDayErrorView
 import org.sparcs.soap.widgets.buddyDDayWidget.ui.DDayLoadingView
 import org.sparcs.soap.widgets.buddyDDayWidget.ui.DDayRectangleWidgetView
 import org.sparcs.soap.widgets.buddyDDayWidget.ui.DDaySmallWidgetView
+import org.sparcs.soap.widgets.installedWidgetIds
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
+import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
 import java.util.Calendar
 import java.util.Date
@@ -257,8 +257,7 @@ class DDayWidgetSyncManager @Inject constructor(
     private suspend fun syncState(state: BuddyDDayUiState) {
         try {
             val jsonString = Json.encodeToString(state)
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(BuddyDDayWidget::class.java)
+            val glanceIds = installedWidgetIds(context, BuddyDDayWidget::class.java)
 
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
@@ -267,7 +266,7 @@ class DDayWidgetSyncManager @Inject constructor(
                     }
                 }
             }
-            BuddyDDayWidget().updateAll(context)
+            BuddyDDayWidget().updateInstalledWidgets(context)
         } catch (e: Exception) {
             Timber.tag("DDayWidgetSync").e(e, "sync failed")
         }

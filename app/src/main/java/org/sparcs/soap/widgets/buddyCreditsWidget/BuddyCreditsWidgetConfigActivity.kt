@@ -55,7 +55,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
@@ -70,6 +69,8 @@ import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
+import org.sparcs.soap.widgets.ownsAppWidget
+import org.sparcs.soap.widgets.updateInstalledWidgets
 
 class BuddyCreditsWidgetConfigActivity : ComponentActivity() {
 
@@ -85,7 +86,7 @@ class BuddyCreditsWidgetConfigActivity : ComponentActivity() {
             AppWidgetManager.INVALID_APPWIDGET_ID
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+        if (!ownsAppWidget(appWidgetId)) {
             finish()
             return
         }
@@ -162,6 +163,10 @@ class BuddyCreditsWidgetConfigActivity : ComponentActivity() {
     }
 
     private fun saveAndFinish(theme: String, transparency: Float) {
+        if (!ownsAppWidget(appWidgetId)) {
+            finish()
+            return
+        }
         val appContext = applicationContext
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -185,7 +190,7 @@ class BuddyCreditsWidgetConfigActivity : ComponentActivity() {
                     }
                     BuddyCreditsWidget().update(appContext, glanceId)
                 } else {
-                    BuddyCreditsWidget().updateAll(appContext)
+                    BuddyCreditsWidget().updateInstalledWidgets(appContext)
                 }
             }
 

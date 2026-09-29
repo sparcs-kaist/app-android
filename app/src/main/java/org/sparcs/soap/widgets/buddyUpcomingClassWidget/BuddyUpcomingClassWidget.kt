@@ -14,13 +14,11 @@ import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
@@ -52,10 +50,12 @@ import org.sparcs.soap.widgets.WidgetEntryPoint
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassCircularWidgetView
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassRectangleWidgetView
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassSmallWidgetView
+import org.sparcs.soap.widgets.installedWidgetIds
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import org.sparcs.soap.widgets.themed
 import org.sparcs.soap.widgets.timetableWidgetIntent
 import org.sparcs.soap.widgets.toWidgetHex
+import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
 import java.util.Calendar
 import javax.inject.Inject
@@ -83,7 +83,6 @@ class BuddyUpcomingClassWidget : GlanceAppWidget() {
             val prefs = currentState<Preferences>()
             val state = UpcomingClassStateParser.parse(prefs, tokenStorage)
 
-            // Each widget carries its own palette, chosen in its configuration screen.
             val timetableTheme = themes.theme(prefs[WIDGET_THEME_ID])
             val themeMode = prefs[stringPreferencesKey("theme_mode")] ?: "System"
             val transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
@@ -154,8 +153,7 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val glanceManager = GlanceAppWidgetManager(applicationContext)
-        val glanceIds = glanceManager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
+        val glanceIds = installedWidgetIds(applicationContext, BuddyUpcomingClassWidget::class.java)
 
         if (glanceIds.isEmpty()) {
             Timber.d("No installed widgets found. Stopping worker.")
@@ -166,7 +164,6 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
         val syncManager = entryPoint.upComingSyncManager()
         val tokenStorage = entryPoint.tokenStorage()
         val timetableUseCase = entryPoint.timetableUseCase()
-        // The entry carries its palette slot; the widget recolors it with its own theme when it renders.
         val palette = TimetableTheme.Default
 
         return try {
@@ -242,8 +239,7 @@ class UpComingWidgetSyncManager @Inject constructor(
     private suspend fun syncState(state: UpcomingClassUiState) {
         try {
             val jsonString = Json.encodeToString(state)
-            val manager = GlanceAppWidgetManager(context)
-            val glanceIds = manager.getGlanceIds(BuddyUpcomingClassWidget::class.java)
+            val glanceIds = installedWidgetIds(context, BuddyUpcomingClassWidget::class.java)
 
             glanceIds.forEach { id ->
                 updateAppWidgetState(context, PreferencesGlanceStateDefinition, id) { prefs ->
@@ -252,7 +248,7 @@ class UpComingWidgetSyncManager @Inject constructor(
                     }
                 }
             }
-            BuddyUpcomingClassWidget().updateAll(context)
+            BuddyUpcomingClassWidget().updateInstalledWidgets(context)
         } catch (e: Exception) {
             Timber.tag("WidgetSync").e("${e.message}")
         }
