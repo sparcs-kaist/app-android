@@ -108,6 +108,7 @@ import org.sparcs.soap.app.features.timetable.activity.ActivityCreationRoute
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationView
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModel
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditRequirementsView
+import org.sparcs.soap.app.features.timetable.creditCalculation.GradeEntryRoute
 import org.sparcs.soap.app.features.userPostList.UserPostListView
 import org.sparcs.soap.app.features.userPostList.UserPostListViewModel
 import org.sparcs.soap.app.theme.ui.Theme
@@ -125,6 +126,7 @@ enum class Channel(@param:StringRes val title: Int) {
     CourseView(title = R.string.course_view),
     CreditCalculation(title = R.string.credit_calculation),
     CreditRequirements(title = R.string.credit_requirements),
+    GradeEntry(title = R.string.credit_enter_grade),
     ActivityCreation(title = R.string.activity_new),
 
     //Ara
@@ -396,6 +398,23 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
                         CreditCalculationView(navController = navController, viewModel = creditViewModel)
+                    }
+
+                    composable(
+                        route = Channel.GradeEntry.name + "/{semesterId}",
+                        arguments = listOf(navArgument("semesterId") { type = NavType.StringType }),
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { entry ->
+                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
+                        GradeEntryRoute(
+                            semesterId = requireNotNull(entry.arguments?.getString("semesterId")),
+                            viewModel = creditViewModel,
+                            onBack = { navController.popBackStack() }
+                        )
                     }
 
                     composable(

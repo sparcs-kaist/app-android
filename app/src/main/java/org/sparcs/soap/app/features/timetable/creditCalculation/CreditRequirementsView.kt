@@ -68,50 +68,7 @@ internal fun CreditRequirementsView(
     onSave: (CreditRequirements) -> Unit,
 ) {
     val rows = requirementRows(state)
-    val groups = buildList {
-        add(
-            RequirementGroup(
-                "graduation",
-                stringResource(R.string.credit_graduation),
-                Icons.Outlined.School,
-                rows.filter { it.key == "graduation" })
-        )
-        add(
-            RequirementGroup(
-                "basic", stringResource(R.string.credit_basic),
-                Icons.AutoMirrored.Outlined.MenuBook, rows.filter { it.key in listOf("br", "be") })
-        )
-        state.creditBreakdown.majors.forEach { group ->
-            val id = group.department.id
-            add(
-                RequirementGroup(
-                    "major.$id", group.department.name, Icons.Outlined.Apartment,
-                    rows.filter { it.key == "mr.$id" || it.key == "me.$id" })
-            )
-        }
-        add(
-            RequirementGroup(
-                "hse",
-                stringResource(R.string.credit_humanities),
-                Icons.Outlined.People,
-                rows.filter { it.key.startsWith("hse") })
-        )
-        add(
-            RequirementGroup(
-                "au", "AU",
-                Icons.AutoMirrored.Outlined.DirectionsRun, rows.filter { it.key == "au" })
-        )
-        rows.filter { it.key == "etc" }.takeIf { it.isNotEmpty() }?.let {
-            add(
-                RequirementGroup(
-                    "etc",
-                    stringResource(R.string.lecture_type_etc_full),
-                    Icons.Outlined.MoreHoriz,
-                    it
-                )
-            )
-        }
-    }
+    val groups = requirementGroups(state, rows)
     var editingKey by rememberSaveable { mutableStateOf<String?>(null) }
     val editing = rows.find { it.key == editingKey }
     Scaffold(
@@ -161,7 +118,11 @@ internal fun CreditRequirementsView(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
-                        group.rows.forEach { row -> RequirementProgress(row) { editingKey = row.key } }
+                        group.rows.forEach { row ->
+                            RequirementProgress(row) {
+                                editingKey = row.key
+                            }
+                        }
                     }
                 }
                 item {
@@ -179,6 +140,53 @@ internal fun CreditRequirementsView(
             editingKey = null
         }
     }
+}
+
+@Composable
+private fun requirementGroups(
+    state: CreditCalculationViewState,
+    rows: List<RequirementRow>,
+): List<RequirementGroup> {
+    val rowsByKey = rows.associateBy { it.key }
+    fun group(key: String, title: String, icon: ImageVector, vararg rowKeys: String) =
+        RequirementGroup(key, title, icon, rowKeys.mapNotNull(rowsByKey::get))
+
+    val general = listOf(
+        group(
+            "graduation",
+            stringResource(R.string.credit_graduation),
+            Icons.Outlined.School,
+            "graduation"
+        ),
+        group(
+            "basic",
+            stringResource(R.string.credit_basic),
+            Icons.AutoMirrored.Outlined.MenuBook,
+            "br",
+            "be"
+        ),
+    )
+    val majors = state.creditBreakdown.majors.map { major ->
+        val department = major.department
+        group(
+            "major.${department.id}", department.name, Icons.Outlined.Apartment,
+            "mr.${department.id}", "me.${department.id}"
+        )
+    }
+    val remaining = listOf(
+        group(
+            "hse", stringResource(R.string.credit_humanities), Icons.Outlined.People,
+            "hseCore", "hseGeneral", "hse"
+        ),
+        group("au", "AU", Icons.AutoMirrored.Outlined.DirectionsRun, "au"),
+        group(
+            "etc",
+            stringResource(R.string.lecture_type_etc_full),
+            Icons.Outlined.MoreHoriz,
+            "etc"
+        ),
+    )
+    return (general + majors + remaining).filter { it.rows.isNotEmpty() }
 }
 
 @Composable

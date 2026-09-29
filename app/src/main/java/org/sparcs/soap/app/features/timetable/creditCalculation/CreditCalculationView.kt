@@ -1,7 +1,7 @@
 package org.sparcs.soap.app.features.timetable.creditCalculation
 
 import android.content.res.Configuration
-import androidx.activity.compose.BackHandler
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +20,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,14 +27,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -66,46 +61,14 @@ fun CreditCalculationView(
     navController: NavController,
     viewModel: CreditCalculationViewModel = hiltViewModel(),
 ) {
-    val onBack: () -> Unit = { navController.popBackStack() }
     val state by viewModel.state.collectAsState()
-    var selectedSemesterID by rememberSaveable { mutableStateOf<String?>(null) }
-
-    BackHandler(selectedSemesterID != null) {
-        selectedSemesterID = null
-    }
-
-    val selectedSemester = selectedSemesterID?.let { id -> state.semesters.find { it.id == id } }
-    if (selectedSemester != null) {
-        GradeEntryView(
-            item = selectedSemester,
-            state = state,
-            onBack = { selectedSemesterID = null },
-            onGrade = viewModel::setGrade
-        )
-    } else {
-        CreditCalculationContent(
-            state = state,
-            onBack = onBack,
-            onRetry = { viewModel.load() },
-            onSemester = { selectedSemesterID = it.id },
-            onRequirements = { navController.navigate(Channel.CreditRequirements.name) }
-        )
-    }
-
-    if (state.saveError) {
-        AlertDialog(
-            onDismissRequest = viewModel::dismissSaveError,
-            containerColor = MaterialTheme.colorScheme.background,
-            text = { Text(stringResource(R.string.credit_save_error)) },
-            confirmButton = {
-                TextButton(onClick = viewModel::dismissSaveError) {
-                    Text(
-                        stringResource(R.string.ok)
-                    )
-                }
-            }
-        )
-    }
+    CreditCalculationContent(
+        state = state,
+        onBack = { navController.popBackStack() },
+        onRetry = { viewModel.load() },
+        onSemester = { navController.navigate("${Channel.GradeEntry.name}/${Uri.encode(it.id)}") },
+        onRequirements = { navController.navigate(Channel.CreditRequirements.name) }
+    )
 }
 
 @Composable
