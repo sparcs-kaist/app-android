@@ -59,7 +59,7 @@ import org.sparcs.soap.app.theme.ui.Theme
 @Composable
 fun CreditCalculationView(
     navController: NavController,
-    viewModel: CreditCalculationViewModel = hiltViewModel(),
+    viewModel: CreditCalculationViewModelProtocol = hiltViewModel<CreditCalculationViewModel>(),
 ) {
     val state by viewModel.state.collectAsState()
     CreditCalculationContent(

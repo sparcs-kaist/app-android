@@ -28,8 +28,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,11 +42,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
 import org.sparcs.soap.app.features.timetable.creditCalculation.components.CreditRequirementsNavigationBar
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.creditCompleteColor
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCreditCalculationViewModel
 
 private data class RequirementRow(
     val key: String,
@@ -63,6 +68,15 @@ private data class RequirementGroup(
 
 @Composable
 internal fun CreditRequirementsView(
+    viewModel: CreditCalculationViewModelProtocol,
+    navController: NavController,
+) {
+    val state by viewModel.state.collectAsState()
+    CreditRequirementsContent(state, { navController.popBackStack() }, viewModel::updateRequirements)
+}
+
+@Composable
+internal fun CreditRequirementsContent(
     state: CreditCalculationViewState,
     onBack: () -> Unit,
     onSave: (CreditRequirements) -> Unit,
@@ -354,7 +368,8 @@ private fun CreditRequirementEditor(
 @Preview
 @Composable
 private fun CreditRequirementsPreview() {
-    Theme { CreditRequirementsView(creditPreviewState(), {}, {}) }
+    val viewModel = remember { PreviewCreditCalculationViewModel() }
+    Theme { CreditRequirementsView(viewModel, rememberNavController()) }
 }
 
 @Preview

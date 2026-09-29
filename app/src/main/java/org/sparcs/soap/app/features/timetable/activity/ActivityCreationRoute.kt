@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CancellationException
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Timetable
@@ -42,8 +44,9 @@ fun ActivityCreationRoute(
     model: TimetableViewModelProtocol,
     timetableID: Int,
     activityID: Int?,
-    onClose: () -> Unit,
+    navController: NavController,
 ) {
+    val onClose: () -> Unit = { navController.popBackStack() }
     val selected by model.selectedTimetable.collectAsState()
     val selectedName by model.timetableName.collectAsState()
     val name by rememberSaveable { mutableStateOf(selectedName) }
@@ -110,7 +113,7 @@ private fun Preview(){
             model = PreviewTimetableViewModel(initialTimetable = Timetable.mock()),
             timetableID = 12,
             activityID = null,
-            onClose = { }
+            navController = rememberNavController()
         )
     }
 }

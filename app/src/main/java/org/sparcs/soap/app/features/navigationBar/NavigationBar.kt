@@ -22,8 +22,6 @@ import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaul
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -376,15 +374,11 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             navController.getBackStackEntry("OTLGraph")
                         }
                         val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
-                        val lectureSearchViewModel: LectureSearchViewModel =
-                            hiltViewModel(backStackEntry)
                         val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
-                        val creditState by creditViewModel.state.collectAsState()
                         TimetableView(
                             viewModel = viewModel,
                             navController = navController,
-                            creditState = creditState,
-                            onRefreshCredits = creditViewModel::refresh,
+                            creditViewModel = creditViewModel,
                         )
                     }
 
@@ -413,7 +407,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         GradeEntryRoute(
                             semesterId = requireNotNull(entry.arguments?.getString("semesterId")),
                             viewModel = creditViewModel,
-                            onBack = { navController.popBackStack() }
+                            navController = navController
                         )
                     }
 
@@ -426,11 +420,9 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     ) { entry ->
                         val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
-                        val state by creditViewModel.state.collectAsState()
                         CreditRequirementsView(
-                            state = state,
-                            onBack = { navController.popBackStack() },
-                            onSave = creditViewModel::updateRequirements
+                            viewModel = creditViewModel,
+                            navController = navController
                         )
                     }
 
@@ -450,7 +442,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         ActivityCreationRoute(
                             model, entry.arguments!!.getInt("timetableId"),
                             entry.arguments?.getInt("activityId")?.takeIf { it >= 0 },
-                            onClose = { navController.popBackStack() }
+                            navController = navController
                         )
                     }
 

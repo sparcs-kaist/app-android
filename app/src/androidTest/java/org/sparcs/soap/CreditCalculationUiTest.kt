@@ -25,7 +25,7 @@ import org.junit.Test
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
 import org.sparcs.soap.app.domain.models.otl.LectureGrade
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationContent
-import org.sparcs.soap.app.features.timetable.creditCalculation.CreditRequirementsView
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditRequirementsContent
 import org.sparcs.soap.app.features.timetable.creditCalculation.GradeEntryView
 import org.sparcs.soap.app.features.timetable.creditCalculation.creditPreviewState
 import org.sparcs.soap.app.theme.ui.Theme
@@ -65,7 +65,7 @@ class CreditCalculationUiTest {
     @Test fun requirementsEditorCanBeCancelledWithoutSaving() {
         var saved: CreditRequirements? = null
         compose.activity.setContent {
-            Theme { CreditRequirementsView(creditPreviewState(), {}, { saved = it }) }
+            Theme { CreditRequirementsContent(creditPreviewState(), {}, { saved = it }) }
         }
         compose.onAllNodesWithText(text(R.string.credit_edit)).onFirst().performClick()
         compose.onNodeWithText(text(R.string.credit_cancel)).performClick()

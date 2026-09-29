@@ -9,6 +9,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -51,6 +52,15 @@ data class CreditCalculationViewState(
         timetables[item.id]?.let { SemesterGradeSummary.calculate(it.lectures, grades) }
 }
 
+interface CreditCalculationViewModelProtocol {
+    val state: StateFlow<CreditCalculationViewState>
+    fun load(forceRefresh: Boolean = false)
+    fun refresh()
+    fun setGrade(grade: LectureGrade?, lectureID: Int)
+    fun updateRequirements(requirements: CreditRequirements)
+    fun dismissSaveError()
+}
+
 @HiltViewModel
 class CreditCalculationViewModel @Inject constructor(
     private val lectureUseCase: LectureUseCaseProtocol,
@@ -58,9 +68,9 @@ class CreditCalculationViewModel @Inject constructor(
     private val userUseCase: UserUseCaseProtocol,
     private val lectureGradeUseCase: LectureGradeUseCaseProtocol,
     private val creditSummaryPublisher: CreditSummaryPublisher,
-) : ViewModel() {
+) : ViewModel(), CreditCalculationViewModelProtocol {
     private val mutableState = MutableStateFlow(CreditCalculationViewState())
-    val state = mutableState.asStateFlow()
+    override val state = mutableState.asStateFlow()
     private var userID: Int? = null
     private var loadJob: Job? = null
     private val saveMutex = Mutex()
@@ -70,9 +80,9 @@ class CreditCalculationViewModel @Inject constructor(
         load()
     }
 
-    fun refresh() = load(forceRefresh = true)
+    override fun refresh() = load(forceRefresh = true)
 
-    fun load(forceRefresh: Boolean = false) {
+    override fun load(forceRefresh: Boolean) {
         if (loadJob?.isActive == true || sessionRevision != creditSummaryPublisher.revision) return
         val previous = state.value
         val keepsContent = forceRefresh && !previous.isLoading && previous.error == null
@@ -134,7 +144,7 @@ class CreditCalculationViewModel @Inject constructor(
         }
     }
 
-    fun setGrade(grade: LectureGrade?, lectureID: Int) {
+    override fun setGrade(grade: LectureGrade?, lectureID: Int) {
         val accountID = userID?.takeIf(::isCurrentSession) ?: return
         val lecture =
             state.value.timetables.values.flatMap { it.lectures }.find { it.id == lectureID }
@@ -159,7 +169,7 @@ class CreditCalculationViewModel @Inject constructor(
         }
     }
 
-    fun updateRequirements(requirements: CreditRequirements) {
+    override fun updateRequirements(requirements: CreditRequirements) {
         val accountID = userID?.takeIf(::isCurrentSession) ?: return
         if (!requirements.isValid) return
         viewModelScope.launch {
@@ -195,7 +205,7 @@ class CreditCalculationViewModel @Inject constructor(
     private fun isCurrentSession(accountID: Int): Boolean =
         userUseCase.otlUser?.id == accountID && sessionRevision == creditSummaryPublisher.revision
 
-    fun dismissSaveError() {
+    override fun dismissSaveError() {
         mutableState.update { it.copy(saveError = false) }
     }
 }

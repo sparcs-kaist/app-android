@@ -63,7 +63,7 @@ import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableOfflineStatus
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
 import org.sparcs.soap.app.features.timetable.components.TimetableViewNavigationBar
-import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewState
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModelProtocol
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditsSummaryCard
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSheet
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
@@ -81,9 +81,9 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 fun TimetableView(
     viewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     navController: NavController,
-    creditState: CreditCalculationViewState? = null,
-    onRefreshCredits: () -> Unit = {},
+    creditViewModel: CreditCalculationViewModelProtocol? = null,
 ) {
+    val creditState = creditViewModel?.state?.collectAsState()?.value
     TimetableLifecycleEffect(viewModel)
     val loadState by viewModel.loadState.collectAsState()
     val creditsContent: @Composable () -> Unit = {
@@ -150,7 +150,7 @@ fun TimetableView(
                 isRefreshing = loadState.isRefreshing,
                 onRefresh = {
                     viewModel.fetchData()
-                    onRefreshCredits()
+                    creditViewModel?.refresh()
                 },
                 modifier = Modifier
                     .fillMaxSize()
