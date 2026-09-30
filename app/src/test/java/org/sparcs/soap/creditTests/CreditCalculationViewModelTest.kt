@@ -47,9 +47,11 @@ class CreditCalculationViewModelTest {
     private val lectures = MockLectureUseCase()
     private val tables = MockTimetableUseCase()
     private val snapshots = mutableListOf<CreditSummarySnapshot>()
+    private var publishFailure = false
     private val publisher = object : CreditSummaryPublisher {
         override var revision = 0L
         override suspend fun publish(snapshot: CreditSummarySnapshot, expectedRevision: Long) {
+            if (publishFailure) throw java.io.IOException("Sync failed")
             snapshots += snapshot
         }
     }
@@ -118,7 +120,8 @@ class CreditCalculationViewModelTest {
         assertEquals(LectureGrade.A, model.state.value.grades[id])
         assertEquals(LectureGrade.A, store.values[id])
         assertEquals(committed, snapshots.last())
-        assertTrue(model.state.value.saveError)
+        assertTrue(model.isAlertPresented)
+        assertEquals(org.sparcs.soap.R.string.credit_save_error, model.alertState?.messageResId)
         store.failure = false
         model.setGrade(null, id)
         assertNull(model.state.value.grades[id])
@@ -181,8 +184,71 @@ class CreditCalculationViewModelTest {
         tables.getSemestersResult = Result.success(emptyList())
         val state = viewModel(GradeStore()).state.value
         assertFalse(state.isLoading)
+        assertNull(state.error)
         assertTrue(state.timetables.isEmpty())
         assertTrue(snapshots.isEmpty())
+    }
+
+    @Test fun `unlisted historical semester does not block available history or publish a partial snapshot`() = runTest {
+        val semester = Semester.mockList().first()
+        val history = lectures.historyResult.getOrThrow()
+        lectures.historyResult = Result.success(history.copy(semesters = history.semesters +
+            history.semesters.single().copy(year = semester.year - 1)))
+        tables.getSemestersResult = Result.success(listOf(semester))
+
+        val model = viewModel(GradeStore())
+        assertNull(model.state.value.error)
+        assertEquals(1, model.state.value.timetables.size)
+        assertEquals(2, model.state.value.semesters.size)
+        assertTrue(snapshots.isEmpty())
+
+        tables.getSemestersResult = Result.success(listOf(semester, semester.copy(year = semester.year - 1)))
+        model.load()
+        assertNull(model.state.value.error)
+        assertEquals(2, model.state.value.timetables.size)
+        assertEquals(1, snapshots.size)
+    }
+
+    @Test fun `empty refreshed history replaces the previous widget total with zero`() = runTest {
+        val model = viewModel(GradeStore())
+        assertTrue(snapshots.last().earnedCredits > 0)
+        lectures.historyResult = Result.success(lectures.historyResult.getOrThrow().copy(semesters = emptyList()))
+
+        model.refresh()
+
+        assertNull(model.state.value.error)
+        assertTrue(model.state.value.timetables.isEmpty())
+        assertEquals(0, snapshots.last().earnedCredits)
+        assertNull(snapshots.last().gpa)
+        model.updateRequirements(CreditRequirements(graduation = 150))
+        assertEquals(150, snapshots.last().graduationCredits)
+    }
+
+    @Test fun `missing semester on refresh preserves the previously loaded table`() = runTest {
+        var available = Semester.mockList()
+        val refreshingTables = object : TimetableUseCaseProtocol by tables {
+            override suspend fun refreshSemesters(): List<Semester> = available
+        }
+        val model = viewModel(GradeStore(), refreshingTables)
+        val previous = model.state.value.timetables
+        val summary = snapshots.last()
+        available = emptyList()
+
+        model.refresh()
+
+        assertNull(model.state.value.error)
+        assertEquals(previous, model.state.value.timetables)
+        assertTrue(summary.hasSameValues(snapshots.last()))
+    }
+
+    @Test fun `new account with empty history publishes a zero summary`() = runTest {
+        lectures.historyResult = Result.success(OTLUserLectureHistory(emptyList(), 0, 0, 0))
+        val model = viewModel(GradeStore())
+
+        assertNull(model.state.value.error)
+        assertEquals(1, snapshots.size)
+        assertEquals(0, snapshots.single().earnedCredits)
+        assertNull(snapshots.single().gpa)
     }
 
     @Test fun `account change during requirement save does not update old screen or publish`() = runTest {
@@ -197,6 +263,39 @@ class CreditCalculationViewModelTest {
         gate.complete(Unit)
         assertEquals(before, model.state.value.requirements)
         assertEquals(published, snapshots.size)
+    }
+
+    @Test fun `snapshot failure does not turn a successful load or save into an error`() = runTest {
+        publishFailure = true
+        val store = GradeStore()
+        val model = viewModel(store)
+        assertFalse(model.state.value.isLoading)
+        assertNull(model.state.value.error)
+        val id = model.state.value.timetables.values.first().lectures.first().id
+
+        model.setGrade(LectureGrade.A, id)
+        model.updateRequirements(CreditRequirements(graduation = 150))
+
+        assertEquals(LectureGrade.A, store.values[id])
+        assertEquals(LectureGrade.A, model.state.value.grades[id])
+        assertEquals(150, model.state.value.requirements.graduation)
+        assertFalse(model.isAlertPresented)
+        assertNull(model.state.value.error)
+    }
+
+    @Test fun `requirement save failure is dismissible and preserves committed requirements`() = runTest {
+        val store = GradeStore()
+        val model = viewModel(store)
+        val before = model.state.value.requirements
+        store.failure = true
+
+        model.updateRequirements(before.copy(graduation = 150))
+
+        assertTrue(model.isAlertPresented)
+        assertEquals(org.sparcs.soap.R.string.credit_save_error, model.alertState?.messageResId)
+        assertEquals(before, model.state.value.requirements)
+        model.isAlertPresented = false
+        assertFalse(model.isAlertPresented)
     }
 
     private class GradeStore : LectureGradeUseCaseProtocol {

@@ -42,5 +42,5 @@ class CreditBreakdown(
             .sortedBy { it.department.name }
     }
 
-    private fun credits(type: LectureType): Int = earnedLectures.filter { it.type == type }.sumOf { it.credit }
+    private fun credits(type: LectureType): Int = earnedLectures.sumOf { if (it.type == type) it.credit else 0 }
 }

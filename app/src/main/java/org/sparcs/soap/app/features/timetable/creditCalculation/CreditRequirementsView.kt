@@ -47,6 +47,8 @@ import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
 import org.sparcs.soap.app.features.timetable.creditCalculation.components.CreditRequirementsNavigationBar
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.creditCompleteColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCreditCalculationViewModel
@@ -72,7 +74,14 @@ internal fun CreditRequirementsView(
     navController: NavController,
 ) {
     val state by viewModel.state.collectAsState()
-    CreditRequirementsContent(state, { navController.popBackStack() }, viewModel::updateRequirements)
+    Box(Modifier.analyticsScreen("CreditRequirements")) {
+        CreditRequirementsContent(state, { navController.popBackStack() }, viewModel::updateRequirements)
+        GlobalAlertDialog(
+            isPresented = viewModel.isAlertPresented,
+            state = viewModel.alertState,
+            onDismiss = { viewModel.isAlertPresented = false },
+        )
+    }
 }
 
 @Composable
