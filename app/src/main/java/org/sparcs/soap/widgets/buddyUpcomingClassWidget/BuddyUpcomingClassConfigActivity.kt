@@ -54,12 +54,15 @@ import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
+import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
+import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
@@ -70,8 +73,12 @@ import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.components.WidgetPaletteRow
 import org.sparcs.soap.widgets.ownsAppWidget
 import org.sparcs.soap.widgets.updateInstalledWidgets
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class BuddyUpcomingClassConfigActivity : ComponentActivity() {
+
+    @Inject lateinit var analyticsService: AnalyticsServiceProtocol
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -89,6 +96,8 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
             finish()
             return
         }
+
+        analyticsService.logScreen("BuddyUpcomingClassConfig")
 
         setContent {
             Theme {

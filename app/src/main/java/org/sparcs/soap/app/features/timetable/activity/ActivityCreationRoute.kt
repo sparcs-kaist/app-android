@@ -34,6 +34,7 @@ import kotlinx.coroutines.CancellationException
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -73,18 +74,20 @@ fun ActivityCreationRoute(
             onSave = { update(model.saveActivity(timetableID, activityID, it)) },
             onRefresh = { update(model.refreshActivityTable(timetableID)) })
     } else {
-        Scaffold(topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            Icons.Default.Close,
-                            stringResource(R.string.activity_close),
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-                })
+        Scaffold(
+            modifier = Modifier.analyticsScreen("ActivityCreationLoading"),
+            topBar = {
+                TopAppBar(
+                    title = {},
+                    navigationIcon = {
+                        IconButton(onClick = onClose) {
+                            Icon(
+                                Icons.Default.Close,
+                                stringResource(R.string.activity_close),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    })
         }) { padding ->
             Column(
                 Modifier

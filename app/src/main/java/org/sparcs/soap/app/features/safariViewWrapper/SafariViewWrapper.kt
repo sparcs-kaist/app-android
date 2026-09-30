@@ -13,12 +13,14 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import org.sparcs.soap.R
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.Theme
 
 
 @Composable
 fun SafariViewWrapper(url: String, onDismiss: () -> Unit) {
     AlertDialog(
+        modifier = Modifier.analyticsScreen("InAppBrowser"),
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }

@@ -45,6 +45,7 @@ import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -83,6 +84,7 @@ fun CourseComposeView(
     }
 
     Scaffold(
+        modifier = Modifier.analyticsScreen("CourseCompose"),
         topBar = {
             CourseComposeTopBar(
                 title = timetableName,

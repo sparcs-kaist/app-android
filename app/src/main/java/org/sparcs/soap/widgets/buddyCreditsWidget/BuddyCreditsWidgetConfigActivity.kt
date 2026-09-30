@@ -57,10 +57,13 @@ import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
+import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.formatters.creditProgress
@@ -71,8 +74,12 @@ import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.widgets.ownsAppWidget
 import org.sparcs.soap.widgets.updateInstalledWidgets
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class BuddyCreditsWidgetConfigActivity : ComponentActivity() {
+
+    @Inject lateinit var analyticsService: AnalyticsServiceProtocol
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -90,6 +97,8 @@ class BuddyCreditsWidgetConfigActivity : ComponentActivity() {
             finish()
             return
         }
+
+        analyticsService.logScreen("BuddyCreditsWidgetConfig")
 
         setContent {
             Theme {

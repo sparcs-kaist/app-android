@@ -52,6 +52,7 @@ import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBa
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
 import org.sparcs.soap.app.features.settings.timetable.components.displayName
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareCard
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.sharing.ShareContent
 import org.sparcs.soap.app.shared.sharing.ShareImagePreview
 import org.sparcs.soap.app.shared.sharing.ShareSheet
@@ -101,7 +102,9 @@ internal fun TimetableThemeExchangeView(
     val graphicsLayer = rememberGraphicsLayer()
 
     BackHandler(onBack = onBack)
-    Scaffold(topBar = {
+    Scaffold(
+        modifier = Modifier.analyticsScreen("TimetableThemeExchange"),
+        topBar = {
         SettingsViewNavigationBar(
             title = stringResource(if (sharing != null) R.string.theme_share else R.string.theme_import),
             onDismiss = onBack

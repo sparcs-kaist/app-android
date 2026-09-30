@@ -1,8 +1,12 @@
 package org.sparcs.soap.buddyPreviewSupport.otl
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
 import org.sparcs.soap.app.domain.models.otl.LectureGrade
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModelProtocol
@@ -14,6 +18,8 @@ internal class PreviewCreditCalculationViewModel(
 ) : CreditCalculationViewModelProtocol {
     private val mutableState = MutableStateFlow(initialState)
     override val state = mutableState.asStateFlow()
+    override val alertState: AlertState? = null
+    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     override fun load(forceRefresh: Boolean) {
         mutableState.value = creditPreviewState()
@@ -24,8 +30,5 @@ internal class PreviewCreditCalculationViewModel(
     }
     override fun updateRequirements(requirements: CreditRequirements) {
         mutableState.update { it.copy(requirements = requirements) }
-    }
-    override fun dismissSaveError() {
-        mutableState.update { it.copy(saveError = false) }
     }
 }

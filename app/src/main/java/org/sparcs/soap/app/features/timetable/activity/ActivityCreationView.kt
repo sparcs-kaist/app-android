@@ -73,6 +73,7 @@ import org.sparcs.soap.app.domain.models.otl.ActivityRefreshRequiredException
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.features.taxiRoomCreation.components.PickerWheel
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
@@ -130,6 +131,7 @@ fun ActivityCreationView(
             onBack = { adjusting = false })
     } else {
         Scaffold(
+            modifier = Modifier.analyticsScreen("ActivityCreation"),
             topBar = {
                 TopAppBar(
                     title = {

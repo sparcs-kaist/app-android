@@ -75,6 +75,8 @@ import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
+import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
+import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
@@ -95,6 +97,8 @@ import org.sparcs.soap.widgets.TimetableWidget as TimetableWidgetQualifier
 
 @AndroidEntryPoint
 class TimetableWidgetConfigActivity : ComponentActivity() {
+
+    @Inject lateinit var analyticsService: AnalyticsServiceProtocol
 
     private val viewModel: TimetableWidgetConfigViewModel by viewModels()
 
@@ -122,6 +126,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             finish()
             return
         }
+
+        analyticsService.logScreen("TimetableWidgetConfig")
 
         setContent {
             Theme {

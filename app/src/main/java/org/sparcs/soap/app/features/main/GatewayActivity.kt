@@ -27,10 +27,14 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.repositories.settings.SettingsRepositoryProtocol
+import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
+import org.sparcs.soap.app.domain.services.logScreen
 import javax.inject.Inject
 
 @AndroidEntryPoint
 class GatewayActivity : ComponentActivity() {
+
+    @Inject lateinit var analyticsService: AnalyticsServiceProtocol
 
     @Inject
     lateinit var settingsRepository: SettingsRepositoryProtocol
@@ -46,6 +50,8 @@ class GatewayActivity : ComponentActivity() {
         lifecycleScope.launch {
             themeModeState = settingsRepository.themeMode.first()
         }
+
+        analyticsService.logScreen("Gateway")
 
         setContent {
             val themeMode = themeModeState
@@ -78,29 +84,6 @@ class GatewayActivity : ComponentActivity() {
                             .size(130.dp, 120.dp)
                             .align(Alignment.Center)
                     )
-
-//                    Column(
-//                        modifier = Modifier
-//                            .align(Alignment.BottomCenter)
-//                            .padding(bottom = 80.dp),
-//                        horizontalAlignment = Alignment.CenterHorizontally
-//                    ) {
-//                        Text(
-//                            text = stringResource(R.string.sponsored_by_splash_screen),
-//                            color = if (isDarkMode) Color.White.copy(alpha = 0.8f) else Color.Black.copy(alpha = 0.8f),
-//                            fontSize = 12.sp
-//                        )
-//
-//                        Spacer(modifier = Modifier.height(8.dp))
-//
-//                        Image(
-//                            painter = painterResource(
-//                                if (isDarkMode) R.drawable.ic_mobis_logo_night else R.drawable.ic_mobis_logo
-//                            ),
-//                            contentDescription = null,
-//                            modifier = Modifier.size(120.dp, 45.dp)
-//                        )
-//                    }
                 }
             }
         }

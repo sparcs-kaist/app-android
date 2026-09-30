@@ -50,10 +50,12 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.navigationBar.components.DismissButton
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
+import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -62,13 +64,20 @@ fun CreditCalculationView(
     viewModel: CreditCalculationViewModelProtocol = hiltViewModel<CreditCalculationViewModel>(),
 ) {
     val state by viewModel.state.collectAsState()
-    CreditCalculationContent(
-        state = state,
-        onBack = { navController.popBackStack() },
-        onRetry = { viewModel.load() },
-        onSemester = { navController.navigate("${Channel.GradeEntry.name}/${Uri.encode(it.id)}") },
-        onRequirements = { navController.navigate(Channel.CreditRequirements.name) }
-    )
+    Box(Modifier.analyticsScreen("CreditCalculation")) {
+        CreditCalculationContent(
+            state = state,
+            onBack = { navController.popBackStack() },
+            onRetry = { viewModel.load() },
+            onSemester = { navController.navigate("${Channel.GradeEntry.name}/${Uri.encode(it.id)}") },
+            onRequirements = { navController.navigate(Channel.CreditRequirements.name) }
+        )
+        GlobalAlertDialog(
+            isPresented = viewModel.isAlertPresented,
+            state = viewModel.alertState,
+            onDismiss = { viewModel.isAlertPresented = false },
+        )
+    }
 }
 
 @Composable
