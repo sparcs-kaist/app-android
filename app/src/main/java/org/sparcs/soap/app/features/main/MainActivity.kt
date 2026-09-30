@@ -54,9 +54,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.kakao.vectormap.KakaoMapSdk
 import dagger.hilt.android.AndroidEntryPoint
-import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.R
-import org.sparcs.soap.widgets.WidgetSyncHelper
 import org.sparcs.soap.app.ChannelManager
 import org.sparcs.soap.app.InAppUpdateHelper
 import org.sparcs.soap.app.domain.enums.DeepLink
@@ -64,11 +62,13 @@ import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.helpers.PopupManager
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.AuthenticationCallbackHandler
-import org.sparcs.soap.app.features.settings.SettingsViewModel
-import org.sparcs.soap.app.features.signIn.SignInView
 import org.sparcs.soap.app.features.navigationBar.MainTabBar
 import org.sparcs.soap.app.features.navigationBar.MainTabBarViewModel
+import org.sparcs.soap.app.features.settings.SettingsViewModel
+import org.sparcs.soap.app.features.signIn.SignInView
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
+import org.sparcs.soap.widgets.WidgetSyncHelper
 import javax.inject.Inject
 
 val LocalAnalytics = staticCompositionLocalOf<AnalyticsServiceProtocol> {
@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
         intent?.data?.let { uri ->
             AuthenticationCallbackHandler.handleUri(uri)
         }
-        intent?.data?.let { handleDeepLink(it) }
+        if (savedInstanceState == null) handleNotificationOrDeepLink(intent)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
@@ -204,11 +204,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        setIntent(intent)
         handleWidgetLaunch(intent)
         intent.data?.let { uri ->
             AuthenticationCallbackHandler.handleUri(uri)
         }
-        intent.data?.let { handleDeepLink(it) }
+        handleNotificationOrDeepLink(intent)
     }
 
     private fun handleWidgetLaunch(intent: Intent?) {
@@ -229,8 +230,8 @@ class MainActivity : ComponentActivity() {
         helper.onDestroy()
     }
 
-    private fun handleDeepLink(uri: android.net.Uri) {
-        val deepLink = DeepLink.fromUri(uri) ?: return
+    private fun handleNotificationOrDeepLink(intent: Intent) {
+        val deepLink = DeepLink.fromIntent(intent) ?: return
         val authed = viewModel.isAuthenticated.value ?: false
         deepLinkViewModel.handleDeepLink(deepLink, authed)
     }

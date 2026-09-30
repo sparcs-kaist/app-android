@@ -1,9 +1,12 @@
 package org.sparcs.soap.app.domain.enums
 
+import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import org.sparcs.soap.BuildConfig
+import org.sparcs.soap.app.domain.helpers.Constants
 
 object DeepLinkEventBus {
     private val _events = MutableSharedFlow<DeepLink>(extraBufferCapacity = 1)
@@ -17,11 +20,43 @@ object DeepLinkEventBus {
 sealed class DeepLink {
     data class TaxiInvite(val code: String) : DeepLink()
     data class AraPost(val id: Int) : DeepLink()
+    data class FeedPost(val postID: String, val commentID: String? = null) : DeepLink() {
+        fun toUri(): Uri = Uri.parse(Constants.FEED_SHARE_URL).buildUpon()
+            .appendPath(postID)
+            .apply { commentID?.let { appendQueryParameter("commentId", it) } }
+            .build()
+    }
     data object Timetable : DeepLink()
 
     companion object {
+        fun fromNotificationData(data: Map<String, String>): DeepLink? {
+            val link = data["url"] ?: data["deep_link"]
+            link?.let { fromUri(it.toUri()) }?.let { return it }
+            val postID = (data["post_id"] ?: data["postId"])?.takeIf { it.isNotBlank() } ?: return null
+            val commentID = (data["comment_id"] ?: data["commentId"])?.takeIf { it.isNotBlank() }
+            return FeedPost(postID, commentID)
+        }
+
+        fun fromIntent(intent: Intent): DeepLink? {
+            fromUri(intent.data)?.let { return it }
+            val extras = intent.extras ?: return null
+            val data = listOf("url", "deep_link", "post_id", "postId", "comment_id", "commentId")
+                .mapNotNull { key -> extras.getString(key)?.let { key to it } }
+                .toMap()
+            return fromNotificationData(data)
+        }
+
         fun fromUri(uri: Uri?): DeepLink? {
             if (uri == null) return null
+
+            val feedBase = Uri.parse(Constants.FEED_SHARE_URL)
+            if (uri.scheme == feedBase.scheme && uri.host == feedBase.host &&
+                uri.pathSegments.size == 2 && uri.pathSegments.first() == "feed") {
+                val postID = uri.pathSegments[1].takeIf { it.isNotBlank() } ?: return null
+                val commentID = (uri.getQueryParameter("commentId") ?: uri.getQueryParameter("comment_id"))
+                    ?.takeIf { it.isNotBlank() }
+                return FeedPost(postID, commentID)
+            }
 
             if (uri.scheme == "sparcsapp") {
                 return when (uri.host) {

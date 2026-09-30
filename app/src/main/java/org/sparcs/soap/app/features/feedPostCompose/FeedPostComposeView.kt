@@ -186,7 +186,7 @@ fun FeedPostComposeView(
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    Text("${viewModel.text.length}/280", style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.feed_character_count, viewModel.text.length, 280), style = MaterialTheme.typography.bodySmall)
                 }
                 if (viewModel.selectedImages.isNotEmpty()) {
                     LazyRow(

@@ -59,7 +59,12 @@ class GatewayActivity : ComponentActivity() {
 
                 LaunchedEffect(Unit) {
                     delay(1000)
-                    startActivity(Intent(this@GatewayActivity, MainActivity::class.java))
+                    startActivity(Intent(this@GatewayActivity, MainActivity::class.java).apply {
+                        action = intent.action
+                        data = intent.data
+                        intent.extras?.let { putExtras(it) }
+                        addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    })
                     finish()
                 }
 

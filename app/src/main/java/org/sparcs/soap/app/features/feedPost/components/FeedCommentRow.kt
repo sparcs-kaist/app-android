@@ -2,12 +2,13 @@ package org.sparcs.soap.app.features.feedPost.components
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -112,6 +113,7 @@ fun FeedCommentRow(
             )
             Header(
                 comment = comment,
+                onReply = if (!isReply && comment.parentCommentID == null) onReply else null,
                 onDelete = {
                     coroutineScope.launch {
                         viewModel.deleteComment(comment)
@@ -183,6 +185,7 @@ fun FeedCommentRow(
 @Composable
 private fun Header(
     comment: FeedComment,
+    onReply: (() -> Unit)?,
     onDelete: () -> Unit,
     onReport: (FeedReportType) -> Unit,
     isHiddenCommentExpanded: Boolean,
@@ -259,6 +262,7 @@ private fun Header(
                 },
                 onReport = onReport,
                 onTranslate = onTranslate,
+                onReply = onReply,
                 isComment = true
             )
             Spacer(Modifier.width(8.dp))
@@ -369,15 +373,17 @@ private fun Footer(
     onUpVote: () -> Unit,
     onDownVote: () -> Unit,
 ) {
-    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-        Spacer(modifier = Modifier.weight(1f))
-
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        itemVerticalAlignment = Alignment.CenterVertically,
+    ) {
         if (comment.parentCommentID == null) {
             PostCommentButton(
                 commentCount = comment.replyCount,
                 onClick = onReply
             )
-            Spacer(modifier = Modifier.padding(4.dp))
         }
 
         if (!comment.isDeleted) {
@@ -401,8 +407,8 @@ private fun handleURL(
     urlString: String,
     scope: CoroutineScope,
 ) {
-    val uri = if (!urlString.startsWith("http")) "http://$urlString" else urlString.toUri()
-    val deepLink = DeepLink.fromUri(uri as Uri?)
+    val uri = (if (!urlString.startsWith("http")) "http://$urlString" else urlString).toUri()
+    val deepLink = DeepLink.fromUri(uri)
 
     if (deepLink != null) {
         scope.launch {

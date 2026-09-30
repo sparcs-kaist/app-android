@@ -749,4 +749,8 @@
     <string name="taxi_settlement_participants">Participants: %1$d people</string>
     <string name="taxi_settlement_per_person">Per person: %1$,d KRW</string>
     <string name="taxi_settlement_rounding">The per-person amount is rounded down to whole won.</string>
+    <string name="feed_replying_to">Replying to %1$s</string>
+    <string name="feed_reply_action">Reply</string>
+    <string name="feed_character_count">%1$d/%2$d</string>
+    <string name="feed_notification_comment_missing">This comment is no longer available.</string>
 </resources>

@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.graphics.BitmapFactory
 import androidx.core.app.NotificationCompat
+import androidx.core.net.toUri
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import dagger.hilt.android.AndroidEntryPoint
@@ -15,8 +16,11 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.enums.DeepLink
+import org.sparcs.soap.app.domain.helpers.NotificationContent
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol
+import org.sparcs.soap.app.features.main.MainActivity
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -47,48 +51,39 @@ class FCMService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
         super.onMessageReceived(remoteMessage)
         try {
-            val title = getLocalizedString(
-                remoteMessage.notification?.titleLocalizationKey ?: remoteMessage.data["title_loc_key"],
-                remoteMessage.notification?.title ?: remoteMessage.data["title"]
-            )
-            val body = getLocalizedString(
-                remoteMessage.notification?.bodyLocalizationKey ?: remoteMessage.data["body_loc_key"],
-                remoteMessage.notification?.body ?: remoteMessage.data["body"]
-            )
-
-            if (title != null && body != null) {
-                showNotification(title, body)
-            }
+            val content = NotificationContent.fromMessage(this, remoteMessage) ?: return
+            showNotification(content, remoteMessage)
         } catch (e: Exception) {
             Timber.e(e, "Message processing failed")
         }
     }
 
-    private fun getLocalizedString(locKey: String?, defaultValue: String?): String? {
-        return locKey?.lowercase()?.let { key ->
-            val resId = resources.getIdentifier(key, "string", packageName)
-            if (resId != 0) getString(resId) else null
-        } ?: defaultValue
-    }
-
-    private fun showNotification(title: String, body: String) {
+    private fun showNotification(content: NotificationContent, message: RemoteMessage) {
         try {
             val notificationManager =
                 getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             val channelId = "buddy_notification_channel"
 
-            val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            val notificationID = message.messageId?.hashCode() ?: System.nanoTime().toInt()
+            val destination = DeepLink.fromNotificationData(message.data)
+            val intent = Intent(this, MainActivity::class.java).apply {
+                action = Intent.ACTION_VIEW
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                message.data.forEach { (key, value) -> putExtra(key, value) }
+                data = when (destination) {
+                    is DeepLink.FeedPost -> destination.toUri()
+                    null -> null
+                    else -> (message.data["url"] ?: message.data["deep_link"])?.toUri()
+                }
             }
-
             val pendingIntent = PendingIntent.getActivity(
                 this,
-                0,
+                notificationID,
                 intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-            val channelName = "Buddy"
+            val channelName = getString(R.string.app_name)
             val channel = NotificationChannel(
                 channelId,
                 channelName,
@@ -104,15 +99,16 @@ class FCMService : FirebaseMessagingService() {
             val notification = NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(R.drawable.ic_buddy_notification)
                 .setLargeIcon(largeIcon)
-                .setContentTitle(title)
-                .setContentText(body)
+                .setContentTitle(content.title)
+                .setContentText(content.body)
+                .setStyle(NotificationCompat.BigTextStyle().bigText(content.body))
                 .setAutoCancel(true)
                 .setContentIntent(pendingIntent)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .build()
 
-            notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+            notificationManager.notify(notificationID, notification)
         } catch (e: Exception) {
             Timber.e(e, "Notification display failed")
         }

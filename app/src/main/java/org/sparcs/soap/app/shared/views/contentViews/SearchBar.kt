@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.shared.views.contentViews
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -29,9 +31,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @Composable
 fun SearchCustomBar(
@@ -46,77 +46,76 @@ fun SearchCustomBar(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
             modifier = Modifier
                 .weight(1f)
-                .glassBorder(shape = RoundedCornerShape(24.dp))
-                .clip(RoundedCornerShape(24.dp))
+                .clip(RoundedCornerShape(16.dp))
                 .background(containerColor)
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
                 Icon(
                     imageVector = Icons.Rounded.Search,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.grayBB
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp),
                 )
 
-                Spacer(Modifier.padding(4.dp))
+                Spacer(Modifier.width(8.dp))
 
                 BasicTextField(
                     value = value,
                     onValueChange = { newValue ->
                         onValueChange(newValue.replace("\n", ""))
                     },
+                    modifier = Modifier.weight(1f),
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
                         onDone = {
                             keyboardController?.hide()
-                        }
+                        },
                     ),
                     singleLine = true,
                     decorationBox = { innerTextField ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
+                        Box(contentAlignment = Alignment.CenterStart) {
                             if (value.isEmpty()) {
                                 Text(
                                     text = placeHolder,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                    style = MaterialTheme.typography.bodyMedium
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyLarge,
                                 )
                             }
                             innerTextField()
                         }
-                    }
+                    },
                 )
-            }
-            if (value.isNotEmpty()) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    modifier = Modifier
-                        .size(20.dp)
-                        .clip(CircleShape)
-                        .align(Alignment.CenterEnd)
-                        .background(MaterialTheme.colorScheme.grayBB)
-                        .clickable { onValueClear() },
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    contentDescription = "Send"
-                )
+
+                if (value.isNotEmpty()) {
+                    Spacer(Modifier.width(8.dp))
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f))
+                            .clickable { onValueClear() }
+                            .padding(2.dp),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        contentDescription = "Clear",
+                    )
+                }
             }
         }
     }
 }
-
 
 @Composable
 @Preview(showBackground = true)
@@ -126,7 +125,7 @@ private fun Preview() {
             value = "sasd",
             onValueChange = {},
             onValueClear = {},
-            "sd"
+            placeHolder = "Search...",
         )
     }
 }

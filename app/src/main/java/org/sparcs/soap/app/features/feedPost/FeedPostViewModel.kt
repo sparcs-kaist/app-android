@@ -35,6 +35,8 @@ import javax.inject.Inject
 interface FeedPostViewModelProtocol : TextProcessingProtocol {
     val state: StateFlow<FeedPostViewModel.ViewState>
     val post: FeedPost?
+    val initialCommentID: String? get() = null
+    val isLoadingComments: Boolean get() = false
     var comments: List<FeedComment>
     var text: String
     var image: Bitmap?
@@ -82,6 +84,8 @@ class FeedPostViewModel @Inject constructor(
     }
 
     // MARK: - Properties
+    override var isLoadingComments by mutableStateOf(true)
+        private set
     override var comments by mutableStateOf<List<FeedComment>>(emptyList())
     override var text by mutableStateOf("")
     override var image by mutableStateOf<Bitmap?>(null)
@@ -96,6 +100,8 @@ class FeedPostViewModel @Inject constructor(
 
     private val feedId: String =
         savedStateHandle["feedId"] ?: throw IllegalArgumentException("feedId is missing")
+
+    override val initialCommentID: String? = savedStateHandle["commentId"]
 
     override val post: FeedPost?
         get() = (state.value as? ViewState.Loaded)?.post
@@ -141,6 +147,7 @@ class FeedPostViewModel @Inject constructor(
 
     override fun fetchComments(postID: String, initial: Boolean) {
         if (_state.value is ViewState.Loading && !initial) return
+        if (initial) isLoadingComments = true
         viewModelScope.launch {
             try {
                 val fetchedComments = feedCommentUseCase.fetchComments(postID)
@@ -151,6 +158,8 @@ class FeedPostViewModel @Inject constructor(
             } catch (e: Exception) {
                 _state.value = ViewState.Error(e)
                 crashlyticsService.recordException(e)
+            } finally {
+                isLoadingComments = false
             }
         }
     }
