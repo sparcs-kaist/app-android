@@ -103,6 +103,10 @@ import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationViewModel
 import org.sparcs.soap.app.features.timetable.TimetableView
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.activity.ActivityCreationRoute
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationView
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModel
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditRequirementsView
+import org.sparcs.soap.app.features.timetable.creditCalculation.GradeEntryRoute
 import org.sparcs.soap.app.features.userPostList.UserPostListView
 import org.sparcs.soap.app.features.userPostList.UserPostListViewModel
 import org.sparcs.soap.app.theme.ui.Theme
@@ -118,6 +122,10 @@ enum class Channel(@param:StringRes val title: Int) {
     LectureDetail(title = R.string.lecturedetail),
     ReviewCompose(title = R.string.reviewcompose),
     CourseView(title = R.string.course_view),
+    CreditCalculation(title = R.string.credit_calculation),
+    CreditRequirements(title = R.string.credit_requirements),
+    GradeEntry(title = R.string.credit_enter_grade),
+    ActivityCreation(title = R.string.activity_new),
 
     //Ara
     BoardList(title = R.string.general_board),
@@ -371,16 +379,60 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             navController.getBackStackEntry("OTLGraph")
                         }
                         val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
-                        val lectureSearchViewModel: LectureSearchViewModel =
-                            hiltViewModel(backStackEntry)
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
                         TimetableView(
                             viewModel = viewModel,
                             navController = navController,
+                            creditViewModel = creditViewModel,
                         )
                     }
 
                     composable(
-                        "ActivityCreation/{timetableId}?activityId={activityId}",
+                        route = Channel.CreditCalculation.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { entry ->
+                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
+                        CreditCalculationView(navController = navController, viewModel = creditViewModel)
+                    }
+
+                    composable(
+                        route = Channel.GradeEntry.name + "/{semesterId}",
+                        arguments = listOf(navArgument("semesterId") { type = NavType.StringType }),
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { entry ->
+                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
+                        GradeEntryRoute(
+                            semesterId = requireNotNull(entry.arguments?.getString("semesterId")),
+                            viewModel = creditViewModel,
+                            navController = navController
+                        )
+                    }
+
+                    composable(
+                        route = Channel.CreditRequirements.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) { entry ->
+                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
+                        CreditRequirementsView(
+                            viewModel = creditViewModel,
+                            navController = navController
+                        )
+                    }
+
+                    composable(
+                        route = Channel.ActivityCreation.name + "/{timetableId}?activityId={activityId}",
                         arguments = listOf(
                             navArgument("timetableId") { type = NavType.IntType },
                             navArgument("activityId") { type = NavType.IntType; defaultValue = -1 }
@@ -395,7 +447,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         ActivityCreationRoute(
                             model, entry.arguments!!.getInt("timetableId"),
                             entry.arguments?.getInt("activityId")?.takeIf { it >= 0 },
-                            onClose = { navController.popBackStack() }
+                            navController = navController
                         )
                     }
 

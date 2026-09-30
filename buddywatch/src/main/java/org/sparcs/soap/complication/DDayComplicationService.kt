@@ -44,7 +44,7 @@ class DDayComplicationService : SuspendingComplicationDataSourceService() {
     }
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData? {
-        val semesterJson = watchDataStore.semesterJsonFlow.firstOrNull()
+        val semesterJson = watchDataStore.currentSemesterJsonFlow.firstOrNull()
         val semester = semesterJson?.let {
             try {
                 json.decodeFromString<Semester>(it)

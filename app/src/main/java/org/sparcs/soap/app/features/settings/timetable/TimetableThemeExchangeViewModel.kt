@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
-import org.sparcs.soap.app.domain.usecases.TimetableThemeUseCase
+import org.sparcs.soap.app.domain.usecases.TimetableThemeUseCaseProtocol
 import javax.inject.Inject
 
 data class ThemeExchangeState(
@@ -24,7 +24,7 @@ data class ThemeExchangeState(
 
 @HiltViewModel
 class TimetableThemeExchangeViewModel @Inject constructor(
-    private val useCase: TimetableThemeUseCase,
+    private val useCase: TimetableThemeUseCaseProtocol,
 ) : ViewModel() {
     var state by mutableStateOf(ThemeExchangeState())
         private set

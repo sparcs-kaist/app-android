@@ -156,6 +156,7 @@ class TimetableViewModel @Inject constructor(
     private val refreshFailures = mutableSetOf<String>()
     private val offlineFailures = mutableSetOf<String>()
     private var networkUnavailable = false
+    private var lastConnectivity: Boolean? = null
     private var refreshJob: Job? = null
     private var refreshPending = false
     private var loadGeneration = 0L
@@ -166,7 +167,9 @@ class TimetableViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
     override fun connectivityChanged(connected: Boolean) {
-        val shouldRefresh = connected && (networkUnavailable || refreshFailures.isNotEmpty())
+        if (lastConnectivity == connected) return
+        val shouldRefresh = connected && (networkUnavailable || offlineFailures.isNotEmpty())
+        lastConnectivity = connected
         networkUnavailable = !connected
         if (connected) offlineFailures.clear()
         publishStatus()

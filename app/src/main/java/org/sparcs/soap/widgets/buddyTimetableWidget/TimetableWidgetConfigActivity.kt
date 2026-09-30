@@ -1,6 +1,7 @@
 package org.sparcs.soap.widgets.buddyTimetableWidget
 
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -50,13 +51,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
@@ -74,8 +75,11 @@ import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
+import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
+import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
+import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
@@ -85,12 +89,16 @@ import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.components.WidgetPaletteRow
+import org.sparcs.soap.widgets.ownsAppWidget
+import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
 import javax.inject.Inject
 import org.sparcs.soap.widgets.TimetableWidget as TimetableWidgetQualifier
 
 @AndroidEntryPoint
 class TimetableWidgetConfigActivity : ComponentActivity() {
+
+    @Inject lateinit var analyticsService: AnalyticsServiceProtocol
 
     private val viewModel: TimetableWidgetConfigViewModel by viewModels()
 
@@ -99,6 +107,10 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
     lateinit var syncManager: TimetableWidgetSyncManager
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
+
+    private val isSilhouetteWidget: Boolean
+        get() = AppWidgetManager.getInstance(this).getAppWidgetInfo(appWidgetId)?.provider ==
+            ComponentName(this, BuddySilhouetteWidgetReceiver::class.java)
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -110,14 +122,17 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
             AppWidgetManager.INVALID_APPWIDGET_ID
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+        if (!ownsAppWidget(appWidgetId)) {
             finish()
             return
         }
 
+        analyticsService.logScreen("TimetableWidgetConfig")
+
         setContent {
             Theme {
                 var selectedTheme by remember { mutableStateOf("System") }
+                var silhouette by remember { mutableStateOf(isSilhouetteWidget) }
                 var transparency by remember { mutableFloatStateOf(1f) }
                 val state by viewModel.state.collectAsState()
                 val selectedTimetableId = state.selectedTimetableId
@@ -146,6 +161,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                             PreferencesGlanceStateDefinition, glanceId
                         )
                         selectedTheme = prefs[stringPreferencesKey("theme_mode")] ?: "System"
+                        silhouette = isSilhouetteWidget || (prefs[booleanPreferencesKey("silhouette")] ?: false)
                         transparency = prefs[floatPreferencesKey("background_transparency")] ?: 1f
                         savedTimetableId =
                             prefs[intPreferencesKey("selected_timetable_id")] ?: -1
@@ -184,7 +200,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                     selectedTheme,
                                     transparency,
                                     selectedTimetable,
-                                    themeState.theme(timetableThemeID)
+                                    themeState.theme(timetableThemeID),
+                                    silhouette,
                                 )
 
                                 Text(
@@ -210,6 +227,9 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                 WidgetPaletteRow(themeState.themes, timetableThemeID) {
                                     timetableThemeID = it
                                 }
+                                if (!isSilhouetteWidget) {
+                                    WidgetSilhouetteRow(silhouette) { silhouette = it }
+                                }
                                 WidgetThemeRow(selectedTheme) { selectedTheme = it }
                                 WidgetTransparencyRow(transparency) { transparency = it }
 
@@ -222,7 +242,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                                             transparency,
                                             selectedTimetableId,
                                             selectedSemester,
-                                            timetableThemeID
+                                            timetableThemeID,
+                                            silhouette,
                                         )
                                     },
                                     modifier = Modifier
@@ -500,7 +521,12 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
         selectedTimetableId: Int,
         selectedSemester: Semester?,
         timetableThemeID: String,
+        silhouette: Boolean,
     ) {
+        if (!ownsAppWidget(appWidgetId)) {
+            finish()
+            return
+        }
         val appContext = applicationContext
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -519,6 +545,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                     ) { prefs ->
                         prefs.toMutablePreferences().apply {
                             this[stringPreferencesKey("theme_mode")] = theme
+                            this[booleanPreferencesKey("silhouette")] = silhouette
                             this[floatPreferencesKey("background_transparency")] = transparency
                             this[WIDGET_THEME_ID] = timetableThemeID
                             this[intPreferencesKey("selected_timetable_id")] = selectedTimetableId
@@ -537,7 +564,8 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                         Timber.e(e, "Failed to sync timetable data for widget with id $appWidgetId")
                     }
                 } else {
-                    TimetableWidget().updateAll(appContext)
+                    TimetableWidget().updateInstalledWidgets(appContext)
+                    BuddySilhouetteWidget().updateInstalledWidgets(appContext)
                 }
             }
 
@@ -571,6 +599,7 @@ private fun WidgetPreviewSection(
     transparency: Float,
     selectedTimetable: Timetable?,
     timetableTheme: TimetableTheme,
+    silhouette: Boolean = false,
 ) {
     val isDark = when (selectedTheme) {
         "Dark" -> true
@@ -620,11 +649,11 @@ private fun WidgetPreviewSection(
                         val previewViewModel = remember(selectedTimetable) {
                             PreviewTimetableViewModel(selectedTimetable)
                         }
-                        TimetableGrid(
-                            viewModel = previewViewModel,
-                            onLectureSelected = {},
-                            showDeleteDialog = {}
-                        )
+                        if (silhouette) {
+                            TimetableSilhouetteView(selectedTimetable, Modifier.fillMaxSize().padding(8.dp))
+                        } else {
+                            TimetableGrid(viewModel = previewViewModel, onLectureSelected = {}, showDeleteDialog = {})
+                        }
                     }
                 }
             }

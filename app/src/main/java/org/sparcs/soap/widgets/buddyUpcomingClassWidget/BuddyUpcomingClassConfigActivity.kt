@@ -52,25 +52,33 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
-import org.sparcs.soap.widgets.WIDGET_THEME_ID
-import org.sparcs.soap.widgets.components.WidgetPaletteRow
+import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
+import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
+import org.sparcs.soap.widgets.WIDGET_THEME_ID
+import org.sparcs.soap.widgets.components.WidgetPaletteRow
+import org.sparcs.soap.widgets.ownsAppWidget
+import org.sparcs.soap.widgets.updateInstalledWidgets
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class BuddyUpcomingClassConfigActivity : ComponentActivity() {
+
+    @Inject lateinit var analyticsService: AnalyticsServiceProtocol
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -84,10 +92,12 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
             AppWidgetManager.INVALID_APPWIDGET_ID
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+        if (!ownsAppWidget(appWidgetId)) {
             finish()
             return
         }
+
+        analyticsService.logScreen("BuddyUpcomingClassConfig")
 
         setContent {
             Theme {
@@ -356,6 +366,10 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
     }
 
     private fun saveAndFinish(theme: String, transparency: Float, timetableThemeID: String) {
+        if (!ownsAppWidget(appWidgetId)) {
+            finish()
+            return
+        }
         val appContext = applicationContext
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -379,7 +393,7 @@ class BuddyUpcomingClassConfigActivity : ComponentActivity() {
                     }
                     BuddyUpcomingClassWidget().update(appContext, glanceId)
                 } else {
-                    BuddyUpcomingClassWidget().updateAll(appContext)
+                    BuddyUpcomingClassWidget().updateInstalledWidgets(appContext)
                 }
             }
             val resultValue = Intent().apply {

@@ -5,10 +5,12 @@ import androidx.core.content.edit
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.app.domain.helpers.TimetableSelectionStore
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
+import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import timber.log.Timber
@@ -63,6 +65,23 @@ class WearableDataManager @Inject constructor(
             return
         }
         send(json.encodeToString(recolored), lastSent.getString(SEMESTER_KEY, null))
+    }
+
+    fun updateCurrentSemester(semester: Semester) {
+        val request = PutDataMapRequest.create("/semester/current").apply {
+            dataMap.putString("semester_json", json.encodeToString(semester.toWatchModel(context)))
+            dataMap.putLong("timestamp", System.currentTimeMillis())
+        }.asPutDataRequest().setUrgent()
+        Wearable.getDataClient(context).putDataItem(request)
+            .addOnFailureListener { Timber.e(it, "Failed to send current semester to watch") }
+    }
+
+    suspend fun updateCreditSummary(snapshot: CreditSummarySnapshot?) {
+        val request = PutDataMapRequest.create("/credits/summary").apply {
+            dataMap.putString("credit_summary_json", snapshot?.let { json.encodeToString(it) } ?: "")
+            dataMap.putLong("timestamp", System.currentTimeMillis())
+        }.asPutDataRequest().setUrgent()
+        Wearable.getDataClient(context).putDataItem(request).await()
     }
 
     private fun send(timetableJson: String, semesterJson: String?) {

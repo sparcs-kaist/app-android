@@ -14,18 +14,23 @@ import javax.inject.Singleton
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
+interface SettingsRepositoryProtocol {
+    val themeMode: Flow<String>
+    suspend fun setThemeMode(mode: String)
+}
+
 @Singleton
 class SettingsRepository @Inject constructor(
     @param:ApplicationContext private val context: Context
-) {
+) : SettingsRepositoryProtocol {
     private val themeModeKey = stringPreferencesKey("theme_mode")
 
-    val themeMode: Flow<String> = context.dataStore.data
+    override val themeMode: Flow<String> = context.dataStore.data
         .map { preferences ->
             preferences[themeModeKey] ?: "system"
         }
 
-    suspend fun setThemeMode(mode: String) {
+    override suspend fun setThemeMode(mode: String) {
         context.dataStore.edit { settings ->
             settings[themeModeKey] = mode
         }

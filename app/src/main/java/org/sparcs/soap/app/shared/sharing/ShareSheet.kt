@@ -58,6 +58,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,6 +92,7 @@ fun ShareSheet(
     }
 
     ModalBottomSheet(
+        modifier = Modifier.analyticsScreen("ShareSheet"),
         onDismissRequest = {
             viewModel.reset()
             scope.launch { sheetState.hide(); onDismiss() }

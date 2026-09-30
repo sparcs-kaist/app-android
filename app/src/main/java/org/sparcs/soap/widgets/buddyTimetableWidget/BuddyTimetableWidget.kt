@@ -7,12 +7,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.LocalSize
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -23,7 +25,6 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.provideContent
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Alignment
@@ -55,10 +56,12 @@ import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.WidgetEntryPoint
+import org.sparcs.soap.widgets.installedWidgetIds
 import org.sparcs.soap.widgets.theme.ui.TimetableWidgetTheme.grayBB
 import org.sparcs.soap.widgets.theme.ui.WidgetTheme
 import org.sparcs.soap.widgets.themed
 import org.sparcs.soap.widgets.timetableWidgetIntent
+import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -129,10 +132,12 @@ class TimetableWidget : GlanceAppWidget() {
                         Column(
                             modifier = GlanceModifier.fillMaxSize()
                         ) {
-                            TimetableLargeWidgetView(
-                                timetable = state.timetable.themed(timetableTheme),
-                                theme = timetableTheme
-                            )
+                            val timetable = state.timetable.themed(timetableTheme)
+                            if (prefs[booleanPreferencesKey("silhouette")] == true || (LocalSize.current.width < 220.dp && LocalSize.current.height < 240.dp)) {
+                                TimetableSmallWidgetView(timetable, timetableTheme)
+                            } else {
+                                TimetableLargeWidgetView(timetable = timetable, theme = timetableTheme)
+                            }
                         }
                     }
                     Box(
@@ -164,8 +169,9 @@ class TimetableWidgetSyncManager @Inject constructor(
             return
         }
         try {
-            val manager = GlanceAppWidgetManager(context)
-            for (id in manager.getGlanceIds(TimetableWidget::class.java)) {
+            val glanceIds = installedWidgetIds(context, TimetableWidget::class.java) +
+                installedWidgetIds(context, BuddySilhouetteWidget::class.java)
+            for (id in glanceIds) {
                 val prefs = getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
                 if (matchesMyTimetable(prefs, semester)) {
                     syncState(timetable.toWidgetUiState(), id, expectedSemester = semester)
@@ -179,9 +185,10 @@ class TimetableWidgetSyncManager @Inject constructor(
         if (!hasTimetableWidgets()) return
         val tableID = timetable.id.toIntOrNull()?.takeIf { it >= 0 } ?: return
         try {
-            val manager = GlanceAppWidgetManager(context)
             val state = timetable.toWidgetUiState()
-            for (id in manager.getGlanceIds(TimetableWidget::class.java)) {
+            val glanceIds = installedWidgetIds(context, TimetableWidget::class.java) +
+                installedWidgetIds(context, BuddySilhouetteWidget::class.java)
+            for (id in glanceIds) {
                 val prefs = getAppWidgetState(context, PreferencesGlanceStateDefinition, id)
                 if (matchesSavedTimetable(prefs, timetable.id)) syncState(state, id, tableID)
             }
@@ -193,7 +200,9 @@ class TimetableWidgetSyncManager @Inject constructor(
     }
 
     private fun hasTimetableWidgets(): Boolean = AppWidgetManager.getInstance(context)
-        .getAppWidgetIds(ComponentName(context, BuddyTimetableWidgetReceiver::class.java)).isNotEmpty()
+        .getAppWidgetIds(ComponentName(context, BuddyTimetableWidgetReceiver::class.java)).isNotEmpty() ||
+        AppWidgetManager.getInstance(context)
+        .getAppWidgetIds(ComponentName(context, BuddySilhouetteWidgetReceiver::class.java)).isNotEmpty()
 
     suspend fun syncSignInRequired() {
         syncState(TimetableUiState(signInRequired = true, lastUpdated = System.currentTimeMillis()))
@@ -208,8 +217,9 @@ class TimetableWidgetSyncManager @Inject constructor(
         try {
             val jsonString = Json.encodeToString(state)
             val manager = GlanceAppWidgetManager(context)
-            val glanceIds = specificGlanceId?.let { listOf(it) } ?: manager.getGlanceIds(
-                TimetableWidget::class.java
+            val glanceIds = specificGlanceId?.let { listOf(it) } ?: (
+                installedWidgetIds(context, TimetableWidget::class.java) +
+                installedWidgetIds(context, BuddySilhouetteWidget::class.java)
             )
 
             glanceIds.forEach { id ->
@@ -223,9 +233,17 @@ class TimetableWidgetSyncManager @Inject constructor(
                 }
             }
             if (specificGlanceId != null) {
-                TimetableWidget().update(context, specificGlanceId)
+                val provider = AppWidgetManager.getInstance(context)
+                    .getAppWidgetInfo(manager.getAppWidgetId(specificGlanceId))?.provider
+                when (provider) {
+                    ComponentName(context, BuddySilhouetteWidgetReceiver::class.java) ->
+                        BuddySilhouetteWidget().update(context, specificGlanceId)
+                    ComponentName(context, BuddyTimetableWidgetReceiver::class.java) ->
+                        TimetableWidget().update(context, specificGlanceId)
+                }
             } else {
-                TimetableWidget().updateAll(context)
+                TimetableWidget().updateInstalledWidgets(context)
+                BuddySilhouetteWidget().updateInstalledWidgets(context)
             }
         } catch (e: CancellationException) {
             throw e
@@ -248,8 +266,8 @@ internal fun matchesSavedTimetable(prefs: Preferences, timetableID: String): Boo
 class TimetableUpdateWorker(context: Context, params: WorkerParameters) :
     CoroutineWorker(context, params) {
     override suspend fun doWork(): Result {
-        val glanceManager = GlanceAppWidgetManager(applicationContext)
-        val glanceIds = glanceManager.getGlanceIds(TimetableWidget::class.java)
+        val glanceIds = installedWidgetIds(applicationContext, TimetableWidget::class.java) +
+            installedWidgetIds(applicationContext, BuddySilhouetteWidget::class.java)
 
         if (glanceIds.isEmpty()) {
             Timber.d("No installed widgets found. Stopping worker.")

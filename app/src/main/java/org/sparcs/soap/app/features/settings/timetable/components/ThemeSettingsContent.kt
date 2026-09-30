@@ -25,6 +25,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore.State
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 
@@ -41,6 +42,7 @@ internal fun ThemeSettingsContent(
 ) {
     val newName = stringResource(R.string.theme_my_name)
     Scaffold(
+        modifier = Modifier.analyticsScreen("TimetableThemeSettings"),
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.timetable_theme),

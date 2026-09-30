@@ -22,7 +22,7 @@ import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
-import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepository
+import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiRoomUseCaseProtocol
 import org.sparcs.soap.app.shared.extensions.toAlertState
@@ -44,7 +44,7 @@ interface TaxiPreviewViewModelProtocol {
 
 @HiltViewModel
 class TaxiPreviewViewModel @Inject constructor(
-    private val taxiRoomRepository: TaxiRoomRepository,
+    private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val userUseCase: UserUseCaseProtocol,
     private val taxiRoomUseCase: TaxiRoomUseCaseProtocol,
     private val taxiRouteCache: TaxiRouteCache,

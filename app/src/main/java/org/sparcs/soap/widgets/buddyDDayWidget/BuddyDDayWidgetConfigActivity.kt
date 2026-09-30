@@ -51,7 +51,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
-import androidx.glance.appwidget.updateAll
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.lifecycle.lifecycleScope
 import androidx.work.Constraints
@@ -59,18 +58,27 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
+import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
+import org.sparcs.soap.widgets.ownsAppWidget
+import org.sparcs.soap.widgets.updateInstalledWidgets
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class BuddyDDayWidgetConfigActivity : ComponentActivity() {
+
+    @Inject lateinit var analyticsService: AnalyticsServiceProtocol
 
     private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -84,10 +92,12 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
             AppWidgetManager.INVALID_APPWIDGET_ID
         ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
-        if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
+        if (!ownsAppWidget(appWidgetId)) {
             finish()
             return
         }
+
+        analyticsService.logScreen("BuddyDDayWidgetConfig")
 
         setContent {
             Theme {
@@ -361,6 +371,10 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
     }
 
     private fun saveAndFinish(theme: String, transparency: Float) {
+        if (!ownsAppWidget(appWidgetId)) {
+            finish()
+            return
+        }
         val appContext = applicationContext
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
@@ -384,7 +398,7 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
                     }
                     BuddyDDayWidget().update(appContext, glanceId)
                 } else {
-                    BuddyDDayWidget().updateAll(appContext)
+                    BuddyDDayWidget().updateInstalledWidgets(appContext)
                 }
             }
 

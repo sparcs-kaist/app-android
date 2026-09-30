@@ -46,11 +46,13 @@ import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeShareCode
+import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
 import org.sparcs.soap.app.features.settings.timetable.components.displayName
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareCard
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.sharing.ShareContent
 import org.sparcs.soap.app.shared.sharing.ShareImagePreview
 import org.sparcs.soap.app.shared.sharing.ShareSheet
@@ -100,7 +102,9 @@ internal fun TimetableThemeExchangeView(
     val graphicsLayer = rememberGraphicsLayer()
 
     BackHandler(onBack = onBack)
-    Scaffold(topBar = {
+    Scaffold(
+        modifier = Modifier.analyticsScreen("TimetableThemeExchange"),
+        topBar = {
         SettingsViewNavigationBar(
             title = stringResource(if (sharing != null) R.string.theme_share else R.string.theme_import),
             onDismiss = onBack
@@ -190,7 +194,7 @@ private fun ThemeShareCardView(
 }
 
 @Composable
-private fun ThemeShareRenderingView(theme: TimetableTheme, code: String?, lectures: List<org.sparcs.soap.app.domain.models.otl.Lecture>) {
+private fun ThemeShareRenderingView(theme: TimetableTheme, code: String?, lectures: List<Lecture>) {
     TimetableShareCard(theme, Timetable(id = "theme-share", lectures = lectures),
         stringResource(R.string.share_timetable_theme), theme.displayName(),
         stringResource(R.string.code), code ?: "\u2014", isCode = true)

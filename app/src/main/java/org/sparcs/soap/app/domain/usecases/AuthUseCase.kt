@@ -296,10 +296,10 @@ class AuthUseCase @Inject constructor(
                 tokenStorage.clearTokens()
                 _isAuthenticated.value = false
             }
-            ChannelManager.clearIdentity()
-            timetableCache.clear()
             scheduledRefreshJob?.cancel()
             widgetSyncHelper.clearAllWidgets()
+            ChannelManager.clearIdentity()
+            timetableCache.clear()
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -103,21 +104,10 @@ class LectureDetailViewModel @Inject constructor(
     override var alertState: AlertState? by mutableStateOf(null)
     override var isAlertPresented: Boolean by mutableStateOf(false)
 
+    private var reviewsJob: Job? = null
+
     init {
-        val json = savedStateHandle.get<String>("lecture_json")?.unescapeHash()
-        if (json != null) {
-            try {
-                val initialLecture = Gson().fromJson(json, Lecture::class.java)
-                fetchCourse(initialLecture.courseID)
-                fetchReviews(initialLecture)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                _state.value = ViewState.Error(e)
-            }
-        } else {
-            _state.value = ViewState.Error(IllegalStateException("Lecture data is missing"))
-        }
+        fetchReviews(initialLecture)
     }
 
     override fun fetchCourse(courseID: Int) {
@@ -135,15 +125,14 @@ class LectureDetailViewModel @Inject constructor(
     }
 
     override fun fetchReviews(lecture: Lecture) {
-        viewModelScope.launch {
+        reviewsJob?.cancel()
+        reviewsJob = viewModelScope.launch {
             try {
                 _state.value = ViewState.Loading
                 _canWriteReview.value = false
 
-                ensureUserLoaded()
-
                 coroutineScope {
-                    val currentUserId = userUseCase.otlUser?.id
+                    launch { loadWritingPermission(lecture) }
 
                     val allReviewsDef = async {
                         reviewUseCase.fetchReviews(
@@ -154,29 +143,37 @@ class LectureDetailViewModel @Inject constructor(
                         )
                     }
                     val myWrittenReviewsDef = async { reviewUseCase.getWrittenReviews() }
-                    val currentSemesterDef = async { timetableUseCase.getCurrentSemester() }
-
-                    val historyDef = async {
-                        if (currentUserId != null) reviewUseCase.fetchLectureHistory(currentUserId) else null
-                    }
-
                     val allReviews = allReviewsDef.await().reviews
                     val myTotalReviews = myWrittenReviewsDef.await()
-                    val currentSemester = currentSemesterDef.await()
-                    val historyList = historyDef.await()
-
                     splitMyReviewFromOthers(allReviews, myTotalReviews, lecture.courseID)
-                    updateWritingPermission(lecture, historyList, currentSemester)
+                    _state.value = ViewState.Loaded
+                    analyticsService.logEvent(LectureDetailViewEvent.ReviewsLoaded)
                 }
-
-                _state.value = ViewState.Loaded
-                analyticsService.logEvent(LectureDetailViewEvent.ReviewsLoaded)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
                 crashlyticsService.recordException(e)
+                _canWriteReview.value = false
                 _state.value = ViewState.Error(e)
             }
+        }
+    }
+
+    private suspend fun loadWritingPermission(lecture: Lecture) {
+        try {
+            coroutineScope {
+                val semester = async { timetableUseCase.getCurrentSemester() }
+                val history = async {
+                    ensureUserLoaded()
+                    userUseCase.otlUser?.id?.let { reviewUseCase.fetchLectureHistory(it) }
+                }
+                updateWritingPermission(lecture, history.await(), semester.await())
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            _canWriteReview.value = false
+            crashlyticsService.recordException(error)
         }
     }
 

@@ -41,6 +41,16 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/timetable_widget_info" />
         </receiver>
+        <receiver android:name="org.sparcs.soap.widgets.buddyTimetableWidget.BuddySilhouetteWidgetReceiver"
+            android:exported="true"
+            android:label="@string/widget_silhouette">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/buddy_silhouette_widget_info" />
+        </receiver>
         <receiver
             android:name="org.sparcs.soap.widgets.buddyUpcomingClassWidget.BuddyUpcomingClassWidgetReceiver"
             android:exported="true"
@@ -61,6 +71,15 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/buddy_d_day_widget_info" />
+        </receiver>
+        <receiver
+            android:name="org.sparcs.soap.widgets.buddyCreditsWidget.BuddyCreditsWidgetReceiver"
+            android:exported="true"
+            android:label="@string/credit_calculation">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/buddy_credits_widget_info" />
         </receiver>
         <provider
             android:name="androidx.startup.InitializationProvider"
@@ -184,6 +203,14 @@
         </activity>
         <activity
             android:name="org.sparcs.soap.widgets.buddyDDayWidget.BuddyDDayWidgetConfigActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Soap">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name="org.sparcs.soap.widgets.buddyCreditsWidget.BuddyCreditsWidgetConfigActivity"
             android:exported="true"
             android:theme="@style/Theme.Soap">
             <intent-filter>

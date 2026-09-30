@@ -3,7 +3,12 @@ package org.sparcs.soap.app.features.timetable.components
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -13,9 +18,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.R
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.shared.extensions.elevation
+import org.sparcs.soap.app.theme.ui.Theme
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -25,6 +33,7 @@ fun TimetableViewNavigationBar(
     onClick: () -> Unit,
     isButtonEnabled: Boolean,
     onActivityClick: () -> Unit = {},
+    onCreditsClick: () -> Unit = {},
 ) {
     TopAppBar(
         title = {
@@ -37,6 +46,9 @@ fun TimetableViewNavigationBar(
             }
         },
         actions = {
+            IconButton(onClick = onCreditsClick) {
+                Icon(Icons.Outlined.School, contentDescription = stringResource(R.string.credit_calculation))
+            }
             TimetableAddButton(
                 enabled = isButtonEnabled,
                 onAddClass = onClick,
@@ -49,4 +61,10 @@ fun TimetableViewNavigationBar(
         ),
         modifier = Modifier.shadow(scrollState.elevation())
     )
+}
+
+@Preview
+@Composable
+private fun TimetableNavigationBarPreview() {
+    Theme { TimetableViewNavigationBar(rememberScrollState(), {}, true) }
 }

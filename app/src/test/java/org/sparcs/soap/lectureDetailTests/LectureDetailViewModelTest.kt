@@ -2,7 +2,11 @@ package org.sparcs.soap.lectureDetailTests
 
 import androidx.lifecycle.SavedStateHandle
 import com.google.gson.Gson
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CancellationException
+import org.sparcs.soap.app.domain.models.otl.Semester
+import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.helpers.NetworkErrorMapper
 import org.sparcs.soap.app.shared.viewModels.TextProcessingDelegate
@@ -50,13 +54,17 @@ class LectureDetailViewModelTest {
         mockUserUseCase = MockUserUseCase()
     }
 
-    private fun createViewModel(lecture: Lecture = Lecture.mock()) {
+    private fun createViewModel(
+        lecture: Lecture = Lecture.mock(),
+        users: UserUseCaseProtocol = mockUserUseCase,
+        timetables: TimetableUseCaseProtocol = mockTimetableUseCase,
+    ) {
         val savedStateHandle = SavedStateHandle(mapOf("lecture_json" to Gson().toJson(lecture)))
         viewModel = LectureDetailViewModel(
             courseUseCase = mockCourseUseCase,
             reviewUseCase = mockReviewUseCase,
-            timetableUseCase = mockTimetableUseCase,
-            userUseCase = mockUserUseCase,
+            timetableUseCase = timetables,
+            userUseCase = users,
             crashlyticsService = MockCrashlyticsService(),
             analyticsService = MockAnalyticsService(),
             textProcessingDelegate = TextProcessingDelegate(
@@ -76,7 +84,7 @@ class LectureDetailViewModelTest {
     }
 
     @Test
-    fun `init loads course and reviews into loaded state`() = runTest {
+    fun `init loads reviews without requesting unused course details`() = runTest {
         val course = Course.mock()
         mockCourseUseCase.getCourseResult = Result.success(course)
         mockReviewUseCase.fetchReviewsResult =
@@ -86,7 +94,8 @@ class LectureDetailViewModelTest {
         createViewModel()
 
         assertEquals(LectureDetailViewModel.ViewState.Loaded, viewModel.state.value)
-        assertEquals(course, viewModel.course.value)
+        assertEquals(null, viewModel.course.value)
+        assertEquals(0, mockCourseUseCase.getCourseCallCount)
         assertTrue(viewModel.reviews.value.isNotEmpty())
     }
 
@@ -122,6 +131,37 @@ class LectureDetailViewModelTest {
         mockReviewUseCase.writtenReviewsResult = Result.failure(error)
         createViewModel()
         assertEquals(error, (viewModel.state.value as LectureDetailViewModel.ViewState.Error).error)
+    }
+
+    @Test fun `reviews are displayed while user lookup is still pending`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val delayedUser = object : UserUseCaseProtocol by mockUserUseCase {
+            override suspend fun fetchOTLUser() { gate.await() }
+        }
+        createViewModel(users = delayedUser)
+        try {
+            assertEquals(LectureDetailViewModel.ViewState.Loaded, viewModel.state.value)
+            assertTrue(viewModel.reviews.value.isNotEmpty())
+            assertEquals(false, viewModel.canWriteReview.value)
+        } finally {
+            gate.complete(Unit)
+        }
+    }
+
+    @Test fun `slow permission lookup does not delay reviews and its failure does not hide them`() = runTest {
+        val gate = CompletableDeferred<Unit>()
+        val delayedTimetables = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getCurrentSemester(): Semester {
+                gate.await()
+                throw NetworkError.NoConnection()
+            }
+        }
+        createViewModel(timetables = delayedTimetables)
+        assertEquals(LectureDetailViewModel.ViewState.Loaded, viewModel.state.value)
+        gate.complete(Unit)
+        assertEquals(LectureDetailViewModel.ViewState.Loaded, viewModel.state.value)
+        assertTrue(viewModel.reviews.value.isNotEmpty())
+        assertEquals(false, viewModel.canWriteReview.value)
     }
 
     @Test fun cancellationIsNotMappedToNetworkFailure() {

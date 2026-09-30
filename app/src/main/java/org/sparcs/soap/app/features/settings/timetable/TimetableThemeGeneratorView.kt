@@ -41,6 +41,7 @@ import org.sparcs.soap.app.features.settings.timetable.components.ThemePreview
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsAction
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsSectionTitle
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -67,6 +68,7 @@ internal fun TimetableThemeGeneratorView(
 ) {
     BackHandler(onBack = onBack)
     Scaffold(
+        modifier = Modifier.analyticsScreen("TimetableThemeGenerator"),
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.theme_ai_generate),

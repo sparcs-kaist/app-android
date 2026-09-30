@@ -33,6 +33,8 @@ import org.sparcs.soap.app.domain.helpers.TokenStorage
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.helpers.UserStorage
 import org.sparcs.soap.app.domain.helpers.UserStorageProtocol
+import org.sparcs.soap.app.domain.repositories.AppVersionRepository
+import org.sparcs.soap.app.domain.repositories.AppVersionRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.AuthRepository
 import org.sparcs.soap.app.domain.repositories.AuthRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.FCMRepository
@@ -63,6 +65,10 @@ import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepository
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.otl.OTLUserRepository
 import org.sparcs.soap.app.domain.repositories.otl.OTLUserRepositoryProtocol
+import org.sparcs.soap.app.domain.repositories.settings.SettingsRepository
+import org.sparcs.soap.app.domain.repositories.settings.SettingsRepositoryProtocol
+import org.sparcs.soap.app.domain.repositories.settings.TimetableThemeRepository
+import org.sparcs.soap.app.domain.repositories.settings.TimetableThemeRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiChatRepository
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiChatRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiReportRepository
@@ -82,6 +88,8 @@ import org.sparcs.soap.app.domain.usecases.AuthUseCase
 import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.FCMUseCase
 import org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.TimetableThemeUseCase
+import org.sparcs.soap.app.domain.usecases.TimetableThemeUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCase
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCase
@@ -98,6 +106,8 @@ import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCase
 import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCase
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCase
+import org.sparcs.soap.app.domain.usecases.otl.LectureGradeUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.LectureUseCase
 import org.sparcs.soap.app.domain.usecases.otl.LectureUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCase
@@ -514,6 +524,15 @@ abstract class StorageModule {
 abstract class RepositoryModule {
 
     @Binds
+    abstract fun bindTimetableThemeRepository(impl: TimetableThemeRepository): TimetableThemeRepositoryProtocol
+
+    @Binds
+    abstract fun bindSettingsRepository(impl: SettingsRepository): SettingsRepositoryProtocol
+
+    @Binds
+    abstract fun bindAppVersionRepository(impl: AppVersionRepository): AppVersionRepositoryProtocol
+
+    @Binds
     @Singleton
     abstract fun bindTaxiRoomRepository(
         impl: TaxiRoomRepository,
@@ -633,6 +652,14 @@ abstract class RepositoryModule {
 @InstallIn(SingletonComponent::class)
 @Suppress("unused")
 abstract class UseCaseModule {
+
+    @Binds
+    @Singleton
+    abstract fun bindLectureGradeUseCase(impl: LectureGradeUseCase): LectureGradeUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindTimetableThemeUseCase(impl: TimetableThemeUseCase): TimetableThemeUseCaseProtocol
 
     @Binds
     @Singleton

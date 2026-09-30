@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.theme
 
 import android.content.Context
-import androidx.glance.appwidget.updateAll
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,6 +10,7 @@ import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.wearable.WearableDataManager
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidget
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.BuddyUpcomingClassWidget
+import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -47,9 +47,9 @@ class TimetableThemeSync @Inject constructor(
 
     private fun push() {
         scope.launch {
-            runCatching { TimetableWidget().updateAll(context) }
+            runCatching { TimetableWidget().updateInstalledWidgets(context) }
                 .onFailure { Timber.e(it, "Timetable widget theme update failed") }
-            runCatching { BuddyUpcomingClassWidget().updateAll(context) }
+            runCatching { BuddyUpcomingClassWidget().updateInstalledWidgets(context) }
                 .onFailure { Timber.e(it, "Upcoming class widget theme update failed") }
             runCatching { wearableDataManager.resendWithCurrentTheme() }
                 .onFailure { Timber.e(it, "Watch theme update failed") }

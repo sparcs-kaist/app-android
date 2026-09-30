@@ -28,10 +28,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CancellationException
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -42,8 +45,9 @@ fun ActivityCreationRoute(
     model: TimetableViewModelProtocol,
     timetableID: Int,
     activityID: Int?,
-    onClose: () -> Unit,
+    navController: NavController,
 ) {
+    val onClose: () -> Unit = { navController.popBackStack() }
     val selected by model.selectedTimetable.collectAsState()
     val selectedName by model.timetableName.collectAsState()
     val name by rememberSaveable { mutableStateOf(selectedName) }
@@ -70,18 +74,20 @@ fun ActivityCreationRoute(
             onSave = { update(model.saveActivity(timetableID, activityID, it)) },
             onRefresh = { update(model.refreshActivityTable(timetableID)) })
     } else {
-        Scaffold(topBar = {
-            TopAppBar(
-                title = {},
-                navigationIcon = {
-                    IconButton(onClick = onClose) {
-                        Icon(
-                            Icons.Default.Close,
-                            stringResource(R.string.activity_close),
-                            modifier = Modifier.padding(start = 8.dp)
-                        )
-                    }
-                })
+        Scaffold(
+            modifier = Modifier.analyticsScreen("ActivityCreationLoading"),
+            topBar = {
+                TopAppBar(
+                    title = {},
+                    navigationIcon = {
+                        IconButton(onClick = onClose) {
+                            Icon(
+                                Icons.Default.Close,
+                                stringResource(R.string.activity_close),
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    })
         }) { padding ->
             Column(
                 Modifier
@@ -110,7 +116,7 @@ private fun Preview(){
             model = PreviewTimetableViewModel(initialTimetable = Timetable.mock()),
             timetableID = 12,
             activityID = null,
-            onClose = { }
+            navController = rememberNavController()
         )
     }
 }

@@ -60,6 +60,7 @@ import org.sparcs.soap.app.features.settings.timetable.components.ThemePreview
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSectionTitle
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
 import org.sparcs.soap.app.features.settings.timetable.components.rememberPaletteDragState
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -163,6 +164,7 @@ fun TimetableThemeEditor(
     }
 
     Scaffold(
+        modifier = Modifier.analyticsScreen("TimetableThemeEditor"),
         topBar = {
             SettingsViewNavigationBar(
                 title = stringResource(R.string.theme_edit),

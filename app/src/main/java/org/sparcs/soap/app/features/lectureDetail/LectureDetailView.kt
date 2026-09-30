@@ -37,15 +37,12 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.features.lectureDetail.components.LectureDetailNavigationBar
 import org.sparcs.soap.app.features.lectureDetail.components.LectureInformation
-import org.sparcs.soap.app.features.lectureDetail.components.LectureInformationSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviews
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewsSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureSummary
-import org.sparcs.soap.app.features.lectureDetail.components.LectureSummarySkeleton
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureDetailViewModel
@@ -102,22 +99,12 @@ fun LectureDetailView(
                 .padding(paddingValues),
             contentAlignment = Alignment.TopCenter
         ) {
-            if (state is LectureDetailViewModel.ViewState.Error) {
-                val error = (state as LectureDetailViewModel.ViewState.Error).error
-                ErrorView(
-                    defaultMessageResId = R.string.failed_to_load_course,
-                    error = error,
-                    onRetry = { viewModel.fetchReviews(lecture) }
-                )
+            val configuration = LocalConfiguration.current
+            val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+            if (isLandscape) {
+                LectureLandscapeLayout(state, lecture, viewModel, navController, canWriteReview)
             } else {
-                val configuration = LocalConfiguration.current
-                val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-                if (isLandscape) {
-                    LectureLandscapeLayout(state, lecture, viewModel, navController, canWriteReview)
-                } else {
-                    LecturePortraitLayout(state, lecture, viewModel, navController, canWriteReview)
-                }
+                LecturePortraitLayout(state, lecture, viewModel, navController, canWriteReview)
             }
         }
     }
@@ -190,7 +177,7 @@ private fun LectureLandscapeLayout(
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            LectureSummaryAndInfoSection(state, lecture)
+            LectureSummaryAndInfoSection(lecture)
         }
 
         Column(
@@ -222,7 +209,7 @@ private fun LecturePortraitLayout(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        LectureSummaryAndInfoSection(state, lecture)
+        LectureSummaryAndInfoSection(lecture)
         Spacer(modifier = Modifier.height(32.dp))
         LectureReviewSection(state, lecture, viewModel, navController, canWriteReview)
         Spacer(modifier = Modifier.height(40.dp))
@@ -230,16 +217,10 @@ private fun LecturePortraitLayout(
 }
 
 @Composable
-private fun LectureSummaryAndInfoSection(state: LectureDetailViewModel.ViewState, lecture: Lecture) {
-    if (state is LectureDetailViewModel.ViewState.Loading) {
-        LectureSummarySkeleton()
-        Spacer(modifier = Modifier.height(24.dp))
-        LectureInformationSkeleton()
-    } else {
-        LectureSummary(lecture)
-        Spacer(modifier = Modifier.height(24.dp))
-        LectureInformation(lecture)
-    }
+private fun LectureSummaryAndInfoSection(lecture: Lecture) {
+    LectureSummary(lecture)
+    Spacer(modifier = Modifier.height(24.dp))
+    LectureInformation(lecture)
 }
 
 @Composable

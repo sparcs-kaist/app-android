@@ -63,6 +63,8 @@ import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableOfflineStatus
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
 import org.sparcs.soap.app.features.timetable.components.TimetableViewNavigationBar
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModelProtocol
+import org.sparcs.soap.app.features.timetable.creditCalculation.CreditsSummaryCard
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSheet
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -79,9 +81,14 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 fun TimetableView(
     viewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     navController: NavController,
+    creditViewModel: CreditCalculationViewModelProtocol? = null,
 ) {
+    val creditState = creditViewModel?.state?.collectAsState()?.value
     TimetableLifecycleEffect(viewModel)
     val loadState by viewModel.loadState.collectAsState()
+    val creditsContent: @Composable () -> Unit = {
+        creditState?.let { CreditsSummaryCard(it) { navController.navigate(Channel.CreditCalculation.name) } }
+    }
     val scrollState = rememberScrollState()
     var lectureToDelete by remember { mutableStateOf<Lecture?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -131,8 +138,9 @@ fun TimetableView(
                     TimetableViewNavigationBar(
                         scrollState = scrollState,
                         isButtonEnabled = isEditable,
+                        onCreditsClick = { navController.navigate(Channel.CreditCalculation.name) },
                         onClick = { navController.navigate(Channel.CourseCompose.name) },
-                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("ActivityCreation/$it") } }
+                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } }
                     )
                 }
             },
@@ -140,7 +148,10 @@ fun TimetableView(
         ) { innerPadding ->
             PullToRefreshBox(
                 isRefreshing = loadState.isRefreshing,
-                onRefresh = viewModel::fetchData,
+                onRefresh = {
+                    viewModel.fetchData()
+                    creditViewModel?.refresh()
+                },
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.surface)
@@ -159,8 +170,9 @@ fun TimetableView(
                             showDeleteDialog = true
                         },
                         onAddClick = { navController.navigate(Channel.CourseCompose.name) },
-                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("ActivityCreation/$it") } },
-                        isEditable = isEditable
+                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } },
+                        isEditable = isEditable,
+                        creditsContent = creditsContent,
                     )
                 } else {
                     TimetablePortraitLayout(
@@ -174,7 +186,8 @@ fun TimetableView(
                             lectureToDelete = lecture
                             showDeleteDialog = true
                         },
-                        scrollState = scrollState
+                        scrollState = scrollState,
+                        creditsContent = creditsContent,
                     )
                 }
             }
@@ -236,6 +249,7 @@ private fun TimetableLandscapeLayout(
     onAddClick: () -> Unit,
     onActivityClick: () -> Unit,
     isEditable: Boolean,
+    creditsContent: @Composable () -> Unit,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     Column(
@@ -259,6 +273,9 @@ private fun TimetableLandscapeLayout(
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
+                TextButton(onClick = { navController.navigate(Channel.CreditCalculation.name) }) {
+                    Text(stringResource(R.string.credit_calculation))
+                }
                 CompactTimetableSelector(viewModel, timetableName, onShareClick = onShareClick)
                 Spacer(modifier = Modifier.width(12.dp))
                 TimetableAddButton(
@@ -311,7 +328,7 @@ private fun TimetableLandscapeLayout(
                                     navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                                 },
                                 showDeleteDialog = onDeleteClick,
-                                    onEditActivity = { navController.navigate("ActivityCreation/${selectedTimetable?.id}?activityId=${it.id}") }
+                                    onEditActivity = { navController.navigate("${Channel.ActivityCreation.name}/${selectedTimetable?.id}?activityId=${it.id}") }
                             )
                         }
                     }
@@ -347,13 +364,14 @@ private fun TimetableLandscapeLayout(
                         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
                             ActivityList(
                                 activities = table.activities, viewModel = viewModel,
-                                onEdit = { navController.navigate("ActivityCreation/${table.id}?activityId=${it.id}") }
+                                onEdit = { navController.navigate("${Channel.ActivityCreation.name}/${table.id}?activityId=${it.id}") }
                             )
                         }
 
                         selectedTimetable?.let { TimetableCreditGraph(it) }
 
                         TimetableSummary(viewModel)
+                        creditsContent()
                     }
                 }
             }
@@ -371,6 +389,7 @@ private fun TimetablePortraitLayout(
     navController: NavController,
     onDeleteClick: (Lecture) -> Unit,
     scrollState: ScrollState,
+    creditsContent: @Composable () -> Unit,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     Column(
@@ -413,7 +432,7 @@ private fun TimetablePortraitLayout(
                         navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                     },
                     showDeleteDialog = onDeleteClick,
-                                    onEditActivity = { navController.navigate("ActivityCreation/${selectedTimetable?.id}?activityId=${it.id}") }
+                                    onEditActivity = { navController.navigate("${Channel.ActivityCreation.name}/${selectedTimetable?.id}?activityId=${it.id}") }
                 )
             }
         }
@@ -441,13 +460,14 @@ private fun TimetablePortraitLayout(
         selectedTimetable?.takeIf { it.id.toIntOrNull() != null }?.let { table ->
             ActivityList(
                 activities = table.activities, viewModel = viewModel,
-                onEdit = { navController.navigate("ActivityCreation/${table.id}?activityId=${it.id}") }
+                onEdit = { navController.navigate("${Channel.ActivityCreation.name}/${table.id}?activityId=${it.id}") }
             )
         }
 
         selectedTimetable?.let { TimetableCreditGraph(it) }
 
         TimetableSummary(viewModel)
+        creditsContent()
     }
 }
 

@@ -78,6 +78,7 @@ import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.components.TimetableGridCell
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import kotlin.math.roundToInt
 
@@ -157,7 +158,9 @@ fun ActivityTimetableCreationView(
             scroll.scrollBy(speed * minutePx * 240 * seconds)
         }
     }
-    Scaffold(topBar = {
+    Scaffold(
+        modifier = Modifier.analyticsScreen("ActivityTimetableCreation"),
+        topBar = {
         TopAppBar(title = {}, navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(

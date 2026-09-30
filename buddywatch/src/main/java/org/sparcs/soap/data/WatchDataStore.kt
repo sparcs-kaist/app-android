@@ -12,13 +12,31 @@ val Context.dataStore by preferencesDataStore(name = "watch_data")
 
 class WatchDataStore(private val context: Context) {
     companion object {
+        private val CREDIT_SUMMARY_KEY = stringPreferencesKey("credit_summary_json")
         private val TIMETABLE_JSON_KEY = stringPreferencesKey("timetable_json")
+        private val CURRENT_SEMESTER_JSON_KEY = stringPreferencesKey("current_semester_json")
         private val SEMESTER_JSON_KEY = stringPreferencesKey("semester_json")
         private val VIEW_OPTION_KEY = stringPreferencesKey("lecture_view_option")
     }
 
+    val creditSummaryJsonFlow: Flow<String?> = context.dataStore.data.map { it[CREDIT_SUMMARY_KEY] }
+
+    suspend fun saveCreditSummaryJson(json: String?) {
+        context.dataStore.edit {
+            if (json.isNullOrBlank()) it.remove(CREDIT_SUMMARY_KEY) else it[CREDIT_SUMMARY_KEY] = json
+        }
+    }
+
     val timetableJsonFlow: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[TIMETABLE_JSON_KEY]
+    }
+
+    val currentSemesterJsonFlow: Flow<String?> = context.dataStore.data.map { it[CURRENT_SEMESTER_JSON_KEY] }
+
+    suspend fun saveCurrentSemesterJson(json: String?) {
+        context.dataStore.edit {
+            if (json == null) it.remove(CURRENT_SEMESTER_JSON_KEY) else it[CURRENT_SEMESTER_JSON_KEY] = json
+        }
     }
 
     val semesterJsonFlow: Flow<String?> = context.dataStore.data.map { preferences ->
