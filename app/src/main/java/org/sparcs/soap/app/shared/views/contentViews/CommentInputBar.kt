@@ -112,8 +112,8 @@ fun CommentInputBar(
                             if (value.isEmpty()) {
                                 Text(
                                     text = placeholder,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                    style = MaterialTheme.typography.bodyMedium,
                                     overflow = TextOverflow.Ellipsis,
                                     maxLines = 1,
                                 )
