@@ -4,7 +4,8 @@ import org.sparcs.soap.BuildConfig
 
 object Constants {
     // MARK: Authorization
-    const val AUTHORIZATION_URL = "https://${BuildConfig.TAXI_HOST}/api/auth/sparcsapp/login?codeChallenge="
+    val authorizationURL: String
+        get() = "${FEED_BACKEND_URL}auth/sso?client=buddyandroid"
 
     // MARK: Terms
     const val PRIVACY_POLICY_URL = "https://github.com/sparcs-kaist/privacy/blob/main/Privacy.md"
@@ -185,7 +186,7 @@ object Constants {
         "함께하는 드라이브",
         "동승, 우리의 이야기",
         "택시가 좋아요",
-        "길 위의 소중한 동료",
+        "길 위의 소소한 동료",
         "여정 속의 동반자",
         "분주한 일상의 동행",
         "동승, 간직할 순간",
