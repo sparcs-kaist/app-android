@@ -21,7 +21,6 @@ import org.sparcs.soap.app.shared.extensions.sha256
 import timber.log.Timber
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import java.nio.charset.StandardCharsets
 import java.security.SecureRandom
 import java.util.Base64
 import javax.inject.Inject
@@ -58,23 +57,29 @@ class AuthenticationService @Inject constructor(
     private val authRepository: AuthRepositoryProtocol,
 ) : AuthenticationServiceProtocol {
 
-    private fun generateCodeVerifier(): String {
+    private fun generateState(): String {
         val sr = SecureRandom()
-        val code = ByteArray(32)
-        sr.nextBytes(code)
-        return Base64.getUrlEncoder().withoutPadding().encodeToString(code)
+        val bytes = ByteArray(16)
+        sr.nextBytes(bytes)
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
     }
 
-    private fun generateCodeChallenge(codeVerifier: String): String {
-        return codeVerifier.toByteArray(StandardCharsets.UTF_8).sha256().base64UrlEncodedString()
+    private fun generateVerifierBytes(): ByteArray {
+        val sr = SecureRandom()
+        val bytes = ByteArray(32)
+        sr.nextBytes(bytes)
+        return bytes
     }
 
     override suspend fun authenticate(activity: ComponentActivity): SignInResponseDTO =
         suspendCancellableCoroutine { continuation ->
 
-            val codeVerifier = generateCodeVerifier()
-            val codeChallenge = generateCodeChallenge(codeVerifier)
-            val authURL = Constants.AUTHORIZATION_URL + codeChallenge
+            val state = generateState()
+            val verifierBytes = generateVerifierBytes()
+            val codeVerifier = Base64.getUrlEncoder().withoutPadding().encodeToString(verifierBytes)
+            val challenge = verifierBytes.sha256().base64UrlEncodedString()
+
+            val authURL = "${Constants.authorizationURL}&state=$state&challenge=$challenge"
 
             var isAuthProcessing = false
             var isBrowserLaunched = false
@@ -103,7 +108,9 @@ class AuthenticationService @Inject constructor(
                     isAuthProcessing = true
 
                     val session = uri.getQueryParameter("session")
-                    if (!session.isNullOrEmpty()) {
+                    val returnedState = uri.getQueryParameter("state")
+
+                    if (!session.isNullOrEmpty() && returnedState == state) {
                         CoroutineScope(Dispatchers.IO).launch {
                             try {
                                 val tokenResponse =
@@ -121,6 +128,7 @@ class AuthenticationService @Inject constructor(
                             }
                         }
                     } else {
+                        Timber.e("Invalid callback URI or state mismatch. session=$session, returnedState=$returnedState, expectedState=$state")
                         continuation.resumeWithException(AuthenticationServiceError.InvalidCallbackURL())
                         AuthenticationCallbackHandler.clearCallback()
                     }
