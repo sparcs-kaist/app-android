@@ -1,0 +1,26 @@
+<resources>
+    <string name="course_history">개설 이력</string>
+    <string name="course_offered_count">%1$d회 개설</string>
+    <string name="course_taken">수강함</string>
+    <string name="course_your_section">내가 수강한 분반</string>
+    <string name="course_all_professors">모든 교수</string>
+    <string name="view_course">과목 보기</string>
+    <string name="interested_departments">관심 학과</string>
+    <string name="other_departments">다른 학과</string>
+    <string name="interested_departments_description">관심 학과는 과목 검색 필터에서 먼저 표시됩니다.</string>
+    <string name="department_search">학과 검색</string>
+    <string name="department_load_failed">학과를 불러오지 못했습니다.</string>
+    <string name="department_save_load_failed">학과를 불러오거나 저장하지 못했습니다. 다시 시도해 주세요.</string>
+    <string name="lecture_time_filter">수업 시간</string>
+    <string name="lecture_time_any">전체</string>
+    <string name="lecture_time_begin">시작 시간</string>
+    <string name="lecture_time_end">종료 시간</string>
+    <string name="lecture_in_timetable">시간표에 있음</string>
+    <string name="lecture_conflicts">%1$s와(과) 시간이 겹침</string>
+    <string name="lecture_no_time">수업 시간 없음</string>
+    <string name="lecture_enrollment">정원 %2$d명 중 %1$d명 신청</string>
+    <string name="lecture_load_more">더 보기</string>
+    <string name="filter_within_2years">2년 이내</string>
+    <string name="lecture_no_ratings">아직 평가 없음</string>
+    <string name="course_reviews_load_failed">후기를 불러오지 못했습니다.</string>
+</resources>
