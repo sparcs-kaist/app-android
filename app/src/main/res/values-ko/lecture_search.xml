@@ -18,7 +18,7 @@
     <string name="lecture_in_timetable">시간표에 있음</string>
     <string name="lecture_conflicts">%1$s와(과) 시간이 겹침</string>
     <string name="lecture_no_time">수업 시간 없음</string>
-    <string name="lecture_enrollment">정원 %2$d명 중 %1$d명 신청</string>
+    <string name="lecture_enrollment">%2$d / %1$d</string>
     <string name="lecture_load_more">더 보기</string>
     <string name="filter_within_2years">2년 이내</string>
     <string name="lecture_no_ratings">아직 평가 없음</string>

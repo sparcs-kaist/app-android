@@ -772,7 +772,7 @@
     <string name="lecture_in_timetable">In your timetable</string>
     <string name="lecture_conflicts">Overlaps with %1$s</string>
     <string name="lecture_no_time">No class time</string>
-    <string name="lecture_enrollment">%1$d of %2$d enrolled</string>
+    <string name="lecture_enrollment">%2$d / %1$d</string>
     <string name="lecture_load_more">Load more</string>
     <string name="filter_within_2years">Within 2 years</string>
     <string name="lecture_no_ratings">No ratings yet</string>
