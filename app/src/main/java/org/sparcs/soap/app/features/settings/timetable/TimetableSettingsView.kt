@@ -1,6 +1,8 @@
 package org.sparcs.soap.app.features.settings.timetable
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,30 +11,25 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
@@ -45,21 +42,14 @@ import org.sparcs.soap.app.features.settings.taxi.NavigationLinkWithIcon
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
-import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimetableSettingsView(
     navController: NavController,
-    viewModel: TimetableSettingsViewModelProtocol = hiltViewModel<TimetableSettingsViewModel>(),
 ) {
-    val state by viewModel.state.collectAsState()
     val topBarScrollBehavior = landscapeHideOnScrollBehavior()
-
-    LaunchedEffect(Unit) {
-        viewModel.fetchDepartments()
-    }
 
     Scaffold(
         topBar = {
@@ -73,7 +63,6 @@ fun TimetableSettingsView(
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen("Timetable Settings")
     ) { innerPadding ->
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -87,56 +76,11 @@ fun TimetableSettingsView(
                     .widthIn(max = 600.dp)
                     .padding(horizontal = 20.dp, vertical = 8.dp)
             ) {
-                when (val s = state) {
-                    is TimetableSettingsViewModel.ViewState.Loading -> {
-                        item { LoadingView() }
-                    }
-                    is TimetableSettingsViewModel.ViewState.Error -> {
-                        item {
-                            ErrorView(
-                                error = s.error,
-                                defaultMessageResId = s.resId ?: R.string.error,
-                                onRetry = { viewModel.fetchDepartments() }
-                            )
-                        }
-                    }
-                    is TimetableSettingsViewModel.ViewState.Loaded -> {
-                        item {
-                            LoadedView(navController = navController)
-                        }
-                    }
+                item {
+                    LoadedView(navController = navController)
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun LoadingView() {
-    Column {
-        Text(
-            text = stringResource(R.string.adding_lectures),
-            style = MaterialTheme.typography.titleMedium
-        )
-        Spacer(Modifier.height(12.dp))
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 8.dp)
-        ) {
-            RadioButton(selected = true, onClick = null, enabled = false)
-            Spacer(Modifier.width(12.dp))
-            Text(
-                text = stringResource(R.string.lecture_search_full_screen),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-            )
-        }
-        Spacer(Modifier.height(24.dp))
-        Text(
-            text = stringResource(R.string.interested_departments),
-            style = MaterialTheme.typography.titleMedium
-        )
-        Spacer(Modifier.height(12.dp))
     }
 }
 
@@ -156,27 +100,19 @@ private fun LoadedView(
 
         Spacer(Modifier.height(12.dp))
 
-        LectureSearchStyle.entries.forEach { option ->
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .selectable(
-                        selected = style == option,
-                        role = Role.RadioButton,
-                        onClick = { store.lectureSearchStyle = option }
-                    )
-                    .padding(vertical = 10.dp, horizontal = 4.dp)
-            ) {
-                RadioButton(
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            LectureSearchStyle.entries.forEach { option ->
+                SearchStylePreviewCard(
+                    modifier = Modifier.weight(1f),
                     selected = style == option,
-                    onClick = null
-                )
-                Spacer(Modifier.width(12.dp))
-                Text(
-                    text = stringResource(option.titleRes),
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                    title = stringResource(option.titleRes),
+                    onClick = { store.lectureSearchStyle = option }
+                ) {
+                    SearchStylePreview(option)
+                }
             }
         }
 
@@ -196,6 +132,111 @@ private fun LoadedView(
             text = stringResource(R.string.interested_departments),
             icon = Icons.Outlined.School
         )
+    }
+}
+
+@Composable
+private fun SearchStylePreviewCard(
+    modifier: Modifier = Modifier,
+    selected: Boolean,
+    title: String,
+    onClick: () -> Unit,
+    preview: @Composable () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.background,
+        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(96.dp)
+            ) {
+                preview()
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchStylePreview(style: LectureSearchStyle) {
+    when (style) {
+        LectureSearchStyle.Sheet -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(18.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {}
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(18.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                ) {}
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                ) {}
+            }
+        }
+
+        LectureSearchStyle.FullScreen -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(20.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant
+                ) {}
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(28.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                ) {}
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(30.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                ) {}
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(10.dp),
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                ) {}
+            }
+        }
     }
 }
 
