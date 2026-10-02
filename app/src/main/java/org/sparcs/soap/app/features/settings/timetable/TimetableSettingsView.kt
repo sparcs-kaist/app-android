@@ -147,8 +147,8 @@ private fun SearchStylePreviewCard(
         onClick = onClick,
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.background,
-        border = if (selected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        color = if(selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.background,
+        border = if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
     ) {
         Column(
             modifier = Modifier.padding(12.dp),

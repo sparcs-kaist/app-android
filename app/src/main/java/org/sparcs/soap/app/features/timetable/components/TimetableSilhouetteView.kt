@@ -17,7 +17,11 @@ import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
-fun TimetableSilhouetteView(timetable: Timetable?, modifier: Modifier = Modifier) {
+fun TimetableSilhouetteView(
+    timetable: Timetable?,
+    modifier: Modifier = Modifier,
+    candidateLectureID: Int? = null,
+) {
     val theme = LocalTimetableTheme.current
     val track = theme.gridLabelColor?.copy(alpha = 0.15f)
         ?: MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
@@ -37,15 +41,33 @@ fun TimetableSilhouetteView(timetable: Timetable?, modifier: Modifier = Modifier
             drawRoundRect(track, Offset(x, 0f), Size(width, size.height), radius)
             timetable?.getLectures(day, null).orEmpty().forEach { item ->
                 val top = (item.lectureClass.begin - begin).toFloat() / duration * size.height
-                val rawHeight = (item.lectureClass.end - item.lectureClass.begin).toFloat() / duration * size.height
+                val rawHeight =
+                    (item.lectureClass.end - item.lectureClass.begin).toFloat() / duration * size.height
                 val height = (rawHeight - blockGap).coerceAtLeast(1f)
-                if (rawHeight > 0) drawRoundRect(theme.colorFor(item.lecture.courseID), Offset(x, top), Size(width, height), radius)
+                if (rawHeight > 0) {
+                    if (item.lecture.id == candidateLectureID) drawTentativeBlock(
+                        theme.colorFor(
+                            item.lecture.courseID
+                        ), Offset(x, top), Size(width, height), showsStripes = false
+                    )
+                    else drawRoundRect(
+                        theme.colorFor(item.lecture.courseID),
+                        Offset(x, top),
+                        Size(width, height),
+                        radius
+                    )
+                }
             }
             activities.filter { it.day == day.value }.forEach { activity ->
                 val top = (activity.begin - begin).toFloat() / duration * size.height
                 val rawHeight = (activity.end - activity.begin).toFloat() / duration * size.height
                 val height = (rawHeight - blockGap).coerceAtLeast(1f)
-                if (rawHeight > 0) drawRoundRect(theme.colorFor(activity.id), Offset(x, top), Size(width, height), radius)
+                if (rawHeight > 0) drawRoundRect(
+                    theme.colorFor(activity.id),
+                    Offset(x, top),
+                    Size(width, height),
+                    radius
+                )
             }
         }
     }
