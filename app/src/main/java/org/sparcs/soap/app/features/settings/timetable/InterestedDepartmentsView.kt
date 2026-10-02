@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,7 +16,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -32,6 +30,7 @@ import androidx.navigation.NavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.views.contentViews.DepartmentSelectionSections
+import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -97,15 +96,11 @@ private fun InterestedDepartmentsContent(
                 }
 
                 is TimetableSettingsViewModel.ViewState.Error -> {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(stringResource(R.string.department_save_load_failed))
-                        Spacer(modifier = Modifier.height(8.dp))
-                        TextButton(onClick = onRetry) { Text(stringResource(R.string.retry)) }
-                    }
+                    ErrorView(
+                        defaultMessageResId = R.string.department_save_load_failed,
+                        error = state.error,
+                        onRetry = onRetry,
+                    )
                 }
 
                 is TimetableSettingsViewModel.ViewState.Loaded -> {
