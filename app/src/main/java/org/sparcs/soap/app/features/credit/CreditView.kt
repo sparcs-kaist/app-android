@@ -53,7 +53,7 @@ val MEMBER_LIST = listOf(
     CreditMember("장승혁", "hyuk", listOf("PM", "Backend")),
     CreditMember("윤인하", "amet", listOf("Android")),
     CreditMember("하정우", "thread", listOf("PM", "iOS")),
-    CreditMember("박현우", "namu", listOf("Android")),
+    CreditMember("박현우", "namu", listOf("Android", "Frontend")),
     CreditMember("이준엽", "orca", listOf("iOS")),
     CreditMember("김우현", "dreamer", listOf("Android")),
     CreditMember("김민찬", "static", listOf("Backend", "iOS")),
@@ -64,6 +64,9 @@ val MEMBER_LIST = listOf(
     CreditMember("김희진", "gimme", listOf("Design")),
     CreditMember("양채빈", "yatcha", listOf("Design")),
     CreditMember("임가은", "casio", listOf("Frontend")),
+    CreditMember("최현우", "woo", listOf("iOS")),
+    CreditMember("김요한", "flball", listOf("Backend")),
+
 )
 
 val CATEGORIES = listOf("PM", "iOS", "Android", "Backend", "Frontend", "Design")
