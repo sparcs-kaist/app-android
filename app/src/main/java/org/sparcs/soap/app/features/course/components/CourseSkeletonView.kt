@@ -200,7 +200,7 @@ private fun Preview() {
 fun CourseHistorySkeleton() {
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         repeat(3) {
-            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.surfaceContainer) {
+            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.background) {
                 Column(Modifier.width(190.dp).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     repeat(3) {
                         Box(Modifier.width(if (it == 0) 90.dp else 140.dp).height(18.dp)
