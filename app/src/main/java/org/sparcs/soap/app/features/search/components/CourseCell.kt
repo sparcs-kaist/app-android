@@ -18,10 +18,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
@@ -63,6 +65,10 @@ fun CourseCell(
                 )
             }
 
+        }
+
+        if (course.completed) {
+            Text(stringResource(R.string.course_taken), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
         }
 
         if (course.summary.isNotEmpty()) {

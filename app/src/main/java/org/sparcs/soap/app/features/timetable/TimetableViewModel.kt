@@ -503,14 +503,14 @@ class TimetableViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val table = timetableUseCase.getTable(tableId, forceRefresh = true)
+                if (table.contains(lecture)) return@launch
                 if (table.activities.any { block -> lecture.classes.any { it.day.value == block.day && it.begin < block.end && it.end > block.begin } }) {
                     alertMessageRes = R.string.activity_conflict
                     showAlert = true
                     return@launch
                 }
-                if (table.hasCollision(lecture) == true) {
-                    val collisions = table.lectures.filter { table.hasCollision(lecture) && table.hasCollisions(lecture, it) }
-
+                if (table.hasCollision(lecture)) {
+                    val collisions = table.lectures.filter { table.hasCollisions(lecture, it) }
                     collisions.forEach { overlapping ->
                         timetableUseCase.deleteLecture(tableId, overlapping.id)
                     }

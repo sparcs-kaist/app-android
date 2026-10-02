@@ -85,6 +85,8 @@ import org.sparcs.soap.app.features.settings.taxi.TaxiReportListView
 import org.sparcs.soap.app.features.settings.taxi.TaxiReportListViewModel
 import org.sparcs.soap.app.features.settings.taxi.TaxiSettingsView
 import org.sparcs.soap.app.features.settings.taxi.TaxiSettingsViewModel
+import org.sparcs.soap.app.features.settings.timetable.InterestedDepartmentsView
+import org.sparcs.soap.app.features.settings.timetable.TimetableSettingsView
 import org.sparcs.soap.app.features.settings.timetable.TimetableThemeSettingsView
 import org.sparcs.soap.app.features.signIn.SignInView
 import org.sparcs.soap.app.features.signIn.SignInViewModel
@@ -153,6 +155,8 @@ enum class Channel(@param:StringRes val title: Int) {
     NotificationSettings(title = R.string.notifications_title),
     CreditView(title = R.string.acknowledgements),
     FeedSettings(title = R.string.feed_settings),
+    TimetableSettings(title = R.string.timetable),
+    InterestedDepartments(title = R.string.interested_departments),
     TimetableThemeSettings(title = R.string.timetable_theme),
     AraSettings(title = R.string.ara_settings),
     AraMyPostSettings(title = R.string.ara_my_post_settings),
@@ -802,6 +806,10 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                             settingsViewModel = viewModel
                         )
                     }
+
+                    composable(Channel.TimetableSettings.name) { TimetableSettingsView(navController) }
+                    composable(Channel.InterestedDepartments.name) { InterestedDepartmentsView(navController) }
+
 
                     composable(
                         route = Channel.TimetableThemeSettings.name,

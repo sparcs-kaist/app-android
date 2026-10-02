@@ -51,6 +51,7 @@ import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.search.components.CoursePaginationFooter
 import org.sparcs.soap.app.features.search.components.CourseSection
 import org.sparcs.soap.app.features.search.components.PostSection
 import org.sparcs.soap.app.features.search.components.SearchFilterRow
@@ -268,6 +269,7 @@ private fun SearchResultContent(
     coroutineScope: CoroutineScope,
     onTaxiClick: (TaxiRoom) -> Unit
 ) {
+    val searchScope by viewModel.searchScope.collectAsState()
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -280,7 +282,7 @@ private fun SearchResultContent(
                 )
             }
 
-            searchText.isEmpty() && courseFilterState.isEmpty() -> {
+            searchText.isBlank() && (searchScope != SearchScope.Courses || courseFilterState.isEmpty()) -> {
                 UnavailableView(
                     icon = Icons.Rounded.Search,
                     title = stringResource(R.string.search_anything),
@@ -305,6 +307,9 @@ fun ResultView(
     navController: NavController,
     onTaxiClick: (TaxiRoom) -> Unit,
 ) {
+    val hasMoreCourses by viewModel.hasMoreCourses.collectAsState()
+    val isLoadingMoreCourses by viewModel.isLoadingMoreCourses.collectAsState()
+    val coursePageError by viewModel.coursePageError.collectAsState()
     val courses by viewModel.courses.collectAsState()
     val posts by viewModel.posts.collectAsState()
     val rooms by viewModel.taxiRooms.collectAsState()
@@ -336,6 +341,9 @@ fun ResultView(
                     navController = navController,
                     isSkeleton = state == SearchViewModel.ViewState.Loading
                 )
+            }
+            item {
+                CoursePaginationFooter(hasMoreCourses, isLoadingMoreCourses, coursePageError, courses.size, viewModel::loadCoursesNextPage)
             }
         }
 

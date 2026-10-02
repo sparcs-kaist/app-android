@@ -50,6 +50,12 @@ fun CategoryFilterContent(
     onFilterChange: (CourseFilterState) -> Unit,
     options: List<CourseFilterOption>,
 ) {
+    if (category == CourseFilterCategory.Department) {
+        DepartmentPicker(selectedFilters.departments.mapNotNull { it.toIntOrNull() }.toSet()) { ids ->
+            onFilterChange(selectedFilters.copy(departments = ids.map { it.toString() }))
+        }
+        return
+    }
     val selectedCount = when (category) {
         CourseFilterCategory.Classification -> selectedFilters.classifications.size
         CourseFilterCategory.Department -> selectedFilters.departments.size
@@ -203,7 +209,7 @@ private fun TagChip(
 private fun Preview() {
     Theme {
         CategoryFilterContent(
-            category = CourseFilterCategory.Department,
+            category = CourseFilterCategory.Classification,
             selectedFilters = CourseFilterState(
                 departments = listOf("9945", "833")
             ),

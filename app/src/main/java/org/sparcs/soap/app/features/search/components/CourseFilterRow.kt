@@ -41,7 +41,8 @@ fun CourseFilterRow(
     courseFilterState: CourseFilterState,
     onCategoryClick: (CourseFilterCategory) -> Unit,
     onResetFilters: () -> Unit,
-    showLeadingDivider: Boolean = true
+    showLeadingDivider: Boolean = true,
+    showPeriod: Boolean = true
 ) {
     val isAnyFilterSelected = !courseFilterState.isEmpty()
 
@@ -51,7 +52,7 @@ fun CourseFilterRow(
     ) {
         Icon(
             imageVector = Icons.Outlined.FilterAlt,
-            contentDescription = "Filter",
+            contentDescription = stringResource(R.string.filter_reset),
             modifier = Modifier.padding(start = 4.dp, end = 8.dp).size(20.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
@@ -90,7 +91,7 @@ fun CourseFilterRow(
             )
         }
 
-        CourseFilterCategory.entries.forEach { category ->
+        CourseFilterCategory.entries.filter { showPeriod || it != CourseFilterCategory.Period }.forEach { category ->
             val selectedOptionIds = when (category) {
                 CourseFilterCategory.Classification -> courseFilterState.classifications
                 CourseFilterCategory.Department -> courseFilterState.departments

@@ -8,5 +8,6 @@ data class LectureSearchRequest(
     val type: List<String>? = null,
     val department: List<String>? = null,
     val level: List<String>? = null,
-    val term: String? = null
+    val term: String? = null,
+    val time: LectureTimeFilter = LectureTimeFilter()
 )

@@ -17,8 +17,7 @@ object CourseFilterProvider {
                 CourseFilterOption("HSE", stringResource(R.string.filter_humanities)),
                 CourseFilterOption("GR", stringResource(R.string.filter_common)),
                 CourseFilterOption("EG", stringResource(R.string.filter_graduate)),
-                CourseFilterOption("OE", stringResource(R.string.filter_other_elective)),
-                CourseFilterOption("ETC", stringResource(R.string.filter_etc))
+                CourseFilterOption("OE", stringResource(R.string.filter_other_elective))
             )
 
             CourseFilterCategory.Department -> listOf(
@@ -53,6 +52,7 @@ object CourseFilterProvider {
             CourseFilterCategory.Period -> listOf(
                 CourseFilterOption("0", stringResource(R.string.filter_this_semester)),
                 CourseFilterOption("1", stringResource(R.string.filter_within_1year)),
+                CourseFilterOption("2", stringResource(R.string.filter_within_2years)),
                 CourseFilterOption("3", stringResource(R.string.filter_within_3years))
             )
         }
