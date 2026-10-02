@@ -398,9 +398,13 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         popEnterTransition = null,
                         popExitTransition = trendingPopExitTransition()
                     ) { entry ->
-                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val parentEntry =
+                            remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
-                        CreditCalculationView(navController = navController, viewModel = creditViewModel)
+                        CreditCalculationView(
+                            navController = navController,
+                            viewModel = creditViewModel
+                        )
                     }
 
                     composable(
@@ -411,7 +415,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         popEnterTransition = null,
                         popExitTransition = trendingPopExitTransition()
                     ) { entry ->
-                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val parentEntry =
+                            remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
                         GradeEntryRoute(
                             semesterId = requireNotNull(entry.arguments?.getString("semesterId")),
@@ -427,7 +432,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         popEnterTransition = null,
                         popExitTransition = trendingPopExitTransition()
                     ) { entry ->
-                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val parentEntry =
+                            remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val creditViewModel: CreditCalculationViewModel = hiltViewModel(parentEntry)
                         CreditRequirementsView(
                             viewModel = creditViewModel,
@@ -446,7 +452,8 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         popEnterTransition = null,
                         popExitTransition = trendingPopExitTransition()
                     ) { entry ->
-                        val parentEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                        val parentEntry =
+                            remember(entry) { navController.getBackStackEntry("OTLGraph") }
                         val model: TimetableViewModel = hiltViewModel(parentEntry)
                         ActivityCreationRoute(
                             model, entry.arguments!!.getInt("timetableId"),
@@ -807,8 +814,25 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         )
                     }
 
-                    composable(Channel.TimetableSettings.name) { TimetableSettingsView(navController) }
-                    composable(Channel.InterestedDepartments.name) { InterestedDepartmentsView(navController) }
+                    composable(
+                        route = Channel.TimetableSettings.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()) {
+                        TimetableSettingsView(navController)
+                    }
+                    composable(
+                        route = Channel.InterestedDepartments.name,
+                        enterTransition = trendingEnterTransition(),
+                        exitTransition = trendingExitTransition(),
+                        popEnterTransition = null,
+                        popExitTransition = trendingPopExitTransition()
+                    ) {
+                        InterestedDepartmentsView(
+                            navController
+                        )
+                    }
 
 
                     composable(

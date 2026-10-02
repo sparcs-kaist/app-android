@@ -185,6 +185,18 @@ fun SettingsView(
                     ) { navController.navigate(Channel.AraSettings.name) }
 
                     ServiceNavButton(
+                        text = stringResource(R.string.otl),
+                        icon = {
+                            Icon(
+                                painterResource(R.drawable.otl_logo),
+                                null,
+                                tint = Color.Unspecified
+                            )
+                        }) {
+                        navController.navigate(Channel.TimetableSettings.name)
+                    }
+
+                    ServiceNavButton(
                         text = stringResource(R.string.taxi),
                         icon = {
                             Icon(
