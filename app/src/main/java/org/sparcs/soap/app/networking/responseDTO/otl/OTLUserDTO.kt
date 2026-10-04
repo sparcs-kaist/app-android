@@ -16,14 +16,16 @@ data class OTLUserDTO(
     @SerializedName("studentNumber")
     val studentNumber: Int,
 
+    // Nullable on the server (`string | null`); Gson ignores Kotlin
+    // non-null types, so a null here used to crash `toModel()`.
     @SerializedName("degree")
-    val degree: String,
+    val degree: String?,
 
     @SerializedName("majorDepartments")
-    val majorDepartments: List<DepartmentDTO>,
+    val majorDepartments: List<DepartmentDTO>?,
 
     @SerializedName("interestedDepartments")
-    val interestedDepartments: List<DepartmentDTO>,
+    val interestedDepartments: List<DepartmentDTO>?,
 ) {
     fun toModel(): OTLUser = OTLUser(
         id = id,
@@ -31,7 +33,7 @@ data class OTLUserDTO(
         email = email,
         studentNumber = studentNumber,
         degree = degree,
-        majorDepartments = majorDepartments.map { it.toModel() },
-        interestedDepartments = interestedDepartments.map { it.toModel() }
+        majorDepartments = majorDepartments.orEmpty().map { it.toModel() },
+        interestedDepartments = interestedDepartments.orEmpty().map { it.toModel() }
     )
 }

@@ -5,7 +5,8 @@ data class OTLUser(
     val name: String,
     val email: String,
     val studentNumber: Int,
-    val degree: String,
+    /** `null` when OTL has no degree on record. */
+    val degree: String?,
     val majorDepartments: List<Department>,
     val interestedDepartments: List<Department>
 ){
