@@ -6,6 +6,8 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
@@ -76,6 +78,7 @@ import org.sparcs.soap.app.shared.mocks.nearby.mockList
 import org.sparcs.soap.app.theme.ui.DarkColorScheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.friends.PreviewFriendsListViewModel
+import org.sparcs.soap.buddyPreviewSupport.nearby.previewNearbyFriendsViewModel
 import timber.log.Timber
 
 /**
@@ -88,7 +91,7 @@ fun AddFriendsRoute(
     friendsViewModel: FriendsListViewModelProtocol,
     onClose: () -> Unit,
     nearbyViewModel: NearbyFriendsViewModel = hiltViewModel(),
-    isNearbyEnabled: Boolean = NearbyFriendsViewModel.isFeatureEnabled,
+    isNearbyEnabled: Boolean = true,
 ) {
     val context = LocalContext.current
     val nearbyState by nearbyViewModel.viewState.collectAsState()
@@ -96,8 +99,24 @@ fun AddFriendsRoute(
     val isMyCodeUnavailable by friendsViewModel.isMyCodeUnavailable.collectAsState()
     val isAddingFriend by friendsViewModel.isAddingFriend.collectAsState()
 
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { results ->
+        val granted = results.isNotEmpty() && results.values.all { it }
+        // Once denied for good the system stops prompting, leaving only Settings.
+        val activity = context.findActivity()
+        val canAskAgain = granted || activity == null || nearbyViewModel.requiredPermissions.any {
+            activity.shouldShowRequestPermissionRationale(it)
+        }
+        nearbyViewModel.onPermissionsResult(granted, canAskAgain)
+    }
+
     if (isNearbyEnabled) {
-        NearbyDiscoveryEffect(isScanning = nearbyState.isScanning, run = nearbyViewModel::runDiscovery)
+        NearbyDiscoveryEffect(run = nearbyViewModel::runDiscovery)
+        // A friendship made nearby should show up on the list right away.
+        LaunchedEffect(nearbyViewModel) {
+            nearbyViewModel.friendAdded.collect { friendsViewModel.refresh() }
+        }
     }
 
     AddFriendsView(
@@ -107,7 +126,7 @@ fun AddFriendsRoute(
         isMyCodeUnavailable = isMyCodeUnavailable,
         isAddingFriend = isAddingFriend,
         onClose = onClose,
-        onGrantPermission = nearbyViewModel::grantPermission,
+        onGrantPermission = { permissionLauncher.launch(nearbyViewModel.requiredPermissions) },
         onOpenSettings = { reason -> context.openSettings(reason) },
         onTapPeer = nearbyViewModel::tap,
         onAcceptPeer = nearbyViewModel::accept,
@@ -117,14 +136,14 @@ fun AddFriendsRoute(
 }
 
 /**
- * Discovery runs only while the screen is at least STARTED and stops when it
- * goes to the background, as BLE scanning and advertising will need to.
+ * Discovery runs only while the screen is at least STARTED: Bluetooth
+ * advertising and scanning stop when it goes to the background, and coming
+ * back re-checks the permission and adapter (e.g. after Settings).
  */
 @Composable
-private fun NearbyDiscoveryEffect(isScanning: Boolean, run: suspend () -> Unit) {
+private fun NearbyDiscoveryEffect(run: suspend () -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
-    LaunchedEffect(isScanning, lifecycleOwner) {
-        if (!isScanning) return@LaunchedEffect
+    LaunchedEffect(lifecycleOwner) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) { run() }
     }
 }
@@ -247,6 +266,14 @@ private fun AddFriendsScaffold(
                     isScanning = nearbyState.isScanning,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
+                if (nearbyState is NearbyFriendsViewState.Scanning && !nearbyState.isVisibleToOthers) {
+                    Text(
+                        stringResource(R.string.nearby_scan_only_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
                 NearbyFriendsSection(
                     state = nearbyState,
                     onGrantPermission = onGrantPermission,
@@ -385,8 +412,8 @@ private fun AddFriendsPreview(
 }
 
 /**
- * Starts at the permission prompt; run it in interactive mode and tap Allow to
- * watch people appear and send requests.
+ * Run in interactive mode to watch people appear and send requests; taps go
+ * through the real view model against simulated relay replies.
  */
 @Preview(name = "Live Mock Flow", showBackground = true)
 @Composable
@@ -395,16 +422,16 @@ private fun LiveMockFlowPreview() {
         AddFriendsRoute(
             friendsViewModel = remember { PreviewFriendsListViewModel(FriendsListViewModel.ViewState.Empty) },
             onClose = {},
-            nearbyViewModel = remember {
-                NearbyFriendsViewModel(
-                    NearbyFriendsViewState.Unavailable(NearbyUnavailableReason.PermissionRequired),
-                    simulatesDiscovery = true
-                )
-            },
+            nearbyViewModel = remember { previewNearbyFriendsViewModel() },
             isNearbyEnabled = true
         )
     }
 }
+
+@Preview(name = "Scan Only", showBackground = true)
+@Composable
+private fun ScanOnlyPreview() =
+    AddFriendsPreview(NearbyFriendsViewState.Scanning(previewPeers().take(2), isVisibleToOthers = false))
 
 @Preview(name = "Permission Required", showBackground = true)
 @Composable

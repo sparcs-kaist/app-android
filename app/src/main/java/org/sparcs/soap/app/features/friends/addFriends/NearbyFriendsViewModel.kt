@@ -1,95 +1,130 @@
 package org.sparcs.soap.app.features.friends.addFriends
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.app.domain.models.nearby.NearbyPeer
 import org.sparcs.soap.app.domain.models.nearby.NearbyPeerState
 import org.sparcs.soap.app.domain.models.nearby.NearbyUnavailableReason
-import org.sparcs.soap.app.shared.mocks.nearby.mockList
+import org.sparcs.soap.app.domain.nearby.NearbyBeaconSourceProtocol
+import org.sparcs.soap.app.domain.nearby.NearbyBluetoothAvailability
+import org.sparcs.soap.app.domain.usecases.nearby.NearbyFriendsManagerProtocol
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Drives the nearby section of Add Friends.
- *
- * The BLE beacon and relay don't exist yet (see the cross-team nearby friends
- * plan), so this simulates both sides with mock data: people appear one by
- * one, a few of them send a request, and our own requests are answered after
- * a short delay. The public surface matches what the real implementation will
- * need — a lifecycle-bound [runDiscovery] plus the per-peer actions — so the
- * screen won't change when a `NearbyFriendsManager` replaces the simulation.
- *
- * Nothing here touches Bluetooth, and the app declares no Bluetooth
- * permissions yet; [grantPermission] stands in for the runtime prompt.
+ * Drives the nearby section of Add Friends: follows Bluetooth availability and
+ * the Nearby devices permission, and while both allow it runs a
+ * [NearbyFriendsManagerProtocol] session, mirroring its peers into
+ * [viewState].
  */
 @HiltViewModel
 class NearbyFriendsViewModel(
     initialState: NearbyFriendsViewState,
-    /** Previews and tests pass `false` so a fixed state stays put. */
-    private val simulatesDiscovery: Boolean,
+    private val manager: NearbyFriendsManagerProtocol,
+    private val beacon: NearbyBeaconSourceProtocol,
 ) : ViewModel() {
 
     @Inject
-    constructor() : this(
+    constructor(
+        manager: NearbyFriendsManagerProtocol,
+        beacon: NearbyBeaconSourceProtocol,
+    ) : this(
         initialState = NearbyFriendsViewState.Unavailable(NearbyUnavailableReason.PermissionRequired),
-        simulatesDiscovery = true
+        manager = manager,
+        beacon = beacon
     )
 
     companion object {
-        /**
-         * The simulation must never reach real users, so the nearby section is
-         * only shown in debug builds until the relay and BLE beacon ship.
-         */
-        val isFeatureEnabled: Boolean = BuildConfig.DEBUG
-
-        private const val PEER_APPEAR_DELAY_MS = 1_400L
-        private const val INCOMING_REQUEST_DELAY_MS = 2_000L
-        private const val REPLY_DELAY_MS = 2_500L
-        private const val ADD_DELAY_MS = 1_200L
-        private const val SIMULATED_INCOMING_REQUESTS = 3
+        /** Bounded so a failing scan never trips Android's 5-starts-per-30-s throttle. */
+        const val SCAN_RETRY_DELAY_MS = 10_000L
     }
 
     private val _viewState = MutableStateFlow(initialState)
     val viewState: StateFlow<NearbyFriendsViewState> = _viewState.asStateFlow()
 
-    private val replyJobs = mutableMapOf<String, Job>()
-    private var simulatedIncomingCount = 0
+    /** Emits a peer's ID whenever a friendship is created, to refresh the list. */
+    val friendAdded: SharedFlow<String> get() = manager.friendAdded
+
+    /** What the Allow button asks for. */
+    val requiredPermissions: Array<String> get() = beacon.requiredPermissions
+
+    /** Bumped to re-read availability after a permission prompt. */
+    private val availabilityCheck = MutableStateFlow(0)
+    private var isPermissionPermanentlyDenied = false
 
     // MARK: - Discovery
-
-    /** Stands in for the Nearby devices permission prompt. */
-    fun grantPermission() {
-        _viewState.value = NearbyFriendsViewState.Scanning()
-    }
 
     /**
      * Runs for as long as the calling coroutine lives, so collect it while the
      * screen is at least STARTED and let cancellation stop discovery.
      */
+    @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun runDiscovery() {
-        if (!simulatesDiscovery || !_viewState.value.isScanning) return
+        availabilityCheck
+            .flatMapLatest { beacon.availability() }
+            .collectLatest { availability ->
+                when (availability) {
+                    NearbyBluetoothAvailability.Available -> {
+                        isPermissionPermanentlyDenied = false
+                        discover()
+                    }
 
-        for (mock in NearbyPeer.mockList()) {
-            if (_viewState.value.peers.any { it.id == mock.id }) continue
-            delay(PEER_APPEAR_DELAY_MS)
-            appendPeer(mock)
-        }
+                    NearbyBluetoothAvailability.PermissionRequired -> _viewState.value =
+                        NearbyFriendsViewState.Unavailable(permissionReason())
 
-        // A few people tap us once the list has settled, so requests queue up.
-        while (simulatedIncomingCount < SIMULATED_INCOMING_REQUESTS) {
-            delay(INCOMING_REQUEST_DELAY_MS)
-            simulatedIncomingCount += 1
-            _viewState.value.peers.lastOrNull { it.state == NearbyPeerState.Idle }?.let {
-                setState(NearbyPeerState.Incoming, it.id)
+                    NearbyBluetoothAvailability.BluetoothOff -> _viewState.value =
+                        NearbyFriendsViewState.Unavailable(NearbyUnavailableReason.BluetoothOff)
+
+                    NearbyBluetoothAvailability.Unsupported -> _viewState.value =
+                        NearbyFriendsViewState.Unavailable(NearbyUnavailableReason.Unsupported)
+                }
             }
+    }
+
+    /**
+     * Called with the permission prompt's outcome. [canAskAgain] is false once
+     * the system stops showing the prompt, leaving only Settings.
+     */
+    fun onPermissionsResult(granted: Boolean, canAskAgain: Boolean) {
+        isPermissionPermanentlyDenied = !granted && !canAskAgain
+        if (!granted) _viewState.value = NearbyFriendsViewState.Unavailable(permissionReason())
+        availabilityCheck.update { it + 1 }
+    }
+
+    private fun permissionReason(): NearbyUnavailableReason =
+        if (isPermissionPermanentlyDenied) NearbyUnavailableReason.PermissionDenied
+        else NearbyUnavailableReason.PermissionRequired
+
+    private suspend fun discover() = coroutineScope {
+        _viewState.value = NearbyFriendsViewState.Scanning(isVisibleToOthers = beacon.canAdvertise)
+        launch {
+            manager.peers.collect { peers ->
+                _viewState.update { current ->
+                    if (current is NearbyFriendsViewState.Scanning) current.copy(peers = peers) else current
+                }
+            }
+        }
+        while (true) {
+            try {
+                manager.run()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "Nearby: discovery stopped; retrying")
+            }
+            delay(SCAN_RETRY_DELAY_MS)
         }
     }
 
@@ -97,68 +132,21 @@ class NearbyFriendsViewModel(
 
     fun tap(peer: NearbyPeer) {
         when (stateOf(peer.id)) {
-            NearbyPeerState.Idle, NearbyPeerState.Failed -> request(peer)
+            NearbyPeerState.Idle, NearbyPeerState.Declined, NearbyPeerState.Failed -> request(peer)
             NearbyPeerState.Requested -> cancel(peer)
             NearbyPeerState.Incoming -> accept(peer)
             NearbyPeerState.Adding, NearbyPeerState.Added, null -> Unit
         }
     }
 
-    fun request(peer: NearbyPeer) {
-        val state = stateOf(peer.id)
-        if (state != NearbyPeerState.Idle && state != NearbyPeerState.Failed) return
-        setState(NearbyPeerState.Requested, peer.id)
-        // Mock reply: they accept, then codes are exchanged and added.
-        replaceReplyJob(peer.id) {
-            delay(REPLY_DELAY_MS)
-            if (stateOf(peer.id) != NearbyPeerState.Requested) return@replaceReplyJob
-            setState(NearbyPeerState.Adding, peer.id)
-            delay(ADD_DELAY_MS)
-            if (stateOf(peer.id) == NearbyPeerState.Adding) setState(NearbyPeerState.Added, peer.id)
-        }
-    }
+    fun request(peer: NearbyPeer) = manager.request(peer.id)
 
-    fun cancel(peer: NearbyPeer) {
-        if (stateOf(peer.id) != NearbyPeerState.Requested) return
-        replyJobs.remove(peer.id)?.cancel()
-        setState(NearbyPeerState.Idle, peer.id)
-    }
+    fun cancel(peer: NearbyPeer) = manager.cancel(peer.id)
 
-    fun accept(peer: NearbyPeer) {
-        if (stateOf(peer.id) != NearbyPeerState.Incoming) return
-        setState(NearbyPeerState.Adding, peer.id)
-        replaceReplyJob(peer.id) {
-            delay(ADD_DELAY_MS)
-            if (stateOf(peer.id) == NearbyPeerState.Adding) setState(NearbyPeerState.Added, peer.id)
-        }
-    }
+    fun accept(peer: NearbyPeer) = manager.accept(peer.id)
 
-    fun decline(peer: NearbyPeer) {
-        if (stateOf(peer.id) != NearbyPeerState.Incoming) return
-        setState(NearbyPeerState.Idle, peer.id)
-    }
-
-    // MARK: - Helpers
+    fun decline(peer: NearbyPeer) = manager.decline(peer.id)
 
     private fun stateOf(id: String): NearbyPeerState? =
         _viewState.value.peers.firstOrNull { it.id == id }?.state
-
-    private fun setState(state: NearbyPeerState, id: String) {
-        _viewState.update { current ->
-            if (current !is NearbyFriendsViewState.Scanning) return@update current
-            current.copy(peers = current.peers.map { if (it.id == id) it.copy(state = state) else it })
-        }
-    }
-
-    private fun appendPeer(peer: NearbyPeer) {
-        _viewState.update { current ->
-            if (current !is NearbyFriendsViewState.Scanning) return@update current
-            current.copy(peers = current.peers + peer)
-        }
-    }
-
-    private fun replaceReplyJob(id: String, block: suspend () -> Unit) {
-        replyJobs.remove(id)?.cancel()
-        replyJobs[id] = viewModelScope.launch { block() }
-    }
 }

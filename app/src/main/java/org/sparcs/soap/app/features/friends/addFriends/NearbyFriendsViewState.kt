@@ -7,8 +7,14 @@ import org.sparcs.soap.app.domain.models.nearby.NearbyUnavailableReason
 sealed interface NearbyFriendsViewState {
     data class Unavailable(val reason: NearbyUnavailableReason) : NearbyFriendsViewState
 
-    /** Discovery is running; [peers] is empty until someone is found. */
-    data class Scanning(val peers: List<NearbyPeer> = emptyList()) : NearbyFriendsViewState
+    /**
+     * Discovery is running; [peers] is empty until someone is found.
+     * [isVisibleToOthers] is false on devices that can scan but not advertise.
+     */
+    data class Scanning(
+        val peers: List<NearbyPeer> = emptyList(),
+        val isVisibleToOthers: Boolean = true,
+    ) : NearbyFriendsViewState
 }
 
 val NearbyFriendsViewState.isScanning: Boolean

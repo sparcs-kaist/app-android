@@ -195,12 +195,13 @@ private val NearbyPeerState.overlay: PeerOverlay
     get() = when (this) {
         NearbyPeerState.Requested, NearbyPeerState.Adding -> PeerOverlay.Progress
         NearbyPeerState.Added -> PeerOverlay.Done
-        NearbyPeerState.Idle, NearbyPeerState.Incoming, NearbyPeerState.Failed -> PeerOverlay.None
+        NearbyPeerState.Idle, NearbyPeerState.Declined, NearbyPeerState.Incoming, NearbyPeerState.Failed -> PeerOverlay.None
     }
 
 private fun NearbyPeerState.statusLabel(): Int = when (this) {
     NearbyPeerState.Idle -> R.string.nearby_status_idle
     NearbyPeerState.Requested -> R.string.nearby_status_requested
+    NearbyPeerState.Declined -> R.string.nearby_status_declined
     NearbyPeerState.Incoming -> R.string.nearby_status_incoming
     NearbyPeerState.Adding -> R.string.nearby_status_adding
     NearbyPeerState.Added -> R.string.nearby_status_added
@@ -209,7 +210,7 @@ private fun NearbyPeerState.statusLabel(): Int = when (this) {
 
 /** What a tap does, for TalkBack; `null` when the item isn't actionable. */
 private fun NearbyPeerState.actionLabel(): Int? = when (this) {
-    NearbyPeerState.Idle -> R.string.nearby_action_request
+    NearbyPeerState.Idle, NearbyPeerState.Declined -> R.string.nearby_action_request
     NearbyPeerState.Requested -> R.string.nearby_action_cancel
     NearbyPeerState.Incoming -> R.string.nearby_action_accept
     NearbyPeerState.Failed -> R.string.nearby_action_retry

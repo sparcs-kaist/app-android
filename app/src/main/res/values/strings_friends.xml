@@ -51,6 +51,7 @@
     <string name="nearby_unsupported_message">This device can’t find friends nearby. You can still add friends with a code.</string>
     <string name="nearby_status_idle">Tap to add</string>
     <string name="nearby_status_requested">Waiting…</string>
+    <string name="nearby_status_declined">Declined</string>
     <string name="nearby_status_incoming">Wants to add you</string>
     <string name="nearby_status_adding">Adding…</string>
     <string name="nearby_status_added">Added</string>
@@ -62,6 +63,7 @@
     <string name="nearby_incoming_message">wants to add you as a friend</string>
     <string name="nearby_accept">Accept</string>
     <string name="nearby_decline">Decline</string>
+    <string name="nearby_scan_only_hint">This phone can find others, but others can’t find it. Ask them to wait for your request.</string>
     <plurals name="nearby_more_requests">
         <item quantity="one">%d more request</item>
         <item quantity="other">%d more requests</item>
