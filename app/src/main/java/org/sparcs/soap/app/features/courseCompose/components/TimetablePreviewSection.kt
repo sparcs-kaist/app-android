@@ -3,6 +3,7 @@ package org.sparcs.soap.app.features.courseCompose.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -74,7 +75,7 @@ fun TimetablePreviewSection(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(if (isScrollable) 1200.dp else 400.dp)
+                .then(if (isScrollable) Modifier.height(1200.dp) else Modifier.fillMaxSize())
         ) {
             TimetableGrid(
                 viewModel = viewModel,

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -36,12 +41,15 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.LectureSearchStyleStore
 import org.sparcs.soap.app.domain.helpers.rememberLectureSearchStyle
 import org.sparcs.soap.app.domain.models.otl.LectureSearchStyle
+import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.taxi.NavigationLinkWithIcon
+import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,7 +153,7 @@ private fun SearchStylePreviewCard(
 ) {
     Surface(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.semantics { this.selected = selected; role = Role.RadioButton },
         shape = RoundedCornerShape(16.dp),
         color = if(selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.background,
         border = if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
@@ -172,70 +180,44 @@ private fun SearchStylePreviewCard(
 
 @Composable
 private fun SearchStylePreview(style: LectureSearchStyle) {
-    when (style) {
-        LectureSearchStyle.Sheet -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(18.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                ) {}
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(18.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                ) {}
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                ) {}
+    Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            if (style == LectureSearchStyle.Flexible) {
+                androidx.compose.material3.Icon(
+                    androidx.compose.material.icons.Icons.Outlined.CalendarMonth,
+                    contentDescription = null,
+                    modifier = Modifier.height(12.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
             }
         }
-
-        LectureSearchStyle.FullScreen -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(20.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
-                ) {}
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(28.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-                ) {}
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(30.dp),
-                    shape = RoundedCornerShape(14.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                ) {}
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(10.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-                ) {}
-            }
+        Box(
+            Modifier.fillMaxWidth(if (style == LectureSearchStyle.Fixed) 1f else 0.55f)
+                .height(if (style == LectureSearchStyle.Fixed) 45.dp else 33.dp)
+                .align(Alignment.End)
+        ) {
+            TimetableSilhouetteView(
+                remember { Timetable.mock() },
+                Modifier.fillMaxSize(),
+            )
+        }
+        if (style == LectureSearchStyle.Fixed) {
+            Text(
+                stringResource(R.string.lecture_search_credit_preview),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        } else {
+            Box(
+                Modifier.align(Alignment.End).fillMaxWidth(0.2f).height(3.dp)
+                    .background(MaterialTheme.colorScheme.outline, RoundedCornerShape(2.dp))
+            )
+        }
+        repeat(2) {
+            Box(
+                Modifier.fillMaxWidth().height(8.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(3.dp))
+            )
         }
     }
 }
@@ -244,4 +226,19 @@ private fun SearchStylePreview(style: LectureSearchStyle) {
 @Composable
 private fun TimetableSettingsViewPreview() {
     Theme { TimetableSettingsView(rememberNavController()) }
+}
+
+@Preview(showBackground = true, widthDp = 360)
+@Composable
+private fun LectureSearchStylesPreview() {
+    Theme {
+        Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            LectureSearchStyle.entries.forEach { style ->
+                SearchStylePreviewCard(
+                    modifier = Modifier.weight(1f), selected = true,
+                    title = stringResource(style.titleRes), onClick = {},
+                ) { SearchStylePreview(style) }
+            }
+        }
+    }
 }

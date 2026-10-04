@@ -168,7 +168,8 @@ fun CourseComposeView(
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(showBackground = true, widthDp = 1000, heightDp = 800)
 private fun CourseComposeViewPreview() {
     Theme {
         CourseComposeView(

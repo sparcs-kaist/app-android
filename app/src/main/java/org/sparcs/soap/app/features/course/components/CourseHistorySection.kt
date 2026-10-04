@@ -120,7 +120,7 @@ private fun CourseHistoryCard(
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(Modifier.weight(1f))
-                if (entry.myLectureID != null && entry.classes.none { it.lectureID == entry.myLectureID }) {
+                if (entry.myLectureID != null) {
                     Icon(
                         imageVector = Icons.Rounded.CheckCircle,
                         contentDescription = null,
