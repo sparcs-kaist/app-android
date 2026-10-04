@@ -37,6 +37,8 @@ interface UserUseCaseProtocol {
     suspend fun fetchTaxiUser()
 
     @Throws(Exception::class)
+    suspend fun updateInterestedDepartments(departmentIDs: List<Int>)
+
     suspend fun fetchOTLUser()
 }
 
@@ -105,6 +107,13 @@ class UserUseCase @Inject constructor(
         userStorage.setFeedUser(user)
     }
 
+    override suspend fun updateInterestedDepartments(departmentIDs: List<Int>) {
+        if (otlUser == null) fetchOTLUser()
+        val userID = checkNotNull(otlUser).id
+        otlUserRepository.updateInterestedDepartments(userID, departmentIDs)
+        fetchOTLUser()
+    }
+
     override suspend fun fetchOTLUser() {
         val user = otlUserRepository.fetchUser()
         userStorage.setOTLUser(user)
@@ -123,5 +132,6 @@ class MockUserUseCase : UserUseCaseProtocol {
     override suspend fun updateAraUser(params: Map<String, Any>) {}
     override suspend fun fetchFeedUser() {}
     override suspend fun fetchTaxiUser() {}
+    override suspend fun updateInterestedDepartments(departmentIDs: List<Int>) {}
     override suspend fun fetchOTLUser() {}
 }

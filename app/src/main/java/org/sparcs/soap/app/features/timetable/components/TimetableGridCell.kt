@@ -114,12 +114,12 @@ fun TimetableGridCell(
         }
 
         val backgroundColor = when {
+            isCandidate -> Color.Transparent
             isConflict -> Color(0xFF000000).copy(alpha = 0.8f) // Black Accent for Conflict
-            isCandidate -> MaterialTheme.colorScheme.primary.copy(alpha = 0.6f) // Translucent Primary for Preview
             else -> LocalTimetableTheme.current.colorFor(lectureItem.lecture.courseID)
         }
 
-        val contentColor = if (isConflict || isCandidate) Color.White else LocalTimetableTheme.current.textColor
+        val contentColor = if (isCandidate) MaterialTheme.colorScheme.onSurface else if (isConflict) Color.White else LocalTimetableTheme.current.textColor
 
         Box(
             modifier = Modifier
@@ -130,6 +130,7 @@ fun TimetableGridCell(
                 )
                 .clip(RoundedCornerShape(4.dp))
         ) {
+            if (isCandidate) TentativeBlock(LocalTimetableTheme.current.colorFor(lectureItem.lecture.courseID), Modifier.fillMaxSize())
             Column(
                 modifier = Modifier
                     .fillMaxSize()

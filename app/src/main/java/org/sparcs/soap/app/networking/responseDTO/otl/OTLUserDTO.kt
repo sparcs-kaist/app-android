@@ -17,7 +17,7 @@ data class OTLUserDTO(
     val studentNumber: Int,
 
     @SerializedName("degree")
-    val degree: String,
+    val degree: String?,
 
     @SerializedName("majorDepartments")
     val majorDepartments: List<DepartmentDTO>,
@@ -30,7 +30,7 @@ data class OTLUserDTO(
         name = name,
         email = email,
         studentNumber = studentNumber,
-        degree = degree,
+        degree = degree.orEmpty(),
         majorDepartments = majorDepartments.map { it.toModel() },
         interestedDepartments = interestedDepartments.map { it.toModel() }
     )

@@ -42,6 +42,7 @@ import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.theme_light_background
+import android.graphics.Color as AndroidColor
 
 val lectureColors = mapOf(
     LectureType.BR to Color(0xFF298DFF),
@@ -149,7 +150,7 @@ fun TimetableCreditGraph(
                             heightPx / 2 + tickOffset,
                             Paint().apply {
                                 textSize = tickTextSize
-                                color = if(isLight) android.graphics.Color.GRAY else android.graphics.Color.LTGRAY
+                                color = if(isLight) AndroidColor.GRAY else AndroidColor.LTGRAY
                                 textAlign = Paint.Align.CENTER
                                 isAntiAlias = true
                             }

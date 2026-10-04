@@ -156,12 +156,24 @@ fun TaxiSettingsView(
     val state by viewModel.state.collectAsState()
     var showAlert by remember { mutableStateOf(false) }
     var showDiscardDialog by remember { mutableStateOf(false) }
+    var isSaving by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUser()
     }
 
     val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+
+    fun saveChanges() {
+        coroutineScope.launch {
+            isSaving = true
+            val success = viewModel.editInformation()
+            isSaving = false
+            if (success) {
+                navController.popBackStack()
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -175,17 +187,13 @@ fun TaxiSettingsView(
                     }
                 },
                 isEditable = true,
-                isDoneEnabled = isValid,
+                isDoneEnabled = isValid && !isSaving,
+                isSaving = isSaving,
                 onClickDone = {
                     if (hasNumberChanged) {
                         showAlert = true
                     } else {
-                        coroutineScope.launch {
-                            val success = viewModel.editInformation()
-                            if (success) {
-                                navController.popBackStack()
-                            }
-                        }
+                        saveChanges()
                     }
                 },
                 scrollBehavior = topBarScrollBehavior
@@ -221,10 +229,9 @@ fun TaxiSettingsView(
 
                     is TaxiSettingsViewModel.ViewState.Error -> {
                         item {
-                            val errorState = state as TaxiSettingsViewModel.ViewState.Error
                             ErrorView(
-                                defaultMessageResId = errorState.resId,
-                                error = errorState.error,
+                                defaultMessageResId = (state as TaxiSettingsViewModel.ViewState.Error).resId,
+                                error = (state as TaxiSettingsViewModel.ViewState.Error).error,
                                 onRetry = { coroutineScope.launch { viewModel.fetchUser() } }
                             )
                         }
@@ -266,12 +273,8 @@ fun TaxiSettingsView(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    coroutineScope.launch {
-                        val success = viewModel.editInformation()
-                        if (success) {
-                            navController.popBackStack()
-                        }
-                    }
+                    showAlert = false
+                    saveChanges()
                 }) {
                     Text(stringResource(R.string.confirm))
                 }

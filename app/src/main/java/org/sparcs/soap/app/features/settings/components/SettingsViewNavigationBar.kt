@@ -1,7 +1,9 @@
 package org.sparcs.soap.app.features.settings.components
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -15,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.navigationBar.components.DismissButton
 import org.sparcs.soap.app.features.navigationBar.components.SearchButton
@@ -30,6 +33,7 @@ fun SettingsViewNavigationBar(
     isSelected: Boolean = false,
     isEditable: Boolean? = false,
     isDoneEnabled: Boolean? = false,
+    isSaving: Boolean = false,
     containerColor: Color = MaterialTheme.colorScheme.background,
     onClickDone: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null,
@@ -54,10 +58,11 @@ fun SettingsViewNavigationBar(
                     onClick = { onClickSearch() },
                     isSelected = isSelected
                 )
-            } else if(isEditable == true){
+            } else if (isEditable == true) {
                 DoneButton(
                     onDoneClick = { onClickDone() },
-                    isDoneEnabled = isDoneEnabled ?: false
+                    isDoneEnabled = isDoneEnabled ?: false,
+                    isSaving = isSaving
                 )
             }
         },
@@ -69,7 +74,8 @@ fun SettingsViewNavigationBar(
 @Composable
 private fun DoneButton(
     isDoneEnabled: Boolean,
-    onDoneClick: () -> Unit
+    isSaving: Boolean,
+    onDoneClick: () -> Unit,
 ) {
     TextButton(
         onClick = {
@@ -78,12 +84,19 @@ private fun DoneButton(
         enabled = isDoneEnabled,
         modifier = Modifier.semantics { contentDescription = "Setting Button" }
     ) {
-        Text(
-            text = stringResource(R.string.done),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Normal,
-            color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
-        )
-
+        if (isSaving) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+                color = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            Text(
+                text = stringResource(R.string.done),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Normal,
+                color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
+            )
+        }
     }
 }

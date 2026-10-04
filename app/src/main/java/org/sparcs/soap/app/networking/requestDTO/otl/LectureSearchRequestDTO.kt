@@ -56,9 +56,9 @@ data class LectureSearchRequestDTO(
                 department = model.department,
                 level = model.level,
                 term = model.term,
-                day = null,
-                begin = null,
-                end = null
+                day = model.time.day,
+                begin = model.time.begin,
+                end = model.time.end
             )
         }
     }

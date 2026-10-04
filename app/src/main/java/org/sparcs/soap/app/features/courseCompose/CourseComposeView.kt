@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.courseCompose
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -35,13 +36,16 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import org.sparcs.soap.app.features.courseCompose.components.CourseComposeTopBar
-import org.sparcs.soap.app.features.courseCompose.components.CourseSearchSection
 import org.sparcs.soap.app.features.courseCompose.components.TimetablePreviewSection
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModel
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
+import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
@@ -57,6 +61,11 @@ fun CourseComposeView(
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
 ) {
+    LifecycleResumeEffect(Unit) {
+        timetableViewModel.setCandidateLecture(null)
+        onPauseOrDispose { }
+    }
+
     val timetableName by timetableViewModel.timetableName.collectAsState()
 
     var isFitToScreen by rememberSaveable { mutableStateOf(true) }
@@ -153,10 +162,18 @@ fun CourseComposeView(
                         thickness = 0.5.dp,
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
-                    CourseSearchSection(
-                        navController = navController,
+                    LectureSearchList(
                         timetableViewModel = timetableViewModel,
-                        lectureSearchViewModel = lectureSearchViewModel,
+                        viewModel = lectureSearchViewModel,
+                        onChooseTime = { navController.navigate(Channel.LectureTimeRange.name) },
+                        onOpenLecture = { lecture ->
+                            timetableViewModel.setCandidateLecture(lecture.takeUnless { timetableViewModel.selectedTimetable.value?.contains(it) == true })
+                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=${Uri.encode(Gson().toJson(lecture))}")
+                        },
+                        onOpenCourse = { id ->
+                            timetableViewModel.setCandidateLecture(null)
+                            navController.navigate(Channel.CourseView.name + "?courseId=$id")
+                        },
                         onSearchFocusChange = { focused ->
                             if (focused) isSearching = true
                         }
@@ -168,13 +185,14 @@ fun CourseComposeView(
 }
 
 @Composable
-@Preview
+@Preview(showBackground = true, widthDp = 400, heightDp = 800)
+@Preview(showBackground = true, widthDp = 1000, heightDp = 800)
 private fun CourseComposeViewPreview() {
     Theme {
         CourseComposeView(
             navController = rememberNavController(),
             timetableViewModel = PreviewTimetableViewModel(),
-            lectureSearchViewModel = PreviewLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded)
+            lectureSearchViewModel = PreviewLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded())
         )
     }
 }

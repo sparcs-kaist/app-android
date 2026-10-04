@@ -1,0 +1,15 @@
+<resources>
+    <string name="wishlist">Wishlist</string>
+    <string name="wishlist_add">Add to wishlist</string>
+    <string name="wishlist_remove">Remove from wishlist</string>
+    <string name="wishlist_empty">Save lectures with the heart button to see them here.</string>
+    <string name="wishlist_load_failed">Could not load your wishlist.</string>
+    <string name="wishlist_update_failed">Could not sync your wishlist. Please try again.</string>
+    <string name="lecture_search_empty">No lectures match these search conditions.</string>
+    <string name="adding_lectures">Adding Lectures</string>
+    <string name="lecture_search_sheet">Sheet</string>
+    <string name="lecture_search_full_screen">Full Screen</string>
+    <string name="show_timetable_preview">Show timetable preview</string>
+    <string name="hide_timetable_preview">Hide timetable preview</string>
+    <string name="timetable_preview_height">Timetable preview height</string>
+</resources>

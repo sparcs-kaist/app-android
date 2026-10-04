@@ -8,7 +8,6 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -25,7 +24,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -69,7 +67,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -77,7 +74,8 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.Timetable
-import org.sparcs.soap.app.features.timetable.components.TimetableGridCell
+import org.sparcs.soap.app.features.timetable.components.TimetableSelectionBackground
+import org.sparcs.soap.app.features.timetable.components.TimetableSelectionDayHeader
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import kotlin.math.roundToInt
@@ -178,22 +176,7 @@ fun ActivityTimetableCreationView(
                 )
                 .padding(top = 16.dp)
         ) {
-            Row(
-                Modifier
-                    .fillMaxWidth()
-                    .padding(start = 44.dp, end = 16.dp, bottom = 12.dp)
-            ) {
-                days.forEach { value ->
-                    Text(
-                        stringResource(DayType.fromValue(value)!!.stringValue),
-                        Modifier.weight(1f),
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = LocalTimetableTheme.current.gridLabelColor
-                            ?: MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            TimetableSelectionDayHeader(days)
             BoxWithConstraints(
                 Modifier
                     .fillMaxWidth()
@@ -283,8 +266,6 @@ fun ActivityTimetableCreationView(
                 val finishNow by rememberUpdatedState(finish)
                 val startNow by rememberUpdatedState(startDrag)
                 val cancel: () -> Unit = { dragPart = null; delta = Offset.Zero }
-                val outline = LocalTimetableTheme.current.separatorColor
-                    ?: MaterialTheme.colorScheme.outlineVariant
                 Column(
                     Modifier
                         .fillMaxSize()
@@ -295,79 +276,10 @@ fun ActivityTimetableCreationView(
                             .fillMaxWidth()
                             .height(1920.dp + 48.dp)
                     ) {
-                        Canvas(Modifier.fillMaxSize()) {
-                            for (hour in 0..24) {
-                                val lineY = insetPx + hour * 60 * minutePx
-                                drawLine(
-                                    outline.copy(alpha = .6f),
-                                    Offset(gutter, lineY),
-                                    Offset(size.width - trailing, lineY),
-                                    1.dp.toPx()
-                                )
-                            }
-                        }
-                        for (hour in 0..23) Text(
-                            "%02d".format(hour),
-                            Modifier
-                                .offset {
-                                    IntOffset(
-                                        0,
-                                        (insetPx + hour * 60 * minutePx - 8.dp.toPx()).roundToInt()
-                                    )
-                                }
-                                .width(36.dp),
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = LocalTimetableTheme.current.gridLabelColor
-                                ?: MaterialTheme.colorScheme.onSurfaceVariant)
-                        days.forEachIndexed { index, value ->
-                            timetable.getLectures(DayType.fromValue(value)!!, null)
-                                .forEach { item ->
-                                    val h = with(density) {
-                                        (item.lectureClass.duration * minutePx - 3).coerceAtLeast(1f)
-                                            .toDp()
-                                    }
-                                    TimetableGridCell(
-                                        item, false, h, Modifier
-                                            .offset {
-                                                IntOffset(
-                                                    (gutter + index * dayWidth + 2).roundToInt(),
-                                                    (insetPx + item.lectureClass.begin * minutePx).roundToInt()
-                                                )
-                                            }
-                                            .width(with(density) { (dayWidth - 4).toDp() })
-                                    )
-                                }
-                            timetable.activities.filter { it.day == value && it.id != excludingID }
-                                .forEach { activity ->
-                                    Surface(
-                                        color = LocalTimetableTheme.current.colorFor(activity.id),
-                                        contentColor = LocalTimetableTheme.current.textColor,
-                                        shape = RoundedCornerShape(4.dp),
-                                        modifier = Modifier
-                                            .offset {
-                                                IntOffset(
-                                                    (gutter + index * dayWidth + 2).roundToInt(),
-                                                    (insetPx + activity.begin * minutePx).roundToInt()
-                                                )
-                                            }
-                                            .size(
-                                                with(density) { (dayWidth - 4).toDp() },
-                                                with(density) {
-                                                    ((activity.end - activity.begin) * minutePx - 3).coerceAtLeast(
-                                                        1f
-                                                    ).toDp()
-                                                })
-                                    ) {
-                                        Text(
-                                            activity.title,
-                                            Modifier.padding(4.dp),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
-                                    }
-                                }
-                        }
+                        TimetableSelectionBackground(
+                            timetable, days, minutePx, insetPx, gutter, trailing, dayWidth,
+                            Modifier.fillMaxSize(), excludingID,
+                        )
                     }
                 }
                 val accent =

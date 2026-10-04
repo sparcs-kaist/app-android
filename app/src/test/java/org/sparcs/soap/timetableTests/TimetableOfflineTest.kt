@@ -54,7 +54,7 @@ class TimetableOfflineTest {
         assertEquals(Date(1), model.loadState.value.lastUpdated)
         assertTrue(model.loadState.value.isReadOnly)
         assertTrue(model.loadState.value.isOffline)
-        assertFalse(model.showAlert)
+        assertFalse(model.isAlertPresented)
         model.renameTable("Changed")
         model.deleteTable()
         model.createTable()

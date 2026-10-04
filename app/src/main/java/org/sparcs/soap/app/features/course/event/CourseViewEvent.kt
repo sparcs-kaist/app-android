@@ -5,6 +5,7 @@ import org.sparcs.soap.app.domain.enums.Event
 sealed class CourseViewEvent : Event {
     data object CourseLoaded : CourseViewEvent()
     data object ReviewsLoaded : CourseViewEvent()
+    data object ProfessorSelected : CourseViewEvent()
     data object LikeReview : CourseViewEvent()
 
 
@@ -15,6 +16,7 @@ sealed class CourseViewEvent : Event {
         get() = when (this) {
             is CourseLoaded -> "course_loaded"
             is ReviewsLoaded -> "reviews_loaded"
+            is ProfessorSelected -> "professor_selected"
             is LikeReview -> "like_review"
         }
 

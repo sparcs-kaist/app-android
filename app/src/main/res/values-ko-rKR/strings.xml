@@ -380,7 +380,7 @@
     <string name="feed_settings">피드 설정</string>
     <string name="screen_style">화면 스타일</string>
     <string name="karma">카르마</string>
-    <string name="reset">리셋</string>
+    <string name="reset">초기화</string>
     <string name="nickname_error_conflict">이미 사용 중인 닉네임입니다.</string>
     <string name="nickname_error_invalid">닉네임에 사용할 수 없는 단어가 포함되어 있습니다.</string>
     <string name="nickname_error_update_failed">닉네임 수정에 실패했습니다. 다시 시도해 주세요.</string>

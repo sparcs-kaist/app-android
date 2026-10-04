@@ -1,12 +1,16 @@
 package org.sparcs.soap.app.networking.retrofitAPI.otl
 
 import org.sparcs.soap.app.networking.responseDTO.otl.CourseLecturePageDTO
+import org.sparcs.soap.app.networking.responseDTO.otl.DepartmentOptionListDTO
 import org.sparcs.soap.app.networking.responseDTO.otl.OTLUserLectureHistoryDTO
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface OTLLectureApi {
+    @GET("api/v2/department-options")
+    suspend fun fetchDepartmentOptions(): DepartmentOptionListDTO
+
     @GET("api/v2/users/{userID}/lectures")
     suspend fun fetchUserLectureHistory(@Path("userID") userID: Int): OTLUserLectureHistoryDTO
 
@@ -20,6 +24,9 @@ interface OTLLectureApi {
         @Query("level") level: List<String>?,
         @Query("term") term: String?,
         @Query("limit") limit: Int,
-        @Query("offset") offset: Int
+        @Query("offset") offset: Int,
+        @Query("day") day: Int? = null,
+        @Query("begin") begin: Int? = null,
+        @Query("end") end: Int? = null
     ): CourseLecturePageDTO
 }

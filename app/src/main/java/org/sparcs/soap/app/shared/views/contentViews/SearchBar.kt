@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -39,6 +40,7 @@ fun SearchCustomBar(
     onValueChange: (String) -> Unit,
     onValueClear: () -> Unit,
     placeHolder: String,
+    onFocusChange: (Boolean) -> Unit = {},
     containerColor: Color = MaterialTheme.colorScheme.surface,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -74,7 +76,9 @@ fun SearchCustomBar(
                     onValueChange = { newValue ->
                         onValueChange(newValue.replace("\n", ""))
                     },
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .onFocusChanged { onFocusChange(it.isFocused) },
                     textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                     cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                     keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),

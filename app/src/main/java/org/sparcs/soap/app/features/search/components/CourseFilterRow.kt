@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -41,17 +42,19 @@ fun CourseFilterRow(
     courseFilterState: CourseFilterState,
     onCategoryClick: (CourseFilterCategory) -> Unit,
     onResetFilters: () -> Unit,
-    showLeadingDivider: Boolean = true
+    onTimeClick: (() -> Unit)? = null,
+    isTimeSelected: Boolean = false,
+    showReset: Boolean = !courseFilterState.isEmpty(),
+    showLeadingDivider: Boolean = true,
+    showPeriod: Boolean = true
 ) {
-    val isAnyFilterSelected = !courseFilterState.isEmpty()
-
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = Icons.Outlined.FilterAlt,
-            contentDescription = "Filter",
+            contentDescription = stringResource(R.string.filter_reset),
             modifier = Modifier.padding(start = 4.dp, end = 8.dp).size(20.dp),
             tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
         )
@@ -66,7 +69,7 @@ fun CourseFilterRow(
             )
         }
 
-        if (isAnyFilterSelected) {
+        if (showReset) {
             FilterChip(
                 selected = false,
                 onClick = onResetFilters,
@@ -90,7 +93,7 @@ fun CourseFilterRow(
             )
         }
 
-        CourseFilterCategory.entries.forEach { category ->
+        CourseFilterCategory.entries.filter { showPeriod || it != CourseFilterCategory.Period }.forEach { category ->
             val selectedOptionIds = when (category) {
                 CourseFilterCategory.Classification -> courseFilterState.classifications
                 CourseFilterCategory.Department -> courseFilterState.departments
@@ -130,6 +133,29 @@ fun CourseFilterRow(
                 trailingIcon = {
                     Icon(
                         imageVector = if (isSelected) Icons.Default.Check else Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                },
+                shape = RoundedCornerShape(100.dp),
+                colors = getTagChipColors(),
+                modifier = Modifier.padding(end = 8.dp)
+            )
+        }
+
+        if (onTimeClick != null) {
+            FilterChip(
+                selected = isTimeSelected,
+                onClick = onTimeClick,
+                label = {
+                    Text(
+                        text = stringResource(R.string.lecture_time_filter),
+                        fontWeight = if (isTimeSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                },
+                trailingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.ExpandMore,
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )

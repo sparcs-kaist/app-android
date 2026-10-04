@@ -57,6 +57,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.DeepLink
 import org.sparcs.soap.app.domain.enums.DeepLinkEventBus
 import org.sparcs.soap.app.domain.enums.feed.FeedVoteType
+import org.sparcs.soap.app.domain.models.feed.FeedImage
 import org.sparcs.soap.app.domain.models.feed.FeedPost
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
@@ -302,7 +303,7 @@ private fun Content(
 
     if (post.images.isNotEmpty()) {
         var fullscreenRequest by remember {
-            mutableStateOf<Pair<List<org.sparcs.soap.app.domain.models.feed.FeedImage>, Int>?>(
+            mutableStateOf<Pair<List<FeedImage>, Int>?>(
                 null
             )
         }
