@@ -86,15 +86,19 @@ class SearchViewModel @Inject constructor(
     private var araPagination = PaginationInfo()
 
     private var searchJob: Job? = null
+
     private var courseJob: Job? = null
     private var courseGeneration = 0
     private var courseOffset = 0
     private var lastCourseRequest: CourseSearchRequest? = null
     private var coursePageJob: Job? = null
+
     private val _hasMoreCourses = MutableStateFlow(false)
     override val hasMoreCourses: StateFlow<Boolean> = _hasMoreCourses
+
     private val _isLoadingMoreCourses = MutableStateFlow(false)
     override val isLoadingMoreCourses: StateFlow<Boolean> = _isLoadingMoreCourses
+
     private val _coursePageError = MutableStateFlow<Exception?>(null)
     override val coursePageError: StateFlow<Exception?> = _coursePageError
 

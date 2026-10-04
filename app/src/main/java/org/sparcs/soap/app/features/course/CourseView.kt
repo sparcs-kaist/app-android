@@ -57,6 +57,7 @@ import org.sparcs.soap.app.features.course.components.CourseReviewSectionSkeleto
 import org.sparcs.soap.app.features.course.components.CourseSummarySkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewCell
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
@@ -71,6 +72,23 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCourseViewModel
 
 @Composable
 fun CourseView(
+    viewModel: CourseViewModelProtocol = hiltViewModel<CourseViewModel>(),
+    navController: NavController,
+) {
+    LectureSearchDestination(navController) { search, topContent, actions, floatingPreview ->
+        CourseContent(
+            viewModel = viewModel,
+            navController = navController,
+            isSearchContext = search != null,
+            floatingTopContent = floatingPreview,
+            topContent = topContent,
+            navigationActions = actions,
+        )
+    }
+}
+
+@Composable
+private fun CourseContent(
     viewModel: CourseViewModelProtocol = hiltViewModel<CourseViewModel>(),
     navController: NavController,
     navigationActions: @Composable RowScope.() -> Unit = {},

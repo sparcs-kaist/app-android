@@ -1,23 +1,27 @@
 package org.sparcs.soap.app.features.lectureDetail
 
-import android.content.res.Configuration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Warning
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,7 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -40,6 +44,10 @@ import org.sparcs.soap.app.features.lectureDetail.components.LectureInformation
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviews
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewsSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureSummary
+import org.sparcs.soap.app.features.lectureSearch.components.LectureCollisionDialog
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -54,6 +62,35 @@ fun LectureDetailView(
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     navController: NavController,
 ) {
+    LectureSearchDestination(navController) { search, topContent, actions, floatingPreview ->
+        val lecture by viewModel.lecture.collectAsState()
+        val wishlist = search?.wishlistedLectureIDs?.collectAsState()?.value.orEmpty()
+        LectureDetailContent(
+            viewModel = viewModel,
+            timetableViewModel = timetableViewModel,
+            navController = navController,
+            isSearchContext = search != null,
+            isWishlisted = lecture.id in wishlist,
+            onToggleWishlist = search?.let { { it.toggleWishlist(lecture) } },
+            floatingTopContent = floatingPreview,
+            topContent = topContent,
+            navigationActions = actions,
+        )
+    }
+}
+
+@Composable
+fun LectureDetailContent(
+    viewModel: LectureDetailViewModelProtocol = hiltViewModel<LectureDetailViewModel>(),
+    timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
+    navController: NavController,
+    isWishlisted: Boolean = false,
+    onToggleWishlist: (() -> Unit)? = null,
+    isSearchContext: Boolean = false,
+    navigationActions: @Composable RowScope.() -> Unit = {},
+    topContent: @Composable () -> Unit = {},
+    floatingTopContent: Boolean = false,
+) {
     val state by viewModel.state.collectAsState()
     val lecture by viewModel.lecture.collectAsState()
     val canWriteReview by viewModel.canWriteReview.collectAsState()
@@ -61,12 +98,11 @@ fun LectureDetailView(
     val selectedTimetable by timetableViewModel.selectedTimetable.collectAsState()
     val isContained = selectedTimetable?.lectures?.any { it.id == lecture.id } ?: false
     val isEditable by timetableViewModel.isEditable.collectAsState()
-    val overlappingLectures by timetableViewModel.overlappingLectures.collectAsState()
 
-    var showCannotAddLectureAlert by remember { mutableStateOf(false) }
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
 
     Scaffold(
+        containerColor = if (isSearchContext) LectureSearchChrome.background else MaterialTheme.colorScheme.surface,
         topBar = {
             LectureDetailNavigationBar(
                 navController = navController,
@@ -76,7 +112,6 @@ fun LectureDetailView(
                     if (table?.hasCollision(lecture) == true) {
                         timetableViewModel.setCandidateLecture(lecture)
                         pendingLectureToAdd = lecture
-                        showCannotAddLectureAlert = true
                     } else {
                         timetableViewModel.addLecture(lecture)
                         navController.popBackStack()
@@ -87,27 +122,51 @@ fun LectureDetailView(
                     navController.popBackStack()
                 },
                 isCurrentTimetable = isContained,
+                isWishlisted = isWishlisted,
+                onToggleWishlist = onToggleWishlist,
+                isSearchContext = isSearchContext,
+                navigationActions = navigationActions,
                 isEnabled = isEditable
             )
         },
         modifier = Modifier.analyticsScreen("Lecture Detail")
     ) { paddingValues ->
-        Box(
+        LectureSearchResultsLayout(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
                 .padding(paddingValues),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            val configuration = LocalConfiguration.current
-            val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-            if (isLandscape) {
-                LectureLandscapeLayout(state, lecture, viewModel, navController, canWriteReview)
-            } else {
-                LecturePortraitLayout(state, lecture, viewModel, navController, canWriteReview)
-            }
-        }
+            floatingPreview = floatingTopContent,
+            header = {},
+            preview = topContent,
+            results = {
+                BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                    val isLandscape = maxWidth >= 840.dp
+                    if (isLandscape) {
+                        LectureLandscapeLayout(
+                            state,
+                            lecture,
+                            viewModel,
+                            navController,
+                            canWriteReview,
+                            selectedTimetable?.conflicts(lecture).orEmpty(),
+                            isContained,
+                        )
+                    } else {
+                        LecturePortraitLayout(
+                            state,
+                            lecture,
+                            viewModel,
+                            navController,
+                            canWriteReview,
+                            selectedTimetable?.conflicts(lecture).orEmpty(),
+                            isContained,
+                        )
+                    }
+                }
+            },
+        )
     }
+
 
     GlobalAlertDialog(
         isPresented = viewModel.isAlertPresented,
@@ -115,43 +174,16 @@ fun LectureDetailView(
         onDismiss = { viewModel.isAlertPresented = false }
     )
 
-    if (showCannotAddLectureAlert) {
-        AlertDialog(
-            onDismissRequest = {
-                showCannotAddLectureAlert = false
+    pendingLectureToAdd?.let { pending ->
+        LectureCollisionDialog(
+            lecture = pending,
+            conflicts = selectedTimetable?.conflicts(pending).orEmpty(),
+            onReplace = {
+                timetableViewModel.addLecture(pending)
                 pendingLectureToAdd = null
+                navController.popBackStack()
             },
-            confirmButton = {
-                TextButton(onClick = {
-                    showCannotAddLectureAlert = false
-                    pendingLectureToAdd?.let { lectureToAdd ->
-                        timetableViewModel.addLecture(lectureToAdd)
-                        pendingLectureToAdd = null
-                        navController.popBackStack()
-                    }
-                }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
-                    showCannotAddLectureAlert = false
-                    pendingLectureToAdd = null
-                }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-            title = { Text(stringResource(R.string.add_overlapping_lecture)) },
-            text = {
-                val currentNames = if (overlappingLectures.isEmpty()) {
-                    stringResource(R.string.the_existing_lecture)
-                } else {
-                    overlappingLectures.joinToString(", ") { it.name }
-                }
-                val newName = pendingLectureToAdd?.name ?: stringResource(R.string.the_new_lecture)
-                Text(text = stringResource(id = R.string.lecture_overlap, currentNames, newName))
-            },
-            containerColor = MaterialTheme.colorScheme.background
+            onDismiss = { pendingLectureToAdd = null },
         )
     }
 }
@@ -162,7 +194,9 @@ private fun LectureLandscapeLayout(
     lecture: Lecture,
     viewModel: LectureDetailViewModelProtocol,
     navController: NavController,
-    canWriteReview: Boolean
+    canWriteReview: Boolean,
+    conflicts: List<String>,
+    isContained: Boolean,
 ) {
     Row(
         modifier = Modifier
@@ -177,7 +211,7 @@ private fun LectureLandscapeLayout(
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            LectureSummaryAndInfoSection(lecture)
+            LectureSummaryAndInfoSection(lecture, navController, conflicts, isContained)
         }
 
         Column(
@@ -199,7 +233,9 @@ private fun LecturePortraitLayout(
     lecture: Lecture,
     viewModel: LectureDetailViewModelProtocol,
     navController: NavController,
-    canWriteReview: Boolean
+    canWriteReview: Boolean,
+    conflicts: List<String>,
+    isContained: Boolean,
 ) {
     Column(
         modifier = Modifier
@@ -209,7 +245,7 @@ private fun LecturePortraitLayout(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        LectureSummaryAndInfoSection(lecture)
+        LectureSummaryAndInfoSection(lecture, navController, conflicts, isContained)
         Spacer(modifier = Modifier.height(32.dp))
         LectureReviewSection(state, lecture, viewModel, navController, canWriteReview)
         Spacer(modifier = Modifier.height(40.dp))
@@ -217,10 +253,32 @@ private fun LecturePortraitLayout(
 }
 
 @Composable
-private fun LectureSummaryAndInfoSection(lecture: Lecture) {
+private fun LectureSummaryAndInfoSection(lecture: Lecture, navController: NavController, conflicts: List<String>, isContained: Boolean) {
     LectureSummary(lecture)
     Spacer(modifier = Modifier.height(24.dp))
-    LectureInformation(lecture)
+    if (isContained || conflicts.isNotEmpty()) {
+        val statusColor = if (isContained) MaterialTheme.colorScheme.primary else Color(0xFFFF8800)
+        Surface(
+            shape = RoundedCornerShape(50),
+            color = statusColor.copy(alpha = 0.12f),
+            contentColor = statusColor,
+            modifier = Modifier.padding(bottom = 16.dp),
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(if (isContained) Icons.Rounded.CheckCircle else Icons.Rounded.Warning, contentDescription = null, modifier = Modifier.size(16.dp))
+                Text(
+                    if (isContained) stringResource(R.string.lecture_in_timetable)
+                    else stringResource(R.string.lecture_conflicts, conflicts.joinToString(", ")),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+    }
+    LectureInformation(lecture, navController)
 }
 
 @Composable
@@ -229,7 +287,7 @@ private fun LectureReviewSection(
     lecture: Lecture,
     viewModel: LectureDetailViewModelProtocol,
     navController: NavController,
-    canWriteReview: Boolean
+    canWriteReview: Boolean,
 ) {
     if (state is LectureDetailViewModel.ViewState.Loading) {
         LectureReviewsSkeleton()

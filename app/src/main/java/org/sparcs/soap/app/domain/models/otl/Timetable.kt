@@ -128,22 +128,17 @@ data class Timetable(
             it.type == type || type == LectureType.HSE && it.type in listOf(LectureType.HSE_CORE, LectureType.HSE_GENERAL)
         }.sumOf { it.credit + it.creditAU }
 
-    fun hasCollision(newLecture: Lecture): Boolean {
-        if (activities.any { activity -> newLecture.classes.any { it.day.value == activity.day && it.begin < activity.end && it.end > activity.begin } }) return true
-        for (existingLecture in lectures) {
-            for (existingTime in existingLecture.classes) {
-                for (newTime in newLecture.classes) {
-                    if (existingTime.day == newTime.day) {
-                        // Overlap occurs if start < other.end && end > other.start
-                        if (newTime.begin < existingTime.end && newTime.end > existingTime.begin) {
-                            return true
-                        }
-                    }
-                }
-            }
-        }
-        return false
+    fun contains(lecture: Lecture): Boolean = lectures.any { it.id == lecture.id }
+
+    fun conflicts(lecture: Lecture): List<String> {
+        val lectureNames = lectures.filter { it.id != lecture.id && hasCollisions(lecture, it) }.map { it.name }
+        val activityNames = activities.filter { activity ->
+            lecture.classes.any { it.day.value == activity.day && it.begin < activity.end && activity.begin < it.end }
+        }.map { it.title }
+        return lectureNames + activityNames
     }
+
+    fun hasCollision(newLecture: Lecture): Boolean = conflicts(newLecture).isNotEmpty()
 
     fun hasCollisions(a: Lecture, b: Lecture): Boolean {
         for (existingTime in b.classes) {

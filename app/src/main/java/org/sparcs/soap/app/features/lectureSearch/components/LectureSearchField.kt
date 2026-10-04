@@ -35,9 +35,9 @@ fun LectureSearchField(
     val hasAnyFilterSelected = !filter.isEmpty() || !time.isEmpty
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
     ) {
-        Box {
+        Box(Modifier.padding(horizontal = 16.dp)) {
             SearchCustomBar(
                 value = searchText,
                 onValueChange = onSearchTextChange,
@@ -52,7 +52,8 @@ fun LectureSearchField(
         CourseFilterRow(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
+                .horizontalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
             courseFilterState = filter,
             onCategoryClick = onCategoryClick,
             onResetFilters = onReset,

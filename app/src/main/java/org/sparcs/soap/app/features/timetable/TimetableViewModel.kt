@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.error.NetworkError
+import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.helpers.TimetableSelectionStore
 import org.sparcs.soap.app.domain.helpers.canKeepSavedTimetable
 import org.sparcs.soap.app.domain.helpers.isOfflineFailure
@@ -32,6 +33,7 @@ import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.event.TimetableViewEvent
+import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
 import timber.log.Timber
 import java.util.Date
@@ -59,9 +61,8 @@ interface TimetableViewModelProtocol {
     /** Duplicating replays every lecture and activity, so the menu entry must not be tappable twice. */
     val isDuplicatingTable: StateFlow<Boolean>
 
-    var showAlert: Boolean
-    var alertTitleRes: Int?
-    var alertMessageRes: Int?
+    var alertState: AlertState?
+    var isAlertPresented: Boolean
 
     fun setCandidateLecture(lecture: Lecture?)
     fun fetchData()
@@ -85,31 +86,6 @@ class TimetableViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) : ViewModel(), TimetableViewModelProtocol {
 
-    override suspend fun refreshActivityTable(timetableID: Int): Timetable =
-        timetableUseCase.getTable(timetableID, forceRefresh = true).also(::activityTableUpdated)
-
-    override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Timetable {
-        if (loadState.value.isReadOnly) throw NetworkError.NoConnection()
-        loadGeneration++
-        return timetableUseCase.saveActivity(timetableID, activityID, draft).also(::activityTableUpdated)
-    }
-
-    override suspend fun deleteActivity(timetableID: Int, activityID: Int): Timetable {
-        if (loadState.value.isReadOnly) throw NetworkError.NoConnection()
-        loadGeneration++
-        return timetableUseCase.deleteActivity(timetableID, activityID).also(::activityTableUpdated)
-    }
-
-    private fun activityTableUpdated(table: Timetable) {
-        if (_selectedTimetableID.value?.toString() == table.id) {
-            loadGeneration++
-            _timetable.value = table
-            succeeded("table")
-            _loadState.value = _loadState.value.copy(isShowingSavedData = false, lastUpdated = Date(), loadError = null)
-        }
-        viewModelScope.launch { TimetableWidgetSyncManager(context).syncSavedTimetable(table) }
-    }
-
     enum class ErrorType {
         AddLecture,
         CreateTable,
@@ -124,9 +100,8 @@ class TimetableViewModel @Inject constructor(
         const val MY_TABLE_ID = -1
     }
 
-    override var showAlert by mutableStateOf(false)
-    override var alertTitleRes by mutableStateOf<Int?>(null)
-    override var alertMessageRes by mutableStateOf<Int?>(null)
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     override val isLoading = MutableStateFlow(false)
 
@@ -153,10 +128,12 @@ class TimetableViewModel @Inject constructor(
 
     private val _loadState = MutableStateFlow(TimetableLoadState())
     override val loadState: StateFlow<TimetableLoadState> = _loadState.asStateFlow()
+
     private val refreshFailures = mutableSetOf<String>()
     private val offlineFailures = mutableSetOf<String>()
     private var networkUnavailable = false
     private var lastConnectivity: Boolean? = null
+
     private var refreshJob: Job? = null
     private var refreshPending = false
     private var loadGeneration = 0L
@@ -165,39 +142,6 @@ class TimetableViewModel @Inject constructor(
     override val isEditable: StateFlow<Boolean> = combine(_selectedTimetableID, _timetable, _loadState) { id, table, state ->
         id != null && table?.id == id.toString() && !state.isReadOnly
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    override fun connectivityChanged(connected: Boolean) {
-        if (lastConnectivity == connected) return
-        val shouldRefresh = connected && (networkUnavailable || offlineFailures.isNotEmpty())
-        lastConnectivity = connected
-        networkUnavailable = !connected
-        if (connected) offlineFailures.clear()
-        publishStatus()
-        if (shouldRefresh) {
-            if (refreshJob?.isActive == true) refreshPending = true else fetchData()
-        }
-    }
-
-    private fun publishStatus() {
-        _loadState.value = _loadState.value.copy(
-            isOffline = networkUnavailable || offlineFailures.isNotEmpty(),
-            refreshFailed = refreshFailures.isNotEmpty(),
-        )
-    }
-
-    private fun succeeded(resource: String) {
-        refreshFailures.remove(resource)
-        offlineFailures.remove(resource)
-        publishStatus()
-    }
-
-    private fun failed(error: Exception, resource: String) {
-        refreshFailures.add(resource)
-        offlineFailures.remove(resource)
-        if (error.isOfflineFailure()) offlineFailures.add(resource)
-        publishStatus()
-        crashlyticsService.recordException(error)
-    }
 
     override val isCandidateOverlapping: StateFlow<Boolean> =
         combine(_timetable, _candidateLecture) { table, candidate ->
@@ -239,6 +183,64 @@ class TimetableViewModel @Inject constructor(
 
     private val selectionStore = TimetableSelectionStore(context)
     private var selectionRevision = 0L
+
+    override suspend fun refreshActivityTable(timetableID: Int): Timetable =
+        timetableUseCase.getTable(timetableID, forceRefresh = true).also(::activityTableUpdated)
+
+    override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Timetable {
+        if (loadState.value.isReadOnly) throw NetworkError.NoConnection()
+        loadGeneration++
+        return timetableUseCase.saveActivity(timetableID, activityID, draft).also(::activityTableUpdated)
+    }
+
+    override suspend fun deleteActivity(timetableID: Int, activityID: Int): Timetable {
+        if (loadState.value.isReadOnly) throw NetworkError.NoConnection()
+        loadGeneration++
+        return timetableUseCase.deleteActivity(timetableID, activityID).also(::activityTableUpdated)
+    }
+
+    private fun activityTableUpdated(table: Timetable) {
+        if (_selectedTimetableID.value?.toString() == table.id) {
+            loadGeneration++
+            _timetable.value = table
+            succeeded("table")
+            _loadState.value = _loadState.value.copy(isShowingSavedData = false, lastUpdated = Date(), loadError = null)
+        }
+        viewModelScope.launch { TimetableWidgetSyncManager(context).syncSavedTimetable(table) }
+    }
+
+    override fun connectivityChanged(connected: Boolean) {
+        if (lastConnectivity == connected) return
+        val shouldRefresh = connected && (networkUnavailable || offlineFailures.isNotEmpty())
+        lastConnectivity = connected
+        networkUnavailable = !connected
+        if (connected) offlineFailures.clear()
+        publishStatus()
+        if (shouldRefresh) {
+            if (refreshJob?.isActive == true) refreshPending = true else fetchData()
+        }
+    }
+
+    private fun publishStatus() {
+        _loadState.value = _loadState.value.copy(
+            isOffline = networkUnavailable || offlineFailures.isNotEmpty(),
+            refreshFailed = refreshFailures.isNotEmpty(),
+        )
+    }
+
+    private fun succeeded(resource: String) {
+        refreshFailures.remove(resource)
+        offlineFailures.remove(resource)
+        publishStatus()
+    }
+
+    private fun failed(error: Exception, resource: String) {
+        refreshFailures.add(resource)
+        offlineFailures.remove(resource)
+        if (error.isOfflineFailure()) offlineFailures.add(resource)
+        publishStatus()
+        crashlyticsService.recordException(error)
+    }
 
     private fun persistSelection() {
         _selectedSemester.value?.let { selectionStore.save(it, _selectedTimetableID.value) }
@@ -448,9 +450,11 @@ class TimetableViewModel @Inject constructor(
                 }
                 // The table exists either way; tell the user only when it is incomplete.
                 if (!duplication.isComplete) {
-                    alertTitleRes = R.string.timetable_duplicate_partial_title
-                    alertMessageRes = R.string.timetable_duplicate_partial_message
-                    showAlert = true
+                    alertState = AlertState(
+                        titleResId = R.string.timetable_duplicate_partial_title,
+                        messageResId = R.string.timetable_duplicate_partial_message,
+                    )
+                    isAlertPresented = true
                 }
             } catch (e: CancellationException) {
                 throw e
@@ -504,10 +508,10 @@ class TimetableViewModel @Inject constructor(
             try {
                 val table = timetableUseCase.getTable(tableId, forceRefresh = true)
                 if (table.contains(lecture)) return@launch
-                if (table.activities.any { block -> lecture.classes.any { it.day.value == block.day && it.begin < block.end && it.end > block.begin } }) {
-                    alertMessageRes = R.string.activity_conflict
-                    showAlert = true
-                    return@launch
+                table.activities.filter { block ->
+                    lecture.classes.any { it.day.value == block.day && it.begin < block.end && it.end > block.begin }
+                }.forEach { overlapping ->
+                    timetableUseCase.deleteActivity(tableId, overlapping.id)
                 }
                 if (table.hasCollision(lecture)) {
                     val collisions = table.lectures.filter { table.hasCollisions(lecture, it) }
@@ -599,9 +603,8 @@ class TimetableViewModel @Inject constructor(
             ErrorType.FetchData -> R.string.error_fetch_data
             ErrorType.RenameTable -> R.string.error_rename_table
         }
-        alertTitleRes = null
-        alertMessageRes = messageRes
-        showAlert = true
+        alertState = error.toAlertState(messageRes)
+        isAlertPresented = true
         crashlyticsService.recordException(error)
     }
 }

@@ -51,7 +51,9 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.rememberLectureSearchStyle
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.domain.models.otl.LectureSearchStyle
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.components.ActivityList
@@ -113,9 +115,17 @@ fun TimetableView(
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
     val isEditable by viewModel.isEditable.collectAsState()
     val timetableName by viewModel.timetableName.collectAsState()
+    val lectureSearchStyle by rememberLectureSearchStyle()
 
     val candidateLecture by viewModel.candidateLecture.collectAsState()
     val isOverlapping by viewModel.isCandidateOverlapping.collectAsState()
+
+    val openLectureSearch: () -> Unit = {
+        navController.navigate(
+            if (lectureSearchStyle == LectureSearchStyle.Fixed) Channel.CourseCompose.name
+            else Channel.LectureSearch.name
+        )
+    }
 
     val backStackEvent = {
         if (candidateLecture != null) {
@@ -138,8 +148,7 @@ fun TimetableView(
                     TimetableViewNavigationBar(
                         scrollState = scrollState,
                         isButtonEnabled = isEditable,
-                        onCreditsClick = { navController.navigate(Channel.CreditCalculation.name) },
-                        onClick = { navController.navigate(Channel.CourseCompose.name) },
+                        onClick = openLectureSearch,
                         onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } }
                     )
                 }
@@ -169,7 +178,7 @@ fun TimetableView(
                             lectureToDelete = lecture
                             showDeleteDialog = true
                         },
-                        onAddClick = { navController.navigate(Channel.CourseCompose.name) },
+                        onAddClick = openLectureSearch,
                         onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } },
                         isEditable = isEditable,
                         creditsContent = creditsContent,
@@ -219,22 +228,7 @@ fun TimetableView(
             )
         }
 
-        if (viewModel.showAlert) {
-            AlertDialog(
-                onDismissRequest = { viewModel.showAlert = false },
-                confirmButton = {
-                    TextButton(onClick = { viewModel.showAlert = false }) {
-                        Text(stringResource(R.string.ok))
-                    }
-                },
-                title = { Text(stringResource(viewModel.alertTitleRes ?: R.string.error)) },
-                text = {
-                    viewModel.alertMessageRes?.let { Text(stringResource(it)) }
-                },
-                containerColor = MaterialTheme.colorScheme.background
 
-            )
-        }
     }
 }
 
@@ -273,9 +267,6 @@ private fun TimetableLandscapeLayout(
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = { navController.navigate(Channel.CreditCalculation.name) }) {
-                    Text(stringResource(R.string.credit_calculation))
-                }
                 CompactTimetableSelector(viewModel, timetableName, onShareClick = onShareClick)
                 Spacer(modifier = Modifier.width(12.dp))
                 TimetableAddButton(

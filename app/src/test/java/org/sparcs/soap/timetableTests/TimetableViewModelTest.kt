@@ -59,6 +59,73 @@ class TimetableViewModelTest {
     }
 
     @Test
+    fun `adding a conflicting lecture replaces only overlapping lectures and activities`() = runTest {
+        val original = Lecture.mock()
+        val slot = original.classes.first().copy(begin = 600, end = 660)
+        val replacement = original.copy(id = 901, classes = listOf(slot))
+        val overlapping = original.copy(id = 902, classes = listOf(slot))
+        val adjacent = original.copy(id = 903, classes = listOf(slot.copy(begin = 660, end = 720)))
+        val activity = TimetableActivity(904, "Meeting", "", slot.day.value, 630, 690)
+        val calls = mutableListOf<String>()
+        val table = Timetable("5", listOf(overlapping, adjacent), listOf(activity))
+        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = table
+            override suspend fun deleteActivity(timetableID: Int, activityID: Int): Timetable {
+                calls += "activity:$activityID"
+                return table
+            }
+            override suspend fun deleteLecture(timetableID: Int, lectureID: Int) {
+                calls += "delete:$lectureID"
+            }
+            override suspend fun addLecture(timetableID: Int, lectureID: Int) {
+                calls += "add:$lectureID"
+            }
+        }
+        createViewModel(useCase)
+        viewModel.selectTimetable(5)
+        viewModel.setCandidateLecture(replacement)
+
+        viewModel.addLecture(replacement)
+
+        assertEquals(listOf("activity:904", "delete:902", "add:901"), calls)
+        assertNull(viewModel.candidateLecture.value)
+    }
+
+    @Test
+    fun `failed overlap removal does not add the replacement`() = runTest {
+        val original = Lecture.mock()
+        val replacement = original.copy(id = original.id + 1)
+        var added = false
+        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = Timetable("5", listOf(original))
+            override suspend fun deleteLecture(timetableID: Int, lectureID: Int) {
+                throw IllegalStateException("Delete failed")
+            }
+            override suspend fun addLecture(timetableID: Int, lectureID: Int) { added = true }
+        }
+        createViewModel(useCase)
+        viewModel.selectTimetable(5)
+        viewModel.addLecture(replacement)
+        assertFalse(added)
+        assertTrue(viewModel.isAlertPresented)
+    }
+
+    @Test
+    fun `adding an already contained lecture makes no changes`() = runTest {
+        val lecture = Lecture.mock()
+        var changed = false
+        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = Timetable("5", listOf(lecture))
+            override suspend fun deleteLecture(timetableID: Int, lectureID: Int) { changed = true }
+            override suspend fun addLecture(timetableID: Int, lectureID: Int) { changed = true }
+        }
+        createViewModel(useCase)
+        viewModel.selectTimetable(5)
+        viewModel.addLecture(lecture)
+        assertFalse(changed)
+    }
+
+    @Test
     fun `fetchData populates semesters and loads my table`() = runTest {
         val semesters = Semester.mockList()
         mockTimetableUseCase.getSemestersResult = Result.success(semesters)
@@ -78,7 +145,7 @@ class TimetableViewModelTest {
 
         createViewModel()
 
-        assertFalse(viewModel.showAlert)
+        assertFalse(viewModel.isAlertPresented)
         assertTrue(viewModel.loadState.value.refreshFailed)
         assertFalse(viewModel.isLoading.value)
     }
@@ -129,7 +196,7 @@ class TimetableViewModelTest {
         assertEquals(listOf("$copy 3"), mockTimetableUseCase.duplicatedTitles)
         assertEquals(99, viewModel.selectedTimetableID.value)
         assertFalse(viewModel.isDuplicatingTable.value)
-        assertFalse(viewModel.showAlert)
+        assertFalse(viewModel.isAlertPresented)
     }
 
     @Test
@@ -141,9 +208,9 @@ class TimetableViewModelTest {
         createViewModel()
         viewModel.duplicateMyTable()
 
-        assertTrue(viewModel.showAlert)
-        assertEquals(R.string.timetable_duplicate_partial_title, viewModel.alertTitleRes)
-        assertEquals(R.string.timetable_duplicate_partial_message, viewModel.alertMessageRes)
+        assertTrue(viewModel.isAlertPresented)
+        assertEquals(R.string.timetable_duplicate_partial_title, viewModel.alertState?.titleResId)
+        assertEquals(R.string.timetable_duplicate_partial_message, viewModel.alertState?.messageResId)
     }
 
     @Test
@@ -154,9 +221,9 @@ class TimetableViewModelTest {
         createViewModel()
         viewModel.duplicateMyTable()
 
-        assertTrue(viewModel.showAlert)
-        assertNull(viewModel.alertTitleRes)
-        assertEquals(R.string.error_duplicate_table, viewModel.alertMessageRes)
+        assertTrue(viewModel.isAlertPresented)
+        assertEquals(R.string.error, viewModel.alertState?.titleResId)
+        assertEquals(R.string.error_duplicate_table, viewModel.alertState?.messageResId)
         assertFalse(viewModel.isDuplicatingTable.value)
     }
 
@@ -249,7 +316,7 @@ class TimetableViewModelTest {
 
         createViewModel()
 
-        assertFalse(viewModel.showAlert)
+        assertFalse(viewModel.isAlertPresented)
         assertTrue(viewModel.loadState.value.isReadOnly)
         assertEquals(semesters[1], viewModel.selectedSemester.value)
         assertEquals(5, viewModel.selectedTimetableID.value)

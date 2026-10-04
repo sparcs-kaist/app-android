@@ -56,7 +56,10 @@ import org.sparcs.soap.app.features.feedPostCompose.FeedPostComposeView
 import org.sparcs.soap.app.features.feedPostCompose.FeedPostComposeViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailView
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
+import org.sparcs.soap.app.features.lectureSearch.LectureSearchPage
+import org.sparcs.soap.app.features.lectureSearch.LectureSearchSession
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModel
+import org.sparcs.soap.app.features.lectureSearch.components.LectureTimeRangePage
 import org.sparcs.soap.app.features.navigationBar.animation.trendingEnterTransition
 import org.sparcs.soap.app.features.navigationBar.animation.trendingExitTransition
 import org.sparcs.soap.app.features.navigationBar.animation.trendingPopExitTransition
@@ -102,6 +105,7 @@ import org.sparcs.soap.app.features.taxiReport.TaxiReportView
 import org.sparcs.soap.app.features.taxiReport.TaxiReportViewModel
 import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationView
 import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationViewModel
+import org.sparcs.soap.app.features.timetable.TimetableAlerts
 import org.sparcs.soap.app.features.timetable.TimetableView
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.activity.ActivityCreationRoute
@@ -148,6 +152,8 @@ enum class Channel(@param:StringRes val title: Int) {
 
     //CourseCompose (Everytime Style Split View)
     CourseCompose(title = R.string.timetable),
+    LectureSearch(title = R.string.timetable),
+    LectureTimeRange(title = R.string.lecture_time_filter),
 
     //Setting
     SignOut(title = R.string.sign_out),
@@ -462,24 +468,33 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         )
                     }
 
-                    composable(
-                        route = Channel.CourseCompose.name,
-                        enterTransition = trendingEnterTransition(),
-                        exitTransition = trendingExitTransition(),
-                        popEnterTransition = null,
-                        popExitTransition = trendingPopExitTransition()
-                    ) { backStackEntry ->
-                        val parentEntry = remember(backStackEntry) {
-                            navController.getBackStackEntry("OTLGraph")
+                    navigation(startDestination = Channel.CourseCompose.name, route = "LectureSearchGraph") {
+                        listOf(Channel.CourseCompose, Channel.LectureSearch).forEach { channel ->
+                            composable(
+                                route = channel.name,
+                                enterTransition = trendingEnterTransition(),
+                                exitTransition = trendingExitTransition(),
+                                popExitTransition = trendingPopExitTransition(),
+                            ) { entry ->
+                                val tableEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                                val searchEntry = remember(entry) { navController.getBackStackEntry("LectureSearchGraph") }
+                                val table: TimetableViewModel = hiltViewModel(tableEntry)
+                                val search: LectureSearchViewModel = hiltViewModel(searchEntry)
+                                if (channel == Channel.CourseCompose) {
+                                    CourseComposeView(navController, table, search)
+                                } else {
+                                    val session: LectureSearchSession = hiltViewModel(searchEntry)
+                                    LectureSearchPage(navController, table, search, session = session)
+                                }
+                            }
                         }
-                        val viewModel: TimetableViewModel = hiltViewModel(parentEntry)
-                        val lectureSearchViewModel: LectureSearchViewModel =
-                            hiltViewModel(backStackEntry)
-                        CourseComposeView(
-                            navController = navController,
-                            timetableViewModel = viewModel,
-                            lectureSearchViewModel = lectureSearchViewModel
-                        )
+                        composable(Channel.LectureTimeRange.name) { entry ->
+                            val tableEntry = remember(entry) { navController.getBackStackEntry("OTLGraph") }
+                            val searchEntry = remember(entry) { navController.getBackStackEntry("LectureSearchGraph") }
+                            val table: TimetableViewModel = hiltViewModel(tableEntry)
+                            val search: LectureSearchViewModel = hiltViewModel(searchEntry)
+                            LectureTimeRangePage(search, table, navController)
+                        }
                     }
 
                     composable(
@@ -506,7 +521,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         LectureDetailView(
                             viewModel = lectureDetailViewModel,
                             timetableViewModel = timetableViewModel,
-                            navController = navController
+                            navController = navController,
                         )
                     }
 
@@ -524,7 +539,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         popExitTransition = trendingPopExitTransition()
                     ) { backStackEntry ->
                         val viewModel: CourseViewModel = hiltViewModel(backStackEntry)
-                        CourseView(navController = navController, viewModel = viewModel)
+                        CourseView(viewModel = viewModel, navController = navController)
                     }
 
                     composable(
@@ -941,6 +956,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                     }
                 }
             }
+            TimetableAlerts(navController)
             MainDeepLinkHandler(
                 navController = navController,
                 onTabSelected = onTabClick

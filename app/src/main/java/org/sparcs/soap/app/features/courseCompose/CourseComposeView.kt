@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.courseCompose
 
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -35,16 +36,16 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import org.sparcs.soap.app.features.courseCompose.components.CourseComposeTopBar
-import android.net.Uri
 import com.google.gson.Gson
-import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
+import org.sparcs.soap.app.features.courseCompose.components.CourseComposeTopBar
 import org.sparcs.soap.app.features.courseCompose.components.TimetablePreviewSection
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModel
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
+import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
@@ -60,6 +61,11 @@ fun CourseComposeView(
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
 ) {
+    LifecycleResumeEffect(Unit) {
+        timetableViewModel.setCandidateLecture(null)
+        onPauseOrDispose { }
+    }
+
     val timetableName by timetableViewModel.timetableName.collectAsState()
 
     var isFitToScreen by rememberSaveable { mutableStateOf(true) }
