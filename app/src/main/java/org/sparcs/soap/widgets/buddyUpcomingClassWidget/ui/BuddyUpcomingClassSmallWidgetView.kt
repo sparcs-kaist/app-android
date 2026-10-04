@@ -26,6 +26,7 @@ import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.mock
 import java.time.LocalDate
 import java.util.Locale
+import java.time.format.TextStyle as DateTextStyle
 
 @Composable
 fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
@@ -97,7 +98,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
 
             Text(
                 text = today.dayOfWeek.getDisplayName(
-                    java.time.format.TextStyle.FULL,
+                    DateTextStyle.FULL,
                     Locale.getDefault()
                 ).uppercase(),
                 style = TextStyle(

@@ -29,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
+import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.views.contentViews.DepartmentSelectionSections
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
@@ -63,6 +64,7 @@ private fun InterestedDepartmentsContent(
     val isDoneEnabled = loaded?.hasChanges == true && !loaded.isSaving
 
     Scaffold(
+        modifier = Modifier.analyticsScreen("Interested Departments"),
         topBar = {
             Column {
                 SettingsViewNavigationBar(

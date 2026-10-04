@@ -37,9 +37,10 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.shared.extensions.openUri
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.theme.ui.Theme
+import java.util.Date
 
 @Composable
-fun ChatDepartureBubble(room: TaxiRoom, chatTime: java.util.Date) {
+fun ChatDepartureBubble(room: TaxiRoom, chatTime: Date) {
     val context = LocalContext.current
     var showDialog by remember { mutableStateOf(false) }
 
@@ -154,5 +155,5 @@ fun ChatDepartureBubble(room: TaxiRoom, chatTime: java.util.Date) {
 @Preview
 @Composable
 private fun Preview() {
-    Theme { ChatDepartureBubble(room = TaxiRoom.mock(), chatTime = java.util.Date()) }
+    Theme { ChatDepartureBubble(room = TaxiRoom.mock(), chatTime = Date()) }
 }

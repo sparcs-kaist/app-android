@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -183,8 +184,8 @@ private fun SearchStylePreview(style: LectureSearchStyle) {
     Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             if (style == LectureSearchStyle.Flexible) {
-                androidx.compose.material3.Icon(
-                    androidx.compose.material.icons.Icons.Outlined.CalendarMonth,
+                Icon(
+                    Icons.Outlined.CalendarMonth,
                     contentDescription = null,
                     modifier = Modifier.height(12.dp),
                     tint = MaterialTheme.colorScheme.primary,

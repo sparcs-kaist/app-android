@@ -38,7 +38,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.app.features.courseCompose.components.CourseComposeTopBar
-import org.sparcs.soap.app.features.courseCompose.components.CourseSearchSection
+import android.net.Uri
+import com.google.gson.Gson
+import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
 import org.sparcs.soap.app.features.courseCompose.components.TimetablePreviewSection
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModel
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
@@ -153,10 +156,18 @@ fun CourseComposeView(
                         thickness = 0.5.dp,
                         color = MaterialTheme.colorScheme.outlineVariant
                     )
-                    CourseSearchSection(
-                        navController = navController,
+                    LectureSearchList(
                         timetableViewModel = timetableViewModel,
-                        lectureSearchViewModel = lectureSearchViewModel,
+                        viewModel = lectureSearchViewModel,
+                        onChooseTime = { navController.navigate(Channel.LectureTimeRange.name) },
+                        onOpenLecture = { lecture ->
+                            timetableViewModel.setCandidateLecture(lecture.takeUnless { timetableViewModel.selectedTimetable.value?.contains(it) == true })
+                            navController.navigate(Channel.LectureDetail.name + "?lecture_json=${Uri.encode(Gson().toJson(lecture))}")
+                        },
+                        onOpenCourse = { id ->
+                            timetableViewModel.setCandidateLecture(null)
+                            navController.navigate(Channel.CourseView.name + "?courseId=$id")
+                        },
                         onSearchFocusChange = { focused ->
                             if (focused) isSearching = true
                         }
@@ -175,7 +186,7 @@ private fun CourseComposeViewPreview() {
         CourseComposeView(
             navController = rememberNavController(),
             timetableViewModel = PreviewTimetableViewModel(),
-            lectureSearchViewModel = PreviewLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded)
+            lectureSearchViewModel = PreviewLectureSearchViewModel(LectureSearchViewModel.ViewState.Loaded())
         )
     }
 }

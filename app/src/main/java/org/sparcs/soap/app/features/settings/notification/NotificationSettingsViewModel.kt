@@ -2,21 +2,28 @@ package org.sparcs.soap.app.features.settings.notification
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.helpers.FeatureType
 import org.sparcs.soap.app.domain.usecases.FCMUseCaseProtocol
 import javax.inject.Inject
 
-interface NotificationSettingsViewModelProtocol
+interface NotificationSettingsViewModelProtocol {
+    var alertState: AlertState?
+    var isAlertPresented: Boolean
+}
+
 @HiltViewModel
 class NotificationSettingsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -30,14 +37,8 @@ class NotificationSettingsViewModel @Inject constructor(
     private val _toggleState = mutableStateMapOf<FeatureType, Boolean>()
     val toggleState: Map<FeatureType, Boolean> = _toggleState
 
-    private val _isAlertPresented = MutableStateFlow(false)
-    val isAlertPresented = _isAlertPresented.asStateFlow()
-
-    private val _alertTitle = MutableStateFlow("")
-    val alertTitle = _alertTitle.asStateFlow()
-
-    private val _alertMessage = MutableStateFlow("")
-    val alertMessage = _alertMessage.asStateFlow()
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     fun loadSettings() {
         if (_toggleState.isNotEmpty()) return
@@ -58,10 +59,15 @@ class NotificationSettingsViewModel @Inject constructor(
             try {
                 fcmUseCase.manage(service, isActive)
                 updateToggleState(service, isActive)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                _alertTitle.value = context.getString(R.string.error_update_failed_title)
-                _alertMessage.value = e.localizedMessage ?: context.getString(R.string.unexpected_error)
-                _isAlertPresented.value = true
+                alertState = AlertState(
+                    titleResId = R.string.error_update_failed_title,
+                    messageResId = R.string.unexpected_error,
+                    message = e.localizedMessage,
+                )
+                isAlertPresented = true
             }
         }
     }
@@ -71,13 +77,15 @@ class NotificationSettingsViewModel @Inject constructor(
             prefs.edit { putBoolean("fcm.${service.rawValue}", isActive) }
             _toggleState[service] = isActive
         } catch (_e: Exception) {
-            _alertTitle.value = context.getString(R.string.error_save_failed_title)
-            _alertMessage.value = context.getString(R.string.error_encode_failed_message)
-            _isAlertPresented.value = true
+            alertState = AlertState(
+                titleResId = R.string.error_save_failed_title,
+                messageResId = R.string.error_encode_failed_message,
+            )
+            isAlertPresented = true
         }
     }
 
     fun dismissAlert() {
-        _isAlertPresented.value = false
+        isAlertPresented = false
     }
 }

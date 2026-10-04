@@ -34,6 +34,7 @@ import org.sparcs.soap.app.features.taxiChat.components.DefaultMessagePresentati
 import org.sparcs.soap.app.features.taxiChat.components.TaxiGroupingPolicy
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import timber.log.Timber
+import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -258,14 +259,14 @@ class TaxiChatViewModel @Inject constructor(
     override val isLeaveRoomAvailable: Boolean
         get() {
             val currentRoom = room.value
-            val isTimeDeparted = java.util.Date().after(currentRoom.departAt)
+            val isTimeDeparted = Date().after(currentRoom.departAt)
             return !(currentRoom.isDeparted || isTimeDeparted)
         }
 
     override val isCommitSettlementAvailable: Boolean
         get() {
             val currentRoom = room.value
-            val isTimeDeparted = java.util.Date().after(currentRoom.departAt)
+            val isTimeDeparted = Date().after(currentRoom.departAt)
             val isAlreadySettled = (currentRoom.settlementTotal ?: 0) > 0
             
             return (currentRoom.isDeparted || isTimeDeparted) && !isAlreadySettled

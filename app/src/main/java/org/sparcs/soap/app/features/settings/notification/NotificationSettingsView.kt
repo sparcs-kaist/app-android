@@ -10,18 +10,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,6 +37,7 @@ import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBa
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,10 +46,6 @@ fun NotificationSettingsView(
     navController: NavController,
     viewModel: NotificationSettingsViewModel = hiltViewModel(),
 ) {
-    val isAlertPresented by viewModel.isAlertPresented.collectAsState()
-    val alertTitle by viewModel.alertTitle.collectAsState()
-    val alertMessage by viewModel.alertMessage.collectAsState()
-
     LaunchedEffect(Unit) {
         viewModel.loadSettings()
     }
@@ -112,19 +105,11 @@ fun NotificationSettingsView(
         }
     }
 
-    if (isAlertPresented) {
-        AlertDialog(
-            onDismissRequest = { viewModel.dismissAlert() },
-            title = { Text(alertTitle) },
-            text = { Text(alertMessage) },
-            confirmButton = {
-                TextButton(onClick = { viewModel.dismissAlert() }) {
-                    Text(stringResource(R.string.ok))
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.background
-        )
-    }
+    GlobalAlertDialog(
+        isPresented = viewModel.isAlertPresented,
+        state = viewModel.alertState,
+        onDismiss = viewModel::dismissAlert,
+    )
 }
 
 @Preview

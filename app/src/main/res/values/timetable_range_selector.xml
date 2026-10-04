@@ -6,5 +6,4 @@
     <string name="time_range_previous_day">Previous day</string>
     <string name="time_range_next_day">Next day</string>
     <string name="time_range_longer">Make longer</string>
-    <string name="time_range_reset">Reset</string>
 </resources>
