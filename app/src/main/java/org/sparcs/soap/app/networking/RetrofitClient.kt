@@ -55,6 +55,9 @@ import org.sparcs.soap.app.domain.repositories.feed.FeedProfileRepository
 import org.sparcs.soap.app.domain.repositories.feed.FeedProfileRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.feed.FeedUserRepository
 import org.sparcs.soap.app.domain.repositories.feed.FeedUserRepositoryProtocol
+import org.sparcs.soap.app.domain.nearby.NearbyBeaconSourceProtocol
+import org.sparcs.soap.app.domain.repositories.nearby.NearbyRelayRepository
+import org.sparcs.soap.app.domain.repositories.nearby.NearbyRelayRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.otl.OTLCourseRepository
 import org.sparcs.soap.app.domain.repositories.otl.OTLCourseRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.otl.OTLFriendRepository
@@ -80,6 +83,7 @@ import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiUserRepository
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiUserRepositoryProtocol
 import org.sparcs.soap.app.domain.services.AnalyticsService
+import org.sparcs.soap.app.domain.services.BleBeaconDataSource
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.AuthenticationService
 import org.sparcs.soap.app.domain.services.AuthenticationServiceProtocol
@@ -106,6 +110,8 @@ import org.sparcs.soap.app.domain.usecases.feed.FeedPostUseCase
 import org.sparcs.soap.app.domain.usecases.feed.FeedPostUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCase
 import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.nearby.NearbyFriendsManager
+import org.sparcs.soap.app.domain.usecases.nearby.NearbyFriendsManagerProtocol
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCase
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.FriendUseCase
@@ -145,6 +151,7 @@ import org.sparcs.soap.app.networking.retrofitAPI.feed.FeedImageApi
 import org.sparcs.soap.app.networking.retrofitAPI.feed.FeedPostApi
 import org.sparcs.soap.app.networking.retrofitAPI.feed.FeedProfileApi
 import org.sparcs.soap.app.networking.retrofitAPI.feed.FeedUserApi
+import org.sparcs.soap.app.networking.retrofitAPI.nearby.NearbyRelayApi
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLCourseApi
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLFriendApi
 import org.sparcs.soap.app.networking.retrofitAPI.otl.OTLLectureApi
@@ -167,6 +174,7 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
+import java.util.concurrent.TimeUnit
 
 class TokenAuthenticator @Inject constructor(
     private val authUseCaseProvider: Provider<AuthUseCaseProtocol>,
@@ -340,6 +348,44 @@ object NetworkModule {
             .build()
     }
 
+    /**
+     * The Nearby Relay lives on the feed backend and uses the same Buddy login,
+     * but holds a mailbox long poll open for up to 25 s, so it needs a longer
+     * read timeout. Bodies are never logged: they're ciphertext plus secrets.
+     */
+    @Provides
+    @Singleton
+    @Named("NearbyRelay")
+    fun nearbyRelayURL(
+        gson: Gson,
+        tokenStorage: TokenStorageProtocol,
+        tokenAuthenticator: TokenAuthenticator,
+    ): Retrofit {
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val original = chain.request()
+                val accessToken = runBlocking { tokenStorage.getAccessToken() }
+                val newRequest = original.newBuilder()
+                    .header("Origin", "sparcsapp")
+                    .header("Content-Type", "application/json")
+                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
+                    .build()
+                chain.proceed(newRequest)
+            }
+            .authenticator(tokenAuthenticator)
+            .readTimeout(40, TimeUnit.SECONDS)
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BASIC
+            })
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl(Constants.FEED_BACKEND_URL)
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create(gson))
+            .build()
+    }
+
     @Provides
     @Singleton
     @Named("OTLBackend")
@@ -484,6 +530,12 @@ object NetworkModule {
     @Singleton
     fun provideOTLReviewApi(@Named("OTLBackend") retrofit: Retrofit): OTLReviewApi {
         return retrofit.create(OTLReviewApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNearbyRelayApi(@Named("NearbyRelay") retrofit: Retrofit): NearbyRelayApi {
+        return retrofit.create(NearbyRelayApi::class.java)
     }
 
     @Provides
@@ -648,6 +700,12 @@ abstract class RepositoryModule {
 
     @Binds
     @Singleton
+    abstract fun bindNearbyRelayRepository(
+        impl: NearbyRelayRepository,
+    ): NearbyRelayRepositoryProtocol
+
+    @Binds
+    @Singleton
     abstract fun bindTaxiChatRepository(
         impl: TaxiChatRepository,
     ): TaxiChatRepositoryProtocol
@@ -785,6 +843,18 @@ abstract class UseCaseModule {
     abstract fun bindFriendUseCase(
         impl: FriendUseCase,
     ): FriendUseCaseProtocol
+
+    // Not a singleton: each Add Friends visit gets its own session state.
+    @Binds
+    abstract fun bindNearbyFriendsManager(
+        impl: NearbyFriendsManager,
+    ): NearbyFriendsManagerProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindNearbyBeaconSource(
+        impl: BleBeaconDataSource,
+    ): NearbyBeaconSourceProtocol
 
     @Binds
     @Singleton

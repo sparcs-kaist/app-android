@@ -8,6 +8,9 @@ enum class NearbyPeerState {
     /** We asked to add them and are waiting for their answer. */
     Requested,
 
+    /** They said no to our request. Tapping asks again. */
+    Declined,
+
     /** They asked to add us. */
     Incoming,
 

@@ -15,6 +15,7 @@ class MockFriendUseCase : FriendUseCaseProtocol {
     var fetchMyCodeResult: Result<String> = Result.success("ACD347")
 
     var fetchFriendsCallCount = 0
+    var fetchMyCodeCallCount = 0
     var lastAddedCode: String? = null
     var lastDeletedID: Int? = null
     var lastFavorite: Pair<Int, Boolean>? = null
@@ -39,5 +40,8 @@ class MockFriendUseCase : FriendUseCaseProtocol {
         setFavoriteResult.getOrThrow()
     }
 
-    override suspend fun fetchMyCode(): String = fetchMyCodeResult.getOrThrow()
+    override suspend fun fetchMyCode(): String {
+        fetchMyCodeCallCount += 1
+        return fetchMyCodeResult.getOrThrow()
+    }
 }
