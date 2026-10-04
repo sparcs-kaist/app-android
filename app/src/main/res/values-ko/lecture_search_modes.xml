@@ -2,6 +2,7 @@
     <string name="lecture_search_credit_preview">18학점 · 2AU</string>
     <string name="lecture_search_fixed">시간표 고정</string>
     <string name="lecture_search_flexible">시간표 유동</string>
-    <string name="lecture_collision_title">시간이 겹치는 강의는 추가할 수 없습니다</string>
-    <string name="lecture_collision_message">%2$s 강의가 %1$s와 시간이 겹칩니다. 다른 시간의 강의를 선택해 주세요.</string>
+    <string name="lecture_collision_title">겹치는 수업을 대체할까요?</string>
+    <string name="lecture_collision_message">%2$s 강의가 %1$s와 시간이 겹칩니다. 겹치는 항목을 이 강의로 대체할까요?</string>
+    <string name="replace_overlapping_lecture">대체</string>
 </resources>

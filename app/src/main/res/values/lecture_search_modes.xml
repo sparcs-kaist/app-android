@@ -2,6 +2,7 @@
     <string name="lecture_search_credit_preview">18 credits · 2 AU</string>
     <string name="lecture_search_fixed">Fixed timetable</string>
     <string name="lecture_search_flexible">Flexible timetable</string>
-    <string name="lecture_collision_title">Cannot add an overlapping lecture</string>
-    <string name="lecture_collision_message">%2$s overlaps with %1$s. Choose a different class time.</string>
+    <string name="lecture_collision_title">Replace overlapping classes?</string>
+    <string name="lecture_collision_message">%2$s overlaps with %1$s. Replace the overlapping items with this lecture?</string>
+    <string name="replace_overlapping_lecture">Replace</string>
 </resources>

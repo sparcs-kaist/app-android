@@ -19,11 +19,12 @@ import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,18 +52,6 @@ fun CourseHistorySection(
     onSelectProfessor: (Int?) -> Unit,
 ) {
     val listState = rememberLazyListState()
-    val selectedHistoryIndex = if (selectedProfessorID == null) {
-        -1
-    } else {
-        history.indexOfFirst { it.containsProfessor(selectedProfessorID) }
-    }
-
-    LaunchedEffect(selectedProfessorID, history) {
-        if (selectedHistoryIndex >= 0) {
-            listState.animateScrollToItem(selectedHistoryIndex)
-        }
-    }
-
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         CourseHistoryHeader(history.size)
 
@@ -155,51 +144,64 @@ private fun CourseHistoryClassRow(
     }
     val canSelect = section.professors.isNotEmpty()
 
-    Surface(
-        enabled = canSelect,
-        onClick = { onSelectProfessor(if (isMatch) null else section.professors.first().id) },
-        shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.background,
-        contentColor = MaterialTheme.colorScheme.onSurface,
+    CompositionLocalProvider(
+        LocalMinimumInteractiveComponentSize provides 32.dp
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp, vertical = 2.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+        Surface(
+            enabled = canSelect,
+            onClick = { onSelectProfessor(if (isMatch) null else section.professors.first().id) },
+            shape = MaterialTheme.shapes.medium,
+            color = MaterialTheme.colorScheme.background,
+            contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = if (section.subtitle.isNotBlank()) 6.dp else 2.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                if (section.section.isNotEmpty()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (section.section.isNotEmpty()) {
+                        Text(
+                            text = section.section,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
                     Text(
-                        text = section.section,
+                        text = professorText,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = if (isMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f, fill = false),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
 
-                Text(
-                    text = professorText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = if (isMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.weight(1f, fill = false),
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+                if (section.subtitle.isNotBlank()) {
+                    Text(
+                        text = section.subtitle,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
 
-            if (isMySection) {
-                Text(
-                    text = stringResource(R.string.course_your_section),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (isMySection) {
+                    Text(
+                        text = stringResource(R.string.course_your_section),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }
 }
+
 
 private fun CourseHistory.containsProfessor(selectedProfessorID: Int?): Boolean {
     if (selectedProfessorID == null) return false

@@ -1,16 +1,18 @@
 package org.sparcs.soap.app.features.course
 
-import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -18,7 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -32,7 +36,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -46,10 +49,15 @@ import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.LectureReviewPage
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.features.course.components.CourseHistorySection
+import org.sparcs.soap.app.features.course.components.CourseHistorySkeleton
 import org.sparcs.soap.app.features.course.components.CourseNavigationBar
+import org.sparcs.soap.app.features.course.components.CourseProfessorPicker
 import org.sparcs.soap.app.features.course.components.CourseReviewSectionSkeleton
 import org.sparcs.soap.app.features.course.components.CourseSummarySkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewCell
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
@@ -65,44 +73,45 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCourseViewModel
 fun CourseView(
     viewModel: CourseViewModelProtocol = hiltViewModel<CourseViewModel>(),
     navController: NavController,
+    navigationActions: @Composable RowScope.() -> Unit = {},
+    topContent: @Composable () -> Unit = {},
+    floatingTopContent: Boolean = false,
+    isSearchContext: Boolean = false,
 ) {
     val state by viewModel.state.collectAsState()
+    val course by viewModel.course.collectAsState()
 
     Scaffold(
+        containerColor = if (isSearchContext) LectureSearchChrome.background else MaterialTheme.colorScheme.surface,
         topBar = {
             CourseNavigationBar(
                 navController = navController,
-                text = (state as? CourseViewModel.ViewState.Loaded)?.course?.name ?: ""
+                text = course?.name ?: "",
+                isSearchContext = isSearchContext,
+                navigationActions = navigationActions,
             )
         },
         modifier = Modifier.analyticsScreen("Course")
     ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(paddingValues),
-            contentAlignment = Alignment.TopCenter
-        ) {
-            if (state is CourseViewModel.ViewState.Error) {
-                val error = (state as CourseViewModel.ViewState.Error).error
-                ErrorView(
-                    defaultMessageResId = R.string.failed_to_load_course,
-                    error = error,
-                    onRetry = { viewModel.loadCourse() }
-                )
-            } else {
-                val configuration = LocalConfiguration.current
-                val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-                if (isLandscape) {
+        LectureSearchResultsLayout(
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            floatingPreview = floatingTopContent,
+            header = {},
+            preview = topContent,
+            results = {
+                BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+                    val isLandscape = maxWidth >= 840.dp
+                    if (isLandscape) {
                     CourseLandscapeLayout(state, viewModel)
                 } else {
                     CoursePortraitLayout(state, viewModel)
+                    }
                 }
-            }
-        }
+            },
+        )
     }
+
+
     GlobalAlertDialog(
         state = viewModel.alertState,
         isPresented = viewModel.isAlertPresented,
@@ -128,7 +137,7 @@ private fun CourseLandscapeLayout(
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SummarySection(state)
+            SummarySection(viewModel)
         }
 
         Column(
@@ -157,7 +166,7 @@ private fun CoursePortraitLayout(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        SummarySection(state)
+        SummarySection(viewModel)
         Spacer(modifier = Modifier.height(32.dp))
         ReviewSection(state, viewModel)
         Spacer(modifier = Modifier.height(40.dp))
@@ -165,21 +174,43 @@ private fun CoursePortraitLayout(
 }
 
 @Composable
-private fun SummarySection(state: CourseViewModel.ViewState) {
-    when (state) {
-        is CourseViewModel.ViewState.Loading -> CourseSummarySkeleton()
-        is CourseViewModel.ViewState.Loaded -> CourseSummary(state.course)
-        else -> {}
+private fun SummarySection(viewModel: CourseViewModelProtocol) {
+    val course by viewModel.course.collectAsState()
+    val error by viewModel.courseError.collectAsState()
+    val selectedProfessorID by viewModel.selectedProfessorID.collectAsState()
+    when {
+        course != null -> {
+            CourseSummary(course!!)
+            Spacer(Modifier.height(24.dp))
+            CourseHistorySection(course!!.history, selectedProfessorID, viewModel::selectProfessor)
+        }
+
+        error != null -> ErrorView(
+            defaultMessageResId = R.string.failed_to_load_course,
+            error = error!!,
+            onRetry = viewModel::loadCourse
+        )
+
+        else -> {
+            CourseSummarySkeleton()
+            Spacer(Modifier.height(16.dp))
+            CourseHistorySkeleton()
+        }
     }
 }
 
 @Composable
 private fun ReviewSection(state: CourseViewModel.ViewState, viewModel: CourseViewModelProtocol) {
+    val course by viewModel.course.collectAsState()
+    val selectedProfessorID by viewModel.selectedProfessorID.collectAsState()
+    if (viewModel.professors.size > 1) {
+        CourseProfessorPicker(viewModel.professors, selectedProfessorID, viewModel::selectProfessor)
+    }
     when (state) {
         is CourseViewModel.ViewState.Loading -> CourseReviewSectionSkeleton()
         is CourseViewModel.ViewState.Loaded -> {
             CourseReviewSection(
-                course = state.course,
+                course = course,
                 reviews = state.reviews,
                 myReview = state.writtenReview,
                 reviewPage = state.reviewPage,
@@ -187,7 +218,11 @@ private fun ReviewSection(state: CourseViewModel.ViewState, viewModel: CourseVie
             )
         }
 
-        else -> {}
+        is CourseViewModel.ViewState.Error -> ErrorView(
+            defaultMessageResId = R.string.course_reviews_load_failed,
+            error = state.error,
+            onRetry = viewModel::fetchReviews
+        )
     }
 }
 
@@ -214,11 +249,34 @@ fun CourseSummary(course: Course) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            stringResource(R.string.information),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                stringResource(R.string.information),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            if (course.history.any { it.myLectureID != null }) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.course_taken),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
 
         Surface(
             shape = RoundedCornerShape(16.dp),
@@ -320,7 +378,7 @@ private fun DetailRow(label: String, value: String) {
 @Composable
 fun CourseReviewSection(
     viewModel: CourseViewModelProtocol,
-    course: Course,
+    course: Course?,
     reviews: List<LectureReview>,
     myReview: LectureReview?,
     reviewPage: LectureReviewPage,
@@ -368,10 +426,16 @@ fun CourseReviewSection(
                 modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
-                val totalCredit = course.credit + course.creditAu
-                ReviewStat(stringResource(R.string.grade), reviewPage.getGradeLetter(totalCredit))
-                ReviewStat(stringResource(R.string.load), reviewPage.getLoadLetter(totalCredit))
-                ReviewStat(stringResource(R.string.speech), reviewPage.getSpeechLetter(totalCredit))
+                val totalCredit = course?.let { it.credit + it.creditAu }
+                ReviewStat(
+                    stringResource(R.string.grade),
+                    totalCredit?.let { reviewPage.getGradeLetter(it) } ?: "?")
+                ReviewStat(
+                    stringResource(R.string.load),
+                    totalCredit?.let { reviewPage.getLoadLetter(it) } ?: "?")
+                ReviewStat(
+                    stringResource(R.string.speech),
+                    totalCredit?.let { reviewPage.getSpeechLetter(it) } ?: "?")
             }
         }
 
@@ -574,4 +638,25 @@ private fun PreviewEmptyReviews() {
     Theme {
         CourseView(viewModel = viewModel, navController = rememberNavController())
     }
+}
+
+@Preview(showBackground = true, name = "Course loaded, reviews loading")
+@Composable
+private fun PreviewReviewsLoading() {
+    val viewModel = PreviewCourseViewModel(CourseViewModel.ViewState.Loading)
+    Theme { CourseView(viewModel, rememberNavController()) }
+}
+
+@Preview(showBackground = true, name = "Reviews loaded, course loading")
+@Composable
+private fun PreviewCourseLoading() {
+    val viewModel = PreviewCourseViewModel(
+        CourseViewModel.ViewState.Loaded(
+            course = null,
+            reviews = LectureReview.mockList(),
+            writtenReview = null,
+            reviewPage = LectureReviewPage.mock(),
+        )
+    )
+    Theme { CourseView(viewModel, rememberNavController()) }
 }
