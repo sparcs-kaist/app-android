@@ -5,6 +5,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -112,6 +113,14 @@ class NearbyFriendsManager(
         const val MAX_BACKOFF_MS = 30_000L
         const val BATCH_LIMIT = 32
         const val TEARDOWN_TIMEOUT_MS = 3_000L
+        /** Assumed lifetime of a presence when the relay's expiry can't be read. */
+        const val PRESENCE_TTL_FALLBACK_MS = 300_000L
+        /**
+         * Rotate to a new session once the presence is this close to expiring.
+         * Normal renewals happen every minute, so reaching it means the process
+         * was frozen (background, Doze) or renewals kept failing.
+         */
+        const val EXPIRY_MARGIN_MS = 30_000L
         const val FALLBACK_NAME = "Buddy"
 
         /** Identifies this app launch on presence cards; see [PresenceCard.device]. */
@@ -169,37 +178,67 @@ class NearbyFriendsManager(
     private var nextOrder = 0L
     private var myCode: String? = null
     private var republish = Channel<Unit>(Channel.CONFLATED)
+    /** When the current session's presence lapses on the relay; `null` before the first publish. */
+    private var presenceExpiresAt: Long? = null
 
     // MARK: - Lifecycle
 
     override suspend fun run() {
-        val session = newSession()
+        peersById.clear()
+        try {
+            coroutineScope {
+                launch { myCode = fetchMyCode() }
+                // Each pass is one session; it returns only when its presence
+                // expired unrenewed, and the next pass starts with a new token.
+                while (true) runSession(newSession())
+            }
+        } finally {
+            peersById.values.forEach { it.timeout?.cancel() }
+            peersById.clear()
+            myCode = null
+            publish()
+        }
+    }
+
+    /**
+     * Publishes the presence first and only then advertises its token, so
+     * nobody hears a token they can't look up. Returns when the presence
+     * expires without being renewed, after tearing the session down.
+     */
+    private suspend fun runSession(session: NearbySession) {
+        var tearDownPeers = true
         try {
             coroutineScope {
                 this@NearbyFriendsManager.session = session
                 scope = this
-                peersById.clear()
                 seenMessageIds.clear()
                 republish = Channel(Channel.CONFLATED)
+                presenceExpiresAt = null
                 publish()
 
-                val published = CompletableDeferred<Unit>()
-                launch { myCode = fetchMyCode() }
-                launch { presenceLoop(session, published) }
-                launch {
-                    published.await()
-                    pollLoop(session)
-                }
-                launch { tickLoop() }
-                beacon.sightings(session.token).collect(::onSighting)
+                val plaintext = presenceCard(session)
+                val expired = CompletableDeferred<Unit>()
+                launch { publishUntilAccepted(session, plaintext) }.join()
+                launch { presenceLoop(session, plaintext) }
+                launch { pollLoop(session) }
+                launch { tickLoop(expired) }
+                launch { beacon.sightings(session.token).collect(::onSighting) }
+                expired.await()
+                tearDownPeers = false
+                coroutineContext.cancelChildren()
             }
         } finally {
             scope = null
-            withContext(NonCancellable) { tearDown(session) }
+            withContext(NonCancellable) { tearDown(session, rotating = !tearDownPeers) }
         }
     }
 
-    private suspend fun tearDown(session: NearbySession) {
+    /**
+     * Withdraws pending requests and deletes the presence. When [rotating] to a
+     * new session, peers stay on screen: a finished add carries over, and
+     * anything in flight returns to idle, since it was tied to this token.
+     */
+    private suspend fun tearDown(session: NearbySession, rotating: Boolean) {
         peersById.values.forEach { it.timeout?.cancel() }
         val requested = peersById.values.filter { it.state == NearbyPeerState.Requested }
         withTimeoutOrNull(TEARDOWN_TIMEOUT_MS) {
@@ -212,42 +251,82 @@ class NearbyFriendsManager(
         }
         session.clear()
         if (this.session === session) this.session = null
-        peersById.clear()
+        presenceExpiresAt = null
+        if (rotating) {
+            peersById.values.forEach { it.resetForNewSession() }
+        } else {
+            peersById.clear()
+        }
         publish()
+    }
+
+    private fun Peer.resetForNewSession() {
+        // Pair keys and resolution are tied to our old key; resolve again.
+        card = null
+        nextResolveAt = 0L
+        if (state != NearbyPeerState.Added) state = NearbyPeerState.Idle
+        incomingRequestId = null
+        incomingAt = 0L
+        confirmSent = false
+        acceptMsgId = null
+        isConfirming = false
+        theirCode = null
+        isPosting = false
+        timeout = null
     }
 
     // MARK: - Presence
 
-    private suspend fun presenceLoop(session: NearbySession, published: CompletableDeferred<Unit>) {
+    private suspend fun presenceCard(session: NearbySession): ByteArray {
         val card = PresenceCard(
             pub = NearbyCrypto.base64Url(session.pubX963),
             name = NearbyJson.truncatedName(displayName()),
             device = deviceId
         )
-        val plaintext = NearbyJson.json.encodeToString(PresenceCard.serializer(), card).toByteArray()
+        return NearbyJson.json.encodeToString(PresenceCard.serializer(), card).toByteArray()
+    }
+
+    /** Tries until the relay accepts the presence, backing off between failures. */
+    private suspend fun publishUntilAccepted(session: NearbySession, plaintext: ByteArray) {
         var backoff = TICK_MS
-        while (true) {
-            val ok = try {
-                val blob = NearbyCrypto.seal(
-                    session.presenceKey,
-                    plaintext,
-                    NearbyCrypto.PRESENCE_INFO + session.lookupId
-                )
-                relay.putPresence(session.lookupId, blob, session.ownerSecret)
-                true
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                Timber.w(e, "Nearby: failed to publish presence")
-                false
-            }
-            if (ok) {
-                published.complete(Unit)
-                backoff = TICK_MS
-            }
-            val wait = if (ok) PRESENCE_RENEW_MS else backoff.also { backoff = (backoff * 2).coerceAtMost(MAX_BACKOFF_MS) }
-            withTimeoutOrNull(wait) { republish.receive() }
+        while (!putPresence(session, plaintext)) {
+            delay(backoff)
+            backoff = (backoff * 2).coerceAtMost(MAX_BACKOFF_MS)
         }
+    }
+
+    /** Renews every minute, or straight away when the mailbox finds it gone. */
+    private suspend fun presenceLoop(session: NearbySession, plaintext: ByteArray) {
+        var backoff = TICK_MS
+        var wait = PRESENCE_RENEW_MS
+        while (true) {
+            withTimeoutOrNull(wait) { republish.receive() }
+            if (putPresence(session, plaintext)) {
+                backoff = TICK_MS
+                wait = PRESENCE_RENEW_MS
+            } else {
+                wait = backoff
+                backoff = (backoff * 2).coerceAtMost(MAX_BACKOFF_MS)
+            }
+        }
+    }
+
+    private suspend fun putPresence(session: NearbySession, plaintext: ByteArray): Boolean = try {
+        val blob = NearbyCrypto.seal(session.presenceKey, plaintext, NearbyCrypto.PRESENCE_INFO + session.lookupId)
+        val expiresAt = relay.putPresence(session.lookupId, blob, session.ownerSecret)
+        presenceExpiresAt = expiresAt ?: (clock() + PRESENCE_TTL_FALLBACK_MS)
+        true
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        Timber.w(e, "Nearby: failed to publish presence")
+        false
+    }
+
+    /** True once our presence has lapsed (or nearly) without a renewal. */
+    private fun isPresenceExpiring(now: Long): Boolean {
+        val expiresAt = presenceExpiresAt ?: return false
+        return now >= expiresAt - EXPIRY_MARGIN_MS
     }
 
     /** The OTL name, as on the friends list, so people recognise who they're adding. */
@@ -286,9 +365,17 @@ class NearbyFriendsManager(
         publish()
     }
 
-    private suspend fun tickLoop() {
+    private suspend fun tickLoop(expired: CompletableDeferred<Unit>) {
         while (true) {
+            // Checked before waiting too, so a session that resumes after a
+            // freeze stops advertising its stale token straight away.
+            if (isPresenceExpiring(clock())) {
+                Timber.i("Nearby: presence expired unrenewed; rotating the session")
+                expired.complete(Unit)
+                return
+            }
             delay(TICK_MS)
+            if (isPresenceExpiring(clock())) continue
             resolvePending()
             expire()
             publish()

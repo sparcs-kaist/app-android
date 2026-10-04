@@ -11,7 +11,10 @@ import org.sparcs.soap.app.domain.repositories.nearby.RelayMessagesPage
  * An in-memory relay with the server's semantics (owner secrets, mailboxes,
  * cursor acknowledgement), shared by every simulated phone in a test.
  */
-class FakeNearbyRelayRepository : NearbyRelayRepositoryProtocol {
+class FakeNearbyRelayRepository(
+    /** Virtual clock (epoch ms) for the presence expiry returned by PUT. */
+    private val clock: () -> Long = { 0L },
+) : NearbyRelayRepositoryProtocol {
     private class Presence(val blob: ByteArray, val secret: ByteArray)
 
     private val presences = mutableMapOf<String, Presence>()
@@ -19,19 +22,27 @@ class FakeNearbyRelayRepository : NearbyRelayRepositoryProtocol {
     private var nextId = 1L
 
     var failPuts = false
+    /** Fails PUTs only for presences whose owner secret matches; simulates one frozen phone. */
+    var failPutsFor: ((ownerSecret: ByteArray) -> Boolean)? = null
     var failPolls = false
     var putCount = 0
     var postCount = 0
     val deleted = mutableListOf<String>()
 
+    /** Lifetime of a presence, as the relay's NEARBY_PRESENCE_TTL_SECONDS. */
+    var presenceTtlMs = 300_000L
+    /** Expiry returned by PUT; `null` simulates an unreadable timestamp. */
+    var returnExpiry = true
+
     fun hasPresence(lookupId: ByteArray) = NearbyCrypto.hex(lookupId) in presences
 
-    override suspend fun putPresence(lookupId: ByteArray, blob: ByteArray, ownerSecret: ByteArray) {
+    override suspend fun putPresence(lookupId: ByteArray, blob: ByteArray, ownerSecret: ByteArray): Long? {
         putCount += 1
-        if (failPuts) throw NetworkError.NoConnection()
+        if (failPuts || failPutsFor?.invoke(ownerSecret) == true) throw NetworkError.NoConnection()
         val key = NearbyCrypto.hex(lookupId)
         presences[key]?.let { if (!it.secret.contentEquals(ownerSecret)) throw NetworkError.ServerError(409) }
         presences[key] = Presence(blob, ownerSecret)
+        return if (returnExpiry) clock() + presenceTtlMs else null
     }
 
     override suspend fun batchGet(lookupIds: List<ByteArray>): Map<String, ByteArray> =

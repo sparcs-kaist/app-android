@@ -5,6 +5,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -37,14 +39,20 @@ import org.sparcs.soap.buddyTestSupport.useCase.MockUserUseCase
 
 class FakeBeaconSource : NearbyBeaconSourceProtocol {
     val heard = MutableSharedFlow<BeaconSighting>(extraBufferCapacity = 64)
+    /** The token being advertised right now; `null` while the beacon is off. */
     var advertisedToken: ByteArray? = null
+        private set
+    /** Every token advertised, in order. */
+    val advertisedHistory = mutableListOf<String>()
     override val requiredPermissions: Array<String> = emptyArray()
     override val canAdvertise: Boolean = true
     override fun availability(): Flow<NearbyBluetoothAvailability> = flowOf(NearbyBluetoothAvailability.Available)
-    override fun sightings(token: ByteArray): Flow<BeaconSighting> {
-        advertisedToken = token
-        return heard
-    }
+    override fun sightings(token: ByteArray): Flow<BeaconSighting> = heard
+        .onStart {
+            advertisedToken = token
+            advertisedHistory += NearbyCrypto.hex(token)
+        }
+        .onCompletion { if (advertisedToken.contentEquals(token)) advertisedToken = null }
 }
 
 /** One simulated phone on the Add Friends screen. */
@@ -58,9 +66,14 @@ class Phone(
     val beacon = FakeBeaconSource()
     val friends = MockFriendUseCase().apply { fetchMyCodeResult = Result.success(code) }
     val users = MockUserUseCase().apply { otlUser = OTLUser.mock().copy(name = name) }
-    /** The current session; [reenter] swaps in a new one, as reopening the screen does. */
+    /**
+     * The current session; [reenter] swaps in a new one, as reopening the
+     * screen does, and so does the manager when it rotates an expired one.
+     */
     var session = NearbySession.generate()
         private set
+    /** Handed out by the manager's next `newSession()` call. */
+    private var pending: NearbySession? = session
     val manager = NearbyFriendsManager(
         relay = relay,
         beacon = beacon,
@@ -68,7 +81,12 @@ class Phone(
         userUseCase = users,
         crashlyticsService = MockCrashlyticsService(),
         clock = { scope.currentTime + EPOCH },
-        newSession = { session },
+        newSession = {
+            (pending ?: NearbySession.generate()).also {
+                pending = null
+                session = it
+            }
+        },
         newMessageId = { "$name-${++messageCount}" },
         deviceId = deviceId
     )
@@ -77,7 +95,6 @@ class Phone(
     fun TestScope.reenter() {
         job?.cancel()
         runCurrent()
-        session = NearbySession.generate()
         job = launch { manager.run() }
         runCurrent()
     }
@@ -101,7 +118,7 @@ class NearbyFriendsManagerTest {
     private fun TestScope.phones(
         configure: (alice: Phone, bob: Phone) -> Unit = { _, _ -> },
     ): Triple<Phone, Phone, FakeNearbyRelayRepository> {
-        val relay = FakeNearbyRelayRepository()
+        val relay = FakeNearbyRelayRepository { currentTime + Phone.EPOCH }
         val alice = Phone("Alice", "ALI456", relay, this)
         val bob = Phone("Bob", "BOB123", relay, this)
         configure(alice, bob)
@@ -376,7 +393,7 @@ class NearbyFriendsManagerTest {
 
     @Test
     fun `a presence that doesn't match the beacon is never shown`() = runTest {
-        val relay = FakeNearbyRelayRepository()
+        val relay = FakeNearbyRelayRepository { currentTime + Phone.EPOCH }
         val alice = Phone("Alice", "ALI456", relay, this)
         alice.job = launch { alice.manager.run() }
         runCurrent()
@@ -500,7 +517,7 @@ class NearbyFriendsManagerTest {
 
     @Test
     fun `an accept whose confirm never arrives fails and a tap starts over`() = runTest {
-        val relay = FakeNearbyRelayRepository()
+        val relay = FakeNearbyRelayRepository { currentTime + Phone.EPOCH }
         val bob = Phone("Bob", "BOB123", relay, this)
         bob.job = launch { bob.manager.run() }
         runCurrent()
@@ -562,7 +579,7 @@ class NearbyFriendsManagerTest {
 
     @Test
     fun `peers keep their first-seen order as signal strength changes`() = runTest {
-        val relay = FakeNearbyRelayRepository()
+        val relay = FakeNearbyRelayRepository { currentTime + Phone.EPOCH }
         val bob = Phone("Bob", "BOB123", relay, this)
         val alice = Phone("Alice", "ALI456", relay, this)
         val carol = Phone("Carol", "CAR789", relay, this)
@@ -649,8 +666,109 @@ class NearbyFriendsManagerTest {
     }
 
     @Test
+    fun `the beacon only advertises once the presence is published`() = runTest {
+        val relay = FakeNearbyRelayRepository { currentTime + Phone.EPOCH }.apply { failPuts = true }
+        val alice = Phone("Alice", "ALI456", relay, this)
+        alice.job = launch { alice.manager.run() }
+        advanceTimeBy(5_000)
+        runCurrent()
+        assertNull(alice.beacon.advertisedToken)
+        assertTrue(alice.beacon.advertisedHistory.isEmpty())
+
+        relay.failPuts = false
+        advanceTimeBy(20_000)
+        runCurrent()
+        assertTrue(relay.hasPresence(alice.session.lookupId))
+        assertEquals(alice.session.tokenHex, alice.beacon.advertisedToken?.let(NearbyCrypto::hex))
+        stop(alice)
+    }
+
+    @Test
+    fun `an unrenewed presence rotates to a new session`() = runTest {
+        val (alice, bob, relay) = phones()
+        nearEachOther(alice, bob)
+        alice.manager.request(bob.session.tokenHex)
+        nearEachOther(alice, bob, 3_000)
+        bob.manager.accept(alice.session.tokenHex)
+        nearEachOther(alice, bob, 5_000)
+        assertEquals(NearbyPeerState.Added, alice.state(bob))
+        val oldSession = alice.session
+        val oldLookup = NearbyCrypto.hex(oldSession.lookupId)
+
+        // Alice's renewals stop getting through, as if her process was frozen.
+        val frozen = oldSession.ownerSecret.copyOf()
+        relay.failPutsFor = { it.contentEquals(frozen) }
+        advanceTimeBy(300_000L - 30_000L)
+        runCurrent()
+        // The stale token is off the air, its presence was deleted, and the
+        // new session published before advertising.
+        assertTrue(oldLookup in relay.deleted)
+        val newSession = alice.session
+        assertTrue(oldSession !== newSession)
+        assertTrue(relay.hasPresence(newSession.lookupId))
+        assertEquals(newSession.tokenHex, alice.beacon.advertisedToken?.let(NearbyCrypto::hex))
+        assertEquals(listOf(oldSession.tokenHex, newSession.tokenHex), alice.beacon.advertisedHistory)
+
+        // Bob still sees one Alice (same device ID), and she's still Added.
+        nearEachOther(alice, bob)
+        assertEquals(listOf(newSession.tokenHex), bob.manager.peers.value.map { it.id })
+        assertEquals(NearbyPeerState.Added, alice.state(bob))
+        stop(alice, bob)
+    }
+
+    @Test
+    fun `rotation drops in-flight requests and cancels ours`() = runTest {
+        val (alice, bob, relay) = phones()
+        nearEachOther(alice, bob)
+        val frozen = alice.session.ownerSecret.copyOf()
+        val oldAlice = alice.session.tokenHex
+        relay.failPutsFor = { it.contentEquals(frozen) }
+        // Most of the way to expiry, with both still hearing each other.
+        nearEachOther(alice, bob, 250_000L)
+
+        alice.manager.request(bob.session.tokenHex)
+        nearEachOther(alice, bob, 1_000)
+        assertEquals(NearbyPeerState.Requested, alice.state(bob))
+        assertEquals(NearbyPeerState.Incoming, bob.manager.peers.value.single { it.id == oldAlice }.state)
+
+        // Crossing expiry − 30 s rotates Alice before her request times out.
+        nearEachOther(alice, bob, 20_000L)
+        assertTrue(oldAlice != alice.session.tokenHex)
+        assertEquals(NearbyPeerState.Idle, alice.state(bob))
+        // Bob got the cancel, and now sees one Alice with nothing pending.
+        assertEquals(listOf(NearbyPeerState.Idle), bob.manager.peers.value.map { it.state })
+        stop(alice, bob)
+    }
+
+    @Test
+    fun `advertising stays off until a rotated session publishes`() = runTest {
+        val relay = FakeNearbyRelayRepository { currentTime + Phone.EPOCH }
+        val alice = Phone("Alice", "ALI456", relay, this)
+        alice.job = launch { alice.manager.run() }
+        runCurrent()
+        assertTrue(alice.beacon.advertisedToken != null)
+
+        relay.failPuts = true
+        advanceTimeBy(300_000L)
+        runCurrent()
+        assertNull(alice.beacon.advertisedToken)
+        advanceTimeBy(120_000L)
+        runCurrent()
+        // Still unpublished, so still silent.
+        assertNull(alice.beacon.advertisedToken)
+        assertEquals(1, alice.beacon.advertisedHistory.size)
+
+        relay.failPuts = false
+        advanceTimeBy(40_000)
+        runCurrent()
+        assertTrue(relay.hasPresence(alice.session.lookupId))
+        assertEquals(alice.session.tokenHex, alice.beacon.advertisedToken?.let(NearbyCrypto::hex))
+        stop(alice)
+    }
+
+    @Test
     fun `publish failures retry with backoff, then mailbox starts`() = runTest {
-        val relay = FakeNearbyRelayRepository().apply { failPuts = true }
+        val relay = FakeNearbyRelayRepository { currentTime + Phone.EPOCH }.apply { failPuts = true }
         val alice = Phone("Alice", "ALI456", relay, this)
         val job = launch { alice.manager.run() }
         advanceTimeBy(5_000)
@@ -669,7 +787,7 @@ class NearbyFriendsManagerTest {
 
     @Test
     fun `presence name falls back when OTL is unavailable`() = runTest {
-        val relay = FakeNearbyRelayRepository()
+        val relay = FakeNearbyRelayRepository { currentTime + Phone.EPOCH }
         val alice = Phone("Alice", "ALI456", relay, this).apply { users.otlUser = null }
         val bob = Phone("Bob", "BOB123", relay, this)
         alice.job = launch { alice.manager.run() }

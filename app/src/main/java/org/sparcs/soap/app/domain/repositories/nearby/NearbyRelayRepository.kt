@@ -7,6 +7,8 @@ import org.sparcs.soap.app.networking.requestDTO.nearby.PostNearbyMessageRequest
 import org.sparcs.soap.app.networking.requestDTO.nearby.PutPresenceRequestDTO
 import org.sparcs.soap.app.networking.responseDTO.safeApiCall
 import org.sparcs.soap.app.networking.retrofitAPI.nearby.NearbyRelayApi
+import java.time.Instant
+import java.time.format.DateTimeParseException
 import javax.inject.Inject
 
 class RelayMessage(
@@ -22,7 +24,8 @@ class RelayMessagesPage(
 
 /** Same surface as iOS `NearbyRelayRepositoryProtocol`; every value is raw bytes. */
 interface NearbyRelayRepositoryProtocol {
-    suspend fun putPresence(lookupId: ByteArray, blob: ByteArray, ownerSecret: ByteArray)
+    /** Creates or renews a presence; returns when it expires (epoch ms), or `null` if unreadable. */
+    suspend fun putPresence(lookupId: ByteArray, blob: ByteArray, ownerSecret: ByteArray): Long?
 
     /** lookupId (hex) → blob, for the presences that still exist. */
     suspend fun batchGet(lookupIds: List<ByteArray>): Map<String, ByteArray>
@@ -36,13 +39,18 @@ class NearbyRelayRepository @Inject constructor(
     private val gson: Gson = Gson(),
 ) : NearbyRelayRepositoryProtocol {
 
-    override suspend fun putPresence(lookupId: ByteArray, blob: ByteArray, ownerSecret: ByteArray) {
-        safeApiCall(gson) {
+    override suspend fun putPresence(lookupId: ByteArray, blob: ByteArray, ownerSecret: ByteArray): Long? {
+        val response = safeApiCall(gson) {
             api.putPresence(
                 NearbyCrypto.hex(lookupId),
                 NearbyCrypto.base64Url(ownerSecret),
                 PutPresenceRequestDTO(blob = NearbyCrypto.base64Url(blob))
             )
+        }
+        return try {
+            Instant.parse(response.expiresAt).toEpochMilli()
+        } catch (e: DateTimeParseException) {
+            null
         }
     }
 
