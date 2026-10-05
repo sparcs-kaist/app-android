@@ -17,6 +17,7 @@ import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCasePro
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import org.sparcs.soap.app.features.feedPost.FeedPostViewModel
+import org.sparcs.soap.app.shared.viewModels.TextProcessingDelegate
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
 import org.sparcs.soap.buddyTestSupport.helper.UseCaseTestFixtures
@@ -65,8 +66,7 @@ class FeedPostViewModelTest {
             userUseCase = MockUserUseCase(),
             crashlyticsService = MockCrashlyticsService(),
             analyticsService = MockAnalyticsService(),
-            postTranslationUseCase = fakeTranslationUseCase,
-            summarizationUseCase = fakeSummarizationUseCase,
+            textProcessingDelegate = TextProcessingDelegate(fakeTranslationUseCase, fakeSummarizationUseCase),
         )
     }
 
