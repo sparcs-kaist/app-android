@@ -72,6 +72,7 @@ import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.escapeHash
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.shared.sharing.ScreenshotEffect
 import org.sparcs.soap.app.shared.sharing.navigateToShareFeed
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
@@ -102,14 +103,18 @@ fun TimetableView(
     var shareSnapshot by remember { mutableStateOf<TimetableShareSnapshot?>(null) }
     val timetableTheme = LocalTimetableTheme.current
     val onShareClick: () -> Unit = {
-        val semester = viewModel.selectedSemester.value
-        val timetable = viewModel.selectedTimetable.value
-        if (semester != null && timetable != null) {
-            shareSnapshot = TimetableShareSnapshot(semester, timetable.copy(lectures = timetable.lectures.toList(), customBlocks = timetable.activities.toList()), timetableTheme)
-        }
+        shareSnapshot = TimetableShareSnapshot.of(
+            viewModel.selectedSemester.value,
+            viewModel.selectedTimetable.value,
+            timetableTheme
+        )
     }
     shareSnapshot?.let { snapshot ->
-        TimetableShareSheet(snapshot, onDismiss = { shareSnapshot = null }, onFeed = navController::navigateToShareFeed)
+        TimetableShareSheet(
+            snapshot,
+            onDismiss = { shareSnapshot = null },
+            onFeed = navController::navigateToShareFeed
+        )
     }
 
     val selectedTimetable by viewModel.selectedTimetable.collectAsState()
@@ -139,6 +144,10 @@ fun TimetableView(
 
     BackHandler {
         backStackEvent()
+    }
+
+    ScreenshotEffect {
+        if (shareSnapshot == null && !showDeleteDialog && candidateLecture == null) onShareClick()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -319,7 +328,7 @@ private fun TimetableLandscapeLayout(
                                     navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                                 },
                                 showDeleteDialog = onDeleteClick,
-                                    onEditActivity = { navController.navigate("${Channel.ActivityCreation.name}/${selectedTimetable?.id}?activityId=${it.id}") }
+                                onEditActivity = { navController.navigate("${Channel.ActivityCreation.name}/${selectedTimetable?.id}?activityId=${it.id}") }
                             )
                         }
                     }
@@ -423,7 +432,7 @@ private fun TimetablePortraitLayout(
                         navController.navigate(Channel.LectureDetail.name + "?lecture_json=$json")
                     },
                     showDeleteDialog = onDeleteClick,
-                                    onEditActivity = { navController.navigate("${Channel.ActivityCreation.name}/${selectedTimetable?.id}?activityId=${it.id}") }
+                    onEditActivity = { navController.navigate("${Channel.ActivityCreation.name}/${selectedTimetable?.id}?activityId=${it.id}") }
                 )
             }
         }

@@ -56,4 +56,20 @@ class ShareViewModelTest {
         assertNull(model.state.value.request)
     }
 
+    @Test fun failedSaveCanBeRetried() {
+        val model = ShareViewModel(store)
+        model.prepare(ShareTarget.Save, content) { error("No frame") }
+        assertTrue(model.state.value.failed)
+        assertFalse(model.state.value.saved)
+        var calls = 0
+        model.prepare(ShareTarget.Save, content) { calls++; error("No frame") }
+        assertEquals(1, calls)
+    }
+
+    @Test fun unlaunchedSaveIsNotMarkedSaved() {
+        val model = ShareViewModel(store)
+        model.prepare(ShareTarget.Copy, content.copy(copyText = "ABC123")) { error("Must not render") }
+        model.consumeRequest(launched = false)
+        assertFalse(model.state.value.saved)
+    }
 }
