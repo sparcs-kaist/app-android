@@ -421,6 +421,8 @@
     <string name="error_taxi_user_not_found">Taxi User Information Not Found.</string>
     <string name="unexpected_error_reporting_user">An unexpected error occurred while reporting a user. Please try again later.</string>
     <string name="error_add_lecture">An unexpected error occurred while adding a lecture. Please try again later.</string>
+    <string name="timetable_changed_title">Timetable changed</string>
+    <string name="timetable_changed_message">Your timetable was changed elsewhere and this lecture now overlaps something new. Check the updated timetable and try again.</string>
     <string name="error_create_table">An unexpected error occurred while creating a new timetable. Please try again later.</string>
     <string name="error_duplicate_table">Unable to duplicate timetable.</string>
     <string name="error_delete_lecture">An unexpected error occurred while removing a lecture. Please try again later.</string>

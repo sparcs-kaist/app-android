@@ -421,6 +421,8 @@
     <string name="error_taxi_user_not_found">택시 사용자 정보를 불러올 수 없습니다.</string>
     <string name="unexpected_error_reporting_user">유저를 신고하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="error_add_lecture">수업을 추가하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
+    <string name="timetable_changed_title">시간표가 변경되었습니다</string>
+    <string name="timetable_changed_message">다른 곳에서 시간표가 변경되어 이 수업이 새로운 항목과 겹칩니다. 변경된 시간표를 확인한 뒤 다시 시도해 주세요.</string>
     <string name="error_create_table">시간표를 추가하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>
     <string name="error_duplicate_table">시간표를 복제할 수 없습니다.</string>
     <string name="error_delete_lecture">수업을 삭제하는 중 오류가 발생했습니다. 나중에 다시 시도해 주세요.</string>

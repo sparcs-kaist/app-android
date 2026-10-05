@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.helpers.AlertState
@@ -135,6 +137,7 @@ class TimetableViewModel @Inject constructor(
     private var lastConnectivity: Boolean? = null
 
     private var refreshJob: Job? = null
+    private val addLectureMutex = Mutex()
     private var refreshPending = false
     private var loadGeneration = 0L
     private var listGeneration = 0L
@@ -504,30 +507,52 @@ class TimetableViewModel @Inject constructor(
     override fun addLecture(lecture: Lecture) {
         if (_loadState.value.isReadOnly) return
         val tableId = _selectedTimetableID.value ?: return
+        val shown = _timetable.value?.takeIf { it.id == tableId.toString() }
+        val approvedLectureIDs = shown?.conflictingLectures(lecture).orEmpty().map { it.id }.toSet()
+        val approvedActivityIDs = shown?.conflictingActivities(lecture).orEmpty().map { it.id }.toSet()
         viewModelScope.launch {
-            try {
-                val table = timetableUseCase.getTable(tableId, forceRefresh = true)
-                if (table.contains(lecture)) return@launch
-                table.activities.filter { block ->
-                    lecture.classes.any { it.day.value == block.day && it.begin < block.end && it.end > block.begin }
-                }.forEach { overlapping ->
-                    timetableUseCase.deleteActivity(tableId, overlapping.id)
+            addLectureMutex.withLock {
+                try {
+                    replaceConflictsAndAdd(tableId, lecture, approvedLectureIDs, approvedActivityIDs)
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Timber.e(e, "Error adding lecture")
+                    handleException(e, ErrorType.AddLecture)
                 }
-                if (table.hasCollision(lecture)) {
-                    val collisions = table.lectures.filter { table.hasCollisions(lecture, it) }
-                    collisions.forEach { overlapping ->
-                        timetableUseCase.deleteLecture(tableId, overlapping.id)
-                    }
-                }
-                timetableUseCase.addLecture(tableId, lecture.id)
-                _candidateLecture.value = null
-                loadTimetable()
-                analyticsService.logEvent(TimetableViewEvent.LectureAdded)
-            } catch (e: Exception) {
-                Timber.e(e, "Error adding lecture")
-                handleException(e, ErrorType.AddLecture)
+                if (_selectedTimetableID.value == tableId) loadTimetable()
             }
         }
+    }
+
+    private suspend fun replaceConflictsAndAdd(
+        tableId: Int,
+        lecture: Lecture,
+        approvedLectureIDs: Set<Int>,
+        approvedActivityIDs: Set<Int>,
+    ) {
+        val table = timetableUseCase.getTable(tableId, forceRefresh = true)
+        if (table.contains(lecture)) {
+            _candidateLecture.value = null
+            return
+        }
+        val lectureConflicts = table.conflictingLectures(lecture)
+        val activityConflicts = table.conflictingActivities(lecture)
+        val hasUnseenConflicts = lectureConflicts.any { it.id !in approvedLectureIDs } ||
+            activityConflicts.any { it.id !in approvedActivityIDs }
+        if (hasUnseenConflicts) {
+            alertState = AlertState(
+                titleResId = R.string.timetable_changed_title,
+                messageResId = R.string.timetable_changed_message,
+            )
+            isAlertPresented = true
+            return
+        }
+        activityConflicts.forEach { timetableUseCase.deleteActivity(tableId, it.id) }
+        lectureConflicts.forEach { timetableUseCase.deleteLecture(tableId, it.id) }
+        timetableUseCase.addLecture(tableId, lecture.id)
+        _candidateLecture.value = null
+        analyticsService.logEvent(TimetableViewEvent.LectureAdded)
     }
 
     override fun deleteLecture(lecture: Lecture) {

@@ -118,6 +118,53 @@ class SearchViewModelTest {
     }
 
     @Test
+    fun `switching to posts or rides and back to all does not refetch courses`() = runTest {
+        var courseRequests = 0
+        val courses = object : CourseUseCaseProtocol by mockCourseUseCase {
+            override suspend fun searchCourse(request: CourseSearchRequest): List<CourseSummary> {
+                courseRequests++
+                return CourseSummary.mockList()
+            }
+        }
+        viewModel = SearchViewModel(mockAraBoardUseCase, mockTaxiRoomRepository, mockTaxiLocationUseCase, courses)
+        viewModel.onSearchTextChange("algorithms")
+        viewModel.fetchInitialData()
+
+        viewModel.onScopeChange(SearchScope.Posts)
+        viewModel.onScopeChange(SearchScope.Rides)
+        viewModel.onScopeChange(SearchScope.All)
+
+        assertEquals(1, courseRequests)
+        assertEquals(1, mockAraBoardUseCase.fetchPostsCallCount)
+        assertEquals(SearchViewModel.ViewState.Loaded, viewModel.state.value)
+    }
+
+    @Test
+    fun `failed post page keeps loaded posts`() = runTest {
+        val posts = AraPost.mockList().take(2)
+        mockAraBoardUseCase.fetchPostsResult = Result.success(AraPostPage(pages = 3, items = 2, currentPage = 1, results = posts))
+        viewModel.onSearchTextChange("algorithms")
+        viewModel.fetchInitialData()
+        mockAraBoardUseCase.fetchPostsResult = Result.failure(Exception("offline"))
+
+        viewModel.loadAraNextPage()
+
+        assertEquals(posts, viewModel.posts.value)
+    }
+
+    @Test
+    fun `post page is not requested for a keyword that has not been searched yet`() = runTest {
+        mockAraBoardUseCase.fetchPostsResult = Result.success(AraPostPage(pages = 3, items = 2, currentPage = 1, results = AraPost.mockList().take(2)))
+        viewModel.onSearchTextChange("algorithms")
+        viewModel.fetchInitialData()
+        viewModel.onSearchTextChange("physics")
+
+        viewModel.loadAraNextPage()
+
+        assertEquals(1, mockAraBoardUseCase.fetchPostsCallCount)
+    }
+
+    @Test
     fun `source errors are caught by the search operation`() = runTest {
         mockAraBoardUseCase.fetchPostsResult = Result.failure(Exception("offline"))
         viewModel.onSearchTextChange("test")

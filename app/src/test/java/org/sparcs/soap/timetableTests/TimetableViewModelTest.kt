@@ -126,6 +126,48 @@ class TimetableViewModelTest {
     }
 
     @Test
+    fun `conflicts added elsewhere block the add instead of being deleted`() = runTest {
+        val lecture = Lecture.mock()
+        val unseen = lecture.copy(id = lecture.id + 1)
+        var table = Timetable("5", emptyList())
+        val calls = mutableListOf<String>()
+        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = table
+            override suspend fun deleteLecture(timetableID: Int, lectureID: Int) { calls += "delete:$lectureID" }
+            override suspend fun addLecture(timetableID: Int, lectureID: Int) { calls += "add:$lectureID" }
+        }
+        createViewModel(useCase)
+        viewModel.selectTimetable(5)
+        table = Timetable("5", listOf(unseen))
+
+        viewModel.addLecture(lecture)
+
+        assertTrue(calls.isEmpty())
+        assertTrue(viewModel.isAlertPresented)
+        assertEquals(R.string.timetable_changed_title, viewModel.alertState?.titleResId)
+        assertEquals(listOf(unseen), viewModel.selectedTimetable.value?.lectures)
+    }
+
+    @Test
+    fun `a lecture added elsewhere is shown instead of silently ignored`() = runTest {
+        val lecture = Lecture.mock()
+        var table = Timetable("5", emptyList())
+        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = table
+        }
+        createViewModel(useCase)
+        viewModel.selectTimetable(5)
+        viewModel.setCandidateLecture(lecture)
+        table = Timetable("5", listOf(lecture))
+
+        viewModel.addLecture(lecture)
+
+        assertNull(viewModel.candidateLecture.value)
+        assertEquals(true, viewModel.selectedTimetable.value?.contains(lecture))
+        assertFalse(viewModel.isAlertPresented)
+    }
+
+    @Test
     fun `fetchData populates semesters and loads my table`() = runTest {
         val semesters = Semester.mockList()
         mockTimetableUseCase.getSemestersResult = Result.success(semesters)
