@@ -11,13 +11,17 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.CircularProgressIndicator
@@ -33,6 +37,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -109,6 +114,8 @@ internal fun CreditCalculationContent(
                 )
             }
 
+            isLandscape() -> CreditCalculationLandscapeLayout(state, padding, onSemester, onRequirements)
+
             else -> LazyColumn(
                 modifier = Modifier
                     .widthIn(max = 720.dp)
@@ -121,57 +128,103 @@ internal fun CreditCalculationContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item {
-                    Text(
-                        stringResource(R.string.credit_summary_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                item { GPATrendChart(state) }
-                item {
-                    val description = stringResource(R.string.credit_requirements)
-                    CreditCard(modifier = Modifier
-                        .semantics { contentDescription = description }
-                        .clickable(onClick = onRequirements)) {
-                        GPASummaryContent(
-                            state.overallSummary.gpa,
-                            state.overallSummary.earnedCredits,
-                            state.requirements.graduation
-                        )
-                    }
-                }
-                item {
-                    Text(
-                        stringResource(R.string.credit_semesters_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                if (state.semesters.isEmpty()) item { Text(stringResource(R.string.credit_empty)) }
-                items(state.semesters.chunked(2), key = { it.first().id }) { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        row.forEach { semester ->
-                            SemesterCard(
-                                semester,
-                                state,
-                                Modifier.weight(1f)
-                            ) { onSemester(semester) }
-                        }
-                        if (row.size == 1) Spacer(Modifier.weight(1f))
-                    }
-                }
-                item {
-                    Text(
-                        stringResource(R.string.credit_notice),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                item { CreditsPrivacyFooter() }
+                item { CreditOverview(state, onRequirements) }
+                semesterItems(state, onSemester)
+                item { CreditNotice() }
             }
         }
     }
 }
+
+@Composable
+private fun CreditCalculationLandscapeLayout(
+    state: CreditCalculationViewState,
+    padding: PaddingValues,
+    onSemester: (OTLUserLectureSemester) -> Unit,
+    onRequirements: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(padding)
+            .padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(24.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .verticalScroll(rememberScrollState())
+                .padding(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CreditOverview(state, onRequirements)
+            CreditNotice()
+        }
+        LazyColumn(
+            modifier = Modifier
+                .weight(1.2f)
+                .fillMaxHeight(),
+            contentPadding = PaddingValues(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            semesterItems(state, onSemester)
+        }
+    }
+}
+
+@Composable
+private fun CreditOverview(state: CreditCalculationViewState, onRequirements: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        SectionTitle(stringResource(R.string.credit_summary_title))
+        GPATrendChart(state)
+        val description = stringResource(R.string.credit_requirements)
+        CreditCard(
+            modifier = Modifier
+                .semantics { contentDescription = description }
+                .clickable(onClick = onRequirements)
+        ) {
+            GPASummaryContent(
+                state.overallSummary.gpa,
+                state.overallSummary.earnedCredits,
+                state.requirements.graduation
+            )
+        }
+    }
+}
+
+private fun LazyListScope.semesterItems(
+    state: CreditCalculationViewState,
+    onSemester: (OTLUserLectureSemester) -> Unit,
+) {
+    item { SectionTitle(stringResource(R.string.credit_semesters_title)) }
+    if (state.semesters.isEmpty()) item { Text(stringResource(R.string.credit_empty)) }
+    items(state.semesters.chunked(2), key = { it.first().id }) { row ->
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            row.forEach { semester ->
+                SemesterCard(semester, state, Modifier.weight(1f)) { onSemester(semester) }
+            }
+            if (row.size == 1) Spacer(Modifier.weight(1f))
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(text, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+}
+
+@Composable
+private fun CreditNotice() {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Text(stringResource(R.string.credit_notice), style = MaterialTheme.typography.bodySmall)
+        CreditsPrivacyFooter()
+    }
+}
+
+@Composable
+internal fun isLandscape(): Boolean =
+    LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -328,6 +381,7 @@ internal fun creditPreviewState(): CreditCalculationViewState {
 
 @Preview(showBackground = true)
 @Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(showBackground = true, device = "spec:width=891dp,height=411dp,orientation=landscape")
 @Composable
 private fun CreditCalculationPreview() {
     Theme { CreditCalculationContent(creditPreviewState(), {}, {}, {}, {}) }
