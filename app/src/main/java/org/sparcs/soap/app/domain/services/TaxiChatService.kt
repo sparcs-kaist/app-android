@@ -1,11 +1,18 @@
 package org.sparcs.soap.app.domain.services
 
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.gson.Gson
 import io.socket.client.Ack
 import io.socket.client.IO
+import io.socket.client.Manager
 import io.socket.client.Socket
+import io.socket.engineio.client.Transport
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -66,14 +73,25 @@ class TaxiChatService @Inject constructor(
             _isConnectedFlow.value = value
         }
 
-    // MARK: - State
-    private var hasAttemptedReconnect: Boolean = false
+    private var hasAttemptedTokenRefresh: Boolean = false
+    private var reconnectJob: Job? = null
 
     private var socket: Socket? = null
     private var currentRoomId: String? = null
 
     init {
         observeAuthState()
+        observeForeground()
+    }
+
+    private fun observeForeground() {
+        serviceScope.launch(Dispatchers.Main) {
+            ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    if (socket != null && !isConnected) reconnect()
+                }
+            })
+        }
     }
 
     private fun observeAuthState() {
@@ -88,15 +106,8 @@ class TaxiChatService @Inject constructor(
         }
     }
 
-    private fun reconnectSocketWithToken(token: String?) {
-        socket?.off()
-        socket?.disconnect()
-        socket = null
-
-        if (token == null) {
-            Timber.e("Token is null, cannot reconnect.")
-            return
-        }
+    private fun connectSocket() {
+        closeSocket()
 
         val opts = IO.Options().apply {
             forceNew = true
@@ -104,19 +115,31 @@ class TaxiChatService @Inject constructor(
             reconnectionDelay = 2000
             reconnectionDelayMax = 30000
             randomizationFactor = 0.5
-            extraHeaders = mutableMapOf(
-                "Origin" to listOf("taxi.sparcs.org"),
-                "Authorization" to listOf("Bearer $token")
-            )
         }
 
         try {
-            socket = IO.socket(Constants.TAXI_SOCKET_URL, opts)
+            socket = IO.socket(Constants.TAXI_SOCKET_URL, opts).also { newSocket ->
+                newSocket.io().on(Manager.EVENT_TRANSPORT) { args ->
+                    (args.firstOrNull() as? Transport)?.on(Transport.EVENT_REQUEST_HEADERS) { headerArgs ->
+                        @Suppress("UNCHECKED_CAST")
+                        val headers = headerArgs.firstOrNull() as? MutableMap<String, List<String>> ?: return@on
+                        headers["Origin"] = listOf("taxi.sparcs.org")
+                        tokenStorage.getAccessToken()?.let { headers["Authorization"] = listOf("Bearer $it") }
+                    }
+                }
+            }
             setupSocketEvents()
             socket?.connect()
         } catch (e: Exception) {
             Timber.e("Socket creation failed: ${e.message}")
         }
+    }
+
+    private fun closeSocket() {
+        socket?.io()?.off()
+        socket?.off()
+        socket?.disconnect()
+        socket = null
     }
 
 
@@ -143,7 +166,7 @@ class TaxiChatService @Inject constructor(
     private fun setupSocketEvents() {
         socket?.on(Socket.EVENT_CONNECT) {
             isConnected = true
-            this.hasAttemptedReconnect = false
+            hasAttemptedTokenRefresh = false
             currentRoomId?.let { roomId ->
                 socket?.emit("joinRoom", JSONObject().put("roomId", roomId))
                 socket?.emit("request_chat_init", JSONObject().put("roomId", roomId))
@@ -157,6 +180,10 @@ class TaxiChatService @Inject constructor(
 
         socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
             Timber.e("[TaxiChatService] Socket error: ${args.getOrNull(0)}")
+            if (!hasAttemptedTokenRefresh) {
+                hasAttemptedTokenRefresh = true
+                reconnect(forceRefresh = true)
+            }
         }
 
         // chat_init
@@ -245,15 +272,27 @@ class TaxiChatService @Inject constructor(
     }
 
     override fun disconnect() {
-        socket?.off()
-        socket?.disconnect()
-        socket = null
+        reconnectJob?.cancel()
+        closeSocket()
+        hasAttemptedTokenRefresh = false
         _isConnectedFlow.value = false
     }
 
-    override fun reconnect() {
+    override fun reconnect() = reconnect(forceRefresh = false)
+
+    private fun reconnect(forceRefresh: Boolean) {
         Timber.d("[TaxiChatService] Reconnecting socket...")
-        val token = tokenStorage.getAccessToken()
-        reconnectSocketWithToken(token)
+        reconnectJob?.cancel()
+        reconnectJob = serviceScope.launch {
+            try {
+                if (forceRefresh) authUseCase.refreshAccessToken(force = true) else authUseCase.getValidAccessToken()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "[TaxiChatService] Unable to obtain a valid token")
+                if (tokenStorage.getAccessToken() == null) return@launch
+            }
+            connectSocket()
+        }
     }
 }
