@@ -28,7 +28,14 @@ import org.sparcs.soap.app.shared.sharing.ShareViewModel
 import org.sparcs.soap.app.shared.sharing.StoryBackground
 import org.sparcs.soap.app.shared.sharing.StoryBackgroundOptions
 
-data class TimetableShareSnapshot(val semester: Semester, val timetable: Timetable, val theme: TimetableTheme)
+data class TimetableShareSnapshot(val semester: Semester, val timetable: Timetable, val theme: TimetableTheme) {
+    companion object {
+        fun of(semester: Semester?, timetable: Timetable?, theme: TimetableTheme): TimetableShareSnapshot? {
+            if (semester == null || timetable == null) return null
+            return TimetableShareSnapshot(semester, timetable.copy(lectures = timetable.lectures.toList(), customBlocks = timetable.activities.toList()), theme)
+        }
+    }
+}
 
 @Composable
 fun TimetableShareSheet(

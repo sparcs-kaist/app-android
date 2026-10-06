@@ -25,6 +25,11 @@ class ShareLauncher(private val context: Context) {
                 true
             } catch (_: RuntimeException) { false }
         }
+        if (request.target == ShareTarget.Save) {
+            if (request.imageUri == null) return false
+            Toast.makeText(context, R.string.share_saved, Toast.LENGTH_SHORT).show()
+            return true
+        }
         if (request.target == ShareTarget.Feed && onFeed != null) {
             val uri = request.imageUri ?: return false
             onFeed(uri, request.content.text)
