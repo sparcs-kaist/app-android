@@ -69,6 +69,8 @@ class TaxiChatUseCase @Inject constructor(
     private var isSocketConnected: Boolean = false
     private var hasInitialChatsBeenFetched: Boolean = false
     private var flatChats: List<TaxiChat> = emptyList()
+    private var lastServerChatTime: Date? = null
+    private var hasConnectedBefore = false
 
     // MARK: - Computed Properties
     override var accountChats: List<TaxiChat> = emptyList()
@@ -82,6 +84,7 @@ class TaxiChatUseCase @Inject constructor(
     override fun setRoom(room: TaxiRoom) {
         this.room = room
         this.flatChats = emptyList()
+        this.lastServerChatTime = null
         this.isFirstReadSent = false
         this.hasInitialChatsBeenFetched = false
         taxiChatService.setRoom(room.id)
@@ -124,9 +127,7 @@ class TaxiChatUseCase @Inject constructor(
         hasInitialChatsBeenFetched = true
         bind()
         try {
-            if (!taxiChatService.isConnectedPublisher.value) {
-                taxiChatService.reconnect()
-            }
+            taxiChatService.connectIfNeeded()
             taxiChatService.isConnectedPublisher.filter { it }.first()
             taxiChatRepository.fetchChats(room.id)
         } catch (e: Exception) {
@@ -203,6 +204,8 @@ class TaxiChatUseCase @Inject constructor(
                     isSocketConnected = isConnected
                     Timber.d("Socket connected: $isConnected")
                     if (isConnected) {
+                        if (hasConnectedBefore) launch { syncMissedChats() }
+                        hasConnectedBefore = true
                         refreshRoom() // Sync on reconnect
                     }
                 }
@@ -217,6 +220,7 @@ class TaxiChatUseCase @Inject constructor(
                 }
                 .onEach { serverChats ->
                     val latestChatId = serverChats.lastOrNull()?.id
+                    lastServerChatTime = serverChats.lastOrNull()?.time
 
                     synchronized(this@TaxiChatUseCase) {
                         flatChats = serverChats.distinctBy { it.id }
@@ -264,9 +268,24 @@ class TaxiChatUseCase @Inject constructor(
         }
     }
 
+    private suspend fun syncMissedChats() {
+        if (!hasInitialChatsBeenFetched) return
+        try {
+            val since = lastServerChatTime
+            if (since == null) {
+                taxiChatRepository.fetchChats(room.id)
+            } else {
+                taxiChatRepository.fetchChatsAfter(room.id, since)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to sync missed chats")
+        }
+    }
+
     override fun switchRoom(newRoomId: String) {
         hasInitialChatsBeenFetched = false
         flatChats = emptyList()
+        lastServerChatTime = null
         accountChats = emptyList()
         departureRefreshJob?.cancel()
 

@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -136,10 +137,10 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Setup
     override suspend fun setup() {
-        fetchTaxiUser()
         taxiChatUseCase.setRoom(room.value)
         bind()
-        taxiChatUseCase.refreshRoom()
+        viewModelScope.launch { fetchTaxiUser() }
+        viewModelScope.launch { taxiChatUseCase.refreshRoom() }
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
@@ -163,10 +164,9 @@ class TaxiChatViewModel @Inject constructor(
 
     private fun bind() {
         if (!isBound.compareAndSet(false, true)) return
-        taxiChatUseCase.chats
-            .onEach { chats ->
+        combine(taxiChatUseCase.chats, taxiUser) { chats, user -> chats to user?.oid.orEmpty() }
+            .onEach { (chats, myId) ->
                 val distinctChats = chats.distinctBy { it.id }
-                val myId = userUseCase.taxiUser?.oid ?: ""
                 val filtered = distinctChats.filter { it.roomID == room.value.id }
 
                 val builtItems = builder.build(filtered, myUserID = myId)
