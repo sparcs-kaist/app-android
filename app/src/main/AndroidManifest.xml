@@ -126,6 +126,7 @@
             android:value="KAKAO_MAP_KEY"/>
         <activity
             android:name="org.sparcs.soap.app.features.main.MainActivity"
+            android:enableOnBackInvokedCallback="true"
             android:launchMode="singleTop"
             android:exported="true"
             android:theme="@style/Theme.Soap"

@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.features.boardList
 
 import android.net.Uri
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -57,16 +56,6 @@ fun BoardListView(
 ) {
     val state by viewModel.state.collectAsState()
     val scrollState = rememberScrollState()
-
-    val backStackEvent = {
-        navController.navigate(Channel.Start.name) {
-            popUpTo(0) { inclusive = true }
-        }
-    }
-
-    BackHandler {
-        backStackEvent()
-    }
 
     LaunchedEffect(Unit) {
         viewModel.fetchBoards()
