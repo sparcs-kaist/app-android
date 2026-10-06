@@ -188,6 +188,15 @@ class LectureSearchViewModelTest {
     }
 
     @Test
+    fun `typing shows loading instead of an empty result until the search runs`() = runTest {
+        viewModel.bind(semester)
+        viewModel.onSearchTextChange("algorithms")
+
+        assertEquals(LectureSearchViewModel.ViewState.Loading, viewModel.state.value)
+        assertEquals(LectureSearchViewModel.PaginationState.Idle(), viewModel.pagination.value)
+    }
+
+    @Test
     fun `cancelled search cannot publish stale results`() = runTest {
         val old = CompletableDeferred<List<CourseLecture>>()
         val current = CourseLecture.mockList().take(1)

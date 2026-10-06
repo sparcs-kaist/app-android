@@ -14,7 +14,7 @@ fun TaxiLocation.Companion.mockList(): List<TaxiLocation>{
             longitude = 127.359507
         ),
         TaxiLocation(
-            id = "686d4d8f56fd773a8bd9d790",
+            id = "636c70c408eab94199a3cc05",
             title = LocalizedString(mapOf("en" to "Daejeon Station", "ko" to "대전역")),
             priority = 0.0,
             latitude = 36.331894,

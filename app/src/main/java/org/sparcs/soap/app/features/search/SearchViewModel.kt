@@ -27,6 +27,7 @@ import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiLocationUseCaseProtocol
+import timber.log.Timber
 import javax.inject.Inject
 
 interface SearchViewModelProtocol {
@@ -47,7 +48,6 @@ interface SearchViewModelProtocol {
     suspend fun fetchInitialData()
     fun loadCoursesNextPage()
     fun loadAraNextPage()
-    fun loadFull()
     suspend fun scopedFetch()
     fun onSearchTextChange(text: String)
     fun onScopeChange(scope: SearchScope)
@@ -84,6 +84,7 @@ class SearchViewModel @Inject constructor(
     override val courseFilterState: StateFlow<CourseFilterState> = _courseFilterState
 
     private var araPagination = PaginationInfo()
+    private var araPageJob: Job? = null
 
     private var searchJob: Job? = null
 
@@ -109,9 +110,9 @@ class SearchViewModel @Inject constructor(
     }
 
     data class PaginationInfo(
-        var currentPage: Int = 1,
-        var totalPages: Int = 0,
-        var isLoading: Boolean = false,
+        val keyword: String = "",
+        val currentPage: Int = 1,
+        val totalPages: Int = 0,
     ) {
         val hasMore: Boolean get() = currentPage < totalPages
     }
@@ -141,9 +142,9 @@ class SearchViewModel @Inject constructor(
             coroutineScope {
                 launch { searchAra(keyword) }
                 launch { searchTaxi(keyword) }
-                launch { searchCourses(keyword) }
+                launch { searchCourses(courseRequest(keyword)) }
             }
-            _state.value = ViewState.Loaded
+            if (courseJob?.isActive != true) _state.value = ViewState.Loaded
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -158,10 +159,7 @@ class SearchViewModel @Inject constructor(
             pageSize = 30,
             searchKeyword = keyword
         )
-        araPagination = araPagination.copy(
-            currentPage = postPage.currentPage,
-            totalPages = postPage.pages
-        )
+        araPagination = PaginationInfo(keyword, postPage.currentPage, postPage.pages)
 
         if (page == 1) {
             _posts.value = postPage.results
@@ -183,23 +181,26 @@ class SearchViewModel @Inject constructor(
         }.distinctBy { it.id }
     }
 
-    private suspend fun searchCourses(keyword: String) {
-        val generation = ++courseGeneration
+    private fun courseRequest(keyword: String): CourseSearchRequest {
         val filter = if (_searchScope.value == SearchScope.Courses) _courseFilterState.value else CourseFilterState()
-        resetCoursePagination()
-        val request = CourseSearchRequest(
-                keyword = keyword,
-                offset = 0,
-                limit = 150,
-                type = filter.classifications.ifEmpty { null },
-                department = filter.departments
-                    .filter { it != ETC_DEPARTMENT_ID }
-                    .ifEmpty { null },
-                level = filter.levels.ifEmpty { null },
-                term = filter.period
+        return CourseSearchRequest(
+            keyword = keyword,
+            offset = 0,
+            limit = 150,
+            type = filter.classifications.ifEmpty { null },
+            department = filter.departments
+                .filter { it != ETC_DEPARTMENT_ID }
+                .ifEmpty { null },
+            level = filter.levels.ifEmpty { null },
+            term = filter.period
         )
+    }
+
+    private suspend fun searchCourses(request: CourseSearchRequest) {
+        val generation = ++courseGeneration
+        resetCoursePagination()
         val result = courseUseCase.searchCourse(request)
-        if (generation == courseGeneration && keyword == _searchText.value.trim()) {
+        if (generation == courseGeneration && request.keyword == _searchText.value.trim()) {
             _courses.value = result
             lastCourseRequest = request
             courseOffset = result.size
@@ -213,6 +214,7 @@ class SearchViewModel @Inject constructor(
             return
         }
         courseJob?.cancel()
+        araPageJob?.cancel()
         courseGeneration++
         resetCoursePagination()
         _searchText.value = text
@@ -231,10 +233,13 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun refreshCourses() {
+        if (_searchScope.value == SearchScope.Posts || _searchScope.value == SearchScope.Rides) return
+        val keyword = _searchText.value.trim()
+        val request = courseRequest(keyword)
+        if (request == lastCourseRequest) return
         courseJob?.cancel()
         courseGeneration++
         resetCoursePagination()
-        val keyword = _searchText.value.trim()
         if (keyword.isBlank() && (_searchScope.value != SearchScope.Courses || _courseFilterState.value.isEmpty())) {
             _courses.value = emptyList()
             _state.value = ViewState.Loaded
@@ -243,7 +248,7 @@ class SearchViewModel @Inject constructor(
         courseJob = viewModelScope.launch {
             _state.value = ViewState.Loading
             try {
-                searchCourses(keyword)
+                searchCourses(request)
                 ensureActive()
                 _state.value = ViewState.Loaded
             } catch (e: CancellationException) {
@@ -255,14 +260,16 @@ class SearchViewModel @Inject constructor(
     }
 
     override fun loadAraNextPage() {
-        if (araPagination.isLoading || !araPagination.hasMore) return
-
-        viewModelScope.launch {
-            araPagination.isLoading = true
+        val pagination = araPagination
+        if (araPageJob?.isActive == true || !pagination.hasMore) return
+        if (pagination.keyword != _searchText.value.trim()) return
+        araPageJob = viewModelScope.launch {
             try {
-                searchAra(_searchText.value, araPagination.currentPage + 1)
-            } finally {
-                araPagination.isLoading = false
+                searchAra(pagination.keyword, pagination.currentPage + 1)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load next page of posts")
             }
         }
     }
@@ -302,6 +309,7 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun resetSearchState() {
+        araPageJob?.cancel()
         resetCoursePagination()
         _courses.value = emptyList()
         _posts.value = emptyList()
@@ -310,21 +318,14 @@ class SearchViewModel @Inject constructor(
     }
 
     override suspend fun bind() {
-        val currentText = _searchText.value
-        if (currentText.isNotBlank()) {
-            performSearch(currentText)
-        }
+        performSearch(_searchText.value.trim())
     }
 
     override suspend fun fetchInitialData() {
-        performSearch(_searchText.value)
-    }
-
-    override fun loadFull() {
-        _state.value = ViewState.Loaded
+        performSearch(_searchText.value.trim())
     }
 
     override suspend fun scopedFetch() {
-        performSearch(_searchText.value)
+        performSearch(_searchText.value.trim())
     }
 }

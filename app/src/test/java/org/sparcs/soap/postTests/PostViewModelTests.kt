@@ -14,6 +14,7 @@ import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCasePro
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
 import org.sparcs.soap.app.features.post.PostViewModel
+import org.sparcs.soap.app.shared.viewModels.TextProcessingDelegate
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 
@@ -46,8 +47,7 @@ class PostViewModelTest : PostTestBase() {
             araBoardUseCase = mockAraBoardUseCase,
             araCommentUseCase = mockAraCommentUseCase,
             analyticsService = mockAnalyticsService,
-            postTranslationUseCase = fakeTranslationUseCase,
-            summarizationUseCase = fakeSummarizationUseCase
+            textProcessingDelegate = TextProcessingDelegate(fakeTranslationUseCase, fakeSummarizationUseCase),
         )
     }
 

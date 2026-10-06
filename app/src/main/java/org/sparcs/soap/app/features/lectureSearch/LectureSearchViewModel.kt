@@ -190,8 +190,9 @@ class LectureSearchViewModel @Inject constructor(
             return
         }
         searchJob?.cancel()
+        currentRequest = null
         _pagination.value = PaginationState.Idle()
-        _state.value = ViewState.Loaded()
+        _state.value = if (currentSemester != null) ViewState.Loading else ViewState.Loaded()
         _searchText.value = text
     }
 

@@ -1,11 +1,17 @@
 package org.sparcs.soap.app.domain.services
 
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.google.gson.Gson
-import io.socket.client.Ack
 import io.socket.client.IO
+import io.socket.client.Manager
 import io.socket.client.Socket
+import io.socket.engineio.client.Transport
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -20,7 +26,6 @@ import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
 import org.sparcs.soap.app.networking.responseDTO.taxi.TaxiChatDTO
-import org.sparcs.soap.app.shared.extensions.toMap
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Provider
@@ -29,8 +34,18 @@ interface TaxiChatServiceProtocol {
     val chatsPublisher: Flow<List<TaxiChat>>
     val isConnectedPublisher: Flow<Boolean>
     val roomUpdatePublisher: Flow<String>
+    fun connectIfNeeded()
     fun reconnect()
     fun disconnect()
+}
+
+class MockTaxiChatService : TaxiChatServiceProtocol {
+    override val chatsPublisher: Flow<List<TaxiChat>> = MutableStateFlow(emptyList())
+    override val isConnectedPublisher: Flow<Boolean> = MutableStateFlow(false)
+    override val roomUpdatePublisher: Flow<String> = MutableSharedFlow()
+    override fun connectIfNeeded() {}
+    override fun reconnect() {}
+    override fun disconnect() {}
 }
 
 class TaxiChatService @Inject constructor(
@@ -51,14 +66,7 @@ class TaxiChatService @Inject constructor(
     override val roomUpdatePublisher = _roomUpdateFlow.asSharedFlow()
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-
-    private var chatsStorage = mutableListOf<TaxiChat>()
-    private var chats: MutableList<TaxiChat>
-        get() = chatsStorage
-        set(value) {
-            chatsStorage = value
-            CoroutineScope(Dispatchers.Default).launch { _chatsFlow.emit(value) }
-        }
+    private val gson = Gson()
 
     private var isConnected: Boolean
         get() = _isConnectedFlow.value
@@ -66,14 +74,25 @@ class TaxiChatService @Inject constructor(
             _isConnectedFlow.value = value
         }
 
-    // MARK: - State
-    private var hasAttemptedReconnect: Boolean = false
+    private var hasAttemptedTokenRefresh: Boolean = false
+    private var reconnectJob: Job? = null
 
     private var socket: Socket? = null
     private var currentRoomId: String? = null
 
     init {
         observeAuthState()
+        observeForeground()
+    }
+
+    private fun observeForeground() {
+        serviceScope.launch(Dispatchers.Main) {
+            ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+                override fun onStart(owner: LifecycleOwner) {
+                    if (socket != null && !isConnected) reconnect()
+                }
+            })
+        }
     }
 
     private fun observeAuthState() {
@@ -82,21 +101,14 @@ class TaxiChatService @Inject constructor(
                 if (!isAuth) {
                     disconnect()
                 } else {
-                    reconnect()
+                    connectIfNeeded()
                 }
             }
         }
     }
 
-    private fun reconnectSocketWithToken(token: String?) {
-        socket?.off()
-        socket?.disconnect()
-        socket = null
-
-        if (token == null) {
-            Timber.e("Token is null, cannot reconnect.")
-            return
-        }
+    private fun connectSocket() {
+        closeSocket()
 
         val opts = IO.Options().apply {
             forceNew = true
@@ -104,14 +116,19 @@ class TaxiChatService @Inject constructor(
             reconnectionDelay = 2000
             reconnectionDelayMax = 30000
             randomizationFactor = 0.5
-            extraHeaders = mutableMapOf(
-                "Origin" to listOf("taxi.sparcs.org"),
-                "Authorization" to listOf("Bearer $token")
-            )
         }
 
         try {
-            socket = IO.socket(Constants.TAXI_SOCKET_URL, opts)
+            socket = IO.socket(Constants.TAXI_SOCKET_URL, opts).also { newSocket ->
+                newSocket.io().on(Manager.EVENT_TRANSPORT) { args ->
+                    (args.firstOrNull() as? Transport)?.on(Transport.EVENT_REQUEST_HEADERS) { headerArgs ->
+                        @Suppress("UNCHECKED_CAST")
+                        val headers = headerArgs.firstOrNull() as? MutableMap<String, List<String>> ?: return@on
+                        headers["Origin"] = listOf("taxi.sparcs.org")
+                        tokenStorage.getAccessToken()?.let { headers["Authorization"] = listOf("Bearer $it") }
+                    }
+                }
+            }
             setupSocketEvents()
             socket?.connect()
         } catch (e: Exception) {
@@ -119,35 +136,24 @@ class TaxiChatService @Inject constructor(
         }
     }
 
+    private fun closeSocket() {
+        socket?.io()?.off()
+        socket?.off()
+        socket?.disconnect()
+        socket = null
+    }
+
 
     fun setRoom(roomId: String) {
-        serviceScope.launch {
-            _chatsFlow.emit(emptyList())
-
-            currentRoomId?.let { prev ->
-                socket?.emit("leaveRoom", JSONObject().put("roomId", prev))
-            }
-
-            currentRoomId = roomId
-
-            roomChats[roomId] = mutableListOf()
-
-            if (socket?.connected() == true) {
-                socket?.emit("joinRoom", JSONObject().put("roomId", roomId), Ack {
-                    socket?.emit("request_chat_init", JSONObject().put("roomId", roomId))
-                })
-            }
-        }
+        currentRoomId = roomId
+        roomChats[roomId] = mutableListOf()
+        serviceScope.launch { _chatsFlow.emit(emptyList()) }
     }
 
     private fun setupSocketEvents() {
         socket?.on(Socket.EVENT_CONNECT) {
             isConnected = true
-            this.hasAttemptedReconnect = false
-            currentRoomId?.let { roomId ->
-                socket?.emit("joinRoom", JSONObject().put("roomId", roomId))
-                socket?.emit("request_chat_init", JSONObject().put("roomId", roomId))
-            }
+            hasAttemptedTokenRefresh = false
         }
 
         socket?.on(Socket.EVENT_DISCONNECT) {
@@ -157,20 +163,16 @@ class TaxiChatService @Inject constructor(
 
         socket?.on(Socket.EVENT_CONNECT_ERROR) { args ->
             Timber.e("[TaxiChatService] Socket error: ${args.getOrNull(0)}")
+            if (!hasAttemptedTokenRefresh) {
+                hasAttemptedTokenRefresh = true
+                reconnect(forceRefresh = true)
+            }
         }
 
-        // chat_init
         socket?.on("chat_init") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-            val roomId = firstArg.optString("roomId", null) ?: currentRoomId ?: return@on
-            val chatArrayRaw = firstArg.optJSONArray("chats") ?: return@on
-
-            val newChats = mutableListOf<TaxiChat>()
-            for (i in 0 until chatArrayRaw.length()) {
-                chatArrayRaw.optJSONObject(i)?.let { json ->
-                    parseChatObject(json.toMap())?.let { newChats.add(it) }
-                }
-            }
+            val newChats = parseChats(firstArg.optJSONArray("chats") ?: return@on)
+            val roomId = roomIdOf(firstArg, newChats) ?: return@on
 
             val uniqueChats = newChats.distinctBy { it.id }.toMutableList()
             roomChats[roomId] = uniqueChats
@@ -182,12 +184,8 @@ class TaxiChatService @Inject constructor(
 
         socket?.on("chat_push_front") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-            val roomId = firstArg.optString("roomId", null) ?: currentRoomId ?: return@on
-            val chatArrayRaw = firstArg.optJSONArray("chats") ?: return@on
-
-            val newChats = (0 until chatArrayRaw.length()).mapNotNull { i ->
-                chatArrayRaw.optJSONObject(i)?.let { parseChatObject(it.toMap()) }
-            }
+            val newChats = parseChats(firstArg.optJSONArray("chats") ?: return@on)
+            val roomId = roomIdOf(firstArg, newChats) ?: return@on
 
             val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
             val uniqueNewChats =
@@ -202,11 +200,8 @@ class TaxiChatService @Inject constructor(
 
         socket?.on("chat_push_back") { args ->
             val firstArg = args.firstOrNull() as? JSONObject ?: return@on
-            val roomId = firstArg.optString("roomId", null) ?: currentRoomId ?: return@on
-            val chatArray = (firstArg.optJSONArray("chats") ?: JSONArray()).let { array ->
-                (0 until array.length()).mapNotNull { i -> array.optJSONObject(i)?.toMap() }
-            }
-            val newChats = parseChatArray(chatArray)
+            val newChats = parseChats(firstArg.optJSONArray("chats") ?: JSONArray())
+            val roomId = roomIdOf(firstArg, newChats) ?: return@on
             val chatsForRoom = roomChats.getOrPut(roomId) { mutableListOf() }
 
             val existingIds = chatsForRoom.map { it.id }.toSet()
@@ -226,34 +221,48 @@ class TaxiChatService @Inject constructor(
         }
     }
 
-    private fun parseChatArray(chatList: List<Map<*, *>>): List<TaxiChat> {
-        return chatList.mapNotNull {
+    private fun parseChats(array: JSONArray): List<TaxiChat> =
+        (0 until array.length()).mapNotNull { i ->
+            val json = array.optJSONObject(i) ?: return@mapNotNull null
             try {
-                Gson().fromJson(Gson().toJson(it), TaxiChatDTO::class.java).toModel()
+                gson.fromJson(json.toString(), TaxiChatDTO::class.java).toModel()
             } catch (_: Exception) {
                 null
             }
         }
-    }
 
-    private fun parseChatObject(chatMap: Map<*, *>): TaxiChat? {
-        return try {
-            Gson().fromJson(Gson().toJson(chatMap), TaxiChatDTO::class.java).toModel()
-        } catch (_: Exception) {
-            null
-        }
+    private fun roomIdOf(payload: JSONObject, chats: List<TaxiChat>): String? =
+        payload.optString("roomId").ifEmpty { null }
+            ?: chats.firstOrNull()?.roomID
+            ?: currentRoomId
+
+    override fun connectIfNeeded() {
+        if (reconnectJob?.isActive == true || socket?.isActive == true) return
+        reconnect()
     }
 
     override fun disconnect() {
-        socket?.off()
-        socket?.disconnect()
-        socket = null
+        reconnectJob?.cancel()
+        closeSocket()
+        hasAttemptedTokenRefresh = false
         _isConnectedFlow.value = false
     }
 
-    override fun reconnect() {
+    override fun reconnect() = reconnect(forceRefresh = false)
+
+    private fun reconnect(forceRefresh: Boolean) {
         Timber.d("[TaxiChatService] Reconnecting socket...")
-        val token = tokenStorage.getAccessToken()
-        reconnectSocketWithToken(token)
+        reconnectJob?.cancel()
+        reconnectJob = serviceScope.launch {
+            try {
+                if (forceRefresh) authUseCase.refreshAccessToken(force = true) else authUseCase.getValidAccessToken()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "[TaxiChatService] Unable to obtain a valid token")
+                if (tokenStorage.getAccessToken() == null) return@launch
+            }
+            connectSocket()
+        }
     }
 }

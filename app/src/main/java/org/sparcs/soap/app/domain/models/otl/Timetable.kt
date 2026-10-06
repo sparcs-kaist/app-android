@@ -130,13 +130,15 @@ data class Timetable(
 
     fun contains(lecture: Lecture): Boolean = lectures.any { it.id == lecture.id }
 
-    fun conflicts(lecture: Lecture): List<String> {
-        val lectureNames = lectures.filter { it.id != lecture.id && hasCollisions(lecture, it) }.map { it.name }
-        val activityNames = activities.filter { activity ->
-            lecture.classes.any { it.day.value == activity.day && it.begin < activity.end && activity.begin < it.end }
-        }.map { it.title }
-        return lectureNames + activityNames
+    fun conflictingLectures(lecture: Lecture): List<Lecture> =
+        lectures.filter { it.id != lecture.id && hasCollisions(lecture, it) }
+
+    fun conflictingActivities(lecture: Lecture): List<TimetableActivity> = activities.filter { activity ->
+        lecture.classes.any { it.day.value == activity.day && it.begin < activity.end && activity.begin < it.end }
     }
+
+    fun conflicts(lecture: Lecture): List<String> =
+        conflictingLectures(lecture).map { it.name } + conflictingActivities(lecture).map { it.title }
 
     fun hasCollision(newLecture: Lecture): Boolean = conflicts(newLecture).isNotEmpty()
 
