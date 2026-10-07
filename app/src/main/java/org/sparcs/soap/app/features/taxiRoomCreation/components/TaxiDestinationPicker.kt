@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material.icons.rounded.SwapCalls
 import androidx.compose.material.icons.rounded.SwapVert
 import androidx.compose.material3.DropdownMenu
@@ -34,6 +36,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
@@ -174,14 +177,58 @@ fun LocationMenu(
             }
         )
 
-        locations.forEach { location ->
-            DropdownMenuItem(
-                text = { LocalizedText(text = location.title) },
-                onClick = {
-                    onSelectionChange(location)
-                    expanded = false
-                }
+        val (popular, others) = remember(locations) { TaxiLocation.popularFirst(locations) }
+        val select: (TaxiLocation) -> Unit = {
+            onSelectionChange(it)
+            expanded = false
+        }
+        popular.forEach { location ->
+            LocationMenuItem(location, isSelected = location.id == selection?.id, isPopular = true) { select(location) }
+        }
+        if (popular.isNotEmpty() && others.isNotEmpty()) HorizontalDivider()
+        others.forEach { location ->
+            LocationMenuItem(location, isSelected = location.id == selection?.id) { select(location) }
+        }
+    }
+}
+
+@Composable
+private fun LocationMenuItem(
+    location: TaxiLocation,
+    isSelected: Boolean,
+    isPopular: Boolean = false,
+    onClick: () -> Unit,
+) {
+    DropdownMenuItem(
+        text = {
+            LocalizedText(
+                text = location.title,
+                fontWeight = if (isPopular) FontWeight.SemiBold else null
             )
+        },
+        leadingIcon = if (isPopular) {
+            {
+                Icon(
+                    imageVector = Icons.Rounded.Star,
+                    contentDescription = stringResource(R.string.popular_location),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+        } else null,
+        trailingIcon = if (isSelected) {
+            { Icon(Icons.Rounded.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+        } else null,
+        onClick = onClick
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun LocationMenuItemPreview() {
+    Theme {
+        Column {
+            LocationMenuItem(TaxiLocation.mockList()[1], isSelected = true, isPopular = true) {}
+            LocationMenuItem(TaxiLocation.mockList()[2], isSelected = false) {}
         }
     }
 }

@@ -19,6 +19,8 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiFavoriteRoute
 import org.sparcs.soap.app.domain.models.taxi.TaxiLocation
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
+import org.sparcs.soap.app.domain.services.MockTaxiChatService
+import org.sparcs.soap.app.domain.services.TaxiChatServiceProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.MockTaxiFavoriteUseCase
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiFavoriteUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiLocationUseCaseProtocol
@@ -66,6 +68,7 @@ class TaxiListViewModel @Inject constructor(
     private val taxiRoomRepository: TaxiRoomRepositoryProtocol,
     private val taxiLocationUseCase: TaxiLocationUseCaseProtocol,
     private val taxiFavoriteUseCase: TaxiFavoriteUseCaseProtocol = MockTaxiFavoriteUseCase(),
+    taxiChatService: TaxiChatServiceProtocol = MockTaxiChatService(),
 ) : ViewModel(), TaxiListViewModelProtocol {
 
     sealed class ViewState {
@@ -94,6 +97,7 @@ class TaxiListViewModel @Inject constructor(
     override val favoriteRoutes: StateFlow<List<TaxiFavoriteRoute>> = taxiFavoriteUseCase.favoriteRoutes
 
     init {
+        taxiChatService.connectIfNeeded()
         fetchData()
     }
 

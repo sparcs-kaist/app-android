@@ -314,6 +314,7 @@
     <string name="minute_label">m</string>
     <string name="date_label">Date: %1$s</string>
     <string name="meeting_point">meeting point</string>
+    <string name="popular_location">Popular</string>
     <string name="where_to">where to?</string>
     <string name="select_location">Select location</string>
     <string name="new_room">New Room</string>
@@ -421,6 +422,8 @@
     <string name="error_taxi_user_not_found">Taxi User Information Not Found.</string>
     <string name="unexpected_error_reporting_user">An unexpected error occurred while reporting a user. Please try again later.</string>
     <string name="error_add_lecture">An unexpected error occurred while adding a lecture. Please try again later.</string>
+    <string name="timetable_changed_title">Timetable changed</string>
+    <string name="timetable_changed_message">Your timetable was changed elsewhere and this lecture now overlaps something new. Check the updated timetable and try again.</string>
     <string name="error_create_table">An unexpected error occurred while creating a new timetable. Please try again later.</string>
     <string name="error_duplicate_table">Unable to duplicate timetable.</string>
     <string name="error_delete_lecture">An unexpected error occurred while removing a lecture. Please try again later.</string>
@@ -753,4 +756,28 @@
     <string name="feed_reply_action">Reply</string>
     <string name="feed_character_count">%1$d/%2$d</string>
     <string name="feed_notification_comment_missing">This comment is no longer available.</string>
+    <string name="course_history">History</string>
+    <string name="course_offered_count">Offered %1$d times</string>
+    <string name="course_taken">Taken</string>
+    <string name="course_your_section">Your section</string>
+    <string name="course_all_professors">All professors</string>
+    <string name="view_course">View course</string>
+    <string name="interested_departments">Interested departments</string>
+    <string name="other_departments">Other departments</string>
+    <string name="interested_departments_description">Your interested departments appear first in course search filters.</string>
+    <string name="department_search">Search departments</string>
+    <string name="department_load_failed">Failed to load departments.</string>
+    <string name="department_save_load_failed">Could not load or save your departments. Please try again.</string>
+    <string name="lecture_time_filter">Class time</string>
+    <string name="lecture_time_any">Any</string>
+    <string name="lecture_time_begin">Starts after</string>
+    <string name="lecture_time_end">Ends before</string>
+    <string name="lecture_in_timetable">In your timetable</string>
+    <string name="lecture_conflicts">Overlaps with %1$s</string>
+    <string name="lecture_no_time">No class time</string>
+    <string name="lecture_enrollment">%1$d / %2$d</string>
+    <string name="lecture_load_more">Load more</string>
+    <string name="filter_within_2years">Within 2 years</string>
+    <string name="lecture_no_ratings">No ratings yet</string>
+    <string name="course_reviews_load_failed">Failed to load reviews.</string>
 </resources>

@@ -84,6 +84,7 @@ import org.sparcs.soap.app.domain.services.AuthenticationServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsService
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.TaxiChatService
+import org.sparcs.soap.app.domain.services.TaxiChatServiceProtocol
 import org.sparcs.soap.app.domain.usecases.AuthUseCase
 import org.sparcs.soap.app.domain.usecases.AuthUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.FCMUseCase
@@ -826,6 +827,10 @@ object ServiceModule {
             authUseCaseProvider = authUseCaseProvider
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideTaxiChatServiceProtocol(impl: TaxiChatService): TaxiChatServiceProtocol = impl
 }
 
 @Module

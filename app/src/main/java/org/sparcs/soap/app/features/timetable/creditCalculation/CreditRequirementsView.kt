@@ -3,10 +3,16 @@ package org.sparcs.soap.app.features.timetable.creditCalculation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -37,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -104,13 +111,16 @@ internal fun CreditRequirementsContent(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.TopCenter
         ) {
+            val landscape = isLandscape()
+            val columns = if (landscape) 2 else 1
+            val layoutDirection = LocalLayoutDirection.current
             LazyColumn(
                 modifier = Modifier
-                    .widthIn(max = 720.dp)
+                    .widthIn(max = if (landscape) 1080.dp else 720.dp)
                     .fillMaxSize(),
                 contentPadding = PaddingValues(
-                    start = 16.dp,
-                    end = 16.dp,
+                    start = padding.calculateStartPadding(layoutDirection) + 16.dp,
+                    end = padding.calculateEndPadding(layoutDirection) + 16.dp,
                     top = padding.calculateTopPadding() + 16.dp,
                     bottom = padding.calculateBottomPadding() + 16.dp
                 ),
@@ -122,30 +132,20 @@ internal fun CreditRequirementsContent(
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
-                items(groups, key = { it.key }) { group ->
-                    CreditCard {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                group.icon,
-                                null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Text(
-                                group.title,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                items(groups.chunked(columns), key = { it.first().key }) { row ->
+                    Row(
+                        modifier = Modifier.height(IntrinsicSize.Min),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        row.forEach { group ->
+                            RequirementGroupCard(
+                                group,
+                                Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                            ) { editingKey = it }
                         }
-                        group.rows.forEach { row ->
-                            RequirementProgress(row) {
-                                editingKey = row.key
-                            }
-                        }
+                        repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                     }
                 }
                 item {
@@ -161,6 +161,36 @@ internal fun CreditRequirementsContent(
             { editingKey = null }) { minimum ->
             onSave(editing.update(state.requirements, minimum))
             editingKey = null
+        }
+    }
+}
+
+@Composable
+private fun RequirementGroupCard(
+    group: RequirementGroup,
+    modifier: Modifier = Modifier,
+    onEdit: (String) -> Unit,
+) {
+    CreditCard(modifier) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                group.icon,
+                null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                group.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        group.rows.forEach { row ->
+            RequirementProgress(row) { onEdit(row.key) }
         }
     }
 }
@@ -375,10 +405,29 @@ private fun CreditRequirementEditor(
 }
 
 @Preview
+@Preview(device = "spec:width=891dp,height=411dp,orientation=landscape")
 @Composable
 private fun CreditRequirementsPreview() {
     val viewModel = remember { PreviewCreditCalculationViewModel() }
     Theme { CreditRequirementsView(viewModel, rememberNavController()) }
+}
+
+@Preview
+@Composable
+private fun RequirementGroupCardPreview() {
+    Theme {
+        RequirementGroupCard(
+            RequirementGroup(
+                "basic",
+                stringResource(R.string.credit_basic),
+                Icons.AutoMirrored.Outlined.MenuBook,
+                listOf(
+                    RequirementRow("br", stringResource(R.string.lecture_type_br_full), 25, 23),
+                    RequirementRow("be", stringResource(R.string.lecture_type_be_full), 6, 9)
+                )
+            )
+        ) {}
+    }
 }
 
 @Preview

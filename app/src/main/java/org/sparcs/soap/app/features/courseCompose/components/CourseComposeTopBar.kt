@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.courseCompose.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
@@ -24,6 +25,7 @@ import org.sparcs.soap.app.theme.ui.Theme
 fun CourseComposeTopBar(
     title: String,
     onClose: () -> Unit,
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     CenterAlignedTopAppBar(
         title = {
@@ -42,8 +44,9 @@ fun CourseComposeTopBar(
                 )
             }
         },
+        actions = actions,
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background
+            containerColor = MaterialTheme.colorScheme.surface
         )
     )
 }

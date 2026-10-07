@@ -5,6 +5,7 @@ import org.sparcs.soap.app.domain.error.CrashContext
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.error.otl.LectureUseCaseError
 import org.sparcs.soap.app.domain.models.otl.CourseLecture
+import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.domain.models.otl.LectureSearchRequest
 import org.sparcs.soap.app.domain.models.otl.OTLUserLectureHistory
 import org.sparcs.soap.app.domain.repositories.otl.OTLLectureRepositoryProtocol
@@ -12,6 +13,7 @@ import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import javax.inject.Inject
 
 interface LectureUseCaseProtocol {
+    suspend fun fetchDepartmentOptions(): List<DepartmentOption>
     suspend fun fetchUserLectureHistory(userID: Int): OTLUserLectureHistory
     suspend fun searchLecture(request: LectureSearchRequest): List<CourseLecture>
 }
@@ -20,6 +22,9 @@ class LectureUseCase @Inject constructor(
     private val otlLectureRepository: OTLLectureRepositoryProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol?
 ) : LectureUseCaseProtocol {
+    override suspend fun fetchDepartmentOptions(): List<DepartmentOption> =
+        execute(CrashContext(feature = feature)) { otlLectureRepository.fetchDepartmentOptions() }
+
     override suspend fun fetchUserLectureHistory(userID: Int): OTLUserLectureHistory =
         execute(CrashContext(feature = feature)) { otlLectureRepository.fetchUserLectureHistory(userID) }
 

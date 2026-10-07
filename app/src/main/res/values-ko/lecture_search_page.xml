@@ -1,0 +1,15 @@
+<resources>
+    <string name="wishlist">위시리스트</string>
+    <string name="wishlist_add">위시리스트에 추가</string>
+    <string name="wishlist_remove">위시리스트에서 삭제</string>
+    <string name="wishlist_empty">하트 버튼으로 강의를 저장하면 여기에 표시됩니다.</string>
+    <string name="wishlist_load_failed">위시리스트를 불러오지 못했습니다.</string>
+    <string name="wishlist_update_failed">위시리스트를 동기화하지 못했습니다. 다시 시도해 주세요.</string>
+    <string name="lecture_search_empty">검색 조건에 맞는 강의가 없습니다.</string>
+    <string name="adding_lectures">강의 추가 방식</string>
+    <string name="lecture_search_sheet">하단 시트</string>
+    <string name="lecture_search_full_screen">전체 화면</string>
+    <string name="show_timetable_preview">시간표 미리보기 표시</string>
+    <string name="hide_timetable_preview">시간표 미리보기 숨기기</string>
+    <string name="timetable_preview_height">시간표 미리보기 높이</string>
+</resources>

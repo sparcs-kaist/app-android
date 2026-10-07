@@ -1,0 +1,10 @@
+<resources>
+    <string name="choose_time_on_timetable">시간표에서 고르기</string>
+    <string name="time_range_hint">요일을 따라 위아래로 드래그해 수업 시간대를 선택하세요.</string>
+    <string name="time_range_earlier">30분 앞당기기</string>
+    <string name="time_range_later">30분 늦추기</string>
+    <string name="time_range_previous_day">이전 요일</string>
+    <string name="time_range_next_day">다음 요일</string>
+    <string name="time_range_longer">시간 늘리기</string>
+    <string name="reset">초기화</string>
+</resources>

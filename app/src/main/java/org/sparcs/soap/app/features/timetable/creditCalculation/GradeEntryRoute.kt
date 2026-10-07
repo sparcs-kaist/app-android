@@ -22,6 +22,7 @@ import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewCreditCalculationViewModel
+import java.io.IOException
 
 @Composable
 internal fun GradeEntryRoute(
@@ -85,7 +86,7 @@ private fun GradeEntryLoadingPreview() {
 private fun GradeEntryErrorPreview() {
     val semesterId = remember { creditPreviewState().semesters.first().id }
     val viewModel = remember {
-        PreviewCreditCalculationViewModel(CreditCalculationViewState(isLoading = false, error = java.io.IOException()))
+        PreviewCreditCalculationViewModel(CreditCalculationViewState(isLoading = false, error = IOException()))
     }
     Theme { GradeEntryRoute(semesterId, viewModel, rememberNavController()) }
 }

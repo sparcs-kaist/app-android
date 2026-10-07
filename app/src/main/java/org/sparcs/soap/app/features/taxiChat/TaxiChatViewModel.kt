@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -34,6 +35,7 @@ import org.sparcs.soap.app.features.taxiChat.components.DefaultMessagePresentati
 import org.sparcs.soap.app.features.taxiChat.components.TaxiGroupingPolicy
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import timber.log.Timber
+import java.util.Date
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 
@@ -135,10 +137,10 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Setup
     override suspend fun setup() {
-        fetchTaxiUser()
         taxiChatUseCase.setRoom(room.value)
         bind()
-        taxiChatUseCase.refreshRoom()
+        viewModelScope.launch { fetchTaxiUser() }
+        viewModelScope.launch { taxiChatUseCase.refreshRoom() }
     }
 
     override fun switchRoom(newRoom: TaxiRoom) {
@@ -162,10 +164,9 @@ class TaxiChatViewModel @Inject constructor(
 
     private fun bind() {
         if (!isBound.compareAndSet(false, true)) return
-        taxiChatUseCase.chats
-            .onEach { chats ->
+        combine(taxiChatUseCase.chats, taxiUser) { chats, user -> chats to user?.oid.orEmpty() }
+            .onEach { (chats, myId) ->
                 val distinctChats = chats.distinctBy { it.id }
-                val myId = userUseCase.taxiUser?.oid ?: ""
                 val filtered = distinctChats.filter { it.roomID == room.value.id }
 
                 val builtItems = builder.build(filtered, myUserID = myId)
@@ -258,14 +259,14 @@ class TaxiChatViewModel @Inject constructor(
     override val isLeaveRoomAvailable: Boolean
         get() {
             val currentRoom = room.value
-            val isTimeDeparted = java.util.Date().after(currentRoom.departAt)
+            val isTimeDeparted = Date().after(currentRoom.departAt)
             return !(currentRoom.isDeparted || isTimeDeparted)
         }
 
     override val isCommitSettlementAvailable: Boolean
         get() {
             val currentRoom = room.value
-            val isTimeDeparted = java.util.Date().after(currentRoom.departAt)
+            val isTimeDeparted = Date().after(currentRoom.departAt)
             val isAlreadySettled = (currentRoom.settlementTotal ?: 0) > 0
             
             return (currentRoom.isDeparted || isTimeDeparted) && !isAlreadySettled

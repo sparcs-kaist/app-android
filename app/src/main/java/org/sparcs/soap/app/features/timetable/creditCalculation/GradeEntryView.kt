@@ -2,16 +2,20 @@ package org.sparcs.soap.app.features.timetable.creditCalculation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.ButtonDefaults
@@ -42,6 +46,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.LectureGrade
 import org.sparcs.soap.app.domain.models.otl.OTLUserLectureSemester
+import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.components.LectureListRow
 import org.sparcs.soap.app.features.timetable.components.LectureListRowDetail
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
@@ -63,59 +68,89 @@ internal fun GradeEntryView(
         onBack,
         subtitle = stringResource(R.string.credit_gpa, formatGPA(state.summary(item)?.gpa))
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .widthIn(max = 720.dp)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
-                top = padding.calculateTopPadding() + 16.dp,
-                bottom = padding.calculateBottomPadding() + 16.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Surface(
-                    shape = RoundedCornerShape(28.dp),
-                    color = LocalTimetableTheme.current.backgroundColor
-                        ?: MaterialTheme.colorScheme.background,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .glassBorder(RoundedCornerShape(28.dp))
+        if (isLandscape()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                GradeEntryTimetable(
+                    timetable,
+                    Modifier
+                        .weight(1.2f)
+                        .fillMaxHeight()
+                )
+                Column(
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Box(
+                    GradeEntryList(timetable, state, onGrade)
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .widthIn(max = 720.dp)
+                    .fillMaxSize(),
+                contentPadding = PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = padding.calculateTopPadding() + 16.dp,
+                    bottom = padding.calculateBottomPadding() + 16.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item {
+                    GradeEntryTimetable(
+                        timetable,
                         Modifier
+                            .fillMaxWidth()
                             .height(500.dp)
-                            .padding(8.dp)
-                    ) { TimetableGrid(timetable = timetable) }
-                }
-            }
-            item {
-                CreditCard {
-                    val lectures = timetable?.lectures.orEmpty()
-                    Text(
-                        pluralStringResource(
-                            R.plurals.lectures_count,
-                            lectures.size,
-                            lectures.size
-                        ),
-                        style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold
                     )
-                    lectures.forEachIndexed { index, lecture ->
-                        GradeEntryRow(
-                            lecture,
-                            state.grades[lecture.id],
-                            lecture.id in state.supersededLectureIDs
-                        ) { onGrade(it, lecture.id) }
-                        if (index < lectures.lastIndex) HorizontalDivider(
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(
-                                alpha = 0.5f
-                            )
-                        )
-                    }
                 }
+                item { GradeEntryList(timetable, state, onGrade) }
             }
+        }
+    }
+}
+
+@Composable
+private fun GradeEntryTimetable(timetable: Timetable?, modifier: Modifier) {
+    Surface(
+        shape = RoundedCornerShape(28.dp),
+        color = LocalTimetableTheme.current.backgroundColor ?: MaterialTheme.colorScheme.background,
+        modifier = modifier.glassBorder(RoundedCornerShape(28.dp))
+    ) {
+        Box(Modifier.padding(8.dp)) { TimetableGrid(timetable = timetable) }
+    }
+}
+
+@Composable
+private fun GradeEntryList(
+    timetable: Timetable?,
+    state: CreditCalculationViewState,
+    onGrade: (LectureGrade?, Int) -> Unit,
+) {
+    CreditCard {
+        val lectures = timetable?.lectures.orEmpty()
+        Text(
+            pluralStringResource(R.plurals.lectures_count, lectures.size, lectures.size),
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+        lectures.forEachIndexed { index, lecture ->
+            GradeEntryRow(
+                lecture,
+                state.grades[lecture.id],
+                lecture.id in state.supersededLectureIDs
+            ) { onGrade(it, lecture.id) }
+            if (index < lectures.lastIndex) HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            )
         }
     }
 }
@@ -198,6 +233,7 @@ private fun gradeTitle(grade: LectureGrade): String = when (grade) {
 }
 
 @Preview
+@Preview(device = "spec:width=891dp,height=411dp,orientation=landscape")
 @Composable
 private fun GradeEntryPreview() {
     val state = creditPreviewState()

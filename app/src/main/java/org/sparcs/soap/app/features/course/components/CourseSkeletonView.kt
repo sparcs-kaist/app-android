@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.features.course.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -193,4 +195,25 @@ private fun Preview() {
             CourseReviewSectionSkeleton()
         }
     }
+}
+@Composable
+fun CourseHistorySkeleton() {
+    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        repeat(3) {
+            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.background) {
+                Column(Modifier.width(190.dp).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    repeat(3) {
+                        Box(Modifier.width(if (it == 0) 90.dp else 140.dp).height(18.dp)
+                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(4.dp)))
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CourseHistorySkeletonPreview() {
+    Theme { CourseHistorySkeleton() }
 }

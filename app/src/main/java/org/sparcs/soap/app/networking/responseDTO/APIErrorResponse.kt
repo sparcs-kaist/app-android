@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.networking.responseDTO
 
 import com.google.gson.Gson
+import com.google.gson.JsonObject
 import org.sparcs.soap.app.domain.error.NetworkError
 import org.sparcs.soap.app.domain.helpers.NetworkErrorMapper
 import retrofit2.HttpException
@@ -52,7 +53,7 @@ suspend fun <T> handleApiError(
     var errorMessage: String? = null
     if (!errorBody.isNullOrEmpty()) {
         try {
-            val json = gson.fromJson(errorBody, com.google.gson.JsonObject::class.java)
+            val json = gson.fromJson(errorBody, JsonObject::class.java)
             if (json.has("detail")) {
                 val detail = json.get("detail")
                 if (detail.isJsonObject) {

@@ -40,8 +40,11 @@ class MockSearchViewModel(initialState: SearchViewModel.ViewState) : SearchViewM
 
     override suspend fun bind() {}
     override suspend fun fetchInitialData() {}
+    override val hasMoreCourses = MutableStateFlow(false)
+    override val isLoadingMoreCourses = MutableStateFlow(false)
+    override val coursePageError = MutableStateFlow<Exception?>(null)
+    override fun loadCoursesNextPage() {}
     override fun loadAraNextPage() {}
-    override fun loadFull() {}
     override suspend fun scopedFetch() {}
     override fun onSearchTextChange(text: String) {}
     override fun onScopeChange(scope: SearchScope) {}

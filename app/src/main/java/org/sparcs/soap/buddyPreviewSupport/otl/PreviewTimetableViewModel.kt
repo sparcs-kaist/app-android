@@ -1,8 +1,12 @@
 package org.sparcs.soap.buddyPreviewSupport.otl
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
@@ -51,9 +55,8 @@ class PreviewTimetableViewModel(initialTimetable: Timetable? = Timetable.mock())
     private val _isDuplicatingTable = MutableStateFlow(false)
     override val isDuplicatingTable: StateFlow<Boolean> = _isDuplicatingTable.asStateFlow()
 
-    override var showAlert: Boolean = false
-    override var alertTitleRes: Int? = null
-    override var alertMessageRes: Int? = null
+    override var alertState: AlertState? by mutableStateOf(null)
+    override var isAlertPresented: Boolean by mutableStateOf(false)
 
     override fun setCandidateLecture(lecture: Lecture?) {
         _candidateLecture.value = lecture

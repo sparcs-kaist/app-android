@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.course.components
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchNavigationBar
 import org.sparcs.soap.app.features.navigationBar.components.DismissButton
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -24,7 +26,13 @@ import org.sparcs.soap.app.theme.ui.Theme
 fun CourseNavigationBar(
     navController: NavController,
     text: String,
+    isSearchContext: Boolean = false,
+    navigationActions: @Composable RowScope.() -> Unit = {},
 ) {
+    if (isSearchContext) {
+        LectureSearchNavigationBar(text, { navController.popBackStack() }, navigationActions)
+        return
+    }
     var lineCount by remember { mutableIntStateOf(1) }
     var hasMeasured by remember { mutableStateOf(false) }
 

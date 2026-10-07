@@ -34,6 +34,12 @@ class PreviewCourseViewModel(initialState: CourseViewModel.ViewState) : CourseVi
     override val alertState: AlertState? = null
     override var isAlertPresented: Boolean = false
 
+    override val course = MutableStateFlow((initialState as? CourseViewModel.ViewState.Loaded)?.course)
+    override val courseError = MutableStateFlow<Exception?>(null)
+    override val selectedProfessorID = MutableStateFlow<Int?>(null)
+    override val professors = course.value?.history.orEmpty().flatMap { it.classes }.flatMap { it.professors }.distinctBy { it.id }
+    override fun selectProfessor(id: Int?) { selectedProfessorID.value = id }
+    override fun fetchReviews() {}
     override fun loadCourse() {}
 
     override fun toggleReviewLike(review: LectureReview) {
