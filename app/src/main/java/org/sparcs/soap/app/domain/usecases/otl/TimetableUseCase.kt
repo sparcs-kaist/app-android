@@ -4,6 +4,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -81,7 +82,7 @@ class TimetableUseCase @Inject constructor(
     private val feature: String = "Timetable"
 
     // MARK: - Cached State
-    private val externalScope = CoroutineScope(Dispatchers.IO)
+    private val externalScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val updateJobs = ConcurrentHashMap<String, Job>()
 
     override suspend fun cachedState(semester: Semester?, timetableID: Int?): TimetableCachedState =

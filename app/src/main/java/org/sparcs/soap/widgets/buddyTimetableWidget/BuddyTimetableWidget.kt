@@ -372,11 +372,11 @@ class RefreshTimetableAction : ActionCallback {
 
             val request = OneTimeWorkRequestBuilder<TimetableUpdateWorker>()
                 .setConstraints(constraints)
-                .addTag("one_time_sync")
+                .addTag("timetable_one_time_sync")
                 .build()
 
             WorkManager.getInstance(context).enqueueUniqueWork(
-                "one_time_sync",
+                "timetable_one_time_sync",
                 ExistingWorkPolicy.REPLACE,
                 request
             )
