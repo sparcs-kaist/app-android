@@ -186,7 +186,10 @@ fun DynamicHeightWebView(
                 }
 
                 accessToken?.let { token ->
-                    val extraHeaders = mapOf("Authorization" to "Bearer $token")
+                    val extraHeaders = mapOf(
+                        "Authorization" to "Bearer $token",
+                        "X-Application-Name" to "buddyandroid"
+                    )
                     loadUrl(url, extraHeaders)
                 }
             }
@@ -197,7 +200,10 @@ fun DynamicHeightWebView(
             if (webView.url != url && accessToken != null) {
                 isFitted = false
                 currentHeight = 0
-                val extraHeaders = mapOf("Authorization" to "Bearer $accessToken")
+                val extraHeaders = mapOf(
+                    "Authorization" to "Bearer $accessToken",
+                    "X-Application-Name" to "buddyandroid"
+                )
                 webView.loadUrl(url, extraHeaders)
             }
         },

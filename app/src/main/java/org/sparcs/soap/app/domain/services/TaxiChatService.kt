@@ -106,7 +106,8 @@ class TaxiChatService @Inject constructor(
             randomizationFactor = 0.5
             extraHeaders = mutableMapOf(
                 "Origin" to listOf("taxi.sparcs.org"),
-                "Authorization" to listOf("Bearer $token")
+                "Authorization" to listOf("Bearer $token"),
+                "X-Application-Name" to listOf("buddyandroid")
             )
         }
 
