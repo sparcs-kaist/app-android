@@ -4,9 +4,14 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import org.sparcs.soap.app.cache.TimetableCache
 import org.sparcs.soap.app.domain.error.CrashContext
 import org.sparcs.soap.app.domain.error.NetworkError
@@ -62,6 +67,8 @@ interface TimetableUseCaseProtocol {
 
     suspend fun deleteLecture(timetableID: Int, lectureID: Int)
 }
+
+private const val DUPLICATE_CONCURRENCY = 4
 
 @Singleton
 class TimetableUseCase @Inject constructor(
@@ -208,34 +215,37 @@ class TimetableUseCase @Inject constructor(
         return execute(context) {
             // Copy from the server, not the cache, so the duplicate matches what the user sees on
             // other devices too.
-            val source = otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType)
-            val creation = otlTimetableRepository.createTable(semester.year, semester.semesterType)
-
-            var skippedLectures = 0
-            for (lecture in source.lectures) {
-                currentCoroutineContext().ensureActive()
-                try {
-                    otlTimetableRepository.addLecture(creation.id, lecture.id)
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    skippedLectures += 1
-                    crashlyticsService?.record(e, context)
-                }
+            val (source, creation) = coroutineScope {
+                val source = async { otlTimetableRepository.getMyTimetable(semester.year, semester.semesterType) }
+                val creation = async { otlTimetableRepository.createTable(semester.year, semester.semesterType) }
+                source.await() to creation.await()
             }
 
-            var skippedActivities = 0
-            for (activity in source.activities) {
-                currentCoroutineContext().ensureActive()
-                try {
-                    otlTimetableRepository.saveActivity(creation.id, null, activity.draft())
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    skippedActivities += 1
-                    crashlyticsService?.record(e, context)
-                }
+            val permits = Semaphore(DUPLICATE_CONCURRENCY)
+            suspend fun countFailures(actions: List<suspend () -> Unit>): Int = coroutineScope {
+                actions.map { action ->
+                    async {
+                        permits.withPermit {
+                            try {
+                                action()
+                                0
+                            } catch (e: CancellationException) {
+                                throw e
+                            } catch (e: Exception) {
+                                crashlyticsService?.record(e, context)
+                                1
+                            }
+                        }
+                    }
+                }.awaitAll().sum()
             }
+
+            val skippedLectures = countFailures(source.lectures.map { lecture ->
+                suspend { otlTimetableRepository.addLecture(creation.id, lecture.id) }
+            })
+            val skippedActivities = countFailures(source.activities.map { activity ->
+                suspend { otlTimetableRepository.saveActivity(creation.id, null, activity.draft()) }
+            })
 
             if (title.isNotBlank()) {
                 // A failed rename leaves a usable, correctly populated table.

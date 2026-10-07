@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -235,22 +236,22 @@ class AuthUseCase @Inject constructor(
                     tokenStorage.save(tokenResponse.accessToken, tokenResponse.refreshToken)
                 }
 
-                // MARK - Sign up Ara
-                val userInfo: AraSignInResponseDTO =
-                    araUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
-                try {
-                    araUserRepository.agreeTOS(userID = userInfo.userID)
-                } catch (e: Exception) {
-                    Timber.e("Failed to Sign in. agreeTOS failed: ${e.message}")
+                coroutineScope {
+                    launch {
+                        val userInfo: AraSignInResponseDTO =
+                            araUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
+                        try {
+                            araUserRepository.agreeTOS(userID = userInfo.userID)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            Timber.e("Failed to Sign in. agreeTOS failed: ${e.message}")
+                        }
+                    }
+                    launch { feedUserRepository.register(ssoInfo = tokenResponse.ssoInfo) }
+                    launch { otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo) }
+                    launch { syncFcmTokenIfAuthenticated() }
                 }
-
-                // MARK - Sign up Feed
-                feedUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
-
-                // MARK - Sign up OTL
-                otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
-
-                syncFcmTokenIfAuthenticated()
 
                 synchronized(sessionLock) {
                     if (sessionRevision != revision) throw CancellationException("Authentication session changed")
