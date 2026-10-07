@@ -137,7 +137,7 @@ class TaxiChatViewModel @Inject constructor(
 
     // MARK: - Setup
     override suspend fun setup() {
-        taxiChatUseCase.setRoom(room.value)
+        taxiChatUseCase.setRoom(room.value, owner = this)
         bind()
         viewModelScope.launch { fetchTaxiUser() }
         viewModelScope.launch { taxiChatUseCase.refreshRoom() }
@@ -366,6 +366,11 @@ class TaxiChatViewModel @Inject constructor(
                 .lastOrNull { it.authorID == paidParticipant.id }
                 ?.content
         }
+
+    override fun onCleared() {
+        taxiChatUseCase.unbind(owner = this)
+        super.onCleared()
+    }
 
     // MARK: - Image upload
     override suspend fun sendImage(image: Bitmap) {

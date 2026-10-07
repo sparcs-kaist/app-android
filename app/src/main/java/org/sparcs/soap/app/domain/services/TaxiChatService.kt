@@ -79,6 +79,7 @@ class TaxiChatService @Inject constructor(
 
     private var socket: Socket? = null
     private var currentRoomId: String? = null
+    @Volatile private var pausedInBackground = false
 
     init {
         observeAuthState()
@@ -89,7 +90,18 @@ class TaxiChatService @Inject constructor(
         serviceScope.launch(Dispatchers.Main) {
             ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
                 override fun onStart(owner: LifecycleOwner) {
-                    if (socket != null && !isConnected) reconnect()
+                    if (pausedInBackground) {
+                        pausedInBackground = false
+                        connectIfNeeded()
+                    } else if (socket != null && !isConnected) {
+                        reconnect()
+                    }
+                }
+
+                override fun onStop(owner: LifecycleOwner) {
+                    if (socket == null && reconnectJob?.isActive != true) return
+                    pausedInBackground = true
+                    disconnect()
                 }
             })
         }
@@ -99,6 +111,7 @@ class TaxiChatService @Inject constructor(
         serviceScope.launch {
             authUseCase.isAuthenticatedFlow.collect { isAuth ->
                 if (!isAuth) {
+                    pausedInBackground = false
                     disconnect()
                 } else {
                     connectIfNeeded()
@@ -148,6 +161,11 @@ class TaxiChatService @Inject constructor(
         currentRoomId = roomId
         roomChats[roomId] = mutableListOf()
         serviceScope.launch { _chatsFlow.emit(emptyList()) }
+    }
+
+    fun leaveRoom() {
+        currentRoomId?.let { roomChats.remove(it) }
+        currentRoomId = null
     }
 
     private fun setupSocketEvents() {

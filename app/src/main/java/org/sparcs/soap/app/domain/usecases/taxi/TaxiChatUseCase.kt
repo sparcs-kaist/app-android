@@ -40,7 +40,7 @@ interface TaxiChatUseCaseProtocol {
     val roomUpdateFlow: Flow<TaxiRoom>
     val accountChats: List<TaxiChat>
 
-    fun setRoom(room: TaxiRoom)
+    fun setRoom(room: TaxiRoom, owner: Any? = null)
     fun reconnect()
     suspend fun fetchInitialChats()
     suspend fun fetchChats(before: Date)
@@ -48,6 +48,7 @@ interface TaxiChatUseCaseProtocol {
     suspend fun sendImage(content: Bitmap)
     fun switchRoom(newRoomId: String)
     suspend fun refreshRoom()
+    fun unbind(owner: Any)
 }
 
 private const val CHAT_IMAGE_CONTENT_TYPE = "image/jpeg"
@@ -82,10 +83,12 @@ class TaxiChatUseCase @Inject constructor(
     private var isFirstReadSent = false
 
     private var isBound = false
+    private var owner: Any? = null
     private var bindJob: Job? = null
     private var departureRefreshJob: Job? = null
 
-    override fun setRoom(room: TaxiRoom) {
+    override fun setRoom(room: TaxiRoom, owner: Any?) {
+        owner?.let { this.owner = it }
         this.room = room
         this.flatChats = emptyList()
         this.lastServerChatTime = null
@@ -286,6 +289,22 @@ class TaxiChatUseCase @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to sync missed chats")
         }
+    }
+
+    override fun unbind(owner: Any) {
+        synchronized(this) {
+            if (this.owner !== owner) return
+            this.owner = null
+            bindJob?.cancel()
+            bindJob = null
+            isBound = false
+        }
+        departureRefreshJob?.cancel()
+        hasInitialChatsBeenFetched = false
+        flatChats = emptyList()
+        accountChats = emptyList()
+        _chats.value = emptyList()
+        taxiChatService.leaveRoom()
     }
 
     override fun switchRoom(newRoomId: String) {
