@@ -48,7 +48,14 @@ class TokenStorage @Inject constructor(
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
         private const val AES_KEY_ALIAS = "TokenStorageAESKey"
         private const val AES_MODE = "AES/GCM/NoPadding"
+
+        private val gson = Gson()
+        private val cacheLock = Any()
+        @Volatile private var cachedSecretKey: SecretKey? = null
+        @Volatile private var cachedAccessToken: CachedToken? = null
     }
+
+    private class CachedToken(val cipherText: String, val plainText: String)
 
     private val timetableSelectionStore = TimetableSelectionStore(context)
     private val prefs: SharedPreferences =
@@ -76,9 +83,9 @@ class TokenStorage @Inject constructor(
         keyGenerator.generateKey()
     }
 
-    private fun getSecretKey(): SecretKey {
-        return (keyStore.getEntry(AES_KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
-    }
+    private fun getSecretKey(): SecretKey = cachedSecretKey
+        ?: (keyStore.getEntry(AES_KEY_ALIAS, null) as KeyStore.SecretKeyEntry).secretKey
+            .also { cachedSecretKey = it }
 
     private fun encrypt(plainText: String): String {
         val cipher = Cipher.getInstance(AES_MODE)
@@ -112,7 +119,12 @@ class TokenStorage @Inject constructor(
     }
 
     override fun getAccessToken(): String? = try {
-        prefs.getString(ACCESS_TOKEN_KEY, null)?.let { decrypt(it) }
+        prefs.getString(ACCESS_TOKEN_KEY, null)?.let { cipherText ->
+            cachedAccessToken?.takeIf { it.cipherText == cipherText }?.plainText
+                ?: decrypt(cipherText).also { plainText ->
+                    synchronized(cacheLock) { cachedAccessToken = CachedToken(cipherText, plainText) }
+                }
+        }
     } catch (e: Exception) {
         Timber.e(e, "Failed to read access token")
         null
@@ -161,7 +173,7 @@ class TokenStorage @Inject constructor(
             val decodedBytes =
                 Base64.decode(payload, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
             val json = String(decodedBytes)
-            val map: Map<String, Any> = Gson().fromJson(json, Map::class.java) as Map<String, Any>
+            val map: Map<String, Any> = gson.fromJson(json, Map::class.java) as Map<String, Any>
             val exp = (map["exp"] as? Double)?.toLong() ?: return null
             Date(exp * 1000)
         } catch (e: Exception) {

@@ -163,6 +163,7 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Provider
 import javax.inject.Singleton
+import okhttp3.Interceptor
 
 class TokenAuthenticator @Inject constructor(
     private val authUseCaseProvider: Provider<AuthUseCaseProtocol>,
@@ -216,59 +217,67 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun baseOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
+        .addInterceptor(HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+            redactHeader("Authorization")
+            redactHeader("Cookie")
+        })
+        .build()
+
+    private fun OkHttpClient.authorizedClient(
+        tokenStorage: TokenStorageProtocol,
+        tokenAuthenticator: TokenAuthenticator,
+        extraHeaders: Request.Builder.() -> Unit = {},
+    ): OkHttpClient = newBuilder()
+        .apply {
+            interceptors().add(0, Interceptor { chain ->
+                val accessToken = tokenStorage.getAccessToken()
+                val request = chain.request().newBuilder()
+                    .header("Origin", "sparcsapp")
+                    .header("Content-Type", "application/json")
+                    .apply(extraHeaders)
+                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
+                    .build()
+                chain.proceed(request)
+            })
+        }
+        .authenticator(tokenAuthenticator)
+        .build()
+
+    private fun retrofit(baseUrl: String, client: OkHttpClient, gson: Gson): Retrofit = Retrofit.Builder()
+        .baseUrl(baseUrl)
+        .client(client)
+        .addConverterFactory(GsonConverterFactory.create(gson))
+        .build()
+
+    @Provides
+    @Singleton
     @Named("TaxiBackend")
     fun taxiBackEndURL(
         gson: Gson,
+        baseClient: OkHttpClient,
         tokenStorage: TokenStorageProtocol,
         tokenAuthenticator: TokenAuthenticator,
-    ): Retrofit {
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val original = chain.request()
-                val accessToken = runBlocking { tokenStorage.getAccessToken() }
-                val newRequest = original.newBuilder()
-                    .header("Origin", "sparcsapp")
-                    .header("Content-Type", "application/json")
-                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
-                    .build()
-                chain.proceed(newRequest)
-            }
-            .authenticator(tokenAuthenticator)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .build()
-
-        return Retrofit.Builder()
-            .baseUrl(Constants.TAXI_BACKEND_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-    }
+    ): Retrofit = retrofit(Constants.TAXI_BACKEND_URL, baseClient.authorizedClient(tokenStorage, tokenAuthenticator), gson)
 
     @Provides
     @Singleton
     @Named("Auth")
-    fun authorizationURL(gson: Gson): Retrofit {
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val original = chain.request()
-                val newRequest = original.newBuilder()
-                    .header("Origin", "sparcsapp")
-                    .header("Content-Type", "application/json")
-                    .build()
-                chain.proceed(newRequest)
+    fun authorizationURL(gson: Gson, baseClient: OkHttpClient): Retrofit {
+        val client = baseClient.newBuilder()
+            .apply {
+                interceptors().add(0, Interceptor { chain ->
+                    chain.proceed(
+                        chain.request().newBuilder()
+                            .header("Origin", "sparcsapp")
+                            .header("Content-Type", "application/json")
+                            .build()
+                    )
+                })
             }
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
             .build()
-
-        return Retrofit.Builder()
-            .baseUrl(Constants.TAXI_BACKEND_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
+        return retrofit(Constants.TAXI_BACKEND_URL, client, gson)
     }
 
     @Provides
@@ -276,65 +285,20 @@ object NetworkModule {
     @Named("AraBackend")
     fun araBackEndURL(
         gson: Gson,
+        baseClient: OkHttpClient,
         tokenStorage: TokenStorageProtocol,
         tokenAuthenticator: TokenAuthenticator,
-    ): Retrofit {
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val original = chain.request()
-                val accessToken = runBlocking { tokenStorage.getAccessToken() }
-                val newRequest = original.newBuilder()
-                    .header("Origin", "sparcsapp")
-                    .header("Content-Type", "application/json")
-                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
-                    .build()
-                chain.proceed(newRequest)
-            }
-            .authenticator(tokenAuthenticator)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .build()
-
-        return Retrofit.Builder()
-            .baseUrl(Constants.ARA_BACKEND_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-    }
-
+    ): Retrofit = retrofit(Constants.ARA_BACKEND_URL, baseClient.authorizedClient(tokenStorage, tokenAuthenticator), gson)
 
     @Provides
     @Singleton
     @Named("FeedBackend")
     fun feedBackEndURL(
         gson: Gson,
+        baseClient: OkHttpClient,
         tokenStorage: TokenStorageProtocol,
         tokenAuthenticator: TokenAuthenticator,
-    ): Retrofit {
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val original = chain.request()
-                val accessToken = runBlocking { tokenStorage.getAccessToken() }
-                val newRequest = original.newBuilder()
-                    .header("Origin", "sparcsapp")
-                    .header("Content-Type", "application/json")
-                    .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
-                    .build()
-                chain.proceed(newRequest)
-            }
-            .authenticator(tokenAuthenticator)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .build()
-
-        return Retrofit.Builder()
-            .baseUrl(Constants.FEED_BACKEND_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
-    }
+    ): Retrofit = retrofit(Constants.FEED_BACKEND_URL, baseClient.authorizedClient(tokenStorage, tokenAuthenticator), gson)
 
     @Provides
     @Singleton
@@ -342,35 +306,15 @@ object NetworkModule {
     fun otlBackEndURL(
         @ApplicationContext context: Context,
         gson: Gson,
+        baseClient: OkHttpClient,
         tokenStorage: TokenStorageProtocol,
         tokenAuthenticator: TokenAuthenticator,
     ): Retrofit {
-        val okHttpClientBuilder = OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val original = chain.request()
-                val accessToken = runBlocking { tokenStorage.getAccessToken() }
-                val languageTag = context.resources.configuration.locales[0].language
-                val newRequest = original.newBuilder()
-                    .header("Origin", "sparcsapp")
-                    .header("Accept-Language", languageTag)
-                    .header("Content-Type", "application/json")
-                    .apply {
-                        otlDebugAuth(BuildConfig.DEBUG, BuildConfig.OTL_SID_AUTH_TOKEN)
-                        accessToken?.let { header("Authorization", "Bearer $it") }
-                    }
-                    .build()
-                chain.proceed(newRequest)
-            }
-            .authenticator(tokenAuthenticator)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-
-        return Retrofit.Builder()
-            .baseUrl(Constants.OTL_BACKEND_URL)
-            .client(okHttpClientBuilder.build())
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .build()
+        val client = baseClient.authorizedClient(tokenStorage, tokenAuthenticator) {
+            header("Accept-Language", context.resources.configuration.locales[0].language)
+            otlDebugAuth(BuildConfig.DEBUG, BuildConfig.OTL_SID_AUTH_TOKEN)
+        }
+        return retrofit(Constants.OTL_BACKEND_URL, client, gson)
     }
 
     @Provides
