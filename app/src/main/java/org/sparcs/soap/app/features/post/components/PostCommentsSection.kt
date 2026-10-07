@@ -1,8 +1,14 @@
 package org.sparcs.soap.app.features.post.components
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
 import androidx.compose.material3.HorizontalDivider
@@ -19,8 +25,7 @@ import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
 
-@Composable
-fun PostCommentsSection(
+fun LazyListScope.postCommentsSection(
     comments: List<AraPostComment>,
     onReply: (AraPostComment) -> Unit,
     onCommentDeleted: () -> Unit,
@@ -31,56 +36,40 @@ fun PostCommentsSection(
     onDeleteComment: (AraPostComment) -> Unit,
     onTranslateComment: (AraPostComment) -> Unit,
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 32.dp),
-    ) {
-        if (comments.isEmpty()) {
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-                modifier = Modifier.padding(vertical = 8.dp),
-            )
-
-            UnavailableView(
-                icon = Icons.Outlined.ChatBubbleOutline,
-                title = stringResource(R.string.no_one_has_commented_yet),
-                description = stringResource(R.string.be_the_first_one_to_share_your_thoughts)
-            )
-        } else {
-            comments.forEach { comment ->
-                Column {
-                    CommentCell(
-                        comment = comment,
-                        isThreaded = false,
-                        onReply = onReply,
-                        onCommentDeleted = onCommentDeleted,
-                        onEdit = onEdit,
-                        onUpVote = onUpVote,
-                        onDownVote = onDownVote,
-                        onReport = onReport,
-                        onDeleteComment = onDeleteComment,
-                        onTranslateComment = onTranslateComment
-                    )
-
-                    comment.comments.forEach { thread ->
-                        CommentCell(
-                            comment = thread,
-                            isThreaded = true,
-                            onReply = onReply,
-                            onCommentDeleted = onCommentDeleted,
-                            onEdit = onEdit,
-                            onUpVote = onUpVote,
-                            onDownVote = onDownVote,
-                            onReport = onReport,
-                            onDeleteComment = onDeleteComment,
-                            onTranslateComment = onTranslateComment
-                        )
-                    }
-                }
+    if (comments.isEmpty()) {
+        item(key = "comments-empty") {
+            Column(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 32.dp)) {
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+                UnavailableView(
+                    icon = Icons.Outlined.ChatBubbleOutline,
+                    title = stringResource(R.string.no_one_has_commented_yet),
+                    description = stringResource(R.string.be_the_first_one_to_share_your_thoughts)
+                )
             }
         }
+        return
     }
+    val rows = comments.flatMap { comment -> listOf(comment to false) + comment.comments.map { it to true } }
+    items(rows, key = { (comment, _) -> "comment-${comment.id}" }) { (comment, isThreaded) ->
+        Box(Modifier.animateItem()) {
+            CommentCell(
+                comment = comment,
+                isThreaded = isThreaded,
+                onReply = onReply,
+                onCommentDeleted = onCommentDeleted,
+                onEdit = onEdit,
+                onUpVote = onUpVote,
+                onDownVote = onDownVote,
+                onReport = onReport,
+                onDeleteComment = onDeleteComment,
+                onTranslateComment = onTranslateComment
+            )
+        }
+    }
+    item(key = "comments-bottom") { Spacer(Modifier.height(32.dp)) }
 }
 
 @Composable
@@ -114,7 +103,8 @@ private fun CommentCell(
 @Composable
 private fun Preview() {
     Theme {
-        PostCommentsSection(
+        LazyColumn {
+            postCommentsSection(
             comments = listOf(
                 AraPostComment.mock(),
                 AraPostComment.mock(),
@@ -127,6 +117,7 @@ private fun Preview() {
             onReport = { _, _ -> },
             onDeleteComment = {},
             onTranslateComment = {}
-        )
+            )
+        }
     }
 }
