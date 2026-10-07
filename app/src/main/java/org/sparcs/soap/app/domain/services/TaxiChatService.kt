@@ -110,6 +110,7 @@ class TaxiChatService @Inject constructor(
     private fun connectSocket() {
         closeSocket()
 
+        val token = tokenStorage.getAccessToken()
         val opts = IO.Options().apply {
             forceNew = true
             reconnection = true
@@ -118,9 +119,10 @@ class TaxiChatService @Inject constructor(
             randomizationFactor = 0.5
             extraHeaders = mutableMapOf(
                 "Origin" to listOf("taxi.sparcs.org"),
-                "Authorization" to listOf("Bearer $token"),
                 "X-Application-Name" to listOf("buddyandroid")
-            )
+            ).apply {
+                token?.let { put("Authorization", listOf("Bearer $it")) }
+            }
         }
 
         try {
@@ -130,6 +132,7 @@ class TaxiChatService @Inject constructor(
                         @Suppress("UNCHECKED_CAST")
                         val headers = headerArgs.firstOrNull() as? MutableMap<String, List<String>> ?: return@on
                         headers["Origin"] = listOf("taxi.sparcs.org")
+                        headers["X-Application-Name"] = listOf("buddyandroid")
                         tokenStorage.getAccessToken()?.let { headers["Authorization"] = listOf("Bearer $it") }
                     }
                 }
