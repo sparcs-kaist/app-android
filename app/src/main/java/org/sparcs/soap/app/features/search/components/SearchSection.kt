@@ -111,6 +111,7 @@ fun CourseSection(
     ) {
         SearchContent(
             results = courses,
+            key = { it.id },
             onLoadMore = onLoadMore,
         ) { course ->
             if (isSkeleton) {
@@ -144,6 +145,7 @@ fun PostSection(
     ) {
         SearchContent(
             results = posts,
+            key = { it.id },
             onLoadMore = if (searchScope == SearchScope.Posts) onLoadMore else null
         ) { post ->
             if (isSkeleton) {
@@ -178,6 +180,7 @@ fun TaxiSection(
     ) {
         SearchContent(
             results = rooms,
+            key = { it.id },
             onLoadMore = onLoadMore
         ) { room ->
             if (isSkeleton) {

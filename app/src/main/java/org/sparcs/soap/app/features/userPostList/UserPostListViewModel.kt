@@ -130,7 +130,7 @@ class UserPostListViewModel @Inject constructor(
                 searchKeyword = _searchKeyword.value.ifBlank { null }
             )
             currentPage = page.currentPage
-            _posts.value += page.results
+            _posts.value = (_posts.value + page.results).distinctBy { it.id }
             hasMorePages = currentPage < totalPages
             _state.value = ViewState.Loaded(_posts.value)
             _isLoadingMore.value = false
