@@ -7,11 +7,6 @@ import org.sparcs.soap.app.domain.helpers.NetworkErrorMapper
 import retrofit2.HttpException
 import timber.log.Timber
 
-object AuthRetryConfig {
-    var tokenRefresher: (suspend () -> Unit)? = null
-    var isRefreshing = false
-}
-
 suspend inline fun <T> safeApiCall(
     gson: Gson,
     crossinline call: suspend () -> T
@@ -19,36 +14,18 @@ suspend inline fun <T> safeApiCall(
     return try {
         call()
     } catch (e: Exception) {
-        handleApiError(gson, e) { call() }
+        handleApiError(gson, e)
     }
 }
 
-suspend fun <T> handleApiError(
-    gson: Gson,
-    exception: Exception,
-    call: suspend () -> T
-): T {
+fun handleApiError(gson: Gson, exception: Exception): Nothing {
     if (exception !is HttpException) throw NetworkErrorMapper.map(exception)
 
     val response = exception.response()
     val code = response?.code() ?: 500
     val errorBody = try { response?.errorBody()?.string() } catch (_: Exception) { null }
 
-    if (code == 401) {
-        val refresher = AuthRetryConfig.tokenRefresher
-        if (AuthRetryConfig.isRefreshing || refresher == null) {
-            throw NetworkError.Unauthorized()
-        }
-        return try {
-            AuthRetryConfig.isRefreshing = true
-            refresher()
-            AuthRetryConfig.isRefreshing = false
-            call()
-        } catch (e: Exception) {
-            AuthRetryConfig.isRefreshing = false
-            throw NetworkErrorMapper.map(e)
-        }
-    }
+    if (code == 401) throw NetworkError.Unauthorized()
 
     var errorMessage: String? = null
     if (!errorBody.isNullOrEmpty()) {

@@ -129,7 +129,6 @@ import org.sparcs.soap.app.domain.usecases.taxi.TaxiRoomUseCase
 import org.sparcs.soap.app.domain.usecases.taxi.TaxiRoomUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCase
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationUseCaseProtocol
-import org.sparcs.soap.app.networking.responseDTO.AuthRetryConfig
 import org.sparcs.soap.app.networking.retrofitAPI.AppVersionApi
 import org.sparcs.soap.app.networking.retrofitAPI.AuthApi
 import org.sparcs.soap.app.networking.retrofitAPI.FCMApi
@@ -799,10 +798,6 @@ object AuthUseCaseModule {
             widgetSyncHelper,
             timetableCache,
         )
-
-        AuthRetryConfig.tokenRefresher = {
-            useCase.refreshAccessToken(force = false)
-        }
 
         useCase.onTokenRefresh = {
             taxiChatServiceProvider.get().reconnect()
