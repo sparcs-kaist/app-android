@@ -2,7 +2,6 @@ package org.sparcs.soap.app.features.postCompose
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,14 +12,13 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.ara.AraPostNicknameType
 import org.sparcs.soap.app.domain.helpers.AlertState
+import org.sparcs.soap.app.domain.helpers.UploadImageDecoder
 import org.sparcs.soap.app.domain.models.ara.AraBoard
 import org.sparcs.soap.app.domain.models.ara.AraBoardTopic
 import org.sparcs.soap.app.domain.models.ara.AraCreatePost
@@ -90,17 +88,9 @@ class PostComposeViewModel @Inject constructor(
     override var isAlertPresented: Boolean by mutableStateOf(false)
 
     override suspend fun updateSelectedImages(context: Context) {
-        val bitmaps = withContext(Dispatchers.IO) {
-            selectedItems.mapNotNull { uri ->
-                try {
-                    val stream = context.contentResolver.openInputStream(uri)
-                    BitmapFactory.decodeStream(stream)
-                } catch (_: Exception) {
-                    null
-                }
-            }
+        selectedImages = selectedItems.mapNotNull { uri ->
+            UploadImageDecoder.decode(context.contentResolver, uri)
         }
-        selectedImages = bitmaps
     }
 
     override suspend fun writePost(): Boolean {

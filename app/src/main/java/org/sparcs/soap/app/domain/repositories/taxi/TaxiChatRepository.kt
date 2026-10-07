@@ -20,8 +20,8 @@ interface TaxiChatRepositoryProtocol {
     suspend fun fetchChatsAfter(roomID: String, date: Date)
     suspend fun sendChat(chat: TaxiChatRequest)
     suspend fun readChats(roomID: String)
-    suspend fun getPresignedURL(roomID: String): TaxiChatPresignedURLDTO
-    suspend fun uploadImage(presignedURL: TaxiChatPresignedURLDTO, imageData: ByteArray)
+    suspend fun getPresignedURL(roomID: String, contentType: String): TaxiChatPresignedURLDTO
+    suspend fun uploadImage(presignedURL: TaxiChatPresignedURLDTO, imageData: ByteArray, contentType: String)
     suspend fun notifyImageUploadComplete(id: String)
 }
 
@@ -35,6 +35,7 @@ sealed class TaxiChatError(val code: Int, message: String) : Exception(message) 
 
 class TaxiChatRepository @Inject constructor(
     private val taxiChatApi: TaxiChatApi,
+    private val httpClient: OkHttpClient,
 ) : TaxiChatRepositoryProtocol {
 
     override suspend fun fetchChats(roomID: String) = withContext(Dispatchers.IO) {
@@ -66,21 +67,21 @@ class TaxiChatRepository @Inject constructor(
         val result = taxiChatApi.readChat(body)
         if (!result.result) throw TaxiChatError.ReadChatFailed()
     }
-    override suspend fun getPresignedURL(roomID: String): TaxiChatPresignedURLDTO {
-        val body = mapOf("roomId" to roomID, "type" to "image/png")
+    override suspend fun getPresignedURL(roomID: String, contentType: String): TaxiChatPresignedURLDTO {
+        val body = mapOf("roomId" to roomID, "type" to contentType)
         return taxiChatApi.getPresignedURL(body)
     }
 
-    override suspend fun uploadImage(presignedURL: TaxiChatPresignedURLDTO, imageData: ByteArray) {
+    override suspend fun uploadImage(presignedURL: TaxiChatPresignedURLDTO, imageData: ByteArray, contentType: String) {
         withContext(Dispatchers.IO) {
-            val requestBody = imageData.toRequestBody("image/png".toMediaTypeOrNull())
+            val requestBody = imageData.toRequestBody(contentType.toMediaTypeOrNull())
 
             val request = Request.Builder()
                 .url(presignedURL.url)
                 .put(requestBody)
                 .build()
 
-            OkHttpClient().newCall(request).execute().use { response ->
+            httpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) throw Exception("S3 upload failed: ${response.code}")
             }
         }

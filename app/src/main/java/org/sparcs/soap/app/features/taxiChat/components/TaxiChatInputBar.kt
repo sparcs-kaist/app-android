@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.features.taxiChat.components
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +37,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,7 +52,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import org.sparcs.soap.R
+import org.sparcs.soap.app.domain.helpers.UploadImageDecoder
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.theme.ui.Theme
@@ -75,15 +77,13 @@ fun TaxiChatInputBar(
     var selectedImage by remember { mutableStateOf<Bitmap?>(null) }
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         uri?.let {
-            val bitmap = context.contentResolver.openInputStream(it)?.use { stream ->
-                BitmapFactory.decodeStream(stream)
-            }
-            selectedImage = bitmap
+            scope.launch { selectedImage = UploadImageDecoder.decode(context.contentResolver, it) }
         }
     }
 

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.sparcs.soap.app.domain.helpers.UploadImageDecoder
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.models.taxi.TaxiChatRequest
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
@@ -28,7 +29,7 @@ import org.sparcs.soap.app.domain.repositories.taxi.TaxiChatRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.services.TaxiChatService
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
-import org.sparcs.soap.app.shared.extensions.toByteArray
+import org.sparcs.soap.app.shared.extensions.compressForUpload
 import timber.log.Timber
 import java.util.Date
 import java.util.UUID
@@ -48,6 +49,9 @@ interface TaxiChatUseCaseProtocol {
     fun switchRoom(newRoomId: String)
     suspend fun refreshRoom()
 }
+
+private const val CHAT_IMAGE_CONTENT_TYPE = "image/jpeg"
+private const val CHAT_IMAGE_MAX_MB = 3.0
 
 class TaxiChatUseCase @Inject constructor(
     private val taxiChatService: TaxiChatService,
@@ -183,9 +187,11 @@ class TaxiChatUseCase @Inject constructor(
         }
 
     override suspend fun sendImage(content: Bitmap) {
-        val presignedURL = taxiChatRepository.getPresignedURL(room.id)
-        val imageData = content.toByteArray()
-        taxiChatRepository.uploadImage(presignedURL, imageData)
+        val imageData = withContext(Dispatchers.Default) {
+            content.compressForUpload(maxSizeMB = CHAT_IMAGE_MAX_MB, maxDimension = UploadImageDecoder.MAX_DIMENSION)
+        }
+        val presignedURL = taxiChatRepository.getPresignedURL(room.id, CHAT_IMAGE_CONTENT_TYPE)
+        taxiChatRepository.uploadImage(presignedURL, imageData, CHAT_IMAGE_CONTENT_TYPE)
         taxiChatRepository.notifyImageUploadComplete(presignedURL.id)
     }
 
