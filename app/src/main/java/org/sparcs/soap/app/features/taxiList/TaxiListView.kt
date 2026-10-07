@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -76,8 +77,8 @@ import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.isDateInSameDay
 import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.toLocalDate
 import org.sparcs.soap.app.shared.extensions.weekdaySymbol
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -474,11 +475,14 @@ private fun LoadedView(
     description: String,
     navController: NavController,
 ) {
-    val filteredRooms = rooms.filter { room ->
-        val matchesSource = source == null || room.source.id == source.id
-        val matchesDestination = destination == null || room.destination.id == destination.id
-        matchesSource && matchesDestination
+    val filteredRooms = remember(rooms, source?.id, destination?.id) {
+        rooms.filter { room ->
+            val matchesSource = source == null || room.source.id == source.id
+            val matchesDestination = destination == null || room.destination.id == destination.id
+            matchesSource && matchesDestination
+        }
     }
+    val roomsByDate = remember(filteredRooms) { filteredRooms.groupBy { it.departAt.toLocalDate() } }
     val targetDates = selectedDate?.let { listOf(it) } ?: week
 
     Column {
@@ -494,9 +498,7 @@ private fun LoadedView(
             )
         } else {
             targetDates.forEach { day ->
-                val roomsForDay = filteredRooms.filter { room ->
-                    isDateInSameDay(room.departAt, day)
-                }
+                val roomsForDay = roomsByDate[day.toLocalDate()].orEmpty()
 
                 val dayDescription = getTaxiFilterDescription(
                     sourceTitle = viewModel.source?.title,
@@ -522,10 +524,12 @@ private fun LoadedView(
                         }
 
                         roomsForDay.forEach { room ->
-                            TaxiRoomCell(
-                                room = room,
-                                onClick = { onRoomSelected(room) }
-                            )
+                            key(room.id) {
+                                TaxiRoomCell(
+                                    room = room,
+                                    onClick = { onRoomSelected(room) }
+                                )
+                            }
                         }
                     }
                 } else if (selectedDate != null) {
