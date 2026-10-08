@@ -227,6 +227,7 @@ object NetworkModule {
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val newRequest = original.newBuilder()
+                    .header("X-Application-Name", "buddyandroid")
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
                     .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
@@ -254,6 +255,7 @@ object NetworkModule {
             .addInterceptor { chain ->
                 val original = chain.request()
                 val newRequest = original.newBuilder()
+                    .header("X-Application-Name", "buddyandroid")
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
                     .build()
@@ -265,7 +267,7 @@ object NetworkModule {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(Constants.TAXI_BACKEND_URL)
+            .baseUrl(Constants.FEED_BACKEND_URL)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
@@ -284,6 +286,7 @@ object NetworkModule {
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val newRequest = original.newBuilder()
+                    .header("X-Application-Name", "buddyandroid")
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
                     .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
@@ -317,6 +320,7 @@ object NetworkModule {
                 val original = chain.request()
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val newRequest = original.newBuilder()
+                    .header("X-Application-Name", "buddyandroid")
                     .header("Origin", "sparcsapp")
                     .header("Content-Type", "application/json")
                     .apply { accessToken?.let { header("Authorization", "Bearer $it") } }
@@ -351,6 +355,7 @@ object NetworkModule {
                 val accessToken = runBlocking { tokenStorage.getAccessToken() }
                 val languageTag = context.resources.configuration.locales[0].language
                 val newRequest = original.newBuilder()
+                    .header("X-Application-Name", "buddyandroid")
                     .header("Origin", "sparcsapp")
                     .header("Accept-Language", languageTag)
                     .header("Content-Type", "application/json")
@@ -835,9 +840,9 @@ object AuthUseCaseModule {
     @Singleton
     fun provideAuthUseCase(
         authenticationService: AuthenticationServiceProtocol,
+        authRepository: AuthRepositoryProtocol,
         tokenStorage: TokenStorageProtocol,
         araUserRepository: AraUserRepositoryProtocol,
-        feedUserRepository: FeedUserRepositoryProtocol,
         otlUserRepository: OTLUserRepositoryProtocol,
         taxiChatServiceProvider: Provider<TaxiChatService>,
         fcmUseCase: FCMUseCaseProtocol,
@@ -847,9 +852,9 @@ object AuthUseCaseModule {
 
         val useCase = AuthUseCase(
             authenticationService,
+            authRepository,
             tokenStorage,
             araUserRepository,
-            feedUserRepository,
             otlUserRepository,
             fcmUseCase,
             widgetSyncHelper,

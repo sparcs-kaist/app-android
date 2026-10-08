@@ -4,7 +4,8 @@ import org.sparcs.soap.BuildConfig
 
 object Constants {
     // MARK: Authorization
-    const val AUTHORIZATION_URL = "https://${BuildConfig.TAXI_HOST}/api/auth/sparcsapp/login?codeChallenge="
+    val authorizationURL: String
+        get() = "${FEED_BACKEND_URL}auth/sso?client=buddyandroid"
 
     // MARK: Terms
     const val PRIVACY_POLICY_URL = "https://github.com/sparcs-kaist/privacy/blob/main/Privacy.md"

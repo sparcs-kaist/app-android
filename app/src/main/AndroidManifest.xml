@@ -137,7 +137,7 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="sparcsapp"
-                    android:host="authorize" />
+                    android:host="callback" />
 
             </intent-filter>
 

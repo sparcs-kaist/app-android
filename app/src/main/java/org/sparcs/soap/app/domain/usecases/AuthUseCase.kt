@@ -26,7 +26,7 @@ import org.sparcs.soap.app.domain.error.auth.AuthenticationServiceError
 import org.sparcs.soap.app.domain.helpers.TokenRefreshCoordinator
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.repositories.ara.AraUserRepositoryProtocol
-import org.sparcs.soap.app.domain.repositories.feed.FeedUserRepositoryProtocol
+import org.sparcs.soap.app.domain.repositories.AuthRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.otl.OTLUserRepositoryProtocol
 import org.sparcs.soap.app.domain.services.AuthenticationService
 import org.sparcs.soap.app.domain.services.AuthenticationServiceProtocol
@@ -59,9 +59,9 @@ interface AuthUseCaseProtocol {
 @Singleton
 class AuthUseCase @Inject constructor(
     private val authenticationService: AuthenticationServiceProtocol,
+    private val authRepository: AuthRepositoryProtocol,
     val tokenStorage: TokenStorageProtocol,
     private val araUserRepository: AraUserRepositoryProtocol,
-    private val feedUserRepository: FeedUserRepositoryProtocol,
     private val otlUserRepository: OTLUserRepositoryProtocol,
     private val fcmUseCase: FCMUseCaseProtocol,
     private val widgetSyncHelper: WidgetSyncHelper,
@@ -244,9 +244,6 @@ class AuthUseCase @Inject constructor(
                     Timber.e("Failed to Sign in. agreeTOS failed: ${e.message}")
                 }
 
-                // MARK - Sign up Feed
-                feedUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
-
                 // MARK - Sign up OTL
                 otlUserRepository.register(ssoInfo = tokenResponse.ssoInfo)
 
@@ -290,11 +287,20 @@ class AuthUseCase @Inject constructor(
 
     private suspend fun clearSession(expectedRevision: Long? = null) {
         withContext(Dispatchers.IO + NonCancellable) {
-            synchronized(sessionLock) {
+            val currentRefreshToken = synchronized(sessionLock) {
                 if (expectedRevision != null && sessionRevision != expectedRevision) return@withContext
                 sessionRevision++
-                tokenStorage.clearTokens()
-                _isAuthenticated.value = false
+                tokenStorage.getRefreshToken().also {
+                    tokenStorage.clearTokens()
+                    _isAuthenticated.value = false
+                }
+            }
+            if (!currentRefreshToken.isNullOrEmpty()) {
+                try {
+                    authRepository.logout(currentRefreshToken)
+                } catch (e: Exception) {
+                    Timber.e(e, "Logout request failed")
+                }
             }
             scheduledRefreshJob?.cancel()
             widgetSyncHelper.clearAllWidgets()
