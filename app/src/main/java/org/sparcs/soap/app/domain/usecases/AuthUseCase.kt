@@ -219,10 +219,6 @@ class AuthUseCase @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                lastRefreshFailure = System.currentTimeMillis()
-                if ((e as? HttpException)?.code() == 401 || (e as? HttpException)?.code() == 400 || e is AuthenticationServiceError) {
-                    signOut()
-                }
                 Timber.e(e, "Post-refresh side effect failed")
             }
         }
@@ -291,7 +287,14 @@ class AuthUseCase @Inject constructor(
 
     private suspend fun clearSession(expectedRevision: Long? = null) {
         withContext(Dispatchers.IO + NonCancellable) {
-            val currentRefreshToken = tokenStorage.getRefreshToken()
+            val currentRefreshToken = synchronized(sessionLock) {
+                if (expectedRevision != null && sessionRevision != expectedRevision) return@withContext
+                sessionRevision++
+                tokenStorage.getRefreshToken().also {
+                    tokenStorage.clearTokens()
+                    _isAuthenticated.value = false
+                }
+            }
             if (!currentRefreshToken.isNullOrEmpty()) {
                 try {
                     authRepository.logout(currentRefreshToken)
@@ -299,14 +302,8 @@ class AuthUseCase @Inject constructor(
                     Timber.e(e, "Logout request failed")
                 }
             }
-            synchronized(sessionLock) {
-                if (expectedRevision != null && sessionRevision != expectedRevision) return@withContext
-                sessionRevision++
-                tokenStorage.clearTokens()
-                _isAuthenticated.value = false
-            }
             scheduledRefreshJob?.cancel()
-            widgetSyncHelper.refreshAllWidgets()
+            widgetSyncHelper.clearAllWidgets()
             ChannelManager.clearIdentity()
             timetableCache.clear()
         }
