@@ -583,7 +583,7 @@
     <string name="preview">Preview</string>
     <string name="save_configuration">Save configuration</string>
     <string name="theme_mode">Theme mode</string>
-    <string name="transparency">Transparency</string>
+    <string name="transparency">Opacity</string>
     <string name="up_next">Up next</string>
     <string name="no_more_classes">No more classes</string>
     <string name="enjoy_day">Enjoy your day</string>
