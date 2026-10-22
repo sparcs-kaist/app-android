@@ -23,7 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpOffset
@@ -47,7 +46,7 @@ fun TimetableShareRenderingView(semester: Semester, timetable: Timetable, theme:
 @Composable
 internal fun TimetableShareCard(
     theme: TimetableTheme, timetable: Timetable, label: String, title: String,
-    detailLabel: String, detail: String, isCode: Boolean = false,
+    detailLabel: String, detail: String,
 ) {
     CompositionLocalProvider(LocalTimetableTheme provides theme) {
         MaterialTheme(colorScheme = lightColorScheme()) {
@@ -74,7 +73,7 @@ internal fun TimetableShareCard(
                         }
                         Column(horizontalAlignment = Alignment.End) {
                             Text(detailLabel, style = MaterialTheme.typography.labelSmall, color = Color(0xFF64748B))
-                            Text(detail, fontFamily = if (isCode) FontFamily.Monospace else FontFamily.Default, style = MaterialTheme.typography.titleMedium, color = Color(0xFF0F172A))
+                            Text(detail, style = MaterialTheme.typography.titleMedium, color = Color(0xFF0F172A))
                         }
                     }
                 }

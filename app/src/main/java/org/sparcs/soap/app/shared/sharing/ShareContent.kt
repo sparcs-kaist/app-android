@@ -14,11 +14,12 @@ data class ShareContent(
     @param:StringRes val copyLabel: Int = R.string.share_copy_image,
 )
 
-enum class ShareTarget(@param:StringRes val label: Int, val packageName: String? = null) {
+enum class ShareTarget(@param:StringRes val label: Int, val packageName: String? = null, val keepsSheetOpen: Boolean = false) {
     Instagram(R.string.theme_share_instagram_story, "com.instagram.android"),
     Messages(R.string.share_messages),
     Feed(R.string.theme_share_feed),
-    Copy(R.string.share_copy_image),
+    Copy(R.string.share_copy_image, keepsSheetOpen = true),
+    Save(R.string.share_save_image, keepsSheetOpen = true),
     More(R.string.share_more),
 }
 

@@ -37,7 +37,9 @@ import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSheet
 import org.sparcs.soap.app.features.timetable.sharing.TimetableShareSnapshot
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
+import org.sparcs.soap.app.shared.sharing.ShareContent
 import org.sparcs.soap.app.shared.sharing.ShareImageStore
+import org.sparcs.soap.app.shared.sharing.ShareTarget
 import org.sparcs.soap.app.shared.sharing.ShareViewModel
 import org.sparcs.soap.app.theme.ui.Theme
 import java.io.File
@@ -112,6 +114,26 @@ class TimetableSharingTest {
         assertNotEquals(first, second)
         context.contentResolver.openInputStream(first)!!.use { assertTrue(it.readBytes().isNotEmpty()) }
         context.contentResolver.openInputStream(second)!!.use { assertTrue(it.readBytes().isNotEmpty()) }
+    }
+
+    @Test fun galleryImageIsReadableAndSavedOnce() {
+        val model = ShareViewModel(ShareImageStore(context))
+        val capture: suspend () -> Bitmap = { Bitmap.createBitmap(4, 4, Bitmap.Config.ARGB_8888) }
+        val content = ShareContent("Timetable", "", "#FFFFFF", "#FFFFFF")
+        compose.runOnUiThread { model.prepare(ShareTarget.Save, content, capture) }
+        compose.waitUntil(10_000) { model.state.value.request != null }
+        val uri = model.state.value.request!!.imageUri!!
+        try {
+            context.contentResolver.openInputStream(uri)!!.use { assertTrue(it.readBytes().isNotEmpty()) }
+            compose.runOnUiThread {
+                model.consumeRequest(launched = true)
+                model.prepare(ShareTarget.Save, content) { error("Must not render") }
+            }
+            assertTrue(model.state.value.saved)
+            assertFalse(model.state.value.preparing)
+        } finally {
+            context.contentResolver.delete(uri, null, null)
+        }
     }
 
 }

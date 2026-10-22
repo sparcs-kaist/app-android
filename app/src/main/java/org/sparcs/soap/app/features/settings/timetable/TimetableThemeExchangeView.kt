@@ -197,7 +197,7 @@ private fun ThemeShareCardView(
 private fun ThemeShareRenderingView(theme: TimetableTheme, code: String?, lectures: List<Lecture>) {
     TimetableShareCard(theme, Timetable(id = "theme-share", lectures = lectures),
         stringResource(R.string.share_timetable_theme), theme.displayName(),
-        stringResource(R.string.code), code ?: "\u2014", isCode = true)
+        stringResource(R.string.code), code ?: "\u2014")
 }
 
 @Composable

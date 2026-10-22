@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.provider.Telephony
 import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,7 +27,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.outlined.CameraAlt
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Download
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -84,11 +88,11 @@ fun ShareSheet(
         val launched = launcher.launch(request, onFeed)
         if (!launched) {
             Toast.makeText(context, R.string.share_failed, Toast.LENGTH_SHORT).show()
-        } else if (request.target != ShareTarget.Copy) {
+        } else if (!request.target.keepsSheetOpen) {
             if (request.target != ShareTarget.Feed) sheetState.hide()
             onDismiss()
         }
-        viewModel.consumeRequest()
+        viewModel.consumeRequest(launched)
     }
 
     ModalBottomSheet(
@@ -124,7 +128,7 @@ internal fun ShareSheetContent(
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
             Text(stringResource(R.string.share_preparing))
         }
-        if (state.failed) Text(stringResource(R.string.share_image_failed), Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.error)
+        if (state.failed) Text(state.errorMessage ?: stringResource(R.string.share_image_failed), Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.error)
         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(listOfNotNull(ShareTarget.Instagram, ShareTarget.Feed.takeIf { hasFeed }, ShareTarget.Messages)) { target ->
                 ShareTargetItem(target, !state.preparing) { onTarget(target) }
@@ -132,18 +136,33 @@ internal fun ShareSheetContent(
         }
         Column {
             HorizontalDivider(Modifier.padding(horizontal = 24.dp))
-            listOf(ShareTarget.Copy, ShareTarget.More).forEach { target ->
+            listOf(ShareTarget.Copy, ShareTarget.Save, ShareTarget.More).forEach { target ->
                 Row(
-                    Modifier.fillMaxWidth().clickable(enabled = !state.preparing) { onTarget(target) }.padding(horizontal = 24.dp, vertical = 18.dp),
+                    Modifier.fillMaxWidth().clickable(enabled = !state.preparing && !(target == ShareTarget.Save && state.saved)) { onTarget(target) }.padding(horizontal = 24.dp, vertical = 18.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Icon(if (target == ShareTarget.Copy) Icons.Outlined.ContentCopy else Icons.Outlined.MoreHoriz, null)
-                    Text(stringResource(if (target == ShareTarget.Copy) (if (content.link != null) R.string.share_copy_link else content.copyLabel) else target.label), style = MaterialTheme.typography.bodyLarge)
+                    val saved = target == ShareTarget.Save && state.saved
+                    Icon(if (saved) Icons.Outlined.Check else target.rowIcon, null)
+                    Text(stringResource(if (saved) R.string.share_saved else target.rowLabel(content)), style = MaterialTheme.typography.bodyLarge)
                 }
             }
         }
     }
+}
+
+private val ShareTarget.rowIcon: ImageVector
+    get() = when (this) {
+        ShareTarget.Copy -> Icons.Outlined.ContentCopy
+        ShareTarget.Save -> Icons.Outlined.Download
+        else -> Icons.Outlined.MoreHoriz
+    }
+
+@StringRes
+private fun ShareTarget.rowLabel(content: ShareContent): Int = when {
+    this != ShareTarget.Copy -> label
+    content.link != null -> R.string.share_copy_link
+    else -> content.copyLabel
 }
 
 @Composable
@@ -172,5 +191,22 @@ private fun ShareTargetItem(target: ShareTarget, enabled: Boolean, onClick: () -
 private fun ShareSheetPreview() {
     Theme {
         ShareSheetContent(ShareContent(stringResource(R.string.timetable_share), "", "#FFFFFF", "#FFFFFF"), ShareState(), true, {})
+    }
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, locale = "ko")
+@Composable
+private fun ShareSheetSavedPreview() {
+    Theme {
+        ShareSheetContent(ShareContent(stringResource(R.string.timetable_share), "", "#FFFFFF", "#FFFFFF"), ShareState(saved = true), true, {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ShareSheetSaveErrorPreview() {
+    Theme {
+        ShareSheetContent(ShareContent(stringResource(R.string.timetable_share), "", "#FFFFFF", "#FFFFFF"), ShareState(failed = true, errorMessage = "No space left on device"), true, {})
     }
 }

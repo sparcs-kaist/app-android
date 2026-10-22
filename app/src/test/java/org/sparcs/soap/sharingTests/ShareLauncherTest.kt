@@ -68,6 +68,12 @@ class ShareLauncherTest {
         assertEquals(uri to content.text, received)
     }
 
+    @Test fun savedImageDoesNotOpenAnotherApp() {
+        val recorder = RecordingContext(context)
+        assertTrue(ShareLauncher(recorder).launch(ShareRequest(ShareTarget.Save, content, uri), null))
+        assertTrue(recorder.intents.isEmpty())
+    }
+
     private class RecordingContext(context: Context) : ContextWrapper(context) {
         val intents = mutableListOf<Intent>()
         override fun startActivity(intent: Intent) {

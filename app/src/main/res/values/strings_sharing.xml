@@ -5,7 +5,9 @@
     <string name="share_more">More sharing options</string>
     <string name="share_copy_image">Copy image</string>
     <string name="share_copy_link">Copy link</string>
+    <string name="share_save_image">Save image</string>
     <string name="share_copied">Copied</string>
+    <string name="share_saved">Saved to gallery</string>
     <string name="share_preparing">Preparing image&#8230;</string>
     <string name="share_image_failed">Unable to create the image. Please try again.</string>
     <string name="share_failed">Unable to open sharing. Please try again.</string>
