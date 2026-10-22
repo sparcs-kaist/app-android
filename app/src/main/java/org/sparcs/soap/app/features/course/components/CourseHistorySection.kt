@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,6 +43,8 @@ import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.CourseHistory
 import org.sparcs.soap.app.domain.models.otl.CourseHistoryClass
 import org.sparcs.soap.app.domain.models.otl.Professor
+import org.sparcs.soap.app.domain.models.otl.sectionLabel
+import org.sparcs.soap.app.shared.extensions.bleedHorizontally
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -55,7 +58,12 @@ fun CourseHistorySection(
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         CourseHistoryHeader(history.size)
 
-        LazyRow(state = listState, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyRow(
+            state = listState,
+            modifier = Modifier.bleedHorizontally(16.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             items(history, key = { "${it.year}-${it.semester.intValue}" }) { entry ->
                 CourseHistoryCard(
                     entry = entry,
@@ -139,9 +147,7 @@ private fun CourseHistoryClassRow(
     onSelectProfessor: (Int?) -> Unit,
 ) {
     val isMatch = section.professors.any { it.id == selectedProfessorID }
-    val professorText = section.professors.joinToString(", ") { it.name }.ifEmpty {
-        stringResource(R.string.unknown)
-    }
+    val label = section.sectionLabel
     val canSelect = section.professors.isNotEmpty()
 
     CompositionLocalProvider(
@@ -154,48 +160,46 @@ private fun CourseHistoryClassRow(
             color = MaterialTheme.colorScheme.background,
             contentColor = MaterialTheme.colorScheme.onSurface,
         ) {
-            Column(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = if (section.subtitle.isNotBlank()) 6.dp else 2.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                    .padding(horizontal = 4.dp, vertical = if (label.professors != null) 6.dp else 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (section.section.isNotEmpty()) {
-                        Text(
-                            text = section.section,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
+                if (section.section.isNotEmpty()) {
                     Text(
-                        text = professorText,
+                        text = section.section,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = label.title ?: stringResource(R.string.unknown),
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (isMatch) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f, fill = false),
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis
                     )
-                }
 
-                if (section.subtitle.isNotBlank()) {
-                    Text(
-                        text = section.subtitle,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
+                    label.professors?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
 
-                if (isMySection) {
-                    Text(
-                        text = stringResource(R.string.course_your_section),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    if (isMySection) {
+                        Text(
+                            text = stringResource(R.string.course_your_section),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -277,6 +281,19 @@ fun CourseProfessorPicker(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun CourseHistoryClassRowPreview() {
+    Theme {
+        CourseHistoryClassRow(
+            section = CourseHistoryClass(1, "<리더십 강좌>", "A", listOf(Professor(1, "Kim"))),
+            selectedProfessorID = null,
+            isMySection = true,
+            onSelectProfessor = {}
+        )
     }
 }
 

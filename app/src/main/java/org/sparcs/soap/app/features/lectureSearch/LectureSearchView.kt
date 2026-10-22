@@ -55,6 +55,7 @@ import org.sparcs.soap.app.domain.helpers.loadLetter
 import org.sparcs.soap.app.domain.helpers.speechLetter
 import org.sparcs.soap.app.domain.models.otl.CourseLecture
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.domain.models.otl.sectionLabel
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchViewNavigationBar
@@ -192,7 +193,7 @@ private fun LectureRowHeader(
             SectionBadge(section = lecture.section)
         }
         Text(
-            text = lecture.professors.joinToString(", ") { it.name }.ifEmpty { stringResource(R.string.unknown) },
+            text = lecture.sectionLabel.title ?: stringResource(R.string.unknown),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
         )
@@ -219,10 +220,10 @@ private fun LectureRowTimeInfo(
     lecture: Lecture,
     secondary: Color
 ) {
-    val subtitle = if (lecture.section.length > 2) lecture.section else lecture.subtitle
-    if (subtitle.isNotBlank()) {
+    val detail = lecture.section.takeIf { it.length > 2 } ?: lecture.sectionLabel.professors
+    if (detail != null) {
         Text(
-            text = subtitle,
+            text = detail,
             style = MaterialTheme.typography.bodySmall,
             color = secondary
         )

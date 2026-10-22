@@ -42,6 +42,7 @@ import org.sparcs.soap.app.domain.helpers.loadLetter
 import org.sparcs.soap.app.domain.helpers.speechLetter
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.LectureReview
+import org.sparcs.soap.app.domain.models.otl.sectionSubtitles
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModelProtocol
@@ -67,6 +68,8 @@ fun LectureReviews(
     val state by viewModel.state.collectAsState()
     val writtenReview by viewModel.writtenReview.collectAsState()
     val reviews by viewModel.reviews.collectAsState()
+    val course by viewModel.course.collectAsState()
+    val sectionSubtitles = remember(course) { course?.sectionSubtitles.orEmpty() }
 
     val translationState by viewModel.translationState.collectAsState()
     val summarizationState by viewModel.summarizationState.collectAsState()
@@ -96,6 +99,7 @@ fun LectureReviews(
             state = state,
             reviews = reviews,
             writtenReview = writtenReview,
+            sectionSubtitles = sectionSubtitles,
             summarizationState = summarizationState,
             showTranslationSheet = showTranslationSheet,
             activeReview = activeReview,
@@ -193,6 +197,7 @@ private fun ReviewsListSection(
     state: LectureDetailViewModel.ViewState,
     reviews: List<LectureReview>,
     writtenReview: LectureReview?,
+    sectionSubtitles: Map<Int, String>,
     summarizationState: SummarizationState,
     showTranslationSheet: Boolean,
     activeReview: LectureReview?,
@@ -231,7 +236,8 @@ private fun ReviewsListSection(
                             onSummarize = { onSummarize(review) },
                             summarizationState = if (!showTranslationSheet && activeReview?.id == review.id) summarizationState else SummarizationState.Idle,
                             onRetrySummarize = { onRetrySummarize(review) },
-                            onDismissSummarize = onDismissSummarize
+                            onDismissSummarize = onDismissSummarize,
+                            subtitle = sectionSubtitles[review.lectureID]
                         )
 
                         if (isMine && allReviews.size > 1) {

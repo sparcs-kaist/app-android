@@ -62,6 +62,7 @@
     <string name="type">구분</string>
     <string name="department">학과</string>
     <string name="professor">교수</string>
+    <string name="subtitle">부제</string>
     <string name="classroom">강의실</string>
     <string name="capacity">정원</string>
     <string name="exams">시험</string>

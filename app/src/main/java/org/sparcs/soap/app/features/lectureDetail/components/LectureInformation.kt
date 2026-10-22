@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.domain.models.otl.subtitleTopic
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
@@ -94,6 +95,17 @@ fun LectureInformation(lecture: Lecture, navController: NavController) {
                     thickness = 0.5.dp,
                     color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
                 )
+                lecture.subtitle.subtitleTopic?.let {
+                    LectureDetailRow(
+                        title = stringResource(R.string.subtitle),
+                        description = it
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 12.dp),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    )
+                }
                 LectureDetailRow(
                     title = stringResource(R.string.professor),
                     description = lecture.professors.joinToString("\n") { it.name }

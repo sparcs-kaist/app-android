@@ -49,12 +49,14 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.ReportMailComposer
+import org.sparcs.soap.app.domain.models.otl.SectionLabel
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
@@ -76,12 +78,14 @@ fun LectureReviewCell(
     summarizationState: SummarizationState = SummarizationState.Idle,
     onRetrySummarize: () -> Unit,
     onDismissSummarize: () -> Unit,
+    subtitle: String? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val haptic = LocalHapticFeedback.current
     val unknown = stringResource(R.string.unknown)
+    val label = SectionLabel.of(subtitle.orEmpty(), lectureReview.professors)
 
     Surface(
         shape = RoundedCornerShape(16.dp),
@@ -97,25 +101,39 @@ fun LectureReviewCell(
                 .padding(8.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = lectureReview.professors.firstOrNull()?.name
-                        ?: unknown,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = label.title ?: unknown,
+                            style = MaterialTheme.typography.titleMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
 
-                Spacer(modifier = Modifier.padding(4.dp))
+                        Spacer(modifier = Modifier.padding(4.dp))
 
-                Text(
-                    text = "${
-                        lectureReview.year.toString().takeLast(2)
-                    }${lectureReview.semester.shortCode}",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.SemiBold
-                    ),
-                    color = MaterialTheme.colorScheme.grayBB
-                )
+                        Text(
+                            text = "${
+                                lectureReview.year.toString().takeLast(2)
+                            }${lectureReview.semester.shortCode}",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            color = MaterialTheme.colorScheme.grayBB
+                        )
+                    }
 
-                Spacer(modifier = Modifier.weight(1f))
+                    label.professors?.let {
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.grayBB,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
 
                 if (!isMine) {
                     Box {
@@ -408,6 +426,24 @@ fun report(lectureReview: LectureReview, context: Context, unknown: String) {
 private fun Preview() {
     Theme {
         LectureReviewCell(LectureReview.mock(), {}, false, {}, {}, SummarizationState.Idle, {}, {})
+    }
+}
+
+@Composable
+@Preview
+private fun SubtitlePreview() {
+    Theme {
+        LectureReviewCell(
+            LectureReview.mock(),
+            {},
+            false,
+            {},
+            {},
+            SummarizationState.Idle,
+            {},
+            {},
+            subtitle = "<디자인 과제로부터 살아남기>"
+        )
     }
 }
 

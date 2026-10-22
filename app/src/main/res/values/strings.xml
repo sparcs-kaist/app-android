@@ -66,6 +66,7 @@
     <string name="type">Type</string>
     <string name="department">Department</string>
     <string name="professor">Professor</string>
+    <string name="subtitle">Subtitle</string>
     <string name="classroom">Classroom</string>
     <string name="capacity">Capacity</string>
     <string name="exams">Exams</string>

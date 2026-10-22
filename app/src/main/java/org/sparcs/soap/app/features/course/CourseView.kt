@@ -48,6 +48,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.LectureReviewPage
+import org.sparcs.soap.app.domain.models.otl.sectionSubtitles
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.course.components.CourseHistorySection
 import org.sparcs.soap.app.features.course.components.CourseHistorySkeleton
@@ -410,6 +411,7 @@ fun CourseReviewSection(
     var activeReviewContent by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
+    val sectionSubtitles = remember(course) { course?.sectionSubtitles.orEmpty() }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -490,7 +492,8 @@ fun CourseReviewSection(
                         onDismissSummarize = {
                             activeReviewId = null
                             viewModel.hideSummary()
-                        }
+                        },
+                        subtitle = sectionSubtitles[it.lectureID]
                     )
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
@@ -530,7 +533,8 @@ fun CourseReviewSection(
                         onDismissSummarize = {
                             activeReviewId = null
                             viewModel.hideSummary()
-                        }
+                        },
+                        subtitle = sectionSubtitles[review.lectureID]
                     )
                 }
             }

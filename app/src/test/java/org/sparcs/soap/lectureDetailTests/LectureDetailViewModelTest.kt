@@ -84,7 +84,7 @@ class LectureDetailViewModelTest {
     }
 
     @Test
-    fun `init loads reviews without requesting unused course details`() = runTest {
+    fun `init loads reviews and course for section subtitles`() = runTest {
         val course = Course.mock()
         mockCourseUseCase.getCourseResult = Result.success(course)
         mockReviewUseCase.fetchReviewsResult =
@@ -94,9 +94,22 @@ class LectureDetailViewModelTest {
         createViewModel()
 
         assertEquals(LectureDetailViewModel.ViewState.Loaded, viewModel.state.value)
-        assertEquals(null, viewModel.course.value)
-        assertEquals(0, mockCourseUseCase.getCourseCallCount)
+        assertEquals(course, viewModel.course.value)
+        assertEquals(1, mockCourseUseCase.getCourseCallCount)
         assertTrue(viewModel.reviews.value.isNotEmpty())
+    }
+
+    @Test
+    fun `course failure keeps reviews loaded`() = runTest {
+        mockCourseUseCase.getCourseResult = Result.failure(NetworkError.NoConnection())
+        mockReviewUseCase.fetchReviewsResult =
+            Result.success(LectureReviewPage.mock().copy(reviews = LectureReview.mockList()))
+        mockReviewUseCase.writtenReviewsResult = Result.success(emptyList())
+
+        createViewModel()
+
+        assertEquals(LectureDetailViewModel.ViewState.Loaded, viewModel.state.value)
+        assertEquals(null, viewModel.course.value)
     }
 
     @Test
