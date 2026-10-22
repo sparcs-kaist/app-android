@@ -34,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
@@ -41,6 +42,9 @@ import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.feed.FeedImage
+import org.sparcs.soap.app.domain.models.feed.FeedPost
+import org.sparcs.soap.app.shared.mocks.feed.mock
+import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun PostImagesStrip(
@@ -58,7 +62,7 @@ fun PostImagesStrip(
         val cappedWidth = if (maxWidth > 600.dp) 600.dp else maxWidth
         val parentWidth = if (images.size > 1) cappedWidth - 16.dp else cappedWidth
         val maxW = parentWidth - hPadding * 2
-        val height = maxW * 3 / 4
+        val height = maxW.coerceAtMost(400.dp)
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(spacing),
@@ -148,4 +152,10 @@ fun Placeholder(width: Dp, height: Dp, systemImage: ImageVector? = null) {
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PostImagesStripPreview() {
+    Theme { PostImagesStrip(images = FeedPost.mock().images, onComment = {}) }
 }
