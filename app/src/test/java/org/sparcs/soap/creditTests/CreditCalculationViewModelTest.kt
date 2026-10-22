@@ -17,6 +17,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.helpers.CreditSummaryPublisher
 import org.sparcs.soap.app.domain.models.otl.CreditSummarySnapshot
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
@@ -180,33 +181,32 @@ class CreditCalculationViewModelTest {
         assertEquals(store.values, model.state.value.grades)
     }
 
-    @Test fun `unavailable historical semester does not publish a partial widget total`() = runTest {
-        tables.getSemestersResult = Result.success(emptyList())
+    @Test fun `unlisted seasonal semester loads its timetable directly`() = runTest {
+        val semester = Semester.mockList().first()
+        val history = lectures.historyResult.getOrThrow()
+        lectures.historyResult = Result.success(history.copy(semesters = history.semesters +
+            history.semesters.single().copy(semesterType = SemesterType.SUMMER)))
+        tables.getSemestersResult = Result.success(listOf(semester))
+
         val state = viewModel(GradeStore()).state.value
+        assertNull(state.error)
+        assertEquals(2, state.semesters.size)
+        assertEquals(2, state.timetables.size)
+        assertEquals(1, snapshots.size)
+    }
+
+    @Test fun `unlisted semester that fails to load stays empty without a partial widget total`() = runTest {
+        val unlisted = object : TimetableUseCaseProtocol by tables {
+            override suspend fun getSemesters() = emptyList<Semester>()
+            override suspend fun refreshSemesters() = emptyList<Semester>()
+            override suspend fun getMyTable(semester: Semester, forceRefresh: Boolean): Timetable =
+                throw IllegalStateException("not offered")
+        }
+        val state = viewModel(GradeStore(), unlisted).state.value
         assertFalse(state.isLoading)
         assertNull(state.error)
         assertTrue(state.timetables.isEmpty())
         assertTrue(snapshots.isEmpty())
-    }
-
-    @Test fun `unlisted historical semester does not block available history or publish a partial snapshot`() = runTest {
-        val semester = Semester.mockList().first()
-        val history = lectures.historyResult.getOrThrow()
-        lectures.historyResult = Result.success(history.copy(semesters = history.semesters +
-            history.semesters.single().copy(year = semester.year - 1)))
-        tables.getSemestersResult = Result.success(listOf(semester))
-
-        val model = viewModel(GradeStore())
-        assertNull(model.state.value.error)
-        assertEquals(1, model.state.value.timetables.size)
-        assertEquals(2, model.state.value.semesters.size)
-        assertTrue(snapshots.isEmpty())
-
-        tables.getSemestersResult = Result.success(listOf(semester, semester.copy(year = semester.year - 1)))
-        model.load()
-        assertNull(model.state.value.error)
-        assertEquals(2, model.state.value.timetables.size)
-        assertEquals(1, snapshots.size)
     }
 
     @Test fun `empty refreshed history replaces the previous widget total with zero`() = runTest {
