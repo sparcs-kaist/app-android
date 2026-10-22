@@ -2,7 +2,6 @@ package org.sparcs.soap.app.features.feedPostCompose
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,15 +12,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.feed.FeedPostPhotoItem
 import org.sparcs.soap.app.domain.helpers.AlertState
+import org.sparcs.soap.app.domain.helpers.UploadImageDecoder
 import org.sparcs.soap.app.domain.models.feed.FeedCreatePost
 import org.sparcs.soap.app.domain.models.feed.FeedUser
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
@@ -191,16 +189,7 @@ class FeedPostComposeViewModel @Inject constructor(
     }
 
     private suspend fun loadBitmapFromUri(uri: Uri): Bitmap? =
-        withContext(Dispatchers.IO) {
-            try {
-                val source = ImageDecoder.createSource(context.contentResolver, uri)
-                ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
-                    decoder.isMutableRequired = true
-                }
-            } catch (_: Exception) {
-                null
-            }
-        }
+        UploadImageDecoder.decode(context.contentResolver, uri)
 
     override fun removeImage(index: Int) {
         val mutable = selectedImages.toMutableList()

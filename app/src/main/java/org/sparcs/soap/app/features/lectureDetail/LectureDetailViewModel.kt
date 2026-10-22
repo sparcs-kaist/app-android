@@ -108,6 +108,7 @@ class LectureDetailViewModel @Inject constructor(
 
     init {
         fetchReviews(initialLecture)
+        fetchCourse(initialLecture.courseID)
     }
 
     override fun fetchCourse(courseID: Int) {
@@ -119,7 +120,6 @@ class LectureDetailViewModel @Inject constructor(
                 throw e
             } catch (e: Exception) {
                 crashlyticsService.recordException(e)
-                _state.value = ViewState.Error(e)
             }
         }
     }

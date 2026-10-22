@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,10 +40,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.domain.models.otl.LectureItem
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
@@ -93,12 +96,10 @@ fun TimetableGrid(
     showDeleteDialog: (Lecture) -> Unit = {},
     onActivitySelected: (TimetableActivity, Boolean) -> Unit = { _, _ -> },
 ) {
-    val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
-    val times = timetable?.lectures.orEmpty().flatMap { it.classes } + candidateLecture?.classes.orEmpty()
-    val minMinutes = ((times.map { it.begin } + timetable?.activities.orEmpty().map { it.begin }).minOrNull()
-        ?: TimetableDefaults.DEFAULT_MIN_MINUTES) / 60 * 60
-    val maxMinutes = ((times.map { it.end } + timetable?.activities.orEmpty().map { it.end }).maxOrNull()
-        ?.let { (it / 60 + 1) * 60 } ?: TimetableDefaults.DEFAULT_MAX_MINUTES).coerceAtLeast(minMinutes + 60)
+    val layout = remember(timetable, candidateLecture) { TimetableGridLayout.of(timetable, candidateLecture) }
+    val visibleDays = layout.visibleDays
+    val minMinutes = layout.minMinutes
+    val maxMinutes = layout.maxMinutes
     val haptic = LocalHapticFeedback.current
 
     BoxWithConstraints(
@@ -129,7 +130,7 @@ fun TimetableGrid(
                         maxMinutes = maxMinutes
                     )
 
-                    timetable?.activities?.filter { it.day == day.value }?.forEach { activity ->
+                    layout.activitiesByDay[day].orEmpty().forEach { activity ->
                         val top = TimetableConstructor.daysHeight + 14.dp
                         val usable = (height - top).coerceAtLeast(0.dp)
                         val activityHeight =
@@ -170,7 +171,7 @@ fun TimetableGrid(
                         }
                     }
 
-                    timetable?.getLectures(day, candidateLecture)?.forEach { item ->
+                    layout.lecturesByDay[day].orEmpty().forEach { item -> key(item.lecture.id, item.index) {
                         val top = TimetableConstructor.daysHeight + 14.dp
                         val usable = (height - top).coerceAtLeast(0.dp)
                         val cellHeight =
@@ -213,7 +214,7 @@ fun TimetableGrid(
                             isConflict = isConflict,
                             cellHeight = animatedCellHeight,
                             modifier = Modifier
-                                .offset(y = animatedCellOffsetY)
+                                .offset { IntOffset(0, animatedCellOffsetY.roundToPx()) }
                                 .height(animatedCellHeight)
                                 .fillMaxWidth()
                                 .combinedClickable(
@@ -229,12 +230,39 @@ fun TimetableGrid(
                                 )
                                 .graphicsLayer { alpha = animatedAlpha }
                         )
-                    }
+                    } }
                 }
             }
         }
     }
 
+}
+
+private data class TimetableGridLayout(
+    val visibleDays: List<DayType>,
+    val minMinutes: Int,
+    val maxMinutes: Int,
+    val lecturesByDay: Map<DayType, List<LectureItem>>,
+    val activitiesByDay: Map<DayType, List<TimetableActivity>>,
+) {
+    companion object {
+        fun of(timetable: Timetable?, candidateLecture: Lecture?): TimetableGridLayout {
+            val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
+            val activities = timetable?.activities.orEmpty()
+            val times = timetable?.lectures.orEmpty().flatMap { it.classes } + candidateLecture?.classes.orEmpty()
+            val minMinutes = ((times.map { it.begin } + activities.map { it.begin }).minOrNull()
+                ?: TimetableDefaults.DEFAULT_MIN_MINUTES) / 60 * 60
+            val maxMinutes = ((times.map { it.end } + activities.map { it.end }).maxOrNull()
+                ?.let { (it / 60 + 1) * 60 } ?: TimetableDefaults.DEFAULT_MAX_MINUTES).coerceAtLeast(minMinutes + 60)
+            return TimetableGridLayout(
+                visibleDays = visibleDays,
+                minMinutes = minMinutes,
+                maxMinutes = maxMinutes,
+                lecturesByDay = visibleDays.associateWith { day -> timetable?.getLectures(day, candidateLecture).orEmpty() },
+                activitiesByDay = visibleDays.associateWith { day -> activities.filter { it.day == day.value } },
+            )
+        }
+    }
 }
 
 @Composable

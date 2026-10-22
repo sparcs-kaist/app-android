@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.feed.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,14 +31,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImagePainter
-import coil.compose.SubcomposeAsyncImage
-import coil.compose.SubcomposeAsyncImageContent
+import coil.compose.rememberAsyncImagePainter
+import coil.request.ImageRequest
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.feed.FeedImage
+import org.sparcs.soap.app.domain.models.feed.FeedPost
+import org.sparcs.soap.app.shared.mocks.feed.mock
+import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun PostImagesStrip(
@@ -55,7 +62,7 @@ fun PostImagesStrip(
         val cappedWidth = if (maxWidth > 600.dp) 600.dp else maxWidth
         val parentWidth = if (images.size > 1) cappedWidth - 16.dp else cappedWidth
         val maxW = parentWidth - hPadding * 2
-        val height = maxW * 3 / 4
+        val height = maxW.coerceAtMost(400.dp)
 
         LazyRow(
             horizontalArrangement = Arrangement.spacedBy(spacing),
@@ -63,8 +70,14 @@ fun PostImagesStrip(
             modifier = Modifier.height(height)
         ) {
 
-            itemsIndexed(images) { index, item ->
-                var showSpoiler by remember { mutableStateOf(item.spoiler) }
+            itemsIndexed(images, key = { _, image -> image.id }) { index, item ->
+                var showSpoiler by remember(item.id) { mutableStateOf(item.spoiler) }
+                val context = LocalContext.current
+                val decodeHeightPx = with(LocalDensity.current) { height.roundToPx() }
+                val request = remember(item.url, decodeHeightPx) {
+                    ImageRequest.Builder(context).data(item.url).size(decodeHeightPx * 2).build()
+                }
+                val painter = rememberAsyncImagePainter(request)
 
                 Box(
                     modifier = Modifier
@@ -76,42 +89,29 @@ fun PostImagesStrip(
                             }
                         }
                 ) {
-                    SubcomposeAsyncImage(
-                        model = item.url,
-                        contentDescription = null
-                    ) {
-                        when (val state = painter.state) {
-                            is AsyncImagePainter.State.Loading -> {
-                                Placeholder(width = minW, height = height)
-                            }
-
-                            is AsyncImagePainter.State.Error -> {
-                                Placeholder(
-                                    width = minW,
-                                    height = height,
-                                    systemImage = Icons.Default.Warning
-                                )
-                            }
-
-                            is AsyncImagePainter.State.Success -> {
-                                val size = state.painter.intrinsicSize
-                                val aspect =
-                                    if (size.height > 0) size.width / size.height else 16f / 9f
-                                val fitWidth = height * aspect
-                                val clampedWidth = fitWidth.coerceIn(minW, maxW)
-
-                                SubcomposeAsyncImageContent(
-                                    modifier = Modifier
-                                        .height(height)
-                                        .width(clampedWidth)
-                                        .then(
-                                            if (showSpoiler == true) Modifier.blur(50.dp) else Modifier
-                                        ),
-                                    contentScale = if (fitWidth in minW..maxW) ContentScale.Fit else ContentScale.Crop
-                                )
-                            }
-                            else -> {}
+                    when (val state = painter.state) {
+                        is AsyncImagePainter.State.Success -> {
+                            val size = state.painter.intrinsicSize
+                            val aspect = if (size.height > 0) size.width / size.height else 16f / 9f
+                            val fitWidth = height * aspect
+                            Image(
+                                painter = painter,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .height(height)
+                                    .width(fitWidth.coerceIn(minW, maxW))
+                                    .then(if (showSpoiler == true) Modifier.blur(50.dp) else Modifier),
+                                contentScale = if (fitWidth in minW..maxW) ContentScale.Fit else ContentScale.Crop
+                            )
                         }
+
+                        is AsyncImagePainter.State.Error -> Placeholder(
+                            width = minW,
+                            height = height,
+                            systemImage = Icons.Default.Warning
+                        )
+
+                        else -> Placeholder(width = minW, height = height)
                     }
 
                     if (showSpoiler == true) {
@@ -152,4 +152,10 @@ fun Placeholder(width: Dp, height: Dp, systemImage: ImageVector? = null) {
             )
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PostImagesStripPreview() {
+    Theme { PostImagesStrip(images = FeedPost.mock().images, onComment = {}) }
 }

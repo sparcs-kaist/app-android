@@ -55,6 +55,7 @@ import org.sparcs.soap.app.domain.helpers.loadLetter
 import org.sparcs.soap.app.domain.helpers.speechLetter
 import org.sparcs.soap.app.domain.models.otl.CourseLecture
 import org.sparcs.soap.app.domain.models.otl.Lecture
+import org.sparcs.soap.app.domain.models.otl.sectionLabel
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchViewNavigationBar
@@ -64,6 +65,7 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.wishlistColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -172,7 +174,7 @@ private fun LectureRowMainContent(
                         if (isWishlisted) R.string.wishlist_remove else R.string.wishlist_add
                     ),
                     modifier = Modifier.size(25.dp),
-                    tint = if (isWishlisted) MaterialTheme.colorScheme.primary else secondary
+                    tint = if (isWishlisted) wishlistColor else secondary
                 )
             }
         }
@@ -192,7 +194,7 @@ private fun LectureRowHeader(
             SectionBadge(section = lecture.section)
         }
         Text(
-            text = lecture.professors.joinToString(", ") { it.name }.ifEmpty { stringResource(R.string.unknown) },
+            text = lecture.sectionLabel.title ?: stringResource(R.string.unknown),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold
         )
@@ -219,10 +221,10 @@ private fun LectureRowTimeInfo(
     lecture: Lecture,
     secondary: Color
 ) {
-    val subtitle = if (lecture.section.length > 2) lecture.section else lecture.subtitle
-    if (subtitle.isNotBlank()) {
+    val detail = lecture.section.takeIf { it.length > 2 } ?: lecture.sectionLabel.professors
+    if (detail != null) {
         Text(
-            text = subtitle,
+            text = detail,
             style = MaterialTheme.typography.bodySmall,
             color = secondary
         )
@@ -236,7 +238,7 @@ private fun LectureRowTimeInfo(
             .map { stringResource(it.stringValue) }.joinToString(", ")
         val begin = "%02d:%02d".format(slot.first / 60, slot.first % 60)
         val end = "%02d:%02d".format(slot.second / 60, slot.second % 60)
-        "$days $begin\u2013$end"
+        "$days $begin \u2013 $end"
     }.joinToString(" \u00b7 ")
 
     Text(

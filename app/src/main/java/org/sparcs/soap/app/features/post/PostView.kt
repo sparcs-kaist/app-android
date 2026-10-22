@@ -3,7 +3,6 @@ package org.sparcs.soap.app.features.post
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -88,10 +88,10 @@ import org.sparcs.soap.app.features.post.components.PostAttachmentsSection
 import org.sparcs.soap.app.features.post.components.PostBookmarkButton
 import org.sparcs.soap.app.features.post.components.PostCommentButton
 import org.sparcs.soap.app.features.post.components.PostCommentReplyPreview
-import org.sparcs.soap.app.features.post.components.PostCommentsSection
 import org.sparcs.soap.app.features.post.components.PostNavigationBar
 import org.sparcs.soap.app.features.post.components.PostShareButton
 import org.sparcs.soap.app.features.post.components.PostVoteButton
+import org.sparcs.soap.app.features.post.components.postCommentsSection
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.formattedString
@@ -443,16 +443,15 @@ private fun PostMainContent(
             if (post == null) {
                 items(2) { CommentSkeleton() }
             } else {
-                item {
-                    CommentsSection(
-                        post = post,
-                        viewModel = viewModel,
-                        focusRequester = focusRequester,
-                        keyboardController = keyboardController,
-                        onCommentUpdate = onCommentUpdate,
-                        onTranslateComment = onTranslateComment
-                    )
-                }
+                commentsSection(
+                    post = post,
+                    viewModel = viewModel,
+                    scope = scope,
+                    focusRequester = focusRequester,
+                    keyboardController = keyboardController,
+                    onCommentUpdate = onCommentUpdate,
+                    onTranslateComment = onTranslateComment
+                )
             }
         }
     }
@@ -570,22 +569,16 @@ private fun PostDeleteDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     )
 }
 
-@Composable
-private fun CommentsSection(
+private fun LazyListScope.commentsSection(
     post: AraPost,
     viewModel: PostViewModelProtocol,
+    scope: CoroutineScope,
     focusRequester: FocusRequester,
     keyboardController: SoftwareKeyboardController?,
     onCommentUpdate: (CommentUpdate) -> Unit,
     onTranslateComment: (AraPostComment) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    Box(
-        modifier = Modifier
-            .padding(top = 4.dp)
-            .animateContentSize()
-    ) {
-        PostCommentsSection(
+        postCommentsSection(
             comments = post.comments,
             onReply = { c -> onCommentUpdate(CommentUpdate(targetComment = c)); focusRequester.requestFocus(); keyboardController?.show() },
             onCommentDeleted = { post.commentCount -= 1 },
@@ -603,7 +596,6 @@ private fun CommentsSection(
             onDeleteComment = { scope.launch { viewModel.deleteComment(it) } },
             onTranslateComment = onTranslateComment
         )
-    }
 }
 
 @Composable

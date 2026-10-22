@@ -60,10 +60,13 @@ class TimetableSettingsViewModel @Inject constructor(
         if (currentLoaded?.isSaving == true) return
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            _state.value = ViewState.Loading
+            if (currentLoaded == null) _state.value = ViewState.Loading
             try {
                 coroutineScope {
-                    val options = async { lectureUseCase.fetchDepartmentOptions() }
+                    val options = async {
+                        currentLoaded?.departments?.takeIf { it.isNotEmpty() }
+                            ?: lectureUseCase.fetchDepartmentOptions()
+                    }
                     try {
                         userUseCase.fetchOTLUser()
                     } catch (e: CancellationException) {
@@ -76,7 +79,9 @@ class TimetableSettingsViewModel @Inject constructor(
                         userUseCase.otlUser?.interestedDepartments.orEmpty().map { it.id }.toSet()
                     val departments = options.await()
                     ensureActive()
-                    _state.value = ViewState.Loaded(departments, ids, ids)
+                    val latest = _state.value as? ViewState.Loaded
+                    val selected = if (latest?.hasChanges == true) latest.selectedDepartmentIDs else ids
+                    _state.value = ViewState.Loaded(departments, ids, selected)
                 }
             } catch (e: CancellationException) {
                 throw e

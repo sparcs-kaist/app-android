@@ -32,6 +32,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
 import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
+import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.shared.views.contentViews.getTagChipColors
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -94,17 +95,14 @@ fun CourseFilterRow(
         }
 
         CourseFilterCategory.entries.filter { showPeriod || it != CourseFilterCategory.Period }.forEach { category ->
-            val selectedOptionIds = when (category) {
-                CourseFilterCategory.Classification -> courseFilterState.classifications
-                CourseFilterCategory.Department -> courseFilterState.departments
-                CourseFilterCategory.Level -> courseFilterState.levels
-                CourseFilterCategory.Period -> listOfNotNull(courseFilterState.period)
-            }
+            val selectedOptionIds = courseFilterState.selectedOptionIds(category)
             val isSelected = selectedOptionIds.isNotEmpty()
 
             val options = CourseFilterProvider.getOptions(category)
-            val selectedOptionLabels = selectedOptionIds.map { id ->
-                options.find { it.id == id }?.label ?: id
+            val selectedOptionLabels = if (category == CourseFilterCategory.Department) {
+                courseFilterState.departments.map { it.code }
+            } else {
+                selectedOptionIds.map { id -> options.find { it.id == id }?.label ?: id }
             }
 
             FilterChip(
@@ -175,7 +173,7 @@ private fun Preview() {
         CourseFilterRow(
             courseFilterState = CourseFilterState(
                 classifications = listOf("MR", "BR", "BE"),
-                departments = listOf("9945"),
+                departments = listOf(DepartmentOption(9945, "School of Computing", "CS")),
                 levels = emptyList(),
                 period = "0"
             ),

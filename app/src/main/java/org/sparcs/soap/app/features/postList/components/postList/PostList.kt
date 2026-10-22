@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
@@ -114,7 +114,7 @@ private fun LoadedView(
         state = pullState
     ) {
         LazyColumn(state = listState, contentPadding = contentPadding) {
-            itemsIndexed(posts) { index, post ->
+            items(posts, key = { it.id }) { post ->
                 PostListRow(
                     post = post,
                     modifier = Modifier.clickable(enabled = !post.isHidden) { onPostClick(post) }
@@ -123,7 +123,7 @@ private fun LoadedView(
             }
 
             if (isLoadingMore) {
-                item {
+                item(key = "loading") {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center

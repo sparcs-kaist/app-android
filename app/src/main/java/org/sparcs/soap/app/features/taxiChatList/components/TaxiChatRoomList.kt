@@ -59,7 +59,7 @@ fun TaxiChatRoomList(
             }
         }
 
-        items(onGoing) { room ->
+        items(onGoing, key = { "ongoing-${it.id}" }) { room ->
             TaxiRoomCell(
                 room = room,
                 onClick = { onRoomClick(room) },
@@ -86,7 +86,7 @@ fun TaxiChatRoomList(
             }
         }
 
-        items(done) { room ->
+        items(done, key = { "done-${it.id}" }) { room ->
             TaxiRoomCell(
                 room = room,
                 onClick = { onRoomClick(room) },

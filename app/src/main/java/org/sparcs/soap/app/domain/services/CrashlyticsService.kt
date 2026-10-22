@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ class CrashlyticsService @Inject constructor(
     private val dataStore: DataStore<Preferences>
 ) : CrashlyticsServiceProtocol {
 
-    private val externalScope = CoroutineScope(Dispatchers.IO)
+    private val externalScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     companion object {
         private val FCM_DEVICE_ID_KEY = stringPreferencesKey("fcmDeviceID")

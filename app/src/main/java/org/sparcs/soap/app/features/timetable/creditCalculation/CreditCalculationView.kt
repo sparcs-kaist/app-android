@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -24,6 +25,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -62,6 +64,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.creditIncompleteColor
 
 @Composable
 fun CreditCalculationView(
@@ -190,6 +193,12 @@ private fun CreditOverview(state: CreditCalculationViewState, onRequirements: ()
                 state.requirements.graduation
             )
         }
+        Text(
+            stringResource(R.string.credit_estimate_notice),
+            modifier = Modifier.padding(horizontal = 4.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -295,7 +304,7 @@ private fun SemesterCard(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                semesterTitle(semester), modifier = Modifier.weight(1f),
+                semesterTitle(semester),
                 style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold
             )
             Icon(
@@ -303,6 +312,15 @@ private fun SemesterCard(
                 null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Spacer(Modifier.weight(1f))
+            if (summary != null && !summary.isComplete) {
+                Icon(
+                    Icons.Rounded.Error,
+                    stringResource(R.string.credit_grades_incomplete),
+                    tint = creditIncompleteColor,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
         TimetableSilhouetteView(timetable, Modifier
             .fillMaxWidth()

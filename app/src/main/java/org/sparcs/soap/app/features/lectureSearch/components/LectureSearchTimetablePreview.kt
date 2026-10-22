@@ -1,5 +1,14 @@
 package org.sparcs.soap.app.features.lectureSearch.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -23,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.ProgressBarRangeInfo
@@ -48,6 +58,34 @@ fun LectureSearchTimetablePreview(
     onHeightChange: (Dp) -> Unit,
     modifier: Modifier = Modifier,
     resizable: Boolean = true,
+    visible: Boolean = true,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = expandVertically(previewSpring(), expandFrom = Alignment.Top) +
+            scaleIn(previewSpring(), initialScale = 0.85f, transformOrigin = TransformOrigin(1f, 0f)) +
+            fadeIn(),
+        exit = shrinkVertically(previewSpring(), shrinkTowards = Alignment.Top) +
+            scaleOut(previewSpring(), targetScale = 0.85f, transformOrigin = TransformOrigin(1f, 0f)) +
+            fadeOut(),
+    ) {
+        PreviewCard(viewModel, height, maxHeight, onHeightChange, modifier, resizable)
+    }
+}
+
+private fun <T> previewSpring() = spring<T>(
+    dampingRatio = Spring.DampingRatioLowBouncy,
+    stiffness = Spring.StiffnessMediumLow,
+)
+
+@Composable
+private fun PreviewCard(
+    viewModel: TimetableViewModelProtocol,
+    height: Dp,
+    maxHeight: Dp,
+    onHeightChange: (Dp) -> Unit,
+    modifier: Modifier,
+    resizable: Boolean,
 ) {
     val table by viewModel.selectedTimetable.collectAsState()
     val candidate by viewModel.candidateLecture.collectAsState()

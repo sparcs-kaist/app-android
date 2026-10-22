@@ -137,7 +137,7 @@ class PostListViewModel @Inject constructor(
                 searchKeyword = _searchKeyword.value.ifBlank { null }
             )
             currentPage = page.currentPage
-            posts = posts + page.results
+            posts = (posts + page.results).distinctBy { it.id }
             hasMorePages = currentPage < totalPages
             _state.value = ViewState.Loaded(posts)
             isLoadingMore = false

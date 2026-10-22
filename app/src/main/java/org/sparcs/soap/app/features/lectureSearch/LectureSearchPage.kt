@@ -111,15 +111,14 @@ fun LectureSearchPage(
                             LectureSearchList(
                                 floatingTimetablePreview = previewHeight < 260.dp,
                                 timetablePreview = {
-                                    if (!isWide && session.showPreview && !pickerVisible) {
-                                        LectureSearchTimetablePreview(
-                                            viewModel = timetableViewModel,
-                                            height = session.previewHeight.dp,
-                                            maxHeight = previewMaxHeight,
-                                            onHeightChange = { session.resizePreview(it.value) },
-                                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                                        )
-                                    }
+                                    LectureSearchTimetablePreview(
+                                        viewModel = timetableViewModel,
+                                        height = session.previewHeight.dp,
+                                        maxHeight = previewMaxHeight,
+                                        onHeightChange = { session.resizePreview(it.value) },
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                        visible = !isWide && session.showPreview && !pickerVisible,
+                                    )
                                 },
                                 viewModel = viewModel,
                                 timetableViewModel = timetableViewModel,

@@ -9,11 +9,11 @@ import retrofit2.http.Query
 interface OTLCourseApi {
     @GET("api/v2/courses")
     suspend fun searchCourse(
-        @Query("keyword") name: String,
+        @Query("keyword") name: String?,
         @Query("offset") offset: Int,
         @Query("limit") limit: Int,
         @Query("type") type: List<String>?,
-        @Query("department") department: List<String>?,
+        @Query("department") department: List<Int>?,
         @Query("level") level: List<String>?,
         @Query("term") term: String?
     ): CoursePageDTO

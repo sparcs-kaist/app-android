@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.sparcs.soap.app.domain.helpers.UploadImageDecoder
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.models.taxi.TaxiChatRequest
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
@@ -28,7 +29,7 @@ import org.sparcs.soap.app.domain.repositories.taxi.TaxiChatRepositoryProtocol
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.services.TaxiChatService
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
-import org.sparcs.soap.app.shared.extensions.toByteArray
+import org.sparcs.soap.app.shared.extensions.compressForUpload
 import timber.log.Timber
 import java.util.Date
 import java.util.UUID
@@ -39,7 +40,7 @@ interface TaxiChatUseCaseProtocol {
     val roomUpdateFlow: Flow<TaxiRoom>
     val accountChats: List<TaxiChat>
 
-    fun setRoom(room: TaxiRoom)
+    fun setRoom(room: TaxiRoom, owner: Any? = null)
     fun reconnect()
     suspend fun fetchInitialChats()
     suspend fun fetchChats(before: Date)
@@ -47,7 +48,11 @@ interface TaxiChatUseCaseProtocol {
     suspend fun sendImage(content: Bitmap)
     fun switchRoom(newRoomId: String)
     suspend fun refreshRoom()
+    fun unbind(owner: Any)
 }
+
+private const val CHAT_IMAGE_CONTENT_TYPE = "image/jpeg"
+private const val CHAT_IMAGE_MAX_MB = 3.0
 
 class TaxiChatUseCase @Inject constructor(
     private val taxiChatService: TaxiChatService,
@@ -78,10 +83,12 @@ class TaxiChatUseCase @Inject constructor(
     private var isFirstReadSent = false
 
     private var isBound = false
+    private var owner: Any? = null
     private var bindJob: Job? = null
     private var departureRefreshJob: Job? = null
 
-    override fun setRoom(room: TaxiRoom) {
+    override fun setRoom(room: TaxiRoom, owner: Any?) {
+        owner?.let { this.owner = it }
         this.room = room
         this.flatChats = emptyList()
         this.lastServerChatTime = null
@@ -183,9 +190,11 @@ class TaxiChatUseCase @Inject constructor(
         }
 
     override suspend fun sendImage(content: Bitmap) {
-        val presignedURL = taxiChatRepository.getPresignedURL(room.id)
-        val imageData = content.toByteArray()
-        taxiChatRepository.uploadImage(presignedURL, imageData)
+        val imageData = withContext(Dispatchers.Default) {
+            content.compressForUpload(maxSizeMB = CHAT_IMAGE_MAX_MB, maxDimension = UploadImageDecoder.MAX_DIMENSION)
+        }
+        val presignedURL = taxiChatRepository.getPresignedURL(room.id, CHAT_IMAGE_CONTENT_TYPE)
+        taxiChatRepository.uploadImage(presignedURL, imageData, CHAT_IMAGE_CONTENT_TYPE)
         taxiChatRepository.notifyImageUploadComplete(presignedURL.id)
     }
 
@@ -280,6 +289,22 @@ class TaxiChatUseCase @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to sync missed chats")
         }
+    }
+
+    override fun unbind(owner: Any) {
+        synchronized(this) {
+            if (this.owner !== owner) return
+            this.owner = null
+            bindJob?.cancel()
+            bindJob = null
+            isBound = false
+        }
+        departureRefreshJob?.cancel()
+        hasInitialChatsBeenFetched = false
+        flatChats = emptyList()
+        accountChats = emptyList()
+        _chats.value = emptyList()
+        taxiChatService.leaveRoom()
     }
 
     override fun switchRoom(newRoomId: String) {

@@ -151,7 +151,8 @@ private fun FeedPostContent(
     val focusManager = LocalFocusManager.current
     val snackbarHostState = remember { SnackbarHostState() }
     val missingCommentMessage = stringResource(R.string.feed_notification_comment_missing)
-    val commentItems = comments.flatMap { listOf(it) + it.replies }
+    val commentItems = remember(comments) { comments.flatMap { listOf(it) + it.replies } }
+    val commentItemIDs = remember(commentItems) { commentItems.map { it.id } }
     var requestedCommentID by rememberSaveable(post.id, viewModel.initialCommentID) {
         mutableStateOf(viewModel.initialCommentID)
     }
@@ -170,7 +171,7 @@ private fun FeedPostContent(
 
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
-    LaunchedEffect(requestedCommentID, commentItems.map { it.id }, viewModel.isLoadingComments) {
+    LaunchedEffect(requestedCommentID, commentItemIDs, viewModel.isLoadingComments) {
         val id = requestedCommentID ?: return@LaunchedEffect
         if (viewModel.isLoadingComments) return@LaunchedEffect
         val index = commentItems.indexOfFirst { it.id == id }

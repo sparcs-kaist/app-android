@@ -21,7 +21,6 @@ import org.sparcs.soap.app.domain.models.ara.AraPost
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.otl.CourseSearchRequest
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
-import org.sparcs.soap.app.domain.models.otl.ETC_DEPARTMENT_ID
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.repositories.taxi.TaxiRoomRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.ara.AraBoardUseCaseProtocol
@@ -142,7 +141,7 @@ class SearchViewModel @Inject constructor(
             coroutineScope {
                 launch { searchAra(keyword) }
                 launch { searchTaxi(keyword) }
-                launch { searchCourses(courseRequest(keyword)) }
+                if (showsCourses) launch { searchCourses(courseRequest(keyword)) }
             }
             if (courseJob?.isActive != true) _state.value = ViewState.Loaded
         } catch (e: CancellationException) {
@@ -188,9 +187,7 @@ class SearchViewModel @Inject constructor(
             offset = 0,
             limit = 150,
             type = filter.classifications.ifEmpty { null },
-            department = filter.departments
-                .filter { it != ETC_DEPARTMENT_ID }
-                .ifEmpty { null },
+            department = filter.departments.map { it.id }.ifEmpty { null },
             level = filter.levels.ifEmpty { null },
             term = filter.period
         )
@@ -232,8 +229,11 @@ class SearchViewModel @Inject constructor(
         refreshCourses()
     }
 
+    private val showsCourses: Boolean
+        get() = _searchScope.value == SearchScope.All || _searchScope.value == SearchScope.Courses
+
     private fun refreshCourses() {
-        if (_searchScope.value == SearchScope.Posts || _searchScope.value == SearchScope.Rides) return
+        if (!showsCourses) return
         val keyword = _searchText.value.trim()
         val request = courseRequest(keyword)
         if (request == lastCourseRequest) return
@@ -284,7 +284,7 @@ class SearchViewModel @Inject constructor(
     }
 
     override fun loadCoursesNextPage() {
-        if (!_hasMoreCourses.value || _isLoadingMoreCourses.value) return
+        if (_state.value != ViewState.Loaded || !_hasMoreCourses.value || _isLoadingMoreCourses.value) return
         val request = lastCourseRequest?.copy(offset = courseOffset) ?: return
         val generation = courseGeneration
         _isLoadingMoreCourses.value = true

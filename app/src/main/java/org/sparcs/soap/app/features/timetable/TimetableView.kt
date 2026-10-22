@@ -127,18 +127,8 @@ fun TimetableView(
         )
     }
 
-    val backStackEvent = {
-        if (candidateLecture != null) {
-            viewModel.setCandidateLecture(null)
-        } else {
-            navController.navigate(Channel.Start.name) {
-                popUpTo(0) { inclusive = true }
-            }
-        }
-    }
-
-    BackHandler {
-        backStackEvent()
+    BackHandler(enabled = candidateLecture != null) {
+        viewModel.setCandidateLecture(null)
     }
 
     Box(modifier = Modifier.fillMaxSize()) {

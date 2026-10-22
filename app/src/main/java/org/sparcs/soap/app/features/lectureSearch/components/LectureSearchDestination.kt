@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.lectureSearch.components
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
@@ -54,13 +53,12 @@ internal fun LectureSearchDestination(
         } else {
             val previewMaxHeight = (maxHeight - 64.dp).coerceAtLeast(0.dp) * 0.6f
             content(search, {
-                AnimatedVisibility(session.showPreview) {
-                    LectureSearchTimetablePreview(
-                        table, session.previewHeight.dp, previewMaxHeight,
-                        { session.resizePreview(it.value) },
-                        Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    )
-                }
+                LectureSearchTimetablePreview(
+                    table, session.previewHeight.dp, previewMaxHeight,
+                    { session.resizePreview(it.value) },
+                    Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    visible = session.showPreview,
+                )
             }, { LecturePreviewToggle(session) }, session.previewHeight.dp.coerceIn(
                 minOf(120.dp, previewMaxHeight), previewMaxHeight
             ) < 260.dp)

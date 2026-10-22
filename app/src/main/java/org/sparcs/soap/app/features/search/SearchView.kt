@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.search
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,7 +48,6 @@ import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
 import org.sparcs.soap.app.domain.models.otl.CourseFilterProvider
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
-import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.search.components.CoursePaginationFooter
 import org.sparcs.soap.app.features.search.components.CourseSection
 import org.sparcs.soap.app.features.search.components.PostSection
@@ -90,16 +88,6 @@ fun SearchView(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
     val filterSheetState = rememberModalBottomSheetState()
-
-    val backStackEvent = {
-        navController.navigate(Channel.Start.name) {
-            popUpTo(0) { inclusive = true }
-        }
-    }
-
-    BackHandler {
-        backStackEvent()
-    }
 
     val topBarScrollBehavior = landscapeHideOnScrollBehavior()
 
@@ -273,10 +261,11 @@ private fun SearchResultContent(
             }
 
             searchText.isBlank() && (searchScope != SearchScope.Courses || courseFilterState.isEmpty()) -> {
+                val isCourses = searchScope == SearchScope.Courses
                 UnavailableView(
                     icon = Icons.Rounded.Search,
-                    title = stringResource(R.string.search_anything),
-                    description = stringResource(R.string.find_etc)
+                    title = stringResource(if (isCourses) R.string.search_courses else R.string.search_anything),
+                    description = stringResource(if (isCourses) R.string.search_courses_description else R.string.find_etc)
                 )
             }
 

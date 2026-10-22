@@ -2,13 +2,17 @@ package org.sparcs.soap.app.domain.repositories.ara
 
 import android.graphics.Bitmap
 import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.sparcs.soap.app.domain.enums.ara.AraContentReportType
 import org.sparcs.soap.app.domain.enums.ara.PostListType
 import org.sparcs.soap.app.domain.enums.ara.PostOrigin
+import org.sparcs.soap.app.domain.helpers.UploadImageDecoder
 import org.sparcs.soap.app.domain.models.ara.AraAttachment
 import org.sparcs.soap.app.domain.models.ara.AraBoard
 import org.sparcs.soap.app.domain.models.ara.AraCreatePost
@@ -44,6 +48,8 @@ interface AraBoardRepositoryProtocol {
     suspend fun removeBookmark(bookmarkID: Int)
 }
 
+
+private const val ARA_IMAGE_MAX_MB = 1.0
 
 class AraBoardRepository @Inject constructor(
     private val api: AraBoardApi,
@@ -100,13 +106,15 @@ class AraBoardRepository @Inject constructor(
         api.fetchBookmarks(page = page, pageSize = pageSize)
     }.toModel()
 
-    override suspend fun uploadImage(image: Bitmap): AraAttachment = safeApiCall(gson) {
-        val compressed = image.compressForUpload(maxSizeMB = 1.0, maxDimension = 500)
-            ?: throw IllegalArgumentException("Failed to compress image")
-        val part =
-            MultipartBody.Part.createFormData("file", "image.jpg", compressed.toRequestBody())
-        api.uploadImage(part)
-    }.toModel()
+    override suspend fun uploadImage(image: Bitmap): AraAttachment {
+        val compressed = withContext(Dispatchers.Default) {
+            image.compressForUpload(maxSizeMB = ARA_IMAGE_MAX_MB, maxDimension = UploadImageDecoder.MAX_DIMENSION)
+        }
+        val part = MultipartBody.Part.createFormData(
+            "file", "image.jpg", compressed.toRequestBody("image/jpeg".toMediaTypeOrNull())
+        )
+        return safeApiCall(gson) { api.uploadImage(part) }.toModel()
+    }
 
     override suspend fun writePost(request: AraCreatePost) = safeApiCall(gson) {
         api.writePost(AraPostRequestDTO.fromModel(request))

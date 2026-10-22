@@ -66,6 +66,7 @@
     <string name="type">Type</string>
     <string name="department">Department</string>
     <string name="professor">Professor</string>
+    <string name="subtitle">Subtitle</string>
     <string name="classroom">Classroom</string>
     <string name="capacity">Capacity</string>
     <string name="exams">Exams</string>
@@ -210,6 +211,8 @@
     <string name="courses">Courses</string>
     <string name="search_anything">Search Anything</string>
     <string name="find_etc">Find courses, posts, rides and more.</string>
+    <string name="search_courses">Search Courses</string>
+    <string name="search_courses_description">Search by name, code or professor, or browse with filters.</string>
     <string name="confirm">Confirm</string>
     <string name="warning">Warning</string>
     <string name="review_like_warning">Liking your own review is not allowed.</string>
@@ -580,7 +583,7 @@
     <string name="preview">Preview</string>
     <string name="save_configuration">Save configuration</string>
     <string name="theme_mode">Theme mode</string>
-    <string name="transparency">Transparency</string>
+    <string name="transparency">Opacity</string>
     <string name="up_next">Up next</string>
     <string name="no_more_classes">No more classes</string>
     <string name="enjoy_day">Enjoy your day</string>

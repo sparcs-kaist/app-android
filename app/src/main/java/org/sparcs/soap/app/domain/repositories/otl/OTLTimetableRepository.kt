@@ -1,6 +1,8 @@
 package org.sparcs.soap.app.domain.repositories.otl
 
 import com.google.gson.Gson
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.enums.otl.SemesterType
 import org.sparcs.soap.app.domain.models.otl.Semester
@@ -45,8 +47,11 @@ class OTLTimetableRepository @Inject constructor(
     }.toModel(id = "$year-${semester.name}-myTable")
 
     override suspend fun getTimetable(timetableID: Int): Timetable = safeApiCall(gson) {
-        val table = api.fetchTimeTable(timetableID).toModel(id = timetableID.toString())
-        table.copy(customBlocks = api.fetchActivities(timetableID).custom_blocks)
+        coroutineScope {
+            val table = async { api.fetchTimeTable(timetableID) }
+            val activities = async { api.fetchActivities(timetableID) }
+            table.await().toModel(id = timetableID.toString()).copy(customBlocks = activities.await().custom_blocks)
+        }
     }
 
     override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft) = safeApiCall(gson) {

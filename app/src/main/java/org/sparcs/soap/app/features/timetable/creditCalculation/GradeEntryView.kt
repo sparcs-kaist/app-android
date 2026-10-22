@@ -34,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -54,6 +53,7 @@ import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.formatters.formatGPA
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.creditIncompleteColor
 
 @Composable
 internal fun GradeEntryView(
@@ -174,7 +174,7 @@ private fun GradeEntryRow(
             )
             Box {
                 val tint =
-                    if (grade == null) Color(0xFFEF8B23) else MaterialTheme.colorScheme.primary
+                    if (grade == null) creditIncompleteColor else MaterialTheme.colorScheme.primary
                 TextButton(
                     onClick = { expanded = true },
                     modifier = Modifier

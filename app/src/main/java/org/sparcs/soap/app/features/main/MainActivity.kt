@@ -54,6 +54,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.kakao.vectormap.KakaoMapSdk
 import dagger.hilt.android.AndroidEntryPoint
+import org.sparcs.soap.BuildConfig
 import org.sparcs.soap.R
 import org.sparcs.soap.app.ChannelManager
 import org.sparcs.soap.app.InAppUpdateHelper
@@ -146,9 +147,7 @@ class MainActivity : ComponentActivity() {
                         }
                     }
 
-                    val currentVersion = remember {
-                        packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
-                    }
+                    val currentVersion = BuildConfig.VERSION_NAME
 
                     LaunchedEffect(Unit) {
                         viewModel.onActivation(currentVersion)
@@ -221,8 +220,7 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         helper.resumeCheck()
-        val currentVersion = packageManager.getPackageInfo(packageName, 0).versionName ?: "1.0.0"
-        viewModel.onActivation(currentVersion)
+        viewModel.onActivation(BuildConfig.VERSION_NAME)
     }
 
     override fun onDestroy() {

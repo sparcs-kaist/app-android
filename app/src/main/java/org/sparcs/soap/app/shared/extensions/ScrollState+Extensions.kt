@@ -12,8 +12,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ScrollState.elevation(): Dp {
+    val isScrolled by remember { derivedStateOf { value > 0 } }
     val elevation by animateDpAsState(
-        if (value > 0) 4.dp else 0.dp
+        if (isScrolled) 4.dp else 0.dp
     )
     return elevation
 }

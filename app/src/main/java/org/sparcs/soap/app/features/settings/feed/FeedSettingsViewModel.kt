@@ -21,8 +21,8 @@ import org.sparcs.soap.app.domain.usecases.feed.FeedProfileUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
 import org.sparcs.soap.app.features.settings.feed.viewState.FeedProfileImageState
 import org.sparcs.soap.app.shared.extensions.toAlertState
-import org.sparcs.soap.app.shared.extensions.toMultipartBody
 import org.sparcs.soap.R
+import org.sparcs.soap.app.shared.extensions.toProfileImagePart
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -138,7 +138,7 @@ class FeedSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             isUpdatingProfile = true
             try {
-                val imagePart = uri?.toMultipartBody(context)
+                val imagePart = uri?.toProfileImagePart(context)
                 feedProfileUseCase.updateProfileImage(imagePart)
 
                 userUseCase.fetchFeedUser()

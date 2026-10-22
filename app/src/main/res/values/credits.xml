@@ -21,6 +21,8 @@
     <string name="credit_load_error">Could not load your lecture history. Please try again.</string>
     <string name="credit_save_error">Could not save your changes. Please try again.</string>
     <string name="credit_notice">Ungraded lectures count as in progress toward credits. GPA includes only entered letter grades, including F. Retaken courses count once in cumulative totals.</string>
+    <string name="credit_estimate_notice">GPA and credits are estimates based on the grades you enter, and are for your reference only. Confirm your graduation requirements with KAIST\'s official academic records.</string>
+    <string name="credit_grades_incomplete">Grades incomplete</string>
     <string name="credit_privacy_title">Stored on this device</string>
     <string name="credit_privacy_description">Your grades and credit requirements are saved on this device for your account and are not sent to Buddy or KAIST servers. They remain when you sign out and are deleted when you uninstall the app. Only calculated summaries are shared with widgets and your connected watch.</string>
     <string name="credit_requirements_notice">Minimums differ by department and admission year. Edit them to match your requirements.</string>

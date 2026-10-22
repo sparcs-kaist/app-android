@@ -39,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -48,6 +49,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Course
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.LectureReviewPage
+import org.sparcs.soap.app.domain.models.otl.sectionSubtitles
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.course.components.CourseHistorySection
 import org.sparcs.soap.app.features.course.components.CourseHistorySkeleton
@@ -116,13 +118,13 @@ private fun CourseContent(
             floatingPreview = floatingTopContent,
             header = {},
             preview = topContent,
-            results = {
+            results = { topInset ->
                 BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                     val isLandscape = maxWidth >= 840.dp
                     if (isLandscape) {
-                    CourseLandscapeLayout(state, viewModel)
-                } else {
-                    CoursePortraitLayout(state, viewModel)
+                        CourseLandscapeLayout(state, viewModel, topInset)
+                    } else {
+                        CoursePortraitLayout(state, viewModel, topInset)
                     }
                 }
             },
@@ -141,6 +143,7 @@ private fun CourseContent(
 private fun CourseLandscapeLayout(
     state: CourseViewModel.ViewState,
     viewModel: CourseViewModelProtocol,
+    topInset: Dp,
 ) {
     Row(
         modifier = Modifier
@@ -152,6 +155,7 @@ private fun CourseLandscapeLayout(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
+                .padding(top = topInset)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -162,6 +166,7 @@ private fun CourseLandscapeLayout(
             modifier = Modifier
                 .weight(1.2f)
                 .verticalScroll(rememberScrollState())
+                .padding(top = topInset)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -175,12 +180,14 @@ private fun CourseLandscapeLayout(
 private fun CoursePortraitLayout(
     state: CourseViewModel.ViewState,
     viewModel: CourseViewModelProtocol,
+    topInset: Dp,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .widthIn(max = 600.dp)
             .verticalScroll(rememberScrollState())
+            .padding(top = topInset)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -410,6 +417,7 @@ fun CourseReviewSection(
     var activeReviewContent by remember { mutableStateOf("") }
 
     val scope = rememberCoroutineScope()
+    val sectionSubtitles = remember(course) { course?.sectionSubtitles.orEmpty() }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -490,7 +498,8 @@ fun CourseReviewSection(
                         onDismissSummarize = {
                             activeReviewId = null
                             viewModel.hideSummary()
-                        }
+                        },
+                        subtitle = sectionSubtitles[it.lectureID]
                     )
                     HorizontalDivider(
                         color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
@@ -530,7 +539,8 @@ fun CourseReviewSection(
                         onDismissSummarize = {
                             activeReviewId = null
                             viewModel.hideSummary()
-                        }
+                        },
+                        subtitle = sectionSubtitles[review.lectureID]
                     )
                 }
             }

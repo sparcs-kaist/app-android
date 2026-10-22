@@ -31,6 +31,7 @@ import org.sparcs.soap.app.domain.models.otl.LectureGrade
 import org.sparcs.soap.app.domain.models.otl.OTLUserLectureSemester
 import org.sparcs.soap.app.domain.models.otl.RetakeResolver
 import org.sparcs.soap.app.domain.models.otl.Semester
+import org.sparcs.soap.app.domain.models.otl.SemesterEventDate
 import org.sparcs.soap.app.domain.models.otl.SemesterGradeSummary
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
@@ -39,6 +40,7 @@ import org.sparcs.soap.app.domain.usecases.otl.LectureUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import timber.log.Timber
+import java.util.Date
 import javax.inject.Inject
 
 data class CreditCalculationViewState(
@@ -117,7 +119,10 @@ class CreditCalculationViewModel @Inject constructor(
                         async {
                             limiter.withPermit {
                                 val fallback = previous.timetables[item.id].takeIf { keepsContent }
-                                loadTimetable(semestersByID[item.id], fallback)?.let { item.id to it }
+                                val semester = semestersByID[item.id]
+                                val timetable = if (semester != null) loadTimetable(semester, fallback)
+                                    else loadUnlistedTimetable(item, fallback)
+                                timetable?.let { item.id to it }
                             }
                         }
                     }.awaitAll().filterNotNull().toMap()
@@ -148,8 +153,7 @@ class CreditCalculationViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadTimetable(semester: Semester?, fallback: Timetable?): Timetable? {
-        if (semester == null) return fallback
+    private suspend fun loadTimetable(semester: Semester, fallback: Timetable?): Timetable? {
         return try {
             timetableUseCase.getMyTable(semester, forceRefresh = true)
         } catch (cancelled: CancellationException) {
@@ -158,6 +162,16 @@ class CreditCalculationViewModel @Inject constructor(
             fallback ?: throw error
         }
     }
+
+    private suspend fun loadUnlistedTimetable(item: OTLUserLectureSemester, fallback: Timetable?): Timetable? =
+        try {
+            loadTimetable(item.standInSemester, fallback)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            Timber.e(error, "Could not load timetable for unlisted semester ${item.id}")
+            null
+        }
 
     override fun setGrade(grade: LectureGrade?, lectureID: Int) {
         val accountID = userID?.takeIf(::isCurrentSession) ?: return
@@ -232,3 +246,12 @@ class CreditCalculationViewModel @Inject constructor(
         userUseCase.otlUser?.id == accountID && sessionRevision == creditSummaryPublisher.revision
 
 }
+
+private val OTLUserLectureSemester.standInSemester: Semester
+    get() = Semester(
+        year = year,
+        semesterType = semesterType,
+        beginDate = Date(0),
+        endDate = Date(0),
+        eventDate = SemesterEventDate(null, null, null, null, null, null),
+    )
