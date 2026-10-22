@@ -107,4 +107,22 @@ class TimetableSettingsViewModelTest {
         vm.load()
         assertTrue(vm.state.value is TimetableSettingsViewModel.ViewState.Error)
     }
+
+    @Test
+    fun `refreshing the picker keeps the list on screen and picks up new interested departments`() = runTest {
+        var optionRequests = 0
+        val counted = object : LectureUseCaseProtocol by lectures {
+            override suspend fun fetchDepartmentOptions(): List<DepartmentOption> {
+                optionRequests++
+                return lectures.fetchDepartmentOptions()
+            }
+        }
+        val vm = TimetableSettingsViewModel(user, counted, MockCrashlyticsService())
+        vm.fetchDepartments()
+        user.otlUser = OTLUser.mock().copy(interestedDepartments = listOf(Department(2, "Math")))
+        vm.fetchDepartments()
+        val state = vm.state.value as TimetableSettingsViewModel.ViewState.Loaded
+        assertEquals(1, optionRequests)
+        assertEquals(setOf(2), state.savedDepartmentIDs)
+    }
 }

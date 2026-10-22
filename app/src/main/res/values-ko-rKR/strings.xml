@@ -191,6 +191,8 @@
     <string name="courses">강의</string>
     <string name="search_anything">무엇이든 검색하세요</string>
     <string name="find_etc">강의, 게시물, 택시 등 다양한 정보를 찾아보세요.</string>
+    <string name="search_courses">과목 검색</string>
+    <string name="search_courses_description">과목명, 과목 코드, 교수님 성함으로 검색하거나 필터로 둘러보세요.</string>
     <string name="confirm">확인</string>
     <string name="warning">경고</string>
     <string name="review_like_warning">본인이 작성한 리뷰에는 좋아요를 누를 수 없습니다.</string>

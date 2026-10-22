@@ -1,5 +1,6 @@
 package org.sparcs.soap.searchTests
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -13,6 +14,7 @@ import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.otl.CourseSearchRequest
 import org.sparcs.soap.app.domain.usecases.otl.CourseUseCaseProtocol
 import org.sparcs.soap.app.domain.models.otl.CourseSummary
+import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.features.search.SearchViewModel
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.mocks.otl.mockList
@@ -47,6 +49,8 @@ class SearchViewModelTest {
             courseUseCase = mockCourseUseCase,
         )
     }
+
+    private val computing = DepartmentOption(9945, "School of Computing", "CS")
 
     private fun postPage(results: List<AraPost>) =
         AraPostPage(pages = 1, items = results.size, currentPage = 1, results = results)
@@ -87,7 +91,7 @@ class SearchViewModelTest {
     fun `filter only search and filter reset do not fetch posts`() = runTest {
         mockCourseUseCase.searchCourseResult = Result.success(CourseSummary.mockList())
         viewModel.onScopeChange(SearchScope.Courses)
-        viewModel.onFilterChange(CourseFilterState(departments = listOf("9945")))
+        viewModel.onFilterChange(CourseFilterState(departments = listOf(computing)))
         assertTrue(viewModel.courses.value.isNotEmpty())
         assertEquals(0, mockAraBoardUseCase.fetchPostsCallCount)
         viewModel.onFilterChange(CourseFilterState())
@@ -107,14 +111,14 @@ class SearchViewModelTest {
         viewModel = SearchViewModel(mockAraBoardUseCase, mockTaxiRoomRepository, mockTaxiLocationUseCase, courses)
         viewModel.onSearchTextChange("algorithms")
         viewModel.onScopeChange(SearchScope.Courses)
-        viewModel.onFilterChange(CourseFilterState(departments = listOf("9945"), period = "2"))
-        assertEquals(listOf("9945"), requests.last().department)
+        viewModel.onFilterChange(CourseFilterState(departments = listOf(computing), period = "2"))
+        assertEquals(listOf(9945), requests.last().department)
         assertEquals("2", requests.last().term)
         viewModel.onScopeChange(SearchScope.All)
         assertEquals(null, requests.last().department)
         assertEquals(null, requests.last().term)
         viewModel.onScopeChange(SearchScope.Courses)
-        assertEquals(listOf("9945"), requests.last().department)
+        assertEquals(listOf(9945), requests.last().department)
     }
 
     @Test
@@ -187,7 +191,7 @@ class SearchViewModelTest {
         }
         viewModel = SearchViewModel(mockAraBoardUseCase, mockTaxiRoomRepository, mockTaxiLocationUseCase, courses)
         viewModel.onScopeChange(SearchScope.Courses)
-        viewModel.onFilterChange(CourseFilterState(departments = listOf("9945")))
+        viewModel.onFilterChange(CourseFilterState(departments = listOf(computing)))
         assertTrue(viewModel.hasMoreCourses.value)
         failPage = true
         viewModel.loadCoursesNextPage()
@@ -196,9 +200,48 @@ class SearchViewModelTest {
         failPage = false
         viewModel.loadCoursesNextPage()
         assertEquals(150, requests.last().offset)
-        assertEquals(listOf("9945"), requests.last().department)
+        assertEquals(listOf(9945), requests.last().department)
         assertEquals(151, viewModel.courses.value.size)
         assertEquals(false, viewModel.hasMoreCourses.value)
         assertEquals(0, mockAraBoardUseCase.fetchPostsCallCount)
+    }
+
+    @Test
+    fun `searching in posts or rides scope skips courses until a course scope is chosen`() = runTest {
+        var courseRequests = 0
+        val courses = object : CourseUseCaseProtocol by mockCourseUseCase {
+            override suspend fun searchCourse(request: CourseSearchRequest): List<CourseSummary> {
+                courseRequests++
+                return CourseSummary.mockList()
+            }
+        }
+        viewModel = SearchViewModel(mockAraBoardUseCase, mockTaxiRoomRepository, mockTaxiLocationUseCase, courses)
+        viewModel.onScopeChange(SearchScope.Posts)
+        viewModel.onSearchTextChange("algorithms")
+        viewModel.fetchInitialData()
+        assertEquals(0, courseRequests)
+        viewModel.onScopeChange(SearchScope.Courses)
+        assertEquals(1, courseRequests)
+        assertTrue(viewModel.courses.value.isNotEmpty())
+    }
+
+    @Test
+    fun `course page is not requested while the first page is loading`() = runTest {
+        val requests = mutableListOf<CourseSearchRequest>()
+        val gate = CompletableDeferred<Unit>()
+        val courses = object : CourseUseCaseProtocol by mockCourseUseCase {
+            override suspend fun searchCourse(request: CourseSearchRequest): List<CourseSummary> {
+                requests.add(request)
+                if (request.keyword == "physics") gate.await()
+                return (1..150).map { CourseSummary.mock().copy(id = it) }
+            }
+        }
+        viewModel = SearchViewModel(mockAraBoardUseCase, mockTaxiRoomRepository, mockTaxiLocationUseCase, courses)
+        viewModel.onScopeChange(SearchScope.Courses)
+        viewModel.onFilterChange(CourseFilterState(departments = listOf(computing)))
+        viewModel.onSearchTextChange("physics")
+        viewModel.loadCoursesNextPage()
+        assertTrue(requests.none { it.offset != 0 })
+        gate.complete(Unit)
     }
 }

@@ -20,30 +20,7 @@ object CourseFilterProvider {
                 CourseFilterOption("OE", stringResource(R.string.filter_other_elective))
             )
 
-            CourseFilterCategory.Department -> listOf(
-                CourseFilterOption("9948", stringResource(R.string.dept_hss)),
-                CourseFilterOption("709", stringResource(R.string.dept_ce)),
-                CourseFilterOption("11481", stringResource(R.string.dept_btm)),
-                CourseFilterOption("9942", stringResource(R.string.dept_me)),
-                CourseFilterOption("623", stringResource(R.string.dept_ph)),
-                CourseFilterOption("850", stringResource(R.string.dept_bis)),
-                CourseFilterOption("1197", stringResource(R.string.dept_ie)),
-                CourseFilterOption("625", stringResource(R.string.dept_id)),
-                CourseFilterOption("733", stringResource(R.string.dept_bs)),
-                CourseFilterOption("833", stringResource(R.string.dept_mas)),
-                CourseFilterOption("639", stringResource(R.string.dept_nqe)),
-                CourseFilterOption("9947", stringResource(R.string.dept_ee)),
-                CourseFilterOption("9945", stringResource(R.string.dept_cs)),
-                CourseFilterOption("9944", stringResource(R.string.dept_ae)),
-                CourseFilterOption("620", stringResource(R.string.dept_ch)),
-                CourseFilterOption("701", stringResource(R.string.dept_cbe)),
-                CourseFilterOption("732", stringResource(R.string.dept_ms)),
-                CourseFilterOption("15784", stringResource(R.string.dept_ts)),
-                CourseFilterOption("20184", stringResource(R.string.dept_ss)),
-                CourseFilterOption("20684", stringResource(R.string.dept_bcs)),
-                CourseFilterOption("24354", stringResource(R.string.dept_aic)),
-                CourseFilterOption(ETC_DEPARTMENT_ID, stringResource(R.string.dept_etc))
-            )
+            CourseFilterCategory.Department -> emptyList()
 
             CourseFilterCategory.Level -> (1..9).map {
                 CourseFilterOption("${it}00", stringResource(R.string.filter_year_format, "${it}00"))

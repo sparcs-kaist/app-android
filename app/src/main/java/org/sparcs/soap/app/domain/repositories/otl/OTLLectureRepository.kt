@@ -33,7 +33,7 @@ class OTLLectureRepository @Inject constructor(
         api.searchLecture(
             year = dto.year,
             semester = dto.semester,
-            keyword = dto.keyword,
+            keyword = dto.keyword.ifEmpty { null },
             type = dto.type,
             department = dto.department,
             level = dto.level,

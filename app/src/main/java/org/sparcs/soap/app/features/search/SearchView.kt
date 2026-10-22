@@ -261,10 +261,11 @@ private fun SearchResultContent(
             }
 
             searchText.isBlank() && (searchScope != SearchScope.Courses || courseFilterState.isEmpty()) -> {
+                val isCourses = searchScope == SearchScope.Courses
                 UnavailableView(
                     icon = Icons.Rounded.Search,
-                    title = stringResource(R.string.search_anything),
-                    description = stringResource(R.string.find_etc)
+                    title = stringResource(if (isCourses) R.string.search_courses else R.string.search_anything),
+                    description = stringResource(if (isCourses) R.string.search_courses_description else R.string.find_etc)
                 )
             }
 

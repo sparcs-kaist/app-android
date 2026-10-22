@@ -5,7 +5,7 @@ data class CourseSearchRequest(
     val limit: Int,
     val offset: Int,
     val type: List<String>? = null,
-    val department: List<String>? = null,
+    val department: List<Int>? = null,
     val level: List<String>? = null,
     val term: String? = null
 )

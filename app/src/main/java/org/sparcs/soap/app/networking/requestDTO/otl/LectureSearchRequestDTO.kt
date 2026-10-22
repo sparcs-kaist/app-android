@@ -12,7 +12,7 @@ data class LectureSearchRequestDTO(
     val type: List<String>?,
 
     @SerializedName("department")
-    val department: List<String>?,
+    val department: List<Int>?,
 
     @SerializedName("level")
     val level: List<String>?,

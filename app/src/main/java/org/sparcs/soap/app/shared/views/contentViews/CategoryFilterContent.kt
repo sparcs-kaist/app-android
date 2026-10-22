@@ -51,17 +51,13 @@ fun CategoryFilterContent(
     options: List<CourseFilterOption>,
 ) {
     if (category == CourseFilterCategory.Department) {
-        DepartmentPicker(selectedFilters.departments.mapNotNull { it.toIntOrNull() }.toSet()) { ids ->
-            onFilterChange(selectedFilters.copy(departments = ids.map { it.toString() }))
+        DepartmentPicker(selectedFilters.departments) { departments ->
+            onFilterChange(selectedFilters.copy(departments = departments))
         }
         return
     }
-    val selectedCount = when (category) {
-        CourseFilterCategory.Classification -> selectedFilters.classifications.size
-        CourseFilterCategory.Department -> selectedFilters.departments.size
-        CourseFilterCategory.Level -> selectedFilters.levels.size
-        CourseFilterCategory.Period -> if (selectedFilters.period != null) 1 else 0
-    }
+    val selectedIds = selectedFilters.selectedOptionIds(category)
+    val selectedCount = selectedIds.size
 
     Column(
         modifier = Modifier
@@ -89,13 +85,7 @@ fun CategoryFilterContent(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.clickable {
-                    val nextState = when (category) {
-                        CourseFilterCategory.Classification -> selectedFilters.copy(classifications = emptyList())
-                        CourseFilterCategory.Department -> selectedFilters.copy(departments = emptyList())
-                        CourseFilterCategory.Level -> selectedFilters.copy(levels = emptyList())
-                        CourseFilterCategory.Period -> selectedFilters.copy(period = null)
-                    }
-                    onFilterChange(nextState)
+                    onFilterChange(selectedFilters.withSelection(category, emptyList()))
                 }
             )
         }
@@ -106,59 +96,19 @@ fun CategoryFilterContent(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             options.forEach { option ->
-                val isSelected = when (category) {
-                    CourseFilterCategory.Classification ->
-                        selectedFilters.classifications.contains(option.id)
-
-                    CourseFilterCategory.Department -> selectedFilters.departments.contains(option.id)
-                    CourseFilterCategory.Level -> selectedFilters.levels.contains(option.id)
-                    CourseFilterCategory.Period -> selectedFilters.period == option.id
-                }
+                val isSelected = option.id in selectedIds
 
                 TagChip(
                     label = option.label,
                     isSelected = isSelected,
                     onClick = {
-                        val nextState = when (category) {
-                            CourseFilterCategory.Classification -> {
-                                val next =
-                                    if (isSelected) selectedFilters.classifications - option.id
-                                    else selectedFilters.classifications + option.id
-                                if (next.size >= options.size || next.isEmpty()) {
-                                    selectedFilters.copy(classifications = emptyList())
-                                } else {
-                                    selectedFilters.copy(classifications = next)
-                                }
-                            }
-
-                            CourseFilterCategory.Department -> {
-                                val next =
-                                    if (isSelected) selectedFilters.departments - option.id
-                                    else selectedFilters.departments + option.id
-                                if (next.size >= options.size || next.isEmpty()) {
-                                    selectedFilters.copy(departments = emptyList())
-                                } else {
-                                    selectedFilters.copy(departments = next)
-                                }
-                            }
-
-                            CourseFilterCategory.Level -> {
-                                val next =
-                                    if (isSelected) selectedFilters.levels - option.id
-                                    else selectedFilters.levels + option.id
-                                if (next.size >= options.size || next.isEmpty()) {
-                                    selectedFilters.copy(levels = emptyList())
-                                } else {
-                                    selectedFilters.copy(levels = next)
-                                }
-                            }
-
-                            CourseFilterCategory.Period -> {
-                                val next = if (isSelected) null else option.id
-                                selectedFilters.copy(period = next)
-                            }
+                        val next = when {
+                            category == CourseFilterCategory.Period -> if (isSelected) emptyList() else listOf(option.id)
+                            isSelected -> selectedIds - option.id
+                            else -> selectedIds + option.id
                         }
-                        onFilterChange(nextState)
+                        val isAll = category != CourseFilterCategory.Period && next.size >= options.size
+                        onFilterChange(selectedFilters.withSelection(category, if (isAll) emptyList() else next))
                     }
                 )
             }
@@ -211,14 +161,14 @@ private fun Preview() {
         CategoryFilterContent(
             category = CourseFilterCategory.Classification,
             selectedFilters = CourseFilterState(
-                departments = listOf("9945", "833")
+                classifications = listOf("MR", "ME")
             ),
             onFilterChange = {},
             options = listOf(
-                CourseFilterOption("9945", "CS"),
-                CourseFilterOption("833", "MAS"),
-                CourseFilterOption("623", "PH"),
-                CourseFilterOption("620", "CH")
+                CourseFilterOption("BR", "BR"),
+                CourseFilterOption("MR", "MR"),
+                CourseFilterOption("ME", "ME"),
+                CourseFilterOption("HSE", "HSE")
             )
         )
     }

@@ -36,8 +36,8 @@ import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun DepartmentPicker(
-    selectedDepartmentIDs: Set<Int>,
-    onSelectionChange: (Set<Int>) -> Unit,
+    selectedDepartments: List<DepartmentOption>,
+    onSelectionChange: (List<DepartmentOption>) -> Unit,
 ) {
     val viewModel: TimetableSettingsViewModel = hiltViewModel()
     val state by viewModel.state.collectAsState()
@@ -45,8 +45,11 @@ fun DepartmentPicker(
 
     DepartmentPickerContent(
         state = state,
-        selectedDepartmentIDs = selectedDepartmentIDs,
-        onSelectionChange = onSelectionChange,
+        selectedDepartmentIDs = selectedDepartments.map { it.id }.toSet(),
+        onSelectionChange = { ids ->
+            val departments = (state as? TimetableSettingsViewModel.ViewState.Loaded)?.departments.orEmpty()
+            onSelectionChange(departments.filter { it.id in ids })
+        },
         onRetry = viewModel::fetchDepartments
     )
 }
@@ -59,7 +62,10 @@ fun DepartmentPickerContent(
     onRetry: () -> Unit,
 ) {
     Column(Modifier.padding(16.dp)) {
-        TextButton(onClick = { onSelectionChange(emptySet()) }) {
+        TextButton(
+            onClick = { onSelectionChange(emptySet()) },
+            enabled = selectedDepartmentIDs.isNotEmpty()
+        ) {
             Text(stringResource(R.string.reset))
         }
         when (state) {
@@ -96,15 +102,11 @@ fun DepartmentSelectionSections(
     enabled: Boolean = true,
 ) {
     var searchText by remember { mutableStateOf("") }
-    val filtered = remember(departments, searchText) {
-        departments.filter {
-            it.name.contains(searchText.trim(), true) || it.code.contains(searchText.trim(), true)
-        }
+    val keyword = searchText.trim()
+    val groups = remember(departments, interestedDepartmentIDs, keyword) {
+        departmentGroups(departments, interestedDepartmentIDs, keyword)
     }
-    val groups = listOf(
-        R.string.interested_departments to filtered.filter { it.id in interestedDepartmentIDs },
-        R.string.other_departments to filtered.filter { it.id !in interestedDepartmentIDs },
-    )
+    val filtered = groups.flatMap { it.second }
     Column {
         SearchCustomBar(
             value = searchText,
@@ -131,12 +133,14 @@ fun DepartmentSelectionSections(
                 .heightIn(max = 600.dp)) {
                 groups.forEach { (title, options) ->
                     if (options.isNotEmpty()) {
-                        item {
-                            Text(
-                                stringResource(title),
-                                Modifier.padding(12.dp),
-                                style = MaterialTheme.typography.titleSmall
-                            )
+                        if (title != null) {
+                            item {
+                                Text(
+                                    stringResource(title),
+                                    Modifier.padding(12.dp),
+                                    style = MaterialTheme.typography.titleSmall
+                                )
+                            }
                         }
                         items(options, key = { it.id }) { department ->
                             val selected = department.id in selectedDepartmentIDs
@@ -163,6 +167,44 @@ fun DepartmentSelectionSections(
                 }
             }
         }
+    }
+}
+
+private fun departmentGroups(
+    departments: List<DepartmentOption>,
+    interestedDepartmentIDs: Set<Int>,
+    keyword: String,
+): List<Pair<Int?, List<DepartmentOption>>> {
+    if (keyword.isNotEmpty()) {
+        val (exactCodes, others) = departments
+            .filter { it.name.contains(keyword, true) || it.code.contains(keyword, true) }
+            .partition { it.code.equals(keyword, true) }
+        return listOf(null to exactCodes + others)
+    }
+    val (interested, others) = departments.partition { it.id in interestedDepartmentIDs }
+    if (interested.isEmpty()) return listOf(null to others)
+    return listOf(
+        R.string.interested_departments to interested,
+        R.string.other_departments to others,
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun DepartmentPickerContentPreview() {
+    Theme {
+        DepartmentPickerContent(
+            state = TimetableSettingsViewModel.ViewState.Loaded(
+                departments = listOf(
+                    DepartmentOption(1, "Computer Science", "CS"),
+                    DepartmentOption(2, "Mathematics", "MAS")
+                ),
+                savedDepartmentIDs = setOf(2)
+            ),
+            selectedDepartmentIDs = setOf(1),
+            onSelectionChange = {},
+            onRetry = {}
+        )
     }
 }
 

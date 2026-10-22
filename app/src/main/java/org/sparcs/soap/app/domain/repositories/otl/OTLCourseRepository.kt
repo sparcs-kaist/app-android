@@ -23,7 +23,7 @@ class OTLCourseRepository @Inject constructor(
     override suspend fun searchCourse(request: CourseSearchRequest): List<CourseSummary> = safeApiCall(gson) {
         val dto = CourseSearchRequestDTO.fromModel(request)
         val response = api.searchCourse(
-            name = dto.keyword,
+            name = dto.keyword.ifEmpty { null },
             offset = dto.offset,
             limit = dto.limit,
             type = dto.type,

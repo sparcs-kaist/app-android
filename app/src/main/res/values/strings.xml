@@ -210,6 +210,8 @@
     <string name="courses">Courses</string>
     <string name="search_anything">Search Anything</string>
     <string name="find_etc">Find courses, posts, rides and more.</string>
+    <string name="search_courses">Search Courses</string>
+    <string name="search_courses_description">Search by name, code or professor, or browse with filters.</string>
     <string name="confirm">Confirm</string>
     <string name="warning">Warning</string>
     <string name="review_like_warning">Liking your own review is not allowed.</string>

@@ -24,7 +24,6 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.AlertState
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.otl.CourseLecture
-import org.sparcs.soap.app.domain.models.otl.ETC_DEPARTMENT_ID
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.LectureSearchRequest
 import org.sparcs.soap.app.domain.models.otl.LectureTimeFilter
@@ -244,7 +243,7 @@ class LectureSearchViewModel @Inject constructor(
         currentRequest = LectureSearchRequest(
             semester = selectedSemester, keyword = keyword, limit = 100, offset = 0,
             type = filter.classifications.ifEmpty { null },
-            department = filter.departments.filter { it != ETC_DEPARTMENT_ID }.ifEmpty { null },
+            department = filter.departments.map { it.id }.ifEmpty { null },
             level = filter.levels.ifEmpty { null }, term = filter.period, time = _time.value,
         )
         _state.value = ViewState.Loading

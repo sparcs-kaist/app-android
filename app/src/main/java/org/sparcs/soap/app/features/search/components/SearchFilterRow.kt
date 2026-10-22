@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.models.SearchScope
 import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
+import org.sparcs.soap.app.domain.models.otl.DepartmentOption
 import org.sparcs.soap.app.shared.views.contentViews.getTagChipColors
 import org.sparcs.soap.app.theme.ui.Theme
 
@@ -93,7 +94,7 @@ private fun Preview() {
             searchScope = SearchScope.Courses,
             courseFilterState = CourseFilterState(
                 classifications = listOf("MR"),
-                departments = listOf("9945"),
+                departments = listOf(DepartmentOption(9945, "School of Computing", "CS")),
                 levels = emptyList(),
                 period = "0"
             ),
