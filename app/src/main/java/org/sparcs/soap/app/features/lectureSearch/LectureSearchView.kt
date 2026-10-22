@@ -237,7 +237,7 @@ private fun LectureRowTimeInfo(
             .map { stringResource(it.stringValue) }.joinToString(", ")
         val begin = "%02d:%02d".format(slot.first / 60, slot.first % 60)
         val end = "%02d:%02d".format(slot.second / 60, slot.second % 60)
-        "$days $begin\u2013$end"
+        "$days $begin \u2013 $end"
     }.joinToString(" \u00b7 ")
 
     Text(
