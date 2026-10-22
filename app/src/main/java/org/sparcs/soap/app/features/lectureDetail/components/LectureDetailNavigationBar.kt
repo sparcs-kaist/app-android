@@ -33,6 +33,7 @@ import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchNaviga
 import org.sparcs.soap.app.features.navigationBar.components.DismissButton
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.darkGray
+import org.sparcs.soap.app.theme.ui.wishlistColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +56,7 @@ fun LectureDetailNavigationBar(
                 Icon(
                     if (isWishlisted) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
                     stringResource(if (isWishlisted) R.string.wishlist_remove else R.string.wishlist_add),
-                    tint = if (isWishlisted) MaterialTheme.colorScheme.primary else LectureSearchChrome.secondary,
+                    tint = if (isWishlisted) wishlistColor else LectureSearchChrome.secondary,
                 )
             }
             if (isEnabled) IconButton(onClick = onAdd, enabled = !isCurrentTimetable) {

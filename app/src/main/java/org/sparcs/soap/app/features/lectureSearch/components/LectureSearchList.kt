@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -68,6 +69,7 @@ import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.wishlistColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -224,12 +226,23 @@ fun LectureSearchList(
 
 @Composable
 private fun WishlistHeader() {
-    Text(
-        text = stringResource(R.string.wishlist),
-        style = MaterialTheme.typography.headlineMedium,
-        fontWeight = FontWeight.Bold,
+    Row(
         modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
-    )
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Favorite,
+            contentDescription = null,
+            tint = wishlistColor,
+            modifier = Modifier.size(28.dp)
+        )
+        Text(
+            text = stringResource(R.string.wishlist),
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+        )
+    }
 }
 
 @Composable
@@ -533,4 +546,10 @@ private fun LectureSearchPlaceholderPreview() {
             LectureSearchEmptyState(showsWishlist = true)
         }
     }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun WishlistHeaderPreview() {
+    Theme { WishlistHeader() }
 }

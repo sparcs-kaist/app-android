@@ -1,7 +1,7 @@
 <resources>
     <string name="wishlist">Wishlist</string>
-    <string name="wishlist_add">Add to wishlist</string>
-    <string name="wishlist_remove">Remove from wishlist</string>
+    <string name="wishlist_add">Add to Wishlist</string>
+    <string name="wishlist_remove">Remove from Wishlist</string>
     <string name="wishlist_empty">Save lectures with the heart button to see them here.</string>
     <string name="wishlist_load_failed">Could not load your wishlist.</string>
     <string name="wishlist_update_failed">Could not sync your wishlist. Please try again.</string>

@@ -65,6 +65,7 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.wishlistColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -173,7 +174,7 @@ private fun LectureRowMainContent(
                         if (isWishlisted) R.string.wishlist_remove else R.string.wishlist_add
                     ),
                     modifier = Modifier.size(25.dp),
-                    tint = if (isWishlisted) MaterialTheme.colorScheme.primary else secondary
+                    tint = if (isWishlisted) wishlistColor else secondary
                 )
             }
         }
