@@ -47,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -131,56 +132,47 @@ fun LectureSearchList(
                 onFocusChange = onSearchFocusChange,
             )
         },
-        results = {
-            Column(Modifier.fillMaxSize()) {
-                if (showsWishlist) {
-                    WishlistHeader()
-                }
-
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    LectureSearchContent(
-                        listState = listState,
-                        showsWishlist = showsWishlist,
-                        state = displayedState,
-                        displayedCourses = displayedCourses,
-                        expandedLectureID = expandedLectureID,
-                        timetable = timetable,
-                        wishlistedLectureIDs = wishlistedLectureIDs,
-                        pagination = pagination,
-                        totalCourses = state.courses.sumOf { it.lectures.size },
-                        onRetryLectures = { semester?.let(viewModel::fetchLectures) },
-                        onRetryWishlist = { semester?.let(viewModel::fetchWishlist) },
-                        onOpenCourse = onOpenCourse,
-                        onToggleWishlist = viewModel::toggleWishlist,
-                        onLectureClick = { lecture ->
-                            focusManager.clearFocus()
-                            expandedLectureID = lecture.id.takeUnless { expandedLectureID == it }
-                            timetableViewModel.setCandidateLecture(
-                                lecture.takeIf {
-                                    expandedLectureID == it.id && timetable?.contains(
-                                        it
-                                    ) != true
-                                }
-                            )
-                        },
-                        onInfoClick = { lecture ->
-                            focusManager.clearFocus()
-                            onOpenLecture(lecture)
-                        },
-                        onAddClick = { lecture ->
-                            if (timetable?.hasCollision(lecture) == true) {
-                                pendingLectureToAdd = lecture
-                            } else {
-                                timetableViewModel.addLecture(lecture)
+        results = { topInset ->
+            Box(Modifier.fillMaxSize()) {
+                LectureSearchContent(
+                    topInset = topInset,
+                    listState = listState,
+                    showsWishlist = showsWishlist,
+                    state = displayedState,
+                    displayedCourses = displayedCourses,
+                    expandedLectureID = expandedLectureID,
+                    timetable = timetable,
+                    wishlistedLectureIDs = wishlistedLectureIDs,
+                    pagination = pagination,
+                    totalCourses = state.courses.sumOf { it.lectures.size },
+                    onRetryLectures = { semester?.let(viewModel::fetchLectures) },
+                    onRetryWishlist = { semester?.let(viewModel::fetchWishlist) },
+                    onOpenCourse = onOpenCourse,
+                    onToggleWishlist = viewModel::toggleWishlist,
+                    onLectureClick = { lecture ->
+                        focusManager.clearFocus()
+                        expandedLectureID = lecture.id.takeUnless { expandedLectureID == it }
+                        timetableViewModel.setCandidateLecture(
+                            lecture.takeIf {
+                                expandedLectureID == it.id && timetable?.contains(
+                                    it
+                                ) != true
                             }
-                        },
-                        onLoadNextPage = viewModel::loadNextPage
-                    )
-                }
+                        )
+                    },
+                    onInfoClick = { lecture ->
+                        focusManager.clearFocus()
+                        onOpenLecture(lecture)
+                    },
+                    onAddClick = { lecture ->
+                        if (timetable?.hasCollision(lecture) == true) {
+                            pendingLectureToAdd = lecture
+                        } else {
+                            timetableViewModel.addLecture(lecture)
+                        }
+                    },
+                    onLoadNextPage = viewModel::loadNextPage
+                )
             }
         },
     )
@@ -242,6 +234,7 @@ private fun WishlistHeader() {
 
 @Composable
 private fun LectureSearchContent(
+    topInset: Dp,
     listState: LazyListState,
     showsWishlist: Boolean,
     state: LectureSearchViewModel.ViewState,
@@ -261,41 +254,61 @@ private fun LectureSearchContent(
     onLoadNextPage: () -> Unit,
 ) {
     when {
-        state is LectureSearchViewModel.ViewState.Loading -> LectureSearchSkeleton()
+        state is LectureSearchViewModel.ViewState.Loading -> LectureSearchPlaceholder(topInset, showsWishlist) {
+            LectureSearchSkeleton()
+        }
 
-        state is LectureSearchViewModel.ViewState.Error -> ErrorView(
-            defaultMessageResId = if (showsWishlist) R.string.wishlist_load_failed else R.string.failed_to_load_course,
-            error = state.error,
-            onRetry = if (showsWishlist) onRetryWishlist else onRetryLectures,
-        )
+        state is LectureSearchViewModel.ViewState.Error -> LectureSearchPlaceholder(topInset, showsWishlist) {
+            ErrorView(
+                defaultMessageResId = if (showsWishlist) R.string.wishlist_load_failed else R.string.failed_to_load_course,
+                error = state.error,
+                onRetry = if (showsWishlist) onRetryWishlist else onRetryLectures,
+            )
+        }
 
-        displayedCourses.isEmpty() -> {
+        displayedCourses.isEmpty() -> LectureSearchPlaceholder(topInset, showsWishlist) {
             LectureSearchEmptyState(showsWishlist = showsWishlist)
         }
 
-        else -> {
-            CourseLazyList(
-                listState = listState,
-                showsWishlist = showsWishlist,
-                displayedCourses = displayedCourses,
-                expandedLectureID = expandedLectureID,
-                timetable = timetable,
-                wishlistedLectureIDs = wishlistedLectureIDs,
-                pagination = pagination,
-                totalCourses = totalCourses,
-                onOpenCourse = onOpenCourse,
-                onToggleWishlist = onToggleWishlist,
-                onLectureClick = onLectureClick,
-                onInfoClick = onInfoClick,
-                onAddClick = onAddClick,
-                onLoadNextPage = onLoadNextPage
-            )
-        }
+        else -> CourseLazyList(
+            topInset = topInset,
+            listState = listState,
+            showsWishlist = showsWishlist,
+            displayedCourses = displayedCourses,
+            expandedLectureID = expandedLectureID,
+            timetable = timetable,
+            wishlistedLectureIDs = wishlistedLectureIDs,
+            pagination = pagination,
+            totalCourses = totalCourses,
+            onOpenCourse = onOpenCourse,
+            onToggleWishlist = onToggleWishlist,
+            onLectureClick = onLectureClick,
+            onInfoClick = onInfoClick,
+            onAddClick = onAddClick,
+            onLoadNextPage = onLoadNextPage
+        )
+    }
+}
+
+@Composable
+private fun LectureSearchPlaceholder(
+    topInset: Dp,
+    showsWishlist: Boolean,
+    content: @Composable () -> Unit,
+) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(top = topInset)
+    ) {
+        if (showsWishlist) WishlistHeader()
+        content()
     }
 }
 
 @Composable
 private fun CourseLazyList(
+    topInset: Dp,
     listState: LazyListState,
     showsWishlist: Boolean,
     displayedCourses: List<CourseLecture>,
@@ -313,8 +326,12 @@ private fun CourseLazyList(
 ) {
     LazyColumn(
         state = listState,
-        contentPadding = PaddingValues(top = if (showsWishlist) 0.dp else 12.dp, bottom = 12.dp)
+        contentPadding = PaddingValues(top = topInset + if (showsWishlist) 0.dp else 12.dp, bottom = 12.dp)
     ) {
+        if (showsWishlist) {
+            item(key = "wishlist-header") { WishlistHeader() }
+        }
+
         displayedCourses.forEach { course ->
             val showSection = course.lectures.size > 1
 
@@ -505,5 +522,15 @@ private fun LectureSearchListPreview() {
             onOpenLecture = {},
             onOpenCourse = {}
         )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun LectureSearchPlaceholderPreview() {
+    Theme {
+        LectureSearchPlaceholder(topInset = 120.dp, showsWishlist = true) {
+            LectureSearchEmptyState(showsWishlist = true)
+        }
     }
 }

@@ -33,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -138,7 +139,7 @@ fun LectureDetailContent(
             floatingPreview = floatingTopContent,
             header = {},
             preview = topContent,
-            results = {
+            results = { topInset ->
                 BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
                     val isLandscape = maxWidth >= 840.dp
                     if (isLandscape) {
@@ -150,6 +151,7 @@ fun LectureDetailContent(
                             canWriteReview,
                             selectedTimetable?.conflicts(lecture).orEmpty(),
                             isContained,
+                            topInset,
                         )
                     } else {
                         LecturePortraitLayout(
@@ -160,6 +162,7 @@ fun LectureDetailContent(
                             canWriteReview,
                             selectedTimetable?.conflicts(lecture).orEmpty(),
                             isContained,
+                            topInset,
                         )
                     }
                 }
@@ -197,6 +200,7 @@ private fun LectureLandscapeLayout(
     canWriteReview: Boolean,
     conflicts: List<String>,
     isContained: Boolean,
+    topInset: Dp,
 ) {
     Row(
         modifier = Modifier
@@ -208,6 +212,7 @@ private fun LectureLandscapeLayout(
             modifier = Modifier
                 .weight(1f)
                 .verticalScroll(rememberScrollState())
+                .padding(top = topInset)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -218,6 +223,7 @@ private fun LectureLandscapeLayout(
             modifier = Modifier
                 .weight(1.2f)
                 .verticalScroll(rememberScrollState())
+                .padding(top = topInset)
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
@@ -236,12 +242,14 @@ private fun LecturePortraitLayout(
     canWriteReview: Boolean,
     conflicts: List<String>,
     isContained: Boolean,
+    topInset: Dp,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .widthIn(max = 600.dp)
             .verticalScroll(rememberScrollState())
+            .padding(top = topInset)
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
