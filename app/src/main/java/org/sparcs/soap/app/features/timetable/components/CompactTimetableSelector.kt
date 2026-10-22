@@ -21,11 +21,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,12 +55,17 @@ fun CompactTimetableSelector(
     modifier: Modifier = Modifier,
     isWide: Boolean = false,
     onShareClick: (() -> Unit)? = null,
+    onDialogVisibilityChange: (Boolean) -> Unit = {},
 ) {
     val loadState by viewModel.loadState.collectAsState()
     var showRenameDialog by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var renameText by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
+    val currentOnDialogVisibilityChange by rememberUpdatedState(onDialogVisibilityChange)
+    val isDialogPresented = showRenameDialog || showDeleteDialog
+    LaunchedEffect(isDialogPresented) { currentOnDialogVisibilityChange(isDialogPresented) }
+    DisposableEffect(Unit) { onDispose { currentOnDialogVisibilityChange(false) } }
 
     Row(
         modifier = modifier,

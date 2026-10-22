@@ -101,6 +101,7 @@ fun TimetableView(
     val screenHeight = configuration.screenHeightDp.dp
 
     var shareSnapshot by remember { mutableStateOf<TimetableShareSnapshot?>(null) }
+    var isSelectorDialogPresented by remember { mutableStateOf(false) }
     val timetableTheme = LocalTimetableTheme.current
     val onShareClick: () -> Unit = {
         shareSnapshot = TimetableShareSnapshot.of(
@@ -147,7 +148,9 @@ fun TimetableView(
     }
 
     ScreenshotEffect {
-        if (shareSnapshot == null && !showDeleteDialog && candidateLecture == null) onShareClick()
+        if (shareSnapshot == null && !showDeleteDialog && candidateLecture == null &&
+            !viewModel.isAlertPresented && !isSelectorDialogPresented
+        ) onShareClick()
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -191,6 +194,7 @@ fun TimetableView(
                         onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } },
                         isEditable = isEditable,
                         creditsContent = creditsContent,
+                        onSelectorDialogChange = { isSelectorDialogPresented = it },
                     )
                 } else {
                     TimetablePortraitLayout(
@@ -206,6 +210,7 @@ fun TimetableView(
                         },
                         scrollState = scrollState,
                         creditsContent = creditsContent,
+                        onSelectorDialogChange = { isSelectorDialogPresented = it },
                     )
                 }
             }
@@ -253,6 +258,7 @@ private fun TimetableLandscapeLayout(
     onActivityClick: () -> Unit,
     isEditable: Boolean,
     creditsContent: @Composable () -> Unit,
+    onSelectorDialogChange: (Boolean) -> Unit,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     Column(
@@ -276,7 +282,12 @@ private fun TimetableLandscapeLayout(
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                CompactTimetableSelector(viewModel, timetableName, onShareClick = onShareClick)
+                CompactTimetableSelector(
+                    viewModel,
+                    timetableName,
+                    onShareClick = onShareClick,
+                    onDialogVisibilityChange = onSelectorDialogChange,
+                )
                 Spacer(modifier = Modifier.width(12.dp))
                 TimetableAddButton(
                     enabled = isEditable, onAddClass = onAddClick, onAddActivity = onActivityClick
@@ -390,6 +401,7 @@ private fun TimetablePortraitLayout(
     onDeleteClick: (Lecture) -> Unit,
     scrollState: ScrollState,
     creditsContent: @Composable () -> Unit,
+    onSelectorDialogChange: (Boolean) -> Unit,
 ) {
     val loadState by viewModel.loadState.collectAsState()
     Column(
@@ -407,6 +419,7 @@ private fun TimetablePortraitLayout(
             modifier = Modifier.fillMaxWidth(),
             isWide = true,
             onShareClick = onShareClick,
+            onDialogVisibilityChange = onSelectorDialogChange,
         )
 
         if (loadState.isOffline) {
