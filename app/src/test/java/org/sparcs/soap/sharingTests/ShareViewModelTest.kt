@@ -2,6 +2,10 @@ package org.sparcs.soap.sharingTests
 
 import android.app.Application
 import android.graphics.Bitmap
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
+import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -71,5 +75,21 @@ class ShareViewModelTest {
         model.prepare(ShareTarget.Copy, content.copy(copyText = "ABC123")) { error("Must not render") }
         model.consumeRequest(launched = false)
         assertFalse(model.state.value.saved)
+    }
+
+    @Test fun storageFullSaveShowsTheSystemReason() {
+        val model = ShareViewModel(store)
+        model.prepare(ShareTarget.Save, content) {
+            throw IOException("write failed", ErrnoException("write", OsConstants.ENOSPC))
+        }
+        assertTrue(model.state.value.failed)
+        assertEquals(Os.strerror(OsConstants.ENOSPC), model.state.value.errorMessage)
+    }
+
+    @Test fun otherSaveFailuresKeepTheGenericMessage() {
+        val model = ShareViewModel(store)
+        model.prepare(ShareTarget.Save, content) { throw IOException("Cannot create gallery image") }
+        assertTrue(model.state.value.failed)
+        assertNull(model.state.value.errorMessage)
     }
 }

@@ -128,7 +128,7 @@ internal fun ShareSheetContent(
             CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp)
             Text(stringResource(R.string.share_preparing))
         }
-        if (state.failed) Text(stringResource(R.string.share_image_failed), Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.error)
+        if (state.failed) Text(state.errorMessage ?: stringResource(R.string.share_image_failed), Modifier.padding(horizontal = 24.dp), color = MaterialTheme.colorScheme.error)
         LazyRow(contentPadding = PaddingValues(horizontal = 20.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             items(listOfNotNull(ShareTarget.Instagram, ShareTarget.Feed.takeIf { hasFeed }, ShareTarget.Messages)) { target ->
                 ShareTargetItem(target, !state.preparing) { onTarget(target) }
@@ -200,5 +200,13 @@ private fun ShareSheetPreview() {
 private fun ShareSheetSavedPreview() {
     Theme {
         ShareSheetContent(ShareContent(stringResource(R.string.timetable_share), "", "#FFFFFF", "#FFFFFF"), ShareState(saved = true), true, {})
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ShareSheetSaveErrorPreview() {
+    Theme {
+        ShareSheetContent(ShareContent(stringResource(R.string.timetable_share), "", "#FFFFFF", "#FFFFFF"), ShareState(failed = true, errorMessage = "No space left on device"), true, {})
     }
 }

@@ -1,6 +1,9 @@
 package org.sparcs.soap.app.shared.sharing
 
 import android.graphics.Bitmap
+import android.system.ErrnoException
+import android.system.Os
+import android.system.OsConstants
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +20,7 @@ data class ShareState(
     val failed: Boolean = false,
     val request: ShareRequest? = null,
     val saved: Boolean = false,
+    val errorMessage: String? = null,
 )
 
 @HiltViewModel
@@ -44,7 +48,7 @@ class ShareViewModel @Inject constructor(private val imageStore: ShareImageStore
                 throw e
             } catch (e: Exception) {
                 Timber.e(e, "Unable to prepare share image")
-                mutableState.value = ShareState(failed = true, saved = current.saved)
+                mutableState.value = ShareState(failed = true, saved = current.saved, errorMessage = e.storageFullMessage)
             }
         }
     }
@@ -60,3 +64,9 @@ class ShareViewModel @Inject constructor(private val imageStore: ShareImageStore
         mutableState.value = ShareState()
     }
 }
+
+private val Throwable.storageFullMessage: String?
+    get() = generateSequence(this) { it.cause }
+        .filterIsInstance<ErrnoException>()
+        .firstOrNull { it.errno == OsConstants.ENOSPC }
+        ?.let { Os.strerror(it.errno) }
