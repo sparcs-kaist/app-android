@@ -27,6 +27,7 @@ class PreviewCourseViewModel(initialState: CourseViewModel.ViewState) : CourseVi
     override fun translate(content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
     override fun showOriginal() {}
     override fun summarize(content: String, scope: CoroutineScope) {}
+    override fun summarizeReview(content: String, scope: CoroutineScope) {}
     override fun hideSummary() {}
     override fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
     override fun showCommentOriginal(commentId: String) {}

@@ -44,6 +44,7 @@ class MockFeedPostViewModel(initialState: FeedPostViewModel.ViewState) : FeedPos
 
     override fun translate(content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {}
     override fun summarize(content: String, scope: CoroutineScope) {}
+    override fun summarizeReview(content: String, scope: CoroutineScope) {}
 
     override fun translatePost(targetLanguage: String, allowDownload: Boolean) {}
     override fun showOriginal() {}

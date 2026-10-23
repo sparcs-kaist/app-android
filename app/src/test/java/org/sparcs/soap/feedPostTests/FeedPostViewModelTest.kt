@@ -1,8 +1,8 @@
 package org.sparcs.soap.feedPostTests
 
 import androidx.lifecycle.SavedStateHandle
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -23,6 +23,7 @@ import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
 import org.sparcs.soap.buddyTestSupport.helper.UseCaseTestFixtures
 import org.sparcs.soap.buddyTestSupport.useCase.MockFeedCommentUseCase
 import org.sparcs.soap.buddyTestSupport.useCase.MockFeedPostUseCase
+import org.sparcs.soap.buddyTestSupport.useCase.MockReviewSummaryUseCase
 import org.sparcs.soap.buddyTestSupport.useCase.MockUserUseCase
 import org.sparcs.soap.testSupport.MainDispatcherRule
 
@@ -66,7 +67,7 @@ class FeedPostViewModelTest {
             userUseCase = MockUserUseCase(),
             crashlyticsService = MockCrashlyticsService(),
             analyticsService = MockAnalyticsService(),
-            textProcessingDelegate = TextProcessingDelegate(fakeTranslationUseCase, fakeSummarizationUseCase),
+            textProcessingDelegate = TextProcessingDelegate(fakeTranslationUseCase, fakeSummarizationUseCase, MockReviewSummaryUseCase()),
         )
     }
 

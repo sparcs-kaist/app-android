@@ -1,12 +1,18 @@
 package org.sparcs.soap.app.shared.viewModels
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.domain.models.translation.TranslationState
+import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryError
+import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryException
+import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCase
+import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationResultState
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.translation.PostTranslationResult
@@ -26,6 +32,7 @@ interface TextProcessingProtocol {
     fun showOriginal()
 
     fun summarize(content: String, scope: CoroutineScope)
+    fun summarizeReview(content: String, scope: CoroutineScope)
     fun hideSummary()
 
     fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean = false, scope: CoroutineScope)
@@ -35,6 +42,7 @@ interface TextProcessingProtocol {
 class TextProcessingDelegate @Inject constructor(
     private val postTranslationUseCase: PostTranslationUseCaseProtocol,
     private val summarizationUseCase: SummarizationUseCaseProtocol,
+    private val reviewSummaryUseCase: ReviewSummaryUseCaseProtocol,
 ) : TextProcessingProtocol {
 
     private val _translationState = MutableStateFlow<TranslationState>(TranslationState.Idle)
@@ -42,6 +50,8 @@ class TextProcessingDelegate @Inject constructor(
 
     private val _summarizationState = MutableStateFlow<SummarizationState>(SummarizationState.Idle)
     override val summarizationState: StateFlow<SummarizationState> = _summarizationState.asStateFlow()
+
+    private var summaryJob: Job? = null
 
     private val _commentTranslations = MutableStateFlow<Map<String, TranslationState>>(emptyMap())
     override val commentTranslations: StateFlow<Map<String, TranslationState>> = _commentTranslations.asStateFlow()
@@ -69,21 +79,56 @@ class TextProcessingDelegate @Inject constructor(
     override fun showOriginal() { _translationState.value = TranslationState.Idle }
 
     override fun summarize(content: String, scope: CoroutineScope) {
-        if (_summarizationState.value is SummarizationState.Loading) return
+        if (isSummarizing) return
         _summarizationState.value = SummarizationState.Loading
-        scope.launch {
+        summaryJob = scope.launch {
             _summarizationState.value = when (val result = summarizationUseCase.summarise(content, isHtml = false)) {
                 is SummarizationResultState.Success -> SummarizationState.Summarized(result.summary)
                 SummarizationResultState.TooShort -> SummarizationState.TooShort
                 SummarizationResultState.Unavailable -> SummarizationState.Unavailable
-                is SummarizationResultState.Failed -> {
-                    SummarizationState.Failed
-                }
+                is SummarizationResultState.Failed -> SummarizationState.Failed
             }
         }
     }
 
-    override fun hideSummary() { _summarizationState.value = SummarizationState.Idle }
+    override fun summarizeReview(content: String, scope: CoroutineScope) {
+        if (isSummarizing) return
+        if (!ReviewSummaryUseCase.canSummarise(content)) {
+            _summarizationState.value = SummarizationState.TooShort
+            return
+        }
+        _summarizationState.value = SummarizationState.Loading
+        summaryJob = scope.launch {
+            var summary = ""
+            try {
+                reviewSummaryUseCase.streamSummary(content).collect { partial ->
+                    summary = partial
+                    _summarizationState.value = SummarizationState.Streaming(partial)
+                }
+                _summarizationState.value = summary.trim().takeIf { it.isNotEmpty() }
+                    ?.let(SummarizationState::Summarized) ?: SummarizationState.Failed
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (error: ReviewSummaryException) {
+                _summarizationState.value = when (error.reason) {
+                    ReviewSummaryError.UNAVAILABLE -> SummarizationState.Unavailable
+                    ReviewSummaryError.UNSAFE_CONTENT -> SummarizationState.Unsafe
+                    ReviewSummaryError.FAILED -> SummarizationState.Failed
+                }
+            } catch (_: Exception) {
+                _summarizationState.value = SummarizationState.Failed
+            }
+        }
+    }
+
+    private val isSummarizing: Boolean
+        get() = _summarizationState.value.let { it is SummarizationState.Loading || it is SummarizationState.Streaming }
+
+    override fun hideSummary() {
+        summaryJob?.cancel()
+        summaryJob = null
+        _summarizationState.value = SummarizationState.Idle
+    }
 
     override fun translateComment(commentId: String, content: String, targetLanguage: String, allowDownload: Boolean, scope: CoroutineScope) {
         val current = _commentTranslations.value[commentId]

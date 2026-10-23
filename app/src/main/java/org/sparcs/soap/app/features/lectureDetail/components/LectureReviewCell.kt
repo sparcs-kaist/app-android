@@ -58,6 +58,7 @@ import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.otl.ReportMailComposer
 import org.sparcs.soap.app.domain.models.otl.SectionLabel
 import org.sparcs.soap.app.domain.models.summarization.SummarizationState
+import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCase
 import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
@@ -173,16 +174,18 @@ fun LectureReviewCell(
                                 }
                             )
 
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.summarise)) },
-                                onClick = { onSummarize(); expanded = false },
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Outlined.Summarize,
-                                        contentDescription = null
-                                    )
-                                }
-                            )
+                            if (ReviewSummaryUseCase.canSummarise(lectureReview.content)) {
+                                DropdownMenuItem(
+                                    text = { Text(stringResource(R.string.summarise)) },
+                                    onClick = { onSummarize(); expanded = false },
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Outlined.Summarize,
+                                            contentDescription = null
+                                        )
+                                    }
+                                )
+                            }
                         }
                     }
                 }

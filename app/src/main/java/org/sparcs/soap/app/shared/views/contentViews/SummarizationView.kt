@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.shared.views.contentViews
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -55,15 +56,18 @@ fun SummarizationView(
     var isExpanded by remember { mutableStateOf(true) }
     val haptic = LocalHapticFeedback.current
 
-    LaunchedEffect(state) {
-        if (state != SummarizationState.Idle) {
+    val isSummarizing = state is SummarizationState.Loading || state is SummarizationState.Streaming
+    val isVisible = state != SummarizationState.Idle
+
+    LaunchedEffect(isVisible, isSummarizing) {
+        if (isVisible) {
             isExpanded = true
-            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+            if (!isSummarizing) haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         }
     }
 
     AnimatedVisibility(
-        visible = state != SummarizationState.Idle,
+        visible = isVisible,
         enter = expandVertically() + fadeIn(),
         exit = shrinkVertically() + fadeOut(),
         modifier = modifier
@@ -75,6 +79,7 @@ fun SummarizationView(
         ) {
             Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                 SummarizationHeader(
+                    isSummarizing = isSummarizing,
                     isExpanded = isExpanded,
                     onToggle = { isExpanded = !isExpanded },
                     onDismiss = onDismiss
@@ -94,6 +99,7 @@ fun SummarizationView(
 
 @Composable
 private fun SummarizationHeader(
+    isSummarizing: Boolean,
     isExpanded: Boolean,
     onToggle: () -> Unit,
     onDismiss: () -> Unit
@@ -117,7 +123,7 @@ private fun SummarizationHeader(
                 modifier = Modifier.size(18.dp)
             )
             Text(
-                text = stringResource(R.string.summary),
+                text = stringResource(if (isSummarizing) R.string.summarizing else R.string.summary),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold
             )
@@ -135,7 +141,7 @@ private fun SummarizationHeader(
         ) {
             Icon(
                 imageVector = Icons.Default.Close,
-                contentDescription = "Close",
+                contentDescription = stringResource(R.string.close),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
@@ -151,15 +157,12 @@ private fun SummarizationContent(
     Box(modifier = Modifier.padding(top = 4.dp, bottom = 8.dp)) {
         when (state) {
             SummarizationState.Loading -> SummarizationSkeleton()
-            is SummarizationState.Summarized -> {
-                Text(
-                    text = state.summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
+            is SummarizationState.Streaming ->
+                if (state.partial.isBlank()) SummarizationSkeleton() else SummaryText(state.partial)
+            is SummarizationState.Summarized -> SummaryText(state.summary)
             SummarizationState.TooShort -> StatusText(stringResource(R.string.summarization_too_short))
             SummarizationState.Unavailable -> StatusText(stringResource(R.string.summarization_unavailable))
+            SummarizationState.Unsafe -> StatusText(stringResource(R.string.summarization_unsafe))
             SummarizationState.Failed -> {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -174,6 +177,16 @@ private fun SummarizationContent(
             else -> Unit
         }
     }
+}
+
+@Composable
+private fun SummaryText(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        modifier = Modifier.animateContentSize()
+    )
 }
 
 @Composable
@@ -209,6 +222,30 @@ private fun PreviewSummarized() {
     Theme {
         SummarizationView(
             state = SummarizationState.Summarized("This is a concise summary of the content."),
+            onRetry = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewStreaming() {
+    Theme {
+        SummarizationView(
+            state = SummarizationState.Streaming("The lecturer explains clearly and the weekly"),
+            onRetry = {},
+            onDismiss = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun PreviewFailed() {
+    Theme {
+        SummarizationView(
+            state = SummarizationState.Failed,
             onRetry = {},
             onDismiss = {}
         )

@@ -491,10 +491,10 @@ fun CourseReviewSection(
                             viewModel.showOriginal()
                             showTranslationSheet = false
                             activeReviewId = it.id
-                            viewModel.summarize(it.content, scope = scope)
+                            viewModel.summarizeReview(it.content, scope = scope)
                         },
                         summarizationState = if (!showTranslationSheet && activeReviewId == it.id) summarizationState else SummarizationState.Idle,
-                        onRetrySummarize = { viewModel.summarize(it.content, scope = scope) },
+                        onRetrySummarize = { viewModel.summarizeReview(it.content, scope = scope) },
                         onDismissSummarize = {
                             activeReviewId = null
                             viewModel.hideSummary()
@@ -532,10 +532,10 @@ fun CourseReviewSection(
                             viewModel.showOriginal()
                             showTranslationSheet = false
                             activeReviewId = review.id
-                            viewModel.summarize(review.content, scope = scope)
+                            viewModel.summarizeReview(review.content, scope = scope)
                         },
                         summarizationState = if (!showTranslationSheet && activeReviewId == review.id) summarizationState else SummarizationState.Idle,
-                        onRetrySummarize = { viewModel.summarize(review.content, scope = scope) },
+                        onRetrySummarize = { viewModel.summarizeReview(review.content, scope = scope) },
                         onDismissSummarize = {
                             activeReviewId = null
                             viewModel.hideSummary()
