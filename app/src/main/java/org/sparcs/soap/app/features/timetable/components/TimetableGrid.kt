@@ -214,6 +214,7 @@ fun TimetableGrid(
                             lectureItem = item,
                             isCandidate = isCandidate,
                             isConflict = isConflict,
+                            placement = placement,
                             cellHeight = animatedCellHeight,
                             modifier = Modifier
                                 .offset { IntOffset(0, animatedCellOffsetY.roundToPx()) }

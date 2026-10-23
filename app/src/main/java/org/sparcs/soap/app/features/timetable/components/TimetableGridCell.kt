@@ -43,6 +43,7 @@ fun TimetableGridCell(
     cellHeight: Dp,
     modifier: Modifier = Modifier,
     isConflict: Boolean = false,
+    placement: TimetablePlacement = TimetablePlacement.View,
 ) {
     val theme = LocalTimetableTheme.current
     val courseColor = theme.colorFor(lectureItem.lecture.courseID)
@@ -61,7 +62,7 @@ fun TimetableGridCell(
         val layout = CellLayout.of(maxWidth, maxHeight)
         val title = lectureItem.lecture.name
         val subtitle = lectureItem.lecture.subtitle.subtitleTopic
-        val detail = lectureItem.lectureClass.roomLabel(layout.isPacked)
+        val detail = lectureItem.detailText(placement, layout.isPacked)
         val detailMaxLines = rememberDetailMaxLines(layout, title, subtitle, detail, maxWidth, maxHeight)
 
         Box(
@@ -193,7 +194,12 @@ private fun TextMeasurer.detailMaxLines(
     fittingLines.coerceAtLeast(1)
 }
 
-internal fun LectureClass.roomLabel(isPacked: Boolean): String {
+internal fun LectureItem.detailText(placement: TimetablePlacement, isPacked: Boolean): String {
+    val professor = lecture.professors.firstOrNull()?.name?.takeIf { it.isNotBlank() }
+    return if (placement == TimetablePlacement.Render && professor != null) professor else lectureClass.roomLabel(isPacked)
+}
+
+private fun LectureClass.roomLabel(isPacked: Boolean): String {
     val room = if (isPacked) roomNumber(roomName) ?: roomName else roomName
     return "($buildingCode) $room"
 }
@@ -244,6 +250,12 @@ private fun PreviewLongRoom() {
     val item = LectureItem.mockList()[1]
     val longRoom = item.lectureClass.copy(roomName = "(1501호)강의실-제1공동강의실")
     TimetableGridCell(item.copy(lectureClass = longRoom), false, 140.dp, Modifier.width(80.dp))
+}
+
+@Preview(name = "Shared timetable cell", showBackground = true)
+@Composable
+private fun PreviewRender() {
+    TimetableGridCell(LectureItem.mockList()[1], false, 100.dp, Modifier.width(100.dp), placement = TimetablePlacement.Render)
 }
 
 @Preview(name = "Subtitle", showBackground = true)
