@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
 import org.sparcs.soap.app.domain.models.otl.LectureItem
+import org.sparcs.soap.app.domain.models.otl.subtitleTopic
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 
@@ -83,8 +84,9 @@ fun TimetableGridCell(
             (maxWidth - 10.dp).toPx().toInt().coerceAtLeast(0)
         }
 
-        val titleText = lectureItem.lecture.name + lectureItem.lecture.subtitle
-        val locationText = "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName
+        val titleText = lectureItem.lecture.name
+        val roomText = "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName
+        val locationText = listOfNotNull(lectureItem.lecture.subtitle.subtitleTopic, roomText).joinToString("\n")
 
 
         val layoutConfig = remember(
@@ -330,6 +332,13 @@ private fun PreviewStandard() {
 @Composable
 private fun PreviewTight() {
     TimetableGridCell(LectureItem.mockList()[1], false, 45.dp)
+}
+
+@Preview(name = "Subtitle", showBackground = true)
+@Composable
+private fun PreviewSubtitle() {
+    val item = LectureItem.mockList()[1]
+    TimetableGridCell(item.copy(lecture = item.lecture.copy(subtitle = "<리더십 강좌>")), false, 100.dp)
 }
 
 @Preview(name = "Shared timetable cell", showBackground = true)

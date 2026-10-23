@@ -60,7 +60,10 @@ private fun TimetableWidgetCell(
     val locationLineHeight = ceil(8 * 1.3f * fontScale).toInt()
     val availableTextHeight = height - gap - inset * 2
     val showLocation = lecture.classroom.isNotBlank() && availableTextHeight >= titleLineHeight + locationLineHeight + 2
-    val titleLines = ((availableTextHeight - if (showLocation) locationLineHeight + 2 else 0) / titleLineHeight).toInt().coerceIn(1, 3)
+    val showSubtitle = !lecture.subtitle.isNullOrBlank() &&
+        availableTextHeight >= titleLineHeight + locationLineHeight * (if (showLocation) 2 else 1) + 2
+    val detailHeight = (if (showLocation) locationLineHeight else 0) + (if (showSubtitle) locationLineHeight else 0)
+    val titleLines = ((availableTextHeight - if (detailHeight > 0) detailHeight + 2 else 0) / titleLineHeight).toInt().coerceIn(1, 3)
     val backgroundColor = Color(lecture.bgColor.toColorInt())
     val textColor = Color(lecture.textColor.toColorInt())
     Box(
@@ -88,8 +91,20 @@ private fun TimetableWidgetCell(
                 maxLines = titleLines
             )
 
+            if (showSubtitle || showLocation) Spacer(modifier = GlanceModifier.height(2.dp))
+
+            if (showSubtitle) {
+                Text(
+                    text = lecture.subtitle.orEmpty(),
+                    style = TextStyle(
+                        color = ColorProvider(day = textColor, night = textColor),
+                        fontSize = 8.sp
+                    ),
+                    maxLines = 1
+                )
+            }
+
             if (showLocation) {
-                Spacer(modifier = GlanceModifier.height(2.dp))
                 Text(
                     text = lecture.classroom,
                     style = TextStyle(

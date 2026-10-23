@@ -8,7 +8,8 @@ data class Lecture(
     val name: String,
     val code: String = "",
     val classes: List<LectureClass>,
-    val color: String? = null // Hex color string
+    val color: String? = null, // Hex color string
+    val subtitle: String? = null,
 ) {
     companion object {
         fun mock(
@@ -40,7 +41,7 @@ data class Lecture(
             mock(id = 1927923, name = "일반화학실험 I", code = "CH.10002", color = "#FCC419",
                 classes = listOf(LectureClass("FRI", 780, 960, "E6-5 402"))),
             mock(id = 1932260, name = "인성/리더십 III", code = "HSS.10074", color = "#845EF7",
-                classes = listOf(LectureClass("WED", 1200, 1320, "E11 210")))
+                classes = listOf(LectureClass("WED", 1200, 1320, "E11 210"))).copy(subtitle = "리더십 강좌")
         )
     }
 }

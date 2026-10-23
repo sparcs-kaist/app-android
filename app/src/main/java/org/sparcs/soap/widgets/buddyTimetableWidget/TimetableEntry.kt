@@ -42,7 +42,8 @@ fun WidgetTimetableEntry.Companion.mock(): WidgetTimetableEntry {
             durationMinutes = 105,
             bgColor = "#F5A623",
             textColor = "#FFFFFF",
-            signInRequired = false
+            signInRequired = false,
+            subtitle = "리더십 강좌"
         )
     )
 

@@ -4,8 +4,9 @@ import kotlinx.serialization.Serializable
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.models.otl.Timetable
-import org.sparcs.soap.widgets.toWidgetHex
+import org.sparcs.soap.app.domain.models.otl.subtitleTopic
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
+import org.sparcs.soap.widgets.toWidgetHex
 
 @Serializable
 data class TimetableUiState(
@@ -26,7 +27,8 @@ fun Timetable.toWidgetUiState(theme: TimetableTheme = TimetableTheme.Default): T
     val widgetItems = this.lectures.flatMap { lecture ->
         lecture.classes.filter { it.end > it.begin }.map { ct ->
             WidgetLectureEntry(
-                title = lecture.name + lecture.subtitle,
+                title = lecture.name,
+                subtitle = lecture.subtitle.subtitleTopic,
                 classroom = "(${ct.buildingCode}) ${ct.roomName}",
                 day = ct.day,
                 startMinutes = ct.begin,

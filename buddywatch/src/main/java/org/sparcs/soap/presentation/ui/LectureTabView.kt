@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.items
@@ -19,6 +20,8 @@ import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.tooling.preview.devices.WearDevices
+import java.time.DayOfWeek
+import java.time.LocalDateTime
 import org.sparcs.soap.R
 import org.sparcs.soap.data.models.ScheduleEntry
 import org.sparcs.soap.data.models.Timetable
@@ -28,8 +31,6 @@ import org.sparcs.soap.presentation.theme.SoapTheme
 import org.sparcs.soap.shared.formatTimeRange
 import org.sparcs.soap.shared.scheduleColor
 import org.sparcs.soap.shared.statusString
-import java.time.DayOfWeek
-import java.time.LocalDateTime
 
 @Composable
 fun LectureTabView(
@@ -57,6 +58,9 @@ fun LectureView(entry: ScheduleEntry, now: LocalDateTime) {
         verticalArrangement = Arrangement.spacedBy(6.dp, alignment = Alignment.CenterVertically)
     ) {
         Text(entry.title, style = MaterialTheme.typography.title3, fontWeight = FontWeight.Bold)
+        entry.subtitle?.let {
+            Text(it, style = MaterialTheme.typography.caption1, color = MaterialTheme.colors.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
         Text(formatTimeRange(entry.classTime.begin, entry.classTime.end), style = MaterialTheme.typography.caption1)
         Text(entry.classTime.statusString(LocalContext.current, now), color = entry.color.scheduleColor(), style = MaterialTheme.typography.caption1)
         Text(entry.location, style = MaterialTheme.typography.caption2)

@@ -38,6 +38,9 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.Calendar
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
@@ -45,6 +48,7 @@ import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
 import org.sparcs.soap.app.domain.helpers.TokenStorageProtocol
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.subtitleTopic
 import org.sparcs.soap.widgets.WIDGET_THEME_ID
 import org.sparcs.soap.widgets.WidgetEntryPoint
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.ui.UpcomingClassCircularWidgetView
@@ -57,9 +61,6 @@ import org.sparcs.soap.widgets.timetableWidgetIntent
 import org.sparcs.soap.widgets.toWidgetHex
 import org.sparcs.soap.widgets.updateInstalledWidgets
 import timber.log.Timber
-import java.util.Calendar
-import javax.inject.Inject
-import javax.inject.Singleton
 
 class BuddyUpcomingClassWidget : GlanceAppWidget() {
     override val stateDefinition = PreferencesGlanceStateDefinition
@@ -201,7 +202,8 @@ class UpcomingClassUpdateWorker(context: Context, params: WorkerParameters) :
             val widgetEntry = if (nextLecture != null) {
                 val (lecture, time) = nextLecture
                 WidgetLectureEntry(
-                    title = lecture.name + lecture.subtitle,
+                    title = lecture.name,
+                    subtitle = lecture.subtitle.subtitleTopic,
                     classroom = time.let { "(" + it.buildingCode + ") " + it.roomName },
                     day = time.day,
                     startMinutes = time.begin,

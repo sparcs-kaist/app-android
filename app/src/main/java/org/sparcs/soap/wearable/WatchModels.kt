@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.subtitleTopic
 
 @Serializable
 data class WatchTimetable(
@@ -42,7 +43,8 @@ data class WatchLecture(
     val classes: List<WatchLectureClass>,
     val color: String? = null,
     /** Palette slot this lecture occupies, so the payload can be recolored without refetching it. */
-    val colorID: Int? = null
+    val colorID: Int? = null,
+    val subtitle: String? = null,
 )
 
 @Serializable
@@ -59,7 +61,7 @@ fun Timetable.toWatchModel(theme: TimetableTheme): WatchTimetable {
         lectures = lectures.map { lecture ->
             WatchLecture(
                 id = lecture.id,
-                name = lecture.name + lecture.subtitle,
+                name = lecture.name,
                 code = lecture.code,
                 classes = lecture.classes.map { cl ->
                     WatchLectureClass(
@@ -70,7 +72,8 @@ fun Timetable.toWatchModel(theme: TimetableTheme): WatchTimetable {
                     )
                 },
                 color = theme.colorFor(lecture.courseID).toWatchHex(),
-                colorID = lecture.courseID
+                colorID = lecture.courseID,
+                subtitle = lecture.subtitle.subtitleTopic,
             )
         },
         activities = activities.mapNotNull { activity ->
