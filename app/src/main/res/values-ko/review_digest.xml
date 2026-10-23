@@ -13,6 +13,7 @@
     <string name="review_digest_no_reviews">요약할 평가가 없습니다.</string>
     <string name="review_digest_unsafe">일부 평가는 요약할 수 없습니다.</string>
     <string name="review_digest_busy">기기 내 AI가 사용 중입니다. 잠시 후 다시 시도하세요.</string>
+    <string name="review_digest_interrupted">Buddy 화면을 벗어나 요약이 멈췄어요. Buddy를 켜 둔 채로 다시 시도하세요.</string>
     <string name="review_digest_failed">평가를 요약하지 못했습니다. 다시 시도하세요.</string>
     <string name="review_digest_settings_title">평가</string>
     <string name="review_digest_settings_automatic">평가 자동 요약</string>

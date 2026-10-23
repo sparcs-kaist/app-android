@@ -67,4 +67,33 @@ class ReviewDigestParserTest {
     fun `empty response gives an empty digest`() {
         assertEquals(LectureReviewDigest(), ReviewDigestParser.parse(""))
     }
+
+    @Test
+    fun `korean section labels are read`() {
+        val digest = ReviewDigestParser.parse("**개요**: 무난한 수업이에요.\n좋은 점:\n- 친절한 설명\n과제량: 적당해요.\n성적: 후한 편이에요.")
+        assertEquals("무난한 수업이에요.", digest.overview)
+        assertEquals(listOf("친절한 설명"), digest.liked)
+        assertEquals("적당해요.", digest.workload)
+        assertEquals("후한 편이에요.", digest.grading)
+    }
+
+    @Test
+    fun `a summary without an overview label keeps its opening text as the overview`() {
+        val digest = ReviewDigestParser.parse("전반적으로 만족도가 높아요.\nLIKED:\n- 명확한 강의")
+        assertEquals("전반적으로 만족도가 높아요.", digest.overview)
+        assertEquals(listOf("명확한 강의"), digest.liked)
+    }
+
+    @Test
+    fun `markdown headings bullets and emphasis are stripped`() {
+        val digest = ReviewDigestParser.parse(
+            "## **OVERVIEW:** 대체로 *만족스러운* 수업이에요.\n### 좋은 점\n* **명확한** 설명\n* `과제` 피드백\n#\nDISLIKED:\n- None\n**WORKLOAD:** 매주 과제가 있어요."
+        )
+        assertEquals("대체로 만족스러운 수업이에요.", digest.overview)
+        assertEquals(listOf("명확한 설명", "과제 피드백"), digest.liked)
+        assertEquals(emptyList<String>(), digest.disliked)
+        assertEquals("매주 과제가 있어요.", digest.workload)
+        val text = listOfNotNull(digest.overview, digest.workload).plus(digest.liked).joinToString()
+        listOf("#", "*", "`").forEach { assertEquals(false, text.contains(it)) }
+    }
 }
