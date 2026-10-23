@@ -275,12 +275,17 @@ private fun TimetableBlock(
             val titleLines = if (maxHeight >= 40.dp) 2 else 1
             val showTime = maxHeight >= 64.dp && maxWidth >= 88.dp
             val showLocation = maxHeight >= 80.dp && maxWidth >= 88.dp && entry.location.isNotBlank()
+            val showSubtitle = maxHeight >= 96.dp && entry.subtitle != null
             Column(Modifier.padding(5.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
                     entry.title, color = textColor,
                     fontSize = 12.sp, lineHeight = 14.sp, fontWeight = FontWeight.SemiBold,
                     maxLines = titleLines,
                     overflow = TextOverflow.Ellipsis
+                )
+                if (showSubtitle) Text(
+                    entry.subtitle.orEmpty(), color = textColor,
+                    fontSize = 10.sp, fontWeight = FontWeight.Medium, maxLines = 1, overflow = TextOverflow.Ellipsis
                 )
                 if (showTime) Text(time, color = textColor.copy(alpha = 0.85f), fontSize = 10.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (showLocation) Text(

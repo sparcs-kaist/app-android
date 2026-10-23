@@ -50,7 +50,7 @@ data class Timetable(
     val visibleDays: List<DayType>
         get() {
             val classDays = lectures.flatMap { it.classes.map { ct -> ct.day } }
-            return (classDays + activities.mapNotNull { DayType.fromValue(it.day) } + DayType.weekdays()).distinct().sortedBy { it.value }
+            return (classDays + activitySlots.mapNotNull { DayType.fromValue(it.day) } + DayType.weekdays()).distinct().sortedBy { it.value }
         }
 
     // Get all lectures for day. Return LectureItem that includes index of ClassTime of the Lecture.
@@ -133,9 +133,7 @@ data class Timetable(
     fun conflictingLectures(lecture: Lecture): List<Lecture> =
         lectures.filter { it.id != lecture.id && hasCollisions(lecture, it) }
 
-    fun conflictingActivities(lecture: Lecture): List<TimetableActivity> = activities.filter { activity ->
-        lecture.classes.any { it.day.value == activity.day && it.begin < activity.end && activity.begin < it.end }
-    }
+    fun conflictingActivities(lecture: Lecture): List<TimetableActivity> = activities.filter { it.overlaps(lecture) }
 
     fun conflicts(lecture: Lecture): List<String> =
         conflictingLectures(lecture).map { it.name } + conflictingActivities(lecture).map { it.title }

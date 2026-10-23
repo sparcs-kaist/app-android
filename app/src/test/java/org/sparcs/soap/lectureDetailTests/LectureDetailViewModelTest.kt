@@ -30,6 +30,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
 import org.sparcs.soap.buddyTestSupport.useCase.MockCourseUseCase
+import org.sparcs.soap.buddyTestSupport.useCase.MockReviewSummaryUseCase
 import org.sparcs.soap.buddyTestSupport.useCase.MockReviewUseCase
 import org.sparcs.soap.buddyTestSupport.useCase.MockTimetableUseCase
 import org.sparcs.soap.buddyTestSupport.useCase.MockUserUseCase
@@ -78,6 +79,7 @@ class LectureDetailViewModelTest {
                     override suspend fun isAvailable() = false
                     override suspend fun summarise(text: String, isHtml: Boolean) = SummarizationResultState.Unavailable
                 },
+                MockReviewSummaryUseCase(),
             ),
             savedStateHandle = savedStateHandle,
         )

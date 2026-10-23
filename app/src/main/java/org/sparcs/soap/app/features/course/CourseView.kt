@@ -58,6 +58,7 @@ import org.sparcs.soap.app.features.course.components.CourseProfessorPicker
 import org.sparcs.soap.app.features.course.components.CourseReviewSectionSkeleton
 import org.sparcs.soap.app.features.course.components.CourseSummarySkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewCell
+import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
@@ -465,6 +466,13 @@ fun CourseReviewSection(
             }
         }
 
+        ReviewDigestSection(
+            reviews = listOfNotNull(myReview) + reviews.filter { it.id != myReview?.id },
+            isLoaded = true,
+            screen = "Course",
+            modifier = Modifier.padding(vertical = 6.dp),
+        )
+
         Column {
             myReview?.let {
                 Column {
@@ -491,10 +499,10 @@ fun CourseReviewSection(
                             viewModel.showOriginal()
                             showTranslationSheet = false
                             activeReviewId = it.id
-                            viewModel.summarize(it.content, scope = scope)
+                            viewModel.summarizeReview(it.content, scope = scope)
                         },
                         summarizationState = if (!showTranslationSheet && activeReviewId == it.id) summarizationState else SummarizationState.Idle,
-                        onRetrySummarize = { viewModel.summarize(it.content, scope = scope) },
+                        onRetrySummarize = { viewModel.summarizeReview(it.content, scope = scope) },
                         onDismissSummarize = {
                             activeReviewId = null
                             viewModel.hideSummary()
@@ -532,10 +540,10 @@ fun CourseReviewSection(
                             viewModel.showOriginal()
                             showTranslationSheet = false
                             activeReviewId = review.id
-                            viewModel.summarize(review.content, scope = scope)
+                            viewModel.summarizeReview(review.content, scope = scope)
                         },
                         summarizationState = if (!showTranslationSheet && activeReviewId == review.id) summarizationState else SummarizationState.Idle,
-                        onRetrySummarize = { viewModel.summarize(review.content, scope = scope) },
+                        onRetrySummarize = { viewModel.summarizeReview(review.content, scope = scope) },
                         onDismissSummarize = {
                             activeReviewId = null
                             viewModel.hideSummary()

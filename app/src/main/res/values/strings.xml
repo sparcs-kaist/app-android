@@ -783,4 +783,15 @@
     <string name="filter_within_2years">Within 2 years</string>
     <string name="lecture_no_ratings">No ratings yet</string>
     <string name="course_reviews_load_failed">Failed to load reviews.</string>
+    <string name="activity_quick_fill">Quick Fill</string>
+    <string name="activity_quick_fill_placeholder">Study group on Tuesday 7–9pm at the library</string>
+    <string name="activity_quick_fill_action">Fill In Details</string>
+    <string name="activity_quick_fill_footer">On-device AI fills in the details below, so check them before saving.</string>
+    <string name="activity_quick_fill_unavailable">On-device AI isn\'t available right now. Please try again later.</string>
+    <string name="activity_quick_fill_unsafe">This description can\'t be used. Try describing the activity differently.</string>
+    <string name="activity_quick_fill_nothing_found">Couldn\'t find an activity in that. Try including what it is, the day and the time.</string>
+    <string name="activity_quick_fill_failed">Couldn\'t fill in the activity. Please try again.</string>
+    <string name="summarization_unsafe">This can\'t be summarised.</string>
+    <string name="activity_add_time">Add Time</string>
+    <string name="activity_remove_time">Remove time</string>
 </resources>

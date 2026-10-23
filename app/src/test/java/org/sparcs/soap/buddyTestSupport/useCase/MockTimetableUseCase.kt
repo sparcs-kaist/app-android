@@ -5,6 +5,7 @@ import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.TableDuplication
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
+import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.shared.mocks.otl.mock
@@ -26,6 +27,9 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
     var renameTableResult: Result<Unit> = Result.success(Unit)
 
     var duplicateMyTableResult: Result<TableDuplication> = Result.success(TableDuplication(id = 99))
+
+    var updateItemsResult: Result<Unit> = Result.success(Unit)
+    val updatedItems = mutableListOf<List<TimetableItemChange>>()
 
     var deleteLectureCallCount = 0
     var duplicatedTitles = mutableListOf<String>()
@@ -64,5 +68,10 @@ class MockTimetableUseCase : TimetableUseCaseProtocol {
     override suspend fun deleteLecture(timetableID: Int, lectureID: Int) {
         deleteLectureCallCount += 1
         deleteLectureResult.getOrThrow()
+    }
+
+    override suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>) {
+        updatedItems.add(changes)
+        updateItemsResult.getOrThrow()
     }
 }

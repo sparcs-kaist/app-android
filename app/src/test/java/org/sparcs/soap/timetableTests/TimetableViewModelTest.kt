@@ -16,15 +16,17 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableSelectionStore
-import org.sparcs.soap.app.domain.models.otl.TableDuplication
-import org.sparcs.soap.app.domain.models.otl.Timetable
-import org.sparcs.soap.app.domain.models.otl.TimetableCreation
-import org.sparcs.soap.app.domain.models.otl.TimetableSummary
-import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.domain.models.otl.ActivityDraft
-import org.sparcs.soap.app.domain.models.otl.TimetableActivity
+import org.sparcs.soap.app.domain.models.otl.ActivityTime
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
+import org.sparcs.soap.app.domain.models.otl.TableDuplication
+import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.TimetableActivity
+import org.sparcs.soap.app.domain.models.otl.TimetableCreation
+import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
+import org.sparcs.soap.app.domain.models.otl.TimetableSummary
+import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
@@ -59,26 +61,78 @@ class TimetableViewModelTest {
     }
 
     @Test
-    fun `adding a conflicting lecture replaces only overlapping lectures and activities`() = runTest {
+    fun `adding a conflicting lecture replaces only overlapping items in one batch`() = runTest {
         val original = Lecture.mock()
         val slot = original.classes.first().copy(begin = 600, end = 660)
         val replacement = original.copy(id = 901, classes = listOf(slot))
         val overlapping = original.copy(id = 902, classes = listOf(slot))
         val adjacent = original.copy(id = 903, classes = listOf(slot.copy(begin = 660, end = 720)))
         val activity = TimetableActivity(904, "Meeting", "", slot.day.value, 630, 690)
-        val calls = mutableListOf<String>()
         val table = Timetable("5", listOf(overlapping, adjacent), listOf(activity))
         val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
             override suspend fun getTable(id: Int, forceRefresh: Boolean) = table
-            override suspend fun deleteActivity(timetableID: Int, activityID: Int): Timetable {
-                calls += "activity:$activityID"
-                return table
+        }
+        createViewModel(useCase)
+        viewModel.selectTimetable(5)
+        viewModel.setCandidateLecture(replacement)
+
+        viewModel.addLecture(replacement)
+
+        assertEquals(
+            listOf(
+                listOf(
+                    TimetableItemChange.RemoveActivity(904),
+                    TimetableItemChange.RemoveLecture(902),
+                    TimetableItemChange.AddLecture(901),
+                )
+            ),
+            mockTimetableUseCase.updatedItems,
+        )
+        assertNull(viewModel.candidateLecture.value)
+    }
+
+    @Test
+    fun `an activity on another of its days still conflicts with an added lecture`() = runTest {
+        val original = Lecture.mock()
+        val slot = original.classes.first().copy(begin = 600, end = 660)
+        val replacement = original.copy(id = 901, classes = listOf(slot))
+        val elsewhere = (slot.day.value + 1) % 7
+        val activity = TimetableActivity(
+            904, "Gym", "", listOf(ActivityTime(elsewhere, 600, 660), ActivityTime(slot.day.value, 630, 690))
+        )
+        val table = Timetable("5", emptyList(), listOf(activity))
+        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = table
+        }
+        createViewModel(useCase)
+        viewModel.selectTimetable(5)
+
+        viewModel.addLecture(replacement)
+
+        assertEquals(
+            listOf(listOf(TimetableItemChange.RemoveActivity(904), TimetableItemChange.AddLecture(901))),
+            mockTimetableUseCase.updatedItems,
+        )
+    }
+
+    @Test
+    fun `a failed replacement batch makes no further changes and shows an alert`() = runTest {
+        val original = Lecture.mock()
+        val slot = original.classes.first().copy(begin = 600, end = 660)
+        val replacement = original.copy(id = 901, classes = listOf(slot))
+        val overlapping = original.copy(id = 902, classes = listOf(slot))
+        val calls = mutableListOf<String>()
+        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = Timetable("5", listOf(overlapping))
+            override suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>) {
+                calls += "batch:${changes.size}"
+                throw IllegalStateException("Batch failed")
             }
-            override suspend fun deleteLecture(timetableID: Int, lectureID: Int) {
-                calls += "delete:$lectureID"
-            }
-            override suspend fun addLecture(timetableID: Int, lectureID: Int) {
-                calls += "add:$lectureID"
+            override suspend fun addLecture(timetableID: Int, lectureID: Int) { calls += "add:$lectureID" }
+            override suspend fun deleteLecture(timetableID: Int, lectureID: Int) { calls += "delete:$lectureID" }
+            override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Timetable {
+                calls += "save"
+                return Timetable("5", emptyList())
             }
         }
         createViewModel(useCase)
@@ -87,27 +141,9 @@ class TimetableViewModelTest {
 
         viewModel.addLecture(replacement)
 
-        assertEquals(listOf("activity:904", "delete:902", "add:901"), calls)
-        assertNull(viewModel.candidateLecture.value)
-    }
-
-    @Test
-    fun `failed overlap removal does not add the replacement`() = runTest {
-        val original = Lecture.mock()
-        val replacement = original.copy(id = original.id + 1)
-        var added = false
-        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
-            override suspend fun getTable(id: Int, forceRefresh: Boolean) = Timetable("5", listOf(original))
-            override suspend fun deleteLecture(timetableID: Int, lectureID: Int) {
-                throw IllegalStateException("Delete failed")
-            }
-            override suspend fun addLecture(timetableID: Int, lectureID: Int) { added = true }
-        }
-        createViewModel(useCase)
-        viewModel.selectTimetable(5)
-        viewModel.addLecture(replacement)
-        assertFalse(added)
+        assertEquals(listOf("batch:2"), calls)
         assertTrue(viewModel.isAlertPresented)
+        assertEquals(replacement, viewModel.candidateLecture.value)
     }
 
     @Test

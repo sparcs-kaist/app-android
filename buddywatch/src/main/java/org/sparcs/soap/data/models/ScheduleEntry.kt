@@ -8,7 +8,8 @@ data class ScheduleEntry(
     val title: String,
     val classTime: LectureClass,
     val color: String?,
-    val code: String = ""
+    val code: String = "",
+    val subtitle: String? = null,
 ) {
     val location: String get() = classTime.location
 }
@@ -20,7 +21,7 @@ fun Timetable.scheduleEntries(day: DayOfWeek): List<ScheduleEntry> = (
         lecture.classes.filter { it.day == day.dayCode }.map { time ->
             ScheduleEntry(
                 "lecture-${lecture.id}-${time.day}-${time.begin}-${time.end}",
-                lecture.name, time, lecture.color, lecture.code
+                lecture.name, time, lecture.color, lecture.code, lecture.subtitle
             )
         }
     } + activities.filter { it.day == day.dayCode }.map { activity ->

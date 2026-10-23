@@ -41,11 +41,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
-import org.sparcs.soap.app.features.timetable.activity.activityTime
+import org.sparcs.soap.app.features.timetable.activity.activityTimeRange
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
@@ -65,8 +64,8 @@ fun ActivityList(
     val sorted = remember(activities) {
         activities.sortedWith(
             compareBy(
-                { it.day },
-                { it.begin },
+                { it.ranges.first().day },
+                { it.ranges.first().begin },
                 { it.id })
         )
     }
@@ -141,10 +140,8 @@ fun ActivityList(
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
-                            val day = DayType.fromValue(activity.day)
-                                ?.let { stringResource(it.stringValue) }.orEmpty()
                             Text(
-                                "$day · ${activityTime(activity.begin)} – ${activityTime(activity.end)}",
+                                activity.ranges.map { activityTimeRange(it) }.joinToString(" · "),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

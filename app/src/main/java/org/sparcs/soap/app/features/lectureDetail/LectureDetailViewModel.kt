@@ -291,6 +291,6 @@ class LectureDetailViewModel @Inject constructor(
     }
 
     override fun summarizeReview(content: String) {
-        summarize(content, viewModelScope)
+        summarizeReview(content, viewModelScope)
     }
 }

@@ -213,4 +213,57 @@ class LectureSearchViewModelTest {
         runCurrent()
         assertEquals(current, viewModel.state.value.courses)
     }
+
+    @Test
+    fun `next page runs once while a page request is in flight`() = runTest {
+        val firstPage = CourseLecture.mockList().first().copy(lectures = (1..100).map { Lecture.mock().copy(id = it) })
+        val nextPage = CompletableDeferred<List<CourseLecture>>()
+        var pageRequests = 0
+        val useCase = object : LectureUseCaseProtocol by mockLectureUseCase {
+            override suspend fun searchLecture(request: LectureSearchRequest): List<CourseLecture> =
+                if (request.offset == 0) listOf(firstPage) else { pageRequests++; nextPage.await() }
+        }
+        viewModel = LectureSearchViewModel(useCase, MockCrashlyticsService(), MockAnalyticsService())
+        viewModel.onSearchTextChange("course")
+        viewModel.fetchLectures(semester)
+
+        viewModel.loadNextPage()
+        viewModel.loadNextPage()
+        runCurrent()
+        nextPage.complete(emptyList())
+        runCurrent()
+
+        assertEquals(1, pageRequests)
+        assertEquals(false, (viewModel.pagination.value as LectureSearchViewModel.PaginationState.Idle).hasMore)
+    }
+
+    @Test
+    fun `new search can page while the previous search is still paging`() = runTest {
+        val fullPage = { keyword: String -> CourseLecture.mockList().first().copy(lectures = (1..100).map { Lecture.mock().copy(id = it, name = keyword) }) }
+        val stalePage = CompletableDeferred<List<CourseLecture>>()
+        val pagedKeywords = mutableListOf<String>()
+        val useCase = object : LectureUseCaseProtocol by mockLectureUseCase {
+            override suspend fun searchLecture(request: LectureSearchRequest): List<CourseLecture> {
+                if (request.offset == 0) return listOf(fullPage(request.keyword.orEmpty()))
+                pagedKeywords += request.keyword.orEmpty()
+                return if (request.keyword == "old") withContext(NonCancellable) { stalePage.await() } else emptyList()
+            }
+        }
+        viewModel = LectureSearchViewModel(useCase, MockCrashlyticsService(), MockAnalyticsService())
+        viewModel.onSearchTextChange("old")
+        viewModel.fetchLectures(semester)
+        viewModel.loadNextPage()
+        runCurrent()
+
+        viewModel.onSearchTextChange("new")
+        viewModel.fetchLectures(semester)
+        viewModel.loadNextPage()
+        runCurrent()
+        stalePage.complete(listOf(fullPage("old")))
+        runCurrent()
+
+        assertEquals(listOf("old", "new"), pagedKeywords)
+        assertTrue(viewModel.state.value.courses.flatMap { it.lectures }.all { it.name == "new" })
+        assertEquals(false, (viewModel.pagination.value as LectureSearchViewModel.PaginationState.Idle).hasMore)
+    }
 }

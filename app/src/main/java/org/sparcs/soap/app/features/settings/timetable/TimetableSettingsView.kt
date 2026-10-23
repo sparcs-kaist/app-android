@@ -22,13 +22,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -36,14 +42,19 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.LectureSearchStyleStore
+import org.sparcs.soap.app.domain.helpers.ReviewSummarySettingsStore
 import org.sparcs.soap.app.domain.helpers.rememberLectureSearchStyle
+import org.sparcs.soap.app.domain.helpers.rememberSummarisesReviewsAutomatically
 import org.sparcs.soap.app.domain.models.otl.LectureSearchStyle
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.reviewDigest.ReviewDigestViewModel
+import org.sparcs.soap.app.features.reviewDigest.ReviewDigestViewModelProtocol
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.settings.taxi.NavigationLinkWithIcon
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
@@ -52,6 +63,8 @@ import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.grayBB
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewReviewDigestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,6 +154,56 @@ private fun LoadedView(
             text = stringResource(R.string.interested_departments),
             icon = Icons.Outlined.School
         )
+
+        ReviewSummarySetting()
+    }
+}
+
+@Composable
+private fun ReviewSummarySetting(
+    viewModel: ReviewDigestViewModelProtocol = if (LocalInspectionMode.current) {
+        remember { PreviewReviewDigestViewModel() }
+    } else {
+        hiltViewModel<ReviewDigestViewModel>()
+    },
+) {
+    val context = LocalContext.current
+    val store = remember(context) { ReviewSummarySettingsStore(context) }
+    val isAutomatic by rememberSummarisesReviewsAutomatically()
+    val state by viewModel.state.collectAsState()
+    val haptic = LocalHapticFeedback.current
+
+    LaunchedEffect(Unit) { viewModel.checkAvailability() }
+    if (!state.isAvailable) return
+
+    Column {
+        Spacer(Modifier.height(24.dp))
+
+        Text(
+            text = stringResource(R.string.review_digest_settings_title),
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        ) {
+            Text(stringResource(R.string.review_digest_settings_automatic), modifier = Modifier.weight(1f))
+            Switch(
+                checked = isAutomatic,
+                onCheckedChange = {
+                    haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                    store.summarisesAutomatically = it
+                }
+            )
+        }
+
+        Text(
+            text = stringResource(R.string.review_digest_settings_footer),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.grayBB,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
     }
 }
 
@@ -227,6 +290,12 @@ private fun SearchStylePreview(style: LectureSearchStyle) {
 @Composable
 private fun TimetableSettingsViewPreview() {
     Theme { TimetableSettingsView(rememberNavController()) }
+}
+
+@Preview(showBackground = true)
+@Composable
+private fun ReviewSummarySettingPreview() {
+    Theme { ReviewSummarySetting(PreviewReviewDigestViewModel()) }
 }
 
 @Preview(showBackground = true, widthDp = 360)

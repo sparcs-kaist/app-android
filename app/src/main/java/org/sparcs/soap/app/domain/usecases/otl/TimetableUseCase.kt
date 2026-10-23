@@ -1,5 +1,8 @@
 package org.sparcs.soap.app.domain.usecases.otl
 
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,6 +28,7 @@ import org.sparcs.soap.app.domain.models.otl.TableDuplication
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableCachedState
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
+import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
@@ -32,9 +36,6 @@ import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.wearable.WearableDataManager
 import timber.log.Timber
-import java.util.concurrent.ConcurrentHashMap
-import javax.inject.Inject
-import javax.inject.Singleton
 
 interface TimetableUseCaseProtocol {
     suspend fun cachedState(semester: Semester? = null, timetableID: Int? = null): TimetableCachedState = TimetableCachedState()
@@ -67,6 +68,8 @@ interface TimetableUseCaseProtocol {
     suspend fun addLecture(timetableID: Int, lectureID: Int)
 
     suspend fun deleteLecture(timetableID: Int, lectureID: Int)
+
+    suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>)
 }
 
 private const val DUPLICATE_CONCURRENCY = 4
@@ -301,6 +304,17 @@ class TimetableUseCase @Inject constructor(
         }
     }
 
+    override suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>) {
+        val context = CrashContext(feature, metadata = mapOf("timetableID" to timetableID.toString()))
+        execute(context) {
+            updateJobs[timetableID.toString()]?.cancel()
+            otlTimetableRepository.updateItems(timetableID, changes)
+            val freshTable = otlTimetableRepository.getTimetable(timetableID)
+            timetableCache.store(freshTable, timetableID.toString())
+            wearableDataManager.pushToWatchIfSelected(freshTable, timetableID = timetableID)
+        }
+    }
+
     override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Timetable = timetableCache.withSession {
         require(draft.isValid)
         updateJobs[timetableID.toString()]?.cancel()
@@ -400,4 +414,6 @@ class MockTimetableUseCase(
     override suspend fun addLecture(timetableID: Int, lectureID: Int) {}
 
     override suspend fun deleteLecture(timetableID: Int, lectureID: Int) {}
+
+    override suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>) {}
 }

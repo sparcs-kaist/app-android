@@ -67,6 +67,14 @@ fun LectureItem(entry: ScheduleEntry, onSelect: () -> Unit = {}) {
         Spacer(modifier = Modifier.height(4.dp))
 
         Column(modifier = Modifier.padding(start = 12.dp)) {
+            entry.subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.caption1,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
             Text(
                 text = formatTimeRange(cl.begin, cl.end),
                 style = MaterialTheme.typography.caption1,

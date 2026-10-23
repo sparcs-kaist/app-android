@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.Date
+import javax.inject.Inject
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,6 +32,7 @@ import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.Semester
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 import org.sparcs.soap.app.domain.models.otl.TimetableSummary
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
@@ -38,8 +41,6 @@ import org.sparcs.soap.app.features.timetable.event.TimetableViewEvent
 import org.sparcs.soap.app.shared.extensions.toAlertState
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
 import timber.log.Timber
-import java.util.Date
-import javax.inject.Inject
 
 private val defaultTimetableLoadState = MutableStateFlow(TimetableLoadState()).asStateFlow()
 
@@ -548,9 +549,10 @@ class TimetableViewModel @Inject constructor(
             isAlertPresented = true
             return
         }
-        activityConflicts.forEach { timetableUseCase.deleteActivity(tableId, it.id) }
-        lectureConflicts.forEach { timetableUseCase.deleteLecture(tableId, it.id) }
-        timetableUseCase.addLecture(tableId, lecture.id)
+        val changes = activityConflicts.map { TimetableItemChange.RemoveActivity(it.id) } +
+            lectureConflicts.map { TimetableItemChange.RemoveLecture(it.id) } +
+            TimetableItemChange.AddLecture(lecture.id)
+        timetableUseCase.updateItems(tableId, changes)
         _candidateLecture.value = null
         analyticsService.logEvent(TimetableViewEvent.LectureAdded)
     }

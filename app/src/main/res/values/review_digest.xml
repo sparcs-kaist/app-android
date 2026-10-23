@@ -1,0 +1,20 @@
+<resources>
+    <string name="review_digest_summarise">Summarise Reviews</string>
+    <string name="review_digest_summarising">Summarising…</string>
+    <string name="review_digest_reading">Reading reviews on this device…</string>
+    <string name="review_digest_title">Review Summary</string>
+    <string name="review_digest_liked">Liked</string>
+    <string name="review_digest_disliked">Watch Out For</string>
+    <string name="review_digest_workload">Workload</string>
+    <string name="review_digest_grading">Grading</string>
+    <string name="review_digest_note">Based on %1$d reviews. May contain errors, please double-check facts.</string>
+    <string name="review_digest_try_again">Try Again</string>
+    <string name="review_digest_unavailable">On-device AI isn\'t available right now. Please try again later.</string>
+    <string name="review_digest_no_reviews">There are no reviews to summarise.</string>
+    <string name="review_digest_unsafe">Some of these reviews can\'t be summarised.</string>
+    <string name="review_digest_busy">On-device AI is busy right now. Please try again in a moment.</string>
+    <string name="review_digest_failed">The reviews couldn\'t be summarised. Please try again.</string>
+    <string name="review_digest_settings_title">Reviews</string>
+    <string name="review_digest_settings_automatic">Summarise Reviews Automatically</string>
+    <string name="review_digest_settings_footer">Lecture and course pages summarise their reviews with on-device AI as soon as they open. When this is off, you can still summarise them on request.</string>
+</resources>

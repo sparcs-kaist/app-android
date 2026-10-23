@@ -64,6 +64,7 @@ class PreviewLectureDetailViewModel(initialState: LectureDetailViewModel.ViewSta
     }
 
     override fun summarize(content: String, scope: CoroutineScope) {}
+    override fun summarizeReview(content: String, scope: CoroutineScope) {}
 
     override fun translateReview(content: String, targetLanguage: String, allowDownload: Boolean) {}
     override fun showOriginal() {}

@@ -48,6 +48,8 @@ import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.LectureItem
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
+import org.sparcs.soap.app.domain.models.otl.activityFor
+import org.sparcs.soap.app.domain.models.otl.activitySlots
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
@@ -147,10 +149,10 @@ fun TimetableGrid(
                                     RoundedCornerShape(4.dp)
                                 )
                                 .combinedClickable(enabled = placement == TimetablePlacement.View, onClick = {
-                                    onActivitySelected(activity, false)
+                                    onActivitySelected(timetable.activityFor(activity), false)
                                 }, onLongClick = if (isEditable) { {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    onActivitySelected(activity, true)
+                                    onActivitySelected(timetable.activityFor(activity), true)
                                 } } else null)
                                 .padding(5.dp)
                         ) {
@@ -248,7 +250,7 @@ private data class TimetableGridLayout(
     companion object {
         fun of(timetable: Timetable?, candidateLecture: Lecture?): TimetableGridLayout {
             val visibleDays = timetable?.visibleDays ?: DayType.weekdays()
-            val activities = timetable?.activities.orEmpty()
+            val activities = timetable?.activitySlots.orEmpty()
             val times = timetable?.lectures.orEmpty().flatMap { it.classes } + candidateLecture?.classes.orEmpty()
             val minMinutes = ((times.map { it.begin } + activities.map { it.begin }).minOrNull()
                 ?: TimetableDefaults.DEFAULT_MIN_MINUTES) / 60 * 60

@@ -729,4 +729,15 @@
     <string name="feed_reply_action">답글 달기</string>
     <string name="feed_character_count">%1$d/%2$d</string>
     <string name="feed_notification_comment_missing">해당 댓글을 찾을 수 없습니다.</string>
+    <string name="activity_quick_fill">빠른 입력</string>
+    <string name="activity_quick_fill_placeholder">화요일 저녁 7–9시 도서관에서 스터디</string>
+    <string name="activity_quick_fill_action">세부 정보 채우기</string>
+    <string name="activity_quick_fill_footer">기기 내 AI가 아래 세부 정보를 채우니, 저장하기 전에 확인하세요.</string>
+    <string name="activity_quick_fill_unavailable">지금은 기기 내 AI를 사용할 수 없습니다. 잠시 후 다시 시도하세요.</string>
+    <string name="activity_quick_fill_unsafe">이 설명은 사용할 수 없습니다. 활동을 다르게 설명해 보세요.</string>
+    <string name="activity_quick_fill_nothing_found">활동 정보를 찾지 못했습니다. 무엇을 하는지, 요일과 시간을 포함해 보세요.</string>
+    <string name="activity_quick_fill_failed">활동을 채우지 못했습니다. 다시 시도하세요.</string>
+    <string name="summarization_unsafe">이 글은 요약할 수 없어요.</string>
+    <string name="activity_add_time">시간 추가</string>
+    <string name="activity_remove_time">시간 삭제</string>
 </resources>

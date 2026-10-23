@@ -18,6 +18,7 @@ import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.repositories.otl.OTLTimetableRepositoryProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
 import org.sparcs.soap.app.shared.mocks.otl.mockList
+import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 
 class BackgroundTimetableTest {
     private val repository = TestRepository()
@@ -105,5 +106,6 @@ class BackgroundTimetableTest {
         override suspend fun deleteLecture(timetableID: Int, lectureID: Int): Unit = error("Unexpected call")
         override suspend fun saveActivity(timetableID: Int, activityID: Int?, draft: ActivityDraft): Unit = error("Unexpected call")
         override suspend fun deleteActivity(timetableID: Int, activityID: Int): Unit = error("Unexpected call")
+        override suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>): List<Int> = error("Unexpected call")
     }
 }

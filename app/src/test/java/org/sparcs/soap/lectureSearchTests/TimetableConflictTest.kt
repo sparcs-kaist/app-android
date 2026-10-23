@@ -30,4 +30,13 @@ class TimetableConflictTest {
         val table = Timetable("1", listOf(lecture, overlapping, adjacent), listOf(activity))
         assertEquals(listOf("Other", "Meeting"), table.conflicts(lecture))
     }
+
+    @Test
+    fun `activities on another day or only touching do not conflict`() {
+        val otherDay = TimetableActivity(1, "Gym", "", DayType.TUE.value, 600, 660)
+        val touching = TimetableActivity(2, "Lunch", "", DayType.MON.value, 660, 720)
+        val table = Timetable("1", emptyList(), listOf(otherDay, touching))
+        assertTrue(table.conflictingActivities(lecture).isEmpty())
+        assertFalse(table.hasCollision(lecture))
+    }
 }

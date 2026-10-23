@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.activitySlots
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
@@ -27,7 +28,7 @@ fun TimetableSilhouetteView(
         ?: MaterialTheme.colorScheme.onSurface.copy(alpha = 0.07f)
     val days = timetable?.visibleDays ?: DayType.weekdays()
     val classes = timetable?.lectures.orEmpty().flatMap { it.classes }
-    val activities = timetable?.activities.orEmpty()
+    val activities = timetable?.activitySlots.orEmpty()
     val begin = (classes.map { it.begin } + activities.map { it.begin }).minOrNull() ?: 540
     val end = (classes.map { it.end } + activities.map { it.end }).maxOrNull() ?: 1080
     val duration = (end - begin).coerceAtLeast(1)
