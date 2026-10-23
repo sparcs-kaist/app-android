@@ -58,6 +58,7 @@ import org.sparcs.soap.app.features.course.components.CourseProfessorPicker
 import org.sparcs.soap.app.features.course.components.CourseReviewSectionSkeleton
 import org.sparcs.soap.app.features.course.components.CourseSummarySkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewCell
+import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
@@ -464,6 +465,13 @@ fun CourseReviewSection(
                     totalCredit?.let { reviewPage.getSpeechLetter(it) } ?: "?")
             }
         }
+
+        ReviewDigestSection(
+            reviews = listOfNotNull(myReview) + reviews.filter { it.id != myReview?.id },
+            isLoaded = true,
+            screen = "Course",
+            modifier = Modifier.padding(vertical = 6.dp),
+        )
 
         Column {
             myReview?.let {

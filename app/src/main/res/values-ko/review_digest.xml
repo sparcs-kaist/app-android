@@ -1,0 +1,20 @@
+<resources>
+    <string name="review_digest_summarise">평가 요약하기</string>
+    <string name="review_digest_summarising">요약 중…</string>
+    <string name="review_digest_reading">이 기기에서 평가를 읽는 중…</string>
+    <string name="review_digest_title">평가 요약</string>
+    <string name="review_digest_liked">좋았던 점</string>
+    <string name="review_digest_disliked">주의할 점</string>
+    <string name="review_digest_workload">학습량</string>
+    <string name="review_digest_grading">성적</string>
+    <string name="review_digest_note">평가 %1$d개를 바탕으로 함. 오류가 포함될 수 있음, 사실을 재확인하세요.</string>
+    <string name="review_digest_try_again">다시 시도</string>
+    <string name="review_digest_unavailable">지금은 기기 내 AI를 사용할 수 없습니다. 잠시 후 다시 시도하세요.</string>
+    <string name="review_digest_no_reviews">요약할 평가가 없습니다.</string>
+    <string name="review_digest_unsafe">일부 평가는 요약할 수 없습니다.</string>
+    <string name="review_digest_busy">기기 내 AI가 사용 중입니다. 잠시 후 다시 시도하세요.</string>
+    <string name="review_digest_failed">평가를 요약하지 못했습니다. 다시 시도하세요.</string>
+    <string name="review_digest_settings_title">평가</string>
+    <string name="review_digest_settings_automatic">평가 자동 요약</string>
+    <string name="review_digest_settings_footer">강의 및 과목 페이지를 열면 기기 내 AI가 평가를 바로 요약합니다. 이 옵션을 끄면 필요할 때 직접 요약할 수 있습니다.</string>
+</resources>

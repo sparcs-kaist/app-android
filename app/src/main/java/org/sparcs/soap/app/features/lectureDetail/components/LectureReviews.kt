@@ -47,6 +47,7 @@ import org.sparcs.soap.app.domain.models.summarization.SummarizationState
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
 import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
@@ -94,6 +95,13 @@ fun LectureReviews(
         )
 
         ReviewStatsSurface(lecture)
+
+        ReviewDigestSection(
+            reviews = listOfNotNull(writtenReview) + reviews.filter { it.id != writtenReview?.id },
+            isLoaded = state is LectureDetailViewModel.ViewState.Loaded,
+            screen = "LectureDetail",
+            modifier = Modifier.padding(vertical = 6.dp),
+        )
 
         ReviewsListSection(
             state = state,

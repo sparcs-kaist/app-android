@@ -117,6 +117,8 @@ import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCase
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackgroundProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
+import org.sparcs.soap.app.domain.usecases.reviewDigest.ReviewDigestUseCase
+import org.sparcs.soap.app.domain.usecases.reviewDigest.ReviewDigestUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCase
 import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.summarization.SummarizationUseCase
@@ -732,6 +734,12 @@ abstract class UseCaseModule {
     abstract fun bindReviewSummaryUseCase(
         impl: ReviewSummaryUseCase,
     ): ReviewSummaryUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindReviewDigestUseCase(
+        impl: ReviewDigestUseCase,
+    ): ReviewDigestUseCaseProtocol
 
     @Binds
     abstract fun bindTextProcessingDelegate(
