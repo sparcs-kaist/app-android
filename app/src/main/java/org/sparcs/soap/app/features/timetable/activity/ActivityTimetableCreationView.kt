@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
+import org.sparcs.soap.app.domain.models.otl.ActivityTime
 import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.components.TimetableSelectionBackground
@@ -118,7 +119,7 @@ fun ActivityTimetableCreationView(
     var day by rememberSaveable { mutableIntStateOf(selection.day) }
     var begin by rememberSaveable { mutableIntStateOf(selection.begin) }
     var end by rememberSaveable { mutableIntStateOf(selection.end) }
-    val draft = selection.copy(day = day, begin = begin, end = end)
+    val draft = selection.copy(times = listOf(ActivityTime(day, begin, end)))
     // A weekend column appears only when explicitly chosen in the form.
     val days = remember(selection.day) {
         (DayType.weekdays().map { it.value } + selection.day).distinct().sorted()

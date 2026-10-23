@@ -23,17 +23,17 @@ class ActivityDraftTest {
         assertTrue(table.hasCollision(lecture))
     }
     @Test fun movementPreservesDurationAndStaysInOneDay() {
-        val draft = ActivityDraft("Study", begin = 600, end = 690)
-        assertEquals(draft.copy(begin = 1350, end = 1440), draft.move(1430))
-        assertEquals(draft.copy(begin = 0, end = 90), draft.move(-60))
-        assertEquals(5, draft.move(600, 5).day)
+        val time = ActivityTime(0, 600, 690)
+        assertEquals(ActivityTime(0, 1350, 1440), time.move(1430))
+        assertEquals(ActivityTime(0, 0, 90), time.move(-60))
+        assertEquals(5, time.move(600, 5).day)
     }
     @Test fun resizeMaintainsMinimumDurationAndMidnightBoundary() {
         val draft = activity.draft()
         assertEquals(645, draft.resizeStart(1000).begin)
         assertEquals(615, draft.resizeEnd(500).end)
         assertEquals(1440, draft.resizeEnd(1500).end)
-        assertFalse(draft.copy(end = 1441).isValid)
+        assertFalse(draft.replacing(0, ActivityTime(0, 600, 1441)).isValid)
         assertFalse(draft.copy(title = " ").isValid)
     }
     @Test fun snappingChoosesNearestQuarterHour() {
@@ -48,8 +48,50 @@ class ActivityDraftTest {
     }
     @Test fun payloadMatchesCustomBlockEndpoint() {
         val json = Gson().toJsonTree(activity.draft()).asJsonObject
-        assertEquals(setOf("block_name", "place", "day", "begin", "end"), json.keySet())
+        assertEquals(setOf("block_name", "place", "times"), json.keySet())
         assertEquals("Study", json["block_name"].asString)
-        assertEquals(0, json["day"].asInt)
+        assertEquals(0, json["times"].asJsonArray[0].asJsonObject["day"].asInt)
+    }
+
+    @Test fun everyTimeOfAnActivityCountsForConflicts() {
+        val twice = TimetableActivity(5, "Gym", "", listOf(ActivityTime(0, 540, 600), ActivityTime(2, 540, 600)))
+        val busy = Timetable("12", emptyList(), listOf(twice))
+        assertTrue(ActivityDraft("New", day = 2, begin = 570, end = 630).conflict(busy))
+        assertFalse(ActivityDraft("New", day = 1, begin = 540, end = 600).conflict(busy))
+        assertEquals(2, busy.activitySlots.size)
+        assertEquals(listOf(DayType.MON, DayType.TUE, DayType.WED, DayType.THU, DayType.FRI), busy.visibleDays)
+    }
+
+    @Test fun overlappingTimesWithinOneActivityAreInvalid() {
+        val draft = ActivityDraft("Gym", times = listOf(ActivityTime(0, 540, 600), ActivityTime(0, 570, 630)))
+        assertTrue(draft.hasOverlappingTimes)
+        assertFalse(draft.isValid)
+        assertTrue(ActivityDraft("Gym", times = listOf(ActivityTime(0, 540, 600), ActivityTime(0, 600, 660))).isValid)
+    }
+
+    @Test fun removingKeepsAtLeastOneTime() {
+        val draft = ActivityDraft("Gym", day = 0)
+        assertEquals(draft, draft.removing(0))
+        assertEquals(1, draft.adding(ActivityTime(1, 540, 600)).removing(0).times.size)
+    }
+
+    @Test fun serverTimesAreReadAndLegacyBlocksStillLoad() {
+        val gson = Gson()
+        val multi = gson.fromJson(
+            """{"id":3,"block_name":"Gym","place":"","day":0,"begin":540,"end":600,"times":[{"day":0,"begin":540,"end":600},{"day":3,"begin":1200,"end":1260}]}""",
+            TimetableActivity::class.java,
+        )
+        assertEquals(listOf(ActivityTime(0, 540, 600), ActivityTime(3, 1200, 1260)), multi.ranges)
+        val legacy = gson.fromJson("""{"id":3,"block_name":"Gym","place":"","day":1,"begin":540,"end":600}""", TimetableActivity::class.java)
+        assertEquals(listOf(ActivityTime(1, 540, 600)), legacy.ranges)
+        val empty = gson.fromJson("""{"id":3,"block_name":"Gym","place":"","day":1,"begin":540,"end":600,"times":[]}""", TimetableActivity::class.java)
+        assertEquals(listOf(ActivityTime(1, 540, 600)), empty.ranges)
+        assertEquals(multi.ranges, gson.fromJson(gson.toJson(multi), TimetableActivity::class.java).ranges)
+    }
+
+    @Test fun editingContextShowsOtherTimesAsConflicts() {
+        val context = table.withActivityTimes(17, "Study", listOf(ActivityTime(3, 600, 660)))
+        assertTrue(context.activities.none { it.id == 17 })
+        assertTrue(ActivityDraft("Study", day = 3, begin = 630, end = 690).conflict(context, excludingID = 17))
     }
 }

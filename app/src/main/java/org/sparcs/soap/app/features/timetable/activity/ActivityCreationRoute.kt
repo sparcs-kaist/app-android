@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.CancellationException
@@ -37,6 +38,7 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.buddyPreviewSupport.otl.PreviewActivityParsingUseCase
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,8 +48,10 @@ fun ActivityCreationRoute(
     timetableID: Int,
     activityID: Int?,
     navController: NavController,
+    quickFillViewModel: ActivityQuickFillViewModel = hiltViewModel(),
 ) {
     val onClose: () -> Unit = { navController.popBackStack() }
+    val quickFill by quickFillViewModel.state.collectAsState()
     val selected by model.selectedTimetable.collectAsState()
     val selectedName by model.timetableName.collectAsState()
     val name by rememberSaveable { mutableStateOf(selectedName) }
@@ -72,7 +76,11 @@ fun ActivityCreationRoute(
         ActivityCreationView(
             current, name, current.activities.find { it.id == activityID }, onClose,
             onSave = { update(model.saveActivity(timetableID, activityID, it)) },
-            onRefresh = { update(model.refreshActivityTable(timetableID)) })
+            onRefresh = { update(model.refreshActivityTable(timetableID)) },
+            quickFill = quickFill,
+            onQuickFill = quickFillViewModel::parse,
+            onQuickFillTextChange = quickFillViewModel::clearError,
+        )
     } else {
         Scaffold(
             modifier = Modifier.analyticsScreen("ActivityCreationLoading"),
@@ -116,7 +124,8 @@ private fun Preview(){
             model = PreviewTimetableViewModel(initialTimetable = Timetable.mock()),
             timetableID = 12,
             activityID = null,
-            navController = rememberNavController()
+            navController = rememberNavController(),
+            quickFillViewModel = ActivityQuickFillViewModel(PreviewActivityParsingUseCase()),
         )
     }
 }

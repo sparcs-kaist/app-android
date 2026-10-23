@@ -112,5 +112,6 @@ class ActivityUseCaseTest {
         override suspend fun deleteLecture(timetableID: Int, lectureID: Int) = Unit
         override suspend fun getSemesters() = emptyList<Semester>()
         override suspend fun getCurrentSemester(): Semester = error("unused")
+        override suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>): List<Int> = error("unused")
     }
 }

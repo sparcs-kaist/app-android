@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.activitySlots
 import org.sparcs.soap.app.domain.models.otl.subtitleTopic
 
 @Serializable
@@ -76,7 +77,7 @@ fun Timetable.toWatchModel(theme: TimetableTheme): WatchTimetable {
                 subtitle = lecture.subtitle.subtitleTopic,
             )
         },
-        activities = activities.mapNotNull { activity ->
+        activities = activitySlots.mapNotNull { activity ->
             val day = DayType.fromValue(activity.day) ?: return@mapNotNull null
             WatchActivity(
                 id = activity.id,

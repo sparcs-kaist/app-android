@@ -1,8 +1,9 @@
 package org.sparcs.soap.app.networking.retrofitAPI.otl
 
-import org.sparcs.soap.app.domain.models.otl.ActivityDraft
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.models.otl.TimetableCreation
+import org.sparcs.soap.app.networking.requestDTO.otl.TimetableItemsRequestDTO
+import org.sparcs.soap.app.networking.requestDTO.otl.TimetableItemsResponseDTO
 import org.sparcs.soap.app.networking.responseDTO.otl.SemesterDTO
 import org.sparcs.soap.app.networking.responseDTO.otl.SemesterListDTO
 import org.sparcs.soap.app.networking.responseDTO.otl.TimetableDTO
@@ -21,14 +22,11 @@ interface OTLTimetableApi {
     @GET("api/v2/timetables/{timetableId}/custom-blocks")
     suspend fun fetchActivities(@Path("timetableId") timetableId: Int): CustomBlocksResponse
 
-    @POST("api/v2/timetables/{timetableId}/custom-blocks")
-    suspend fun createActivity(@Path("timetableId") timetableId: Int, @Body draft: ActivityDraft)
-
-    @PATCH("api/v2/timetables/{timetableId}/custom-blocks/{activityId}")
-    suspend fun updateActivity(@Path("timetableId") timetableId: Int, @Path("activityId") activityId: Int, @Body draft: ActivityDraft)
-
-    @retrofit2.http.DELETE("api/v2/timetables/{timetableId}/custom-blocks/{activityId}")
-    suspend fun deleteActivity(@Path("timetableId") timetableId: Int, @Path("activityId") activityId: Int)
+    @PATCH("api/v2/timetables/{timetableId}/items")
+    suspend fun updateItems(
+        @Path("timetableId") timetableId: Int,
+        @Body request: TimetableItemsRequestDTO,
+    ): TimetableItemsResponseDTO
 
     @GET("api/v2/timetables")
     suspend fun fetchTimeTables(
@@ -62,12 +60,6 @@ interface OTLTimetableApi {
         @Body request: RenameTableRequest
     ): TimetableDTO
 
-    @PATCH("api/v2/timetables/{timetableId}")
-    suspend fun patchLecture(
-        @Path("timetableId") timetableId: Int,
-        @Body request: LectureRequest
-    )
-
     @GET("api/v2/semesters")
     suspend fun fetchSemesters(): SemesterListDTO
 
@@ -88,9 +80,4 @@ data class DeleteTableRequest(
 data class RenameTableRequest(
     val id: Int,
     val name: String
-)
-
-data class LectureRequest(
-    val lectureId: Int,
-    val action: String // "add" or "delete"
 )

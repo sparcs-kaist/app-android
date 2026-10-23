@@ -114,6 +114,8 @@ import org.sparcs.soap.app.domain.usecases.otl.LectureUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCase
 import org.sparcs.soap.app.domain.usecases.otl.ReviewUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCase
+import org.sparcs.soap.app.domain.usecases.otl.ActivityParsingUseCase
+import org.sparcs.soap.app.domain.usecases.otl.ActivityParsingUseCaseProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackground
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseBackgroundProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
@@ -725,21 +727,27 @@ abstract class UseCaseModule {
 
     @Binds
     @Singleton
+    abstract fun bindActivityParsingUseCase(
+        impl: ActivityParsingUseCase,
+    ): ActivityParsingUseCaseProtocol
+
+    @Binds
+    @Singleton
     abstract fun bindSummarizationUseCase(
         impl: SummarizationUseCase,
     ): SummarizationUseCaseProtocol
 
     @Binds
     @Singleton
-    abstract fun bindReviewSummaryUseCase(
-        impl: ReviewSummaryUseCase,
-    ): ReviewSummaryUseCaseProtocol
-
-    @Binds
-    @Singleton
     abstract fun bindReviewDigestUseCase(
         impl: ReviewDigestUseCase,
     ): ReviewDigestUseCaseProtocol
+
+    @Binds
+    @Singleton
+    abstract fun bindReviewSummaryUseCase(
+        impl: ReviewSummaryUseCase,
+    ): ReviewSummaryUseCaseProtocol
 
     @Binds
     abstract fun bindTextProcessingDelegate(

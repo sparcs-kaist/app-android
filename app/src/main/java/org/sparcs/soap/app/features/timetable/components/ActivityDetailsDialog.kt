@@ -25,11 +25,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.ActivityRefreshRequiredException
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
-import org.sparcs.soap.app.features.timetable.activity.activityTime
+import org.sparcs.soap.app.features.timetable.activity.activityTimeRange
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -54,8 +53,7 @@ internal fun ActivityDetailsDialog(
         text = {
             Column {
                 if (activity.location.isNotBlank()) Text(activity.location)
-                DayType.fromValue(activity.day)?.let { Text(stringResource(it.stringValue)) }
-                Text("${activityTime(activity.begin)} – ${activityTime(activity.end)}")
+                activity.ranges.forEach { Text(activityTimeRange(it)) }
                 if (failed) Text(
                     stringResource(if (refreshing) R.string.activity_saved_refresh else R.string.activity_delete_error),
                     color = MaterialTheme.colorScheme.error

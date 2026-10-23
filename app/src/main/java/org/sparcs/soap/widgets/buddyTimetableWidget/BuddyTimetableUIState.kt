@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.activitySlots
 import org.sparcs.soap.app.domain.models.otl.subtitleTopic
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.widgets.toWidgetHex
@@ -18,7 +19,7 @@ data class TimetableUiState(
 
 fun Timetable.toWidgetUiState(theme: TimetableTheme = TimetableTheme.Default): TimetableUiState {
     val times = lectures.flatMap { it.classes }.filter { it.end > it.begin }
-    val validActivities = activities.filter { it.day in 0..6 && it.begin >= 0 && it.end <= 1440 && it.end > it.begin }
+    val validActivities = activitySlots.filter { it.day in 0..6 && it.begin >= 0 && it.end <= 1440 && it.end > it.begin }
     val begins = times.map { it.begin } + validActivities.map { it.begin }
     val ends = times.map { it.end } + validActivities.map { it.end }
     val calculatedMin = (begins.minOrNull() ?: 540) / 60 * 60

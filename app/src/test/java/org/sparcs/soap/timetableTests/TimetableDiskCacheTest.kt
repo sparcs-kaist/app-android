@@ -34,6 +34,7 @@ import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
 import org.sparcs.soap.testSupport.MainDispatcherRule
 import org.sparcs.soap.wearable.WearableDataManager
+import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34], application = Application::class)
@@ -101,5 +102,6 @@ class TimetableDiskCacheTest {
         override suspend fun renameTable(timetableID: Int, title: String) = error("Unexpected write")
         override suspend fun addLecture(timetableID: Int, lectureID: Int) = error("Unexpected write")
         override suspend fun deleteLecture(timetableID: Int, lectureID: Int) = error("Unexpected write")
+        override suspend fun updateItems(timetableID: Int, changes: List<TimetableItemChange>): List<Int> = error("Unexpected write")
     }
 }

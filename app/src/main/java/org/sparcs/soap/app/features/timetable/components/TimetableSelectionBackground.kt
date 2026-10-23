@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.domain.models.otl.activitySlots
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import kotlin.math.roundToInt
 
@@ -96,7 +97,7 @@ internal fun TimetableSelectionBackground(
                             .width(with(density) { (dayWidth - 4).toDp() })
                     )
                 }
-            timetable?.activities.orEmpty()
+            timetable?.activitySlots.orEmpty()
                 .filter { it.day == value && it.id != excludingID && it.end > startMinute && it.begin < endMinute }
                 .forEach { activity ->
                     Surface(
