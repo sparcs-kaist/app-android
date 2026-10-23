@@ -2,6 +2,7 @@ package org.sparcs.soap.timetableTests
 
 import android.content.Context
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -30,8 +31,11 @@ import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
+import org.sparcs.soap.app.shared.tips.TimetableOnboarding
+import org.sparcs.soap.app.shared.tips.TipStore
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
+import org.sparcs.soap.buddyTestSupport.helper.testTipStore
 import org.sparcs.soap.buddyTestSupport.useCase.MockTimetableUseCase
 import org.sparcs.soap.testSupport.MainDispatcherRule
 
@@ -43,12 +47,14 @@ class TimetableViewModelTest {
 
     private lateinit var mockTimetableUseCase: MockTimetableUseCase
     private lateinit var viewModel: TimetableViewModel
+    private lateinit var tipStore: TipStore
     private val context: Context get() = RuntimeEnvironment.getApplication()
 
     @Before
     fun setup() {
         TimetableSelectionStore(context).clear()
         mockTimetableUseCase = MockTimetableUseCase()
+        tipStore = testTipStore(context)
     }
 
     private fun createViewModel(useCase: TimetableUseCaseProtocol = mockTimetableUseCase) {
@@ -57,6 +63,7 @@ class TimetableViewModelTest {
             crashlyticsService = MockCrashlyticsService(),
             analyticsService = MockAnalyticsService(),
             context = context,
+            tipStore = tipStore,
         )
     }
 
@@ -527,4 +534,49 @@ class TimetableViewModelTest {
         assertEquals("5", viewModel.selectedTimetable.value?.id)
     }
 
+    @Test
+    fun `loading tables made before the onboarding skips to the preview tips`() = runTest {
+        mockTimetableUseCase.getTimetableListResult = Result.success(TimetableSummary.mockList())
+        createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(tipStore.onboarding.hasCheckedForExistingTables)
+        assertEquals(TimetableOnboarding.Step.ResizePreview, tipStore.onboarding.current)
+    }
+
+    @Test
+    fun `a user without tables starts the onboarding from making a table`() = runTest {
+        createViewModel()
+        advanceUntilIdle()
+
+        assertTrue(tipStore.onboarding.hasCheckedForExistingTables)
+        assertEquals(TimetableOnboarding.Step.StartEditing, tipStore.onboarding.current)
+    }
+
+    @Test
+    fun `adding the first lecture ends the onboarding only when the batch succeeds`() = runTest {
+        val lecture = Lecture.mock()
+        val useCase = object : TimetableUseCaseProtocol by mockTimetableUseCase {
+            override suspend fun getTable(id: Int, forceRefresh: Boolean) = Timetable("5", emptyList())
+        }
+        createViewModel(useCase)
+        advanceUntilIdle()
+        listOf(
+            TimetableOnboarding.Step.StartEditing,
+            TimetableOnboarding.Step.AddButton,
+            TimetableOnboarding.Step.ResizePreview,
+            TimetableOnboarding.Step.TogglePreview,
+        ).forEach(tipStore::completeOnboarding)
+        viewModel.selectTimetable(5)
+
+        mockTimetableUseCase.updateItemsResult = Result.failure(Exception("offline"))
+        viewModel.addLecture(lecture)
+        advanceUntilIdle()
+        assertEquals(TimetableOnboarding.Step.AddLecture, tipStore.onboarding.current)
+
+        mockTimetableUseCase.updateItemsResult = Result.success(Unit)
+        viewModel.addLecture(lecture)
+        advanceUntilIdle()
+        assertEquals(TimetableOnboarding.Step.Done, tipStore.onboarding.current)
+    }
 }

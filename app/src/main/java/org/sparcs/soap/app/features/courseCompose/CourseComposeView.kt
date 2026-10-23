@@ -24,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +51,7 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -61,6 +63,8 @@ fun CourseComposeView(
     timetableViewModel: TimetableViewModelProtocol = hiltViewModel<TimetableViewModel>(),
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
 ) {
+    val tipStore = LocalTipStore.current
+    LaunchedEffect(tipStore) { tipStore?.skipPreviewSteps() }
     LifecycleResumeEffect(Unit) {
         timetableViewModel.setCandidateLecture(null)
         onPauseOrDispose { }

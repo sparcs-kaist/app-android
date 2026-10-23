@@ -66,7 +66,7 @@ class SummarizationUseCase @Inject constructor(
     override suspend fun summarise(text: String, isHtml: Boolean): SummarizationResultState {
         val language = languageOrNull() ?: return SummarizationResultState.Unavailable
         val plain = if (isHtml) text.htmlToPlainText() else text.trim()
-        if (plain.length < MIN_LENGTH) return SummarizationResultState.TooShort
+        if (plain.length < MIN_POST_LENGTH) return SummarizationResultState.TooShort
 
         val summarizer = newSummarizer(language)
         return try {
@@ -117,7 +117,7 @@ class SummarizationUseCase @Inject constructor(
             cont.invokeOnCancellation { cancel(false) }
         }
 
-    private companion object {
-        const val MIN_LENGTH = 400
+    companion object {
+        const val MIN_POST_LENGTH = 400
     }
 }

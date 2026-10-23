@@ -52,6 +52,9 @@ import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResult
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureDetailViewModel
@@ -101,6 +104,16 @@ fun LectureDetailContent(
     val isEditable by timetableViewModel.isEditable.collectAsState()
 
     var pendingLectureToAdd by remember { mutableStateOf<Lecture?>(null) }
+    val timetableName by timetableViewModel.timetableName.collectAsState()
+    val tipStore = LocalTipStore.current
+    val addFromDetailTip: @Composable () -> Unit = {
+        TipView(
+            BuddyTip.AddFromDetail,
+            enabled = isSearchContext && isEditable && !isContained,
+            message = stringResource(R.string.tip_add_from_detail_message, timetableName),
+            modifier = Modifier.padding(vertical = 8.dp),
+        )
+    }
 
     Scaffold(
         containerColor = if (isSearchContext) LectureSearchChrome.background else MaterialTheme.colorScheme.surface,
@@ -109,6 +122,7 @@ fun LectureDetailContent(
                 navController = navController,
                 text = lecture.name,
                 onAdd = {
+                    tipStore?.invalidate(BuddyTip.AddFromDetail)
                     val table = timetableViewModel.selectedTimetable.value
                     if (table?.hasCollision(lecture) == true) {
                         timetableViewModel.setCandidateLecture(lecture)
@@ -152,6 +166,7 @@ fun LectureDetailContent(
                             selectedTimetable?.conflicts(lecture).orEmpty(),
                             isContained,
                             topInset,
+                            addFromDetailTip,
                         )
                     } else {
                         LecturePortraitLayout(
@@ -163,6 +178,7 @@ fun LectureDetailContent(
                             selectedTimetable?.conflicts(lecture).orEmpty(),
                             isContained,
                             topInset,
+                            addFromDetailTip,
                         )
                     }
                 }
@@ -201,6 +217,7 @@ private fun LectureLandscapeLayout(
     conflicts: List<String>,
     isContained: Boolean,
     topInset: Dp,
+    header: @Composable () -> Unit,
 ) {
     Row(
         modifier = Modifier
@@ -216,6 +233,7 @@ private fun LectureLandscapeLayout(
                 .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            header()
             LectureSummaryAndInfoSection(lecture, navController, conflicts, isContained)
         }
 
@@ -243,6 +261,7 @@ private fun LecturePortraitLayout(
     conflicts: List<String>,
     isContained: Boolean,
     topInset: Dp,
+    header: @Composable () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -253,6 +272,7 @@ private fun LecturePortraitLayout(
             .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        header()
         LectureSummaryAndInfoSection(lecture, navController, conflicts, isContained)
         Spacer(modifier = Modifier.height(32.dp))
         LectureReviewSection(state, lecture, viewModel, navController, canWriteReview)

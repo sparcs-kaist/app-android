@@ -13,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -47,6 +49,10 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TimetableOnboarding
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -98,7 +104,13 @@ private fun PreviewCard(
     val displayedHeight = height.coerceIn(minimum, maxHeight)
     val compact = resizable && displayedHeight < 260.dp
     var dragHeight by remember { mutableFloatStateOf(displayedHeight.value) }
-    Box(modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
+    val tipStore = LocalTipStore.current
+    val resize: (Dp) -> Unit = {
+        tipStore?.invalidate(BuddyTip.ResizePreview)
+        onHeightChange(it)
+    }
+    LaunchedEffect(resizable) { if (!resizable) tipStore?.completeOnboarding(TimetableOnboarding.Step.ResizePreview) }
+    Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Card(
             modifier = Modifier.height(displayedHeight)
                 .then(if (compact) Modifier.width(displayedHeight * 0.82f) else Modifier.fillMaxWidth()),
@@ -115,14 +127,14 @@ private fun PreviewCard(
                         .semantics {
                             contentDescription = description
                             progressBarRangeInfo = ProgressBarRangeInfo(displayedHeight.value, minimum.value..maxHeight.value)
-                            setProgress { value -> onHeightChange(value.dp.coerceIn(minimum, maxHeight)); true }
+                            setProgress { value -> resize(value.dp.coerceIn(minimum, maxHeight)); true }
                         }
                         .draggable(
                             orientation = Orientation.Vertical,
                             onDragStarted = { dragHeight = displayedHeight.value },
                             state = rememberDraggableState { delta ->
                                 dragHeight = (dragHeight + with(density) { delta.toDp().value }).coerceIn(minimum.value, maxHeight.value)
-                                onHeightChange(dragHeight.dp)
+                                resize(dragHeight.dp)
                             },
                         ),
                     contentAlignment = Alignment.Center,
@@ -131,6 +143,11 @@ private fun PreviewCard(
                 }
             }
         }
+        TipView(
+            BuddyTip.ResizePreview,
+            enabled = resizable,
+            modifier = if (compact) Modifier.width(maxOf(displayedHeight * 0.82f, 240.dp)) else Modifier,
+        )
     }
 }
 

@@ -37,6 +37,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +65,7 @@ import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.wishlistColor
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
@@ -77,6 +79,8 @@ fun LectureSearchView(
     lectureSearchViewModel: LectureSearchViewModelProtocol = hiltViewModel<LectureSearchViewModel>(),
     onFoldSheet: () -> Unit = {},
 ) {
+    val tipStore = LocalTipStore.current
+    LaunchedEffect(tipStore) { tipStore?.skipPreviewSteps() }
     Scaffold(
         topBar = {
             LectureSearchViewNavigationBar(
@@ -116,6 +120,7 @@ fun LectureRow(
     onClick: () -> Unit,
     onInfoClick: () -> Unit,
     onAddClick: () -> Unit,
+    onLongClick: () -> Unit = onInfoClick,
 ) {
     val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.04f) else Color.Transparent
 
@@ -123,7 +128,7 @@ fun LectureRow(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
-            .combinedClickable(onClick = onClick, onLongClick = onInfoClick)
+            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(horizontal = 16.dp, vertical = 15.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {

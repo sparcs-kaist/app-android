@@ -39,6 +39,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -52,6 +54,7 @@ fun ThemeRow(
     onShare: () -> Unit = {},
 ) {
     var menu by remember { mutableStateOf(false) }
+    val tipStore = LocalTipStore.current
     Row(
         Modifier
             .fillMaxWidth()
@@ -97,7 +100,10 @@ fun ThemeRow(
             }
         }
         Box {
-            IconButton(onClick = { menu = true }) {
+            IconButton(onClick = {
+                tipStore?.invalidate(BuddyTip.ThemeActions)
+                menu = true
+            }) {
                 Icon(
                     Icons.Default.MoreVert,
                     stringResource(R.string.theme_options, theme.displayName()),

@@ -94,12 +94,18 @@ import org.sparcs.soap.app.features.post.components.PostVoteButton
 import org.sparcs.soap.app.features.post.components.postCommentsSection
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.extensions.araContentToPlainText
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.postfixEuroRo
 import org.sparcs.soap.app.shared.mocks.ara.mock
 import org.sparcs.soap.app.shared.mocks.ara.mockList
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.PostToolsTipRule
+import org.sparcs.soap.app.shared.tips.TipEvent
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.CommentInputBar
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -121,6 +127,12 @@ fun PostView(
     val translationState by viewModel.translationState.collectAsState()
     val summarizationState by viewModel.summarizationState.collectAsState()
     val commentTranslations by viewModel.commentTranslations.collectAsState()
+    val tipStore = LocalTipStore.current
+    val postID = viewModel.postId
+    LaunchedEffect(postID) { tipStore?.donate(TipEvent.PostOpened) }
+    val showsPostToolsTip = remember(post?.content) {
+        post?.content?.let { PostToolsTipRule.applies(it.araContentToPlainText()) } == true
+    }
 
     val pullState = rememberPullToRefreshState()
     val scope = rememberCoroutineScope()
@@ -157,12 +169,14 @@ fun PostView(
                 onDelete = { showDeleteConfirmation = true },
                 onReport = { viewModel.report(it) },
                 onTranslate = {
+                    tipStore?.invalidate(BuddyTip.PostTools)
                     viewModel.hideSummary()
                     translationTarget = viewModel.defaultTranslationLanguage()
                     activeTranslationItem = TranslationItem.Post
                     viewModel.translatePost(translationTarget)
                 },
                 onSummarize = {
+                    tipStore?.invalidate(BuddyTip.PostTools)
                     viewModel.showOriginal()
                     activeTranslationItem = null
                     viewModel.summarizePost()
@@ -246,6 +260,7 @@ fun PostView(
             htmlHeight = htmlHeight,
             onHtmlHeightChange = { htmlHeight = it },
             summarizationState = summarizationState,
+            showsPostToolsTip = showsPostToolsTip,
             viewModel = viewModel,
             focusRequester = focusRequester,
             keyboardController = keyboardController,
@@ -359,6 +374,7 @@ private fun PostMainContent(
     htmlHeight: Dp,
     onHtmlHeightChange: (Dp) -> Unit,
     summarizationState: SummarizationState,
+    showsPostToolsTip: Boolean,
     viewModel: PostViewModelProtocol,
     focusRequester: FocusRequester,
     keyboardController: SoftwareKeyboardController?,
@@ -396,6 +412,10 @@ private fun PostMainContent(
                     val json = Uri.encode(Gson().toJson(post.author))
                     navController.navigate(Channel.UserPostListView.name + "?author_json=$json")
                 })
+            }
+
+            item {
+                TipView(BuddyTip.PostTools, enabled = showsPostToolsTip, modifier = Modifier.padding(vertical = 8.dp))
             }
 
             item {

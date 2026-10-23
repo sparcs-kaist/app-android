@@ -26,6 +26,8 @@ import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore.State
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 
@@ -71,6 +73,9 @@ internal fun ThemeSettingsContent(
                     }
                     ThemePreview(state.selected)
                 }
+            }
+            item(key = "theme_actions_tip") {
+                TipView(BuddyTip.ThemeActions, modifier = Modifier.padding(bottom = 16.dp))
             }
             item(key = "my_themes") {
                 ThemeSettingsSectionTitle(stringResource(R.string.theme_mine))

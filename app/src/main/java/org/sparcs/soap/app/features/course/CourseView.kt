@@ -58,6 +58,7 @@ import org.sparcs.soap.app.features.course.components.CourseProfessorPicker
 import org.sparcs.soap.app.features.course.components.CourseReviewSectionSkeleton
 import org.sparcs.soap.app.features.course.components.CourseSummarySkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewCell
+import org.sparcs.soap.app.features.lectureDetail.components.summariseTipReviewID
 import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
@@ -419,6 +420,7 @@ fun CourseReviewSection(
 
     val scope = rememberCoroutineScope()
     val sectionSubtitles = remember(course) { course?.sectionSubtitles.orEmpty() }
+    val summariseTipID = remember(reviews, myReview) { summariseTipReviewID(reviews, myReview?.id) }
 
     Column(
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -548,7 +550,8 @@ fun CourseReviewSection(
                             activeReviewId = null
                             viewModel.hideSummary()
                         },
-                        subtitle = sectionSubtitles[review.lectureID]
+                        subtitle = sectionSubtitles[review.lectureID],
+                        showsSummariseTip = review.id == summariseTipID
                     )
                 }
             }

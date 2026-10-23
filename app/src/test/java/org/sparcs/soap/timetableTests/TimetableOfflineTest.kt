@@ -27,6 +27,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
 import org.sparcs.soap.buddyTestSupport.useCase.MockTimetableUseCase
+import org.sparcs.soap.buddyTestSupport.helper.testTipStore
 import org.sparcs.soap.testSupport.MainDispatcherRule
 import java.util.Date
 
@@ -43,7 +44,7 @@ class TimetableOfflineTest {
         TimetableSelectionStore(context).save(semester, 44)
     }
 
-    private fun model() = TimetableViewModel(api, MockCrashlyticsService(), MockAnalyticsService(), context)
+    private fun model() = TimetableViewModel(api, MockCrashlyticsService(), MockAnalyticsService(), context, testTipStore(context))
 
     @Test fun coldOfflineLaunchRestoresContentsAndBlocksWrites() = runTest {
         val model = model()

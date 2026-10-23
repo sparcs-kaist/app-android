@@ -32,6 +32,7 @@ import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.buddyTestSupport.MockCrashlyticsService
+import org.sparcs.soap.buddyTestSupport.helper.testTipStore
 import org.sparcs.soap.testSupport.MainDispatcherRule
 import org.sparcs.soap.wearable.WearableDataManager
 import org.sparcs.soap.app.domain.models.otl.TimetableItemChange
@@ -70,7 +71,7 @@ class TimetableDiskCacheTest {
         val reopened = open()
         try {
             val offline = Repository().apply { disconnected = true }
-            val model = TimetableViewModel(useCase(reopened, offline), MockCrashlyticsService(), MockAnalyticsService(), context)
+            val model = TimetableViewModel(useCase(reopened, offline), MockCrashlyticsService(), MockAnalyticsService(), context, testTipStore(context))
             withTimeout(10_000) { model.loadState.first { !it.isRefreshing } }
             assertEquals(semester, model.selectedSemester.value)
             assertEquals(selectedID, model.selectedTimetableID.value)

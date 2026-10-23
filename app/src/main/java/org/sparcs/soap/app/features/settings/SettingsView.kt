@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -76,6 +77,8 @@ import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipStore
 import org.sparcs.soap.app.shared.viewModelMocks.MockSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
@@ -282,6 +285,8 @@ fun SettingsView(
                         ) {
                             Text("Invoke Exception")
                         }
+
+                        LocalTipStore.current?.let { TipsDebugSection(it) }
                     }
                 }
             }
@@ -293,6 +298,42 @@ fun SettingsView(
         isPresented = settingsViewModel.isAlertPresented,
     ) {
         settingsViewModel.isAlertPresented = false
+    }
+}
+
+@Composable
+private fun TipsDebugSection(store: TipStore) {
+    var isResetPending by remember { mutableStateOf(store.isResetPending) }
+    var showsImmediately by remember { mutableStateOf(store.showsTipsImmediately) }
+    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(stringResource(R.string.tips_debug_title), style = MaterialTheme.typography.titleMedium)
+        Button(
+            onClick = {
+                store.requestReset()
+                isResetPending = true
+            },
+            enabled = !isResetPending,
+        ) {
+            Text(stringResource(R.string.tips_debug_reset))
+        }
+        if (isResetPending) {
+            Text(stringResource(R.string.tips_debug_reset_pending), style = MaterialTheme.typography.bodySmall)
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(stringResource(R.string.tips_debug_show_immediately), modifier = Modifier.weight(1f))
+            Switch(
+                checked = showsImmediately,
+                onCheckedChange = {
+                    store.showsTipsImmediately = it
+                    showsImmediately = it
+                },
+            )
+        }
+        Text(
+            stringResource(R.string.tips_debug_footer),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 
@@ -666,5 +707,14 @@ private fun VersionRow() {
 private fun Preview() {
     Theme {
         SettingsView(rememberNavController(), MockSettingsViewModel())
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun TipsDebugSectionPreview() {
+    val context = LocalContext.current
+    Theme {
+        TipsDebugSection(remember(context) { TipStore(context) })
     }
 }
