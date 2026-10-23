@@ -39,6 +39,7 @@ import org.sparcs.soap.app.domain.services.CrashlyticsServiceProtocol
 import org.sparcs.soap.app.domain.usecases.otl.TimetableUseCaseProtocol
 import org.sparcs.soap.app.features.timetable.event.TimetableViewEvent
 import org.sparcs.soap.app.shared.extensions.toAlertState
+import org.sparcs.soap.app.shared.tips.TipStore
 import org.sparcs.soap.widgets.buddyTimetableWidget.TimetableWidgetSyncManager
 import timber.log.Timber
 
@@ -86,7 +87,8 @@ class TimetableViewModel @Inject constructor(
     private val timetableUseCase: TimetableUseCaseProtocol,
     private val crashlyticsService: CrashlyticsServiceProtocol,
     private val analyticsService: AnalyticsServiceProtocol,
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val tipStore: TipStore,
 ) : ViewModel(), TimetableViewModelProtocol {
 
     enum class ErrorType {
@@ -335,6 +337,7 @@ class TimetableViewModel @Inject constructor(
             val list = timetableUseCase.refreshTimetableList(semester)
             if (_selectedSemester.value != semester || revision != selectionRevision || generation != listGeneration) return
             _timetableList.value = list
+            tipStore.checkForExistingTables(hasTables = list.isNotEmpty())
             succeeded("list")
             if (_selectedTimetableID.value != null && list.none { it.id == _selectedTimetableID.value }) {
                 _selectedTimetableID.value = null
@@ -554,6 +557,7 @@ class TimetableViewModel @Inject constructor(
             TimetableItemChange.AddLecture(lecture.id)
         timetableUseCase.updateItems(tableId, changes)
         _candidateLecture.value = null
+        tipStore.lectureAdded()
         analyticsService.logEvent(TimetableViewEvent.LectureAdded)
     }
 

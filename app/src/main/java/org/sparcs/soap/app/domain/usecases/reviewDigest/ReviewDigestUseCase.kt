@@ -6,7 +6,9 @@ import com.google.mlkit.genai.prompt.Generation
 import com.google.mlkit.genai.prompt.GenerativeModel
 import com.google.mlkit.genai.prompt.TextPart
 import com.google.mlkit.genai.prompt.generateContentRequest
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.flow
 import org.sparcs.soap.app.domain.models.otl.LectureReview
 import org.sparcs.soap.app.domain.models.reviewDigest.LectureReviewDigestError
@@ -43,29 +45,21 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
                 throw LectureReviewDigestException(LectureReviewDigestError.UNAVAILABLE)
             }
             model.warmup()
-            val budget = maxOf(model.tokenLimit() - RESERVED_TOKENS, MINIMUM_BUDGET)
-            val batches = LectureReviewBatching.batches(lines, budget) { model.tokens(it) }
-            emit(LectureReviewDigestProgress.Started(batches.sumOf { it.size }))
             val language = deviceLanguage()
-            val source = if (batches.size == 1) {
-                batches.single().joinToString("\n")
-            } else {
-                val notes = batches.mapIndexed { index, batch ->
-                    emit(LectureReviewDigestProgress.Reading(index, batches.size))
-                    model.respond(notesPrompt(batch.joinToString("\n"), language), NOTES_TOKENS)
-                }
-                emit(LectureReviewDigestProgress.Reading(batches.size, batches.size))
-                notes.joinToString("\n")
-            }
+            val budget = maxOf(model.tokenLimit() - RESERVED_TOKENS, MINIMUM_BUDGET)
+            val source = readSource(model, lines, budget, language)
             val response = StringBuilder()
             val request = generateContentRequest(TextPart(digestPrompt(source, language))) {
                 temperature = 0f
                 topK = 1
                 maxOutputTokens = DIGEST_TOKENS
             }
-            model.generateContentStream(request).collect { chunk ->
-                response.append(chunk.candidates.firstOrNull()?.text.orEmpty())
-                emit(LectureReviewDigestProgress.Writing(ReviewDigestParser.parse(response.toString())))
+            retryingWhenBusy {
+                response.clear()
+                model.generateContentStream(request).collect { chunk ->
+                    response.append(chunk.candidates.firstOrNull()?.text.orEmpty())
+                    emit(LectureReviewDigestProgress.Writing(ReviewDigestParser.parse(response.toString())))
+                }
             }
         } catch (error: GenAiException) {
             Timber.w("Review digest AICore failure: code=%d", error.errorCode)
@@ -75,12 +69,43 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
         }
     }
 
+    private suspend fun FlowCollector<LectureReviewDigestProgress>.readSource(
+        model: GenerativeModel,
+        lines: List<String>,
+        budget: Int,
+        language: String,
+    ): String {
+        val batches = LectureReviewBatching.batches(lines, budget) { LectureReviewBatching.estimatedTokens(it) }
+        emit(LectureReviewDigestProgress.Started(batches.sumOf { it.size }))
+        if (batches.size == 1) return batches.single().joinToString("\n")
+        val notes = batches.mapIndexed { index, batch ->
+            emit(LectureReviewDigestProgress.Reading(index, batches.size))
+            try {
+                retryingWhenBusy { model.respond(notesPrompt(batch.joinToString("\n"), language), NOTES_TOKENS) }
+            } catch (error: GenAiException) {
+                if (error.errorCode != GenAiException.ErrorCode.REQUEST_TOO_LARGE || budget <= MINIMUM_BUDGET) throw error
+                return readSource(model, lines, budget / 2, language)
+            }
+        }
+        emit(LectureReviewDigestProgress.Reading(batches.size, batches.size))
+        return notes.filter { it.isNotBlank() }.joinToString("\n")
+            .ifBlank { throw LectureReviewDigestException(LectureReviewDigestError.FAILED) }
+    }
+
+    private suspend fun <T> retryingWhenBusy(block: suspend () -> T): T {
+        repeat(BUSY_RETRIES) { attempt ->
+            try {
+                return block()
+            } catch (error: GenAiException) {
+                if (error.errorCode != GenAiException.ErrorCode.BUSY) throw error
+                delay(BUSY_BACKOFF_MILLIS shl attempt)
+            }
+        }
+        return block()
+    }
+
     private suspend fun GenerativeModel.tokenLimit(): Int =
         runCatching { getTokenLimit() }.getOrDefault(DEFAULT_TOKEN_LIMIT)
-
-    private suspend fun GenerativeModel.tokens(text: String): Int =
-        runCatching { countTokens(generateContentRequest(TextPart(text)) {}).totalTokens }
-            .getOrElse { LectureReviewBatching.estimatedTokens(text) }
 
     private suspend fun GenerativeModel.respond(prompt: String, maxTokens: Int): String {
         val request = generateContentRequest(TextPart(prompt)) {
@@ -95,6 +120,8 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
         GenAiException.ErrorCode.BUSY,
         GenAiException.ErrorCode.PER_APP_BATTERY_USE_QUOTA_EXCEEDED,
             -> LectureReviewDigestError.BUSY
+
+        GenAiException.ErrorCode.BACKGROUND_USE_BLOCKED -> LectureReviewDigestError.INTERRUPTED
 
         GenAiException.ErrorCode.REQUEST_PROCESSING_ERROR,
         GenAiException.ErrorCode.RESPONSE_GENERATION_ERROR,
@@ -123,7 +150,7 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
 
         Report only what the reviews say, giving what most reviewers agree on rather than what a single reviewer says. Never name a reviewer, and never invent details such as exam counts or percentages that no review gives.
 
-        Write in $language, whatever language the reviews are in. Keep every phrase short. Answer in exactly this format, keeping the English labels:
+        Write in $language, whatever language the reviews are in. Keep every phrase short. Write plain text only, with no Markdown: no headings, bold, italics or asterisks. Answer in exactly this format, keeping the English labels:
         OVERVIEW: one or two sentences on the overall impression.
         LIKED:
         - what students liked, a few words each, most mentioned first, at most 4
@@ -141,7 +168,7 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
 
         $RATINGS_EXPLANATION
 
-        Write at most six short bullet points in $language covering the overall impression, what students liked, what they disliked, the workload and the grading. Say when several reviews agree. Leave out anything personal or offensive.
+        Write at most six short lines in $language, each starting with "- ", covering the overall impression, what students liked, what they disliked, the workload and the grading. Say when several reviews agree. Leave out anything personal or offensive. Write plain text only, with no Markdown: no headings, bold, italics or asterisks.
 
         Take notes on these reviews:
         $reviews
@@ -154,5 +181,7 @@ class ReviewDigestUseCase @Inject constructor() : ReviewDigestUseCaseProtocol {
         const val MINIMUM_BUDGET = 1000
         const val NOTES_TOKENS = 256
         const val DIGEST_TOKENS = 512
+        const val BUSY_RETRIES = 3
+        const val BUSY_BACKOFF_MILLIS = 1_500L
     }
 }

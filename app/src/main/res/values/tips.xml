@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tip_start_editing_title">Make Your Own Table</string>
+    <string name="tip_start_editing_message">My Table is read-only. Create a table, or duplicate My Table, to start editing.</string>
+    <string name="tip_new_table">New Table</string>
+    <string name="tip_duplicate_my_table">Duplicate My Table</string>
+    <string name="tip_add_event_title">Add Lectures and Activities</string>
+    <string name="tip_add_event_message">Tap the add button to search for lectures or create your own activities.</string>
+    <string name="tip_resize_preview_title">Resize the Timetable</string>
+    <string name="tip_resize_preview_message">Drag the handle to make it bigger or smaller.</string>
+    <string name="tip_toggle_preview_title">Show or Hide the Timetable</string>
+    <string name="tip_toggle_preview_message">Tap the calendar button to hide it and see more results, and again to bring it back.</string>
+    <string name="tip_add_from_detail_title">Add This Lecture</string>
+    <string name="tip_add_from_detail_message">Tap the add button to add it to “%1$s”.</string>
+    <string name="tip_peek_lecture_title">Peek at a Lecture</string>
+    <string name="tip_peek_lecture_message">Touch and hold a lecture to see its details.</string>
+    <string name="tip_share_timetable_title">Share Your Timetable</string>
+    <string name="tip_share_timetable_message">Share it as an image from the timetable menu.</string>
+    <string name="tip_quick_fill_title">Fill In from a Description</string>
+    <string name="tip_quick_fill_message">Describe your activity, and Quick Fill adds its title, place and times.</string>
+    <string name="tip_summarise_review_title">Summarise Long Reviews</string>
+    <string name="tip_summarise_review_message">Summarise a long review from its menu.</string>
+    <string name="tip_post_tools_title">Translate or Summarise</string>
+    <string name="tip_post_tools_message">Translate a post, or summarise a long one, from the post menu.</string>
+    <string name="tip_theme_actions_title">Share and Edit Themes</string>
+    <string name="tip_theme_actions_message">Share, duplicate or edit a theme from its menu.</string>
+    <string name="tips_debug_title">Tips</string>
+    <string name="tips_debug_reset">Reset Tips</string>
+    <string name="tips_debug_reset_pending">Tips show again the next time Buddy opens.</string>
+    <string name="tips_debug_show_immediately">Show Tips Immediately</string>
+    <string name="tips_debug_footer">Reset Tips shows every tip again and starts the timetable onboarding over, as for a new user. Both settings apply the next time Buddy opens.</string>
+</resources>

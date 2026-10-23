@@ -222,6 +222,7 @@ private fun ReviewsListSection(
             is LectureDetailViewModel.ViewState.Loaded -> {
                 val allReviews =
                     listOfNotNull(writtenReview) + reviews.filter { it.id != writtenReview?.id }
+                val summariseTipID = summariseTipReviewID(allReviews, writtenReview?.id)
 
                 if (allReviews.isEmpty()) {
                     UnavailableView(
@@ -245,7 +246,8 @@ private fun ReviewsListSection(
                             summarizationState = if (!showTranslationSheet && activeReview?.id == review.id) summarizationState else SummarizationState.Idle,
                             onRetrySummarize = { onRetrySummarize(review) },
                             onDismissSummarize = onDismissSummarize,
-                            subtitle = sectionSubtitles[review.lectureID]
+                            subtitle = sectionSubtitles[review.lectureID],
+                            showsSummariseTip = review.id == summariseTipID
                         )
 
                         if (isMine && allReviews.size > 1) {

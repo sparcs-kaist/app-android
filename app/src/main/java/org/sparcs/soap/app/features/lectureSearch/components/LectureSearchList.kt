@@ -66,6 +66,10 @@ import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModel
 import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipEvent
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.theme.ui.Theme
@@ -337,12 +341,17 @@ private fun CourseLazyList(
     onAddClick: (Lecture) -> Unit,
     onLoadNextPage: () -> Unit,
 ) {
+    val tipStore = LocalTipStore.current
     LazyColumn(
         state = listState,
         contentPadding = PaddingValues(top = topInset + if (showsWishlist) 0.dp else 12.dp, bottom = 12.dp)
     ) {
         if (showsWishlist) {
             item(key = "wishlist-header") { WishlistHeader() }
+        }
+
+        item(key = "peek-lecture-tip") {
+            TipView(BuddyTip.PeekLecture, modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp))
         }
 
         displayedCourses.forEach { course ->
@@ -378,8 +387,15 @@ private fun CourseLazyList(
                             isWishlisted = lecture.id in wishlistedLectureIDs,
                             onToggleWishlist = { onToggleWishlist(lecture) },
                             onClick = { onLectureClick(lecture) },
-                            onInfoClick = { onInfoClick(lecture) },
+                            onInfoClick = {
+                                tipStore?.donate(TipEvent.LectureOpened)
+                                onInfoClick(lecture)
+                            },
                             onAddClick = { onAddClick(lecture) },
+                            onLongClick = {
+                                tipStore?.invalidate(BuddyTip.PeekLecture)
+                                onInfoClick(lecture)
+                            },
                         )
                         if (!isLast) {
                             HorizontalDivider(

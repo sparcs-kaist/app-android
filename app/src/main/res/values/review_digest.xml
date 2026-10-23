@@ -13,6 +13,7 @@
     <string name="review_digest_no_reviews">There are no reviews to summarise.</string>
     <string name="review_digest_unsafe">Some of these reviews can\'t be summarised.</string>
     <string name="review_digest_busy">On-device AI is busy right now. Please try again in a moment.</string>
+    <string name="review_digest_interrupted">Summarising stopped when Buddy left the screen. Keep Buddy open and try again.</string>
     <string name="review_digest_failed">The reviews couldn\'t be summarised. Please try again.</string>
     <string name="review_digest_settings_title">Reviews</string>
     <string name="review_digest_settings_automatic">Summarise Reviews Automatically</string>

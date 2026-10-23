@@ -86,6 +86,9 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.PickerWheel
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 
@@ -129,6 +132,7 @@ fun ActivityCreationView(
     var error by rememberSaveable { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
+    val tipStore = LocalTipStore.current
     val draft = ActivityDraft(title, location, times)
     val conflict = draft.conflict(timetable, activity?.id) || draft.hasOverlappingTimes
     val applyParsed: (ParsedActivity) -> Unit = { parsed ->
@@ -237,12 +241,14 @@ fun ActivityCreationView(
                 )
 
                 if (activity == null && quickFill.isAvailable) {
+                    TipView(BuddyTip.QuickFill)
                     ActivityQuickFillCard(
                         state = quickFill,
                         enabled = !saving && !needsRefresh,
                         onTextChange = onQuickFillTextChange,
                         onFill = { description ->
                             focus.clearFocus()
+                            tipStore?.invalidate(BuddyTip.QuickFill)
                             onQuickFill(description, applyParsed)
                         },
                     )

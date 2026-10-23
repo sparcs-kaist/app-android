@@ -14,6 +14,6 @@ sealed interface LectureReviewDigestProgress {
     data class Writing(val digest: LectureReviewDigest) : LectureReviewDigestProgress
 }
 
-enum class LectureReviewDigestError { UNAVAILABLE, NO_REVIEWS, UNSAFE_CONTENT, BUSY, FAILED }
+enum class LectureReviewDigestError { UNAVAILABLE, NO_REVIEWS, UNSAFE_CONTENT, BUSY, INTERRUPTED, FAILED }
 
 class LectureReviewDigestException(val reason: LectureReviewDigestError) : Exception(reason.name)

@@ -260,6 +260,7 @@ private val LectureReviewDigestError.messageRes: Int
         LectureReviewDigestError.NO_REVIEWS -> R.string.review_digest_no_reviews
         LectureReviewDigestError.UNSAFE_CONTENT -> R.string.review_digest_unsafe
         LectureReviewDigestError.BUSY -> R.string.review_digest_busy
+        LectureReviewDigestError.INTERRUPTED -> R.string.review_digest_interrupted
         LectureReviewDigestError.FAILED -> R.string.review_digest_failed
     }
 

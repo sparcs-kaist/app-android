@@ -67,6 +67,8 @@ import org.sparcs.soap.app.features.navigationBar.MainTabBar
 import org.sparcs.soap.app.features.navigationBar.MainTabBarViewModel
 import org.sparcs.soap.app.features.settings.SettingsViewModel
 import org.sparcs.soap.app.features.signIn.SignInView
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipStore
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyTestSupport.MockAnalyticsService
 import org.sparcs.soap.widgets.WidgetSyncHelper
@@ -88,6 +90,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var analyticsService: AnalyticsServiceProtocol
+
+    @Inject
+    lateinit var tipStore: TipStore
 
     @Inject
     lateinit var widgetSyncHelper: WidgetSyncHelper
@@ -130,7 +135,7 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(useDarkTheme) {
                 ChannelManager.syncAppearance(useDarkTheme)
             }
-            CompositionLocalProvider(LocalAnalytics provides analyticsService) {
+            CompositionLocalProvider(LocalAnalytics provides analyticsService, LocalTipStore provides tipStore) {
                 Theme(darkTheme = useDarkTheme) {
                     val mustUpdate by viewModel.mustUpdate.collectAsState()
                     val isAuthenticated by viewModel.isAuthenticated.collectAsState()

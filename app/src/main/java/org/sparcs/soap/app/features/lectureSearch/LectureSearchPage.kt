@@ -20,6 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,6 +43,9 @@ import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchTimeta
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureSearchViewModel
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -71,8 +75,10 @@ fun LectureSearchPage(
     }
     BackHandler(enabled = inspector == null, onBack = close)
 
+    val tipStore = LocalTipStore.current
     BoxWithConstraints(modifier.fillMaxSize()) {
         val isWide = maxWidth >= 700.dp
+        LaunchedEffect(isWide) { if (isWide) tipStore?.skipPreviewSteps() }
         Scaffold(
             modifier = if (inspector == null) Modifier.analyticsScreen("Lecture Search") else Modifier,
             containerColor = MaterialTheme.colorScheme.background,
@@ -106,6 +112,11 @@ fun LectureSearchPage(
                     }
                     if (showsSearchPane) {
                         Column(Modifier.weight(1f).fillMaxHeight()) {
+                            TipView(
+                                BuddyTip.TogglePreview,
+                                enabled = !isWide,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            )
                             val previewMaxHeight = (availableHeight * 0.6f).coerceAtLeast(0.dp)
                             val previewHeight = session.previewHeight.dp.coerceIn(minOf(120.dp, previewMaxHeight), previewMaxHeight)
                             LectureSearchList(
@@ -158,8 +169,10 @@ fun LectureSearchPage(
 @Composable
 fun LecturePreviewToggle(session: LectureSearchSession) {
     val focusManager = LocalFocusManager.current
+    val tipStore = LocalTipStore.current
     IconButton(onClick = {
         focusManager.clearFocus()
+        tipStore?.invalidate(BuddyTip.TogglePreview)
         session.showPreview(!session.showPreview)
     }) {
         Icon(

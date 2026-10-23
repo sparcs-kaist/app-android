@@ -4,8 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,6 +46,9 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.features.navigationBar.animation.AnimatedText
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -66,23 +71,38 @@ fun CompactTimetableSelector(
     val isDialogPresented = showRenameDialog || showDeleteDialog
     LaunchedEffect(isDialogPresented) { currentOnDialogVisibilityChange(isDialogPresented) }
     DisposableEffect(Unit) { onDispose { currentOnDialogVisibilityChange(false) } }
+    val tipStore = LocalTipStore.current
+    val timetable by viewModel.selectedTimetable.collectAsState()
+    val sharesWithTip = onShareClick?.let { share ->
+        {
+            tipStore?.invalidate(BuddyTip.ShareTimetable)
+            share()
+        }
+    }
 
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = if (isWide) Arrangement.SpaceBetween else Arrangement.spacedBy(8.dp)
-    ) {
-        SemesterSelector(viewModel = viewModel)
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = if (isWide) Modifier.fillMaxWidth() else Modifier,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = if (isWide) Arrangement.SpaceBetween else Arrangement.spacedBy(8.dp)
+        ) {
+            SemesterSelector(viewModel = viewModel)
 
-        TableSelector(
-            viewModel = viewModel,
-            displayName = timetableName,
-            onRenameClick = {
-                renameText = timetableName
-                showRenameDialog = true
-            },
-            onDeleteClick = { showDeleteDialog = true },
-            onShareClick = onShareClick
+            TableSelector(
+                viewModel = viewModel,
+                displayName = timetableName,
+                onRenameClick = {
+                    renameText = timetableName
+                    showRenameDialog = true
+                },
+                onDeleteClick = { showDeleteDialog = true },
+                onShareClick = sharesWithTip
+            )
+        }
+
+        TipView(
+            BuddyTip.ShareTimetable,
+            enabled = isWide && onShareClick != null && (timetable?.lectures?.size ?: 0) >= SHARE_TIP_LECTURE_COUNT,
         )
     }
 
@@ -269,3 +289,5 @@ fun TableSelector(
 private fun Preview() {
     Theme { CompactTimetableSelector(viewModel = PreviewTimetableViewModel(), "") }
 }
+
+private const val SHARE_TIP_LECTURE_COUNT = 3

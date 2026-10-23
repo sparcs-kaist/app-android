@@ -62,6 +62,9 @@ import org.sparcs.soap.app.domain.usecases.summarization.ReviewSummaryUseCase
 import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.shared.views.contentViews.SummarizationView
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.gray64
@@ -80,8 +83,10 @@ fun LectureReviewCell(
     onRetrySummarize: () -> Unit,
     onDismissSummarize: () -> Unit,
     subtitle: String? = null,
+    showsSummariseTip: Boolean = false,
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val tipStore = LocalTipStore.current
     val context = LocalContext.current
 
     val haptic = LocalHapticFeedback.current
@@ -177,7 +182,11 @@ fun LectureReviewCell(
                             if (ReviewSummaryUseCase.canSummarise(lectureReview.content)) {
                                 DropdownMenuItem(
                                     text = { Text(stringResource(R.string.summarise)) },
-                                    onClick = { onSummarize(); expanded = false },
+                                    onClick = {
+                                        tipStore?.invalidate(BuddyTip.SummariseReview)
+                                        onSummarize()
+                                        expanded = false
+                                    },
                                     leadingIcon = {
                                         Icon(
                                             imageVector = Icons.Outlined.Summarize,
@@ -192,6 +201,12 @@ fun LectureReviewCell(
             }
 
             Spacer(modifier = Modifier.padding(4.dp))
+
+            TipView(
+                BuddyTip.SummariseReview,
+                enabled = showsSummariseTip && summarizationState == SummarizationState.Idle,
+                modifier = Modifier.padding(bottom = 8.dp),
+            )
 
             SummarizationView(
                 state = summarizationState,
@@ -267,6 +282,9 @@ fun LectureReviewCell(
         }
     }
 }
+
+fun summariseTipReviewID(reviews: List<LectureReview>, myReviewID: Int?): Int? =
+    reviews.firstOrNull { it.id != myReviewID && ReviewSummaryUseCase.canSummarise(it.content) }?.id
 
 @Composable
 fun LectureReviewSkeletonCell() {

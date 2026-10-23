@@ -63,6 +63,7 @@ import org.sparcs.soap.app.features.timetable.components.TimetableAddButton
 import org.sparcs.soap.app.features.timetable.components.TimetableCreditGraph
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableOfflineStatus
+import org.sparcs.soap.app.features.timetable.components.TimetableOnboardingTips
 import org.sparcs.soap.app.features.timetable.components.TimetableSummary
 import org.sparcs.soap.app.features.timetable.components.TimetableViewNavigationBar
 import org.sparcs.soap.app.features.timetable.creditCalculation.CreditCalculationViewModelProtocol
@@ -74,6 +75,8 @@ import org.sparcs.soap.app.shared.extensions.escapeHash
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.sharing.ScreenshotEffect
 import org.sparcs.soap.app.shared.sharing.navigateToShareFeed
+import org.sparcs.soap.app.shared.tips.BuddyTip
+import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -126,11 +129,19 @@ fun TimetableView(
     val candidateLecture by viewModel.candidateLecture.collectAsState()
     val isOverlapping by viewModel.isCandidateOverlapping.collectAsState()
 
+    val tipStore = LocalTipStore.current
     val openLectureSearch: () -> Unit = {
+        tipStore?.invalidate(BuddyTip.AddEvent)
         navController.navigate(
             if (lectureSearchStyle == LectureSearchStyle.Fixed) Channel.CourseCompose.name
             else Channel.LectureSearch.name
         )
+    }
+    val openActivityCreation: () -> Unit = {
+        selectedTimetable?.id?.let {
+            tipStore?.invalidate(BuddyTip.AddEvent)
+            navController.navigate("${Channel.ActivityCreation.name}/$it")
+        }
     }
 
     BackHandler(enabled = candidateLecture != null) {
@@ -151,7 +162,7 @@ fun TimetableView(
                         scrollState = scrollState,
                         isButtonEnabled = isEditable,
                         onClick = openLectureSearch,
-                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } }
+                        onActivityClick = openActivityCreation
                     )
                 }
             },
@@ -181,7 +192,7 @@ fun TimetableView(
                             showDeleteDialog = true
                         },
                         onAddClick = openLectureSearch,
-                        onActivityClick = { selectedTimetable?.id?.let { navController.navigate("${Channel.ActivityCreation.name}/$it") } },
+                        onActivityClick = openActivityCreation,
                         isEditable = isEditable,
                         creditsContent = creditsContent,
                         onSelectorDialogChange = { isSelectorDialogPresented = it },
@@ -251,6 +262,7 @@ private fun TimetableLandscapeLayout(
     onSelectorDialogChange: (Boolean) -> Unit,
 ) {
     val loadState by viewModel.loadState.collectAsState()
+    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -288,6 +300,14 @@ private fun TimetableLandscapeLayout(
         if (loadState.isOffline) {
             TimetableOfflineStatus(loadState, Modifier.padding(horizontal = 24.dp))
         }
+
+        TimetableOnboardingTips(
+            isMyTable = selectedTimetableID == null,
+            isEditable = isEditable,
+            onNewTable = viewModel::createTable,
+            onDuplicateMyTable = viewModel::duplicateMyTable,
+            modifier = Modifier.padding(horizontal = 24.dp),
+        )
 
         BoxWithConstraints(
             modifier = Modifier
@@ -394,6 +414,8 @@ private fun TimetablePortraitLayout(
     onSelectorDialogChange: (Boolean) -> Unit,
 ) {
     val loadState by viewModel.loadState.collectAsState()
+    val selectedTimetableID by viewModel.selectedTimetableID.collectAsState()
+    val isEditable by viewModel.isEditable.collectAsState()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -415,6 +437,13 @@ private fun TimetablePortraitLayout(
         if (loadState.isOffline) {
             TimetableOfflineStatus(loadState)
         }
+
+        TimetableOnboardingTips(
+            isMyTable = selectedTimetableID == null,
+            isEditable = isEditable,
+            onNewTable = viewModel::createTable,
+            onDuplicateMyTable = viewModel::duplicateMyTable,
+        )
 
         Card(
             modifier = Modifier

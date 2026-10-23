@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,6 +25,8 @@ import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsContent
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipEvent
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.rememberTimetableThemeState
 import org.sparcs.soap.app.theme.ui.rememberTimetableThemeStore
@@ -32,6 +35,8 @@ import org.sparcs.soap.app.theme.ui.rememberTimetableThemeStore
 fun TimetableThemeSettingsView(navController: NavController) {
     val store = rememberTimetableThemeStore()
     val state = rememberTimetableThemeState(store)
+    val tipStore = LocalTipStore.current
+    LaunchedEffect(Unit) { tipStore?.donate(TipEvent.ThemeSettingsOpened) }
     var editing by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
     var sharing by rememberSaveable { mutableStateOf<String?>(null) }

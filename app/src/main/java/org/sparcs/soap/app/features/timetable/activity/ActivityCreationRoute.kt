@@ -37,6 +37,8 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.mocks.otl.mock
+import org.sparcs.soap.app.shared.tips.LocalTipStore
+import org.sparcs.soap.app.shared.tips.TipEvent
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewActivityParsingUseCase
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -59,6 +61,8 @@ fun ActivityCreationRoute(
     var failed by remember { mutableStateOf(false) }
     var retry by remember { mutableIntStateOf(0) }
     val update: (Timetable) -> Unit = { table = it }
+    val tipStore = LocalTipStore.current
+    LaunchedEffect(Unit) { if (activityID == null) tipStore?.donate(TipEvent.ActivityCreationOpened) }
     LaunchedEffect(timetableID, retry) {
         if (table == null) {
             failed = false
