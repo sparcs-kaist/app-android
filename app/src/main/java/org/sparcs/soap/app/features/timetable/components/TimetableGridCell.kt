@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,7 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -29,7 +29,8 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.isSpecified
+import androidx.compose.ui.unit.sp
+import org.sparcs.soap.app.domain.models.otl.LectureClass
 import org.sparcs.soap.app.domain.models.otl.LectureItem
 import org.sparcs.soap.app.domain.models.otl.subtitleTopic
 import org.sparcs.soap.app.shared.mocks.otl.mockList
@@ -43,119 +44,65 @@ fun TimetableGridCell(
     modifier: Modifier = Modifier,
     isConflict: Boolean = false,
 ) {
-    val density = LocalDensity.current
-    val textMeasurer = rememberTextMeasurer()
+    val theme = LocalTimetableTheme.current
+    val courseColor = theme.colorFor(lectureItem.lecture.courseID)
+    val backgroundColor = when {
+        isCandidate -> Color.Transparent
+        isConflict -> Color.Black.copy(alpha = 0.8f)
+        else -> courseColor
+    }
+    val contentColor = when {
+        isCandidate -> MaterialTheme.colorScheme.onSurface
+        isConflict -> Color.White
+        else -> theme.textColor
+    }
 
-    val themeTitleStyle = MaterialTheme.typography.bodySmall.copy(
-        lineBreak = LineBreak.Heading,
-        fontWeight = FontWeight.Medium
-    )
-    val themeLocationStyle = MaterialTheme.typography.labelSmall.copy(
-        fontWeight = FontWeight.Light,
-        lineBreak = LineBreak.Heading
-    )
-
-    val compactScale = 0.85f
-    val compactTitleStyle = themeTitleStyle.copy(
-        fontSize = themeTitleStyle.fontSize * compactScale,
-        lineHeight = if (themeTitleStyle.lineHeight.isSpecified) {
-            themeTitleStyle.lineHeight * compactScale
-        } else {
-            themeTitleStyle.lineHeight
-        }
-    )
-    val compactLocationStyle = themeLocationStyle.copy(
-        fontSize = themeLocationStyle.fontSize * compactScale,
-        lineHeight = if (themeLocationStyle.lineHeight.isSpecified) {
-            themeLocationStyle.lineHeight * compactScale
-        } else {
-            themeLocationStyle.lineHeight
-        }
-    )
-
-    val verticalPadding = 12.dp
-    val spacing = 2.dp
-
-    BoxWithConstraints(
-        modifier = modifier
-            .height(cellHeight)
-    ) {
-        val availableTextWidthPx = with(density) {
-            (maxWidth - 10.dp).toPx().toInt().coerceAtLeast(0)
-        }
-
-        val titleText = lectureItem.lecture.name
-        val roomText = "(" + lectureItem.lectureClass.buildingCode + ") " + lectureItem.lectureClass.roomName
-        val locationText = listOfNotNull(lectureItem.lecture.subtitle.subtitleTopic, roomText).joinToString("\n")
-
-
-        val layoutConfig = remember(
-            titleText,
-            locationText,
-            availableTextWidthPx,
-            cellHeight,
-            themeTitleStyle,
-            themeLocationStyle,
-            compactTitleStyle,
-            compactLocationStyle
-        ) {
-            pickBestLayout(
-                textMeasurer = textMeasurer,
-                density = density,
-                textWidthPx = availableTextWidthPx,
-                titleText = titleText,
-                locationText = locationText,
-                cellHeight = cellHeight,
-                verticalPadding = verticalPadding,
-                spacing = spacing,
-                normalTitleStyle = themeTitleStyle,
-                normalLocationStyle = themeLocationStyle,
-                compactTitleStyle = compactTitleStyle,
-                compactLocationStyle = compactLocationStyle
-            )
-        }
-
-        val backgroundColor = when {
-            isCandidate -> Color.Transparent
-            isConflict -> Color(0xFF000000).copy(alpha = 0.8f) // Black Accent for Conflict
-            else -> LocalTimetableTheme.current.colorFor(lectureItem.lecture.courseID)
-        }
-
-        val contentColor = if (isCandidate) MaterialTheme.colorScheme.onSurface else if (isConflict) Color.White else LocalTimetableTheme.current.textColor
+    BoxWithConstraints(modifier = modifier.height(cellHeight)) {
+        val layout = CellLayout.of(maxWidth, maxHeight)
+        val title = lectureItem.lecture.name
+        val subtitle = lectureItem.lecture.subtitle.subtitleTopic
+        val detail = lectureItem.lectureClass.roomLabel(layout.isPacked)
+        val detailMaxLines = rememberDetailMaxLines(layout, title, subtitle, detail, maxWidth, maxHeight)
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    backgroundColor,
-                    RoundedCornerShape(4.dp)
-                )
-                .clip(RoundedCornerShape(4.dp))
+                .background(backgroundColor, CellShape)
+                .clip(CellShape)
         ) {
-            if (isCandidate) TentativeBlock(LocalTimetableTheme.current.colorFor(lectureItem.lecture.courseID), Modifier.fillMaxSize())
+            if (isCandidate) TentativeBlock(courseColor, Modifier.fillMaxSize())
+
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 5.dp, vertical = 6.dp),
-                verticalArrangement = Arrangement.spacedBy(spacing)
+                    .padding(horizontal = layout.horizontalPadding, vertical = layout.verticalPadding),
+                verticalArrangement = Arrangement.spacedBy(LINE_SPACING)
             ) {
                 Text(
-                    text = titleText,
+                    text = title,
                     color = contentColor,
-                    style = layoutConfig.titleStyle,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = layoutConfig.titleMaxLines,
+                    style = layout.titleStyle,
+                    maxLines = layout.titleMaxLines,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (locationText.isNotBlank() && layoutConfig.showLocation && layoutConfig.locationStyle != null) {
+                if (layout.showsDetails) {
+                    subtitle?.let {
+                        Text(
+                            text = it,
+                            color = contentColor,
+                            style = layout.detailStyle,
+                            maxLines = layout.subtitleMaxLines,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
                     Text(
-                        text = locationText,
+                        text = detail,
                         color = contentColor.copy(alpha = 0.8f),
-                        style = layoutConfig.locationStyle,
-                        maxLines = layoutConfig.locationMaxLines,
-                        overflow = TextOverflow.Ellipsis,
-                        fontWeight = FontWeight.Light
+                        style = layout.detailStyle,
+                        maxLines = detailMaxLines,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -163,186 +110,145 @@ fun TimetableGridCell(
     }
 }
 
-private data class CellLayoutConfig(
-    val titleStyle: TextStyle,
+private class CellLayout(
+    val isPacked: Boolean,
+    val showsDetails: Boolean,
+    val horizontalPadding: Dp,
+    val verticalPadding: Dp,
     val titleMaxLines: Int,
-    val locationStyle: TextStyle?,
-    val locationMaxLines: Int,
-    val showLocation: Boolean = locationStyle != null
-)
+    val subtitleMaxLines: Int,
+    val titleStyle: TextStyle,
+    val detailStyle: TextStyle,
+) {
+    companion object {
+        @Composable
+        fun of(width: Dp, height: Dp): CellLayout {
+            val isPacked = width < PACKED_WIDTH || height < PACKED_HEIGHT
+            return CellLayout(
+                isPacked = isPacked,
+                showsDetails = height > DETAILS_MIN_HEIGHT,
+                horizontalPadding = if (isPacked) 3.dp else 6.dp,
+                verticalPadding = if (isPacked) 4.dp else 6.dp,
+                titleMaxLines = if (isPacked && height < PACKED_HEIGHT) 2 else 3,
+                subtitleMaxLines = if (height > SUBTITLE_FULL_HEIGHT) 3 else 1,
+                titleStyle = titleStyle(isPacked),
+                detailStyle = detailStyle(isPacked),
+            )
+        }
 
-private fun pickBestLayout(
-    textMeasurer: TextMeasurer,
-    density: Density,
-    textWidthPx: Int,
-    titleText: String,
-    locationText: String,
-    cellHeight: Dp,
-    verticalPadding: Dp,
-    spacing: Dp,
-    normalTitleStyle: TextStyle,
-    normalLocationStyle: TextStyle,
-    compactTitleStyle: TextStyle,
-    compactLocationStyle: TextStyle,
-): CellLayoutConfig {
-    val normalTitleLineCount = measureLineCount(textMeasurer, titleText, normalTitleStyle, textWidthPx)
-    val normalLocationLineCount = measureLineCount(textMeasurer, locationText, normalLocationStyle, textWidthPx)
-    val compactTitleLineCount = measureLineCount(textMeasurer, titleText, compactTitleStyle, textWidthPx)
-    val compactLocationLineCount = measureLineCount(textMeasurer, locationText, compactLocationStyle, textWidthPx)
+        @Composable
+        private fun titleStyle(isPacked: Boolean): TextStyle {
+            val base = MaterialTheme.typography.bodySmall.copy(lineBreak = LineBreak.Heading, fontWeight = FontWeight.Medium)
+            if (!isPacked) return base
+            return base.copy(fontSize = base.fontSize * PACKED_TEXT_SCALE, lineHeight = base.lineHeight * PACKED_TEXT_SCALE)
+        }
 
-    val fullNormalLayout = CellLayoutConfig(normalTitleStyle, normalTitleLineCount, normalLocationStyle, normalLocationLineCount)
-    if (cellHeight >= requiredHeight(
-            textMeasurer = textMeasurer,
-            density = density,
-            textWidthPx = textWidthPx,
-            titleText = titleText,
-            locationText = locationText,
-            titleStyle = fullNormalLayout.titleStyle,
-            titleLines = fullNormalLayout.titleMaxLines,
-            locationStyle = fullNormalLayout.locationStyle,
-            locationLines = fullNormalLayout.locationMaxLines,
-            verticalPadding = verticalPadding,
-            spacing = spacing
-        )) {
-        return fullNormalLayout
+        @Composable
+        private fun detailStyle(isPacked: Boolean): TextStyle {
+            val base = MaterialTheme.typography.labelSmall.copy(lineBreak = LineBreak.Simple, fontWeight = FontWeight.Light)
+            return if (isPacked) base.copy(letterSpacing = PACKED_LETTER_SPACING) else base
+        }
     }
-
-    val fullCompactLayout = CellLayoutConfig(compactTitleStyle, compactTitleLineCount, compactLocationStyle, compactLocationLineCount)
-    if (cellHeight >= requiredHeight(
-            textMeasurer = textMeasurer,
-            density = density,
-            textWidthPx = textWidthPx,
-            titleText = titleText,
-            locationText = locationText,
-            titleStyle = fullCompactLayout.titleStyle,
-            titleLines = fullCompactLayout.titleMaxLines,
-            locationStyle = fullCompactLayout.locationStyle,
-            locationLines = fullCompactLayout.locationMaxLines,
-            verticalPadding = verticalPadding,
-            spacing = spacing
-        )) {
-        return fullCompactLayout
-    }
-
-    val candidates = buildList {
-        add(CellLayoutConfig(compactTitleStyle, minOf(compactTitleLineCount, 2), compactLocationStyle, compactLocationLineCount))
-        add(CellLayoutConfig(compactTitleStyle, 1, compactLocationStyle, compactLocationLineCount))
-        add(CellLayoutConfig(normalTitleStyle, minOf(normalTitleLineCount, 2), normalLocationStyle, minOf(normalLocationLineCount, 2)))
-        add(CellLayoutConfig(normalTitleStyle, minOf(normalTitleLineCount, 2), normalLocationStyle, 1))
-        add(CellLayoutConfig(normalTitleStyle, 1, normalLocationStyle, 1))
-        add(CellLayoutConfig(compactTitleStyle, minOf(compactTitleLineCount, 2), compactLocationStyle, minOf(compactLocationLineCount, 2)))
-        add(CellLayoutConfig(compactTitleStyle, minOf(compactTitleLineCount, 2), compactLocationStyle, 1))
-        add(CellLayoutConfig(compactTitleStyle, 1, compactLocationStyle, 1))
-        add(CellLayoutConfig(normalTitleStyle, 2, null, 0))
-        add(CellLayoutConfig(normalTitleStyle, 1, null, 0))
-        add(CellLayoutConfig(compactTitleStyle, 2, null, 0))
-        add(CellLayoutConfig(compactTitleStyle, 1, null, 0))
-    }
-
-    return candidates.firstOrNull { option ->
-        cellHeight >= requiredHeight(
-            textMeasurer = textMeasurer,
-            density = density,
-            textWidthPx = textWidthPx,
-            titleText = titleText,
-            locationText = locationText,
-            titleStyle = option.titleStyle,
-            titleLines = option.titleMaxLines,
-            locationStyle = option.locationStyle,
-            locationLines = option.locationMaxLines,
-            verticalPadding = verticalPadding,
-            spacing = spacing
-        )
-    } ?: CellLayoutConfig(compactTitleStyle, 1, null, 0)
 }
 
-private fun requiredHeight(
-    textMeasurer: TextMeasurer,
-    density: Density,
-    textWidthPx: Int,
-    titleText: String,
-    locationText: String,
-    titleStyle: TextStyle,
-    titleLines: Int,
-    locationStyle: TextStyle?,
-    locationLines: Int,
-    verticalPadding: Dp,
-    spacing: Dp,
-): Dp {
-    val titleHeight = measureTextHeight(textMeasurer, titleText, titleStyle, titleLines, textWidthPx, density)
-    val locationHeight = locationStyle?.let {
-        measureTextHeight(textMeasurer, locationText, it, locationLines, textWidthPx, density)
-    } ?: 0.dp
-    val locationGap = if (locationStyle != null && locationLines > 0) spacing else 0.dp
-
-    return verticalPadding + titleHeight + locationGap + locationHeight
-}
-
-private fun measureLineCount(
-    textMeasurer: TextMeasurer,
-    text: String,
-    style: TextStyle,
-    widthPx: Int,
+@Composable
+private fun rememberDetailMaxLines(
+    layout: CellLayout,
+    title: String,
+    subtitle: String?,
+    detail: String,
+    width: Dp,
+    height: Dp,
 ): Int {
-    if (widthPx <= 0) return 1
-
-    return textMeasurer.measure(
-        text = AnnotatedString(text),
-        style = style,
-        maxLines = Int.MAX_VALUE,
-        overflow = TextOverflow.Clip,
-        constraints = Constraints(maxWidth = widthPx)
-    ).lineCount.coerceAtLeast(1)
+    val textMeasurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    return remember(layout.isPacked, title, subtitle, detail, width, height, density) {
+        textMeasurer.detailMaxLines(layout, title, subtitle, detail, width, height, density)
+    }
 }
 
-private fun measureTextHeight(
-    textMeasurer: TextMeasurer,
-    text: String,
-    style: TextStyle,
-    maxLines: Int,
-    widthPx: Int,
+private fun TextMeasurer.detailMaxLines(
+    layout: CellLayout,
+    title: String,
+    subtitle: String?,
+    detail: String,
+    width: Dp,
+    height: Dp,
     density: Density,
-): Dp {
-    if (widthPx <= 0) return 0.dp
+): Int = with(density) {
+    val constraints = Constraints(maxWidth = (width - layout.horizontalPadding * 2).roundToPx().coerceAtLeast(1))
+    val spacing = LINE_SPACING.roundToPx()
 
-    val result = textMeasurer.measure(
-        text = AnnotatedString(text),
-        style = style,
-        maxLines = maxLines,
-        overflow = TextOverflow.Clip,
-        constraints = Constraints(maxWidth = widthPx)
-    )
+    val titleHeight = measure(title, layout.titleStyle, maxLines = layout.titleMaxLines, constraints = constraints).size.height
+    val subtitleHeight = subtitle?.let {
+        measure(it, layout.detailStyle, maxLines = layout.subtitleMaxLines, constraints = constraints).size.height + spacing
+    } ?: 0
+    val detailTop = titleHeight + subtitleHeight + spacing
+    val availableHeight = (height - layout.verticalPadding * 2).roundToPx()
 
-    return with(density) { result.size.height.toDp() }
+    val detailLayout = measure(detail, layout.detailStyle, constraints = constraints)
+    val fittingLines = (0 until detailLayout.lineCount).count { line ->
+        detailTop + detailLayout.getLineBottom(line) <= availableHeight
+    }
+    fittingLines.coerceAtLeast(1)
 }
+
+internal fun LectureClass.roomLabel(isPacked: Boolean): String {
+    val room = if (isPacked) roomNumber(roomName) ?: roomName else roomName
+    return "($buildingCode) $room"
+}
+
+internal fun roomNumber(roomName: String): String? =
+    ROOM_NUMBER.find(roomName)?.groupValues?.get(1)
+
+private val CellShape = RoundedCornerShape(4.dp)
+private val LINE_SPACING = 2.dp
+
+private val PACKED_WIDTH = 72.dp
+private val PACKED_HEIGHT = 60.dp
+private val DETAILS_MIN_HEIGHT = 40.dp
+private val SUBTITLE_FULL_HEIGHT = 90.dp
+
+private const val PACKED_TEXT_SCALE = 0.9f
+private val PACKED_LETTER_SPACING = (-0.3).sp
+
+private val ROOM_NUMBER = Regex("""^\s*\(\s*([^)]+?)\s*호\s*\)""")
 
 @Preview(name = "Large Space", showBackground = true)
 @Composable
 private fun PreviewIdeal() {
-    TimetableGridCell(LectureItem.mockList()[1], false, 120.dp)
+    TimetableGridCell(LectureItem.mockList()[1], false, 120.dp, Modifier.width(100.dp))
 }
 
 @Preview(name = "Standard", showBackground = true)
 @Composable
 private fun PreviewStandard() {
-    TimetableGridCell(LectureItem.mockList()[1], false, 80.dp)
+    TimetableGridCell(LectureItem.mockList()[1], false, 80.dp, Modifier.width(100.dp))
+}
+
+@Preview(name = "Packed by width", showBackground = true)
+@Composable
+private fun PreviewPackedWidth() {
+    TimetableGridCell(LectureItem.mockList()[1], false, 100.dp, Modifier.width(56.dp))
 }
 
 @Preview(name = "Tight", showBackground = true)
 @Composable
 private fun PreviewTight() {
-    TimetableGridCell(LectureItem.mockList()[1], false, 45.dp)
+    TimetableGridCell(LectureItem.mockList()[1], false, 45.dp, Modifier.width(100.dp))
+}
+
+@Preview(name = "Long room name", showBackground = true)
+@Composable
+private fun PreviewLongRoom() {
+    val item = LectureItem.mockList()[1]
+    val longRoom = item.lectureClass.copy(roomName = "(1501호)강의실-제1공동강의실")
+    TimetableGridCell(item.copy(lectureClass = longRoom), false, 140.dp, Modifier.width(80.dp))
 }
 
 @Preview(name = "Subtitle", showBackground = true)
 @Composable
 private fun PreviewSubtitle() {
     val item = LectureItem.mockList()[1]
-    TimetableGridCell(item.copy(lecture = item.lecture.copy(subtitle = "<리더십 강좌>")), false, 100.dp)
-}
-
-@Preview(name = "Shared timetable cell", showBackground = true)
-@Composable
-private fun PreviewRender() {
-    TimetableGridCell(LectureItem.mockList()[1], false, 100.dp)
+    TimetableGridCell(item.copy(lecture = item.lecture.copy(subtitle = "<리더십 강좌>")), false, 100.dp, Modifier.width(100.dp))
 }
