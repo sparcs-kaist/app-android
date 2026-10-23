@@ -1,8 +1,5 @@
-import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
-import org.gradle.kotlin.dsl.android
-import org.gradle.kotlin.dsl.libs
+
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.internal.types.error.ErrorModuleDescriptor.platform
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -19,8 +16,8 @@ android {
         applicationId = "org.sparcs.soap"
         minSdk = 31
         targetSdk = 36
-        versionCode = 31
-        versionName = "1.2"
+        versionCode = 38
+        versionName = "2.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
