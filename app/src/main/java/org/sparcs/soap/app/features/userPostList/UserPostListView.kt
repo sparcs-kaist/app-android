@@ -74,6 +74,7 @@ fun UserPostListView(
     }
 
     val topBarScrollBehavior = topAppBarScrollBehavior()
+    val isLoadingMore by viewModel.isLoadingMore.collectAsState()
 
     Scaffold(
         topBar = {
@@ -112,7 +113,7 @@ fun UserPostListView(
                 when (state) {
                     is UserPostListViewModel.ViewState.Loading -> {
                         Column(modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
-                            repeat(15) { PostListSkeletonRow() }
+                            repeat(15) { PostListSkeletonRow(it) }
                         }
                     }
 
@@ -136,12 +137,9 @@ fun UserPostListView(
                                 coroutineScope.launch { viewModel.loadNextPage() }
                             },
                             isRefreshing = isRefreshing,
-                            contentPadding = PaddingValues(
-                                start = 20.dp,
-                                end = 20.dp,
-                                top = 8.dp,
-                                bottom = 8.dp
-                            )
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            rowPadding = PaddingValues(horizontal = 16.dp),
+                            isLoadingMore = isLoadingMore
                         )
                     }
 
