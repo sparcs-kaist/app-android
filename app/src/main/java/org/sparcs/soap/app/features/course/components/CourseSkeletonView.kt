@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.course.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,178 +11,37 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.features.course.StatSeparator
-import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewSkeletonCell
-import org.sparcs.soap.app.shared.extensions.glassBorder
+import org.sparcs.soap.app.features.lectureDetail.components.DetailInfoCardSkeleton
+import org.sparcs.soap.app.features.lectureDetail.components.DetailSectionHeaderSkeleton
+import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewsSkeleton
+import org.sparcs.soap.app.features.lectureDetail.components.LectureSummarySkeleton
+import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
+import org.sparcs.soap.app.shared.extensions.bleedHorizontally
 import org.sparcs.soap.app.theme.ui.Theme
 
 
+/** Mirrors [org.sparcs.soap.app.features.course.CourseSummary]: stats, header and info card. */
 @Composable
 fun CourseSummarySkeleton() {
-    Column(
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            repeat(3) { index ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Box(
-                        modifier = Modifier
-                            .height(28.dp)
-                            .width(40.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .height(14.dp)
-                            .width(30.dp)
-                            .background(
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                RoundedCornerShape(4.dp)
-                            )
-                    )
-                }
-                if (index < 2) {
-                    StatSeparator()
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Box(
-            modifier = Modifier
-                .height(24.dp)
-                .width(100.dp)
-                .background(
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    RoundedCornerShape(4.dp)
-                )
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .padding(vertical = 4.dp)
-                .glassBorder(shape = RoundedCornerShape(16.dp))
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                repeat(4) { index ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .height(16.dp)
-                                .width(60.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(4.dp)
-                                )
-                        )
-                        Box(
-                            modifier = Modifier
-                                .height(16.dp)
-                                .width(120.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(4.dp)
-                                )
-                        )
-                    }
-                    if (index < 3) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                        )
-                    }
-                }
-            }
-        }
+    Column(modifier = Modifier.fillMaxWidth()) {
+        LectureSummarySkeleton()
+        Spacer(modifier = Modifier.height(8.dp))
+        DetailSectionHeaderSkeleton()
+        DetailInfoCardSkeleton(rows = 4)
     }
 }
 
+/** The reviews below the course's reviews header, which stays visible while they load. */
 @Composable
 fun CourseReviewSectionSkeleton() {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .height(24.dp)
-                .width(60.dp)
-                .background(
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    RoundedCornerShape(4.dp)
-                )
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .padding(vertical = 4.dp)
-                .fillMaxWidth()
-                .glassBorder(shape = RoundedCornerShape(16.dp))
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                repeat(3) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .height(12.dp)
-                                .width(30.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(2.dp)
-                                )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .height(20.dp)
-                                .width(40.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(4.dp)
-                                )
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        repeat(2) {
-            LectureReviewSkeletonCell()
-        }
-    }
+    LectureReviewsSkeleton(showsHeader = false, reviews = 2)
 }
 
 @Composable
@@ -196,15 +54,28 @@ private fun Preview() {
         }
     }
 }
+/** Mirrors [CourseHistorySection]: header, then a row of semester cards. */
 @Composable
 fun CourseHistorySkeleton() {
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        repeat(3) {
-            Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.background) {
-                Column(Modifier.width(190.dp).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    repeat(3) {
-                        Box(Modifier.width(if (it == 0) 90.dp else 140.dp).height(18.dp)
-                            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f), RoundedCornerShape(4.dp)))
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        DetailSectionHeaderSkeleton(titleWidth = 72.dp)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier
+                .bleedHorizontally(16.dp)
+                .horizontalScroll(rememberScrollState(), enabled = false)
+                .padding(horizontal = 16.dp)
+        ) {
+            repeat(3) {
+                Card(modifier = Modifier.width(190.dp)) {
+                    Column(Modifier.padding(12.dp)) {
+                        SkeletonLine(MaterialTheme.typography.titleSmall, Modifier.width(96.dp))
+                        Spacer(Modifier.height(8.dp))
+                        repeat(2) {
+                            Box(Modifier.height(48.dp), contentAlignment = Alignment.CenterStart) {
+                                SkeletonLine(MaterialTheme.typography.bodyMedium, Modifier.width(120.dp))
+                            }
+                        }
                     }
                 }
             }

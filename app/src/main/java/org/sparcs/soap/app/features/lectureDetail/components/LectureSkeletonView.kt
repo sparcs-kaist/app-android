@@ -8,22 +8,33 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 
+// Placeholders for the lecture detail and course screens. Each mirrors the section it stands in
+// for, using the same text styles and paddings, so nothing jumps when it loads.
+
+/** Mirrors the row of [LectureSummaryRow]s with separators between them. */
 @Composable
 fun LectureSummarySkeleton() {
+    val typography = MaterialTheme.typography
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly,
@@ -31,181 +42,110 @@ fun LectureSummarySkeleton() {
     ) {
         repeat(3) { index ->
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(
-                    modifier = Modifier
-                        .height(20.dp)
-                        .width(60.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                            RoundedCornerShape(4.dp)
-                        )
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Box(
-                    modifier = Modifier
-                        .height(20.dp)
-                        .width(40.dp)
-                        .background(
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                            RoundedCornerShape(4.dp)
-                        )
-                )
+                SkeletonLine(typography.titleLarge, Modifier.width(32.dp))
+                SkeletonLine(typography.labelSmall, Modifier.width(48.dp))
             }
-            if (index < 2) {
-                StatSeparator()
+            if (index < 2) StatSeparator()
+        }
+    }
+}
+
+/** Mirrors [DetailSectionHeader], with an optional pill where its trailing button goes. */
+@Composable
+fun DetailSectionHeaderSkeleton(titleWidth: Dp = 96.dp, trailingWidth: Dp? = null) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+    ) {
+        SkeletonLine(MaterialTheme.typography.titleMedium, Modifier.width(titleWidth))
+        Spacer(Modifier.weight(1f))
+        trailingWidth?.let {
+            SkeletonBlock(Modifier.size(width = it, height = 40.dp), CircleShape)
+        }
+    }
+}
+
+/** Mirrors [DetailInfoCard] with [rows] rows. */
+@Composable
+fun DetailInfoCardSkeleton(rows: Int) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
+            repeat(rows) { index ->
+                if (index > 0) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp)
+                ) {
+                    SkeletonLine(MaterialTheme.typography.bodyMedium, Modifier.width(64.dp))
+                    SkeletonLine(MaterialTheme.typography.bodyMedium, Modifier.width(120.dp))
+                }
             }
         }
     }
 }
 
+/** Mirrors [ReviewStatsCard]. */
 @Composable
-fun LectureInformationSkeleton() {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .height(24.dp)
-                .width(100.dp)
-                .background(
-                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                    RoundedCornerShape(4.dp)
-                )
+fun ReviewStatsCardSkeleton() {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Box(modifier = Modifier.padding(vertical = 16.dp)) { LectureSummarySkeleton() }
+    }
+}
+
+/** Mirrors the reviews section: header, stats card and a few reviews. */
+@Composable
+fun LectureReviewsSkeleton(showsHeader: Boolean = true, showsWriteButton: Boolean = true, reviews: Int = 3) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        if (showsHeader) {
+            DetailSectionHeaderSkeleton(titleWidth = 72.dp, trailingWidth = if (showsWriteButton) 144.dp else null)
+        }
+        ReviewStatsCardSkeleton()
+        Column(modifier = Modifier.padding(top = 6.dp)) {
+            repeat(reviews) { LectureReviewSkeletonCell() }
+        }
+    }
+}
+
+/** A bar as tall as the font, centered in a box one line of [style] tall. */
+@Composable
+internal fun SkeletonLine(style: TextStyle, modifier: Modifier) {
+    val density = LocalDensity.current
+    Box(
+        contentAlignment = Alignment.CenterStart,
+        modifier = modifier.height(with(density) { style.lineHeight.toDp() })
+    ) {
+        SkeletonBlock(
+            Modifier
+                .fillMaxWidth()
+                .height(with(density) { style.fontSize.toDp() })
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .fillMaxWidth()
-                .glassBorder(shape = RoundedCornerShape(16.dp))
-        ) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                repeat(7) { index ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .height(16.dp)
-                                .width(60.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(4.dp)
-                                )
-                        )
-                        Box(
-                            modifier = Modifier
-                                .height(16.dp)
-                                .width(120.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(4.dp)
-                                )
-                        )
-                    }
-                    if (index < 6) {
-                        HorizontalDivider(
-                            modifier = Modifier.padding(vertical = 12.dp),
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-                        )
-                    }
-                }
-            }
-        }
     }
 }
 
 @Composable
-fun LectureReviewsSkeleton() {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        // Review Section Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .height(24.dp)
-                    .width(80.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                        RoundedCornerShape(4.dp)
-                    )
-            )
-            Box(
-                modifier = Modifier
-                    .height(32.dp)
-                    .width(100.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                        RoundedCornerShape(16.dp)
-                    )
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Review Summary Card
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .fillMaxWidth()
-                .glassBorder(shape = RoundedCornerShape(16.dp))
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                repeat(3) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Box(
-                            modifier = Modifier
-                                .height(12.dp)
-                                .width(30.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(2.dp)
-                                )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Box(
-                            modifier = Modifier
-                                .height(20.dp)
-                                .width(40.dp)
-                                .background(
-                                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f),
-                                    RoundedCornerShape(4.dp)
-                                )
-                        )
-                    }
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Review Cells
-        repeat(3) {
-            LectureReviewSkeletonCell()
-        }
-    }
+internal fun SkeletonBlock(modifier: Modifier, shape: Shape = RoundedCornerShape(4.dp)) {
+    // Tinted rather than a container color, so it shows both on the page and on a card.
+    Box(modifier.background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f), shape))
 }
 
 @Composable
 @Preview(showBackground = true)
 private fun Preview() {
     Theme {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
             LectureSummarySkeleton()
-            LectureInformationSkeleton()
+            DetailSectionHeaderSkeleton()
+            DetailInfoCardSkeleton(rows = 4)
             LectureReviewsSkeleton()
         }
     }

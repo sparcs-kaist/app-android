@@ -1,23 +1,20 @@
 package org.sparcs.soap.app.features.lectureDetail.components
 
 import android.net.Uri
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.outlined.RateReview
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,12 +22,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
@@ -48,15 +41,11 @@ import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModel
 import org.sparcs.soap.app.features.lectureDetail.LectureDetailViewModelProtocol
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
-import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewLectureDetailViewModel
 
 @Composable
@@ -79,22 +68,15 @@ fun LectureReviews(
     var translationTarget by remember { mutableStateOf(viewModel.defaultTranslationLanguage()) }
     var activeReview by remember { mutableStateOf<LectureReview?>(null) }
 
-    val textColor =
-        if (canWriteReview) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.grayBB.copy(
-            alpha = 0.7f
-        )
-
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        ReviewsHeader(
-            reviewCount = reviews.size + (if (writtenReview != null) 1 else 0),
-            lecture = lecture,
-            writtenReview = writtenReview,
-            canWriteReview = canWriteReview,
-            textColor = textColor,
-            navController = navController
-        )
+        DetailSectionHeader(
+            title = stringResource(R.string.reviews),
+            count = reviews.size + (if (writtenReview != null) 1 else 0),
+        ) {
+            WriteReviewButton(lecture, writtenReview, canWriteReview, navController)
+        }
 
-        ReviewStatsSurface(lecture)
+        ReviewStatsCard(lecture.gradeLetter, lecture.loadLetter, lecture.speechLetter)
 
         ReviewDigestSection(
             reviews = listOfNotNull(writtenReview) + reviews.filter { it.id != writtenReview?.id },
@@ -171,36 +153,6 @@ fun LectureReviews(
 }
 
 @Composable
-private fun ReviewsHeader(
-    reviewCount: Int,
-    lecture: Lecture,
-    writtenReview: LectureReview?,
-    canWriteReview: Boolean,
-    textColor: Color,
-    navController: NavController,
-) {
-    Row(
-        modifier = Modifier.padding(horizontal = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            stringResource(R.string.reviews),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = reviewCount.toString(),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(Modifier.weight(1f))
-        WriteReviewButton(lecture, writtenReview, canWriteReview, textColor, navController)
-    }
-}
-
-@Composable
 private fun ReviewsListSection(
     state: LectureDetailViewModel.ViewState,
     reviews: List<LectureReview>,
@@ -268,14 +220,14 @@ private fun ReviewsListSection(
     }
 }
 
+/** Heading above the user's own review. */
 @Composable
-private fun MyReviewLabel() {
+internal fun MyReviewLabel() {
     Text(
         text = stringResource(R.string.my_review_title),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp),
-        fontWeight = FontWeight.Bold
+        modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
     )
 }
 
@@ -284,77 +236,24 @@ private fun WriteReviewButton(
     lecture: Lecture,
     writtenReview: LectureReview?,
     enabled: Boolean,
-    tint: Color,
     navController: NavController,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .glassBorder(RoundedCornerShape(16.dp))
-            .clip(RoundedCornerShape(16.dp))
-            .background(if (enabled) MaterialTheme.colorScheme.background else MaterialTheme.colorScheme.lightGray0)
-            .clickable(enabled = enabled) {
-                val json = Uri.encode(Gson().toJson(lecture))
-                val writtenJSON = Uri.encode(Gson().toJson(writtenReview))
-                navController.navigate(Channel.ReviewCompose.name + "?lecture_json=$json&written_review_json=$writtenJSON")
-            }
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+    FilledTonalButton(
+        onClick = {
+            val json = Uri.encode(Gson().toJson(lecture))
+            val writtenJSON = Uri.encode(Gson().toJson(writtenReview))
+            navController.navigate(Channel.ReviewCompose.name + "?lecture_json=$json&written_review_json=$writtenJSON")
+        },
+        enabled = enabled,
+        contentPadding = ButtonDefaults.ButtonWithIconContentPadding
     ) {
         Icon(
             imageVector = Icons.Outlined.RateReview,
             contentDescription = null,
-            tint = tint,
-            modifier = Modifier.adaptiveIconSize(
-                MaterialTheme.typography.bodyLarge,
-                scaleFactor = 1.4f
-            )
+            modifier = Modifier.size(ButtonDefaults.IconSize)
         )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = if (writtenReview == null) stringResource(R.string.write_a_review) else stringResource(
-                R.string.edit_a_review
-            ),
-            style = MaterialTheme.typography.bodyLarge,
-            color = tint
-        )
-    }
-}
-
-@Composable
-private fun ReviewStatsSurface(lecture: Lecture) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.background,
-        modifier = Modifier
-            .fillMaxWidth()
-            .glassBorder(shape = RoundedCornerShape(16.dp))
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceAround
-        ) {
-            ReviewStat(stringResource(R.string.grade), lecture.gradeLetter)
-            ReviewStat(stringResource(R.string.load), lecture.loadLetter)
-            ReviewStat(stringResource(R.string.speech), lecture.speechLetter)
-        }
-    }
-}
-
-@Composable
-private fun ReviewStat(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text(stringResource(if (writtenReview == null) R.string.write_a_review else R.string.edit_a_review))
     }
 }
 
