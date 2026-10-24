@@ -211,7 +211,7 @@ private fun BookmarkPostView(
 private fun LoadingView() {
     Column {
         repeat(15) {
-            PostListSkeletonRow()
+            PostListSkeletonRow(it)
             HorizontalDivider(color = MaterialTheme.colorScheme.lightGray0)
         }
     }

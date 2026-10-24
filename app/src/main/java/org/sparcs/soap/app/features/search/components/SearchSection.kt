@@ -149,7 +149,7 @@ fun PostSection(
             onLoadMore = if (searchScope == SearchScope.Posts) onLoadMore else null
         ) { post ->
             if (isSkeleton) {
-                PostListSkeletonRow()
+                PostListSkeletonRow(post.id)
             } else {
                 PostListRow(
                     post = post,
