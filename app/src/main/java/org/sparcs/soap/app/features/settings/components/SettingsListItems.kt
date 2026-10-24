@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
@@ -32,11 +33,12 @@ import org.sparcs.soap.app.theme.ui.Theme
 // Building blocks for settings screens. Rows are Material ListItems on a surface-coloured
 // screen; free-form content such as text fields should be inset by 16dp to line up with them.
 
-/** Section title in the style of Android's own settings. [trailing] sits after the text. */
+/** Section title in the style of Android's own settings, with an optional leading [icon]; [trailing] sits after the text. */
 @Composable
 fun SettingsSectionHeader(
     text: String,
     modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(
@@ -44,6 +46,16 @@ fun SettingsSectionHeader(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .padding(end = 4.dp)
+                    .size(18.dp)
+            )
+        }
         Text(
             text = text,
             style = MaterialTheme.typography.titleSmall,
