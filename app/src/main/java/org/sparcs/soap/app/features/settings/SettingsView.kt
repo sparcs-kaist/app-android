@@ -75,7 +75,7 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipStore
@@ -103,7 +103,7 @@ fun SettingsView(
         FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = isCrashlyticsEnabled
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {

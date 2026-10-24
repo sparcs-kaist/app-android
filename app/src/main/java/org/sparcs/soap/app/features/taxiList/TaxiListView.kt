@@ -77,7 +77,7 @@ import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toLocalDate
 import org.sparcs.soap.app.shared.extensions.weekdaySymbol
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
@@ -134,7 +134,7 @@ fun TaxiListView(
     )
     PullToRefreshHapticHandler(pullState, isRefreshing)
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {

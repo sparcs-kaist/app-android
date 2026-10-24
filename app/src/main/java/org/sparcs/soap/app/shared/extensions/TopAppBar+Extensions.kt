@@ -10,16 +10,17 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 
 /**
- * Hide-on-scroll behavior for top app bars, enabled only in landscape where
- * vertical space is scarce. Returns null in portrait so the bar stays pinned.
+ * Scroll behavior for top app bars. The bar stays pinned in portrait and switches to its
+ * scrolled container colour once content scrolls beneath it; in landscape, where vertical
+ * space is scarce, it hides on scroll instead.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun landscapeHideOnScrollBehavior(): TopAppBarScrollBehavior? =
+fun topAppBarScrollBehavior(): TopAppBarScrollBehavior =
     if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
         TopAppBarDefaults.enterAlwaysScrollBehavior()
     } else {
-        null
+        TopAppBarDefaults.pinnedScrollBehavior()
     }
 
 /**

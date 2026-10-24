@@ -60,7 +60,7 @@ import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.viewModelMocks.MockSearchViewModel
 import org.sparcs.soap.app.shared.views.contentViews.CategoryFilterContent
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -89,7 +89,7 @@ fun SearchView(
     var activeFilterCategory by remember { mutableStateOf<CourseFilterCategory?>(null) }
     val filterSheetState = rememberModalBottomSheetState()
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {

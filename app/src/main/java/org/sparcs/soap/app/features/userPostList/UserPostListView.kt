@@ -35,7 +35,7 @@ import org.sparcs.soap.app.features.postList.components.postListRow.PostListSkel
 import org.sparcs.soap.app.features.userPostList.components.UserPostNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
@@ -73,7 +73,7 @@ fun UserPostListView(
         }
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {

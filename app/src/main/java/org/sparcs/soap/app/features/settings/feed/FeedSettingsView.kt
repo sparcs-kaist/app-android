@@ -60,7 +60,7 @@ import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBa
 import org.sparcs.soap.app.features.settings.feed.viewState.FeedProfileImageState
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
@@ -82,7 +82,7 @@ fun FeedSettingsView(
         viewModel.fetchUser()
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {

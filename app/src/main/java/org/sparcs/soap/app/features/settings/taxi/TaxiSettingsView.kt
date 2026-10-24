@@ -69,7 +69,7 @@ import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBa
 import org.sparcs.soap.app.shared.extensions.PhoneNumberVisualTransformation
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toPhoneNumberFormat
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.mocks.taxi.mock
@@ -162,7 +162,7 @@ fun TaxiSettingsView(
         viewModel.fetchUser()
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     fun saveChanges() {
         coroutineScope.launch {

@@ -60,7 +60,7 @@ import org.sparcs.soap.app.features.settings.taxi.NavigationLinkWithIcon
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
@@ -71,7 +71,7 @@ import org.sparcs.soap.buddyPreviewSupport.otl.PreviewReviewDigestViewModel
 fun TimetableSettingsView(
     navController: NavController,
 ) {
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {

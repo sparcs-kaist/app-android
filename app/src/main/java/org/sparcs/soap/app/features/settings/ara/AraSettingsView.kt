@@ -51,7 +51,7 @@ import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBa
 import org.sparcs.soap.app.features.settings.taxi.NavigationLinkWithIcon
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
-import org.sparcs.soap.app.shared.extensions.landscapeHideOnScrollBehavior
+import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toggle
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockAraSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
@@ -78,7 +78,7 @@ fun AraSettingsView(
         viewModel.updateContentPreference()
     }
 
-    val topBarScrollBehavior = landscapeHideOnScrollBehavior()
+    val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
         topBar = {
