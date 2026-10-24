@@ -105,10 +105,6 @@ fun TopBarTextAction(
     }
 }
 
-/** Temporary alias while screens move to [BackButton] or [CloseButton]. */
-@Composable
-fun DismissButton(onClick: () -> Unit) = BackButton(onClick)
-
 @Composable
 @Preview
 private fun Preview() {
