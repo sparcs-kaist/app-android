@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material.icons.rounded.Group
@@ -79,10 +80,8 @@ fun TaxiChatViewDropDownMenu(
 
     IconButton(onClick = { expanded = !expanded }) {
         Icon(
-            imageVector = Icons.Rounded.MoreHoriz,
-            contentDescription = "Menu",
-            tint = MaterialTheme.colorScheme.darkGray,
-            modifier = Modifier.size(30.dp)
+            imageVector = Icons.Filled.MoreVert,
+            contentDescription = stringResource(R.string.more)
         )
     }
 

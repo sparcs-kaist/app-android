@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.Reply
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.SmsFailed
@@ -34,6 +35,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -207,13 +209,23 @@ fun <T> PostCommentActionsMenu(
     var reportExpanded by remember { mutableStateOf(false) }
 
     Box {
-        Icon(
-            imageVector = Icons.Rounded.MoreHoriz,
-            contentDescription = stringResource(R.string.more),
-            modifier = modifier
-                .clickable { expanded = true },
-            tint = if (isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-        )
+        if (isComment) {
+            Icon(
+                imageVector = Icons.Rounded.MoreHoriz,
+                contentDescription = stringResource(R.string.more),
+                modifier = modifier
+                    .clickable { expanded = true },
+                tint = if (isMine == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+            )
+        } else {
+            // Post-level menu lives in the top app bar: standard overflow action.
+            IconButton(onClick = { expanded = true }, modifier = modifier) {
+                Icon(
+                    imageVector = Icons.Filled.MoreVert,
+                    contentDescription = stringResource(R.string.more)
+                )
+            }
+        }
 
         DropdownMenu(
             modifier = Modifier.background(MaterialTheme.colorScheme.background),

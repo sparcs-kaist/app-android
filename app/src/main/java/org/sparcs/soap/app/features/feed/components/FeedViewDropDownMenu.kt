@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
@@ -38,15 +39,10 @@ fun FeedViewDropDownMenu(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    IconButton(
-        onClick = { expanded = !expanded },
-        colors = IconButtonDefaults.iconButtonColors(Color.Transparent)
-    ) {
+    IconButton(onClick = { expanded = !expanded }) {
         Icon(
-            imageVector = Icons.Rounded.MoreHoriz,
-            contentDescription = "Menu",
-            tint = MaterialTheme.colorScheme.darkGray,
-            modifier = Modifier.size(30.dp)
+            imageVector = Icons.Filled.MoreVert,
+            contentDescription = stringResource(R.string.more)
         )
     }
 
