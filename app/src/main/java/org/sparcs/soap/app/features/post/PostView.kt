@@ -24,7 +24,6 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -35,7 +34,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshState
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -55,6 +57,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -113,7 +116,6 @@ import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.shared.views.contentViews.SummarizationView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import timber.log.Timber
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -139,6 +141,7 @@ fun PostView(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
     val lazyListState = rememberLazyListState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var commentText by remember { mutableStateOf("") }
     var targetComment by remember { mutableStateOf<AraPostComment?>(null) }
@@ -240,10 +243,12 @@ fun PostView(
                 "is_author" to (post?.isMine ?: false),
                 "has_comments" to ((post?.commentCount ?: 0) > 0)
             ),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         PostMainContent(
             innerPadding = innerPadding,
+            snackbarHostState = snackbarHostState,
             state = state,
             post = post,
             isRefreshing = isRefreshing,
@@ -365,6 +370,7 @@ fun PostView(
 @Composable
 private fun PostMainContent(
     innerPadding: PaddingValues,
+    snackbarHostState: SnackbarHostState,
     state: PostViewModel.ViewState,
     post: AraPost?,
     isRefreshing: Boolean,
@@ -404,7 +410,7 @@ private fun PostMainContent(
                 .fillMaxSize()
                 .widthIn(max = 600.dp)
                 .align(Alignment.TopCenter),
-            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
         ) {
             item {
                 if (post == null) HeaderSkeleton()
@@ -446,7 +452,10 @@ private fun PostMainContent(
 
             if (post != null && !post.attachments.isNullOrEmpty()) {
                 item {
-                    PostAttachmentsSection(attachments = post.attachments)
+                    PostAttachmentsSection(
+                        attachments = post.attachments,
+                        snackbarHostState = snackbarHostState
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                 }
             }
@@ -508,7 +517,7 @@ private fun PostInputBottomBar(
                 onCancelReply = onCancelReply,
                 isUploadingComment = isUploadingComment,
                 onUploadComment = onUploadComment,
-                profilePicture = { ProfilePicture(post, true) },
+                profilePicture = { ProfilePicture(post, true, size = 24.dp) },
                 placeholder = placeholder,
                 focusRequester = focusRequester,
             )
@@ -556,7 +565,6 @@ private fun PostInputBar(
                         onCommentChange("")
                         onWritingCommentChange(false)
                     },
-                    modifier = Modifier.size(36.dp),
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
@@ -572,20 +580,17 @@ private fun PostInputBar(
 private fun PostDeleteDialog(onDismiss: () -> Unit, onConfirm: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.surfaceContainer)
-            ) {
-                Text(
-                    text = stringResource(R.string.delete),
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        },
-        title = { Text(text = stringResource(R.string.delete_post), fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(R.string.delete_post)) },
         text = { Text(stringResource(R.string.are_you_sure_you_want_to_delete_this_post)) },
-        containerColor = MaterialTheme.colorScheme.background
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) { Text(stringResource(R.string.delete)) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        }
     )
 }
 
@@ -620,50 +625,36 @@ private fun LazyListScope.commentsSection(
 
 @Composable
 private fun PostHeader(post: AraPost, onAuthorClick: () -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = title(post),
-            style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+    val isAnonymous = post.author.username == "익명" || post.author.username == "Anonymous"
+    Column {
+        Text(text = title(post), style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(4.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = post.createdAt.formattedString(),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = stringResource(R.string.views, post.views),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        // Author: opens their posts unless the post is anonymous.
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = if (post.author.username != "익명" && post.author.username != "Anonymous") Modifier.clickable { onAuthorClick() } else Modifier
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier
+                .padding(vertical = 4.dp)
+                .clip(MaterialTheme.shapes.small)
+                .clickable(enabled = !isAnonymous, role = Role.Button, onClick = onAuthorClick)
+                .padding(vertical = 8.dp)
         ) {
             ProfilePicture(post, false)
-            Text(
-                text = post.author.profile.nickname,
-                fontWeight = FontWeight.Medium,
-                style = MaterialTheme.typography.bodySmall
-            )
-            if (post.author.username != "익명" && post.author.username != "Anonymous") {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                    contentDescription = null,
-                    modifier = Modifier.size(15.dp)
-                )
-            }
+            Text(text = post.author.profile.nickname, style = MaterialTheme.typography.titleSmall)
         }
-        HorizontalDivider(
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
-            thickness = 0.5.dp
-        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
     }
 }
 
@@ -727,7 +718,7 @@ private fun PostFooter(
 }
 
 @Composable
-private fun ProfilePicture(post: AraPost?, isMe: Boolean) {
+private fun ProfilePicture(post: AraPost?, isMe: Boolean, size: Dp = 32.dp) {
     if (post == null) return
     val profileUrl =
         if (isMe) post.myCommentProfile?.profile?.profilePictureURL else post.author.profile.profilePictureURL
@@ -736,14 +727,16 @@ private fun ProfilePicture(post: AraPost?, isMe: Boolean) {
             model = profileUrl.toString(),
             contentDescription = null,
             modifier = Modifier
-                .size(28.dp)
+                .size(size)
                 .clip(CircleShape)
+                // Shown while the picture loads.
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest)
         )
     } else {
         Box(
             Modifier
-                .size(28.dp)
-                .background(MaterialTheme.colorScheme.grayBB, CircleShape)
+                .size(size)
+                .background(MaterialTheme.colorScheme.surfaceContainerHighest, CircleShape)
         )
     }
 }
