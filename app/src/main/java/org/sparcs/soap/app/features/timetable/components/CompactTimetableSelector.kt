@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -183,7 +183,7 @@ fun SemesterSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
             contentDescription = "Select Previous Semester",
             tint = if (isEnabledPreviousButton) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.grayBB,
@@ -208,7 +208,7 @@ fun SemesterSelector(
         Spacer(Modifier.width(8.dp))
 
         Icon(
-            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
             contentDescription = "Select Next Semester",
             tint = if (isEnabledNextButton) MaterialTheme.colorScheme.onSurface
             else MaterialTheme.colorScheme.grayBB,
