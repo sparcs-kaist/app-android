@@ -10,6 +10,16 @@ plugins {
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("io.github.takahirom.roborazzi")
+}
+
+roborazzi {
+    generateComposePreviewRobolectricTests {
+        enable = true
+        packages = listOf("org.sparcs.soap")
+        includePrivatePreviews = true
+        robolectricConfig = mapOf("sdk" to "[35]", "qualifiers" to "\"w411dp-h891dp-xhdpi\"")
+    }
 }
 
 val properties = Properties().apply {
@@ -141,6 +151,12 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
+    testImplementation(platform(libs.androidx.compose.bom))
+    testImplementation(libs.androidx.ui.test.junit4)
+    testImplementation("io.github.takahirom.roborazzi:roborazzi:1.77.0")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi-compose:1.77.0")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi-compose-preview-scanner-support:1.77.0")
+    testImplementation("io.github.sergio-sastre.ComposablePreviewScanner:android:0.9.3")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
