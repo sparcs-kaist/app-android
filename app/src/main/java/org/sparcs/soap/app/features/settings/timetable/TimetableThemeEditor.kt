@@ -4,11 +4,11 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -38,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -57,7 +58,6 @@ import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoErro
 import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoProgressDialog
 import org.sparcs.soap.app.features.settings.timetable.components.ThemePhotoSection
 import org.sparcs.soap.app.features.settings.timetable.components.ThemePreview
-import org.sparcs.soap.app.features.settings.timetable.components.ThemeSectionTitle
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsList
 import org.sparcs.soap.app.features.settings.timetable.components.rememberPaletteDragState
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -160,6 +160,7 @@ fun TimetableThemeEditor(
             SettingsViewNavigationBar(
                 title = stringResource(R.string.theme_edit),
                 onDismiss = back,
+                containerColor = MaterialTheme.colorScheme.surface,
                 isEditable = true,
                 isDoneEnabled = draft.isValid && !isGenerating,
                 onClickDone = {
@@ -168,19 +169,24 @@ fun TimetableThemeEditor(
                     onBack()
                 }
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
+        // Rows are full-width ListItems; free-form content is inset 16dp to line up with them.
         ThemeSettingsList(
             padding = padding,
             modifier = Modifier.imePadding(),
             maxWidth = 680.dp,
             state = listState,
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            contentPadding = PaddingValues(vertical = 8.dp),
         ) {
-            item { ThemePreview(draft) }
+            item { ThemePreview(draft, Modifier.padding(horizontal = 16.dp)) }
             item {
-                ThemeNameField(draft.name) { update(draft.copy(name = it)) }
+                ThemeNameField(
+                    draft.name,
+                    { update(draft.copy(name = it)) },
+                    Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
+                )
             }
             item {
                 ThemeColorRow(
@@ -189,13 +195,14 @@ fun TimetableThemeEditor(
                 ) { target = "text" }
             }
             item {
-                ThemeSectionTitle(stringResource(R.string.theme_palette))
+                SettingsSectionHeader(stringResource(R.string.theme_palette))
                 Text(
                     stringResource(
                         R.string.theme_palette_description,
                         TimetableTheme.maximumColors
                     ),
-                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -219,7 +226,9 @@ fun TimetableThemeEditor(
                 OutlinedButton(
                     onClick = { updatePalette(palette.add()) },
                     enabled = palette.canAdd,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Icon(Icons.Default.Add, null)
                     Spacer(Modifier.width(8.dp))
@@ -253,7 +262,6 @@ fun TimetableThemeEditor(
     if (showDiscardDialog) {
         AlertDialog(
             onDismissRequest = { showDiscardDialog = false },
-            containerColor = MaterialTheme.colorScheme.background,
             title = { Text(stringResource(R.string.theme_discard_title)) },
             text = { Text(stringResource(R.string.theme_unsaved_changes_message)) },
             confirmButton = {

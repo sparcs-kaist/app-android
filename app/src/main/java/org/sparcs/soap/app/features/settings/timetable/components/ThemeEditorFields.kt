@@ -65,11 +65,15 @@ private fun OptionalThemeColor(
 }
 
 @Composable
-internal fun ThemeNameField(name: String, onNameChange: (String) -> Unit) {
+internal fun ThemeNameField(
+    name: String,
+    onNameChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     OutlinedTextField(
         name,
         onNameChange,
-        Modifier.fillMaxWidth(),
+        modifier.fillMaxWidth(),
         label = { Text(stringResource(R.string.theme_name)) },
         isError = name.isBlank(),
         supportingText = {
