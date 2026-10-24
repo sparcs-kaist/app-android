@@ -84,6 +84,7 @@
     <string name="widget_timetable">시간표</string>
     <string name="ara">Ara</string>
     <string name="sign_out">로그아웃</string>
+    <string name="sign_out_confirm_message">로그아웃하시겠어요?</string>
     <string name="settings">설정</string>
     <string name="services">서비스</string>
     <string name="change_language">언어 변경</string>

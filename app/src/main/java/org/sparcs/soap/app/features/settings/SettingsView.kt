@@ -7,27 +7,26 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
-import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.automirrored.outlined.Logout
+import androidx.compose.material.icons.outlined.BugReport
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Feedback
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.Lightbulb
 import androidx.compose.material.icons.outlined.Notifications
@@ -35,15 +34,16 @@ import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.Policy
 import androidx.compose.material.icons.outlined.VolunteerActivism
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,13 +53,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalInspectionMode
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -72,6 +71,10 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.ChannelManager
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.settings.components.ServiceLogo
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
@@ -82,7 +85,6 @@ import org.sparcs.soap.app.shared.tips.TipStore
 import org.sparcs.soap.app.shared.viewModelMocks.MockSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,6 +100,7 @@ fun SettingsView(
     var isCrashlyticsEnabled by remember {
         mutableStateOf(if (!isPreview) FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled else false)
     }
+    var showSignOutDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isCrashlyticsEnabled) {
         FirebaseCrashlytics.getInstance().isCrashlyticsCollectionEnabled = isCrashlyticsEnabled
@@ -110,9 +113,11 @@ fun SettingsView(
             SettingsViewNavigationBar(
                 title = stringResource(R.string.settings),
                 onDismiss = { navController.popBackStack() },
-                scrollBehavior = topBarScrollBehavior
+                scrollBehavior = topBarScrollBehavior,
+                containerColor = MaterialTheme.colorScheme.surface
             )
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen("Settings")
@@ -127,170 +132,122 @@ fun SettingsView(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 600.dp)
-                    .padding(horizontal = 16.dp)
             ) {
+                item { SettingsSectionHeader(stringResource(R.string.widget_miscellaneous)) }
+                item { LanguageItem(context) }
                 item {
-                    Text(
-                        text = stringResource(R.string.widget_miscellaneous),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                    AppSettings(context)
-
-                    ServiceNavButton(
+                    NavigationItem(
                         text = stringResource(R.string.notifications_title),
-                        icon = { Icon(Icons.Outlined.Notifications, null) }
+                        icon = Icons.Outlined.Notifications
                     ) { navController.navigate(Channel.NotificationSettings.name) }
-
-                    ThemeSwitcherButton(settingsViewModel)
-
-                    SendCrashReportsButton(isCrashlyticsEnabled) {
+                }
+                item { ThemeSwitcherItem(settingsViewModel) }
+                item {
+                    SendCrashReportsItem(isCrashlyticsEnabled) {
                         haptic.toggle(it)
                         isCrashlyticsEnabled = it
                     }
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                }
+                item {
+                    NavigationItem(
+                        text = stringResource(R.string.chat_with_us),
+                        icon = Icons.Outlined.Feedback
+                    ) { activity?.let { ChannelManager.showMessenger(it) } }
                 }
 
+                item { SettingsSectionHeader(stringResource(R.string.services)) }
                 item {
-                    FeedbackButton(activity)
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                    ServiceItem(stringResource(R.string.feed), R.drawable.sparcs_logo) {
+                        navController.navigate(Channel.FeedSettings.name)
+                    }
                 }
-
                 item {
-                    Text(
-                        text = stringResource(R.string.services),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(8.dp)
-                    )
-
-                    ServiceNavButton(
-                        text = stringResource(R.string.feed),
-                        icon = {
-                            Icon(
-                                painterResource(R.drawable.sparcs_logo),
-                                null,
-                                tint = Color.Unspecified
-                            )
-                        }
-                    ) { navController.navigate(Channel.FeedSettings.name) }
-
-                    ServiceNavButton(
-                        text = stringResource(R.string.ara),
-                        icon = {
-                            Icon(
-                                painterResource(R.drawable.ara_logo),
-                                null,
-                                tint = Color.Unspecified
-                            )
-                        }
-                    ) { navController.navigate(Channel.AraSettings.name) }
-
-                    ServiceNavButton(
-                        text = stringResource(R.string.otl),
-                        icon = {
-                            Icon(
-                                painterResource(R.drawable.otl_logo),
-                                null,
-                                tint = Color.Unspecified
-                            )
-                        }) {
+                    ServiceItem(stringResource(R.string.ara), R.drawable.ara_logo) {
+                        navController.navigate(Channel.AraSettings.name)
+                    }
+                }
+                item {
+                    ServiceItem(stringResource(R.string.otl), R.drawable.otl_logo) {
                         navController.navigate(Channel.TimetableSettings.name)
                     }
-
-                    ServiceNavButton(
-                        text = stringResource(R.string.taxi),
-                        icon = {
-                            Icon(
-                                painterResource(R.drawable.taxi_logo),
-                                null,
-                                tint = Color.Unspecified
-                            )
-                        }
-                    ) { navController.navigate(Channel.TaxiSettings.name) }
-
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                }
+                item {
+                    ServiceItem(stringResource(R.string.taxi), R.drawable.taxi_logo) {
+                        navController.navigate(Channel.TaxiSettings.name)
+                    }
                 }
 
+                item { SettingsSectionHeader(stringResource(R.string.screen_style)) }
                 item {
-                    Text(
-                        text = stringResource(R.string.screen_style),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(8.dp)
-                    )
-
-                    ServiceNavButton(
+                    NavigationItem(
                         text = stringResource(R.string.timetable_theme),
-                        icon = { Icon(Icons.Outlined.Palette, null) }
-                    ) {
-                        navController.navigate(Channel.TimetableThemeSettings.name)
-                    }
-
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                        icon = Icons.Outlined.Palette
+                    ) { navController.navigate(Channel.TimetableThemeSettings.name) }
                 }
 
+                item { SettingsSectionHeader(stringResource(R.string.information)) }
                 item {
-                    Text(
-                        text = stringResource(R.string.information),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(8.dp)
-                    )
-
-                    Term(
-                        context = context,
-                        navController = navController
-                    )
-
-                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                    NavigationItem(
+                        text = stringResource(R.string.privacy_policy),
+                        icon = Icons.Outlined.Policy
+                    ) { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.PRIVACY_POLICY_URL.toUri())) }
                 }
+                item {
+                    NavigationItem(
+                        text = stringResource(R.string.terms_of_use),
+                        icon = Icons.Outlined.Description
+                    ) { context.startActivity(Intent(Intent.ACTION_VIEW, Constants.TERMS_OF_USE_URL.toUri())) }
+                }
+                item {
+                    NavigationItem(
+                        text = stringResource(R.string.acknowledgements),
+                        icon = Icons.Outlined.VolunteerActivism
+                    ) { navController.navigate(Channel.CreditView.name) }
+                }
+                item { VersionItem() }
 
                 item {
-                    Text(
-                        text = stringResource(R.string.sign_out),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                    SignOutButton {
-                        settingsViewModel.signOut()
-                    }
+                    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+                    SignOutItem { showSignOutDialog = true }
                 }
 
                 if (BuildConfig.DEBUG) {
+                    item { SettingsSectionHeader("Debug Menu") }
                     item {
-                        Text(
-                            "Debug Menu",
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(8.dp)
-                        )
-                        Spacer(Modifier.height(8.dp))
-
-                        Button(
-                            onClick = { error("DEBUG: User forced a crash") },
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            Text("Force Crash")
+                        NavigationItem(text = "Force Crash", icon = Icons.Outlined.BugReport) {
+                            error("DEBUG: User forced a crash")
                         }
-
-                        Button(
-                            onClick = {
-                                settingsViewModel.handleException(
-                                    Exception("Test exception from debug")
-                                )
-                            },
-                            modifier = Modifier.padding(8.dp)
-                        ) {
-                            Text("Invoke Exception")
-                        }
-
-                        LocalTipStore.current?.let { TipsDebugSection(it) }
                     }
+                    item {
+                        NavigationItem(text = "Invoke Exception", icon = Icons.Outlined.BugReport) {
+                            settingsViewModel.handleException(Exception("Test exception from debug"))
+                        }
+                    }
+                    item { LocalTipStore.current?.let { TipsDebugSection(it) } }
                 }
             }
         }
+    }
+
+    if (showSignOutDialog) {
+        AlertDialog(
+            onDismissRequest = { showSignOutDialog = false },
+            title = { Text(stringResource(R.string.sign_out)) },
+            text = { Text(stringResource(R.string.sign_out_confirm_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSignOutDialog = false
+                        settingsViewModel.signOut()
+                    }
+                ) { Text(stringResource(R.string.sign_out)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showSignOutDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     GlobalAlertDialog(
@@ -305,34 +262,26 @@ fun SettingsView(
 private fun TipsDebugSection(store: TipStore) {
     var isResetPending by remember { mutableStateOf(store.isResetPending) }
     var showsImmediately by remember { mutableStateOf(store.showsTipsImmediately) }
-    Column(modifier = Modifier.padding(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(stringResource(R.string.tips_debug_title), style = MaterialTheme.typography.titleMedium)
-        Button(
-            onClick = {
+    Column {
+        SettingsSectionHeader(stringResource(R.string.tips_debug_title))
+        ListItem(
+            headlineContent = { Text(stringResource(R.string.tips_debug_reset)) },
+            supportingContent = if (isResetPending) {
+                { Text(stringResource(R.string.tips_debug_reset_pending)) }
+            } else null,
+            modifier = Modifier.clickable(enabled = !isResetPending) {
                 store.requestReset()
                 isResetPending = true
+            }
+        )
+        SettingsSwitchItem(
+            text = stringResource(R.string.tips_debug_show_immediately),
+            checked = showsImmediately,
+            onCheckedChange = {
+                store.showsTipsImmediately = it
+                showsImmediately = it
             },
-            enabled = !isResetPending,
-        ) {
-            Text(stringResource(R.string.tips_debug_reset))
-        }
-        if (isResetPending) {
-            Text(stringResource(R.string.tips_debug_reset_pending), style = MaterialTheme.typography.bodySmall)
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(stringResource(R.string.tips_debug_show_immediately), modifier = Modifier.weight(1f))
-            Switch(
-                checked = showsImmediately,
-                onCheckedChange = {
-                    store.showsTipsImmediately = it
-                    showsImmediately = it
-                },
-            )
-        }
-        Text(
-            stringResource(R.string.tips_debug_footer),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            supportingText = stringResource(R.string.tips_debug_footer)
         )
     }
 }
@@ -344,11 +293,30 @@ private tailrec fun Context.findActivity(): Activity? = when (this) {
 }
 
 @Composable
-private fun AppSettings(context: Context) {
-    val currentLocale =
-        context.resources.configuration.locales[0]
+private fun NavigationItem(
+    text: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+) {
+    SettingsNavigationItem(
+        text = text,
+        onClick = onClick,
+        leadingContent = { Icon(icon, contentDescription = null) }
+    )
+}
 
-    val languageDisplayName = currentLocale.displayLanguage
+@Composable
+private fun ServiceItem(
+    text: String,
+    @DrawableRes logo: Int,
+    onClick: () -> Unit,
+) {
+    SettingsNavigationItem(text = text, onClick = onClick, leadingContent = { ServiceLogo(logo) })
+}
+
+@Composable
+private fun LanguageItem(context: Context) {
+    val languageDisplayName = context.resources.configuration.locales[0].displayLanguage
     val onClick = {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
@@ -375,295 +343,99 @@ private fun AppSettings(context: Context) {
         }
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Language,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-            Text(
-                text = stringResource(R.string.change_language),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = languageDisplayName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
-            )
-        }
-    }
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.change_language)) },
+        supportingContent = { Text(languageDisplayName) },
+        leadingContent = { Icon(Icons.Outlined.Language, contentDescription = null) },
+        modifier = Modifier.clickable { onClick() }
+    )
 }
 
 @Composable
-private fun FeedbackButton(activity: Activity?) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable { activity?.let { ChannelManager.showMessenger(it) } },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Feedback,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = stringResource(R.string.chat_with_us),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun SendCrashReportsButton(
+private fun SendCrashReportsItem(
     isCrashlyticsEnabled: Boolean,
     onCheckedChange: (Boolean) -> Unit,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Lightbulb,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = stringResource(R.string.send_crash_reports),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-
-        Spacer(Modifier.weight(1f))
-        Switch(
-            checked = isCrashlyticsEnabled,
-            onCheckedChange = onCheckedChange
-        )
-    }
+    SettingsSwitchItem(
+        text = stringResource(R.string.send_crash_reports),
+        checked = isCrashlyticsEnabled,
+        onCheckedChange = onCheckedChange,
+        leadingContent = { Icon(Icons.Outlined.Lightbulb, contentDescription = null) }
+    )
 }
 
 @Composable
-private fun Term(context: Context, navController: NavController) {
-    ServiceNavButton(
-        text = stringResource(R.string.privacy_policy),
-        icon = { Icon(Icons.Outlined.Policy, null, tint = MaterialTheme.colorScheme.onSurface) }
-    ) {
-        val intent = Intent(
-            Intent.ACTION_VIEW,
-            Constants.PRIVACY_POLICY_URL.toUri()
-        ); context.startActivity(intent)
-    }
-
-    ServiceNavButton(
-        text = stringResource(R.string.terms_of_use),
-        icon = {
-            Icon(
-                Icons.Outlined.Description,
-                null,
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    ) {
-        val intent = Intent(
-            Intent.ACTION_VIEW,
-            Constants.TERMS_OF_USE_URL.toUri()
-        ); context.startActivity(intent)
-    }
-
-    ServiceNavButton(
-        text = stringResource(R.string.acknowledgements),
-        icon = {
-            Icon(
-                Icons.Outlined.VolunteerActivism,
-                null,
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    ) {
-        navController.navigate(Channel.CreditView.name)
-    }
-
-    VersionRow()
+private fun SignOutItem(onClick: () -> Unit) {
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.sign_out)) },
+        leadingContent = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
+        colors = ListItemDefaults.colors(
+            headlineColor = MaterialTheme.colorScheme.error,
+            leadingIconColor = MaterialTheme.colorScheme.error
+        ),
+        modifier = Modifier.clickable(onClick = onClick)
+    )
 }
 
 @Composable
-private fun ServiceNavButton(
-    text: String,
-    icon: @Composable () -> Unit,
-    onClick: () -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        icon()
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-            contentDescription = text,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(15.dp)
-        )
-    }
-}
-
-@Composable
-private fun SignOutButton(onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.Logout,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.error
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = stringResource(R.string.sign_out),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun ThemeSwitcherButton(
+private fun ThemeSwitcherItem(
     settingsViewModel: SettingsViewModelProtocol,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     val darkMode by settingsViewModel.darkModeSetting.collectAsState(initial = null)
-    val currentModeText = when (darkMode) {
-        true -> stringResource(R.string.widget_dark_mode)
-        false -> stringResource(R.string.widget_white_mode)
-        null -> stringResource(R.string.widget_system_default)
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp)
-            .clickable { showDialog = true },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.DarkMode,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface
-        )
+    // (theme key, selected, label)
+    val options = listOf(
+        Triple("system", darkMode == null, stringResource(R.string.widget_system_default)),
+        Triple("light", darkMode == false, stringResource(R.string.widget_white_mode)),
+        Triple("dark", darkMode == true, stringResource(R.string.widget_dark_mode))
+    )
 
-        Spacer(Modifier.width(8.dp))
-
-        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-            Text(
-                text = stringResource(R.string.widget_dark_mode),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = currentModeText,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.grayBB
-            )
-        }
-    }
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.widget_dark_mode)) },
+        supportingContent = { Text(options.first { it.second }.third) },
+        leadingContent = { Icon(Icons.Outlined.DarkMode, contentDescription = null) },
+        modifier = Modifier.clickable { showDialog = true }
+    )
 
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
-            containerColor = MaterialTheme.colorScheme.background,
             title = { Text(stringResource(R.string.widget_dark_mode)) },
             text = {
-                Column {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            settingsViewModel.setTheme("system"); showDialog = false
+                Column(Modifier.selectableGroup()) {
+                    options.forEach { (key, selected, label) ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
+                                .selectable(
+                                    selected = selected,
+                                    role = Role.RadioButton,
+                                    onClick = {
+                                        settingsViewModel.setTheme(key)
+                                        showDialog = false
+                                    }
+                                )
+                        ) {
+                            RadioButton(selected = selected, onClick = null)
+                            Text(text = label, modifier = Modifier.padding(start = 16.dp))
                         }
-                    ) {
-                        RadioButton(
-                            selected = darkMode == null,
-                            onClick = { settingsViewModel.setTheme("system"); showDialog = false }
-                        )
-                        Text(stringResource(R.string.widget_system_default))
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            settingsViewModel.setTheme("light"); showDialog = false
-                        }
-                    ) {
-                        RadioButton(
-                            selected = darkMode == false,
-                            onClick = { settingsViewModel.setTheme("light"); showDialog = false }
-                        )
-                        Text(stringResource(R.string.widget_white_mode))
-                    }
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            settingsViewModel.setTheme("dark"); showDialog = false
-                        }
-                    ) {
-                        RadioButton(
-                            selected = darkMode == true,
-                            onClick = { settingsViewModel.setTheme("dark"); showDialog = false })
-                        Text(stringResource(R.string.widget_dark_mode))
                     }
                 }
             },
             confirmButton = {},
-            dismissButton = {}
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
         )
     }
 }
 
 @Composable
-private fun VersionRow() {
+private fun VersionItem() {
     val context = LocalContext.current
     val versionName = try {
         val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
@@ -672,34 +444,11 @@ private fun VersionRow() {
         "0.0"
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp, horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.ErrorOutline,
-            contentDescription = null
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        Text(
-            text = stringResource(R.string.app_version),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        Text(
-            text = versionName,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.grayBB
-        )
-    }
+    ListItem(
+        headlineContent = { Text(stringResource(R.string.app_version)) },
+        supportingContent = { Text(versionName) },
+        leadingContent = { Icon(Icons.Outlined.Info, contentDescription = null) }
+    )
 }
 
 @Composable
