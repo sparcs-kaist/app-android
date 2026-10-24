@@ -1,5 +1,6 @@
 package org.sparcs.soap.app.features.settings.timetable.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,7 +25,6 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.settings.timetable.rememberThemeSample
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -45,10 +45,9 @@ internal fun ThemePreview(theme: TimetableTheme, modifier: Modifier = Modifier) 
     val fontScale = LocalDensity.current.fontScale.coerceAtLeast(1f)
     CompositionLocalProvider(LocalTimetableTheme provides theme) {
         Surface(
-            modifier = modifier
-                .glassBorder(shape = MaterialTheme.shapes.large)
-                .semantics { contentDescription = description },
+            modifier = modifier.semantics { contentDescription = description },
             shape = MaterialTheme.shapes.large,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
             color = theme.backgroundColor ?: MaterialTheme.colorScheme.background
         ) {
             Box(
