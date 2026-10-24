@@ -6,23 +6,23 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.School
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -55,15 +55,16 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.reviewDigest.ReviewDigestViewModel
 import org.sparcs.soap.app.features.reviewDigest.ReviewDigestViewModelProtocol
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
-import org.sparcs.soap.app.features.settings.taxi.NavigationLinkWithIcon
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewReviewDigestViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,9 +79,11 @@ fun TimetableSettingsView(
             SettingsViewNavigationBar(
                 stringResource(R.string.otl_settings),
                 { navController.popBackStack() },
-                scrollBehavior = topBarScrollBehavior
+                scrollBehavior = topBarScrollBehavior,
+                containerColor = MaterialTheme.colorScheme.surface
             )
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen("Timetable Settings")
@@ -88,7 +91,6 @@ fun TimetableSettingsView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
@@ -96,7 +98,6 @@ fun TimetableSettingsView(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 600.dp)
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
             ) {
                 item {
                     LoadedView(navController = navController)
@@ -115,15 +116,13 @@ private fun LoadedView(
     val store = remember(context) { LectureSearchStyleStore(context) }
 
     Column {
-        Text(
-            text = stringResource(R.string.adding_lectures),
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(Modifier.height(12.dp))
+        SettingsSectionHeader(stringResource(R.string.adding_lectures))
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+                .selectableGroup(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             LectureSearchStyle.entries.forEach { option ->
@@ -138,21 +137,12 @@ private fun LoadedView(
             }
         }
 
-        Spacer(Modifier.height(24.dp))
+        SettingsSectionHeader(stringResource(R.string.interested_departments))
 
-        Text(
+        SettingsNavigationItem(
             text = stringResource(R.string.interested_departments),
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Spacer(Modifier.height(12.dp))
-
-        NavigationLinkWithIcon(
-            onClick = {
-                navController.navigate(Channel.InterestedDepartments.name)
-            },
-            text = stringResource(R.string.interested_departments),
-            icon = Icons.Outlined.School
+            onClick = { navController.navigate(Channel.InterestedDepartments.name) },
+            leadingContent = { Icon(Icons.Outlined.School, contentDescription = null) }
         )
 
         ReviewSummarySetting()
@@ -177,32 +167,16 @@ private fun ReviewSummarySetting(
     if (!state.isAvailable) return
 
     Column {
-        Spacer(Modifier.height(24.dp))
+        SettingsSectionHeader(stringResource(R.string.review_digest_settings_title))
 
-        Text(
-            text = stringResource(R.string.review_digest_settings_title),
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 8.dp)
-        ) {
-            Text(stringResource(R.string.review_digest_settings_automatic), modifier = Modifier.weight(1f))
-            Switch(
-                checked = isAutomatic,
-                onCheckedChange = {
-                    haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                    store.summarisesAutomatically = it
-                }
-            )
-        }
-
-        Text(
-            text = stringResource(R.string.review_digest_settings_footer),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.grayBB,
-            modifier = Modifier.padding(horizontal = 8.dp)
+        SettingsSwitchItem(
+            text = stringResource(R.string.review_digest_settings_automatic),
+            checked = isAutomatic,
+            onCheckedChange = {
+                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                store.summarisesAutomatically = it
+            },
+            supportingText = stringResource(R.string.review_digest_settings_footer)
         )
     }
 }
@@ -215,12 +189,16 @@ private fun SearchStylePreviewCard(
     onClick: () -> Unit,
     preview: @Composable () -> Unit,
 ) {
-    Surface(
+    OutlinedCard(
         onClick = onClick,
         modifier = modifier.semantics { this.selected = selected; role = Role.RadioButton },
-        shape = RoundedCornerShape(16.dp),
-        color = if(selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.background,
-        border = if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant) else null
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(
+            width = if (selected) 2.dp else 1.dp,
+            color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        )
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -235,8 +213,7 @@ private fun SearchStylePreviewCard(
             }
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
+                style = MaterialTheme.typography.labelLarge
             )
         }
     }
