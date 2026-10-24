@@ -60,7 +60,6 @@ internal fun ActivityDetailsDialog(
                 )
             }
         },
-        containerColor = MaterialTheme.colorScheme.background,
         confirmButton = {
             if (deleting) CircularProgressIndicator()
             else if ((showActions && !loadState.isReadOnly) || refreshing) TextButton(onClick = {
