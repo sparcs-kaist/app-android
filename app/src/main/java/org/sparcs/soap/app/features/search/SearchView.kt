@@ -94,7 +94,6 @@ fun SearchView(
     Scaffold(
         topBar = {
             SearchNavigationBar(
-                scrollState = scrollState,
                 scrollBehavior = topBarScrollBehavior
             )
         },

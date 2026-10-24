@@ -106,7 +106,6 @@ fun FeedView(
     Scaffold(
         topBar = {
             FeedViewNavigationBar(
-                listState = listState,
                 navController = navController,
                 viewModel = viewModel,
                 scrollBehavior = topBarScrollBehavior

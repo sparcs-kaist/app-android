@@ -159,7 +159,6 @@ fun TimetableView(
             topBar = {
                 if (!isLandscape) {
                     TimetableViewNavigationBar(
-                        scrollState = scrollState,
                         isButtonEnabled = isEditable,
                         onClick = openLectureSearch,
                         onActivityClick = openActivityCreation

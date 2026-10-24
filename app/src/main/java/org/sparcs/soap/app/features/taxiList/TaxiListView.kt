@@ -139,7 +139,6 @@ fun TaxiListView(
     Scaffold(
         topBar = {
             TaxiListNavigationBar(
-                scrollState = scrollState,
                 navController = navController,
                 isButtonEnabled = true,
                 scrollBehavior = topBarScrollBehavior

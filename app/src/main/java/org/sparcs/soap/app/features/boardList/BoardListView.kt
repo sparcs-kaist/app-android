@@ -66,7 +66,6 @@ fun BoardListView(
     Scaffold(
         topBar = {
             BoardListNavigationBar(
-                scrollState = scrollState,
                 scrollBehavior = topBarScrollBehavior
             )
         },
