@@ -69,6 +69,9 @@ fun TimetableThemeEditor(
     seed: String,
     onBack: () -> Unit,
     onSave: (TimetableTheme) -> Unit,
+    onOpenGenerator: (TimetableTheme) -> Unit = {},
+    generatedTheme: TimetableTheme? = null,
+    onGeneratedThemeConsumed: () -> Unit = {},
 ) {
     var draftJson by rememberSaveable(seed) { mutableStateOf(seed) }
     val draft = remember(draftJson) { Json.decodeFromString<TimetableTheme>(draftJson) }
@@ -92,10 +95,10 @@ fun TimetableThemeEditor(
 
     val listState = rememberLazyListState()
     val context = LocalContext.current
-    val generator: TimetableThemeGeneratorViewModel = viewModel(key = "theme-generator-$seed")
+    // Scoped to this editor's back stack entry, so the generator screen shares it.
+    val generator: TimetableThemeGeneratorViewModel = viewModel(key = THEME_GENERATOR_KEY)
     val generatorState by generator.state.collectAsState()
-    var showGenerator by rememberSaveable(seed) { mutableStateOf(false) }
-    ThemeGeneratorLifecycleEffect(generator)
+    ThemeGeneratorLifecycleEffect(generator, cancelOnStop = false, resetOnDispose = false)
     var selectedPhoto by remember { mutableStateOf<Uri?>(null) }
     var photoError by remember { mutableStateOf(false) }
     val isGenerating = selectedPhoto != null
@@ -130,37 +133,25 @@ fun TimetableThemeEditor(
 
     var expanded by rememberSaveable { mutableStateOf(false) }
     var target by rememberSaveable { mutableStateOf<String?>(null) }
+    val hasUnsavedChanges = draftJson != savedJson
     val back = {
-        if (draftJson != savedJson) {
+        if (hasUnsavedChanges) {
             showDiscardDialog = true
         } else {
             onBack()
         }
     }
-    BackHandler(enabled = !showGenerator, onBack = back)
+    // Only intercept back to confirm discarding edits, so leaving an unchanged theme keeps the
+    // predictive back animation.
+    BackHandler(enabled = hasUnsavedChanges) { showDiscardDialog = true }
 
-    if (showGenerator) {
-        TimetableThemeGeneratorView(
-            state = generatorState,
-            baseTheme = draft,
-            onDescriptionChange = generator::describe,
-            onGenerate = { generator.generate(draft, it) },
-            onDownload = generator::download,
-            onRefresh = generator::refreshAvailability,
-            onCancel = generator::cancel,
-            onBack = {
-                generator.cancel()
-                showGenerator = false
-            },
-            onApply = { theme ->
-                paletteJson = Json.encodeToString(TimetableThemePalette.from(theme.hexColors))
-                update(theme)
-                expanded = false
-                generator.reset()
-                showGenerator = false
-            },
-        )
-        return
+    LaunchedEffect(generatedTheme) {
+        val theme = generatedTheme ?: return@LaunchedEffect
+        paletteJson = Json.encodeToString(TimetableThemePalette.from(theme.hexColors))
+        update(theme)
+        expanded = false
+        generator.reset()
+        onGeneratedThemeConsumed()
     }
 
     Scaffold(
@@ -250,8 +241,8 @@ fun TimetableThemeEditor(
             ) {
                 item {
                     ThemeGenerationSection(onOpen = {
-                        showGenerator = true
                         generator.refreshAvailability()
+                        onOpenGenerator(draft)
                     })
                 }
             }

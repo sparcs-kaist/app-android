@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.settings.timetable
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -66,7 +65,6 @@ internal fun TimetableThemeGeneratorView(
     onBack: () -> Unit,
     onApply: (TimetableTheme) -> Unit,
 ) {
-    BackHandler(onBack = onBack)
     Scaffold(
         modifier = Modifier.analyticsScreen("TimetableThemeGenerator"),
         topBar = {

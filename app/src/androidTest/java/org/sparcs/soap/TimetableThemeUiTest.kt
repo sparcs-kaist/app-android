@@ -1,5 +1,6 @@
 package org.sparcs.soap
 
+import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import androidx.activity.ComponentActivity
 import android.graphics.Bitmap
@@ -23,7 +24,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.Assert.*
 import org.sparcs.soap.app.domain.helpers.TimetableThemeStore
-import org.sparcs.soap.app.features.settings.timetable.TimetableThemeSettingsView
+import org.sparcs.soap.app.features.navigationBar.Channel
+import org.sparcs.soap.app.features.settings.timetable.timetableThemeGraph
 import org.sparcs.soap.app.theme.ui.Theme
 
 class TimetableThemeUiTest {
@@ -34,7 +36,16 @@ class TimetableThemeUiTest {
     @Before fun setup() {
         originalPreferences = context.getSharedPreferences("timetable_themes", 0).all.toMap()
         context.getSharedPreferences("timetable_themes", 0).edit().clear().commit()
-        compose.runOnUiThread { compose.activity.setContent { Theme { TimetableThemeSettingsView(rememberNavController()) } } }
+        compose.runOnUiThread {
+            compose.activity.setContent {
+                Theme {
+                    val navController = rememberNavController()
+                    NavHost(navController, startDestination = Channel.TimetableThemeSettings.name) {
+                        timetableThemeGraph(navController)
+                    }
+                }
+            }
+        }
     }
     @After fun restorePreferences() {
         context.getSharedPreferences("timetable_themes", 0).edit().clear().apply {

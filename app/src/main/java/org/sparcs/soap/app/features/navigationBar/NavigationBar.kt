@@ -92,7 +92,7 @@ import org.sparcs.soap.app.features.settings.taxi.TaxiSettingsView
 import org.sparcs.soap.app.features.settings.taxi.TaxiSettingsViewModel
 import org.sparcs.soap.app.features.settings.timetable.InterestedDepartmentsView
 import org.sparcs.soap.app.features.settings.timetable.TimetableSettingsView
-import org.sparcs.soap.app.features.settings.timetable.TimetableThemeSettingsView
+import org.sparcs.soap.app.features.settings.timetable.timetableThemeGraph
 import org.sparcs.soap.app.features.signIn.SignInView
 import org.sparcs.soap.app.features.signIn.SignInViewModel
 import org.sparcs.soap.app.features.taxiChat.TaxiChatView
@@ -763,12 +763,7 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
                         )
                     }
 
-
-                    composable(
-                        route = Channel.TimetableThemeSettings.name,
-                    ) {
-                        TimetableThemeSettingsView(navController = navController)
-                    }
+                    timetableThemeGraph(navController)
 
                     composable(
                         route = Channel.NotificationSettings.name,

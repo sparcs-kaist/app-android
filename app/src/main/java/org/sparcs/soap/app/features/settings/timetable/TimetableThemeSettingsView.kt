@@ -1,13 +1,6 @@
 package org.sparcs.soap.app.features.settings.timetable
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -37,7 +30,6 @@ fun TimetableThemeSettingsView(navController: NavController) {
     val state = rememberTimetableThemeState(store)
     val tipStore = LocalTipStore.current
     LaunchedEffect(Unit) { tipStore?.donate(TipEvent.ThemeSettingsOpened) }
-    var editing by rememberSaveable { mutableStateOf<String?>(null) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
     var sharing by rememberSaveable { mutableStateOf<String?>(null) }
     var importing by rememberSaveable { mutableStateOf(false) }
@@ -58,42 +50,21 @@ fun TimetableThemeSettingsView(navController: NavController) {
         return
     }
 
-    AnimatedContent(
-        targetState = editing,
-        label = "ThemeSettingsTransition",
-        transitionSpec = {
-            if (targetState != null) {
-                slideInHorizontally { it } togetherWith slideOutHorizontally { -it / 4 } + fadeOut()
-            } else {
-                slideInHorizontally { -it / 4 } + fadeIn() togetherWith slideOutHorizontally { it }
-            }
-        }
-    ) { currentEditing ->
-        if (currentEditing != null) {
-            TimetableThemeEditor(
-                currentEditing,
-                onBack = { editing = null },
-                onSave = store::saveAndSelect
-            )
-        } else {
-            ThemeSettingsContent(
-                state = state,
-                onBack = { navController.popBackStack() },
-                onSelect = store::select,
-                onEdit = { editing = Json.encodeToString(it) },
-                onDelete = { deleting = it },
-                onShare = { sharing = Json.encodeToString(it) },
-                onImport = { importing = true }
-            )
-        }
-    }
+    ThemeSettingsContent(
+        state = state,
+        onBack = { navController.popBackStack() },
+        onSelect = store::select,
+        onEdit = { navController.navigateToThemeEditor(it) },
+        onDelete = { deleting = it },
+        onShare = { sharing = Json.encodeToString(it) },
+        onImport = { importing = true }
+    )
 
     state.customThemes.firstOrNull { it.id == deleting }?.let { theme ->
         AlertDialog(
             onDismissRequest = { deleting = null },
             title = { Text(stringResource(R.string.theme_delete_title)) },
             text = { Text(stringResource(R.string.theme_delete_message, theme.name)) },
-            containerColor = MaterialTheme.colorScheme.background,
             confirmButton = {
                 TextButton(onClick = {
                     store.delete(theme.id)
