@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,7 +56,7 @@ import org.sparcs.soap.app.domain.models.otl.OTLUserLectureSemester
 import org.sparcs.soap.app.domain.models.otl.SemesterGradeSummary
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
+import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
@@ -247,16 +248,18 @@ internal fun CreditScreen(
         topBar = {
             TopAppBar(title = {
                 Column {
-                    Text(title, fontWeight = FontWeight.Bold)
+                    Text(title, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     subtitle?.let {
                         Text(
                             it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
-            }, navigationIcon = { DismissButton(onBack) })
+            }, navigationIcon = { BackButton(onBack) })
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->

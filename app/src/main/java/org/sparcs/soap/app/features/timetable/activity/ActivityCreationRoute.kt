@@ -95,8 +95,7 @@ fun ActivityCreationRoute(
                         IconButton(onClick = onClose) {
                             Icon(
                                 Icons.Default.Close,
-                                stringResource(R.string.activity_close),
-                                modifier = Modifier.padding(start = 8.dp)
+                                stringResource(R.string.activity_close)
                             )
                         }
                     })

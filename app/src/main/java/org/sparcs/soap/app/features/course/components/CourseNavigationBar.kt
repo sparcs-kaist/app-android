@@ -1,23 +1,16 @@
 package org.sparcs.soap.app.features.course.components
 
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchNavigationBar
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
+import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.theme.ui.Theme
 
 
@@ -33,32 +26,14 @@ fun CourseNavigationBar(
         LectureSearchNavigationBar(text, { navController.popBackStack() }, navigationActions)
         return
     }
-    var lineCount by remember { mutableIntStateOf(1) }
-    var hasMeasured by remember { mutableStateOf(false) }
 
-    CenterAlignedTopAppBar(
+    TopAppBar(
         navigationIcon = {
-            DismissButton { navController.popBackStack() }
+            BackButton { navController.popBackStack() }
         },
         title = {
-            Text(
-                text = text,
-                style = if (lineCount > 1) MaterialTheme.typography.titleMedium
-                else MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                onTextLayout = { textLayoutResult ->
-                    if (hasMeasured) return@Text
-                    hasMeasured = true
-                    val newLineCount = textLayoutResult.lineCount
-                    if (lineCount != newLineCount) {
-                        lineCount = newLineCount
-                    }
-                }
-            )
-        },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+            Text(text = text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     )
 }
 

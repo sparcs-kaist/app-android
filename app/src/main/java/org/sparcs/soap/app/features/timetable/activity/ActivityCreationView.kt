@@ -46,7 +46,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -158,11 +157,7 @@ fun ActivityCreationView(
             topBar = {
                 TopAppBar(
                     title = {
-                        Text(
-                            stringResource(if (activity == null) R.string.activity_new else R.string.activity_edit),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text(stringResource(if (activity == null) R.string.activity_new else R.string.activity_edit))
                     },
                     navigationIcon = {
                         IconButton(
@@ -171,8 +166,7 @@ fun ActivityCreationView(
                         ) {
                             Icon(
                                 Icons.Rounded.Close,
-                                stringResource(R.string.activity_close),
-                                modifier = Modifier.padding(start = 8.dp)
+                                stringResource(R.string.activity_close)
                             )
                         }
                     },
@@ -208,17 +202,9 @@ fun ActivityCreationView(
                                     }
                                 }
                             }) {
-                            Text(
-                                stringResource(if (needsRefresh) R.string.activity_refresh else R.string.activity_save),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Normal,
-                                color = if (needsRefresh || (draft.isValid && !conflict)) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
-                            )
+                            Text(stringResource(if (needsRefresh) R.string.activity_refresh else R.string.activity_save))
                         }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    }
                 )
             },
             containerColor = MaterialTheme.colorScheme.surface
