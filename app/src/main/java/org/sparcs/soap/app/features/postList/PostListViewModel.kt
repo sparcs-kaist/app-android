@@ -1,6 +1,9 @@
 package org.sparcs.soap.app.features.postList
 
 import android.net.Uri
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -80,7 +83,8 @@ class PostListViewModel @Inject constructor(
     }
 
     //Infinite Scroll Properties
-    override var isLoadingMore: Boolean = false
+    // Compose state so the list can show its loading-more spinner.
+    override var isLoadingMore: Boolean by mutableStateOf(false)
     override var hasMorePages: Boolean = false
     private var currentPage: Int = 1
     private var totalPages: Int = 0
