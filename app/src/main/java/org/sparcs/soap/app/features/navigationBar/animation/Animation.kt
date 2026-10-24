@@ -5,11 +5,13 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -29,48 +31,62 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavDestination
 import kotlinx.coroutines.delay
 
 
-fun trendingEnterTransition(): (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) =
-    {
-        slideInHorizontally(
-            animationSpec = spring(
-                stiffness = Spring.StiffnessMedium,
-            ),
-            initialOffsetX = { it }
-        )
+// Motion for NavHost destinations. Pushing slides the new screen in over the old one, which
+// shifts slightly the other way (parallax); popping is the exact reverse, so during a predictive
+// back gesture the top screen slides away with the finger. Switching between the main tabs uses
+// Material fade through. All specs are tweens so the navigation library can seek them while the
+// user drags the gesture.
+
+private const val MOTION_DURATION = 300
+private const val FADE_OUT_DURATION = 90
+private val emphasized = FastOutSlowInEasing
+
+/** How far the screen underneath shifts, as a fraction of the container width. */
+private fun parallax(fullWidth: Int) = fullWidth / 4
+
+private fun slideIn(forward: Boolean): EnterTransition =
+    slideInHorizontally(tween(MOTION_DURATION, easing = emphasized)) {
+        if (forward) it else -parallax(it)
     }
 
-fun trendingExitTransition(): (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) =
-    {
-        slideOutHorizontally(
-            animationSpec = spring(
-                stiffness = Spring.StiffnessMedium,
-            ),
-            targetOffsetX = { it }
-        )
+private fun slideOut(forward: Boolean): ExitTransition =
+    slideOutHorizontally(tween(MOTION_DURATION, easing = emphasized)) {
+        if (forward) -parallax(it) else it
     }
 
-fun trendingPopEnterTransition(): (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition) =
-    {
-        slideInHorizontally(
-            animationSpec = spring(
-                stiffness = Spring.StiffnessMedium,
-            ),
-            initialOffsetX = { it }
-        )
-    }
+private val fadeThroughIn: EnterTransition =
+    fadeIn(tween(MOTION_DURATION - FADE_OUT_DURATION, FADE_OUT_DURATION, LinearOutSlowInEasing)) +
+        scaleIn(tween(MOTION_DURATION - FADE_OUT_DURATION, FADE_OUT_DURATION, emphasized), initialScale = 0.92f)
 
-fun trendingPopExitTransition(): (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition) =
-    {
-        slideOutHorizontally(
-            animationSpec = spring(
-                stiffness = Spring.StiffnessMedium,
-            ),
-            targetOffsetX = { it }
-        )
-    }
+private val fadeThroughOut: ExitTransition =
+    fadeOut(tween(FADE_OUT_DURATION, easing = FastOutLinearInEasing))
+
+private fun AnimatedContentTransitionScope<NavBackStackEntry>.isTabSwitch(isTabRoot: (NavDestination) -> Boolean) =
+    isTabRoot(initialState.destination) && isTabRoot(targetState.destination)
+
+fun navEnterTransition(isTabRoot: (NavDestination) -> Boolean):
+    AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+    if (isTabSwitch(isTabRoot)) fadeThroughIn else slideIn(forward = true)
+}
+
+fun navExitTransition(isTabRoot: (NavDestination) -> Boolean):
+    AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+    if (isTabSwitch(isTabRoot)) fadeThroughOut else slideOut(forward = true)
+}
+
+fun navPopEnterTransition(isTabRoot: (NavDestination) -> Boolean):
+    AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition = {
+    if (isTabSwitch(isTabRoot)) fadeThroughIn else slideIn(forward = false)
+}
+
+fun navPopExitTransition(isTabRoot: (NavDestination) -> Boolean):
+    AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition = {
+    if (isTabSwitch(isTabRoot)) fadeThroughOut else slideOut(forward = false)
+}
 
 @Composable
 fun MoveToLeftFadeOut(
