@@ -19,14 +19,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
@@ -44,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
@@ -154,7 +149,12 @@ fun DepartmentList(
 
             is TimetableSettingsViewModel.ViewState.Loaded -> {
                 item(key = "search") {
-                    DepartmentSearchField(searchText, onQueryChange = { searchText = it })
+                    MaterialSearchField(
+                        query = searchText,
+                        onQueryChange = { searchText = it },
+                        placeholder = stringResource(R.string.department_search),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
                 }
                 if (groups.all { it.second.isEmpty() }) {
                     item(key = "empty") { NoDepartmentsFound() }
@@ -191,38 +191,6 @@ fun DepartmentList(
             }
         }
     }
-}
-
-/** Material docked search bar used as a plain search field (it never expands). */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DepartmentSearchField(query: String, onQueryChange: (String) -> Unit) {
-    val keyboard = LocalSoftwareKeyboardController.current
-    DockedSearchBar(
-        inputField = {
-            SearchBarDefaults.InputField(
-                query = query,
-                onQueryChange = { onQueryChange(it.replace("\n", "")) },
-                onSearch = { keyboard?.hide() },
-                expanded = false,
-                onExpandedChange = {},
-                placeholder = { Text(stringResource(R.string.department_search)) },
-                leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
-                trailingIcon = if (query.isNotEmpty()) {
-                    {
-                        IconButton(onClick = { onQueryChange("") }) {
-                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.clear_search_text))
-                        }
-                    }
-                } else null,
-            )
-        },
-        expanded = false,
-        onExpandedChange = {},
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {}
 }
 
 @Composable
