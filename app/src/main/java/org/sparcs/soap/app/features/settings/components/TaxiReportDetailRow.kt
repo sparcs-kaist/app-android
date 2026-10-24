@@ -64,14 +64,12 @@ fun TaxiReportDetailRow(
                 title = stringResource(R.string.nickname),
                 content = report.reportedUser.nickname
             )
-            Spacer(modifier = Modifier.height(4.dp))
         }
 
         RowElementView(
             title = stringResource(R.string.date),
             content = report.time.formattedString()
         )
-        Spacer(modifier = Modifier.height(4.dp))
 
         if (report.reason == TaxiReport.Reason.ETC_REASON) {
             RowElementView(
