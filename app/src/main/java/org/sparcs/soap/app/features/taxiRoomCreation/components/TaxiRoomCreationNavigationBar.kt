@@ -1,11 +1,9 @@
 package org.sparcs.soap.app.features.taxiRoomCreation.components
 
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -13,18 +11,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
+import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.enums.taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.app.domain.helpers.AlertState
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
 import org.sparcs.soap.app.features.taxiList.TaxiListViewModelProtocol
 import org.sparcs.soap.app.features.taxiRoomCreation.TaxiRoomCreationViewModelProtocol
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.R
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,15 +32,10 @@ fun TaxiRoomCreationNavigationBar(
     taxiRoomCreationViewModel: TaxiRoomCreationViewModelProtocol,
     title: String,
 ) {
-    CenterAlignedTopAppBar(
-        navigationIcon = { DismissButton(onClick = onDismiss) },
-
+    TopAppBar(
+        navigationIcon = { CloseButton(onClick = onDismiss) },
         title = {
-            Text(
-                text = stringResource(R.string.new_room),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
+            Text(text = stringResource(R.string.new_room))
         },
         actions = {
             SendButton(
@@ -53,10 +44,7 @@ fun TaxiRoomCreationNavigationBar(
                 viewModel = viewModel,
                 title = title
             )
-        },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        }
     )
 
     LaunchedEffect(Unit) {
@@ -117,12 +105,7 @@ private fun SendButton(
         enabled = isEnabled,
         modifier = Modifier.semantics { contentDescription = "Create Room Button" }
     ) {
-        Text(
-            text = stringResource(R.string.submit),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Normal,
-            color = if (isEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
-        )
+        Text(text = stringResource(R.string.submit))
     }
 }
 

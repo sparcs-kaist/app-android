@@ -33,7 +33,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,6 +40,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -55,7 +55,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
@@ -63,7 +63,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
+import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.theme.ui.Theme
@@ -102,22 +102,17 @@ fun TaxiChatViewNavigationBar(
     val totalCount = room.participants.size
 
     Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
-        CenterAlignedTopAppBar(
+        TopAppBar(
             modifier = Modifier.statusBarsPadding(),
-            navigationIcon = { DismissButton(onClick = { onDismiss() }) },
+            navigationIcon = { BackButton(onClick = { onDismiss() }) },
             title = {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = room.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            textAlign = TextAlign.Center
+                            modifier = Modifier.weight(1f, fill = false),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
 
                         Spacer(Modifier.width(4.dp))
@@ -130,8 +125,10 @@ fun TaxiChatViewNavigationBar(
                     if (!isLandscape) {
                         Text(
                             text = "${room.source.title} → ${room.destination.title}",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -158,7 +155,7 @@ fun TaxiChatViewNavigationBar(
                     isLeaveAvailable = isLeaveAvailable
                 )
             },
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+            colors = TopAppBarDefaults.topAppBarColors(
                 containerColor = MaterialTheme.colorScheme.background
             )
         )

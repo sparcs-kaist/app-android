@@ -21,7 +21,6 @@ import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -29,7 +28,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -46,7 +45,6 @@ import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -54,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.sparcs.soap.app.features.navigationBar.components.CloseButton
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
@@ -62,7 +61,6 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.domain.usecases.MockUserUseCase
 import org.sparcs.soap.app.domain.usecases.UserUseCaseProtocol
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
 import org.sparcs.soap.app.features.taxiChat.TaxiChatViewModel
 import org.sparcs.soap.app.features.taxiReport.components.TaxiReportUser
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -98,17 +96,11 @@ fun TaxiReportView(
 
     Scaffold(
         topBar = {
-            CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        stringResource(R.string.report),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+            TopAppBar(
+                title = { Text(stringResource(R.string.report)) },
                 navigationIcon = {
-                    DismissButton { navController.popBackStack() }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(MaterialTheme.colorScheme.surface)
+                    CloseButton { navController.popBackStack() }
+                }
             )
         },
         modifier = Modifier.analyticsScreen("Taxi Report")
