@@ -1,6 +1,10 @@
 package org.sparcs.soap.app.features.timetable.creditCalculation.components
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -14,6 +18,7 @@ import org.sparcs.soap.app.theme.ui.Theme
 @Composable
 fun CreditRequirementsNavigationBar(
     onBack: () -> Unit,
+    onEdit: (() -> Unit)? = null,
 ) {
     TopAppBar(
         title = {
@@ -21,6 +26,13 @@ fun CreditRequirementsNavigationBar(
         },
         navigationIcon = {
             BackButton(onClick = onBack)
+        },
+        actions = {
+            if (onEdit != null) {
+                IconButton(onClick = onEdit) {
+                    Icon(Icons.Outlined.Edit, contentDescription = stringResource(R.string.credit_edit))
+                }
+            }
         }
     )
 }

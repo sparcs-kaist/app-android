@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,21 +23,25 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
 import androidx.compose.material.icons.automirrored.outlined.MenuBook
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.outlined.Apartment
 import androidx.compose.material.icons.outlined.MoreHoriz
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.rounded.CheckCircle
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -45,14 +51,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.CreditRequirements
+import org.sparcs.soap.app.features.navigationBar.components.CloseButton
+import org.sparcs.soap.app.features.navigationBar.components.TopBarTextAction
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
 import org.sparcs.soap.app.features.timetable.creditCalculation.components.CreditRequirementsNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
@@ -66,6 +79,8 @@ private data class RequirementRow(
     val taken: Int,
     val minimum: Int?,
     val update: (CreditRequirements, Int) -> CreditRequirements = { requirements, _ -> requirements },
+    /** Reads this row's minimum from a set of requirements; null for rows without one. */
+    val read: ((CreditRequirements) -> Int)? = null,
 )
 
 private data class RequirementGroup(
@@ -99,11 +114,10 @@ internal fun CreditRequirementsContent(
 ) {
     val rows = requirementRows(state)
     val groups = requirementGroups(state, rows)
-    var editingKey by rememberSaveable { mutableStateOf<String?>(null) }
-    val editing = rows.find { it.key == editingKey }
+    var isEditing by rememberSaveable { mutableStateOf(false) }
     Scaffold(
         topBar = {
-            CreditRequirementsNavigationBar(onBack = onBack)
+            CreditRequirementsNavigationBar(onBack = onBack, onEdit = { isEditing = true })
         },
         containerColor = MaterialTheme.colorScheme.surface
     ) { padding ->
@@ -143,25 +157,24 @@ internal fun CreditRequirementsContent(
                                 Modifier
                                     .weight(1f)
                                     .fillMaxHeight()
-                            ) { editingKey = it }
+                            )
                         }
                         repeat(columns - row.size) { Spacer(Modifier.weight(1f)) }
                     }
                 }
-                item {
-                    TextButton(onClick = { onSave(CreditRequirements()) }) { Text(stringResource(R.string.credit_reset)) }
-                }
             }
         }
     }
-    if (editing != null) {
-        CreditRequirementEditor(
-            editing.title,
-            editing.minimum ?: 0,
-            { editingKey = null }) { minimum ->
-            onSave(editing.update(state.requirements, minimum))
-            editingKey = null
-        }
+    if (isEditing) {
+        CreditRequirementsEditor(
+            groups = groups,
+            requirements = state.requirements,
+            onDismiss = { isEditing = false },
+            onSave = {
+                onSave(it)
+                isEditing = false
+            }
+        )
     }
 }
 
@@ -169,7 +182,6 @@ internal fun CreditRequirementsContent(
 private fun RequirementGroupCard(
     group: RequirementGroup,
     modifier: Modifier = Modifier,
-    onEdit: (String) -> Unit,
 ) {
     CreditCard(modifier) {
         Row(
@@ -179,19 +191,17 @@ private fun RequirementGroupCard(
             Icon(
                 group.icon,
                 null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(20.dp)
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
             )
             Text(
                 group.title,
                 style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.semantics { heading() }
             )
         }
-        group.rows.forEach { row ->
-            RequirementProgress(row) { onEdit(row.key) }
-        }
+        group.rows.forEach { row -> RequirementProgress(row) }
     }
 }
 
@@ -252,22 +262,28 @@ private fun requirementRows(state: CreditCalculationViewState): List<Requirement
                 "graduation",
                 stringResource(R.string.credit_total),
                 state.overallSummary.earnedCredits,
-                requirements.graduation
-            ) { r, n -> r.copy(graduation = n) })
+                requirements.graduation,
+                update = { r, n -> r.copy(graduation = n) },
+                read = { it.graduation }
+            ))
         add(
             RequirementRow(
                 "br",
                 stringResource(R.string.lecture_type_br_full),
                 breakdown.basicRequired,
-                requirements.basicRequired
-            ) { r, n -> r.copy(basicRequired = n) })
+                requirements.basicRequired,
+                update = { r, n -> r.copy(basicRequired = n) },
+                read = { it.basicRequired }
+            ))
         add(
             RequirementRow(
                 "be",
                 stringResource(R.string.lecture_type_be_full),
                 breakdown.basicElective,
-                requirements.basicElective
-            ) { r, n -> r.copy(basicElective = n) })
+                requirements.basicElective,
+                update = { r, n -> r.copy(basicElective = n) },
+                read = { it.basicElective }
+            ))
         breakdown.majors.forEach { group ->
             val department = group.department
             add(
@@ -275,34 +291,38 @@ private fun requirementRows(state: CreditCalculationViewState): List<Requirement
                     "mr.${department.id}",
                     "${department.name} · ${stringResource(R.string.mr)}",
                     group.required,
-                    requirements.majorRequired(department)
-                ) { r, n ->
-                    r.copy(majorRequired = r.majorRequired + (department.id to n))
-                })
+                    requirements.majorRequired(department),
+                    update = { r, n -> r.copy(majorRequired = r.majorRequired + (department.id to n)) },
+                    read = { it.majorRequired(department) }
+                ))
             add(
                 RequirementRow(
                     "me.${department.id}",
                     "${department.name} · ${stringResource(R.string.me)}",
                     group.elective,
-                    requirements.majorElective(department)
-                ) { r, n ->
-                    r.copy(majorElective = r.majorElective + (department.id to n))
-                })
+                    requirements.majorElective(department),
+                    update = { r, n -> r.copy(majorElective = r.majorElective + (department.id to n)) },
+                    read = { it.majorElective(department) }
+                ))
         }
         add(
             RequirementRow(
                 "hseCore",
                 stringResource(R.string.lecture_type_hse_core_full),
                 breakdown.hseCore,
-                requirements.hseCore
-            ) { r, n -> r.copy(hseCore = n) })
+                requirements.hseCore,
+                update = { r, n -> r.copy(hseCore = n) },
+                read = { it.hseCore }
+            ))
         add(
             RequirementRow(
                 "hseGeneral",
                 stringResource(R.string.lecture_type_hse_general_full),
                 breakdown.hseGeneral,
-                requirements.hseGeneral
-            ) { r, n -> r.copy(hseGeneral = n) })
+                requirements.hseGeneral,
+                update = { r, n -> r.copy(hseGeneral = n) },
+                read = { it.hseGeneral }
+            ))
         if (breakdown.hse > 0) add(
             RequirementRow(
                 "hse",
@@ -311,7 +331,13 @@ private fun requirementRows(state: CreditCalculationViewState): List<Requirement
                 null
             )
         )
-        add(RequirementRow("au", "AU", breakdown.au, requirements.au) { r, n -> r.copy(au = n) })
+        add(
+            RequirementRow(
+                "au", "AU", breakdown.au, requirements.au,
+                update = { r, n -> r.copy(au = n) },
+                read = { it.au }
+            )
+        )
         if (breakdown.etc > 0) add(
             RequirementRow(
                 "etc",
@@ -323,10 +349,11 @@ private fun requirementRows(state: CreditCalculationViewState): List<Requirement
     }
 }
 
+/** One requirement: title, credits taken over the minimum, and a progress bar. */
 @Composable
-private fun RequirementProgress(row: RequirementRow, onEdit: () -> Unit) {
+private fun RequirementProgress(row: RequirementRow) {
     val isMet = row.minimum?.let { row.taken >= it } == true
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -335,17 +362,13 @@ private fun RequirementProgress(row: RequirementRow, onEdit: () -> Unit) {
             Text(
                 row.title,
                 modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyLarge
             )
             if (isMet) Icon(
-                Icons.Rounded.CheckCircle, stringResource(R.string.credit_requirement_met),
+                Icons.Filled.CheckCircle, stringResource(R.string.credit_requirement_met),
                 tint = creditCompleteColor, modifier = Modifier.size(18.dp)
             )
-            Text(
-                "${row.taken}",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
+            Text("${row.taken}", style = MaterialTheme.typography.titleMedium)
             row.minimum?.let {
                 Text(
                     "/$it",
@@ -354,54 +377,107 @@ private fun RequirementProgress(row: RequirementRow, onEdit: () -> Unit) {
                 )
             }
         }
-        row.minimum?.let { minimum ->
-            CreditProgressBar(row.taken, minimum)
-            TextButton(onClick = onEdit, modifier = Modifier.align(Alignment.End)) {
-                Text(
-                    stringResource(R.string.credit_edit)
-                )
-            }
-        }
+        row.minimum?.let { minimum -> CreditProgressBar(row.taken, minimum) }
     }
 }
 
+/**
+ * Full-screen editor for every minimum at once, grouped like the cards. Changes apply on Save;
+ * Reset to defaults fills in the standard minimums without saving.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CreditRequirementEditor(
-    title: String,
-    minimum: Int,
+private fun CreditRequirementsEditor(
+    groups: List<RequirementGroup>,
+    requirements: CreditRequirements,
     onDismiss: () -> Unit,
-    onSave: (Int) -> Unit,
+    onSave: (CreditRequirements) -> Unit,
 ) {
-    var value by rememberSaveable(title) { mutableStateOf(minimum.toString()) }
-    val number = value.toIntOrNull()?.takeIf { it >= 0 }
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.background,
-        title = { Text(title) },
-        text = {
-            Column {
-                OutlinedTextField(
-                    value = value,
-                    onValueChange = { value = it },
-                    label = { Text(stringResource(R.string.credit_requirements)) },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    isError = number == null
-                )
-                if (number == null) Text(
-                    stringResource(R.string.credit_invalid_minimum),
-                    color = MaterialTheme.colorScheme.error
-                )
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        CreditRequirementsEditorContent(groups, requirements, onDismiss, onSave)
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CreditRequirementsEditorContent(
+    groups: List<RequirementGroup>,
+    requirements: CreditRequirements,
+    onDismiss: () -> Unit,
+    onSave: (CreditRequirements) -> Unit,
+) {
+    val editable = groups
+        .map { group -> group to group.rows.filter { it.read != null } }
+        .filter { (_, rows) -> rows.isNotEmpty() }
+    val rows = editable.flatMap { it.second }
+    val drafts = remember {
+        mutableStateMapOf<String, String>().apply {
+            rows.forEach { put(it.key, it.read!!(requirements).toString()) }
+        }
+    }
+    fun parsed(key: String) = drafts[key]?.toIntOrNull()?.takeIf { it >= 0 }
+    val isValid = rows.all { parsed(it.key) != null }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                navigationIcon = { CloseButton(onDismiss) },
+                title = { Text(stringResource(R.string.credit_minimums_title)) },
+                actions = {
+                    TopBarTextAction(
+                        text = stringResource(R.string.credit_save),
+                        enabled = isValid,
+                        onClick = {
+                            onSave(rows.fold(requirements) { acc, row -> row.update(acc, parsed(row.key)!!) })
+                        }
+                    )
+                }
+            )
+        },
+        modifier = Modifier.imePadding()
+    ) { padding ->
+        LazyColumn(contentPadding = padding) {
+            editable.forEach { (group, groupRows) ->
+                item(key = "header-${group.key}") {
+                    SettingsSectionHeader(group.title, icon = group.icon)
+                }
+                items(groupRows, key = { it.key }) { row ->
+                    val value = drafts[row.key].orEmpty()
+                    val isError = parsed(row.key) == null
+                    OutlinedTextField(
+                        value = value,
+                        onValueChange = { drafts[row.key] = it.filter(Char::isDigit) },
+                        label = { Text(row.title) },
+                        singleLine = true,
+                        isError = isError,
+                        supportingText = if (isError) {
+                            { Text(stringResource(R.string.credit_invalid_minimum)) }
+                        } else null,
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Next
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = { number?.let(onSave) },
-                enabled = number != null
-            ) { Text(stringResource(R.string.credit_save)) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.credit_cancel)) } }
-    )
+            item(key = "reset") {
+                TextButton(
+                    onClick = {
+                        val defaults = CreditRequirements()
+                        rows.forEach { drafts[it.key] = it.read!!(defaults).toString() }
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+                ) { Text(stringResource(R.string.credit_reset)) }
+            }
+        }
+    }
 }
 
 @Preview
@@ -426,7 +502,7 @@ private fun RequirementGroupCardPreview() {
                     RequirementRow("be", stringResource(R.string.lecture_type_be_full), 6, 9)
                 )
             )
-        ) {}
+        )
     }
 }
 
@@ -440,12 +516,15 @@ private fun RequirementProgressPreview() {
                 stringResource(R.string.lecture_type_br_full),
                 25,
                 23
-            ), {})
+            )
+        )
     }
 }
 
 @Preview
 @Composable
-private fun CreditRequirementEditorPreview() {
-    Theme { CreditRequirementEditor(stringResource(R.string.credit_total), 138, {}, {}) }
+private fun CreditRequirementsEditorPreview() {
+    val state = creditPreviewState()
+    val groups = requirementGroups(state, requirementRows(state))
+    Theme { CreditRequirementsEditorContent(groups, state.requirements, {}, {}) }
 }

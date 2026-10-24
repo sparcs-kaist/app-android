@@ -39,6 +39,7 @@
     <string name="credit_save">Save</string>
     <string name="credit_cancel">Cancel</string>
     <string name="credit_reset">Reset to defaults</string>
+    <string name="credit_minimums_title">Minimum credits</string>
     <string name="credit_invalid_minimum">Enter a non-negative whole number.</string>
     <string name="hse_core">HSE-C</string>
     <string name="hse_general">HSE-G</string>

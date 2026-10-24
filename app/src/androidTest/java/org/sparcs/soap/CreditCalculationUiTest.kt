@@ -11,8 +11,6 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onRoot
@@ -67,8 +65,9 @@ class CreditCalculationUiTest {
         compose.activity.setContent {
             Theme { CreditRequirementsContent(creditPreviewState(), {}, { saved = it }) }
         }
-        compose.onAllNodesWithText(text(R.string.credit_edit)).onFirst().performClick()
-        compose.onNodeWithText(text(R.string.credit_cancel)).performClick()
+        compose.onNodeWithContentDescription(text(R.string.credit_edit)).performClick()
+        compose.onNodeWithText(text(R.string.credit_minimums_title)).assertIsDisplayed()
+        compose.onNodeWithContentDescription(text(R.string.close)).performClick()
         compose.runOnIdle { assertEquals(null, saved) }
         capture("credit-requirements.png")
     }
