@@ -2,6 +2,7 @@ package org.sparcs.soap.app.features.post.components
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -9,32 +10,46 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Forward
+import androidx.compose.material.icons.outlined.Forward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import org.sparcs.soap.R
 import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
 import org.sparcs.soap.app.theme.ui.upvote
 
+/**
+ * Pill with an upvote half and a downvote half around the score. Neutral, it is a gray pill with
+ * outlined arrows; once voted, the whole pill takes the vote color with a filled arrow. Pressing
+ * a half darkens it, and on a neutral pill also previews the vote color on that arrow.
+ */
 @Composable
 fun PostVoteButton(
     myVote: Boolean?,
@@ -44,57 +59,84 @@ fun PostVoteButton(
     enabled: Boolean,
     isCompact: Boolean = false,
 ) {
-    val upVoteColor = upvote
-    val downVoteColor = downvote
-    val upvoteImage =
-        if (myVote == true) R.drawable.baseline_arrow_up_bold else R.drawable.outline_arrow_up
-    val downvoteImage =
-        if (myVote == false) R.drawable.baseline_arrow_down_bold else R.drawable.outline_arrow_down
-
-    val tintColor = when (myVote) {
-        true -> upVoteColor
-        false -> downVoteColor
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-
-    val shapeRadius = if (isCompact) 14.dp else 16.dp
-    val horizontalPadding = if (isCompact) 8.dp else 10.dp
-    val verticalPadding = if (isCompact) 6.dp else 8.dp
-    val baseStyle = MaterialTheme.typography.bodyMedium
-    val textStyle = if (isCompact) baseStyle.copy(fontSize = 13.sp) else baseStyle
-
-    var isRunning = false
+    val upInteraction = remember { MutableInteractionSource() }
+    val downInteraction = remember { MutableInteractionSource() }
+    val upPressed by upInteraction.collectIsPressedAsState()
+    val downPressed by downInteraction.collectIsPressedAsState()
     val haptic = LocalHapticFeedback.current
+
+    VotePill(
+        myVote = myVote,
+        votes = votes,
+        enabled = enabled,
+        isCompact = isCompact,
+        upPressed = upPressed,
+        downPressed = downPressed,
+        upInteraction = upInteraction,
+        downInteraction = downInteraction,
+        onUpVote = {
+            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+            onUpVote()
+        },
+        onDownVote = {
+            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+            onDownVote()
+        }
+    )
+}
+
+@Composable
+private fun VotePill(
+    myVote: Boolean?,
+    votes: Int,
+    enabled: Boolean,
+    isCompact: Boolean,
+    upPressed: Boolean,
+    downPressed: Boolean,
+    upInteraction: MutableInteractionSource = remember { MutableInteractionSource() },
+    downInteraction: MutableInteractionSource = remember { MutableInteractionSource() },
+    onUpVote: () -> Unit = {},
+    onDownVote: () -> Unit = {},
+) {
+    val container by animateColorAsState(
+        when (myVote) {
+            true -> upvote
+            false -> downvote
+            null -> MaterialTheme.colorScheme.surfaceContainerHighest
+        },
+        label = "VoteContainer"
+    )
+    val content = if (myVote == null) MaterialTheme.colorScheme.onSurface else Color.White
+    val textStyle = pillTextStyle(isCompact)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .glassBorder(RoundedCornerShape(shapeRadius))
-            .clip(RoundedCornerShape(shapeRadius))
-            .background(MaterialTheme.colorScheme.background)
-            .padding(horizontal = horizontalPadding, vertical = verticalPadding)
+            .height(pillHeight(isCompact))
+            .clip(CircleShape)
+            .background(container)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 6.dp)
+            horizontalArrangement = Arrangement.spacedBy(if (isCompact) 4.dp else 6.dp),
+            modifier = Modifier
+                .fillMaxHeight()
+                .pressedStateLayer(upPressed, onColor = myVote != null)
+                .clickable(
+                    interactionSource = upInteraction,
+                    indication = null,
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClickLabel = "UpVote",
+                    onClick = onUpVote
+                )
+                .padding(start = if (isCompact) 8.dp else 10.dp, end = if (isCompact) 6.dp else 8.dp)
         ) {
-            Icon(
-                painter = painterResource(upvoteImage),
-                contentDescription = "UpVote",
-                tint = if (myVote == true) upVoteColor else MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .adaptiveIconSize(textStyle)
-                    .clickable {
-                        if (enabled && !isRunning) {
-                            try {
-                                isRunning = true
-                                haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                                onUpVote()
-                            } finally {
-                                isRunning = false
-                            }
-                        }
-                    }
+            VoteArrow(
+                up = true,
+                filled = myVote == true,
+                tint = if (myVote == null && upPressed) upvote else content,
+                textStyle = textStyle
             )
             AnimatedContent(
                 targetState = votes,
@@ -109,44 +151,74 @@ fun PostVoteButton(
                 },
                 label = "VotesTransition"
             ) { targetCount ->
-                val formattedCount = targetCount.toString().replace('-', '\u2212')
                 Text(
-                    text = formattedCount,
-                    color = if (myVote != null) tintColor else MaterialTheme.colorScheme.onSurface,
+                    text = targetCount.toString().replace('-', '−'),
+                    color = content,
                     style = textStyle,
                 )
             }
         }
 
-        VerticalDivider(
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-            modifier = Modifier
-                .padding(horizontal = if (isCompact) 6.dp else 8.dp)
+        // Divider between the halves.
+        Row(
+            Modifier
+                .width(1.dp)
                 .height(if (isCompact) 14.dp else 16.dp)
-        )
-        Icon(
-            painter = painterResource(downvoteImage),
-            contentDescription = "DownVote",
-            tint = if (myVote == false) downVoteColor else MaterialTheme.colorScheme.onSurface,
+                .background(content.copy(alpha = if (myVote == null) 0.2f else 0.35f))
+        ) {}
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .adaptiveIconSize(textStyle)
-                .clickable {
-                    if (enabled && !isRunning) {
-                        try {
-                            isRunning = true
-                            haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                            onDownVote()
-                        } finally {
-                            isRunning = false
-                        }
-                    }
-                }
-        )
+                .fillMaxHeight()
+                .pressedStateLayer(downPressed, onColor = myVote != null)
+                .clickable(
+                    interactionSource = downInteraction,
+                    indication = null,
+                    enabled = enabled,
+                    role = Role.Button,
+                    onClickLabel = "DownVote",
+                    onClick = onDownVote
+                )
+                .padding(start = if (isCompact) 6.dp else 8.dp, end = if (isCompact) 8.dp else 10.dp)
+        ) {
+            VoteArrow(
+                up = false,
+                filled = myVote == false,
+                tint = if (myVote == null && downPressed) downvote else content,
+                textStyle = textStyle
+            )
+        }
     }
 }
 
+/** Material's Forward arrow turned to point up or down; filled for the active vote. */
 @Composable
-@Preview
+private fun VoteArrow(up: Boolean, filled: Boolean, tint: Color, textStyle: TextStyle) {
+    Icon(
+        imageVector = if (filled) Icons.Filled.Forward else Icons.Outlined.Forward,
+        contentDescription = if (up) "UpVote" else "DownVote",
+        tint = tint,
+        modifier = Modifier
+            .adaptiveIconSize(textStyle)
+            .rotate(if (up) -90f else 90f)
+    )
+}
+
+@Composable
+@Preview(showBackground = true)
 private fun Preview() {
-    Theme { PostVoteButton(true, 2, {}, {}, true) }
+    Theme {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            listOf<Boolean?>(null, true, false).forEach { vote ->
+                VotePill(vote, 3, true, false, upPressed = false, downPressed = false)
+                VotePill(vote, 3, true, false, upPressed = true, downPressed = false)
+                VotePill(vote, 3, true, false, upPressed = false, downPressed = true)
+            }
+            VotePill(null, 3, true, true, upPressed = false, downPressed = false)
+        }
+    }
 }
