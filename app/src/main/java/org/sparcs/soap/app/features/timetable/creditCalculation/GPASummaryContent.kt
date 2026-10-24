@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -48,7 +48,7 @@ internal fun GPASummaryContent(
             )
             if (earnedCredits >= graduationCredits) {
                 Icon(
-                    Icons.Rounded.CheckCircle, stringResource(R.string.credit_requirement_met),
+                    Icons.Filled.CheckCircle, stringResource(R.string.credit_requirement_met),
                     tint = creditCompleteColor, modifier = Modifier.size(18.dp)
                 )
             }
