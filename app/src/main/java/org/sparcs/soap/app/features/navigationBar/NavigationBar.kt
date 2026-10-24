@@ -7,23 +7,25 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Feed
-import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
-import androidx.compose.material.icons.rounded.LocalTaxi
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.TableChart
+import androidx.compose.material.icons.automirrored.filled.Feed
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.outlined.Feed
+import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
+import androidx.compose.material.icons.filled.LocalTaxi
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.TableChart
+import androidx.compose.material.icons.outlined.LocalTaxi
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.TableChart
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -175,20 +177,45 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
     val navBackStackEntryState = navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntryState.value?.destination?.route
 
+    // Filled icon for the selected destination, outlined otherwise.
+    data class TabItem(
+        val channel: Channel,
+        val label: String,
+        val selectedIcon: ImageVector,
+        val unselectedIcon: ImageVector
+    )
+
     val navigationItems = listOf(
-        Triple(Channel.Start, stringResource(Channel.Start.title), Icons.AutoMirrored.Rounded.Feed),
-        Triple(
+        TabItem(
+            Channel.Start,
+            stringResource(Channel.Start.title),
+            Icons.AutoMirrored.Filled.Feed,
+            Icons.AutoMirrored.Outlined.Feed
+        ),
+        TabItem(
             Channel.Boards,
             stringResource(Channel.Boards.title),
-            Icons.AutoMirrored.Rounded.FormatListBulleted
+            Icons.AutoMirrored.Filled.FormatListBulleted,
+            Icons.AutoMirrored.Outlined.FormatListBulleted
         ),
-        Triple(
+        TabItem(
             Channel.TimeTable,
             stringResource(Channel.TimeTable.title),
-            Icons.Rounded.TableChart
+            Icons.Filled.TableChart,
+            Icons.Outlined.TableChart
         ),
-        Triple(Channel.Taxi, stringResource(Channel.Taxi.title), Icons.Rounded.LocalTaxi),
-        Triple(Channel.SearchView, stringResource(R.string.search), Icons.Rounded.Search)
+        TabItem(
+            Channel.Taxi,
+            stringResource(Channel.Taxi.title),
+            Icons.Filled.LocalTaxi,
+            Icons.Outlined.LocalTaxi
+        ),
+        TabItem(
+            Channel.SearchView,
+            stringResource(R.string.search),
+            Icons.Filled.Search,
+            Icons.Outlined.Search
+        )
     )
 
     fun isTabActive(route: String?, target: Channel): Boolean {
@@ -240,47 +267,29 @@ fun MainTabBar(navController: NavHostController = rememberNavController()) {
         else -> NavigationSuiteType.NavigationBar
     }
 
-    val navItemColors = NavigationSuiteDefaults.itemColors(
-        navigationBarItemColors = NavigationBarItemDefaults.colors(
-            selectedIconColor = MaterialTheme.colorScheme.primary,
-            selectedTextColor = MaterialTheme.colorScheme.primary,
-            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        ),
-        navigationRailItemColors = NavigationRailItemDefaults.colors(
-            selectedIconColor = MaterialTheme.colorScheme.primary,
-            selectedTextColor = MaterialTheme.colorScheme.primary,
-            indicatorColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    )
-    val navSuiteColors = NavigationSuiteDefaults.colors(
-        navigationBarContainerColor = MaterialTheme.colorScheme.surface,
-        navigationRailContainerColor = MaterialTheme.colorScheme.surface
-    )
-
     NavigationSuiteScaffold(
         navigationSuiteItems = {
-            navigationItems.forEach { (channel, label, icon) ->
+            navigationItems.forEach { tab ->
+                val selected = isTabActive(currentRoute, tab.channel)
                 item(
-                    selected = isTabActive(currentRoute, channel),
-                    onClick = { onTabClick(channel) },
-                    icon = { Icon(imageVector = icon, contentDescription = label) },
+                    selected = selected,
+                    onClick = { onTabClick(tab.channel) },
+                    icon = {
+                        Icon(
+                            imageVector = if (selected) tab.selectedIcon else tab.unselectedIcon,
+                            contentDescription = null
+                        )
+                    },
                     label = {
                         Text(
-                            text = label,
+                            text = tab.label,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
-                    },
-                    colors = navItemColors
+                    }
                 )
             }
         },
-        containerColor = MaterialTheme.colorScheme.surface,
-        navigationSuiteColors = navSuiteColors,
         layoutType = navigationLayoutType
     ) {
         Box(
