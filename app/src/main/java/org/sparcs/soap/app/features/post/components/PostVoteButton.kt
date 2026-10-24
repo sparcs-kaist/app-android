@@ -194,7 +194,7 @@ private fun VotePill(
 
 /** Material's Forward arrow turned to point up or down; filled for the active vote. */
 @Composable
-private fun VoteArrow(up: Boolean, filled: Boolean, tint: Color, textStyle: TextStyle) {
+internal fun VoteArrow(up: Boolean, filled: Boolean, tint: Color, textStyle: TextStyle) {
     Icon(
         imageVector = if (filled) Icons.Filled.Forward else Icons.Outlined.Forward,
         contentDescription = if (up) "UpVote" else "DownVote",
