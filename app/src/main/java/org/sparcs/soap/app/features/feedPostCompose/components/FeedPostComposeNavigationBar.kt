@@ -1,27 +1,19 @@
 package org.sparcs.soap.app.features.feedPostCompose.components
 
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
-import org.sparcs.soap.app.features.navigationBar.components.DismissButton
+import org.sparcs.soap.app.features.navigationBar.components.CloseButton
+import org.sparcs.soap.app.features.navigationBar.components.TopBarTextAction
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,57 +23,23 @@ fun FeedPostComposeNavigationBar(
     onDoneClick: () -> Unit,
     isUploading: Boolean,
 ) {
-
-    CenterAlignedTopAppBar(
+    TopAppBar(
         navigationIcon = {
-            DismissButton { navController.popBackStack() }
+            CloseButton { navController.popBackStack() }
         },
-        title = {
-            Text(
-                text = stringResource(R.string.write),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-        },
+        title = { Text(text = stringResource(R.string.write)) },
         actions = {
-            DoneButton(
-                isDoneEnabled = isDoneEnabled,
-                onDoneClick = onDoneClick,
-                isUploading = isUploading
+            TopBarTextAction(
+                text = stringResource(R.string.submit),
+                onClick = onDoneClick,
+                enabled = isDoneEnabled,
+                isBusy = isUploading
             )
         },
-        colors = TopAppBarDefaults.mediumTopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.background
         )
     )
-}
-
-@Composable
-private fun DoneButton(
-    isDoneEnabled: Boolean,
-    onDoneClick: () -> Unit,
-    isUploading: Boolean,
-) {
-    TextButton(
-        onClick = {
-            if (isDoneEnabled) {
-                onDoneClick()
-            }
-        },
-        enabled = isDoneEnabled,
-        modifier = Modifier.semantics { contentDescription = "Post Button" }
-    ) {
-        if (isUploading) {
-            CircularProgressIndicator(modifier = Modifier.size(24.dp))
-        } else {
-            Text(
-                text = stringResource(R.string.submit),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Normal,
-                color = if (isDoneEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.grayBB
-            )
-        }
-    }
 }
 
 @Composable
