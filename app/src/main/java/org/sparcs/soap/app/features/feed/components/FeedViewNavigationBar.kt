@@ -7,14 +7,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import org.sparcs.soap.app.features.feed.FeedViewModelProtocol
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.navigationBar.components.AddButton
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
 
@@ -29,13 +27,6 @@ fun FeedViewNavigationBar(
     TopAppBar(
         title = { Text(text = stringResource(Channel.Start.title)) },
         actions = {
-            AddButton(
-                contentDescription = "Create Feed",
-                onClick = {
-                    viewModel.writeFeedButtonTapped()
-                    navController.navigate(Channel.FeedPostCompose.name)
-                }
-            )
             FeedViewDropDownMenu(
                 onClickSettings = {
                     viewModel.openSettingsTapped()

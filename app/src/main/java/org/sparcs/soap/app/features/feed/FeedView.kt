@@ -10,10 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
@@ -29,11 +34,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.sparcs.soap.R
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.models.feed.FeedPost
@@ -111,6 +118,25 @@ fun FeedView(
                 scrollBehavior = topBarScrollBehavior
             )
         },
+        floatingActionButton = {
+            // Shows its label at the top of the feed and shrinks to the icon once scrolled.
+            val expanded by remember { derivedStateOf { listState.firstVisibleItemIndex == 0 } }
+            val writeLabel = stringResource(R.string.write)
+            ExtendedFloatingActionButton(
+                onClick = {
+                    viewModel.writeFeedButtonTapped()
+                    navController.navigate(Channel.FeedPostCompose.name)
+                },
+                expanded = expanded,
+                icon = {
+                    Icon(
+                        Icons.Outlined.Edit,
+                        contentDescription = if (expanded) null else writeLabel
+                    )
+                },
+                text = { Text(writeLabel) }
+            )
+        },
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen(name = "Feed")
@@ -137,7 +163,8 @@ fun FeedView(
             ) {
                 LazyColumn(
                     state = listState,
-                    contentPadding = PaddingValues(vertical = 8.dp),
+                    // Bottom room so the last post can scroll clear of the Write button.
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.fillMaxSize()
                 ) {
