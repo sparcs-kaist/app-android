@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.sparcs.soap.app.domain.enums.otl.LectureType
 import org.sparcs.soap.app.domain.models.otl.Timetable
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.otl.mockList
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.theme_light_background
@@ -77,14 +75,7 @@ fun TimetableCreditGraph(
     val tickTextSize = with(density) { 11.sp.toPx() }
     val tickOffset = with(density) { 14.dp.toPx() }
     
-    Card(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .glassBorder(shape = RoundedCornerShape(20.dp))
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = modifier.padding(16.dp)) {
             Canvas(
                 modifier = Modifier

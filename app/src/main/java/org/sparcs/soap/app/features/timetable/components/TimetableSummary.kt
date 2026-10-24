@@ -7,9 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,7 +15,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,7 +23,6 @@ import androidx.compose.ui.unit.sp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.LectureType
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
@@ -101,12 +97,7 @@ fun TimetableSummary(
             }
         }
     } else {
-        Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.background),
-            modifier = Modifier
-                .fillMaxWidth()
-                .glassBorder(shape = RoundedCornerShape(20.dp))
-        ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier
                     .padding(16.dp)
@@ -130,14 +121,15 @@ private fun SummaryMiniItem(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = value,
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
             fontWeight = FontWeight.Bold,
-            color = if (value != "0") MaterialTheme.colorScheme.onSurface else Color.LightGray
+            color = if (value != "0") MaterialTheme.colorScheme.onSurface
+            else MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -150,13 +142,13 @@ private fun SummaryStatItem(value: String, label: String, isAccent: Boolean = fa
             style = MaterialTheme.typography.titleMedium.copy(fontSize = 15.sp),
             fontWeight = FontWeight.ExtraBold,
             color = if (isAccent) MaterialTheme.colorScheme.primary
-            else if (value == "0" || value == "?") Color.LightGray
+            else if (value == "0" || value == "?") MaterialTheme.colorScheme.onSurfaceVariant
             else MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-            color = Color.Gray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = FontWeight.Medium
         )
     }
@@ -179,7 +171,8 @@ fun BigSummary(
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodySmall
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
