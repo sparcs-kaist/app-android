@@ -602,6 +602,10 @@
     <string name="attachments">Attachments</string>
     <string name="downloading">Downloading…</string>
     <string name="download">Download</string>
+    <string name="attachment_saved">Saved to Downloads</string>
+    <string name="attachment_open">Open</string>
+    <string name="attachment_download_failed">Couldn\'t download %1$s</string>
+    <string name="attachment_no_app">No app can open this file</string>
     <string name="favorite_routes">Favorite Routes</string>
     <string name="add_to_favorites">Add to Favorites</string>
     <string name="delete_favorite">Delete Favorite</string>
