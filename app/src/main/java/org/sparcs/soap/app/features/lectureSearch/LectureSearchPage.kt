@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.features.lectureSearch
 
 import android.net.Uri
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -42,6 +41,7 @@ import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchTimetablePreview
 import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
+import org.sparcs.soap.app.shared.extensions.OnPoppedEffect
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
@@ -73,7 +73,7 @@ fun LectureSearchPage(
         else navController.popBackStack()
         Unit
     }
-    BackHandler(enabled = inspector == null, onBack = close)
+    if (inspector == null) OnPoppedEffect(navController) { timetableViewModel.setCandidateLecture(null) }
 
     val tipStore = LocalTipStore.current
     BoxWithConstraints(modifier.fillMaxSize()) {

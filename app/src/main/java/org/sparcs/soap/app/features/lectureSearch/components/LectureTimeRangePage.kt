@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.lectureSearch.components
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -57,7 +56,6 @@ fun LectureTimeRangeContent(
     onTimeChange: (LectureTimeFilter) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    BackHandler(onBack = onDismiss)
     val begin = time.begin ?: TimetableRangeSelection.start
     val end = time.end ?: TimetableRangeSelection.end
     Scaffold(
