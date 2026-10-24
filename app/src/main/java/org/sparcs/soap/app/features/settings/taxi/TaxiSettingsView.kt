@@ -1,37 +1,28 @@
 package org.sparcs.soap.app.features.settings.taxi
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.outlined.SmsFailed
-import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -58,6 +48,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.sparcs.soap.app.features.settings.components.SettingsNavigationItem
+import org.sparcs.soap.app.features.settings.components.SettingsSectionHeader
+import org.sparcs.soap.app.features.settings.components.SettingsSwitchItem
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
@@ -77,7 +70,6 @@ import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiSettingsViewModel
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -196,9 +188,11 @@ fun TaxiSettingsView(
                         saveChanges()
                     }
                 },
-                scrollBehavior = topBarScrollBehavior
+                scrollBehavior = topBarScrollBehavior,
+                containerColor = MaterialTheme.colorScheme.surface
             )
         },
+        containerColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier
             .hideTopBarOnScroll(topBarScrollBehavior)
             .analyticsScreen("Taxi Settings")
@@ -207,7 +201,6 @@ fun TaxiSettingsView(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding),
             contentAlignment = Alignment.TopCenter
         ) {
@@ -215,7 +208,6 @@ fun TaxiSettingsView(
                 modifier = Modifier
                     .fillMaxSize()
                     .widthIn(max = 600.dp)
-                    .padding(horizontal = 20.dp, vertical = 8.dp)
             ) {
                 when (state) {
                     TaxiSettingsViewModel.ViewState.Loading -> item { LoadingView() }
@@ -259,8 +251,7 @@ fun TaxiSettingsView(
                 }
             },
             title = { Text(stringResource(R.string.are_you_sure)) },
-            text = { Text(stringResource(R.string.discard_this_settings)) },
-            containerColor = MaterialTheme.colorScheme.background
+            text = { Text(stringResource(R.string.discard_this_settings)) }
         )
     }
 
@@ -283,15 +274,14 @@ fun TaxiSettingsView(
                 TextButton(onClick = { showAlert = false }) {
                     Text(stringResource(R.string.cancel))
                 }
-            },
-            containerColor = MaterialTheme.colorScheme.background
+            }
         )
     }
 }
 
 @Composable
 private fun LoadingView() {
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column {
         RowElementView(
             title = stringResource(R.string.nickname),
             content = stringResource(R.string.unknown)
@@ -316,31 +306,28 @@ private fun LoadedView(
     val focusManager = LocalFocusManager.current
 
     Column {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-
-                Text(stringResource(R.string.profile), style = MaterialTheme.typography.titleMedium)
-
-                if (viewModel.showBadge) {
-                    Spacer(Modifier.width(4.dp))
+        SettingsSectionHeader(
+            text = stringResource(R.string.profile),
+            trailing = if (viewModel.showBadge) {
+                {
                     InfoTooltip(
                         tooltipText = stringResource(R.string.members_with_this_badge),
                         icon = painterResource(R.drawable.phone_circle_fill),
                     )
                 }
-            }
+            } else null
+        )
+
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
 
             // Nickname
             OutlinedTextField(
                 value = viewModel.nickname ?: "",
                 onValueChange = { viewModel.nickname = it },
-                label = {
-                    Text(
-                        stringResource(R.string.nickname),
-                        color = MaterialTheme.colorScheme.grayBB
-                    )
-                },
+                label = { Text(stringResource(R.string.nickname)) },
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                 singleLine = true,
@@ -360,12 +347,7 @@ private fun LoadedView(
                     val onlyNumbers = input.filter { it.isDigit() }
                     viewModel.bankNumber = onlyNumbers
                 },
-                label = {
-                    Text(
-                        stringResource(R.string.enter_bank_number),
-                        color = MaterialTheme.colorScheme.grayBB
-                    )
-                },
+                label = { Text(stringResource(R.string.enter_bank_number)) },
                 keyboardOptions = KeyboardOptions.Default.copy(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Next
@@ -382,12 +364,7 @@ private fun LoadedView(
                     val filtered = input.filter { it.isDigit() }
                     viewModel.phoneNumber = filtered
                 },
-                label = {
-                    Text(
-                        stringResource(R.string.enter_phone_number),
-                        color = MaterialTheme.colorScheme.grayBB
-                    )
-                },
+                label = { Text(stringResource(R.string.enter_phone_number)) },
                 enabled = !hasNumberRegistered,
                 visualTransformation = PhoneNumberVisualTransformation(),
                 keyboardOptions = KeyboardOptions.Default.copy(
@@ -399,21 +376,20 @@ private fun LoadedView(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            //Badge
-            if (hasNumberRegistered) {
-                BadgeToggle(viewModel)
-            }
+        }
 
+        if (hasNumberRegistered) {
+            BadgeToggle(viewModel)
+        }
+
+        Column(
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = if (hasNumberRegistered) 0.dp else 16.dp)
+        ) {
             // Residence
             OutlinedTextField(
                 value = viewModel.residence,
                 onValueChange = { viewModel.residence = it },
-                label = {
-                    Text(
-                        stringResource(R.string.enter_residence),
-                        color = MaterialTheme.colorScheme.grayBB
-                    )
-                },
+                label = { Text(stringResource(R.string.enter_residence)) },
                 keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(
                     onDone = { focusManager.clearFocus() }
@@ -423,45 +399,12 @@ private fun LoadedView(
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(stringResource(R.string.services), style = MaterialTheme.typography.titleMedium)
+        SettingsSectionHeader(stringResource(R.string.services))
 
-        NavigationLinkWithIcon(
-            { navController.navigate(Channel.TaxiReportSettings.name) },
-            stringResource(R.string.report_details),
-            Icons.Outlined.SmsFailed
-        )
-    }
-}
-
-@Composable
-fun NavigationLinkWithIcon(onClick: () -> Unit, text: String, icon: ImageVector) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .clickable { onClick() },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-
-        Icon(icon, contentDescription = null)
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-
-        Spacer(Modifier.weight(1f))
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-            contentDescription = text,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(15.dp)
+        SettingsNavigationItem(
+            text = stringResource(R.string.report_details),
+            onClick = { navController.navigate(Channel.TaxiReportSettings.name) },
+            leadingContent = { Icon(Icons.Outlined.SmsFailed, contentDescription = null) }
         )
     }
 }
@@ -471,30 +414,24 @@ private fun BadgeToggle(
     viewModel: TaxiSettingsViewModelProtocol,
 ) {
     val haptic = LocalHapticFeedback.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(stringResource(R.string.show_badge))
-        Spacer(Modifier.width(4.dp))
-        InfoTooltip(
-            tooltipText = stringResource(R.string.members_with_this_badge),
-            imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
-            tint = MaterialTheme.colorScheme.grayBB
-        )
-        Spacer(Modifier.weight(1f))
-        Switch(
-            checked = viewModel.showBadge,
-            onCheckedChange = {
-                haptic.toggle(it)
-                viewModel.showBadge = it
-            }
-        )
-    }
+    SettingsSwitchItem(
+        text = stringResource(R.string.show_badge),
+        checked = viewModel.showBadge,
+        onCheckedChange = {
+            haptic.toggle(it)
+            viewModel.showBadge = it
+        },
+        headlineTrailing = {
+            InfoTooltip(
+                tooltipText = stringResource(R.string.members_with_this_badge),
+                imageVector = Icons.AutoMirrored.Outlined.HelpOutline,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BankPicker(
     selected: String?,
@@ -503,43 +440,36 @@ private fun BankPicker(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
     ) {
-        Text(stringResource(R.string.bank_name))
-        Spacer(Modifier.weight(1f))
-        Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
-            Row(Modifier.clickable { expanded = !expanded }) {
-                Text(
-                    text = selected ?: stringResource(R.string.select_bank),
-                    color = if (selected == null)
-                        MaterialTheme.colorScheme.grayBB
-                    else
-                        MaterialTheme.colorScheme.onSurface
-                )
-                Icon(
-                    Icons.Rounded.ArrowDropDown,
-                    contentDescription = null
-                )
-            }
+        OutlinedTextField(
+            value = selected ?: "",
+            onValueChange = {},
+            readOnly = true,
+            singleLine = true,
+            label = { Text(stringResource(R.string.bank_name)) },
+            placeholder = { Text(stringResource(R.string.select_bank)) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                .fillMaxWidth()
+        )
 
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                options.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            onSelected(option)
-                            expanded = false
-                        }
-                    )
-                }
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onSelected(option)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
+                )
             }
         }
     }
