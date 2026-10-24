@@ -1,32 +1,24 @@
 package org.sparcs.soap.app.features.timetable.creditCalculation
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.ProgressBarRangeInfo
-import androidx.compose.ui.semantics.progressBarRangeInfo
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.shared.formatters.creditProgress
@@ -68,7 +60,7 @@ internal fun GPASummaryContent(
                 )
             }
         }
-        CreditProgressBar(earnedCredits, graduationCredits, height = 18.dp)
+        CreditProgressBar(earnedCredits, graduationCredits)
     }
 }
 
@@ -103,28 +95,18 @@ private fun SummaryValue(
     }
 }
 
+/** Credits taken toward [minimum] as a Material progress bar, green once the minimum is met. */
 @Composable
 internal fun CreditProgressBar(
     taken: Int,
     minimum: Int,
     modifier: Modifier = Modifier,
-    height: Dp = 8.dp,
 ) {
-    val progress = creditProgress(taken, minimum)
-    val color = if (taken >= minimum) creditCompleteColor else MaterialTheme.colorScheme.primary
-    Box(
-        modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(CircleShape)
-            .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
-            .semantics { progressBarRangeInfo = ProgressBarRangeInfo(progress, 0f..1f) }) {
-        Box(Modifier
-            .fillMaxWidth(progress)
-            .height(height)
-            .clip(CircleShape)
-            .background(color))
-    }
+    LinearProgressIndicator(
+        progress = { creditProgress(taken, minimum) },
+        color = if (taken >= minimum) creditCompleteColor else MaterialTheme.colorScheme.primary,
+        modifier = modifier.fillMaxWidth()
+    )
 }
 
 @Preview(showBackground = true)
