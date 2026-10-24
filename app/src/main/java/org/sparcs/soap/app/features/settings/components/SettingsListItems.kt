@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -59,14 +60,21 @@ fun SettingsNavigationItem(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     supportingText: String? = null,
     leadingContent: (@Composable () -> Unit)? = null,
 ) {
+    val disabled = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
     ListItem(
         headlineContent = { Text(text) },
         supportingContent = supportingText?.let { { Text(it) } },
         leadingContent = leadingContent,
-        modifier = modifier.clickable(onClick = onClick)
+        colors = if (enabled) ListItemDefaults.colors() else ListItemDefaults.colors(
+            headlineColor = disabled,
+            supportingColor = disabled,
+            leadingIconColor = disabled
+        ),
+        modifier = modifier.clickable(enabled = enabled, onClick = onClick)
     )
 }
 
