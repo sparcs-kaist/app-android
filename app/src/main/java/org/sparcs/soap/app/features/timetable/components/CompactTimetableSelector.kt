@@ -1,23 +1,25 @@
 package org.sparcs.soap.app.features.timetable.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -34,23 +36,22 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
-import org.sparcs.soap.app.features.navigationBar.animation.AnimatedText
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
 
 @Composable
@@ -123,8 +124,7 @@ fun CompactTimetableSelector(
                 TextButton(onClick = { showDeleteDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
-            },
-            containerColor = MaterialTheme.colorScheme.background,
+            }
         )
     }
     
@@ -156,74 +156,75 @@ fun CompactTimetableSelector(
                 TextButton(onClick = { showRenameDialog = false }) {
                     Text(stringResource(R.string.cancel))
                 }
-            },
-            containerColor = MaterialTheme.colorScheme.background,
+            }
         )
     }
 }
 
+/** Previous and next buttons around the selected semester, in a pill like the cards below. */
 @Composable
 fun SemesterSelector(
     viewModel: TimetableViewModelProtocol,
 ) {
     val selectedSemester by viewModel.selectedSemester.collectAsState()
-    val isEnabledPreviousButton =
-        viewModel.semesters.collectAsState().value.firstOrNull() != selectedSemester
-    val isEnabledNextButton =
-        viewModel.semesters.collectAsState().value.lastOrNull() != selectedSemester
+    val semesters by viewModel.semesters.collectAsState()
+    val isEnabledPreviousButton = semesters.firstOrNull() != selectedSemester
+    val isEnabledNextButton = semesters.lastOrNull() != selectedSemester
     val haptic = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
 
-    Row(
-        modifier = Modifier
-            .glassBorder(shape = RoundedCornerShape(25.dp))
-            .clip(RoundedCornerShape(25.dp))
-            .background(MaterialTheme.colorScheme.background)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-            contentDescription = "Select Previous Semester",
-            tint = if (isEnabledPreviousButton) MaterialTheme.colorScheme.onSurface
-            else MaterialTheme.colorScheme.grayBB,
-            modifier = Modifier
-                .size(20.dp)
-                .then(
-                    if (isEnabledPreviousButton) Modifier.clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                        coroutineScope.launch { viewModel.selectPreviousSemester() }
-                    } else Modifier
+    // Fixed to the widest semester name, so the pill and its arrows don't shift between
+    // shorter and longer names such as Spring and Autumn.
+    val labelStyle = MaterialTheme.typography.titleSmall
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    val unknown = stringResource(R.string.unknown)
+    val labels = semesters.map { it.description } + unknown
+    val labelWidth = remember(labels, labelStyle, density) {
+        val widest = labels.maxOf { measurer.measure(it, labelStyle).size.width }
+        with(density) { widest.toDp() }
+    }
+
+    Card(shape = CircleShape) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                    coroutineScope.launch { viewModel.selectPreviousSemester() }
+                },
+                enabled = isEnabledPreviousButton
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                    contentDescription = "Select Previous Semester"
                 )
-        )
+            }
 
-        Spacer(Modifier.width(8.dp))
+            Text(
+                text = selectedSemester?.description ?: unknown,
+                style = labelStyle,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                modifier = Modifier.width(labelWidth)
+            )
 
-        AnimatedText(
-            text = selectedSemester?.description ?: stringResource(R.string.unknown),
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Spacer(Modifier.width(8.dp))
-
-        Icon(
-            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-            contentDescription = "Select Next Semester",
-            tint = if (isEnabledNextButton) MaterialTheme.colorScheme.onSurface
-            else MaterialTheme.colorScheme.grayBB,
-            modifier = Modifier
-                .size(20.dp)
-                .then(
-                    if (isEnabledNextButton) Modifier.clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
-                        coroutineScope.launch { viewModel.selectNextSemester() }
-                    } else Modifier
+            IconButton(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.SegmentTick)
+                    coroutineScope.launch { viewModel.selectNextSemester() }
+                },
+                enabled = isEnabledNextButton
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Select Next Semester"
                 )
-        )
+            }
+        }
     }
 }
 
+/** The selected table as a pill; tapping it opens the table menu. */
 @Composable
 fun TableSelector(
     viewModel: TimetableViewModelProtocol,
@@ -234,53 +235,34 @@ fun TableSelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-            .glassBorder(shape = RoundedCornerShape(25.dp))
-            .clip(RoundedCornerShape(25.dp))
-            .background(MaterialTheme.colorScheme.background),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            modifier = Modifier
-                .clip(RoundedCornerShape(topStart = 25.dp, bottomStart = 25.dp))
-                .padding(start = 12.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AnimatedText(
-                text = displayName,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .width(1.dp)
-                .size(16.dp)
-                .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
-        )
-
-        Box {
-            Icon(
-                imageVector = Icons.Rounded.MoreHoriz,
-                contentDescription = "Menu",
+    Box {
+        // A pill matching the semester selector; tapping anywhere opens the table menu.
+        Card(onClick = { expanded = true }, shape = CircleShape) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier
-                    .clip(RoundedCornerShape(topEnd = 25.dp, bottomEnd = 25.dp))
-                    .clickable { expanded = true }
-                    .padding(start = 8.dp, end = 12.dp, top = 6.dp, bottom = 6.dp)
-                    .size(20.dp)
-            )
-
-            TimetableDropDownMenu(
-                expanded = expanded,
-                onDismiss = { expanded = false },
-                onRenameClick = onRenameClick,
-                onDeleteClick = onDeleteClick,
-                onShareClick = onShareClick,
-                viewModel = viewModel
-            )
+                    .height(48.dp)
+                    .padding(start = 16.dp, end = 12.dp)
+            ) {
+                Text(
+                    displayName,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Icon(Icons.Filled.ArrowDropDown, contentDescription = "Menu")
+            }
         }
+
+        TimetableDropDownMenu(
+            expanded = expanded,
+            onDismiss = { expanded = false },
+            onRenameClick = onRenameClick,
+            onDeleteClick = onDeleteClick,
+            onShareClick = onShareClick,
+            viewModel = viewModel
+        )
     }
 }
 
