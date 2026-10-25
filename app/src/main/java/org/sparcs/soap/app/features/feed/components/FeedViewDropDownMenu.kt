@@ -1,10 +1,8 @@
 package org.sparcs.soap.app.features.feed.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.rounded.Settings
@@ -44,9 +42,7 @@ fun FeedViewDropDownMenu(
 
     DropdownMenu(
         expanded = expanded,
-        onDismissRequest = { expanded = false },
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-        shape = RoundedCornerShape(16.dp)
+        onDismissRequest = { expanded = false }
     ) {
         Column {
 //            DropDownItems(

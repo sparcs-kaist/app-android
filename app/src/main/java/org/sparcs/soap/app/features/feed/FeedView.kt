@@ -111,6 +111,7 @@ fun FeedView(
     val topBarScrollBehavior = topAppBarScrollBehavior()
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             FeedViewNavigationBar(
                 navController = navController,
