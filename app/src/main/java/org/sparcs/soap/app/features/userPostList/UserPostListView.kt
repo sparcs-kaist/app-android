@@ -24,6 +24,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -38,7 +39,6 @@ import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.mocks.ara.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
-import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.buddyPreviewSupport.post.PreviewUserPostListViewModel
 import org.sparcs.soap.buddyPreviewSupport.post.previewAuthor
@@ -96,18 +96,13 @@ fun UserPostListView(
         ) {
             Column {
                 if (showSearchBar) {
-                    Box(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp)) {
-                        SearchCustomBar(
-                            value = searchKeyword,
-                            onValueChange = { value ->
-                                viewModel.onSearchTextChange(value)
-                            },
-                            onValueClear = {
-                                viewModel.onSearchTextChange("")
-                            },
-                            placeHolder = stringResource(R.string.search)
-                        )
-                    }
+                    MaterialSearchField(
+                        query = searchKeyword,
+                        onQueryChange = { viewModel.onSearchTextChange(it) },
+                        placeholder = stringResource(R.string.search),
+                        autoFocus = true,
+                        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+                    )
                 }
 
                 when (state) {

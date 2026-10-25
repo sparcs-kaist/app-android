@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.translation.TranslationState
+import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -231,11 +232,11 @@ private fun LanguageList(
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
         )
-        SearchCustomBar(
-            value = query,
-            onValueChange = { query = it },
-            onValueClear = { query = "" },
-            placeHolder = stringResource(R.string.search)
+        MaterialSearchField(
+            query = query,
+            onQueryChange = { query = it },
+            placeholder = stringResource(R.string.search),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
         LazyColumn(modifier = Modifier.fillMaxWidth().heightIn(max = 420.dp)) {
             if (showSuggested) {
