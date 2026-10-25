@@ -12,7 +12,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LectureSearchSession @Inject constructor(private val savedState: SavedStateHandle) : ViewModel() {
-    var showPreview by mutableStateOf(savedState["showPreview"] ?: false)
+    // Shown each time the screen opens; hiding it lasts only until the user leaves the screen.
+    var showPreview by mutableStateOf(savedState["showPreview"] ?: true)
         private set
     var previewHeight by mutableFloatStateOf(savedState["previewHeight"] ?: 300f)
         private set
