@@ -45,6 +45,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
+import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
@@ -74,6 +76,12 @@ fun CompactTimetableSelector(
     DisposableEffect(Unit) { onDispose { currentOnDialogVisibilityChange(false) } }
     val tipStore = LocalTipStore.current
     val timetable by viewModel.selectedTimetable.collectAsState()
+    val semester by viewModel.selectedSemester.collectAsState()
+    val tableList by viewModel.timetableList.collectAsState()
+    val tableID by viewModel.selectedTimetableID.collectAsState()
+    // Until these load, the name would be a stand-in such as "My Table" or "Timetable #12".
+    val isTableKnown = semester != null && (tableID == null || tableID == TimetableViewModel.MY_TABLE_ID ||
+        tableList.any { it.id == tableID })
     val sharesWithTip = onShareClick?.let { share ->
         {
             tipStore?.invalidate(BuddyTip.ShareTimetable)
@@ -97,7 +105,8 @@ fun CompactTimetableSelector(
                     showRenameDialog = true
                 },
                 onDeleteClick = { showDeleteDialog = true },
-                onShareClick = sharesWithTip
+                onShareClick = sharesWithTip,
+                isLoading = !isTableKnown
             )
         }
 
@@ -168,8 +177,8 @@ fun SemesterSelector(
 ) {
     val selectedSemester by viewModel.selectedSemester.collectAsState()
     val semesters by viewModel.semesters.collectAsState()
-    val isEnabledPreviousButton = semesters.firstOrNull() != selectedSemester
-    val isEnabledNextButton = semesters.lastOrNull() != selectedSemester
+    val isEnabledPreviousButton = selectedSemester != null && semesters.firstOrNull() != selectedSemester
+    val isEnabledNextButton = selectedSemester != null && semesters.lastOrNull() != selectedSemester
     val haptic = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
 
@@ -200,13 +209,21 @@ fun SemesterSelector(
                 )
             }
 
-            Text(
-                text = selectedSemester?.description ?: unknown,
-                style = labelStyle,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                modifier = Modifier.width(labelWidth)
-            )
+            val semester = selectedSemester
+            if (semester == null) {
+                // Still loading: a placeholder where the name goes.
+                Box(Modifier.width(labelWidth), contentAlignment = Alignment.Center) {
+                    SkeletonLine(labelStyle, Modifier.width(labelWidth * 0.8f))
+                }
+            } else {
+                Text(
+                    text = semester.description,
+                    style = labelStyle,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    modifier = Modifier.width(labelWidth)
+                )
+            }
 
             IconButton(
                 onClick = {
@@ -232,12 +249,13 @@ fun TableSelector(
     onRenameClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onShareClick: (() -> Unit)? = null,
+    isLoading: Boolean = false,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
     Box {
         // A pill matching the semester selector; tapping anywhere opens the table menu.
-        Card(onClick = { expanded = true }, shape = CircleShape) {
+        Card(onClick = { expanded = true }, enabled = !isLoading, shape = CircleShape) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -245,12 +263,16 @@ fun TableSelector(
                     .height(48.dp)
                     .padding(start = 16.dp, end = 12.dp)
             ) {
-                Text(
-                    displayName,
-                    style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                if (isLoading) {
+                    SkeletonLine(MaterialTheme.typography.titleSmall, Modifier.width(72.dp))
+                } else {
+                    Text(
+                        displayName,
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
                 Icon(Icons.Filled.ArrowDropDown, contentDescription = "Menu")
             }
         }
@@ -273,3 +295,9 @@ private fun Preview() {
 }
 
 private const val SHARE_TIP_LECTURE_COUNT = 3
+
+@Composable
+@Preview(showBackground = true)
+private fun LoadingPreview() {
+    Theme { CompactTimetableSelector(viewModel = PreviewTimetableViewModel(initialSemester = null), "") }
+}
