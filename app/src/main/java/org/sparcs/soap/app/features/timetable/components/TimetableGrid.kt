@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.features.timetable.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
@@ -176,30 +175,23 @@ fun TimetableGrid(
                     layout.lecturesByDay[day].orEmpty().forEach { item -> key(item.lecture.id, item.index) {
                         val top = TimetableConstructor.daysHeight + 14.dp
                         val usable = (height - top).coerceAtLeast(0.dp)
-                        val cellHeight =
-                            (usable * (item.lectureClass.duration.toFloat() / (maxMinutes - minMinutes)) - 4.dp).coerceAtLeast(
-                                1.dp
-                            )
-                        val cellOffsetY =
-                            top + usable * ((item.lectureClass.begin - minMinutes).toFloat() / (maxMinutes - minMinutes))
+                        val range = (maxMinutes - minMinutes).toFloat()
 
-                        val animatedCellHeight by animateDpAsState(
-                            targetValue = cellHeight,
-                            animationSpec = tween(
-                                durationMillis = 500,
-                                easing = FastOutSlowInEasing
-                            ),
-                            label = "HeightAnimation"
+                        // Animate where the class sits within the visible hours, not its size in dp,
+                        // so cells glide when the hours change but follow the grid at once when it
+                        // is resized (for example by dragging the preview's handle).
+                        val animatedStart by animateFloatAsState(
+                            targetValue = (item.lectureClass.begin - minMinutes) / range,
+                            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                            label = "StartAnimation"
                         )
-
-                        val animatedCellOffsetY by animateDpAsState(
-                            targetValue = cellOffsetY,
-                            animationSpec = tween(
-                                durationMillis = 500,
-                                easing = FastOutSlowInEasing
-                            ),
-                            label = "OffsetAnimation"
+                        val animatedLength by animateFloatAsState(
+                            targetValue = item.lectureClass.duration / range,
+                            animationSpec = tween(durationMillis = 500, easing = FastOutSlowInEasing),
+                            label = "LengthAnimation"
                         )
+                        val animatedCellHeight = (usable * animatedLength - 4.dp).coerceAtLeast(1.dp)
+                        val animatedCellOffsetY = top + usable * animatedStart
 
                         val isCandidate =
                             item.lecture.id == candidateLecture?.id
