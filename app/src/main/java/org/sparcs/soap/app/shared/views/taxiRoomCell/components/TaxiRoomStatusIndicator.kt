@@ -1,17 +1,9 @@
 package org.sparcs.soap.app.shared.views.taxiRoomCell.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -19,39 +11,31 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.theme.ui.Theme
 
+/** Where settlement stands once the taxi has left, as a tonal pill. */
 @Composable
 fun TaxiRoomStatusIndicator(
     settlementType: TaxiParticipant.SettlementType,
     settlementCount: Int,
     participantsCount: Int
-){
-    val accentColor = when (settlementType) {
-        TaxiParticipant.SettlementType.NotDeparted -> Color(0xFFFF9800)
-        TaxiParticipant.SettlementType.RequestedSettlement -> if(settlementCount >= participantsCount) Color(0xFF4CAF50) else Color(0xFF2196F3)
-        TaxiParticipant.SettlementType.PaymentRequired -> Color.Red
-        TaxiParticipant.SettlementType.PaymentSent -> Color(0xFF4CAF50)
+) {
+    val scheme = MaterialTheme.colorScheme
+    val complete = settlementCount >= participantsCount
+    val (container, content) = when (settlementType) {
+        TaxiParticipant.SettlementType.NotDeparted -> scheme.tertiaryContainer to scheme.onTertiaryContainer
+        TaxiParticipant.SettlementType.RequestedSettlement ->
+            if (complete) scheme.secondaryContainer to scheme.onSecondaryContainer
+            else scheme.primaryContainer to scheme.onPrimaryContainer
+        TaxiParticipant.SettlementType.PaymentRequired -> scheme.errorContainer to scheme.onErrorContainer
+        TaxiParticipant.SettlementType.PaymentSent -> scheme.secondaryContainer to scheme.onSecondaryContainer
     }
-
-    val text = when(settlementType){
+    val text = when (settlementType) {
         TaxiParticipant.SettlementType.NotDeparted -> stringResource(R.string.request_settlement)
-        TaxiParticipant.SettlementType.RequestedSettlement -> if(settlementCount >= participantsCount) stringResource(R.string.settlement_completed) else stringResource(R.string.request_settlement)
+        TaxiParticipant.SettlementType.RequestedSettlement ->
+            if (complete) stringResource(R.string.settlement_completed) else stringResource(R.string.request_settlement)
         TaxiParticipant.SettlementType.PaymentRequired -> stringResource(R.string.payment_required)
         TaxiParticipant.SettlementType.PaymentSent -> stringResource(R.string.payment_settled)
     }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier
-            .padding(vertical = 4.dp)
-            .background(accentColor.copy(alpha = 0.1f), shape = RoundedCornerShape(16.dp))
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Text(
-            text = text,
-            color = accentColor,
-            style = MaterialTheme.typography.bodySmall
-        )
-    }
+    TaxiTonalLabel(text, container, content)
 }
 
 @Composable

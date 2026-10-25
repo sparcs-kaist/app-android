@@ -76,7 +76,7 @@ fun TaxiChatListView(
             ) {
                 when (state) {
                     is TaxiChatListViewModel.ViewState.Loading -> {
-                        TaxiChatRoomListSkeleton(contentPadding = PaddingValues(16.dp))
+                        TaxiChatRoomListSkeleton(contentPadding = PaddingValues(vertical = 8.dp))
                     }
 
                     is TaxiChatListViewModel.ViewState.Loaded -> {
@@ -89,7 +89,7 @@ fun TaxiChatListView(
                                 val json = Uri.encode(Gson().toJson(room))
                                 navController.navigate(Channel.TaxiChatView.name + "?room_json=$json")
                             },
-                            contentPadding = PaddingValues(16.dp)
+                            contentPadding = PaddingValues(vertical = 8.dp)
                         )
                     }
 
