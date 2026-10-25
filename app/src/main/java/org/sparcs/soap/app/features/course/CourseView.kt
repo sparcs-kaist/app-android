@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.course
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -64,7 +63,6 @@ import org.sparcs.soap.app.features.lectureDetail.components.ReviewStatsCard
 import org.sparcs.soap.app.features.lectureDetail.components.StatSeparator
 import org.sparcs.soap.app.features.lectureDetail.components.summariseTipReviewID
 import org.sparcs.soap.app.features.reviewDigest.ReviewDigestSection
-import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -107,7 +105,7 @@ private fun CourseContent(
     val course by viewModel.course.collectAsState()
 
     Scaffold(
-        containerColor = if (isSearchContext) LectureSearchChrome.background else MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             CourseNavigationBar(
                 navController = navController,

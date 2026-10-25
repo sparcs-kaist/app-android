@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,12 +19,13 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -43,9 +45,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -119,7 +123,7 @@ fun LectureSearchList(
     LectureSearchResultsLayout(
         modifier = modifier
             .fillMaxSize()
-            .background(LectureSearchChrome.background)
+            .background(MaterialTheme.colorScheme.surface)
             .imePadding(),
         floatingPreview = floatingTimetablePreview,
         preview = timetablePreview,
@@ -231,20 +235,21 @@ fun LectureSearchList(
 @Composable
 private fun WishlistHeader() {
     Row(
-        modifier = Modifier.padding(horizontal = 20.dp, vertical = 12.dp),
+        modifier = Modifier
+            .padding(horizontal = 16.dp)
+            .heightIn(min = 48.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Icon(
             imageVector = Icons.Filled.Favorite,
             contentDescription = null,
-            tint = wishlistColor,
-            modifier = Modifier.size(28.dp)
+            tint = wishlistColor
         )
         Text(
             text = stringResource(R.string.wishlist),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.semantics { heading() }
         )
     }
 }
@@ -342,6 +347,8 @@ private fun CourseLazyList(
     onLoadNextPage: () -> Unit,
 ) {
     val tipStore = LocalTipStore.current
+    val cardShape = MaterialTheme.shapes.medium
+    val cardColor = CardDefaults.cardColors().containerColor
     LazyColumn(
         state = listState,
         contentPadding = PaddingValues(top = topInset + if (showsWishlist) 0.dp else 12.dp, bottom = 12.dp)
@@ -357,11 +364,13 @@ private fun CourseLazyList(
         displayedCourses.forEach { course ->
             val showSection = course.lectures.size > 1
 
+            // Each course is one card, built from separate list items so long courses stay lazy:
+            // the header carries the top corners and the last lecture the bottom ones.
             item(key = "course-${course.id}") {
                 Surface(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(topStart = 26.dp, topEnd = 26.dp),
-                    color = LectureSearchChrome.card
+                    shape = cardShape.copy(bottomStart = CornerSize(0.dp), bottomEnd = CornerSize(0.dp)),
+                    color = cardColor
                 ) {
                     CourseSectionHeader(course, onOpenCourse = { onOpenCourse(course.id) })
                 }
@@ -371,11 +380,8 @@ private fun CourseLazyList(
                 val isLast = lecture.id == course.lectures.last().id
                 Surface(
                     modifier = Modifier.padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(
-                        bottomStart = if (isLast) 26.dp else 0.dp,
-                        bottomEnd = if (isLast) 26.dp else 0.dp
-                    ),
-                    color = LectureSearchChrome.card,
+                    shape = if (isLast) cardShape.copy(topStart = CornerSize(0.dp), topEnd = CornerSize(0.dp)) else RectangleShape,
+                    color = cardColor,
                 ) {
                     Column {
                         LectureRow(
@@ -400,13 +406,12 @@ private fun CourseLazyList(
                         if (!isLast) {
                             HorizontalDivider(
                                 modifier = Modifier.padding(horizontal = 16.dp),
-                                thickness = 0.5.dp,
-                                color = LectureSearchChrome.separator
+                                color = MaterialTheme.colorScheme.outlineVariant
                             )
                         }
                     }
                 }
-                if (isLast) Spacer(modifier = Modifier.height(24.dp))
+                if (isLast) Spacer(modifier = Modifier.height(12.dp))
             }
         }
 
@@ -431,15 +436,15 @@ private fun LectureSearchEmptyState(showsWishlist: Boolean) {
             Icon(
                 imageVector = Icons.Outlined.FavoriteBorder,
                 contentDescription = null,
-                modifier = Modifier.size(42.dp),
-                tint = LectureSearchChrome.secondary.copy(alpha = 0.4f)
+                modifier = Modifier.size(48.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Text(
             text = stringResource(if (showsWishlist) R.string.wishlist_empty else R.string.lecture_search_empty),
             textAlign = TextAlign.Center,
             style = MaterialTheme.typography.bodyMedium,
-            color = LectureSearchChrome.secondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -456,7 +461,6 @@ private fun TimeFilterBottomSheet(
         modifier = Modifier.analyticsScreen("Lecture Time Filter"),
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -470,8 +474,9 @@ private fun TimeFilterBottomSheet(
                 Text(
                     text = stringResource(R.string.lecture_time_filter),
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { heading() },
                 )
                 TextButton(onClick = { onTimeChange(LectureTimeFilter()) }) {
                     Text(stringResource(R.string.reset))
@@ -514,7 +519,6 @@ internal fun LectureCollisionDialog(
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
-        containerColor = MaterialTheme.colorScheme.background,
     )
 }
 
@@ -530,7 +534,6 @@ private fun CategoryFilterBottomSheet(
         modifier = Modifier.analyticsScreen("Lecture Filter ${selected.name}"),
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = MaterialTheme.colorScheme.background,
     ) {
         CategoryFilterContent(
             category = selected,

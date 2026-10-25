@@ -1,6 +1,7 @@
 package org.sparcs.soap.app.features.lectureSearch
 
 import android.net.Uri
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -8,26 +9,26 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.People
 import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -42,8 +43,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -57,7 +58,6 @@ import org.sparcs.soap.app.domain.helpers.speechLetter
 import org.sparcs.soap.app.domain.models.otl.CourseLecture
 import org.sparcs.soap.app.domain.models.otl.Lecture
 import org.sparcs.soap.app.domain.models.otl.sectionLabel
-import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchList
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchViewNavigationBar
 import org.sparcs.soap.app.features.navigationBar.Channel
@@ -122,14 +122,15 @@ fun LectureRow(
     onAddClick: () -> Unit,
     onLongClick: () -> Unit = onInfoClick,
 ) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.04f) else Color.Transparent
+    // The selected state layer: primary at 8%, over the card's container.
+    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else Color.Transparent
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(horizontal = 16.dp, vertical = 15.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         LectureRowMainContent(
@@ -157,7 +158,7 @@ private fun LectureRowMainContent(
     isWishlisted: Boolean,
     onToggleWishlist: (() -> Unit)?
 ) {
-    val secondary = LectureSearchChrome.secondary
+    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         Column(
@@ -178,7 +179,6 @@ private fun LectureRowMainContent(
                     contentDescription = stringResource(
                         if (isWishlisted) R.string.wishlist_remove else R.string.wishlist_add
                     ),
-                    modifier = Modifier.size(25.dp),
                     tint = if (isWishlisted) wishlistColor else secondary
                 )
             }
@@ -200,8 +200,7 @@ private fun LectureRowHeader(
         }
         Text(
             text = lecture.sectionLabel.title ?: stringResource(R.string.unknown),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
+            style = MaterialTheme.typography.titleMedium
         )
     }
 }
@@ -209,14 +208,15 @@ private fun LectureRowHeader(
 @Composable
 private fun SectionBadge(section: String) {
     Surface(
-        shape = RoundedCornerShape(6.dp),
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.09f),
+        shape = MaterialTheme.shapes.small,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+        color = Color.Transparent,
+        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
     ) {
         Text(
             text = section,
-            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp),
+            style = MaterialTheme.typography.labelMedium
         )
     }
 }
@@ -255,8 +255,8 @@ private fun LectureRowTimeInfo(
 
 @Composable
 private fun LectureRowMetrics(lecture: Lecture) {
-    val secondary = LectureSearchChrome.secondary
-    val warning = Color(0xFFFF8800)
+    val secondary = MaterialTheme.colorScheme.onSurfaceVariant
+    val warning = MaterialTheme.colorScheme.error
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -267,7 +267,7 @@ private fun LectureRowMetrics(lecture: Lecture) {
             Text(
                 text = stringResource(R.string.lecture_no_ratings),
                 style = MaterialTheme.typography.bodySmall,
-                color = secondary.copy(alpha = 0.55f),
+                color = secondary,
                 modifier = Modifier.weight(1f)
             )
         } else {
@@ -305,15 +305,14 @@ private fun LectureRowStatus(
 ) {
     if (!isAdded && conflicts.isEmpty()) return
 
-    val warning = Color(0xFFFF8800)
-    val tint = if (isAdded) MaterialTheme.colorScheme.primary else warning
+    val tint = if (isAdded) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         Icon(
-            imageVector = if (isAdded) Icons.Rounded.CheckCircle else Icons.Rounded.Warning,
+            imageVector = if (isAdded) Icons.Filled.CheckCircle else Icons.Outlined.Warning,
             contentDescription = null,
             modifier = Modifier.size(16.dp),
             tint = tint
@@ -345,39 +344,29 @@ private fun LectureRowActions(
     ) {
         OutlinedButton(
             onClick = onInfoClick,
-            shape = CircleShape,
-            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-            modifier = Modifier.heightIn(min = 36.dp)
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Icon(
                 imageVector = Icons.Outlined.Info,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(ButtonDefaults.IconSize)
             )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = stringResource(R.string.more),
-                style = MaterialTheme.typography.labelLarge
-            )
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.lecture_details))
         }
 
         Button(
             onClick = onAddClick,
             enabled = !isAdded,
-            shape = CircleShape,
-            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
-            modifier = Modifier.heightIn(min = 36.dp)
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Icon(
-                imageVector = if (isAdded) Icons.Rounded.CheckCircle else Icons.Rounded.Add,
+                imageVector = if (isAdded) Icons.Filled.CheckCircle else Icons.Filled.Add,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(ButtonDefaults.IconSize)
             )
-            Spacer(Modifier.width(6.dp))
-            Text(
-                text = if (isAdded) stringResource(R.string.lecture_in_timetable) else stringResource(R.string.add_course),
-                style = MaterialTheme.typography.labelLarge
-            )
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+            Text(if (isAdded) stringResource(R.string.lecture_in_timetable) else stringResource(R.string.add_course))
         }
     }
 }
@@ -391,43 +380,39 @@ private fun LectureRating(label: String, letter: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = LectureSearchChrome.secondary
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = letter,
             style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.SemiBold,
             color = ratingColor(letter)
         )
     }
 }
 
+/** Course name and details at the top of its card; tapping it opens the course. */
 @Composable
 fun CourseSectionHeader(
     course: CourseLecture,
-    backgroundColor: Color = LectureSearchChrome.card,
     onOpenCourse: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(backgroundColor)
             .clickable(onClickLabel = stringResource(R.string.view_course), onClick = onOpenCourse)
-            .padding(horizontal = 16.dp)
-            .padding(top = 16.dp)
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 12.dp, top = 12.dp, bottom = 12.dp)
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
                     text = course.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.titleMedium
                 )
                 val lecture = course.lectures.firstOrNull()
                 val credits = lecture?.let {
@@ -436,28 +421,29 @@ fun CourseSectionHeader(
                 Text(
                     text = listOfNotNull(course.code, stringResource(course.type.displayName), credits).joinToString(" \u00b7 "),
                     style = MaterialTheme.typography.bodySmall,
-                    color = LectureSearchChrome.secondary
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             if (course.completed) {
-                Text(
-                    text = stringResource(R.string.course_taken),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                ) {
+                    Text(
+                        text = stringResource(R.string.course_taken),
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
             }
             Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                modifier = Modifier.size(20.dp),
-                tint = LectureSearchChrome.secondary.copy(alpha = 0.55f)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        HorizontalDivider(
-            modifier = Modifier.padding(top = 15.dp),
-            color = LectureSearchChrome.separator,
-            thickness = 0.5.dp
-        )
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 
@@ -496,11 +482,15 @@ private fun CourseSectionHeaderPreview() {
     Theme { CourseSectionHeader(CourseLecture.mock()) }
 }
 
+/** Green for good ratings through amber to the error colour, lighter in dark theme. */
 @Composable
-private fun ratingColor(letter: String): Color = when (letter.firstOrNull()) {
-    'A' -> Color(0xFF23834D)
-    'B' -> Color(0xFF63832B)
-    'C' -> Color(0xFF997016)
-    'D', 'F' -> MaterialTheme.colorScheme.error
-    else -> MaterialTheme.colorScheme.onSurfaceVariant
+private fun ratingColor(letter: String): Color {
+    val dark = MaterialTheme.colorScheme.surface.luminance() < 0.5f
+    return when (letter.firstOrNull()) {
+        'A' -> if (dark) Color(0xFF6FCF97) else Color(0xFF23834D)
+        'B' -> if (dark) Color(0xFFA8C96A) else Color(0xFF63832B)
+        'C' -> if (dark) Color(0xFFE0B25A) else Color(0xFF997016)
+        'D', 'F' -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
 }

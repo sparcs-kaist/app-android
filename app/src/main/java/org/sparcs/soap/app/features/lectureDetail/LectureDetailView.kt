@@ -48,7 +48,6 @@ import org.sparcs.soap.app.features.lectureDetail.components.LectureReviews
 import org.sparcs.soap.app.features.lectureDetail.components.LectureReviewsSkeleton
 import org.sparcs.soap.app.features.lectureDetail.components.LectureSummary
 import org.sparcs.soap.app.features.lectureSearch.components.LectureCollisionDialog
-import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchChrome
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchDestination
 import org.sparcs.soap.app.features.lectureSearch.components.LectureSearchResultsLayout
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
@@ -118,7 +117,7 @@ fun LectureDetailContent(
     }
 
     Scaffold(
-        containerColor = if (isSearchContext) LectureSearchChrome.background else MaterialTheme.colorScheme.surface,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             LectureDetailNavigationBar(
                 navController = navController,
