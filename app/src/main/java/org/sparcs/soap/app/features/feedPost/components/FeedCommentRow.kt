@@ -18,7 +18,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.rounded.SubdirectoryArrowRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -37,7 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -224,7 +224,7 @@ private fun Header(
                 Spacer(Modifier.width(4.dp))
                 InfoTooltip(
                     tooltipText = stringResource(R.string.kaist_ip_verified),
-                    icon = painterResource(R.drawable.checkmark_seal_fill),
+                    imageVector = Icons.Filled.Verified,
                     tint = MaterialTheme.colorScheme.primary,
                     iconSize = 15.dp
                 )
@@ -243,7 +243,7 @@ private fun Header(
 
         if (comment.downVotes >= 15 && !isHiddenCommentExpanded) {
             Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                imageVector = Icons.Filled.ExpandMore,
                 contentDescription = stringResource(R.string.expand),
                 tint = MaterialTheme.colorScheme.darkGray,
                 modifier = Modifier

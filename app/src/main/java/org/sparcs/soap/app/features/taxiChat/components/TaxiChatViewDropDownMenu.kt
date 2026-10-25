@@ -20,14 +20,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.WorkOutline
 import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material.icons.rounded.LocalTaxi
-import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.ReportProblem
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.AlertDialog
@@ -48,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -229,12 +228,9 @@ private fun MiddleDropDownItems(
             },
             trailingIcon = {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                    imageVector = if (showParticipants) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                     contentDescription = "Toggle participants",
-                    tint = MaterialTheme.colorScheme.darkGray,
-                    modifier = Modifier
-                        .size(18.dp)
-                        .rotate(if (showParticipants) 270f else 0f)
+                    tint = MaterialTheme.colorScheme.darkGray
                 )
             }
         )

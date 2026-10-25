@@ -12,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material.icons.outlined.SmsFailed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
@@ -39,7 +40,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -312,7 +312,8 @@ private fun LoadedView(
                 {
                     InfoTooltip(
                         tooltipText = stringResource(R.string.members_with_this_badge),
-                        icon = painterResource(R.drawable.phone_circle_fill),
+                        imageVector = Icons.Filled.VerifiedUser,
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             } else null
