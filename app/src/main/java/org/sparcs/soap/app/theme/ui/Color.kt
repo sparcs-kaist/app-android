@@ -135,6 +135,17 @@ val theme_dark_grayBB = Color(0xFFB6B6B6)
 val theme_dark_grayF8 = Color(0xFF1E1E1E)
 val theme_dark_darkGray = Color(0xFFE8E8E8)
 
+// Taxi seat labels: green while seats are open, yellow with one left (red uses the error roles).
+val theme_light_seatsOpenContainer = Color(0xFFC8F0CF)
+val theme_light_onSeatsOpenContainer = Color(0xFF0D3B1A)
+val theme_light_lastSeatContainer = Color(0xFFFFE7A3)
+val theme_light_onLastSeatContainer = Color(0xFF3B2D00)
+
+val theme_dark_seatsOpenContainer = Color(0xFF1E4A29)
+val theme_dark_onSeatsOpenContainer = Color(0xFFB4F1C1)
+val theme_dark_lastSeatContainer = Color(0xFF4D3C00)
+val theme_dark_onLastSeatContainer = Color(0xFFFFE08A)
+
 val upvote = Color(0xFFFF4500)
 val downvote = Color(0xFF047DFF)
 val creditCompleteColor = Color(0xFF34A853)
