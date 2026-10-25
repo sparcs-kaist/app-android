@@ -66,13 +66,13 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import org.sparcs.soap.app.features.postCompose.components.AnimatedAlphabetText
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.feedPostCompose.components.FeedPostComposeNavigationBar
@@ -318,7 +318,6 @@ private fun ProfileImage(viewModel: FeedPostComposeViewModelProtocol) {
 @Composable
 private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
     var expanded by remember { mutableStateOf(false) }
-    var previousType by remember { mutableStateOf(viewModel.selectedComposeType) }
 
     val selectedType = viewModel.selectedComposeType
     val typeLabels = mapOf(
@@ -326,12 +325,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
         FeedPostComposeViewModel.ComposeType.Anonymously to stringResource(R.string.anonymous)
     )
 
-    if (previousType != selectedType) {
-        previousType = selectedType
-    }
-
     val displayText = typeLabels[selectedType] ?: stringResource(R.string.select_type)
-    val previousText = typeLabels[previousType] ?: stringResource(R.string.select_type)
 
     Box {
         // The same elevated chip as the course screen's professor filter: no outline, menu arrow.
@@ -339,11 +333,7 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
             selected = false,
             onClick = { expanded = !expanded },
             label = {
-                AnimatedAlphabetText(
-                    from = previousText,
-                    to = displayText,
-                    singleLine = true
-                )
+                Text(displayText, maxLines = 1, overflow = TextOverflow.Ellipsis)
             },
             trailingIcon = {
                 Icon(

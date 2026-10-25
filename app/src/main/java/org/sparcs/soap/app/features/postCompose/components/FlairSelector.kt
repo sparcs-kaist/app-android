@@ -1,11 +1,5 @@
 package org.sparcs.soap.app.features.postCompose.components
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -24,7 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,9 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.helpers.LocalizedString
 import org.sparcs.soap.app.features.postCompose.PostComposeViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostComposeViewModel
@@ -48,15 +39,7 @@ import org.sparcs.soap.app.theme.ui.grayBB
 @Composable
 fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
     var expanded by remember { mutableStateOf(false) }
-    var previousTopic by remember { mutableStateOf<LocalizedString?>(null) }
     val selectedTopic = viewModel.selectedTopic
-
-    if (previousTopic != selectedTopic?.name) {
-        previousTopic = selectedTopic?.name
-    }
-
-    val displayText = selectedTopic?.name?.localized() ?: stringResource(R.string.no_topic)
-    val previousText = previousTopic?.localized() ?: stringResource(R.string.no_topic)
 
     Box {
         ElevatedCard(
@@ -70,9 +53,14 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                AnimatedAlphabetText(
-                    from = previousText,
-                    to = displayText
+                Text(
+                    text = selectedTopic?.name?.localized() ?: stringResource(R.string.no_topic),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = if (selectedTopic == null) MaterialTheme.colorScheme.grayBB
+                    else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Icon(
@@ -119,63 +107,6 @@ fun TopicSelector(viewModel: PostComposeViewModelProtocol) {
         }
     }
 }
-
-@Composable
-fun AnimatedAlphabetText(
-    from: String,
-    to: String,
-    singleLine: Boolean? = false,
-) {
-    val maxLength = maxOf(from.length, to.length)
-    var displayed by remember { mutableStateOf(from.padEnd(maxLength)) }
-    var previous by remember { mutableStateOf(from.padEnd(maxLength)) }
-
-    LaunchedEffect(to) {
-        val toChars = to.padEnd(maxLength)
-        val temp = previous.padEnd(maxLength).toCharArray()
-
-        for (i in 0 until maxLength) {
-            temp[i] = toChars[i]
-            displayed = temp.concatToString()
-            delay(30L)
-        }
-
-        previous = toChars
-    }
-
-    Row {
-        val noTopicString = stringResource(R.string.no_topic)
-
-        for (i in 0 until maxLength) {
-            val toChar = displayed.getOrNull(i) ?: ' '
-            val color =
-                if (displayed == noTopicString) MaterialTheme.colorScheme.grayBB
-                else MaterialTheme.colorScheme.onSurface
-
-            AnimatedContent(
-                targetState = toChar,
-                transitionSpec = {
-                    val slideIn = slideInVertically { it }
-                    val fadeIn = fadeIn(initialAlpha = 0.3f)
-                    val slideOut = slideOutVertically { -it }
-                    val fadeOut = fadeOut()
-                    (slideIn + fadeIn).togetherWith(slideOut + fadeOut)
-                },
-                label = "charTransition"
-            ) { char ->
-                Text(
-                    text = char.toString(),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = color,
-                    maxLines = if (singleLine == true) 1 else Int.MAX_VALUE,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
 
 @Composable
 @Preview
