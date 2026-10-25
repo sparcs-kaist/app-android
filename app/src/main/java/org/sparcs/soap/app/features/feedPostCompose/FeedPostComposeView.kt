@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -31,7 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.AddPhotoAlternate
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
@@ -39,11 +38,11 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,7 +77,6 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.features.feedPostCompose.components.FeedPostComposeNavigationBar
 import org.sparcs.soap.app.features.postCompose.TermsOfUseButton
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostComposeViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
@@ -125,7 +123,7 @@ fun FeedPostComposeView(
         topBar = {
             FeedPostComposeNavigationBar(
                 navController = navController,
-                isDoneEnabled = viewModel.text.isNotEmpty() && viewModel.text.length <= 280,
+                isDoneEnabled = viewModel.text.isNotEmpty() && viewModel.text.length <= MAX_CHARACTERS,
                 onDoneClick = {
                     scope.launch {
                         val success = viewModel.submitPost()
@@ -143,7 +141,8 @@ fun FeedPostComposeView(
         modifier = Modifier
             .analyticsScreen(name = "Feed Compose"),
     ) { innerPadding ->
-        Box(
+        // The text scrolls above a toolbar that sits on the keyboard, as in other Android compose screens.
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -152,7 +151,8 @@ fun FeedPostComposeView(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(16.dp)
                     .verticalScroll(scrollState)
                     .focusRequester(contentFocusRequester)
@@ -181,14 +181,6 @@ fun FeedPostComposeView(
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Text(stringResource(R.string.feed_character_count, viewModel.text.length, 280), style = MaterialTheme.typography.bodySmall)
-                }
                 if (viewModel.selectedImages.isNotEmpty()) {
                     LazyRow(
                         modifier = Modifier.padding(vertical = 8.dp),
@@ -243,15 +235,12 @@ fun FeedPostComposeView(
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(80.dp))
             }
 
-            FeedPostOptionsRow(
+            FeedComposeToolbar(
+                characterCount = viewModel.text.length,
                 isUploading = viewModel.isUploading,
-                onPhotoButton = { showPhotosPicker = true },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 16.dp)
+                onPhotoButton = { showPhotosPicker = true }
             )
         }
         if (showPhotosPicker) {
@@ -364,35 +353,39 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
     }
 }
 
+/** Attachment actions on the left and the character count on the right, above the keyboard. */
 @Composable
-private fun FeedPostOptionsRow(
+private fun FeedComposeToolbar(
+    characterCount: Int,
     isUploading: Boolean,
     onPhotoButton: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    Surface(
-        shape = RoundedCornerShape(50),
-        color = MaterialTheme.colorScheme.surface,
-        modifier = modifier
-            .glassBorder(shape = RoundedCornerShape(50.dp))
-    ) {
+    Column(Modifier.fillMaxWidth()) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 4.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
         ) {
-            IconButton(
-                onClick = onPhotoButton,
-                enabled = !isUploading
-            ) {
+            IconButton(onClick = onPhotoButton, enabled = !isUploading) {
                 Icon(
-                    imageVector = Icons.Outlined.PhotoLibrary,
-                    contentDescription = stringResource(R.string.add_photo),
-                    modifier = Modifier.size(28.dp)
+                    imageVector = Icons.Outlined.AddPhotoAlternate,
+                    contentDescription = stringResource(R.string.add_photo)
                 )
             }
+            Spacer(Modifier.weight(1f))
+            Text(
+                stringResource(R.string.feed_character_count, characterCount, MAX_CHARACTERS),
+                style = MaterialTheme.typography.labelMedium,
+                color = if (characterCount > MAX_CHARACTERS) MaterialTheme.colorScheme.error
+                else MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
+
+private const val MAX_CHARACTERS = 280
 
 @Composable
 @Preview
