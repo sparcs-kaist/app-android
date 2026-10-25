@@ -1,27 +1,28 @@
 package org.sparcs.soap.app.features.taxiRoomCreation.components
 
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.NearMe
+import androidx.compose.material.icons.filled.SwapVert
+import androidx.compose.material.icons.filled.WhereToVote
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Star
-import androidx.compose.material.icons.rounded.SwapCalls
 import androidx.compose.material.icons.rounded.SwapVert
+import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,12 +32,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
@@ -46,8 +47,11 @@ import org.sparcs.soap.app.shared.extensions.LocalizedText
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.gray64
 
+/**
+ * The route as a card, like a maps app's directions box: a row each for the meeting point and the
+ * destination, a swap button beside them, and the favourite routes below.
+ */
 @Composable
 fun TaxiDestinationPicker(
     source: TaxiLocation?,
@@ -60,69 +64,42 @@ fun TaxiDestinationPicker(
     onFavoriteDelete: (String) -> Unit = {},
     onFavoriteAdd: () -> Unit = {}
 ) {
-    var isFlipped by remember { mutableStateOf(false) }
-    val rotationXState = animateFloatAsState(
-        targetValue = if (isFlipped) 180f else 0f,
-        animationSpec = tween(durationMillis = 400, easing = LinearOutSlowInEasing)
-    )
     val haptic = LocalHapticFeedback.current
-
     val canAddFavorite = source != null && destination != null && source.id != destination.id &&
             favoriteRoutes.none { it.from.id == source.id && it.to.id == destination.id }
 
-    Column {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
                 LocationMenu(
-                    title = stringResource(R.string.meeting_point),
+                    label = stringResource(R.string.taxi_route_from),
+                    icon = Icons.Filled.NearMe,
                     selection = source,
                     onSelectionChange = onSourceChange,
                     locations = locations
                 )
-
-                HorizontalDivider()
-
+                HorizontalDivider(Modifier.padding(start = 56.dp))
                 LocationMenu(
-                    title = stringResource(R.string.where_to),
+                    label = stringResource(R.string.taxi_route_to),
+                    icon = Icons.Filled.WhereToVote,
                     selection = destination,
                     onSelectionChange = onDestinationChange,
                     locations = locations
                 )
             }
-
-            Box(
-                modifier = Modifier
-                    .padding(horizontal = 4.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    .graphicsLayer {
-                        rotationX = rotationXState.value
-                        cameraDistance = 12 * density
-                    }
-                    .animateContentSize()
-                    .clickable {
-                        haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                        isFlipped = !isFlipped
-                        onSourceChange(destination)
-                        onDestinationChange(source)
-                    }
-                    .padding(4.dp)
+            IconButton(
+                onClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
+                    onSourceChange(destination)
+                    onDestinationChange(source)
+                },
+                modifier = Modifier.padding(end = 4.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.SwapCalls,
-                    contentDescription = "Swap",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Icon(Icons.Filled.SwapVert, contentDescription = stringResource(R.string.swap_route))
             }
         }
 
         HorizontalDivider()
-
         FavoriteRouteDropdown(
             favorites = favoriteRoutes,
             onSelect = onFavoriteSelect,
@@ -133,61 +110,60 @@ fun TaxiDestinationPicker(
     }
 }
 
+/** One end of the route as a row; tapping it opens the places, popular ones first. */
 @Composable
 fun LocationMenu(
-    title: String,
+    label: String,
+    icon: ImageVector,
     selection: TaxiLocation?,
     onSelectionChange: (TaxiLocation?) -> Unit,
     locations: List<TaxiLocation>
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Row(
-        modifier = Modifier
-        .fillMaxWidth()
-        .clickable { expanded = true }
-        .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = (selection?.title ?: title).toString(),
-            color = if (selection != null)
-                MaterialTheme.colorScheme.onSurface
-            else
-                MaterialTheme.colorScheme.gray64
+    Box {
+        ListItem(
+            leadingContent = { Icon(icon, contentDescription = null) },
+            overlineContent = { Text(label) },
+            headlineContent = {
+                Text(
+                    text = selection?.title?.localized() ?: stringResource(R.string.taxi_route_choose),
+                    color = if (selection != null) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            },
+            trailingContent = { Icon(Icons.Filled.ArrowDropDown, contentDescription = null) },
+            colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+            modifier = Modifier.clickable { expanded = true }
         )
 
-        Icon(
-            imageVector = Icons.Rounded.SwapVert,
-            contentDescription = "Expand dropdown"
-        )
-    }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.taxi_route_none)) },
+                onClick = {
+                    onSelectionChange(null)
+                    expanded = false
+                },
+                trailingIcon = if (selection == null) {
+                    { Icon(Icons.Filled.Check, contentDescription = null) }
+                } else null
+            )
 
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false },
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        DropdownMenuItem(
-            text = { Text(title) },
-            onClick = {
-                onSelectionChange(null)
+            val (popular, others) = remember(locations) { TaxiLocation.popularFirst(locations) }
+            val select: (TaxiLocation) -> Unit = {
+                onSelectionChange(it)
                 expanded = false
             }
-        )
-
-        val (popular, others) = remember(locations) { TaxiLocation.popularFirst(locations) }
-        val select: (TaxiLocation) -> Unit = {
-            onSelectionChange(it)
-            expanded = false
-        }
-        popular.forEach { location ->
-            LocationMenuItem(location, isSelected = location.id == selection?.id, isPopular = true) { select(location) }
-        }
-        if (popular.isNotEmpty() && others.isNotEmpty()) HorizontalDivider()
-        others.forEach { location ->
-            LocationMenuItem(location, isSelected = location.id == selection?.id) { select(location) }
+            if (popular.isNotEmpty() || others.isNotEmpty()) HorizontalDivider()
+            popular.forEach { location ->
+                LocationMenuItem(location, isSelected = location.id == selection?.id, isPopular = true) { select(location) }
+            }
+            if (popular.isNotEmpty() && others.isNotEmpty()) HorizontalDivider()
+            others.forEach { location ->
+                LocationMenuItem(location, isSelected = location.id == selection?.id) { select(location) }
+            }
         }
     }
 }
@@ -201,22 +177,18 @@ private fun LocationMenuItem(
 ) {
     DropdownMenuItem(
         text = {
-            LocalizedText(
-                text = location.title,
-                fontWeight = if (isPopular) FontWeight.SemiBold else null
-            )
+            LocalizedText(text = location.title)
         },
         leadingIcon = if (isPopular) {
             {
                 Icon(
                     imageVector = Icons.Rounded.Star,
-                    contentDescription = stringResource(R.string.popular_location),
-                    tint = MaterialTheme.colorScheme.primary
+                    contentDescription = stringResource(R.string.popular_location)
                 )
             }
         } else null,
         trailingIcon = if (isSelected) {
-            { Icon(Icons.Rounded.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+            { Icon(Icons.Filled.Check, contentDescription = null) }
         } else null,
         onClick = onClick
     )

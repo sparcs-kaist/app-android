@@ -323,6 +323,11 @@
     <string name="meeting_point">meeting point</string>
     <string name="popular_location">Popular</string>
     <string name="where_to">where to?</string>
+    <string name="swap_route">Swap meeting point and destination</string>
+    <string name="taxi_route_from">Meeting point</string>
+    <string name="taxi_route_to">Destination</string>
+    <string name="taxi_route_choose">Choose a place</string>
+    <string name="taxi_route_none">None</string>
     <string name="select_location">Select location</string>
     <string name="new_room">New Room</string>
     <string name="not_paid_message">

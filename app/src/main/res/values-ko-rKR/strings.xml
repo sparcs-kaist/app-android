@@ -301,6 +301,11 @@
     <string name="meeting_point">출발지</string>
     <string name="popular_location">자주 찾는 장소</string>
     <string name="where_to">어디로 갈까요?</string>
+    <string name="swap_route">출발지와 도착지 바꾸기</string>
+    <string name="taxi_route_from">출발지</string>
+    <string name="taxi_route_to">도착지</string>
+    <string name="taxi_route_choose">장소 선택</string>
+    <string name="taxi_route_none">선택 안 함</string>
     <string name="select_location">장소 선택</string>
     <string name="new_room">새 방</string>
     <string name="not_paid_message">
