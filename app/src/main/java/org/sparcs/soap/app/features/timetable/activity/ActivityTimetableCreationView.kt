@@ -31,12 +31,14 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -88,14 +90,16 @@ internal fun ActivityConflictNotice(visible: Boolean) {
         enter = expandVertically(spring(stiffness = Spring.StiffnessMediumLow)),
         exit = shrinkVertically(spring())
     ) {
-        Surface(
-            color = MaterialTheme.colorScheme.errorContainer,
-            shape = RoundedCornerShape(16.dp),
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { liveRegion = LiveRegionMode.Polite }) {
             Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Icon(Icons.Default.Warning, null, Modifier.size(20.dp))
+                Icon(Icons.Outlined.Warning, null, Modifier.size(20.dp))
                 Text(
                     stringResource(R.string.activity_conflict),
                     style = MaterialTheme.typography.bodyMedium
