@@ -114,8 +114,9 @@ val theme_dark_inversePrimary = Color(0xFF5E54EC)
 val theme_dark_surfaceBright = Color(0xFF393939)
 val theme_dark_surfaceContainer = Color(0xFF1F1F1F)
 val theme_dark_surfaceContainerHigh = Color(0xFF2A2A2A)
-// Matches the light theme: the surfaceContainer grey for cards and post action pills.
-val theme_dark_surfaceContainerHighest = Color(0xFF1F1F1F)
+// Lighter than Material's tone like the light theme, but one step above the dark background
+// (#1F1F1F), so cards and post action pills stay visible on it.
+val theme_dark_surfaceContainerHighest = Color(0xFF2A2A2A)
 val theme_dark_surfaceContainerLow = Color(0xFF1B1B1B)
 val theme_dark_surfaceContainerLowest = Color(0xFF0E0E0E)
 val theme_dark_surfaceDim = Color(0xFF131313)
