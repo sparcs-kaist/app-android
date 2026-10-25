@@ -799,5 +799,6 @@
     <string name="activity_quick_fill_failed">Couldn\'t fill in the activity. Please try again.</string>
     <string name="summarization_unsafe">This can\'t be summarised.</string>
     <string name="activity_add_time">Add Time</string>
+    <string name="activity_time_number">Time %1$d</string>
     <string name="activity_remove_time">Remove time</string>
 </resources>
