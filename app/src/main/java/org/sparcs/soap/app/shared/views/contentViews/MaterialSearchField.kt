@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -34,6 +35,7 @@ fun MaterialSearchField(
     placeholder: String,
     modifier: Modifier = Modifier,
     autoFocus: Boolean = false,
+    onFocusChange: (Boolean) -> Unit = {},
 ) {
     val keyboard = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -61,7 +63,9 @@ fun MaterialSearchField(
                         }
                     }
                 } else null,
-                modifier = Modifier.focusRequester(focusRequester)
+                modifier = Modifier
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { onFocusChange(it.isFocused) }
             )
         },
         expanded = false,

@@ -21,7 +21,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -33,14 +32,7 @@ import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
-fun getTagChipColors() = FilterChipDefaults.filterChipColors(
-    containerColor = Color.Transparent,
-    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    iconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-    selectedContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-    selectedLabelColor = MaterialTheme.colorScheme.primary,
-    selectedTrailingIconColor = MaterialTheme.colorScheme.primary
-)
+fun getTagChipColors() = FilterChipDefaults.filterChipColors()
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

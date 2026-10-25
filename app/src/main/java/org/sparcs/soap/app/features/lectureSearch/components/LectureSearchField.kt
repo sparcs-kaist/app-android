@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.features.lectureSearch.components
 
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,7 +17,7 @@ import org.sparcs.soap.app.domain.models.otl.CourseFilterCategory
 import org.sparcs.soap.app.domain.models.otl.CourseFilterState
 import org.sparcs.soap.app.domain.models.otl.LectureTimeFilter
 import org.sparcs.soap.app.features.search.components.CourseFilterRow
-import org.sparcs.soap.app.shared.views.contentViews.SearchCustomBar
+import org.sparcs.soap.app.shared.views.contentViews.MaterialSearchField
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -37,17 +36,15 @@ fun LectureSearchField(
     Column(
         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
     ) {
-        Box(Modifier.padding(horizontal = 16.dp)) {
-            SearchCustomBar(
-                value = searchText,
-                onValueChange = onSearchTextChange,
-                onValueClear = { onSearchTextChange("") },
-                placeHolder = stringResource(R.string.search_by_course),
-                onFocusChange = onFocusChange,
-            )
-        }
+        MaterialSearchField(
+            query = searchText,
+            onQueryChange = onSearchTextChange,
+            placeholder = stringResource(R.string.search_by_course),
+            onFocusChange = onFocusChange,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
 
-        Spacer(modifier = Modifier.height(2.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         CourseFilterRow(
             modifier = Modifier
@@ -60,7 +57,7 @@ fun LectureSearchField(
             onTimeClick = onTimeClick,
             isTimeSelected = !time.isEmpty,
             showReset = hasAnyFilterSelected,
-            showLeadingDivider = true,
+            showLeadingDivider = false,
             showPeriod = false,
         )
     }
