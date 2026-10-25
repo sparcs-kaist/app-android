@@ -2,24 +2,15 @@ package org.sparcs.soap.app.features.taxiChat.components
 
 import android.content.Intent
 import android.content.res.Configuration
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -27,20 +18,21 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,11 +41,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -65,7 +57,10 @@ import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.features.settings.components.TapTooltip
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
+import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiTonalLabel
 import org.sparcs.soap.app.theme.ui.Theme
+import org.sparcs.soap.app.theme.ui.onSeatsOpenContainer
+import org.sparcs.soap.app.theme.ui.seatsOpenContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,7 +94,7 @@ fun TaxiChatViewNavigationBar(
     val arrivedCount = room.participants.count { it.isArrived }
     val totalCount = room.participants.size
 
-    Column(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
+    Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
         TopAppBar(
             modifier = Modifier.statusBarsPadding(),
             navigationIcon = { BackButton(onClick = { onDismiss() }) },
@@ -151,13 +146,8 @@ fun TaxiChatViewNavigationBar(
                     onCarrierToggle = onCarrierToggle,
                     isLeaveAvailable = isLeaveAvailable
                 )
-            },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.background
-            )
+            }
         )
-
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
 
         ArrivalStatusSection(
             arrivedCount = arrivedCount,
@@ -168,20 +158,20 @@ fun TaxiChatViewNavigationBar(
             onArrivalToggle = onArrivalToggle
         )
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
+        HorizontalDivider()
     }
 
     if (showArrivalSheet) {
         ModalBottomSheet(
             onDismissRequest = { showArrivalSheet = false },
-            sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface
+            sheetState = sheetState
         ) {
             TaxiArrivalStatusContent(participants = room.participants)
         }
     }
 }
 
+/** How many have arrived, a button for everyone's status, and a chip to mark yourself arrived. */
 @Composable
 private fun ArrivalStatusSection(
     arrivedCount: Int,
@@ -193,149 +183,82 @@ private fun ArrivalStatusSection(
 ) {
     val isAllArrived = totalCount > 0 && arrivedCount == totalCount
 
-    val buttonBackgroundColor by animateColorAsState(
-        targetValue = if (isArrived) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background,
-        label = "ButtonBackground"
-    )
-    val buttonContentColor by animateColorAsState(
-        targetValue = if (isArrived) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary,
-        label = "ButtonContent"
-    )
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.background
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 16.dp, end = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 6.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Crossfade(
-                targetState = when {
-                    isAllArrived -> pluralStringResource(R.plurals.taxi_all_arrived, totalCount, totalCount)
-                    arrivedCount == 0 -> stringResource(R.string.taxi_arrived_question)
-                    else -> pluralStringResource(R.plurals.taxi_arrived_count, arrivedCount, arrivedCount)
+        Crossfade(
+            targetState = when {
+                isAllArrived -> pluralStringResource(R.plurals.taxi_all_arrived, totalCount, totalCount)
+                arrivedCount == 0 -> stringResource(R.string.taxi_arrived_question)
+                else -> pluralStringResource(R.plurals.taxi_arrived_count, arrivedCount, arrivedCount)
+            },
+            label = "ArrivalText",
+            modifier = Modifier.weight(1f)
+        ) { targetText ->
+            Text(text = targetText, style = MaterialTheme.typography.bodyMedium)
+        }
+
+        TextButton(onClick = onStatusClick) {
+            Text(stringResource(R.string.taxi_status))
+        }
+
+        if (isEnabled) {
+            ElevatedFilterChip(
+                selected = isArrived,
+                onClick = { onArrivalToggle(!isArrived) },
+                label = {
+                    Text(stringResource(if (isArrived) R.string.taxi_arrival_complete else R.string.taxi_arrival))
                 },
-                label = "ArrivalText"
-            ) { targetText ->
-                Text(
-                    text = targetText,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    onClick = onStatusClick,
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                    modifier = Modifier.height(32.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(
-                            text = stringResource(R.string.taxi_status),
-                            modifier = Modifier.padding(horizontal = 12.dp),
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                }
-
-                if (isEnabled) {
-                    Spacer(Modifier.width(8.dp))
-
-                    Button(
-                        onClick = { onArrivalToggle(!isArrived) },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = buttonBackgroundColor,
-                            contentColor = buttonContentColor
-                        ),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                        modifier = Modifier
-                            .height(32.dp)
-                            .animateContentSize()
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Rounded.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            AnimatedContent(
-                                targetState = if (isArrived) stringResource(R.string.taxi_arrival_complete) else stringResource(
-                                    R.string.taxi_arrival
-                                ),
-                                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                                label = "ButtonText"
-                            ) { targetText ->
-                                Text(
-                                    text = targetText,
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            }
-                        }
-                    }
-                }
-            }
+                leadingIcon = if (isArrived) {
+                    { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                } else null
+            )
         }
     }
 }
 
+/** Everyone in the room and whether they have arrived. */
 @Composable
 fun TaxiArrivalStatusContent(participants: List<TaxiParticipant>) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .padding(bottom = 16.dp)
     ) {
         Text(
             text = stringResource(R.string.taxi_arrival_status),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 24.dp)
+            style = MaterialTheme.typography.titleLarge,
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)
         )
 
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth()
-        ) {
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
             items(participants) { participant ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = participant.nickname,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    Text(
-                        text = if (participant.isArrived) stringResource(R.string.taxi_arrival_complete) else stringResource(
-                            R.string.taxi_not_arrived
-                        ),
-                        color = if (participant.isArrived) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                HorizontalDivider(
-                    color = MaterialTheme.colorScheme.outlineVariant,
-                    thickness = 0.5.dp
+                ListItem(
+                    headlineContent = { Text(participant.nickname) },
+                    trailingContent = {
+                        if (participant.isArrived) {
+                            TaxiTonalLabel(
+                                text = stringResource(R.string.taxi_arrival_complete),
+                                container = MaterialTheme.colorScheme.seatsOpenContainer,
+                                content = MaterialTheme.colorScheme.onSeatsOpenContainer,
+                                icon = Icons.Filled.Check
+                            )
+                        } else {
+                            TaxiTonalLabel(
+                                text = stringResource(R.string.taxi_not_arrived),
+                                container = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                content = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+                    modifier = Modifier.padding(horizontal = 8.dp)
                 )
-            }
-            item {
-                Spacer(Modifier.height(32.dp))
             }
         }
     }
