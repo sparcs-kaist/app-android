@@ -234,6 +234,11 @@ fun CourseProfessorPicker(
                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                 )
             },
+            // Filled rather than outlined, so "All professors" doesn't sit in the header as an empty box.
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            ),
+            border = null,
             // Leaves room for the header's title and count beside it.
             modifier = Modifier.widthIn(max = 200.dp)
         )
