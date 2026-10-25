@@ -693,9 +693,7 @@
     <string name="theme_share">테마 공유</string>
     <string name="theme_import">코드로 테마 가져오기</string>
     <string name="theme_share_code">6자리 코드</string>
-    <string name="theme_find">테마 찾기</string>
     <string name="theme_retry">다시 시도</string>
-    <string name="theme_loading">테마 불러오는 중…</string>
     <string name="theme_share_error">테마를 공유하지 못했습니다. 다시 시도해 주세요.</string>
     <string name="theme_import_error">테마를 불러오지 못했습니다. 다시 시도해 주세요.</string>
     <string name="theme_code_not_found">이 코드에 해당하는 테마가 없습니다.</string>
@@ -710,7 +708,12 @@
     <string name="theme_share_instagram_failed">인스타그램으로 공유할 수 없습니다.</string>
     <string name="theme_share_feed_content">시간표 테마를 공유합니다! 🎨\n테마 이름: %1$s\n테마 코드: %2$s\n\n[설정 > 시간표 테마 > 가져오기]에서 코드를 입력하면 이 테마를 사용할 수 있어요!</string>
     <string name="theme_import_note">내 테마에 추가하고 바로 적용합니다.</string>
-    <string name="theme_save_import">저장하고 테마 적용</string>
+    <string name="theme_import_title">테마 가져오기</string>
+    <string name="theme_import_looking">“%1$s” 찾는 중…</string>
+    <string name="theme_add">테마 추가</string>
+    <string name="theme_continue">계속</string>
+    <string name="theme_sharing_title">“%1$s” 공유</string>
+    <string name="theme_sharing_progress">“%1$s” 공유 중…</string>
     <string name="theme_photo_generate">사진으로 테마 만들기</string>
     <string name="theme_photo_description">배경화면이나 사진으로 팔레트, 글자 및 고급 색상을 어울리는 테마로 바꿉니다.</string>
     <string name="theme_photo_generating">색상 생성 중…</string>

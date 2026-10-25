@@ -23,7 +23,11 @@ internal const val THEME_GENERATOR_KEY = "theme-generator"
 
 private const val EDITOR_ROUTE = "TimetableThemeEditor"
 private const val GENERATOR_ROUTE = "TimetableThemeGenerator"
+private const val IMPORT_ROUTE = "TimetableThemeImport"
+private const val SHARING_ROUTE = "TimetableThemeSharing"
 private const val SEED_ARGUMENT = "seed"
+private const val CODE_ARGUMENT = "code"
+private const val THEME_ARGUMENT = "theme"
 
 // Keys on the editor's SavedStateHandle: the draft the generator starts from, and its result.
 private const val GENERATOR_BASE_KEY = "generatorBase"
@@ -33,7 +37,18 @@ fun NavController.navigateToThemeEditor(theme: TimetableTheme) {
     navigate("$EDITOR_ROUTE?$SEED_ARGUMENT=${Uri.encode(Json.encodeToString(theme))}")
 }
 
-/** Theme list, editor and AI generator as separate destinations, so each gets predictive back. */
+fun NavController.navigateToThemeImport(code: String) {
+    navigate("$IMPORT_ROUTE?$CODE_ARGUMENT=${Uri.encode(code)}")
+}
+
+fun NavController.navigateToThemeSharing(theme: TimetableTheme) {
+    navigate("$SHARING_ROUTE?$THEME_ARGUMENT=${Uri.encode(Json.encodeToString(theme))}")
+}
+
+/**
+ * Theme list, editor, AI generator, import and sharing as separate destinations, so each gets
+ * predictive back.
+ */
 fun NavGraphBuilder.timetableThemeGraph(navController: NavController) {
     composable(Channel.TimetableThemeSettings.name) {
         TimetableThemeSettingsView(navController)
@@ -60,6 +75,36 @@ fun NavGraphBuilder.timetableThemeGraph(navController: NavController) {
                 generated?.let { Json.decodeFromString<TimetableTheme>(it) }
             },
             onGeneratedThemeConsumed = { entry.savedStateHandle[GENERATED_THEME_KEY] = null }
+        )
+    }
+
+    composable(
+        route = "$IMPORT_ROUTE?$CODE_ARGUMENT={$CODE_ARGUMENT}",
+        arguments = listOf(navArgument(CODE_ARGUMENT) { type = NavType.StringType })
+    ) { entry ->
+        val code = entry.arguments?.getString(CODE_ARGUMENT) ?: return@composable
+        val store = rememberTimetableThemeStore()
+        TimetableThemeImportRoute(
+            code = code,
+            onClose = { navController.popBackStack() },
+            onImport = { theme ->
+                store.saveAndSelect(theme)
+                navController.popBackStack()
+            }
+        )
+    }
+
+    composable(
+        route = "$SHARING_ROUTE?$THEME_ARGUMENT={$THEME_ARGUMENT}",
+        arguments = listOf(navArgument(THEME_ARGUMENT) { type = NavType.StringType })
+    ) { entry ->
+        val theme = remember(entry) {
+            entry.arguments?.getString(THEME_ARGUMENT)?.let { Json.decodeFromString<TimetableTheme>(it) }
+        } ?: return@composable
+        TimetableThemeSharingRoute(
+            theme = theme,
+            onClose = { navController.popBackStack() },
+            navController = navController
         )
     }
 

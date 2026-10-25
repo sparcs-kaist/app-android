@@ -723,9 +723,7 @@
     <string name="theme_share">Share Theme</string>
     <string name="theme_import">Import Theme via Code</string>
     <string name="theme_share_code">6-character code</string>
-    <string name="theme_find">Find Theme</string>
     <string name="theme_retry">Try Again</string>
-    <string name="theme_loading">Loading theme…</string>
     <string name="theme_share_error">Could not share this theme. Please try again.</string>
     <string name="theme_import_error">Could not load this theme. Please try again.</string>
     <string name="theme_code_not_found">No theme found for this code.</string>
@@ -740,7 +738,12 @@
     <string name="theme_share_instagram_failed">Could not share to Instagram.</string>
     <string name="theme_share_feed_content">Sharing a timetable theme! 🎨\nTheme: %1$s\nCode: %2$s\n\nEnter this code in [Settings > Timetable Theme > Import] to use this theme!</string>
     <string name="theme_import_note">This theme will be added to My Themes and used right away.</string>
-    <string name="theme_save_import">Save and Use Theme</string>
+    <string name="theme_import_title">Import Theme</string>
+    <string name="theme_import_looking">Looking for “%1$s”…</string>
+    <string name="theme_add">Add Theme</string>
+    <string name="theme_continue">Continue</string>
+    <string name="theme_sharing_title">Share “%1$s”</string>
+    <string name="theme_sharing_progress">Sharing “%1$s”…</string>
     <string name="theme_photo_generate">Generate using a Photo</string>
     <string name="theme_photo_description">Use a wallpaper or photo to replace the palette, text and advanced colors with a matching theme.</string>
     <string name="theme_photo_generating">Generating Colors…</string>

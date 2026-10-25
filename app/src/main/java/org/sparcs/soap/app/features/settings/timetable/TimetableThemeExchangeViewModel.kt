@@ -30,11 +30,6 @@ class TimetableThemeExchangeViewModel @Inject constructor(
         private set
     private var job: Job? = null
 
-    fun reset() {
-        job?.cancel()
-        state = ThemeExchangeState()
-    }
-
     fun share(theme: TimetableTheme) = request(theme, R.string.theme_share_error) {
         ThemeExchangeState(theme = theme, code = useCase.share(theme))
     }

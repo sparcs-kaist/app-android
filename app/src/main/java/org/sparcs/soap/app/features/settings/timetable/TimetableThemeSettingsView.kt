@@ -13,10 +13,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.helpers.TimetableTheme
 import org.sparcs.soap.app.features.settings.timetable.components.ThemeSettingsContent
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipEvent
@@ -31,24 +28,7 @@ fun TimetableThemeSettingsView(navController: NavController) {
     val tipStore = LocalTipStore.current
     LaunchedEffect(Unit) { tipStore?.donate(TipEvent.ThemeSettingsOpened) }
     var deleting by rememberSaveable { mutableStateOf<String?>(null) }
-    var sharing by rememberSaveable { mutableStateOf<String?>(null) }
-    var importing by rememberSaveable { mutableStateOf(false) }
-
-    if (sharing != null || importing) {
-        TimetableThemeExchangeRoute(
-            sharing = sharing?.let { Json.decodeFromString<TimetableTheme>(it) },
-            onBack = {
-                sharing = null
-                importing = false
-            },
-            onImport = { theme ->
-                store.saveAndSelect(theme)
-                importing = false
-            },
-            navController = navController
-        )
-        return
-    }
+    var askingForCode by rememberSaveable { mutableStateOf(false) }
 
     ThemeSettingsContent(
         state = state,
@@ -56,9 +36,19 @@ fun TimetableThemeSettingsView(navController: NavController) {
         onSelect = store::select,
         onEdit = { navController.navigateToThemeEditor(it) },
         onDelete = { deleting = it },
-        onShare = { sharing = Json.encodeToString(it) },
-        onImport = { importing = true }
+        onShare = { navController.navigateToThemeSharing(it) },
+        onImport = { askingForCode = true }
     )
+
+    if (askingForCode) {
+        TimetableThemeCodeDialog(
+            onDismiss = { askingForCode = false },
+            onContinue = { code ->
+                askingForCode = false
+                navController.navigateToThemeImport(code)
+            }
+        )
+    }
 
     state.customThemes.firstOrNull { it.id == deleting }?.let { theme ->
         AlertDialog(
