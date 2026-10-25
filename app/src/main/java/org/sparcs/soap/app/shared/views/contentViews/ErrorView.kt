@@ -4,16 +4,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,17 +35,17 @@ import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
 fun ErrorView(
-    icon: ImageVector = Icons.Rounded.Warning,
+    icon: ImageVector = Icons.Outlined.ErrorOutline,
     error: Exception,
     defaultMessageResId: Int? = null,
     onRetry: () -> Unit,
 ) {
     val isNetworkError = error.isNetworkError()
 
-    val displayIcon = if (isNetworkError) Icons.Rounded.WifiOff else icon
+    val displayIcon = if (isNetworkError) Icons.Outlined.WifiOff else icon
     val iconSize = if (isNetworkError) 60.dp else 48.dp
     val iconTint =
-        if (isNetworkError) MaterialTheme.colorScheme.outline else MaterialTheme.colorScheme.error
+        if (isNetworkError) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
 
     val errorMessage = when {
         isNetworkError -> stringResource(R.string.network_connection_error)
@@ -68,8 +70,7 @@ fun ErrorView(
 
         Text(
             text = stringResource(R.string.error),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.error
+            style = MaterialTheme.typography.titleMedium
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -86,15 +87,14 @@ fun ErrorView(
 
         Button(
             onClick = { onRetry() },
-            modifier = Modifier.fillMaxWidth(0.4f),
-            shape = RoundedCornerShape(12.dp)
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding
         ) {
             Icon(
-                imageVector = Icons.Rounded.Refresh,
+                imageVector = Icons.Filled.Refresh,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.padding(end = 4.dp)
+                modifier = Modifier.size(ButtonDefaults.IconSize)
             )
+            Spacer(Modifier.width(ButtonDefaults.IconSpacing))
             Text(stringResource(R.string.error_try_again))
         }
     }
