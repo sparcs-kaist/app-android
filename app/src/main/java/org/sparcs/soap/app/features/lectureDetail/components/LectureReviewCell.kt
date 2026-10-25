@@ -262,9 +262,8 @@ private fun ReviewLikePill(likes: Int, liked: Boolean, onClick: () -> Unit) {
     ) {
         VoteArrow(
             up = true,
-            filled = liked,
             tint = if (!liked && pressed) upvote else content,
-            textStyle = textStyle
+            isCompact = true
         )
         AnimatedContent(
             targetState = likes,

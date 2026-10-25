@@ -18,11 +18,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Forward
-import androidx.compose.material.icons.outlined.Forward
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,15 +33,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
 import org.sparcs.soap.app.theme.ui.upvote
@@ -134,9 +132,8 @@ private fun VotePill(
         ) {
             VoteArrow(
                 up = true,
-                filled = myVote == true,
                 tint = if (myVote == null && upPressed) upvote else content,
-                textStyle = textStyle
+                isCompact = isCompact
             )
             AnimatedContent(
                 targetState = votes,
@@ -184,24 +181,24 @@ private fun VotePill(
         ) {
             VoteArrow(
                 up = false,
-                filled = myVote == false,
                 tint = if (myVote == null && downPressed) downvote else content,
-                textStyle = textStyle
+                isCompact = isCompact
             )
         }
     }
 }
 
-/** Material's Forward arrow turned to point up or down; filled for the active vote. */
+/**
+ * Material's up or down arrow. The arrow shape stays the same once voted, since the whole pill
+ * then takes the vote colour.
+ */
 @Composable
-internal fun VoteArrow(up: Boolean, filled: Boolean, tint: Color, textStyle: TextStyle) {
+internal fun VoteArrow(up: Boolean, tint: Color, isCompact: Boolean) {
     Icon(
-        imageVector = if (filled) Icons.Filled.Forward else Icons.Outlined.Forward,
+        imageVector = if (up) Icons.Filled.ArrowUpward else Icons.Filled.ArrowDownward,
         contentDescription = if (up) "UpVote" else "DownVote",
         tint = tint,
-        modifier = Modifier
-            .adaptiveIconSize(textStyle)
-            .rotate(if (up) -90f else 90f)
+        modifier = Modifier.size(pillIconSize(isCompact))
     )
 }
 

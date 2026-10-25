@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChatBubbleOutline
@@ -33,7 +34,6 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.theme.ui.Theme
 
 /** Gray pill with a comment icon and count, matching [PostVoteButton]. */
@@ -89,7 +89,7 @@ private fun CommentPill(
             imageVector = Icons.Outlined.ChatBubbleOutline,
             contentDescription = "Comments",
             tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.adaptiveIconSize(textStyle)
+            modifier = Modifier.size(pillIconSize(isCompact))
         )
 
         AnimatedContent(

@@ -29,19 +29,18 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import org.sparcs.soap.app.shared.extensions.adaptiveIconSize
 import org.sparcs.soap.app.theme.ui.Theme
 
 // Shared look for the post action pills: vote, comment, bookmark and share.
 
 internal fun pillHeight(isCompact: Boolean) = if (isCompact) 32.dp else 36.dp
 
+/** Material's chip and button pairing: a label style with a fixed-size icon beside it. */
 @Composable
-internal fun pillTextStyle(isCompact: Boolean): TextStyle {
-    val base = MaterialTheme.typography.bodyMedium
-    return if (isCompact) base.copy(fontSize = 13.sp) else base
-}
+internal fun pillTextStyle(isCompact: Boolean): TextStyle =
+    if (isCompact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge
+
+internal fun pillIconSize(isCompact: Boolean) = if (isCompact) 16.dp else 18.dp
 
 /**
  * Pressed state layer: darkens the pressed part of a pill. On a vote-colored pill the layer is
@@ -88,7 +87,7 @@ internal fun ActionPillIconButton(
             imageVector = imageVector,
             contentDescription = contentDescription,
             tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.adaptiveIconSize(pillTextStyle(isCompact))
+            modifier = Modifier.size(pillIconSize(isCompact))
         )
     }
 }
