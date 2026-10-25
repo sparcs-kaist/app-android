@@ -22,7 +22,7 @@ import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -217,7 +217,8 @@ fun CourseProfessorPicker(
     val selected = professors.find { it.id == selectedProfessorID }
 
     Box {
-        FilterChip(
+        // Elevated rather than outlined, so "All professors" doesn't sit in the header as an empty box.
+        ElevatedFilterChip(
             selected = selected != null,
             onClick = { expanded = true },
             label = {
@@ -234,11 +235,6 @@ fun CourseProfessorPicker(
                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                 )
             },
-            // Filled rather than outlined, so "All professors" doesn't sit in the header as an empty box.
-            colors = FilterChipDefaults.filterChipColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-            ),
-            border = null,
             // Leaves room for the header's title and count beside it.
             modifier = Modifier.widthIn(max = 200.dp)
         )

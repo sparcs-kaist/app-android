@@ -6,7 +6,6 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,15 +28,17 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.rounded.ArrowDropDown
 import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material.icons.rounded.VisibilityOff
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -71,11 +72,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import org.sparcs.soap.app.features.postCompose.components.AnimatedAlphabetText
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.feedPostCompose.components.FeedPostComposeNavigationBar
 import org.sparcs.soap.app.features.postCompose.TermsOfUseButton
-import org.sparcs.soap.app.features.postCompose.components.AnimatedAlphabetText
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.noRippleClickable
@@ -333,50 +334,36 @@ private fun ComposeTypePicker(viewModel: FeedPostComposeViewModelProtocol) {
     val previousText = typeLabels[previousType] ?: stringResource(R.string.select_type)
 
     Box {
-        Card(
-            colors = CardDefaults.cardColors(MaterialTheme.colorScheme.surface),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier
-                .clickable { expanded = !expanded }
-                .glassBorder(shape = RoundedCornerShape(20.dp)),
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                Box(modifier = Modifier.weight(1f, fill = false)) {
-                    AnimatedAlphabetText(
-                        from = previousText,
-                        to = displayText,
-                        singleLine = true
-                    )
-                }
-                Spacer(modifier = Modifier.width(4.dp))
-                Icon(
-                    imageVector = Icons.Rounded.ArrowDropDown,
-                    contentDescription = stringResource(R.string.change_type)
+        // The same elevated chip as the course screen's professor filter: no outline, menu arrow.
+        ElevatedFilterChip(
+            selected = false,
+            onClick = { expanded = !expanded },
+            label = {
+                AnimatedAlphabetText(
+                    from = previousText,
+                    to = displayText,
+                    singleLine = true
                 )
-            }
-        }
+            },
+            trailingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = stringResource(R.string.change_type),
+                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                )
+            },
+        )
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false },
-            shape = RoundedCornerShape(16.dp),
-            modifier = Modifier.background(MaterialTheme.colorScheme.background)
+            onDismissRequest = { expanded = false }
         ) {
             typeLabels.forEach { (type, label) ->
                 DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = label ?: stringResource(R.string.unknown),
-                            style = MaterialTheme.typography.titleMedium,
-                            color = if (selectedType == type)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurface
-                        )
-                    },
+                    text = { Text(label ?: stringResource(R.string.unknown)) },
+                    trailingIcon = if (selectedType == type) {
+                        { Icon(Icons.Filled.Check, contentDescription = null) }
+                    } else null,
                     onClick = {
                         viewModel.selectedComposeType = type
                         expanded = false
