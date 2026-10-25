@@ -36,7 +36,7 @@ class ActivityCreationTest {
     }
     private fun text(id: Int) = InstrumentationRegistry.getInstrumentation().targetContext.getString(id)
 
-    @Test fun createUsingNativePickerAndSave() {
+    @Test fun createUsingTimeWheelAndSave() {
         var saved: ActivityDraft? = null
         setContent { Theme { ActivityCreationView(Timetable("12", emptyList()), "Spring", onClose = {}, onSave = { saved = it }, onRefresh = {}) } }
         compose.onNodeWithText(text(R.string.activity_save)).assertIsNotEnabled()
@@ -45,8 +45,10 @@ class ActivityCreationTest {
         screenshot("activity-form")
         compose.onNodeWithText(text(R.string.activity_starts)).performClick()
         screenshot("activity-time-picker")
-        compose.onNodeWithText(text(R.string.activity_keyboard)).assertExists().performClick()
-        compose.onNodeWithText(text(R.string.ok)).performClick()
+        compose.onNodeWithContentDescription(text(R.string.hour)).assertExists()
+        compose.onNodeWithContentDescription(text(R.string.minute)).assertExists()
+        compose.onNodeWithText(text(R.string.activity_starts)).performClick()
+        compose.onNodeWithContentDescription(text(R.string.hour)).assertDoesNotExist()
         compose.onNodeWithText(text(R.string.activity_save)).performClick()
         compose.runOnIdle { assertEquals("Study group", saved?.title); assertEquals("Library", saved?.location); assertTrue(saved!!.isValid) }
     }

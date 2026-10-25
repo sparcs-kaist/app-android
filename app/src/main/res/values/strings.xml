@@ -711,8 +711,6 @@
     <string name="activity_saved_refresh">Your change was saved, but the timetable could not refresh. Tap Refresh to load it.</string>
     <string name="activity_save_error">Could not save the activity. Please try again.</string>
     <string name="activity_delete_error">Could not delete the activity. Please try again.</string>
-    <string name="activity_clock">Use clock</string>
-    <string name="activity_keyboard">Use keyboard</string>
     <string name="activity_midnight">24:00</string>
     <string name="activity_earlier">Move 15 minutes earlier</string>
     <string name="activity_later">Move 15 minutes later</string>

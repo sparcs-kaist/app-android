@@ -2,10 +2,8 @@ package org.sparcs.soap.app.features.timetable.activity
 
 import android.text.format.DateFormat
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,12 +45,8 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
-import androidx.compose.material3.TimePicker
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -71,9 +65,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.app.shared.views.contentViews.PickerField
+import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -93,11 +90,13 @@ import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
 
+/** A time of day in the system's 12- or 24-hour style, like "9:30 AM" or "09:30". */
 @Composable
 internal fun activityTime(minutes: Int): String {
     if (minutes == 1440) return stringResource(R.string.activity_midnight)
+    val skeleton = if (DateFormat.is24HourFormat(LocalContext.current)) "HHmm" else "hmma"
     return LocalTime.of(minutes / 60, minutes % 60)
-        .format(DateTimeFormatter.ofPattern("HH:mm"))
+        .format(DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(Locale.getDefault(), skeleton)))
 }
 
 @Composable
@@ -312,7 +311,10 @@ private fun FormSectionHeader(text: String) {
 
 private enum class TimeField { Begin, End }
 
-/** One meeting time: its day, start and end, a link to adjust it on the timetable, and delete. */
+/**
+ * One meeting time: its day, start and end, a link to adjust it on the timetable, and delete.
+ * Tapping a time opens wheels below it in 15-minute steps, like the timetable.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ActivityTimeCard(
@@ -326,6 +328,7 @@ private fun ActivityTimeCard(
 ) {
     val focus = LocalFocusManager.current
     var editing by rememberSaveable { mutableStateOf<TimeField?>(null) }
+    val toggle = { field: TimeField -> editing = if (editing == field) null else field }
     var expandedDay by remember { mutableStateOf(false) }
 
     Card(modifier = Modifier.fillMaxWidth()) {
@@ -386,20 +389,41 @@ private fun ActivityTimeCard(
                 }
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TimeFieldButton(
+                    PickerField(
                         label = stringResource(R.string.activity_starts),
                         value = activityTime(time.begin),
+                        icon = Icons.Outlined.Schedule,
+                        isOpen = editing == TimeField.Begin,
                         enabled = enabled,
                         isError = conflict,
                         modifier = Modifier.weight(1f)
-                    ) { focus.clearFocus(); editing = TimeField.Begin }
-                    TimeFieldButton(
+                    ) { focus.clearFocus(); toggle(TimeField.Begin) }
+                    PickerField(
                         label = stringResource(R.string.activity_ends),
                         value = activityTime(time.end),
+                        icon = Icons.Outlined.Schedule,
+                        isOpen = editing == TimeField.End,
                         enabled = enabled,
                         isError = conflict,
                         modifier = Modifier.weight(1f)
-                    ) { focus.clearFocus(); editing = TimeField.End }
+                    ) { focus.clearFocus(); toggle(TimeField.End) }
+                }
+
+                AnimatedVisibility(editing == TimeField.Begin) {
+                    TimeWheel(minuteOfDay = time.begin, step = 15) { newBegin ->
+                        if (newBegin != time.begin) {
+                            onChange(time.copy(begin = newBegin, end = if (newBegin >= time.end) (newBegin + 15).coerceAtMost(1440) else time.end))
+                        }
+                    }
+                }
+                AnimatedVisibility(editing == TimeField.End) {
+                    TimeWheel(minuteOfDay = time.end % 1440, step = 15) { picked ->
+                        // 00:00 as an end time means midnight at the end of the day.
+                        val newEnd = if (picked == 0) 1440 else picked
+                        if (newEnd != time.end) {
+                            onChange(time.copy(begin = if (newEnd <= time.begin) (newEnd - 15).coerceAtLeast(0) else time.begin, end = newEnd))
+                        }
+                    }
                 }
 
                 if (conflict) {
@@ -424,101 +448,6 @@ private fun ActivityTimeCard(
             }
         }
     }
-
-    when (editing) {
-        TimeField.Begin -> ActivityTimePickerDialog(
-            title = stringResource(R.string.activity_starts),
-            minutes = time.begin,
-            onDismiss = { editing = null },
-        ) { newBegin ->
-            onChange(time.copy(begin = newBegin, end = if (newBegin >= time.end) (newBegin + 15).coerceAtMost(1440) else time.end))
-        }
-
-        TimeField.End -> ActivityTimePickerDialog(
-            title = stringResource(R.string.activity_ends),
-            minutes = time.end % 1440,
-            onDismiss = { editing = null },
-        ) { picked ->
-            // 00:00 as an end time means midnight at the end of the day.
-            val newEnd = if (picked == 0) 1440 else picked
-            onChange(time.copy(begin = if (newEnd <= time.begin) (newEnd - 15).coerceAtLeast(0) else time.begin, end = newEnd))
-        }
-
-        null -> Unit
-    }
-}
-
-/** A read-only outlined field showing a time; tapping it opens the time picker. */
-@Composable
-private fun TimeFieldButton(
-    label: String,
-    value: String,
-    enabled: Boolean,
-    isError: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val interaction = remember { MutableInteractionSource() }
-    LaunchedEffect(interaction, enabled) {
-        interaction.interactions.collect { if (enabled && it is PressInteraction.Release) onClick() }
-    }
-    OutlinedTextField(
-        value = value,
-        onValueChange = {},
-        readOnly = true,
-        enabled = enabled,
-        isError = isError,
-        singleLine = true,
-        label = { Text(label) },
-        trailingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
-        interactionSource = interaction,
-        modifier = modifier
-    )
-}
-
-/**
- * The Material time picker in a dialog, with a button to switch between the clock and typing.
- * The chosen time snaps to the nearest 15 minutes, like the timetable.
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ActivityTimePickerDialog(
-    title: String,
-    minutes: Int,
-    onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit,
-) {
-    val context = LocalContext.current
-    val state = rememberTimePickerState(
-        initialHour = minutes / 60,
-        initialMinute = minutes % 60,
-        is24Hour = DateFormat.is24HourFormat(context),
-    )
-    var typing by rememberSaveable { mutableStateOf(false) }
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                if (typing) TimeInput(state) else TimePicker(state)
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onConfirm(ActivityDraft.snap((state.hour * 60 + state.minute).toFloat()) % 1440)
-                onDismiss()
-            }) { Text(stringResource(R.string.ok)) }
-        },
-        dismissButton = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = { typing = !typing }) {
-                    Text(stringResource(if (typing) R.string.activity_clock else R.string.activity_keyboard))
-                }
-                Spacer(Modifier.weight(1f))
-                TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
-            }
-        },
-    )
 }
 
 private val activityTimesSaver = listSaver<List<ActivityTime>, Int>(
