@@ -124,7 +124,7 @@ fun TaxiRoomSkeletonCell() {
                         }
                     }
                 }
-                Box(Modifier.size(width = 56.dp, height = 28.dp).background(tint, CircleShape))
+                Box(Modifier.size(width = 56.dp, height = 28.dp).background(tint, MaterialTheme.shapes.small))
             }
             SkeletonLine(typography.bodyMedium, Modifier.fillMaxWidth(0.5f))
         }
