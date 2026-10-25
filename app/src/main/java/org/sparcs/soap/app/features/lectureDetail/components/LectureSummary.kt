@@ -1,13 +1,10 @@
 package org.sparcs.soap.app.features.lectureDetail.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,12 +53,7 @@ fun LectureSummary(lecture: Lecture){
 
 @Composable
 fun StatSeparator() {
-    Box(
-        modifier = Modifier
-            .height(24.dp)
-            .width(1.dp)
-            .background(MaterialTheme.colorScheme.outlineVariant)
-    )
+    VerticalDivider(Modifier.height(24.dp))
 }
 
 @Composable
