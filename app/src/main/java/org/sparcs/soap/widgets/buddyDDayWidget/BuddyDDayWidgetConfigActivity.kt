@@ -59,6 +59,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.AndroidEntryPoint
+import org.sparcs.soap.widgets.components.WidgetPreviewStage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -66,9 +67,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.services.AnalyticsServiceProtocol
 import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.widgets.ownsAppWidget
@@ -200,7 +199,7 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
                 Text(
                     text = currentModeText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -275,7 +274,7 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
                 Text(
                     text = "${(transparency * 100).toInt()}%",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Slider(
@@ -308,61 +307,62 @@ class BuddyDDayWidgetConfigActivity : ComponentActivity() {
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
             )
-            Theme(darkTheme = isDark) {
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .width(160.dp)
-                        .height(160.dp)
-                        .glassBorder(shape = RoundedCornerShape(28.dp))
-                        .background(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(28.dp)
-                        )
-                ) {
+            WidgetPreviewStage {
+                Theme(darkTheme = isDark) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .padding(horizontal = 16.dp)
+                            .width(160.dp)
+                            .height(160.dp)
                             .background(
-                                color = surfaceColor.copy(alpha = transparency),
+                                color = MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(28.dp)
                             )
-                            .padding(16.dp),
-                        contentAlignment = Alignment.TopStart
                     ) {
-                        Column {
-                            Text(
-                                text = stringResource(R.string.d_day_widget_ends_in).uppercase(),
-                                color = MaterialTheme.colorScheme.primary,
-                                fontSize = 10.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-
-                            Row(verticalAlignment = Alignment.Bottom) {
-                                Text(
-                                    text = "54",
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    fontSize = 36.sp,
-                                    fontWeight = FontWeight.Medium,
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    color = surfaceColor.copy(alpha = transparency),
+                                    shape = RoundedCornerShape(28.dp)
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
+                                .padding(16.dp),
+                            contentAlignment = Alignment.TopStart
+                        ) {
+                            Column {
                                 Text(
-                                    text = "days",
-                                    color = MaterialTheme.colorScheme.onSurface,
+                                    text = stringResource(R.string.d_day_widget_ends_in).uppercase(),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                )
+
+                                Row(verticalAlignment = Alignment.Bottom) {
+                                    Text(
+                                        text = "54",
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 36.sp,
+                                        fontWeight = FontWeight.Medium,
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = "days",
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        modifier = Modifier.padding(bottom = 6.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.weight(1f))
+
+                                Text(
+                                    text = stringResource(R.string.preview_d_day_semester_label),
+                                    color = MaterialTheme.colorScheme.primary,
                                     fontSize = 12.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.padding(bottom = 6.dp)
+                                    fontWeight = FontWeight.Bold,
                                 )
                             }
-
-                            Spacer(modifier = Modifier.weight(1f))
-
-                            Text(
-                                text = stringResource(R.string.preview_d_day_semester_label),
-                                color = MaterialTheme.colorScheme.primary,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
                         }
                     }
                 }

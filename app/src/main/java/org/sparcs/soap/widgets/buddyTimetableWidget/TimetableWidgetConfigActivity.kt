@@ -66,6 +66,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.AndroidEntryPoint
+import org.sparcs.soap.widgets.components.WidgetPreviewStage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -80,10 +81,8 @@ import org.sparcs.soap.app.domain.services.logScreen
 import org.sparcs.soap.app.features.settings.components.SettingsViewNavigationBar
 import org.sparcs.soap.app.features.timetable.components.TimetableGrid
 import org.sparcs.soap.app.features.timetable.components.TimetableSilhouetteView
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.theme_dark_background
 import org.sparcs.soap.app.theme.ui.theme_light_background
 import org.sparcs.soap.buddyPreviewSupport.otl.PreviewTimetableViewModel
@@ -291,7 +290,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                 Text(
                     text = currentModeText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -358,7 +357,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                 Text(
                     text = currentModeText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -428,7 +427,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                 Text(
                     text = currentModeText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -503,7 +502,7 @@ class TimetableWidgetConfigActivity : ComponentActivity() {
                 Text(
                     text = "${(transparency * 100).toInt()}%",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Slider(
@@ -624,35 +623,36 @@ private fun WidgetPreviewSection(
             fontWeight = FontWeight.SemiBold,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
         )
-        Theme(darkTheme = isDark) {
-            // Theme() re-provides the app's timetable theme, so the widget's own choice goes back on top.
-            CompositionLocalProvider(LocalTimetableTheme provides timetableTheme) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(400.dp)
-                        .glassBorder(shape = RoundedCornerShape(28.dp))
-                        .background(
-                            color = MaterialTheme.colorScheme.surface,
-                            shape = RoundedCornerShape(28.dp)
-                        )
-                ) {
+        WidgetPreviewStage {
+            Theme(darkTheme = isDark) {
+                // Theme() re-provides the app's timetable theme, so the widget's own choice goes back on top.
+                CompositionLocalProvider(LocalTimetableTheme provides timetableTheme) {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
+                            .height(400.dp)
                             .background(
-                                color = surfaceColor.copy(alpha = transparency),
+                                color = MaterialTheme.colorScheme.surface,
                                 shape = RoundedCornerShape(28.dp)
                             )
-                            .padding(8.dp)
                     ) {
-                        val previewViewModel = remember(selectedTimetable) {
-                            PreviewTimetableViewModel(selectedTimetable)
-                        }
-                        if (silhouette) {
-                            TimetableSilhouetteView(selectedTimetable, Modifier.fillMaxSize().padding(8.dp))
-                        } else {
-                            TimetableGrid(viewModel = previewViewModel, onLectureSelected = {}, showDeleteDialog = {})
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    color = surfaceColor.copy(alpha = transparency),
+                                    shape = RoundedCornerShape(28.dp)
+                                )
+                                .padding(8.dp)
+                        ) {
+                            val previewViewModel = remember(selectedTimetable) {
+                                PreviewTimetableViewModel(selectedTimetable)
+                            }
+                            if (silhouette) {
+                                TimetableSilhouetteView(selectedTimetable, Modifier.fillMaxSize().padding(8.dp))
+                            } else {
+                                TimetableGrid(viewModel = previewViewModel, onLectureSelected = {}, showDeleteDialog = {})
+                            }
                         }
                     }
                 }
