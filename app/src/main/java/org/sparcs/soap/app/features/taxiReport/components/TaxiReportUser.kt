@@ -1,27 +1,28 @@
 package org.sparcs.soap.app.features.taxiReport.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.VerifiedUser
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -37,57 +38,32 @@ fun TaxiReportUser(
     onClick: () -> Unit,
     isChecked: Boolean
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .padding(4.dp)
-            .clickable { onClick() }
-    ) {
-        UserProfileImage(user = user)
-        Spacer(Modifier.width(8.dp))
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically){
-                Text(
-                    text = user.nickname,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(Modifier.width(6.dp))
-                if(user.badge){
+    val statusText = when (user.isSettlement) {
+        TaxiParticipant.SettlementType.RequestedSettlement -> stringResource(R.string.request_settlement)
+        TaxiParticipant.SettlementType.PaymentSent -> stringResource(R.string.paid)
+        TaxiParticipant.SettlementType.PaymentRequired -> stringResource(R.string.not_paid)
+        else -> null
+    }
+    ListItem(
+        leadingContent = { UserProfileImage(user = user) },
+        headlineContent = {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(user.nickname)
+                if (user.badge) {
                     Icon(
                         imageVector = Icons.Filled.VerifiedUser,
                         contentDescription = "Badge",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(15.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
-            if (user.isSettlement != TaxiParticipant.SettlementType.NotDeparted) {
-                val statusText = when (user.isSettlement) {
-                    TaxiParticipant.SettlementType.RequestedSettlement -> stringResource(R.string.request_settlement)
-                    TaxiParticipant.SettlementType.PaymentSent -> stringResource(R.string.paid)
-                    TaxiParticipant.SettlementType.PaymentRequired -> stringResource(R.string.not_paid)
-                    else -> ""
-                }
-                if (statusText.isNotEmpty()) {
-                    Text(
-                        text = statusText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                }
-            }
-        }
-
-        Spacer(Modifier.weight(1f))
-
-        if (isChecked) {
-            Icon(
-                imageVector = Icons.Rounded.Check,
-                contentDescription = "Selected",
-                tint = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
+        },
+        supportingContent = statusText?.let { { Text(it) } },
+        trailingContent = { RadioButton(selected = isChecked, onClick = null) },
+        colors = ListItemDefaults.colors(containerColor = Color.Transparent),
+        modifier = Modifier.selectable(selected = isChecked, role = Role.RadioButton, onClick = onClick)
+    )
 }
 
 @Composable
