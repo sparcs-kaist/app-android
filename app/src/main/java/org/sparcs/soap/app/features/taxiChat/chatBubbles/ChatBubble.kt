@@ -4,17 +4,12 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.browser.customtabs.CustomTabsIntent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -26,13 +21,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import org.sparcs.soap.app.features.taxiChat.components.copyChatText
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.sparcs.soap.app.domain.enums.DeepLink
@@ -43,6 +37,21 @@ import org.sparcs.soap.app.shared.extensions.toDetectedAnnotatedString
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.theme.ui.Theme
 
+/**
+ * The corners of a chat bubble: round, except the corner nearest the sender on the last bubble of
+ * a group.
+ */
+internal fun chatBubbleShape(isMine: Boolean, position: ChatBubblePosition): RoundedCornerShape {
+    val isLast = position == ChatBubblePosition.BOTTOM || position == ChatBubblePosition.SINGLE
+    return RoundedCornerShape(
+        topStart = 20.dp,
+        topEnd = 20.dp,
+        bottomStart = if (!isMine && isLast) 4.dp else 20.dp,
+        bottomEnd = if (isMine && isLast) 4.dp else 20.dp
+    )
+}
+
+/** A text message: primary for yours, the card grey for others'. Long press copies it. */
 @Composable
 fun ChatBubble(
     chat: TaxiChat,
@@ -51,89 +60,61 @@ fun ChatBubble(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val clipboardManager = LocalClipboardManager.current
 
     val backgroundColor =
-        if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.background
+        if (isMine) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceContainerHighest
     val contentColor =
-        if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onBackground
+        if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
     val urlColor =
-        if (isMine) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.primary
+        if (isMine) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
 
-    val bubbleShape = RoundedCornerShape(
-        topStart = 24.dp,
-        topEnd = 24.dp,
-        bottomStart = if (!isMine && (position == ChatBubblePosition.BOTTOM || position == ChatBubblePosition.SINGLE)) 4.dp else 24.dp,
-        bottomEnd = if (isMine && (position == ChatBubblePosition.BOTTOM || position == ChatBubblePosition.SINGLE)) 4.dp else 24.dp
-    )
-
-    val formattedContent = remember(chat.content) {
+    val formattedContent = remember(chat.content, urlColor) {
         chat.content.toDetectedAnnotatedString(urlColor)
     }
 
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     Surface(
-        shape = bubbleShape,
+        shape = chatBubbleShape(isMine, position),
         color = backgroundColor,
+        contentColor = contentColor,
         modifier = Modifier.padding(vertical = 2.dp)
     ) {
-        SelectionContainer {
-            Text(
-                text = formattedContent,
-                style = MaterialTheme.typography.bodyMedium,
-                color = contentColor,
-                modifier = Modifier
-                    .padding(horizontal = 16.dp, vertical = 10.dp)
-                    .pointerInput(Unit) {
-                        detectTapGestures(
-                            onTap = { offset ->
-                                textLayoutResult?.let { layoutResult ->
-                                    val pos = layoutResult.getOffsetForPosition(offset)
-                                    formattedContent.getStringAnnotations("URL", pos, pos)
-                                        .firstOrNull()?.let { annotation ->
-                                            handleURL(context, annotation.item, scope)
-                                        }
-                                }
-                            },
-                            onLongPress = {
-                                clipboardManager.setText(AnnotatedString(chat.content))
+        Text(
+            text = formattedContent,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 10.dp)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onTap = { offset ->
+                            textLayoutResult?.let { layoutResult ->
+                                val pos = layoutResult.getOffsetForPosition(offset)
+                                formattedContent.getStringAnnotations("URL", pos, pos)
+                                    .firstOrNull()?.let { annotation ->
+                                        handleURL(context, annotation.item, scope)
+                                    }
                             }
-                        )
-                    },
-                onTextLayout = { textLayoutResult = it }
-            )
-        }
+                        },
+                        onLongPress = { context.copyChatText(chat.content) }
+                    )
+                },
+            onTextLayout = { textLayoutResult = it }
+        )
     }
 }
 
+/** An empty bubble of a random width, for the loading state. */
 @Composable
 fun ChatBubbleSkeleton() {
-    val skeletonColor = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.2f)
-
+    val width = remember { (120..240).random().dp }
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.background,
-        modifier = Modifier.padding(vertical = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 10.dp)
-                .widthIn(min = 100.dp, max = 240.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            val widthFactor = remember { (6..10).random() / 10f }
-
-            Box(
-                modifier = Modifier
-                    .height(22.dp)
-                    .fillMaxWidth(
-                        widthFactor
-                    )
-                    .background(skeletonColor, RoundedCornerShape(4.dp))
-            )
-        }
-    }
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        modifier = Modifier
+            .padding(vertical = 2.dp)
+            .size(width = width, height = 44.dp)
+    ) {}
 }
 
 private fun handleURL(

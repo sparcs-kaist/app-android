@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -43,7 +42,7 @@ fun ChatImageBubble(
 
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(24.dp))
+            .clip(MaterialTheme.shapes.large)
     ) {
         when (state) {
             is AsyncImagePainter.State.Success -> {
@@ -60,7 +59,7 @@ fun ChatImageBubble(
                 Box(
                     modifier = Modifier
                         .size(width = 200.dp, height = 300.dp)
-                        .background(MaterialTheme.colorScheme.background, RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surfaceContainerHighest)
                 )
             }
         }
