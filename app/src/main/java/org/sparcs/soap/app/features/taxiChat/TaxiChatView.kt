@@ -4,30 +4,22 @@ import android.content.res.Configuration
 import android.net.Uri
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -54,30 +46,25 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
+import org.sparcs.soap.app.features.taxiChat.components.CallTaxiDialog
+import org.sparcs.soap.app.features.taxiChat.components.SendPaymentDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
-import org.sparcs.soap.app.domain.helpers.TaxiDeepLinkHelper
-import org.sparcs.soap.app.domain.models.taxi.ChatRenderItem
 import org.sparcs.soap.app.domain.models.taxi.TaxiChat
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.domain.models.taxi.TaxiUser
 import org.sparcs.soap.app.features.fullscreenImage.FullscreenImageView
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.taxiChat.components.ChatBubblePositionResolver
-import org.sparcs.soap.app.features.taxiChat.components.ChatRenderItemBuilder
-import org.sparcs.soap.app.features.taxiChat.components.DefaultMessagePresentationPolicy
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatInputBar
 import org.sparcs.soap.app.features.taxiChat.components.TaxiChatViewNavigationBar
-import org.sparcs.soap.app.features.taxiChat.components.TaxiGroupingPolicy
 import org.sparcs.soap.app.features.taxiChat.components.TaxiSettlementAmountSheet
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModel
 import org.sparcs.soap.app.features.taxiChatList.TaxiChatListViewModelProtocol
 import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomList
 import org.sparcs.soap.app.features.taxiChatList.components.TaxiChatRoomListSkeleton
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.openUri
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
@@ -179,6 +166,7 @@ fun TaxiChatView(
 
     val mainScaffold = @Composable {
         Scaffold(
+            containerColor = MaterialTheme.colorScheme.surface,
             topBar = {
                 TaxiChatViewNavigationBar(
                     room = room,
@@ -201,10 +189,9 @@ fun TaxiChatView(
                 )
             },
             bottomBar = {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.background),
+                // Nothing to send while the chat failed to load.
+                if (state !is TaxiChatViewModel.ViewState.Error) Box(
+                    modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
@@ -271,81 +258,14 @@ fun TaxiChatView(
     }
 
     if (showCallTaxiAlert) {
-        AlertDialog(
-            onDismissRequest = { dismissCallTaxiAlert() },
-            title = { Text(stringResource(R.string.call_taxi)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(R.string.taxi_launch_info, room.source.title, room.destination.title))
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OutlinedButton(
-                        onClick = {
-                            val uri = TaxiDeepLinkHelper.getKakaoTUri(room.source, room.destination)
-                            context.openUri(uri, "com.kakao.taxi")
-                            dismissCallTaxiAlert()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.open_kakao_t)) }
-
-                    OutlinedButton(
-                        onClick = {
-                            val uberUri = TaxiDeepLinkHelper.getUberUri(room.source, room.destination)
-                            context.openUri(uberUri, "com.ubercab")
-                            dismissCallTaxiAlert()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.open_uber)) }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { dismissCallTaxiAlert() }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.background
-        )
+        CallTaxiDialog(room = room, onDismiss = ::dismissCallTaxiAlert)
     }
 
     if (showPayMoneyAlert) {
-        AlertDialog(
-            onDismissRequest = { dismissPayMoneyAlert() },
-            title = { Text(stringResource(R.string.send_payment)) },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(stringResource(R.string.payment_send_instructions))
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedButton(
-                        onClick = {
-                            val uri = TaxiDeepLinkHelper.getKakaoPayUri(context, viewModel.account)
-                            context.openUri(uri, "com.kakao.talk")
-                            dismissPayMoneyAlert()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.open_kakao_pay)) }
-                    OutlinedButton(
-                        onClick = {
-                            val uri = TaxiDeepLinkHelper.getTossUri(viewModel.account)
-                            context.openUri(uri, "viva.republica.toss")
-                            dismissPayMoneyAlert()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.open_toss)) }
-                    Button(
-                        onClick = {
-                            coroutineScope.launch { viewModel.commitPayment() }
-                            dismissPayMoneyAlert()
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    ) { Text(stringResource(R.string.already_sent)) }
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { dismissPayMoneyAlert() }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.background
+        SendPaymentDialog(
+            account = viewModel.account,
+            onAlreadySent = { coroutineScope.launch { viewModel.commitPayment() } },
+            onDismiss = ::dismissPayMoneyAlert
         )
     }
 
@@ -386,16 +306,7 @@ private fun TaxiChatPortraitLayout(
     ) { currentState ->
         when (currentState) {
             is TaxiChatViewModel.ViewState.Loading -> {
-                ChatCollectionView(
-                    items = PlaceholderItems,
-                    room = room,
-                    user = null,
-                    onImageClick = {},
-                    onCommitPayment = {},
-                    listState = rememberLazyListState(),
-                    scrollToBottomTrigger = 0,
-                    modifier = Modifier.alpha(0.5f)
-                )
+                ChatLoadingSkeleton()
             }
 
             is TaxiChatViewModel.ViewState.Loaded -> {
@@ -434,14 +345,6 @@ private fun TaxiChatPortraitLayout(
     }
 }
 
-private val PlaceholderItems: List<ChatRenderItem> by lazy {
-    val builder = ChatRenderItemBuilder(
-        policy = TaxiGroupingPolicy(),
-        positionResolver = ChatBubblePositionResolver(),
-        presentationPolicy = DefaultMessagePresentationPolicy()
-    )
-    builder.build(chats = TaxiChat.mockList().take(11), myUserID = null)
-}
 
 @Preview(showBackground = true, name = "Loading State")
 @Composable
