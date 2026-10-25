@@ -120,8 +120,9 @@ fun CommentInputBar(
     }
 }
 
+/** The filled send button of the comment and chat bars, with a spinner while sending. */
 @Composable
-private fun SendButton(
+internal fun SendButton(
     onClick: () -> Unit,
     enabled: Boolean,
     isSubmitting: Boolean,

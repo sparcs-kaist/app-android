@@ -5,9 +5,7 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,24 +14,22 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.PhotoLibrary
 import androidx.compose.material.icons.rounded.Payment
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,7 +40,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -52,6 +47,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.sparcs.soap.app.shared.views.contentViews.SendButton
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.UploadImageDecoder
@@ -99,12 +95,7 @@ fun TaxiChatInputBar(
             IconButton(onClick = { expanded = true }) {
                 Icon(Icons.Default.Add, contentDescription = "More")
             }
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                shape = RoundedCornerShape(16.dp)
-            ) {
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 DropdownMenuItem(
                     onClick = {
                         launcher.launch("image/*")
@@ -113,7 +104,6 @@ fun TaxiChatInputBar(
                     text = {
                         Text(
                             text = stringResource(R.string.photo_library),
-                            style = MaterialTheme.typography.titleMedium
                         )
                     },
                     leadingIcon = {
@@ -133,7 +123,6 @@ fun TaxiChatInputBar(
                     text = {
                         Text(
                             text = stringResource(R.string.request_settlement),
-                            style = MaterialTheme.typography.titleMedium
                         )
                     },
                     leadingIcon = {
@@ -153,7 +142,6 @@ fun TaxiChatInputBar(
                     text = {
                         Text(
                             text = stringResource(R.string.send_payment),
-                            style = MaterialTheme.typography.titleMedium
                         )
                     },
                     leadingIcon = {
@@ -168,105 +156,77 @@ fun TaxiChatInputBar(
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.surface)
-                .padding(horizontal = 12.dp, vertical = 8.dp)
-        ) {
-            if (selectedImage != null) {
-                Box {
+        if (selectedImage != null) {
+            // The picked photo takes the field's place until it is sent or removed.
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                shape = MaterialTheme.shapes.extraLarge,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(Modifier.padding(8.dp)) {
                     Image(
                         bitmap = selectedImage!!.asImageBitmap(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .size(100.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(MaterialTheme.shapes.large)
                     )
-                    IconButton(
+                    FilledTonalIconButton(
                         onClick = { selectedImage = null },
                         modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .background(Color.Black.copy(alpha = 0.3f), shape = CircleShape)
-                            .size(24.dp)
+                            .align(Alignment.TopStart)
+                            .padding(4.dp)
+                            .size(32.dp)
                     ) {
                         Icon(
                             Icons.Default.Close,
-                            contentDescription = "Remove Image",
-                            tint = Color.White
+                            contentDescription = stringResource(R.string.remove_image),
+                            modifier = Modifier.size(18.dp)
                         )
                     }
                 }
-            } else {
-                //Text input
-                BasicTextField(
-                    value = text,
-                    onValueChange = onTextChange,
-                    maxLines = 6,
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    decorationBox = { innerTextField ->
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(4.dp),
-                            contentAlignment = Alignment.CenterStart
-                        ) {
-                            if (text.isEmpty()) {
-                                val nickname =
-                                    taxiUser?.nickname ?: stringResource(R.string.unknown)
-                                Text(
-                                    text = stringResource(R.string.chat_as_user, nickname),
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    overflow = TextOverflow.Ellipsis,
-                                    maxLines = 1
-                                )
-                            }
-                            innerTextField()
-                        }
-                    }
-                )
             }
+        } else {
+            TextField(
+                value = text,
+                onValueChange = onTextChange,
+                placeholder = {
+                    Text(
+                        stringResource(R.string.chat_as_user, taxiUser?.nickname ?: stringResource(R.string.unknown)),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                maxLines = 6,
+                shape = MaterialTheme.shapes.extraLarge,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                ),
+                modifier = Modifier.weight(1f)
+            )
         }
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Send button
-        val isEnabled = text.isNotBlank() || selectedImage != null
-        Button(
-            onClick = {
-                if (selectedImage != null) {
-                    onSendImage(selectedImage!!)
-                    selectedImage = null
-                } else if (text.isNotBlank()) {
-                    onSendText(text)
-                    onTextChange("")
-                }
-            },
-            enabled = isEnabled,
-            shape = CircleShape,
-            contentPadding = PaddingValues(0.dp),
-            modifier = Modifier.size(45.dp)
-        ) {
-            if (isUploading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Send,
-                    contentDescription = "Send",
-                    modifier = Modifier.size(20.dp),
-                    tint = if (text.isNotBlank() || selectedImage != null) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primary
-                )
-            }
+        // Centered on a single-line field; stays at the bottom as the field grows.
+        Box(modifier = Modifier.padding(bottom = 4.dp)) {
+            SendButton(
+                onClick = {
+                    if (selectedImage != null) {
+                        onSendImage(selectedImage!!)
+                        selectedImage = null
+                    } else if (text.isNotBlank()) {
+                        onSendText(text)
+                        onTextChange("")
+                    }
+                },
+                enabled = (text.isNotBlank() || selectedImage != null) && !isUploading,
+                isSubmitting = isUploading
+            )
         }
     }
 }
