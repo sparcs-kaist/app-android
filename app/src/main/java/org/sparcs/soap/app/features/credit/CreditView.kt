@@ -37,7 +37,6 @@ import androidx.navigation.compose.rememberNavController
 import org.sparcs.soap.R
 import org.sparcs.soap.app.features.navigationBar.components.BackButton
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.isDark
 
@@ -173,10 +172,8 @@ private fun MemberIconCard(
 ) {
     Surface(
         shape = MaterialTheme.shapes.medium,
-        color = MaterialTheme.colorScheme.background,
-        modifier = Modifier
-            .padding(6.dp)
-            .glassBorder(shape = MaterialTheme.shapes.medium)
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        modifier = Modifier.padding(6.dp)
     ) {
         Row(
             modifier = Modifier
