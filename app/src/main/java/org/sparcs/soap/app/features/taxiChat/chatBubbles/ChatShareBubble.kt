@@ -1,14 +1,10 @@
 package org.sparcs.soap.app.features.taxiChat.chatBubbles
 
 import android.content.Intent
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
@@ -17,12 +13,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
@@ -30,6 +24,7 @@ import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.theme.ui.Theme
 
+/** The bot's prompt to invite others, with a share button. */
 @Composable
 fun ChatShareBubble(
     room: TaxiRoom,
@@ -44,21 +39,8 @@ fun ChatShareBubble(
         shareUrl
     )
 
-    Column(
-        modifier = Modifier
-            .background(
-                color = MaterialTheme.colorScheme.background,
-                shape = RoundedCornerShape(24.dp)
-            )
-            .padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        horizontalAlignment = Alignment.Start
-    ) {
-        Text(
-            text = stringResource(R.string.share_now_prompt),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+    ChatCard {
+        Text(text = stringResource(R.string.share_now_prompt), style = MaterialTheme.typography.bodyLarge)
         Button(
             onClick = {
                 val sendIntent = Intent().apply {
@@ -66,26 +48,16 @@ fun ChatShareBubble(
                     putExtra(Intent.EXTRA_TEXT, shareMessage)
                     type = "text/plain"
                 }
-
-                val shareIntent = Intent.createChooser(sendIntent, null)
-                context.startActivity(shareIntent)
+                context.startActivity(Intent.createChooser(sendIntent, null))
             },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            )
+            // Rounded rectangles nest inside the card's corners.
+            shape = MaterialTheme.shapes.medium,
+            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Icon(
-                imageVector = Icons.Filled.Share,
-                contentDescription = "Share",
-                tint = MaterialTheme.colorScheme.background
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = stringResource(R.string.share),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.background
-            )
+            Icon(Icons.Filled.Share, contentDescription = null, modifier = Modifier.size(ButtonDefaults.IconSize))
+            Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+            Text(stringResource(R.string.share))
         }
     }
 }
