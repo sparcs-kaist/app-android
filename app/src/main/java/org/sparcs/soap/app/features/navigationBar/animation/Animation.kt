@@ -11,7 +11,6 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -37,9 +36,10 @@ import kotlinx.coroutines.delay
 
 // Motion for NavHost destinations. Pushing slides the new screen in over the old one, which
 // shifts slightly the other way (parallax); popping is the exact reverse, so during a predictive
-// back gesture the top screen slides away with the finger. Switching between the main tabs uses
-// Material fade through. All specs are tweens so the navigation library can seek them while the
-// user drags the gesture.
+// back gesture the top screen slides away with the finger. Switching between the main tabs is a
+// quick fade through without fade through's scale-up, like Android's own apps; the scale read as a
+// bounce. All specs are tweens so the navigation library can seek them while the user drags the
+// gesture.
 
 private const val MOTION_DURATION = 300
 private const val FADE_OUT_DURATION = 90
@@ -59,8 +59,7 @@ private fun slideOut(forward: Boolean): ExitTransition =
     }
 
 private val fadeThroughIn: EnterTransition =
-    fadeIn(tween(MOTION_DURATION - FADE_OUT_DURATION, FADE_OUT_DURATION, LinearOutSlowInEasing)) +
-        scaleIn(tween(MOTION_DURATION - FADE_OUT_DURATION, FADE_OUT_DURATION, emphasized), initialScale = 0.92f)
+    fadeIn(tween(MOTION_DURATION - FADE_OUT_DURATION, FADE_OUT_DURATION, LinearOutSlowInEasing))
 
 private val fadeThroughOut: ExitTransition =
     fadeOut(tween(FADE_OUT_DURATION, easing = FastOutLinearInEasing))
