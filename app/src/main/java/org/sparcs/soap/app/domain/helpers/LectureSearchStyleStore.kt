@@ -11,8 +11,8 @@ import androidx.compose.ui.platform.LocalContext
 import org.sparcs.soap.app.domain.models.otl.LectureSearchStyle
 
 class LectureSearchStyleStore(context: Context) {
-    private val defaultStyle = if (context.resources.configuration.smallestScreenWidthDp >= 600)
-        LectureSearchStyle.Flexible else LectureSearchStyle.Fixed
+    // Flexible unless the user picked Fixed in settings.
+    private val defaultStyle = LectureSearchStyle.Flexible
     private val preferences = context.getSharedPreferences("timetable", Context.MODE_PRIVATE)
     var lectureSearchStyle: LectureSearchStyle
         get() = LectureSearchStyle.entries.firstOrNull { it.rawValue == preferences.getString(KEY, null) }
