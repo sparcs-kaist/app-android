@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ReportProblem
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
@@ -14,7 +13,6 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
-import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -41,7 +39,7 @@ fun <T : Any> SearchContent(
                     Column {
                         cell(item)
                         if (index != results.lastIndex) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+                            HorizontalDivider()
                         }
                     }
                 }
@@ -59,10 +57,7 @@ private fun Preview() {
             results = TaxiRoom.mockList(),
             key = { it.id },
             cell = {
-                TaxiRoomCell(
-                    room = it,
-                    onClick = {}
-                )
+                SearchTaxiRoomItem(room = it, onClick = {})
             }
         )
     }
