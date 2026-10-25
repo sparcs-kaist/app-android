@@ -74,7 +74,6 @@ import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.taxiRoomCell.components.TaxiParticipantsIndicator
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.downvote
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.app.theme.ui.upvote
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 
@@ -222,7 +221,7 @@ fun TaxiPreviewView(
 
                 Text(
                     text = room.title,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.weight(1f))

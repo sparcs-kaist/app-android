@@ -41,7 +41,6 @@ import org.sparcs.soap.app.shared.extensions.toDate
 import org.sparcs.soap.app.shared.extensions.toLocalDate
 import org.sparcs.soap.app.shared.extensions.toShortString
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.gray64
 import java.time.DayOfWeek
 import java.util.Date
 
@@ -82,7 +81,7 @@ fun WeekDaySelector(
             val boxColor = when (day?.dayOfWeek) {
                 DayOfWeek.SUNDAY -> Color(0xFFDA4A45)
                 DayOfWeek.SATURDAY -> Color(0xFF45A7DA)
-                else -> MaterialTheme.colorScheme.gray64
+                else -> MaterialTheme.colorScheme.onSurfaceVariant
             }
 
             Box(

@@ -18,14 +18,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.darkGray
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @Composable
 fun InfoRow(
     label: String,
     value: String,
-    labelColor: Color = MaterialTheme.colorScheme.grayBB,
+    labelColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     valueColor: Color = MaterialTheme.colorScheme.onSurface,
     trailingIcon: ImageVector? = null
 ) {
@@ -52,7 +50,7 @@ fun InfoRow(
                 Image(
                     imageVector = trailingIcon,
                     contentDescription = null,
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.darkGray),
+                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant),
                     modifier = Modifier.size(15.dp)
                 )
             }

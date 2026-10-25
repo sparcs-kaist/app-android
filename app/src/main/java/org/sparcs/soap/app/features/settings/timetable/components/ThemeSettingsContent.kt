@@ -31,7 +31,6 @@ import org.sparcs.soap.app.shared.extensions.analyticsScreen
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.TipView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,7 +116,7 @@ internal fun ThemeSettingsContent(
                     stringResource(R.string.theme_presets_note),
                     Modifier.padding(start = 8.dp, end = 8.dp, bottom = 12.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.grayBB
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             items(TimetableTheme.builtIn, key = { it.id }) { theme ->

@@ -20,7 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.gray64
 
 @Composable
 fun UnavailableView(
@@ -39,23 +38,23 @@ fun UnavailableView(
             imageVector = icon,
             contentDescription = "Unavailable",
             modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.gray64.copy(alpha = 0.5f)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.gray64.copy(alpha = 0.5f)
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
         Text(
             text = description,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.gray64.copy(alpha = 0.3f),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }

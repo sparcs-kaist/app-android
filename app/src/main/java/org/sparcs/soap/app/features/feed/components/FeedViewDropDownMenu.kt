@@ -50,10 +50,7 @@ fun FeedViewDropDownMenu(
 //                icon = Icons.Rounded.Notifications
 //            ) { onClickNotification() }
 //
-//            HorizontalDivider(
-//                color = MaterialTheme.colorScheme.lightGray0,
-//                modifier = Modifier.padding(4.dp)
-//            ) TODO: 알림 기능
+//            HorizontalDivider() TODO: 알림 기능
 
             DropDownItems(
                 text = stringResource(R.string.settings),

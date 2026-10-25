@@ -103,25 +103,10 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun ColorScheme.isDark() = this === DarkColorScheme
 
-val ColorScheme.lightGray0: Color
-    @Composable
-    get() = if (isDark()) theme_dark_lightGray0 else theme_light_lightGray0
-
-val ColorScheme.gray64: Color
-    @Composable
-    get() = if (isDark()) theme_dark_gray64 else theme_light_gray64
-
+/** The default timetable grid line colour, shared with the timetable widget. */
 val ColorScheme.grayBB: Color
     @Composable
     get() = if (isDark()) theme_dark_grayBB else theme_light_grayBB
-
-val ColorScheme.grayF8: Color
-    @Composable
-    get() = if (isDark()) theme_dark_grayF8 else theme_light_grayF8
-
-val ColorScheme.darkGray: Color
-    @Composable
-    get() = if (isDark()) theme_dark_darkGray else theme_light_darkGray
 
 
 @Composable

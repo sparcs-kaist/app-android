@@ -87,7 +87,6 @@ import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.shared.views.contentViews.UnavailableView
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.lightGray0
 import org.sparcs.soap.buddyPreviewSupport.feed.PreviewFeedViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -324,10 +323,7 @@ private fun FeedPostContent(
                                 viewModel = viewModel,
                             )
                             if (commentItems.getOrNull(index + 1)?.parentCommentID == null) {
-                                HorizontalDivider(
-                                    color = MaterialTheme.colorScheme.lightGray0,
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                )
+                                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                             }
                         }
                     }

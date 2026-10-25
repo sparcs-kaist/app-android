@@ -81,7 +81,6 @@ import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostComposeViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @Composable
 fun FeedPostComposeView(
@@ -174,7 +173,7 @@ fun FeedPostComposeView(
                         if (viewModel.text.isEmpty())
                             Text(
                                 text = stringResource(R.string.enter_the_description),
-                                color = MaterialTheme.colorScheme.grayBB,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.bodyMedium
                             )
                         inner()

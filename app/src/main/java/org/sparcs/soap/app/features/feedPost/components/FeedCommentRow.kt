@@ -73,8 +73,6 @@ import org.sparcs.soap.app.shared.mocks.feed.mock
 import org.sparcs.soap.app.shared.viewModelMocks.feed.MockFeedPostViewModel
 import org.sparcs.soap.app.shared.views.contentViews.PostTranslationSheet
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.darkGray
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @Composable
 fun FeedCommentRow(
@@ -234,7 +232,7 @@ private fun Header(
 
             Text(
                 text = comment.createdAt.timeAgoDisplay(),
-                color = MaterialTheme.colorScheme.grayBB,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodySmall,
                 maxLines = 1,
                 softWrap = false
@@ -245,7 +243,7 @@ private fun Header(
             Icon(
                 imageVector = Icons.Filled.ExpandMore,
                 contentDescription = stringResource(R.string.expand),
-                tint = MaterialTheme.colorScheme.darkGray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .size(20.dp)
                     .clickable {
@@ -300,7 +298,7 @@ private fun Content(comment: FeedComment) {
     val text =
         if (comment.isDeleted) stringResource(R.string.this_comment_has_been_deleted) else comment.content
     val color =
-        if (comment.isDeleted) MaterialTheme.colorScheme.grayBB.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
+        if (comment.isDeleted) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface
     val scope = rememberCoroutineScope()
 
     var expanded by remember { mutableStateOf(false) }
@@ -309,7 +307,7 @@ private fun Content(comment: FeedComment) {
     var textLayoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
     val moreText = stringResource(R.string.more)
-    val moreColor = MaterialTheme.colorScheme.grayBB
+    val moreColor = MaterialTheme.colorScheme.onSurfaceVariant
     val linkColor = MaterialTheme.colorScheme.primary
 
     val displayText = remember(text, expanded, isOverflowing, textLayoutResult) {

@@ -87,7 +87,6 @@ import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostComposeViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 
 @Composable
 fun PostComposeView(
@@ -196,7 +195,7 @@ fun PostComposeView(
                         if (viewModel.title.isEmpty())
                             Text(
                                 text = stringResource(R.string.enter_the_title),
-                                color = MaterialTheme.colorScheme.grayBB,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 style = MaterialTheme.typography.titleLarge
                             )
                         inner()
@@ -232,7 +231,7 @@ fun PostComposeView(
                             if (contentField.text.isEmpty())
                                 Text(
                                     text = stringResource(R.string.enter_the_description),
-                                    color = MaterialTheme.colorScheme.grayBB,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             inner()
@@ -378,7 +377,7 @@ fun TermsOfUseButton() {
         Text(
             text = stringResource(R.string.terms_of_use),
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.grayBB,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textDecoration = TextDecoration.Underline
         )
     }
