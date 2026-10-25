@@ -20,6 +20,8 @@
     <string name="submit">Done</string>
     <string name="terms_of_use">terms of use</string>
     <string name="anonymous">anonymous</string>
+    <string name="post_option_anonymous">Anonymous</string>
+    <string name="post_options">Post options</string>
     <string name="nsfw">NSFW</string>
     <string name="political">Political</string>
     <string name="enter_the_title">Please enter the title</string>

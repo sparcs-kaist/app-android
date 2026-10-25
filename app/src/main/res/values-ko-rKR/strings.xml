@@ -18,6 +18,8 @@
     <string name="submit">올리기</string>
     <string name="terms_of_use">이용약관</string>
     <string name="anonymous">익명</string>
+    <string name="post_option_anonymous">익명</string>
+    <string name="post_options">게시글 옵션</string>
     <string name="nsfw">성인</string>
     <string name="political">정치</string>
     <string name="enter_the_title">제목을 입력해 주세요.</string>

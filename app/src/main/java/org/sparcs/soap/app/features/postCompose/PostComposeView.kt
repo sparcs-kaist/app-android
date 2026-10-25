@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -30,10 +29,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.outlined.PhotoLibrary
-import androidx.compose.material.icons.rounded.MoreHoriz
+import androidx.compose.material.icons.outlined.AddPhotoAlternate
+import androidx.compose.material.icons.outlined.Tune
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -41,7 +40,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -64,6 +62,11 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -80,7 +83,6 @@ import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.features.postCompose.components.PostComposeNavigationBar
 import org.sparcs.soap.app.features.postCompose.components.TopicSelector
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.noRippleClickable
 import org.sparcs.soap.app.shared.viewModelMocks.ara.MockPostComposeViewModel
 import org.sparcs.soap.app.shared.views.contentViews.GlobalAlertDialog
@@ -155,7 +157,8 @@ fun PostComposeView(
         },
         modifier = Modifier.analyticsScreen(name = "Ara Post Compose")
     ) { innerPadding ->
-        Box(
+        // The text scrolls above a toolbar that sits on the keyboard, like the feed compose screen.
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -164,7 +167,8 @@ fun PostComposeView(
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(16.dp)
                     .verticalScroll(scrollState)
             ) {
@@ -278,10 +282,9 @@ fun PostComposeView(
                         TermsOfUseButton()
                     }
                 }
-                Spacer(modifier = Modifier.height(80.dp))
             }
 
-            PostOptionsRow(
+            PostComposeToolbar(
                 writeAsAnonymous = viewModel.writeAsAnonymous,
                 onAnonymousChange = {
                     viewModel.writeAsAnonymous = !viewModel.writeAsAnonymous
@@ -291,10 +294,7 @@ fun PostComposeView(
                 isPolitical = viewModel.isPolitical,
                 onPoliticalChange = { viewModel.isPolitical = !viewModel.isPolitical },
                 isUploading = isUploading,
-                onPhotoButton = { showPhotosPicker = true },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 16.dp)
+                onPhotoButton = { showPhotosPicker = true }
             )
         }
     }
@@ -310,8 +310,9 @@ fun PostComposeView(
     )
 }
 
+/** Add photo, and one menu for the post options. */
 @Composable
-fun PostOptionsRow(
+private fun PostComposeToolbar(
     writeAsAnonymous: Boolean,
     onAnonymousChange: () -> Unit,
     isNSFW: Boolean,
@@ -320,87 +321,49 @@ fun PostOptionsRow(
     onPoliticalChange: () -> Unit,
     isUploading: Boolean,
     onPhotoButton: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Surface(
-        color = MaterialTheme.colorScheme.surface,
-        modifier = modifier
-            .glassBorder(shape = RoundedCornerShape(50.dp))
-    ) {
+    Column(Modifier.fillMaxWidth()) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(4.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 4.dp)
         ) {
-            IconButton(
-                onClick = onPhotoButton,
-                enabled = !isUploading
-            ) {
+            IconButton(onClick = onPhotoButton, enabled = !isUploading) {
                 Icon(
-                    imageVector = Icons.Outlined.PhotoLibrary,
-                    contentDescription = "add Photo",
-                    modifier = Modifier.size(28.dp)
+                    imageVector = Icons.Outlined.AddPhotoAlternate,
+                    contentDescription = stringResource(R.string.add_photo)
                 )
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
             Box {
                 IconButton(onClick = { expanded = true }) {
                     Icon(
-                        imageVector = Icons.Rounded.MoreHoriz,
-                        contentDescription = "More Options",
-                        modifier = Modifier.size(28.dp)
+                        imageVector = Icons.Outlined.Tune,
+                        contentDescription = stringResource(R.string.post_options)
                     )
                 }
-
-                DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.background),
-                    shape = RoundedCornerShape(16.dp)
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.political)) },
-                        trailingIcon = {
-                            if (isPolitical) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Check Political"
-                                )
-                            }
-                        },
-                        onClick = onPoliticalChange
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.nsfw)) },
-                        trailingIcon = {
-                            if (isNSFW) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Check NSFW"
-                                )
-                            }
-                        },
-                        onClick = onNSFWChange
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.anonymous)) },
-                        trailingIcon = {
-                            if (writeAsAnonymous) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Check Anonymous"
-                                )
-                            }
-                        },
-                        onClick = onAnonymousChange
-                    )
+                // Stays open while options are toggled, since they're independent of each other.
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    PostOptionItem(stringResource(R.string.post_option_anonymous), writeAsAnonymous, onAnonymousChange)
+                    PostOptionItem(stringResource(R.string.nsfw), isNSFW, onNSFWChange)
+                    PostOptionItem(stringResource(R.string.political), isPolitical, onPoliticalChange)
                 }
             }
         }
     }
+}
+
+@Composable
+private fun PostOptionItem(label: String, checked: Boolean, onToggle: () -> Unit) {
+    DropdownMenuItem(
+        text = { Text(label) },
+        trailingIcon = { Checkbox(checked = checked, onCheckedChange = null) },
+        onClick = onToggle,
+        modifier = Modifier.semantics { role = Role.Checkbox; toggleableState = ToggleableState(checked) }
+    )
 }
 
 @Composable
