@@ -21,11 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.LocalTaxi
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -46,19 +47,20 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.sparcs.soap.app.features.lectureDetail.components.SkeletonLine
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
@@ -75,7 +77,6 @@ import org.sparcs.soap.app.features.taxiPreview.TaxiPreviewViewModelProtocol
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationPicker
 import org.sparcs.soap.app.shared.extensions.PullToRefreshHapticHandler
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.extensions.hideTopBarOnScroll
 import org.sparcs.soap.app.shared.extensions.topAppBarScrollBehavior
 import org.sparcs.soap.app.shared.extensions.toLocalDate
@@ -85,7 +86,6 @@ import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomCell
 import org.sparcs.soap.app.shared.views.taxiRoomCell.TaxiRoomSkeletonCell
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiListViewModel
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiPreviewViewModel
 import java.util.Date
@@ -140,8 +140,19 @@ fun TaxiListView(
         topBar = {
             TaxiListNavigationBar(
                 navController = navController,
-                isButtonEnabled = true,
                 scrollBehavior = topBarScrollBehavior
+            )
+        },
+        floatingActionButton = {
+            // Shows its label at the top of the list and shrinks to the icon once scrolled.
+            val newRoom = stringResource(R.string.new_room)
+            ExtendedFloatingActionButton(
+                onClick = {
+                    navController.navigate(Channel.TaxiRoomCreation.name) { launchSingleTop = true }
+                },
+                expanded = scrollState.value == 0,
+                icon = { Icon(Icons.Filled.Add, contentDescription = if (scrollState.value == 0) null else newRoom) },
+                text = { Text(newRoom) }
             )
         },
         modifier = Modifier
@@ -211,20 +222,6 @@ fun TaxiListView(
                     viewModel.roomId = null
                 },
                 sheetState = sheetState,
-                dragHandle = {
-                    Column {
-                        Box(
-                            modifier = Modifier
-                                .width(30.dp)
-                                .padding(top = 4.dp, bottom = 4.dp)
-                                .height(4.dp)
-                                .align(Alignment.CenterHorizontally)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(MaterialTheme.colorScheme.grayBB)
-                        )
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.surface
             ) {
                 TaxiPreviewView(
                     room = room,
@@ -310,16 +307,12 @@ private fun TaxiPortraitLayout(
             .verticalScroll(scrollState)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)
         ) {
             TaxiFilterCard(viewModel, locations, favoriteRoutes)
-            Spacer(modifier = Modifier.height(16.dp))
             TaxiWeekSelectorCard(viewModel, selectedDate, haptic)
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
 
         TaxiResultContent(
             uiState = uiState,
@@ -329,6 +322,8 @@ private fun TaxiPortraitLayout(
             onRoomSelected = onRoomSelected,
             navController = navController
         )
+        // Room below the last ride for the floating New Room button.
+        Spacer(modifier = Modifier.height(88.dp))
     }
 }
 
@@ -338,25 +333,17 @@ private fun TaxiFilterCard(
     locations: List<TaxiLocation>,
     favoriteRoutes: List<TaxiFavoriteRoute>,
 ) {
-    Card(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
-    ) {
-        TaxiDestinationPicker(
-            source = viewModel.source,
-            destination = viewModel.destination,
-            locations = locations,
-            onSourceChange = { viewModel.source = it },
-            onDestinationChange = { viewModel.destination = it },
-            favoriteRoutes = favoriteRoutes,
-            onFavoriteSelect = { viewModel.selectFavoriteRoute(it) },
-            onFavoriteDelete = { viewModel.deleteFavoriteRoute(it) },
-            onFavoriteAdd = { viewModel.addFavoriteRoute() }
-        )
-    }
+    TaxiDestinationPicker(
+        source = viewModel.source,
+        destination = viewModel.destination,
+        locations = locations,
+        onSourceChange = { viewModel.source = it },
+        onDestinationChange = { viewModel.destination = it },
+        favoriteRoutes = favoriteRoutes,
+        onFavoriteSelect = { viewModel.selectFavoriteRoute(it) },
+        onFavoriteDelete = { viewModel.deleteFavoriteRoute(it) },
+        onFavoriteAdd = { viewModel.addFavoriteRoute() }
+    )
 }
 
 @Composable
@@ -365,15 +352,7 @@ private fun TaxiWeekSelectorCard(
     selectedDate: Date?,
     haptic: HapticFeedback,
 ) {
-    Card(
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.background
-        ),
-        shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
-            .fillMaxWidth()
-            .glassBorder(shape = RoundedCornerShape(16.dp))
-    ) {
+    Card(modifier = Modifier.fillMaxWidth()) {
         Box(modifier = Modifier.padding(4.dp)) {
             WeekDaySelector(
                 week = viewModel.week,
@@ -437,26 +416,16 @@ private fun TaxiResultContent(
 
 @Composable
 private fun LoadingView() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 8.dp),
-        verticalArrangement = Arrangement.Center
-    ) {
-        repeat(2) {
-            Box(
-                modifier = Modifier
-                    .padding(start = 12.dp, top = 12.dp)
-                    .width(30.dp)
-                    .height(15.dp)
-                    .background(
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        shape = RoundedCornerShape(4.dp)
-                    )
-            )
-            repeat((1..2).random()) {
-                TaxiRoomSkeletonCell()
-                Spacer(Modifier.padding(4.dp))
+    Column(Modifier.fillMaxWidth()) {
+        repeat(2) { section ->
+            Box(Modifier.padding(start = 16.dp, top = 24.dp, bottom = 8.dp)) {
+                SkeletonLine(MaterialTheme.typography.titleSmall, Modifier.width(72.dp))
+            }
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                repeat(if (section == 0) 2 else 1) { TaxiRoomSkeletonCell() }
             }
         }
     }
@@ -506,28 +475,27 @@ private fun LoadedView(
                 )
 
                 if (roomsForDay.isNotEmpty()) {
-                    Column(
-                        modifier = Modifier.padding(vertical = 12.dp, horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.Bottom
-                        ) {
-                            Text(
-                                text = day.weekdaySymbol(),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.weight(1f))
-                        }
+                    Column {
+                        Text(
+                            text = day.weekdaySymbol(),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .padding(start = 16.dp, end = 16.dp, top = 24.dp, bottom = 8.dp)
+                                .semantics { heading() }
+                        )
 
-                        roomsForDay.forEach { room ->
-                            key(room.id) {
-                                TaxiRoomCell(
-                                    room = room,
-                                    onClick = { onRoomSelected(room) }
-                                )
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        ) {
+                            roomsForDay.forEach { room ->
+                                key(room.id) {
+                                    TaxiRoomCell(
+                                        room = room,
+                                        onClick = { onRoomSelected(room) }
+                                    )
+                                }
                             }
                         }
                     }
@@ -587,8 +555,7 @@ private fun EmptyView(navController: NavController) {
             onClick = {
                 navController.navigate(Channel.TaxiRoomCreation.name)
             },
-            modifier = Modifier.fillMaxWidth(0.6f),
-            shape = RoundedCornerShape(12.dp)
+            modifier = Modifier.fillMaxWidth(0.6f)
         ) {
             Text(stringResource(R.string.create_a_new_group))
         }
