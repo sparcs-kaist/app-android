@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -55,13 +56,13 @@ import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import com.kakao.vectormap.KakaoMap
 import com.kakao.vectormap.LatLng
+import org.sparcs.soap.app.features.taxiPreview.components.DepartureTimeRow
 import kotlinx.coroutines.launch
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.taxi.TaxiRoomBlockStatus
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.Channel
-import org.sparcs.soap.app.features.taxiPreview.components.InfoRow
 import org.sparcs.soap.app.features.taxiPreview.components.RouteHeaderView
 import org.sparcs.soap.app.features.taxiPreview.components.TaxiCarrierIndicator
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
@@ -241,12 +242,9 @@ fun TaxiPreviewView(
                 destination = room.destination.title.localized()
             )
 
-            Spacer(Modifier.padding(4.dp))
+            HorizontalDivider(Modifier.padding(vertical = 12.dp))
 
-            InfoRow(
-                label = stringResource(R.string.depart_at),
-                value = room.departAt.formattedString()
-            )
+            DepartureTimeRow(room.departAt)
 
             Spacer(Modifier.padding(8.dp))
 
