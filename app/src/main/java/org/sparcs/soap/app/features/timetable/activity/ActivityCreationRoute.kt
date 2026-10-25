@@ -1,7 +1,6 @@
 package org.sparcs.soap.app.features.timetable.activity
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -11,8 +10,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,10 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import org.sparcs.soap.app.shared.views.contentViews.ErrorView
 import kotlinx.coroutines.CancellationException
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.models.otl.Timetable
@@ -58,20 +55,20 @@ fun ActivityCreationRoute(
     val selectedName by model.timetableName.collectAsState()
     val name by rememberSaveable { mutableStateOf(selectedName) }
     var table by remember { mutableStateOf(selected?.takeIf { it.id == timetableID.toString() }) }
-    var failed by remember { mutableStateOf(false) }
+    var loadError by remember { mutableStateOf<Exception?>(null) }
     var retry by remember { mutableIntStateOf(0) }
     val update: (Timetable) -> Unit = { table = it }
     val tipStore = LocalTipStore.current
     LaunchedEffect(Unit) { if (activityID == null) tipStore?.donate(TipEvent.ActivityCreationOpened) }
     LaunchedEffect(timetableID, retry) {
         if (table == null) {
-            failed = false
+            loadError = null
             try {
                 update(model.refreshActivityTable(timetableID))
             } catch (e: CancellationException) {
                 throw e
-            } catch (_: Exception) {
-                failed = true
+            } catch (e: Exception) {
+                loadError = e
             }
         }
     }
@@ -100,19 +97,20 @@ fun ActivityCreationRoute(
                         }
                     })
         }) { padding ->
-            Column(
+            Box(
                 Modifier
                     .fillMaxSize()
-                    .padding(padding)
-                    .padding(24.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(padding),
+                contentAlignment = Alignment.Center
             ) {
-                if (failed || current != null) {
-                    Text(stringResource(R.string.activity_load_error))
-                    TextButton(onClick = {
-                        table = null; retry++
-                    }) { Text(stringResource(R.string.activity_refresh)) }
+                // Loaded, but the activity being edited is gone: treat it like a failed load.
+                val error = loadError ?: if (current != null) IllegalStateException("Activity not found") else null
+                if (error != null) {
+                    ErrorView(
+                        error = error,
+                        defaultMessageResId = R.string.activity_load_error,
+                        onRetry = { table = null; retry++ }
+                    )
                 } else CircularProgressIndicator()
             }
         }
