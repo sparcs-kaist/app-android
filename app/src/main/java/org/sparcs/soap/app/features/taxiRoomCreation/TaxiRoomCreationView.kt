@@ -1,20 +1,15 @@
 package org.sparcs.soap.app.features.taxiRoomCreation
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -45,11 +39,9 @@ import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDepartureTim
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiDestinationPicker
 import org.sparcs.soap.app.features.taxiRoomCreation.components.TaxiRoomCreationNavigationBar
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
-import org.sparcs.soap.app.shared.extensions.glassBorder
 import org.sparcs.soap.app.shared.mocks.taxi.mockList
 import org.sparcs.soap.app.shared.viewModelMocks.taxi.MockTaxiRoomCreationViewModel
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.grayBB
 import org.sparcs.soap.buddyPreviewSupport.taxi.PreviewTaxiListViewModel
 import java.util.Date
 
@@ -75,6 +67,7 @@ fun TaxiRoomCreationView(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             TaxiRoomCreationNavigationBar(
                 onDismiss = {
@@ -95,133 +88,57 @@ fun TaxiRoomCreationView(
     ) { innerPadding ->
 
         Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.surface)
                 .padding(innerPadding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
+                .padding(16.dp)
         ) {
-            ElevatedCard(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
-            ) {
-                TaxiDestinationPicker(
-                    source = taxiListViewModel.source,
-                    destination = taxiListViewModel.destination,
-                    locations = locations,
-                    onSourceChange = { newSource ->
-                        taxiListViewModel.source = newSource
-                    },
-                    onDestinationChange = { newDestination ->
-                        taxiListViewModel.destination = newDestination
-                    },
-                    favoriteRoutes = favoriteRoutes,
-                    onFavoriteSelect = { taxiListViewModel.selectFavoriteRoute(it) },
-                    onFavoriteDelete = { taxiListViewModel.deleteFavoriteRoute(it) },
-                    onFavoriteAdd = { taxiListViewModel.addFavoriteRoute() }
-                )
-            }
-
-            Spacer(Modifier.padding(16.dp))
-
-            Text(
-                text = stringResource(R.string.title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = 8.dp, bottom = 8.dp)
+            TaxiDestinationPicker(
+                source = taxiListViewModel.source,
+                destination = taxiListViewModel.destination,
+                locations = locations,
+                onSourceChange = { taxiListViewModel.source = it },
+                onDestinationChange = { taxiListViewModel.destination = it },
+                favoriteRoutes = favoriteRoutes,
+                onFavoriteSelect = { taxiListViewModel.selectFavoriteRoute(it) },
+                onFavoriteDelete = { taxiListViewModel.deleteFavoriteRoute(it) },
+                onFavoriteAdd = { taxiListViewModel.addFavoriteRoute() }
             )
 
-            Card(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
-            ) {
-                BasicTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    decorationBox = { innerTextField ->
-                        if (title.isEmpty()) {
-                            Text(
-                                text = randomRoomName,
-                                color = MaterialTheme.colorScheme.grayBB,
-                                style = MaterialTheme.typography.bodyLarge
-                            )
-                        }
-                        innerTextField()
-                    }
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text(stringResource(R.string.title)) },
+                placeholder = { Text(randomRoomName) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            TaxiDepartureTimePicker(
+                departureTime = taxiListViewModel.roomDepartureTime,
+                onDepartureTimeChange = { taxiListViewModel.roomDepartureTime = it }
+            )
+
+            TaxiCapacityPicker(
+                capacity = taxiListViewModel.roomCapacity,
+                onCapacityChange = { taxiListViewModel.roomCapacity = it }
+            )
+
+            TaxiCarrierToggleButton(
+                hasCarrier = taxiListViewModel.roomHasCarrier,
+                onToggle = { taxiListViewModel.roomHasCarrier = it }
+            )
+
+            if (!isEnabled && validationMessage != null) {
+                Text(
+                    text = stringResource(validationMessage),
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
-            }
-
-            Spacer(Modifier.padding(16.dp))
-
-            Card(
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.glassBorder(shape = RoundedCornerShape(16.dp))
-            ) {
-                Column(Modifier.padding(16.dp)) {
-                    TaxiDepartureTimePicker(
-                        departureTime = taxiListViewModel.roomDepartureTime,
-                        onDepartureTimeChange = { departureTime ->
-                            taxiListViewModel.roomDepartureTime = departureTime
-                        }
-                    )
-
-                    HorizontalDivider(Modifier.padding(vertical = 16.dp))
-
-                    TaxiCapacityPicker(
-                        capacity = taxiListViewModel.roomCapacity,
-                        onCapacityChange = { capacity ->
-                            taxiListViewModel.roomCapacity = capacity
-                        }
-                    )
-
-                    HorizontalDivider(Modifier.padding(vertical = 16.dp))
-
-                    TaxiCarrierToggleButton(
-                        hasCarrier = taxiListViewModel.roomHasCarrier,
-                        onToggle = { newValue ->
-                            taxiListViewModel.roomHasCarrier = newValue
-                        }
-                    )
-                }
-            }
-
-            Spacer(Modifier.padding(16.dp))
-
-            if(!isEnabled && validationMessage !== null) {
-                ElevatedCard(
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    elevation = CardDefaults.elevatedCardElevation(
-                        defaultElevation = 1.dp
-                    )
-                ) {
-                    Text(
-                        text = stringResource(validationMessage),
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                }
             }
         }
     }

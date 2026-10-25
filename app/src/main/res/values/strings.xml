@@ -131,6 +131,9 @@
     <string name="no_settlement">No settlement</string>
     <string name="nickname">Nickname</string>
     <string name="date">Date</string>
+    <string name="time">Time</string>
+    <string name="hour">Hour</string>
+    <string name="minute">Minute</string>
     <string name="report_reason">Reason</string>
     <string name="taxi_reports">Taxi Reports</string>
     <string name="no_reports">No Reports</string>

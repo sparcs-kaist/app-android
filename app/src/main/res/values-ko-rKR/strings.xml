@@ -115,6 +115,9 @@
     <string name="no_settlement">송금하지 않음</string>
     <string name="nickname">닉네임</string>
     <string name="date">날짜</string>
+    <string name="time">시간</string>
+    <string name="hour">시</string>
+    <string name="minute">분</string>
     <string name="report_reason">신고 사유</string>
     <string name="taxi_reports">신고 내역</string>
     <string name="no_reports">신고 내역이 없습니다.</string>
