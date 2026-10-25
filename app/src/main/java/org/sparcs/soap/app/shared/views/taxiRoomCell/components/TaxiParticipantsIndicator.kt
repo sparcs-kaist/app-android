@@ -36,10 +36,10 @@ fun TaxiParticipantsIndicator(
     TaxiTonalLabel("$participants/$capacity", container, content, icon = Icons.Outlined.Group)
 }
 
-/** A small pill with optional icon, in a container colour and its matching content colour. */
+/** A small rounded label with optional icon, in a container colour and its matching content colour. */
 @Composable
 internal fun TaxiTonalLabel(text: String, container: Color, content: Color, icon: ImageVector? = null) {
-    Surface(shape = CircleShape, color = container, contentColor = content) {
+    Surface(shape = MaterialTheme.shapes.small, color = container, contentColor = content) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
