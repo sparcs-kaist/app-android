@@ -56,7 +56,10 @@ fun MessageView(
     var showPopover by remember { mutableStateOf(false) }
 
     Row(
-        modifier = modifier.fillMaxWidth(),
+        // Bubbles stop short of the far edge, so it is clear whose message they are.
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = if (sender.isMine) BUBBLE_EDGE_GAP else 0.dp, end = if (sender.isMine) 0.dp else BUBBLE_EDGE_GAP),
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = if (sender.isMine) Arrangement.End else Arrangement.Start
     ) {
@@ -79,7 +82,9 @@ fun MessageView(
         }
 
         Column(
-            modifier = Modifier.widthIn(max = 350.dp),
+            modifier = Modifier
+                .weight(1f, fill = false)
+                .widthIn(max = 320.dp),
             horizontalAlignment = if (sender.isMine) Alignment.End else Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -140,12 +145,14 @@ fun MessageView(
                         time = chat.time,
                         alignment = Alignment.Start
                     )
-                    Spacer(modifier = Modifier.widthIn(min = 40.dp))
                 }
             }
         }
     }
 }
+
+/** The least room left between a bubble and the far edge of the screen. */
+private val BUBBLE_EDGE_GAP = 56.dp
 
 @Composable
 private fun AuthorNamePlace(sender: SenderInfo) {
