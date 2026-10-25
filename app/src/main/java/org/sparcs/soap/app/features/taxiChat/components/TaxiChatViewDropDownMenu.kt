@@ -1,37 +1,26 @@
 package org.sparcs.soap.app.features.taxiChat.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Logout
 import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.WorkOutline
+import androidx.compose.material.icons.outlined.Group
+import androidx.compose.material.icons.outlined.LocalTaxi
+import androidx.compose.material.icons.outlined.Luggage
+import androidx.compose.material.icons.outlined.Report
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.rounded.Group
 import androidx.compose.material.icons.rounded.LocalTaxi
-import androidx.compose.material.icons.rounded.ReportProblem
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -39,17 +28,21 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
@@ -57,12 +50,12 @@ import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.theme.ui.Theme
-import org.sparcs.soap.app.theme.ui.darkGray
-import org.sparcs.soap.app.theme.ui.gray64
-import org.sparcs.soap.app.theme.ui.grayBB
-import org.sparcs.soap.app.theme.ui.lightGray0
 
 
+/**
+ * The chat's overflow menu: share, call a taxi and report; the departure time and participants;
+ * a switch for bringing luggage; and leaving the room, after a confirmation.
+ */
 @Composable
 fun TaxiChatViewDropDownMenu(
     room: TaxiRoom,
@@ -84,29 +77,17 @@ fun TaxiChatViewDropDownMenu(
         )
     }
 
-    DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false },
-        modifier = Modifier.background(MaterialTheme.colorScheme.background),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Column {
-            TopDropDownItems(
-                onClickShare = { onClickShare() },
-                onClickCallTaxi = { onClickCallTaxi() },
-                onClickReport = { onClickReport() },
-                isReportAvailable = room.participants.size > 1
-            )
-            MiddleDropDownItems(
-                room = room,
-                isMineCarrier = isMineCarrier,
-                onCarrierToggle = onCarrierToggle
-            )
-            BottomDropDownItems(
-                onClickLeave = { showLeaveDialog = true },
-                isLeaveAvailable = isLeaveAvailable
-            )
-        }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        TaxiChatMenuItems(
+            room = room,
+            isMineCarrier = isMineCarrier,
+            onClickShare = { expanded = false; onClickShare() },
+            onClickCallTaxi = { expanded = false; onClickCallTaxi() },
+            onClickReport = { expanded = false; onClickReport() },
+            onClickLeave = { expanded = false; showLeaveDialog = true },
+            onCarrierToggle = onCarrierToggle,
+            isLeaveAvailable = isLeaveAvailable
+        )
     }
 
     if (showLeaveDialog) {
@@ -115,280 +96,113 @@ fun TaxiChatViewDropDownMenu(
             title = { Text(stringResource(R.string.leave_room_confirmation)) },
             text = { Text(stringResource(R.string.leave_room_warning)) },
             confirmButton = {
-                Button(
+                TextButton(
                     onClick = {
-                    showLeaveDialog = false
-                    onClickLeave()
-                },
-                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.lightGray0)
-                ) {
-                    Text(
-                        text= stringResource(R.string.yes),
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                }
+                        showLeaveDialog = false
+                        onClickLeave()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) { Text(stringResource(R.string.leave)) }
             },
             dismissButton = {
-                Button(
-                    onClick = { showLeaveDialog = false },
-                    colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.primary)
-                    ) {
-                    Text(
-                        text = stringResource(R.string.no),
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            },
-            containerColor = MaterialTheme.colorScheme.background
+                TextButton(onClick = { showLeaveDialog = false }) { Text(stringResource(R.string.cancel)) }
+            }
         )
     }
 }
 
 @Composable
-private fun TopDropDownItems(
+private fun TaxiChatMenuItems(
+    room: TaxiRoom,
+    isMineCarrier: Boolean,
     onClickShare: () -> Unit,
     onClickCallTaxi: () -> Unit,
     onClickReport: () -> Unit,
-    isReportAvailable: Boolean
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        IconWithText(
-            icon = Icons.Rounded.Share,
-            text = stringResource(R.string.share),
-            onClick = { onClickShare() }
-        )
-        IconWithText(
-            icon = Icons.Rounded.LocalTaxi,
-            text = stringResource(R.string.call_taxi),
-            onClick = { onClickCallTaxi() }
-        )
-        IconWithText(
-            icon = Icons.Rounded.ReportProblem,
-            text = stringResource(R.string.report),
-            onClick = { onClickReport() },
-            isEnabled = isReportAvailable
-        )
-    }
-    HorizontalDivider(
-        color = MaterialTheme.colorScheme.lightGray0,
-        modifier = Modifier.padding(4.dp)
-    )
-}
-
-@Composable
-private fun MiddleDropDownItems(
-    room: TaxiRoom,
-    isMineCarrier: Boolean,
-    onCarrierToggle: (Boolean) -> Unit
+    onClickLeave: () -> Unit,
+    onCarrierToggle: (Boolean) -> Unit,
+    isLeaveAvailable: Boolean
 ) {
     var showParticipants by remember { mutableStateOf(false) }
-    Column {
-        DropdownMenuItem(
-            text = {
-                Text(
-                    text = room.departAt.formattedString(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.gray64
-                )
-            },
-            onClick = {},
-            enabled = false,
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = "Depart Time",
-                    tint = MaterialTheme.colorScheme.darkGray,
-                )
-            }
-        )
 
-        DropdownMenuItem(
-            text = {
-                Text(
-                    text = stringResource(
-                        R.string.room_participants,
-                        room.participants.size,
-                        room.capacity
-                    ),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            },
-            onClick = { showParticipants = !showParticipants },
-            leadingIcon = {
-                Icon(
-                    imageVector = Icons.Rounded.Group,
-                    contentDescription = "Participants",
-                    tint = MaterialTheme.colorScheme.darkGray,
-                )
-            },
-            trailingIcon = {
-                Icon(
-                    imageVector = if (showParticipants) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
-                    contentDescription = "Toggle participants",
-                    tint = MaterialTheme.colorScheme.darkGray
-                )
-            }
-        )
-
-
-    AnimatedVisibility(
-            visible = showParticipants,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            Column {
-                room.participants.forEach { participant ->
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(vertical = 4.dp, horizontal = 20.dp)
-                    ) {
-                        Text(
-                            text = participant.nickname,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.gray64
-                        )
-                        if (participant.hasCarrier) {
-                            Spacer(Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Outlined.WorkOutline,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        Surface(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Outlined.WorkOutline,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.darkGray
-                    )
-                    Spacer(Modifier.width(16.dp))
-                    Column {
-                        Text(
-                            text = stringResource(R.string.carrier_status_title),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-                        Text(
-                            text = stringResource(R.string.carrier_status_description),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.gray64
-                        )
-                    }
-                }
-
-                Spacer(Modifier.padding(8.dp))
-
-                Surface(
-                    onClick = { onCarrierToggle(!isMineCarrier) },
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (isMineCarrier) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.background,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-                ) {
-                    Text(
-                        text = if (isMineCarrier) stringResource(R.string.carrier_status_yes) else stringResource(R.string.carrier_status_no),
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        style = MaterialTheme.typography.labelLarge
-                    )
-                }
-            }
-        }
-    }
-    HorizontalDivider(
-        color = MaterialTheme.colorScheme.lightGray0,
-        modifier = Modifier.padding(4.dp)
-    )
-}
-
-@Composable
-private fun BottomDropDownItems(
-    onClickLeave: () -> Unit,
-    isLeaveAvailable: Boolean
-){
     DropdownMenuItem(
-        text = {
-            Text(
-                text = stringResource(R.string.leave),
-                color = if(isLeaveAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.grayBB
-            ) },
-        onClick = { onClickLeave() },
-        enabled = isLeaveAvailable,
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.Logout,
-                contentDescription = "Leave Room",
-                tint = if(isLeaveAvailable) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.grayBB
-            )
+        text = { Text(stringResource(R.string.share)) },
+        leadingIcon = { Icon(Icons.Outlined.Share, contentDescription = null) },
+        onClick = onClickShare
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.call_taxi)) },
+        leadingIcon = { Icon(Icons.Outlined.LocalTaxi, contentDescription = null) },
+        onClick = onClickCallTaxi
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.report)) },
+        leadingIcon = { Icon(Icons.Outlined.Report, contentDescription = null) },
+        onClick = onClickReport,
+        enabled = room.participants.size > 1
+    )
+
+    HorizontalDivider()
+
+    // The departure time is information, not an action.
+    DropdownMenuItem(
+        text = { Text(room.departAt.formattedString()) },
+        leadingIcon = { Icon(Icons.Outlined.Schedule, contentDescription = null) },
+        onClick = {},
+        enabled = false
+    )
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.room_participants, room.participants.size, room.capacity)) },
+        leadingIcon = { Icon(Icons.Outlined.Group, contentDescription = null) },
+        trailingIcon = {
+            Icon(if (showParticipants) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore, contentDescription = null)
+        },
+        onClick = { showParticipants = !showParticipants }
+    )
+    AnimatedVisibility(visible = showParticipants) {
+        Column {
+            room.participants.forEach { participant ->
+                DropdownMenuItem(
+                    text = { Text(participant.nickname) },
+                    // Indented under the participants row, with a mark for who brings luggage.
+                    leadingIcon = { Spacer(Modifier.width(24.dp)) },
+                    trailingIcon = if (participant.hasCarrier) {
+                        { Icon(Icons.Outlined.Luggage, contentDescription = stringResource(R.string.carrier_status_title)) }
+                    } else null,
+                    onClick = {},
+                    enabled = false
+                )
+            }
         }
+    }
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.carrier_status_title)) },
+        leadingIcon = { Icon(Icons.Outlined.Luggage, contentDescription = null) },
+        trailingIcon = { Switch(checked = isMineCarrier, onCheckedChange = null) },
+        onClick = { onCarrierToggle(!isMineCarrier) },
+        modifier = Modifier.semantics { role = Role.Switch }
+    )
+
+    HorizontalDivider()
+
+    DropdownMenuItem(
+        text = { Text(stringResource(R.string.leave)) },
+        leadingIcon = { Icon(Icons.AutoMirrored.Outlined.Logout, contentDescription = null) },
+        onClick = onClickLeave,
+        enabled = isLeaveAvailable,
+        colors = MenuDefaults.itemColors(
+            textColor = MaterialTheme.colorScheme.error,
+            leadingIconColor = MaterialTheme.colorScheme.error
+        )
     )
 }
 
-
 @Composable
-private fun IconWithText(
-    icon: ImageVector,
-    text: String,
-    onClick: () -> Unit,
-    isEnabled: Boolean = true
-) {
-    val contentColor = if (isEnabled) {
-        MaterialTheme.colorScheme.onBackground
-    } else {
-        MaterialTheme.colorScheme.grayBB
-    }
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-        modifier = Modifier
-            .padding(8.dp)
-            .clickable(
-                enabled = isEnabled,
-                onClick = onClick
-            )
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = text,
-            tint = contentColor
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = contentColor
-        )
-    }
-}
-
-@Composable
-@Preview
-private fun Preview(){
+@Preview(showBackground = true)
+private fun Preview() {
     Theme {
-        Box(Modifier.fillMaxSize()){
-            Button(
-                onClick = {}
-            ) {
-                TaxiChatViewDropDownMenu(room = TaxiRoom.mock(), true, {}, {}, {},{}, {}, true)
+        Surface(color = MaterialTheme.colorScheme.surfaceContainer, modifier = Modifier.width(280.dp)) {
+            Column {
+                TaxiChatMenuItems(room = TaxiRoom.mock(), isMineCarrier = true, {}, {}, {}, {}, {}, isLeaveAvailable = true)
             }
         }
     }
