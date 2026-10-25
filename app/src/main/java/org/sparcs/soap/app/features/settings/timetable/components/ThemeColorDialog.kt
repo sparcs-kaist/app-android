@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -50,8 +49,6 @@ internal fun ThemeColorDialog(
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.theme_change_color)) },
-        shape = RoundedCornerShape(16.dp),
-        containerColor = MaterialTheme.colorScheme.background,
         text = {
             Column(
                 Modifier.verticalScroll(rememberScrollState()),
@@ -61,7 +58,7 @@ internal fun ThemeColorDialog(
                     Modifier
                         .fillMaxWidth()
                         .height(64.dp)
-                        .background(TimetableTheme.color(validHex), RoundedCornerShape(16.dp))
+                        .background(TimetableTheme.color(validHex), MaterialTheme.shapes.medium)
                 )
                 OutlinedTextField(
                     hex,
