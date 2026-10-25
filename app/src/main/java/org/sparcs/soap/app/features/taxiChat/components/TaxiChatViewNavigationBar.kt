@@ -11,7 +11,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,12 +57,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.helpers.Constants
 import org.sparcs.soap.app.domain.models.taxi.TaxiParticipant
 import org.sparcs.soap.app.domain.models.taxi.TaxiRoom
 import org.sparcs.soap.app.features.navigationBar.components.BackButton
+import org.sparcs.soap.app.features.settings.components.TapTooltip
 import org.sparcs.soap.app.shared.extensions.formattedString
 import org.sparcs.soap.app.shared.mocks.taxi.mock
 import org.sparcs.soap.app.theme.ui.Theme
@@ -91,7 +90,6 @@ fun TaxiChatViewNavigationBar(
         room.destination.title,
         shareUrl
     )
-    var showPopover by remember { mutableStateOf(false) }
     var showArrivalSheet by remember { mutableStateOf(false) }
     val sheetState = rememberModalBottomSheetState()
 
@@ -117,10 +115,9 @@ fun TaxiChatViewNavigationBar(
 
                         Spacer(Modifier.width(4.dp))
 
-                        Text(
-                            text = room.emojiIdentifier.display,
-                            modifier = Modifier.clickable { showPopover = true }
-                        )
+                        TapTooltip(stringResource(R.string.taxi_room_emoji_description)) {
+                            Text(text = room.emojiIdentifier.display)
+                        }
                     }
                     if (!isLandscape) {
                         Text(
@@ -181,26 +178,6 @@ fun TaxiChatViewNavigationBar(
             containerColor = MaterialTheme.colorScheme.surface
         ) {
             TaxiArrivalStatusContent(participants = room.participants)
-        }
-    }
-
-    if (showPopover) {
-        Popup(
-            alignment = Alignment.TopCenter,
-            onDismissRequest = { showPopover = false }
-        ) {
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(8.dp),
-                shadowElevation = 4.dp,
-                modifier = Modifier.width(250.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.taxi_room_emoji_description),
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(12.dp)
-                )
-            }
         }
     }
 }

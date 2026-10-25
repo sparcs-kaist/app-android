@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun InfoTooltip(
     tooltipText: String,
@@ -31,11 +30,34 @@ fun InfoTooltip(
     tint: Color = Color.Unspecified,
     iconSize: Dp = 20.dp
 ) {
-    val tooltipState = rememberTooltipState()
+    TapTooltip(tooltipText) {
+        if (icon != null) {
+            Icon(
+                painter = icon,
+                contentDescription = null,
+                modifier = Modifier.size(iconSize),
+                tint = tint
+            )
+        } else if (imageVector != null) {
+            Icon(
+                imageVector = imageVector,
+                contentDescription = null,
+                modifier = Modifier.size(iconSize),
+                tint = tint
+            )
+        }
+    }
+}
+
+/** Material's rich tooltip on [content], shown when it is tapped. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TapTooltip(tooltipText: String, content: @Composable () -> Unit) {
+    val tooltipState = rememberTooltipState(isPersistent = true)
     val scope = rememberCoroutineScope()
 
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
         tooltip = {
             RichTooltip {
                 Text(text = tooltipText)
@@ -47,25 +69,13 @@ fun InfoTooltip(
             modifier = Modifier
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClickLabel = tooltipText,
                 ) {
                     scope.launch { tooltipState.show() }
                 }
         ) {
-            if (icon != null) {
-                Icon(
-                    painter = icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(iconSize),
-                    tint = tint
-                )
-            } else if (imageVector != null) {
-                Icon(
-                    imageVector = imageVector,
-                    contentDescription = null,
-                    modifier = Modifier.size(iconSize),
-                    tint = tint
-                )
-            }
+            content()
         }
     }
 }
