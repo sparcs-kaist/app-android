@@ -38,6 +38,7 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.helpers.TimetableConstructor.hoursWidth
 import org.sparcs.soap.app.domain.helpers.TimetableTheme
+import org.sparcs.soap.app.shared.formatters.formatHour
 import org.sparcs.soap.widgets.buddyUpcomingClassWidget.WidgetLectureEntry
 import org.sparcs.soap.widgets.theme.ui.TimetableWidgetTheme.grayBB
 import kotlin.math.ceil
@@ -138,8 +139,9 @@ fun TimetableLargeWidgetView(
     val endHour = (maxMin + 59) / 60
     val totalHours = (endHour - startHour).coerceAtLeast(1)
 
-    val metrics = LocalContext.current.resources.displayMetrics
-    val fontScale = LocalContext.current.resources.configuration.fontScale
+    val context = LocalContext.current
+    val metrics = context.resources.displayMetrics
+    val fontScale = context.resources.configuration.fontScale
     val headerHeight = 22.dp
     val labelHeight = 16 * fontScale
     val topInset = labelHeight / 2
@@ -165,7 +167,7 @@ fun TimetableLargeWidgetView(
                                     modifier = GlanceModifier.fillMaxWidth().height(labelHeight.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(hour.toString(), style = TextStyle(fontSize = 10.sp, color = labelColor ?: GlanceTheme.colors.onSurfaceVariant, textAlign = TextAlign.Center))
+                                    Text(context.formatHour(hour), style = TextStyle(fontSize = 10.sp, color = labelColor ?: GlanceTheme.colors.onSurfaceVariant, textAlign = TextAlign.Center))
                                 }
                             }
                         }

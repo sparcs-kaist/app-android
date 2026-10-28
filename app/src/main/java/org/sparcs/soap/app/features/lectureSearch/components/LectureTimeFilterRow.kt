@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.LectureTimeFilter
+import org.sparcs.soap.app.shared.formatters.formattedTime
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -73,7 +74,7 @@ private fun TimeField(label: String, value: Int?, options: List<Int>, modifier: 
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }, modifier = modifier) {
         OutlinedTextField(
-            value = value?.let(::formatTime) ?: stringResource(R.string.lecture_time_any),
+            value = value?.let { formattedTime(it) } ?: stringResource(R.string.lecture_time_any),
             onValueChange = {},
             readOnly = true,
             singleLine = true,
@@ -95,7 +96,7 @@ private fun TimeField(label: String, value: Int?, options: List<Int>, modifier: 
             )
             options.forEach { minutes ->
                 DropdownMenuItem(
-                    text = { Text(formatTime(minutes)) },
+                    text = { Text(formattedTime(minutes)) },
                     onClick = { onChange(minutes); expanded = false },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                 )
@@ -103,5 +104,3 @@ private fun TimeField(label: String, value: Int?, options: List<Int>, modifier: 
         }
     }
 }
-
-private fun formatTime(minutes: Int) = "%02d:%02d".format(minutes / 60, minutes % 60)

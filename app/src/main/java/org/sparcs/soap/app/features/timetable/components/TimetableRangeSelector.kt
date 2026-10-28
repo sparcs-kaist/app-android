@@ -21,6 +21,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -35,6 +36,8 @@ import org.sparcs.soap.R
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.LectureTimeFilter
 import org.sparcs.soap.app.domain.models.otl.Timetable
+import org.sparcs.soap.app.shared.formatters.formatTime
+import org.sparcs.soap.app.shared.formatters.formatTimeRange
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import kotlin.math.abs
 import org.sparcs.soap.app.domain.models.otl.TimetableRangeSelection as Selection
@@ -49,6 +52,7 @@ fun TimetableRangeSelector(
     var draft by remember { mutableStateOf<LectureTimeFilter?>(null) }
     val onChange by rememberUpdatedState(onFilterChange)
     val shown = draft ?: filter
+    val context = LocalContext.current
     val days = DayType.weekdays()
     val label = stringResource(R.string.lecture_time_filter)
     val hint = stringResource(R.string.time_range_hint)
@@ -59,7 +63,7 @@ fun TimetableRangeSelector(
     ).map { stringResource(it) }
     val description = if (shown.isEmpty) anyTime else listOfNotNull(
         shown.day?.let { stringResource(it.fullStringValue) },
-        "${clockTime(shown.begin ?: Selection.start)}\u2013${clockTime(shown.end ?: Selection.end)}",
+        context.formatTimeRange(shown.begin ?: Selection.start, shown.end ?: Selection.end),
     ).joinToString(", ")
     val accent = MaterialTheme.colorScheme.primary
     val textMeasurer = rememberTextMeasurer()
@@ -198,7 +202,7 @@ fun TimetableRangeSelector(
                     if (blockSize.height > 40.dp.toPx()) {
                         drawText(
                             textMeasurer,
-                            "${clockTime(begin)}\n${clockTime(end)}",
+                            "${context.formatTime(begin)}\n${context.formatTime(end)}",
                             topLeft = position + Offset(6.dp.toPx(), 6.dp.toPx()),
                             style = selectionTextStyle.copy(color = selectionText),
                             size = blockSize,
@@ -211,4 +215,3 @@ fun TimetableRangeSelector(
     }
 }
 
-private fun clockTime(minutes: Int) = "%02d:%02d".format(minutes / 60, minutes % 60)

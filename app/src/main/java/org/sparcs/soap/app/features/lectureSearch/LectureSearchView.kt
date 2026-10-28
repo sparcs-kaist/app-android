@@ -44,6 +44,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -64,6 +65,7 @@ import org.sparcs.soap.app.features.navigationBar.Channel
 import org.sparcs.soap.app.features.timetable.TimetableViewModel
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.formatters.formatTimeRange
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.LocalTipStore
 import org.sparcs.soap.app.theme.ui.Theme
@@ -238,12 +240,11 @@ private fun LectureRowTimeInfo(
     val slots = remember(lecture.classes) {
         lecture.classes.groupBy { it.begin to it.end }.entries.sortedBy { it.key.first }
     }
+    val context = LocalContext.current
     val times = slots.map { (slot, classes) ->
         val days = classes.map { it.day }.distinct().sortedBy { it.value }
             .map { stringResource(it.stringValue) }.joinToString(", ")
-        val begin = "%02d:%02d".format(slot.first / 60, slot.first % 60)
-        val end = "%02d:%02d".format(slot.second / 60, slot.second % 60)
-        "$days $begin \u2013 $end"
+        "$days ${context.formatTimeRange(slot.first, slot.second)}"
     }.joinToString(" \u00b7 ")
 
     Text(

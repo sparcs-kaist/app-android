@@ -1,6 +1,5 @@
 package org.sparcs.soap.app.features.timetable.activity
 
-import android.text.format.DateFormat
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -57,8 +56,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
@@ -79,6 +76,7 @@ import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.models.otl.withActivityTimes
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.formatters.formattedTime
 import org.sparcs.soap.app.shared.mocks.otl.mock
 import org.sparcs.soap.app.shared.tips.BuddyTip
 import org.sparcs.soap.app.shared.tips.LocalTipStore
@@ -87,23 +85,11 @@ import org.sparcs.soap.app.shared.views.contentViews.PickerField
 import org.sparcs.soap.app.shared.views.contentViews.TimeWheel
 import org.sparcs.soap.app.theme.ui.Theme
 import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
-/**
- * A time of day in the system's 12- or 24-hour style, like "9:30 AM" or "09:30". The formatter is
- * built once per call site, since this runs on every frame while a time wheel scrolls.
- */
 @Composable
 internal fun activityTime(minutes: Int): String {
-    val is24Hour = DateFormat.is24HourFormat(LocalContext.current)
-    val locale = LocalConfiguration.current.locales[0]
-    val formatter = remember(is24Hour, locale) {
-        val skeleton = if (is24Hour) "HHmm" else "hmma"
-        DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale)
-    }
-    if (minutes == 1440) return stringResource(R.string.activity_midnight)
-    return LocalTime.of(minutes / 60, minutes % 60).format(formatter)
+    val time = formattedTime(minutes)
+    return if (minutes == 1440) stringResource(R.string.activity_midnight) else time
 }
 
 @Composable

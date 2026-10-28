@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import org.sparcs.soap.app.domain.enums.otl.DayType
 import org.sparcs.soap.app.domain.models.otl.Timetable
 import org.sparcs.soap.app.domain.models.otl.activitySlots
+import org.sparcs.soap.app.shared.formatters.formatHour
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import kotlin.math.roundToInt
 
@@ -44,6 +46,7 @@ internal fun TimetableSelectionBackground(
     endMinute: Int = 1440,
 ) {
     val density = LocalDensity.current
+    val context = LocalContext.current
     val outline =
         LocalTimetableTheme.current.separatorColor ?: MaterialTheme.colorScheme.outlineVariant
     Box(modifier.clipToBounds()) {
@@ -59,7 +62,7 @@ internal fun TimetableSelectionBackground(
             }
         }
         for (hour in startMinute / 60..endMinute / 60) Text(
-            "%02d".format(hour),
+            context.formatHour(hour),
             Modifier
                 .offset {
                     IntOffset(

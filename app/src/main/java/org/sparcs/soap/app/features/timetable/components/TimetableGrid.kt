@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +51,7 @@ import org.sparcs.soap.app.domain.models.otl.TimetableActivity
 import org.sparcs.soap.app.domain.models.otl.activityFor
 import org.sparcs.soap.app.domain.models.otl.activitySlots
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
+import org.sparcs.soap.app.shared.formatters.formatHour
 import org.sparcs.soap.app.theme.ui.LocalTimetableTheme
 import org.sparcs.soap.app.theme.ui.Theme
 import org.sparcs.soap.app.theme.ui.grayBB
@@ -293,12 +295,13 @@ private fun TimesRowHeader(minMinutes: Int, maxMinutes: Int) {
             .width(TimetableConstructor.hoursWidth)
             .fillMaxHeight()
     ) {
+        val context = LocalContext.current
         val totalHours = maxHour - minHour
         val spacing = (maxHeight - 15.dp) / totalHours
 
         (minHour until maxHour).forEachIndexed { index, hour ->
             Text(
-                text = hour.toString(),
+                text = context.formatHour(hour),
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
                 color = LocalTimetableTheme.current.gridLabelColor

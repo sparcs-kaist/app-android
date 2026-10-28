@@ -1,8 +1,10 @@
 package org.sparcs.soap.widgets.buddyUpcomingClassWidget
 
+import android.content.Context
 import kotlinx.serialization.Serializable
 import org.sparcs.soap.app.domain.enums.otl.DayType
-import java.util.Locale
+import org.sparcs.soap.app.shared.formatters.formatTime
+import org.sparcs.soap.app.shared.formatters.formatTimeRange
 
 @Serializable
 data class WidgetLectureEntry(
@@ -21,16 +23,12 @@ data class WidgetLectureEntry(
 ) {
     companion object
 
-    val formattedTimeRange: String
-        get() {
-            val start = startMinutes ?: 0
-            val duration = durationMinutes ?: 0
-            val end = start + duration
+    fun formattedStartTime(context: Context): String = context.formatTime(startMinutes ?: 0)
 
-            fun Int.toTime(): String = String.format(Locale.ROOT,  "%02d:%02d", (this / 60) % 24, this % 60)
-
-            return "${start.toTime()} - ${end.toTime()}"
-        }
+    fun formattedTimeRange(context: Context): String {
+        val start = startMinutes ?: 0
+        return context.formatTimeRange(start, start + (durationMinutes ?: 0))
+    }
 }
 
 fun WidgetLectureEntry.Companion.mock(): WidgetLectureEntry {

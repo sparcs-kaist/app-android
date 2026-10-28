@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,6 +31,7 @@ import org.sparcs.soap.app.features.lectureSearch.LectureSearchViewModelProtocol
 import org.sparcs.soap.app.features.timetable.TimetableViewModelProtocol
 import org.sparcs.soap.app.features.timetable.components.TimetableRangeSelector
 import org.sparcs.soap.app.shared.extensions.analyticsScreen
+import org.sparcs.soap.app.shared.formatters.formatTimeRange
 import org.sparcs.soap.app.theme.ui.Theme
 
 @Composable
@@ -83,7 +85,7 @@ fun LectureTimeRangeContent(
                 if (time.isEmpty) stringResource(R.string.time_range_hint)
                 else listOfNotNull(
                     time.day?.let { stringResource(it.fullStringValue) },
-                    "%02d:%02d - %02d:%02d".format(begin / 60, begin % 60, end / 60, end % 60),
+                    LocalContext.current.formatTimeRange(begin, end),
                 ).joinToString(" "),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp),

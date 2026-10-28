@@ -71,7 +71,7 @@ fun UpcomingClassSmallWidgetView(entry: WidgetLectureEntry) {
             Spacer(modifier = GlanceModifier.defaultWeight())
 
             Text(
-                text = entry.formattedTimeRange,
+                text = entry.formattedTimeRange(context),
                 style = TextStyle(
                     color = ColorProvider(day = backgroundColor, night = backgroundColor),
                     fontSize = 13.sp,

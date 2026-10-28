@@ -33,7 +33,7 @@ fun UpcomingClassInlineWidgetView(entry: WidgetLectureEntry) {
                     color = GlanceTheme.colors.onSurface)
             )
         } else if (entry.title != null) {
-            val startTime = entry.formattedTimeRange.substringBefore("-").trim()
+            val startTime = entry.formattedStartTime(context)
             Text(
                 text = "$startTime • ${entry.title}",
                 maxLines = 1,

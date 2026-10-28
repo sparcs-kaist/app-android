@@ -56,7 +56,7 @@ fun UpcomingClassRectangleWidgetView(entry: WidgetLectureEntry) {
                 Spacer(modifier = GlanceModifier.width(6.dp))
 
                 Text(
-                    text = entry.formattedTimeRange,
+                    text = entry.formattedTimeRange(context),
                     style = TextStyle(
                         color = ColorProvider(day = backgroundColor, night = backgroundColor),
                         fontSize = 13.sp,
